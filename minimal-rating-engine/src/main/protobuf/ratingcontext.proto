@@ -1,0 +1,33 @@
+package tutorial;
+
+option java_package = "com.dreameddeath.couchbase_testing";
+option java_outer_classname = "RatingContextProtos";
+
+message RatingBucket {
+    required string name=1;
+    required sfixed32 startAmount=2;
+    required sfixed32 remainingAmount=3;
+}
+
+message Cdrs{
+    required int32 cdrType=1;
+    required string cdrCaller=2;
+    required string cdrCallee=3;
+    required int32 duration=4;
+    
+}
+
+message RatingContext {
+  required string name = 1;
+  required int32 id = 2;
+  
+  repeated RatingBucket buckets=3;
+  repeated Cdrs cdrs=4;
+  required string finishing=5;
+}
+  
+message RatingContextAppender{
+  repeated RatingBucket buckets=3;
+  repeated Cdrs cdrs=4;
+  required string finishing=5;
+}
