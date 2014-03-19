@@ -1,0 +1,34 @@
+package rating_engine;
+
+option java_package = "com.dreameddeath.rating.storage";
+option java_outer_classname = "ActiveCdrsProtos";
+
+message NormalCdr{
+    required string uid=1;
+    required bytes rawData=2;
+    repeated bytes ratingResults=3; //a normal Cdr may have rating results when done in a compact form
+    optional bool isDuplicate=4; //Tell that this uid is a duplicate (purge can only be done at compaction time)
+}
+
+
+message RatingResultCdrRecord{ 
+    required string uid=1;
+    required bytes ratingResult=2;
+    optional bool isDuplicate=4;//Tell that this uid is a duplicate (purge can only be done at compaction time)
+}
+
+message NormalCdrsAppender{ //Class used to append when adding cdrs to be rated or compacting results
+    repeated NormalCdr normalCdrs=1;
+    required bytes endingCheckSum=5;
+}
+
+message RatingResultAppender{ //Class used to append for rating result Comparing with rating result
+    repeated RatingResultCdrRecord ratingResultCdrs=2;
+    required bytes endingCheckSum=5;
+}
+
+message OverallCdrsMessage{ //Reading Class concatenating all messages
+    repeated NormalCdr normalCdrs=1;
+    repeated RatingResultCdrRecord ratingResultCdrs=2;
+    required bytes endingCheckSum=5; //Check not used for reading
+}

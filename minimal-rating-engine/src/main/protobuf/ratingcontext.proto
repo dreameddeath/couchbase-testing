@@ -14,7 +14,10 @@ message Cdrs{
     required string cdrCaller=2;
     required string cdrCallee=3;
     required int32 duration=4;
-    
+}
+
+message RatingDoneMarker{
+
 }
 
 message RatingContext {
@@ -25,7 +28,7 @@ message RatingContext {
   repeated Cdrs cdrs=4;
   required string finishing=5;
 }
-  
+
 message RatingContextAppender{
   repeated RatingBucket buckets=3;
   repeated Cdrs cdrs=4;
