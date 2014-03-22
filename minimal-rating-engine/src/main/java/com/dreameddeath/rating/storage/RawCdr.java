@@ -13,7 +13,8 @@ public class RawCdr{
     private String _uid;
     private byte[] _cdrData;
     private List<byte[]> _ratingResults;
-    private boolean _isDuplicate;
+    private boolean _isDuplicated;
+    private boolean _isDiscarded;
     private Integer _overheadCounter;//Maintain a counter of overhead to check if compaction is required
     
     /**
@@ -22,7 +23,8 @@ public class RawCdr{
     */
     public RawCdr(String uid){
         this._uid = uid;
-        this._isDuplicate = false;
+        this._isDuplicated = false;
+        this._isDiscarded = false;
         this._overheadCounter=0;
     }
 
@@ -30,16 +32,32 @@ public class RawCdr{
     *  Getter for duplicate Flag
     *  @return the duplicated flag
     */
-    public boolean isDuplicate(){
-        return this._isDuplicate;
+    public boolean isDuplicated(){
+        return this._isDuplicated;
     }
 
     /**
     *  Setter for duplicate Flag
     *  @param the new duplicated flag
     */
-    public void setDuplicate(boolean isDuplicate){
-        this._isDuplicate=isDuplicate;
+    public void setDuplicated(boolean isDuplicated){
+        this._isDuplicated=isDuplicated;
+    }
+
+/**
+    *  Getter for discarded Flag
+    *  @return the discarded flag
+    */
+    public boolean isDiscarded(){
+        return this._isDiscarded;
+    }
+
+    /**
+    *  Setter for discarded Flag
+    *  @param the new discarded flag
+    */
+    public void setDiscarded(boolean isDiscarded){
+        this._isDiscarded=isDiscarded;
     }
 
     
@@ -72,7 +90,8 @@ public class RawCdr{
     *  Getter for rating results
     *  @return a List of rating Results
     */
-    public List<byte[]> getCdrRatingResults(){
+    public List<byte[]> getRatingResults(){
+        if(this._ratingResults==null){ return new ArrayList<byte[]>();}
         return this._ratingResults;
     }
     
@@ -80,7 +99,7 @@ public class RawCdr{
     *  Setter for the rating ordered results (one per rating attempt)
     *  @param ratingResults 
     */
-    public void setCdrRatingResults(List<byte[]> ratingResults){
+    public void setRatingResults(List<byte[]> ratingResults){
         this._ratingResults=ratingResults;
     }
     
@@ -88,7 +107,7 @@ public class RawCdr{
     *  Appender for a rating result
     *  @param ratingResult a rating result to be appended
     */
-    public void addCdrRatingResults(byte[] ratingResults){
+    public void addRatingResult(byte[] ratingResults){
         if(this._ratingResults == null){
             this._ratingResults = new ArrayList<byte[]>();
         }
@@ -96,7 +115,7 @@ public class RawCdr{
     }
     
     /**
-    *  Increment overhead (when detecting uncompacted raw + rated Cdr)
+    *  Increment overhead (when detecting uncompacted raw + rated Cdr separately)
     */
     public void incOverheadCounter(){
         this._overheadCounter++;
@@ -108,6 +127,22 @@ public class RawCdr{
     */
     public int getOverheadCounter(){
         return this._overheadCounter++;
+    }
+    
+    /**
+    *  Convert to string
+    */
+    @Override
+    public String toString(){
+        String result = "{\n\tCdr : <"+getUid()+">\n";
+        if(_cdrData!=null){
+            result += "\t Raw Data : <"+new String(_cdrData)+">\n";
+        }
+        for(byte[] rating:getRatingResults()){
+            result += "\t Rating Result : <"+new String(rating)+">\n";
+        }
+        result+="}";
+        return result;
     }
     
 }
