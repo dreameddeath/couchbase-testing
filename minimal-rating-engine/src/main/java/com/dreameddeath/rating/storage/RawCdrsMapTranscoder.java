@@ -4,10 +4,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.io.Externalizable;
+
+
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import net.spy.memcached.transcoders.Transcoder;
+import net.spy.memcached.CachedData;
+
+
+import com.dreameddeath.common.storage.CouchbaseConstants;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.NormalCdr; 
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.RatingResultCdrRecord;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.OverallCdrsMessage;
@@ -19,27 +27,60 @@ import com.dreameddeath.rating.storage.ActiveCdrsProtos.RatingResultAppender;
 *  Perform a checksum calculation (length) to allow rating request detection through couchbase request
 *  The only contraint it that the Cdrs must have a unique id
 */
-public class RatingStorageManager{
+public abstract class RawCdrsMapTranscoder<T extends RawCdr> implements Transcoder<RawCdrsMap<T>>{
+    abstract protected T rawCdrBuilder(String uid);
+    
+    
+    @Override
+    public int getMaxSize(){
+        return CachedData.MAX_SIZE;
+    }
+    
+    @Override
+    public boolean asyncDecode(CachedData cachedData){
+        return false;
+    }
+    
+    
+    @Override
+    public RawCdrsMap<T> decode(CachedData cachedData){
+        RawCdrsMap<T> result = new RawCdrsMap<T>(cachedData.getData().length, CouchbaseConstants.DocumentFlag.unPack(cachedData.getFlags()),false);
+        try{
+            unpackStorageDocument(result,cachedData.getData());
+        }
+        catch(InvalidProtocolBufferException e){
+            ///TODO manage Error
+            return null;
+        }
+        return result;
+    }
+    
+    
+    @Override
+    public CachedData encode(RawCdrsMap<T> input){
+        return new CachedData(CouchbaseConstants.DocumentFlag.pack(input.getFlags()),packStorageDocument(input),CachedData.MAX_SIZE);
+    }
+    
+
 
     /**
     *   Unpack a message containing Cdrs
-    *   @param message the array of bytes being the message containing cdrs
+    *   @param cdrsMap the resulting content
+    *   @param message the message to unpack
     *   @throws InvalidProtocolBufferException when the message isn't well formatted
     *   @return a list of RawCdr for successfull found cdrs
     */
-    public static Collection<RawCdr> unpackStorageDocument(byte[] message) throws InvalidProtocolBufferException{
-        Map<String,RawCdr> cdrsMap = new HashMap<String,RawCdr>();
-        
+    private  void unpackStorageDocument(RawCdrsMap<T> cdrsMap, byte[] message) throws InvalidProtocolBufferException{
         //Unpack Cdrs
         OverallCdrsMessage unpackedMessage = OverallCdrsMessage.parseFrom(message);
         
         //Normal Cdrs uncompress and fill-up Hash Map
         for(NormalCdr unpackedCdr :unpackedMessage.getNormalCdrsList()){
-            RawCdr foundCdr=new RawCdr(unpackedCdr.getUid());
-            foundCdr.setCdrData(unpackedCdr.getRawData().toByteArray());
+            T foundCdr=rawCdrBuilder(unpackedCdr.getUid());
+            foundCdr.setCdrDataSerialized(unpackedCdr.getRawData().toByteArray());
             if(unpackedCdr.getRatingResultsCount()>0){
                 for(ByteString ratingResult:unpackedCdr.getRatingResultsList()){
-                    foundCdr.addRatingResult(ratingResult.toByteArray());
+                    foundCdr.addRatingResultSerialized(ratingResult.toByteArray());
                 }
             }
             if(unpackedCdr.hasIsDuplicated()){
@@ -50,17 +91,17 @@ public class RatingStorageManager{
             }
             
             ///TODO duplicate management exception
-            cdrsMap.put(foundCdr.getUid(),foundCdr);
+            cdrsMap.add(foundCdr);
         }
         
         //Additional Rating unpacking (rating and duplicate checks)
         for(RatingResultCdrRecord unpackedRatingResult:unpackedMessage.getRatingResultCdrsList()){
-            RawCdr foundCdr = cdrsMap.get(unpackedRatingResult.getUid());
+            T foundCdr = cdrsMap.get(unpackedRatingResult.getUid());
             ///TODO not found management exception
             if(foundCdr!=null){
                 if(unpackedRatingResult.getRatingResultsCount()>0){
                     for(ByteString ratingResult:unpackedRatingResult.getRatingResultsList()){
-                        foundCdr.addRatingResult(ratingResult.toByteArray());
+                        foundCdr.addRatingResultSerialized(ratingResult.toByteArray());
                     }
                 }
                 if(unpackedRatingResult.hasIsDuplicated()){
@@ -72,27 +113,26 @@ public class RatingStorageManager{
                 foundCdr.incOverheadCounter();
             }            
         }
-        System.out.println("Output message size "+unpackedMessage.getEndingCheckSum());
-        return cdrsMap.values();
+        cdrsMap.setCheckSum(unpackedMessage.getEndingCheckSum());
+        //System.out.println("Output message size "+unpackedMessage.getEndingCheckSum());
     }
     
     
     /**
     *   pack a message for given list of Cdrs
-    *   @param cdrsList List of Cdrs to be added
-    *   @param isPureRating Tell that the building should be made as a result of rating (without full Cdr)
-    *   @param previousBucketSize give the previous cdr bucket size when dealing with cdrs to be rated
-    *   @return the array of bytes of the packed message (to be appended at the end of existing request)
+    *   @param cdrsToStoreList The cdrMap from which to submit cdrs
+     *   @return the array of bytes of the packed message (to be appended at the end of existing document)
     */
-    public static byte[] packStorageDocument(Collection<RawCdr> cdrsToStoreList,boolean isPureRating, int previousBucketSize){
-        if(isPureRating){
+    private byte[] packStorageDocument(RawCdrsMap<T> cdrsToStoreList){
+        if(cdrsToStoreList.isIncrementalRating()){
             RatingResultAppender.Builder ratingAppenderBuilder = RatingResultAppender.newBuilder();
              
-            for(RawCdr cdrToStore:cdrsToStoreList){
+            for(T cdrToStore:cdrsToStoreList.values()){
                 RatingResultCdrRecord.Builder cdrBuilder = RatingResultCdrRecord.newBuilder();
                 cdrBuilder.setUid(cdrToStore.getUid());
                 //Add rating result(s)
-                for(byte[] ratingResult:cdrToStore.getRatingResults()){
+                for(Object ratingResultObj : cdrToStore.getRatingResultsSerialized()){
+                    byte[] ratingResult = (byte[])ratingResultObj;
                     cdrBuilder.addRatingResults(ByteString.copyFrom(ratingResult));
                 }
                 if(cdrToStore.isDiscarded()){
@@ -104,25 +144,26 @@ public class RatingStorageManager{
                 ratingAppenderBuilder.addRatingResultCdrs(cdrBuilder.build());
             }
             //Add dummy value to calculate size
-            if(previousBucketSize<0){
+            if(cdrsToStoreList.getCurrDbSize()<0){
                 ratingAppenderBuilder.setEndingCheckSum(0);
             }
             else{
-                ratingAppenderBuilder.setEndingCheckSum(previousBucketSize);
-                ratingAppenderBuilder.setEndingCheckSum(previousBucketSize + ratingAppenderBuilder.build().getSerializedSize());
+                ratingAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getCurrDbSize());
+                ratingAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getCurrDbSize() + ratingAppenderBuilder.build().getSerializedSize());
             }
             return ratingAppenderBuilder.build().toByteArray();
         }
         else{
             NormalCdrsAppender.Builder normalAppenderBuilder = NormalCdrsAppender.newBuilder();
              
-            for(RawCdr cdrToStore:cdrsToStoreList){
+            for(T cdrToStore:cdrsToStoreList.values()){
                 NormalCdr.Builder cdrBuilder = NormalCdr.newBuilder();
                 cdrBuilder.setUid(cdrToStore.getUid());
-                cdrBuilder.setRawData(ByteString.copyFrom(cdrToStore.getCdrData()));
+                cdrBuilder.setRawData(ByteString.copyFrom(cdrToStore.getCdrDataSerialized()));
                 
                 //Add rating result(s)
-                for(byte[] ratingResult:cdrToStore.getRatingResults()){
+                for(Object ratingResultObj : cdrToStore.getRatingResultsSerialized()){
+                    byte[] ratingResult = (byte[])ratingResultObj;
                     cdrBuilder.addRatingResults(ByteString.copyFrom(ratingResult));
                 }
                 if(cdrToStore.isDiscarded()){
@@ -134,15 +175,14 @@ public class RatingStorageManager{
                 normalAppenderBuilder.addNormalCdrs(cdrBuilder.build());
             }
             //Add dummy value to calculate size
-            if(previousBucketSize<0){
+            if(cdrsToStoreList.getCurrDbSize()<0){
                 normalAppenderBuilder.setEndingCheckSum(0);
             }
             else{
-                normalAppenderBuilder.setEndingCheckSum(previousBucketSize);
-                normalAppenderBuilder.setEndingCheckSum(previousBucketSize + normalAppenderBuilder.build().getSerializedSize());
+                normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getCurrDbSize());
+                normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getCurrDbSize() + normalAppenderBuilder.build().getSerializedSize());
             }
             return normalAppenderBuilder.build().toByteArray();
         }
     }
-
 }

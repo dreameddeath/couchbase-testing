@@ -2,6 +2,7 @@ package com.dreamddeath.couchbase_testing;
 
 import com.couchbase.client.CouchbaseClient;
 import java.net.URI;
+import java.io.Externalizable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -12,33 +13,44 @@ import com.dreameddeath.couchbase_testing.RatingContextProtos.Cdrs;
 import com.dreameddeath.couchbase_testing.RatingContextProtos.RatingContextAppender;
 import com.google.protobuf.CodedOutputStream;
 */
-
+import net.spy.memcached.transcoders.Transcoder;
+import com.dreameddeath.common.storage.BinarySerializer;
 import com.dreameddeath.rating.storage.RawCdr;
-import com.dreameddeath.rating.storage.RatingStorageManager;
+import com.dreameddeath.rating.storage.RawCdrsMap;
+import com.dreameddeath.rating.storage.RawCdrsMapTranscoder;
 
 public class CouchbaseConnection {
-     /*class DecodedStructElem {
-        public int tag;
-        public int startPos;
-        public int endPos;
+     public static class StringSerializer implements BinarySerializer<String>{
+        public byte[] serialize(String str){
+            return str.getBytes();
+        }
+        public String deserialize(byte[] input){
+            return new String(input);
+        }
      }
-     byte[] encodeToBytes(byte[] src,int tag){
-        byte[] outputBytes=new byte[CodedOutputStream.computeInt32Size(1,src.length)+src.length];
-        CodedOutputStream encoder = CodedOutputStream.newInstance(outputBytes);
-        encoder.writeInt32(1,src.length);
-        encoder.writeRawBytes(src);
-        return outputBytes;
+     
+     public static class StringCdr extends RawCdr<String,String>{
+        private static StringSerializer _serializer = new StringSerializer();
+        
+        public StringCdr(String uid){
+            super(uid);
+        }
+        
+        @Override
+        protected BinarySerializer<String> getCdrDataSerializer(){
+            return _serializer;
+        }
+        protected BinarySerializer<String> getCdrRatingSerializer(){
+            return _serializer;
+        }
+   
      }
-
-     List<DecodedStructElem> decodeToBytes(byte[] src){
-        CodedInputStream
-        byte[] outputBytes=new byte[CodedOutputStream.computeInt32Size(1,src.length)+src.length];
-        CodedOutputStream encoder = CodedOutputStream.newInstance(outputBytes);
-        encoder.writeInt32(1,src.length);
-        encoder.writeRawBytes(src);
-        return outputBytes;
-     }*/
-
+     public static class StringCdrRatingTrancoder extends RawCdrsMapTranscoder<StringCdr>{
+        @Override
+        protected StringCdr rawCdrBuilder(String uid){
+            return new StringCdr(uid);
+        }
+     }
      public static void main(String[] args) throws Exception {
         // (Subset) of nodes in the cluster to establish a connection
         List<URI> hosts = Arrays.asList(
@@ -54,6 +66,37 @@ public class CouchbaseConnection {
         // Connect to the Cluster
         CouchbaseClient client = new CouchbaseClient(hosts, bucket, password);
      
+        StringCdrRatingTrancoder transcoder = new StringCdrRatingTrancoder();
+        //List<RawCdr> list=new ArrayList<RawCdr>();
+        RawCdrsMap<StringCdr> cdrsMap = new RawCdrsMap<StringCdr>();
+        for(int i=0;i<5;++i){
+            StringCdr cdr = new StringCdr("CDR_"+i);
+            cdr.setCdrData("BaseCdrContent_"+i);
+            cdrsMap.add(cdr);
+        }
+        
+        // Store a Document
+        client.set("my-first-document2",0,cdrsMap,transcoder).get();
+        RawCdrsMap<StringCdr> unpackedCdrsMap = client.get("my-first-document2", transcoder);
+        System.out.println("Result :\n"+unpackedCdrsMap.toString());
+        
+        RawCdrsMap<StringCdr> newCdrsMap = new RawCdrsMap<StringCdr>(unpackedCdrsMap.getCurrDbSize(),true);
+        int pos=0;
+        for(StringCdr cdr : unpackedCdrsMap.values()){
+            if(pos%2==0){
+                StringCdr updatedCdr = new StringCdr(cdr.getUid());
+                updatedCdr.addRatingResult("RatingContext_"+cdr.getUid());
+                updatedCdr.addRatingResult("RatingContext2_"+cdr.getUid());
+                newCdrsMap.add(updatedCdr);
+            }
+            pos++;
+        }
+        
+        client.append("my-first-document2",newCdrsMap,transcoder).get();
+        unpackedCdrsMap = client.get("my-first-document2", transcoder);
+        System.out.println("Result :\n"+unpackedCdrsMap.toString());
+        
+        
   /*      RatingContext.Builder ratingContextBuilder = RatingContext.newBuilder();
         ratingContextBuilder.setName("Christophe Jeunesse");
         ratingContextBuilder.setId(1234);
@@ -66,7 +109,7 @@ public class CouchbaseConnection {
             ratingContextBuilder.addBuckets(ratingBucketBuilder.build());
         }
         ratingContextBuilder.setFinishing("DONE");*/
-        List<RawCdr> list=new ArrayList<RawCdr>();
+        /*List<RawCdr> list=new ArrayList<RawCdr>();
         for(int i=0;i<5;++i){
             RawCdr cdr = new RawCdr("CDR_"+i);
             cdr.setCdrData(("BaseCdrContent_"+i).getBytes());
@@ -110,7 +153,7 @@ public class CouchbaseConnection {
         //RatingContext ctxt =RatingContext.parseFrom(message);
         // Retreive the Document and print it
         //System.out.println(ctxt.getName()+ " "+ctxt.getBucketsCount()+ " "+ctxt.getFinishing());
-     
+    
         // Shutting down properly
         client.shutdown();
   }

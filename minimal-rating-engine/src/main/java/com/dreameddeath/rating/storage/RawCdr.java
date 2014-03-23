@@ -1,21 +1,29 @@
 package com.dreameddeath.rating.storage;
 
 
+import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
+
+
+import com.dreameddeath.common.storage.BinarySerializer;
 /**
    class used to store raw result having as an hypothesis that a cdrs is represented by
    - identified by a unique id
    - a series of bytes for the orig data
    - a series of bytes for each rating attemps (or rerating attempts)
 */
-public class RawCdr{
+public abstract class RawCdr<T_CDRDATA,T_CDRRATING>{
+    
+    protected abstract BinarySerializer<T_CDRDATA> getCdrDataSerializer();
+    protected abstract BinarySerializer<T_CDRRATING> getCdrRatingSerializer();
+    
     private String _uid;
-    private byte[] _cdrData;
-    private List<byte[]> _ratingResults;
+    private T_CDRDATA _cdrData;
+    private List<T_CDRRATING> _ratingResults;
     private boolean _isDuplicated;
     private boolean _isDiscarded;
-    private Integer _overheadCounter;//Maintain a counter of overhead to check if compaction is required
+    private int _overheadCounter;//Maintain a counter of overhead to check if compaction is required
     
     /**
     * The constructor requires a uid
@@ -26,6 +34,7 @@ public class RawCdr{
         this._isDuplicated = false;
         this._isDiscarded = false;
         this._overheadCounter=0;
+        this._ratingResults=new ArrayList<T_CDRRATING>();
     }
 
     /**
@@ -70,48 +79,98 @@ public class RawCdr{
     }
 
     /**
-    *  Getter for the cdr base data
+    *  Getter for the cdr base data in serialized format
     *  @return array of bytes of representing the raw data of the cdr
     */
-    public byte[] getCdrData(){
+    public byte[] getCdrDataSerialized(){
+        return getCdrDataSerializer().serialize(this._cdrData);
+        //return this._cdrData;
+    }
+    
+    /**
+    *  Getter for the cdr base data
+    *  @return array of bytes of representing the data of the cdr
+    */
+    public T_CDRDATA getCdrData(){
         return this._cdrData;
     }
     
+    
     /**
     *  Setter for the cdr base data
-    *  @param data array of bytes of representing the raw data of the cdr
+    *  @param data the data of the cdr
     */
-    public void setCdrData(byte[] data){
+    public void setCdrData(T_CDRDATA data){
         this._cdrData=data;
     }
     
+    /**
+    *  Setter for the cdr base data in serialized format
+    *  @param data array of bytes of representing the raw data of the cdr
+    */
+    public void setCdrDataSerialized(byte[] data){
+        this._cdrData=getCdrDataSerializer().deserialize(data);
+    }
     
     /**
-    *  Getter for rating results
+    *  Getter for rating results in serialized format
+    *  @return a List of rating Results in serialized format
+    */
+    public Collection<byte[]> getRatingResultsSerialized(){
+        Collection<byte[]> result = new ArrayList<byte[]>();
+        
+        if(this._ratingResults!=null){
+            for(T_CDRRATING ratingResult:_ratingResults){
+                result.add(getCdrRatingSerializer().serialize(ratingResult));
+            }
+        }
+        return result;
+    }
+    
+    /**
+    *  Getter for rating results 
     *  @return a List of rating Results
     */
-    public List<byte[]> getRatingResults(){
-        if(this._ratingResults==null){ return new ArrayList<byte[]>();}
-        return this._ratingResults;
+    public Collection<T_CDRRATING> getRatingResults(){
+        return _ratingResults;
     }
     
     /**
     *  Setter for the rating ordered results (one per rating attempt)
-    *  @param ratingResults 
+    *  @param ratingResults the list of serialized rating result 
     */
-    public void setRatingResults(List<byte[]> ratingResults){
-        this._ratingResults=ratingResults;
+    public void setRatingResultsSerialized(Collection<byte[]> ratingResults){
+        this._ratingResults.clear();
+        for(byte[] ratingResult:ratingResults){
+            this._ratingResults.add(getCdrRatingSerializer().deserialize(ratingResult));
+        }
     }
     
     /**
-    *  Appender for a rating result
+    *  Setter for the rating ordered results (one per rating attempt)
+    *  @param ratingResults the list of serialized rating result 
+    */
+    public void setRatingResults(Collection<T_CDRRATING> ratingResults){
+        this._ratingResults.clear();
+        for(T_CDRRATING ratingResult:ratingResults){
+            this._ratingResults.add(ratingResult);
+        }
+    }
+    
+    /**
+    *  Appender for a rating result in serialized format
+    *  @param ratingResult a serialized rating result to be appended
+    */
+    public void addRatingResultSerialized(byte[] ratingResult){
+        this._ratingResults.add(getCdrRatingSerializer().deserialize(ratingResult));
+    }
+    
+    /**
+    *  Appender for a rating result 
     *  @param ratingResult a rating result to be appended
     */
-    public void addRatingResult(byte[] ratingResults){
-        if(this._ratingResults == null){
-            this._ratingResults = new ArrayList<byte[]>();
-        }
-        this._ratingResults.add(ratingResults);
+    public void addRatingResult(T_CDRRATING ratingResult){
+        this._ratingResults.add(ratingResult);
     }
     
     /**
@@ -126,7 +185,7 @@ public class RawCdr{
     *  @return the current overhead counter for given cdr
     */
     public int getOverheadCounter(){
-        return this._overheadCounter++;
+        return this._overheadCounter;
     }
     
     /**
@@ -136,9 +195,9 @@ public class RawCdr{
     public String toString(){
         String result = "{\n\tCdr : <"+getUid()+">\n";
         if(_cdrData!=null){
-            result += "\t Raw Data : <"+new String(_cdrData)+">\n";
+            result += "\t Raw Data : <"+new String(getCdrDataSerialized())+">\n";
         }
-        for(byte[] rating:getRatingResults()){
+        for(byte[] rating:getRatingResultsSerialized()){
             result += "\t Rating Result : <"+new String(rating)+">\n";
         }
         result+="}";
