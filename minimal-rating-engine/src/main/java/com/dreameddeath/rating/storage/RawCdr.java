@@ -195,10 +195,10 @@ public abstract class RawCdr<T_CDRDATA,T_CDRRATING>{
     public String toString(){
         String result = "{\n\tCdr : <"+getUid()+">\n";
         if(_cdrData!=null){
-            result += "\t Raw Data : <"+new String(getCdrDataSerialized())+">\n";
+            result += "\t Cdr Data : <"+_cdrData.toString()+">\n";
         }
-        for(byte[] rating:getRatingResultsSerialized()){
-            result += "\t Rating Result : <"+new String(rating)+">\n";
+        for(T_CDRRATING rating:_ratingResults){
+            result += "\t Rating Result : <"+rating.toString()+">\n";
         }
         result+="}";
         return result;
