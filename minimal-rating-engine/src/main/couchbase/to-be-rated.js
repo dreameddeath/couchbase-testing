@@ -2,13 +2,12 @@ function (doc, meta) {
   if (meta.type == "base64") {
     var binary = decodeBase64(doc);
     var ending = binary.slice(-4);
-    var result=""
+    var result=0;
     for(var i=0;i<ending.length;++i){
-      result+=String.fromCharCode(ending[i]);
+      result+=(ending[i]<<(i*8));
     }
-    if(result!="DONE"){
-      emit(meta.id,result) ;
+    if(result!=binary.length){
+      emit(meta.id,{result:result,size:binary.length,results:ending}) ;
     }
   }
-  
 }

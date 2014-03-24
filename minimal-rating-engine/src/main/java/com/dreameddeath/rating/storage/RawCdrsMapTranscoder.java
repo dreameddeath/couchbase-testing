@@ -114,7 +114,6 @@ public abstract class RawCdrsMapTranscoder<T extends RawCdr> implements Transcod
             }            
         }
         cdrsMap.setCheckSum(unpackedMessage.getEndingCheckSum());
-        //System.out.println("Output message size "+unpackedMessage.getEndingCheckSum());
     }
     
     

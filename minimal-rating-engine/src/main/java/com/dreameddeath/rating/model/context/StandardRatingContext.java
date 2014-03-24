@@ -1,0 +1,16 @@
+package com.dreammdeath.rating.model.context;
+
+import java.util.List;
+import java.util.ArrayList;
+
+import org.joda.time.DateTime;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class StandardRatingContext extends AbstractRatingContext{
+    private List<RatingContextKey> _publicKeys;
+    private List<RatingContextRatePlan> _ratePlans;
+    private List<RatingContextSharedLink> _sharedRatingCtxtLinks;
+
+    
+}
