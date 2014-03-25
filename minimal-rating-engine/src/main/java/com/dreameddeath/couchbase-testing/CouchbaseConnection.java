@@ -13,11 +13,11 @@ import com.dreameddeath.couchbase_testing.RatingContextProtos.Cdrs;
 import com.dreameddeath.couchbase_testing.RatingContextProtos.RatingContextAppender;
 import com.google.protobuf.CodedOutputStream;
 */
+
 import net.spy.memcached.transcoders.Transcoder;
 import com.dreameddeath.common.storage.BinarySerializer;
-import com.dreameddeath.rating.storage.RawCdr;
-import com.dreameddeath.rating.storage.RawCdrsMap;
-import com.dreameddeath.rating.storage.RawCdrsMapTranscoder;
+import com.dreameddeath.rating.storage.*;
+import com.dreameddeath.rating.model.context.*;
 
 public class CouchbaseConnection {
      public static class StringSerializer implements BinarySerializer<String>{
@@ -65,7 +65,12 @@ public class CouchbaseConnection {
      
         // Connect to the Cluster
         CouchbaseClient client = new CouchbaseClient(hosts, bucket, password);
-     
+        
+        StandardRatingContext ratingCtxt = new StandardRatingContext();
+        ratingCtxt.setUid("ratCxt/1");
+        
+        client.set(ratingCtxt.getUid(),0,ratingCtxt,new StandardRatingTranscoder());
+        
         StringCdrRatingTrancoder transcoder = new StringCdrRatingTrancoder();
         //List<RawCdr> list=new ArrayList<RawCdr>();
         RawCdrsMap<StringCdr> cdrsMap = new RawCdrsMap<StringCdr>();

@@ -10,15 +10,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(Include.NON_EMPTY)
-public class RatingContextSharedLink {
-    private String _uid;
+public class RatingContextGuidingKey{
+    private String   _key;
+    private String   _type;
     private DateTime _startDate;
     private DateTime _endDate;
+
+    @JsonProperty("key")
+    public String getKey(){ return _key;}
+    public void setKey(String key){ this._key = key; }
     
-    @JsonProperty("uid")
-    public String getUid(){ return _uid;}
-    public void setUid(String uid){ this._uid = uid; }
-    
+    @JsonProperty("type")
+    public String getType(){ return _type;}
+    public void setType(String type){ this._type = type; }
+ 
     @JsonProperty("startDate")
     public DateTime getStartDate(){ return _startDate;}
     public void setStartDate(DateTime startDate){ this._startDate = startDate; }

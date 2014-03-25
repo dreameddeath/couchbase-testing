@@ -1,4 +1,4 @@
-package com.dreammdeath.rating.model.context;
+package com.dreameddeath.rating.model.context;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -9,12 +9,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-@JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="class")
+@JsonInclude(Include.NON_EMPTY)
+@JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="@class")
 public abstract class AbstractRatingContext{
-    private String _uid;
-    private DateTime   _billingPeriodStartDate;
-    private DateTime   _billingPeriodEndDate;
+    private String   _uid;
+    private DateTime _billingPeriodStartDate;
+    private DateTime _billingPeriodEndDate;
     private String _billingAccountUid;
     private String _holderUid;
     private String _rootInstalledBaseUid;
