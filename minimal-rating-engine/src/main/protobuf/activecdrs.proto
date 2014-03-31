@@ -12,8 +12,9 @@ message NormalCdr{
 }
 
 
-message RatingResultCdrRecord{ 
+message PartialCdrRecord{ 
     required string uid=1;
+    optional bytes rawData=2;
     repeated bytes ratingResults=3;
     optional bool isDuplicated=4;//Tell that this uid is a duplicate (purge can only be done at compaction time)
     optional bool isDiscarded=5; //Tell that this uid is discarded (purge can only be done at compaction time)
@@ -24,13 +25,13 @@ message NormalCdrsAppender{ //Class used to append when adding cdrs to be rated 
     required fixed32 endingCheckSum=5;
 }
 
-message RatingResultAppender{ //Class used to append for rating result Comparing with rating result
-    repeated RatingResultCdrRecord ratingResultCdrs=2;
+message PartialCdrsAppender{ //Class used to append for rating result Comparing with rating result
+    repeated PartialCdrRecord partialCdrs=2;
     required fixed32 endingCheckSum=5;
 }
 
 message OverallCdrsMessage{ //Reading Class concatenating all messages
     repeated NormalCdr normalCdrs=1;
-    repeated RatingResultCdrRecord ratingResultCdrs=2;
+    repeated PartialCdrRecord partialResultCdrs=2;
     required fixed32 endingCheckSum=5; //Check not used for reading
 }

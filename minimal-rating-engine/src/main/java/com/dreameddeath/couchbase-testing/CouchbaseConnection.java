@@ -7,15 +7,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
-/*import com.dreameddeath.couchbase_testing.RatingContextProtos.RatingContext; 
-import com.dreameddeath.couchbase_testing.RatingContextProtos.RatingBucket;
-import com.dreameddeath.couchbase_testing.RatingContextProtos.Cdrs;
-import com.dreameddeath.couchbase_testing.RatingContextProtos.RatingContextAppender;
-import com.google.protobuf.CodedOutputStream;
-*/
 
 import net.spy.memcached.transcoders.Transcoder;
+
+
 import com.dreameddeath.common.storage.BinarySerializer;
+import com.dreameddeath.common.storage.CouchbaseClientWrapper;
 import com.dreameddeath.rating.storage.*;
 import com.dreameddeath.rating.model.context.*;
 
@@ -29,7 +26,7 @@ public class CouchbaseConnection {
         }
      }
      
-     public static class StringCdr extends RawCdr<String,String>{
+     public static class StringCdr extends GenericCdr<String,String>{
         private static StringSerializer _serializer = new StringSerializer();
         
         public StringCdr(String uid){
@@ -45,10 +42,34 @@ public class CouchbaseConnection {
         }
    
      }
-     public static class StringCdrRatingTrancoder extends RawCdrsMapTranscoder<StringCdr>{
+     
+      public static class StringCdrBucket extends GenericCdrsBucket<StringCdr>{
+        private static Transcoder<GenericCdrsBucket<StringCdr>> _tc = new StringCdrRatingTrancoder();
+        
         @Override
-        protected StringCdr rawCdrBuilder(String uid){
+        public Transcoder<GenericCdrsBucket<StringCdr>> getTranscoder(){
+            return _tc;
+        }
+        
+        public StringCdrBucket(GenericCdrsBucket.DocumentType docType){
+            super(docType);
+        }
+        
+        public StringCdrBucket(String key,Integer origDbSize,DocumentType documentType){
+            super(key,origDbSize,documentType);
+        }
+        
+     }
+     
+     public static class StringCdrRatingTrancoder extends GenericCdrsBucketTranscoder<StringCdr>{
+        @Override
+        protected StringCdr genericCdrBuilder(String uid){
             return new StringCdr(uid);
+        }
+        
+         @Override
+        protected StringCdrBucket genericCdrBucketBuilder(GenericCdrsBucket.DocumentType docType){
+            return new StringCdrBucket(docType);
         }
      }
      public static void main(String[] args) throws Exception {
@@ -64,41 +85,42 @@ public class CouchbaseConnection {
         String password = "adminuser";
      
         // Connect to the Cluster
-        CouchbaseClient client = new CouchbaseClient(hosts, bucket, password);
-        
+        //CouchbaseClient client = ;
+        CouchbaseClientWrapper client = new CouchbaseClientWrapper(new CouchbaseClient(hosts, bucket, password));
         StandardRatingContext ratingCtxt = new StandardRatingContext();
         ratingCtxt.setUid("ratCxt/1");
         
-        client.set(ratingCtxt.getUid(),0,ratingCtxt,ratingCtxt.getTranscoder());
+        client.set(ratingCtxt);
         
-        StringCdrRatingTrancoder transcoder = new StringCdrRatingTrancoder();
-        //List<RawCdr> list=new ArrayList<RawCdr>();
-        RawCdrsMap<StringCdr> cdrsMap = new RawCdrsMap<StringCdr>();
+        //StringCdrRatingTrancoder transcoder = new StringCdrRatingTrancoder();
+        //List<GenericCdr> list=new ArrayList<GenericCdr>();
+        StringCdrBucket cdrsBucket = new StringCdrBucket(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
+        cdrsBucket.setKey("my-first-document2");
         for(int i=0;i<5;++i){
             StringCdr cdr = new StringCdr("CDR_"+i);
             cdr.setCdrData("BaseCdrContent_"+i);
-            cdrsMap.add(cdr);
+            cdrsBucket.addCdr(cdr);
         }
         
         // Store a Document
-        client.set("my-first-document2",0,cdrsMap,transcoder).get();
-        RawCdrsMap<StringCdr> unpackedCdrsMap = client.get("my-first-document2", transcoder);
+        client.set(cdrsBucket).get();
+        GenericCdrsBucket<StringCdr> unpackedCdrsMap = client.get("my-first-document2",cdrsBucket.getTranscoder());
         System.out.println("Result :\n"+unpackedCdrsMap.toString());
         
-        RawCdrsMap<StringCdr> newCdrsMap = new RawCdrsMap<StringCdr>(unpackedCdrsMap.getCurrDbSize(),true);
+        StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getKey(),unpackedCdrsMap.getDbDocSize(),GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
         int pos=0;
-        for(StringCdr cdr : unpackedCdrsMap.values()){
+        for(StringCdr cdr : unpackedCdrsMap.getCdrs()){
             if(pos%2==0){
                 StringCdr updatedCdr = new StringCdr(cdr.getUid());
                 updatedCdr.addRatingResult("RatingContext_"+cdr.getUid());
                 updatedCdr.addRatingResult("RatingContext2_"+cdr.getUid());
-                newCdrsMap.add(updatedCdr);
+                newCdrsBucket.addCdr(updatedCdr);
             }
             pos++;
         }
         
-        client.append("my-first-document2",newCdrsMap,transcoder).get();
-        unpackedCdrsMap = client.get("my-first-document2", transcoder);
+        client.append(newCdrsBucket).get();
+        unpackedCdrsMap = client.get("my-first-document2", newCdrsBucket.getTranscoder());
         System.out.println("Result :\n"+unpackedCdrsMap.toString());
         
         
@@ -114,9 +136,9 @@ public class CouchbaseConnection {
             ratingContextBuilder.addBuckets(ratingBucketBuilder.build());
         }
         ratingContextBuilder.setFinishing("DONE");*/
-        /*List<RawCdr> list=new ArrayList<RawCdr>();
+        /*List<GenericCdr> list=new ArrayList<GenericCdr>();
         for(int i=0;i<5;++i){
-            RawCdr cdr = new RawCdr("CDR_"+i);
+            GenericCdr cdr = new GenericCdr("CDR_"+i);
             cdr.setCdrData(("BaseCdrContent_"+i).getBytes());
             list.add(cdr);
         }
@@ -126,10 +148,10 @@ public class CouchbaseConnection {
         byte[] rawMessage = ((byte[])client.get("my-first-document2"));
         int storageSize = rawMessage.length;
         System.out.println("Real Message size "+storageSize);
-        Collection<RawCdr> unpackedList = RatingStorageManager.unpackStorageDocument(rawMessage);
+        Collection<GenericCdr> unpackedList = RatingStorageManager.unpackStorageDocument(rawMessage);
         System.out.println("Result "+unpackedList.toString());
         
-        for(RawCdr cdr : list){
+        for(GenericCdr cdr : list){
             cdr.setCdrData(null);
             cdr.addRatingResult(("RatingContext_"+list.indexOf(cdr)).getBytes());
             cdr.addRatingResult(("RatingContext2_"+list.indexOf(cdr)).getBytes());

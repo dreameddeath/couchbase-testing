@@ -13,7 +13,7 @@ import com.dreameddeath.common.storage.BinarySerializer;
    - a series of bytes for the orig data
    - a series of bytes for each rating attemps (or rerating attempts)
 */
-public abstract class RawCdr<T_CDRDATA,T_CDRRATING>{
+public abstract class GenericCdr<T_CDRDATA,T_CDRRATING>{
     
     protected abstract BinarySerializer<T_CDRDATA> getCdrDataSerializer();
     protected abstract BinarySerializer<T_CDRRATING> getCdrRatingSerializer();
@@ -29,11 +29,12 @@ public abstract class RawCdr<T_CDRDATA,T_CDRRATING>{
     * The constructor requires a uid
     * @param uid the cdr unique id
     */
-    public RawCdr(String uid){
+    public GenericCdr(String uid){
         this._uid = uid;
         this._isDuplicated = false;
         this._isDiscarded = false;
         this._overheadCounter=0;
+        this._cdrData = null;
         this._ratingResults=new ArrayList<T_CDRRATING>();
     }
 

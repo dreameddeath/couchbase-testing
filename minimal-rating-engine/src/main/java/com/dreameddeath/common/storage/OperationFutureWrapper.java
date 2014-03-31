@@ -1,8 +1,7 @@
 package com.dreameddeath.common.storage;
 
 import net.spy.memcached.internal.OperationFuture;
-import net.spy.memcached.CASValue;
-import java.util.concurrent.Future;
+
 /**
 *  Class used to perform storage 
 */
