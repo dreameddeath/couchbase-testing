@@ -1,11 +1,5 @@
 package com.dreameddeath.rating.storage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import java.io.Externalizable;
-
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
@@ -14,8 +8,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import net.spy.memcached.transcoders.Transcoder;
 import net.spy.memcached.CachedData;
 
-
-import com.dreameddeath.common.storage.CouchbaseConstants;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.NormalCdr; 
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.PartialCdrRecord;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.OverallCdrsMessage;
@@ -23,26 +15,42 @@ import com.dreameddeath.rating.storage.ActiveCdrsProtos.NormalCdrsAppender;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.PartialCdrsAppender;
 
 /**
-*  Class used to perform storage preparation based on Raw Cdr Storage Managed (array of bytes)
-*  Perform a checksum calculation (length) to allow rating request detection through couchbase request
-*  The only contraint it that the Cdrs must have a unique id
+*  This abstract class is use to manage binary transcoding of a bucket of CDR. It exists with three modes :
+*  - CDRS_BUCKET_FULL : it is a full storage
+*  - CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM : the storage is in append mode but without checksum to trigger rating when needed
+*  - CDRS_BUCKET_PARTIAL_WITH_CHECKSUM : add the checksum to try to give a proper checksum to avoid rerating
+*
+*  The cdr itself is managed by the @see GenericCdr class.
 */
 public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implements Transcoder<GenericCdrsBucket<T>>{
+    /**
+    * abstract "callback" function used to initialize the CDR while unpacking
+    */
     abstract protected T genericCdrBuilder(String uid);
+    
+    /**
+    * abstract "callback" function used to initialize the CDR Bucket while unpacking
+    */
     abstract protected GenericCdrsBucket<T> genericCdrBucketBuilder(GenericCdrsBucket.DocumentType docType);
     
     
+    ///The max size of the bucket
     @Override
     public int getMaxSize(){
         return CachedData.MAX_SIZE;
     }
     
+    ///No aynchronous decoding mode (doesn't seems usefull : to be benchmarked)
     @Override
     public boolean asyncDecode(CachedData cachedData){
         return false;
     }
     
     
+    /**
+    * Decode the database CDR bucket
+    * @param cachedData the database bucket
+    */
     @Override
     public GenericCdrsBucket<T> decode(CachedData cachedData){
         GenericCdrsBucket<T> result = genericCdrBucketBuilder(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
@@ -57,20 +65,24 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
         return result;
     }
     
-    
+    /**
+    * Encode The CDR bucket prior to database storage (can be in append mode)
+    * @param input the CDR bucket to be encoded
+    */
     @Override
     public CachedData encode(GenericCdrsBucket<T> input){
-        return new CachedData(input.getDocumentEncodedFlags(),packStorageDocument(input),CachedData.MAX_SIZE);
+        byte[] packedResult = packStorageDocument(input);
+        input.setLastWrittenSize(packedResult.length);
+        return new CachedData(input.getDocumentEncodedFlags(),packedResult,CachedData.MAX_SIZE);
     }
     
 
 
     /**
-    *   Unpack a message containing Cdrs
-    *   @param cdrsBucket the resulting content
-    *   @param message the message to unpack
-    *   @throws InvalidProtocolBufferException when the message isn't well formatted
-    *   @return a list of GenericCdr for successfull found cdrs
+    * Unpack a message containing Cdrs
+    * @param cdrsBucket the cdrs will be added to them
+    * @param message the message to unpack (parse) and add them to the cdrsBucket parameter
+    * @throws InvalidProtocolBufferException when the message isn't well formatted
     */
     private  void unpackStorageDocument(GenericCdrsBucket<T> cdrsBucket, byte[] message) throws InvalidProtocolBufferException{
         //Unpack Cdrs
@@ -115,16 +127,17 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
                 foundCdr.incOverheadCounter();
             }            
         }
-        //cdrsBucket.setCheckSum(unpackedMessage.getEndingCheckSum());
+        cdrsBucket.setEndingCheckSum(unpackedMessage.getEndingCheckSum());
     }
     
     
     /**
-    *   pack a message for given list of Cdrs
-    *   @param cdrsToStoreList The cdrMap from which to submit cdrs
-     *   @return the array of bytes of the packed message (to be appended at the end of existing document)
+    * pack a message for given list of Cdrs
+    * @param cdrsToStoreList The cdrMap from which to submit cdrs
+    * @return the array of bytes of the packed message (to be appended at the end of existing document)
     */
     private byte[] packStorageDocument(GenericCdrsBucket<T> cdrsToStoreList){
+        //If it is a full bucket, use the normal cdrs writer
         if(cdrsToStoreList.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL)){
             NormalCdrsAppender.Builder normalAppenderBuilder = NormalCdrsAppender.newBuilder();
              
@@ -154,6 +167,7 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
 
             return normalAppenderBuilder.build().toByteArray();
         }
+        //If it is a partial bucket, use a partial cdrs bucket
         else{
             PartialCdrsAppender.Builder partialAppenderBuilder = PartialCdrsAppender.newBuilder();
              
@@ -176,10 +190,12 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
                 }
                 partialAppenderBuilder.addPartialCdrs(cdrBuilder.build());
             }
-            //Add Checksum
+            
+            //if it is a partial cdr to add, build a fake checksum
             if(cdrsToStoreList.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM)){
                 partialAppenderBuilder.setEndingCheckSum(0);
             }
+            //else it is a nominal process, try to build a valid checksum
             else{
                 partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDbDocSize());
                 partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDbDocSize() + partialAppenderBuilder.build().getSerializedSize());

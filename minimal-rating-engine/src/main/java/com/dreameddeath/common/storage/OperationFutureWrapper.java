@@ -2,9 +2,6 @@ package com.dreameddeath.common.storage;
 
 import net.spy.memcached.internal.OperationFuture;
 
-/**
-*  Class used to perform storage 
-*/
 public class OperationFutureWrapper<T> extends FutureWrapper<T>{
     protected OperationFuture<T> _futureOp;
     public OperationFutureWrapper(OperationFuture<T> futureOp){

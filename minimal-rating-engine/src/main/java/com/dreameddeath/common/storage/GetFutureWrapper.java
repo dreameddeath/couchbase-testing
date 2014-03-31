@@ -1,10 +1,8 @@
 package com.dreameddeath.common.storage;
 
 import net.spy.memcached.internal.GetFuture;
-//import java.util.concurrent.Future;
-/**
-*  Class used to perform storage 
-*/
+
+
 public class GetFutureWrapper<T> extends FutureWrapper<T>{
     private String _key;
     protected GetFuture<T> _futureOp;

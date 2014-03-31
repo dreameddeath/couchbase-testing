@@ -13,11 +13,8 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.dreameddeath.common.storage.CouchbaseConstants;
-import com.dreameddeath.rating.model.context.*; 
 
-/**
-*  Class used to perform storage 
-*/
+
 public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Transcoder<T>{
     private static final ObjectMapper _mapper = new ObjectMapper();
     private final Class<T> _dummyClass;

@@ -3,7 +3,6 @@ package com.dreameddeath.common.storage;
 import java.util.HashSet;
 import java.util.Collection;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import net.spy.memcached.transcoders.Transcoder;
 import com.dreameddeath.common.storage.CouchbaseConstants.DocumentFlag;
@@ -32,16 +31,17 @@ public abstract class CouchbaseDocument{
     public final void setDbDocSize(Integer docSize){ this._dbDocSize = docSize; }
 
     @JsonIgnore
-    public final Collection<DocumentFlag> getDocumentFlags(){ return _documentFlags;}
+    public final Collection<DocumentFlag> getDocumentFlags(){ return _documentFlags; }
+    
     @JsonIgnore
-    public final Integer getDocumentEncodedFlags(){ return DocumentFlag.pack(_documentFlags);}
-    public final void setDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.clear();_documentFlags.addAll(DocumentFlag.unPack(encodedFlags));}
-    public final void setDocumentFlags(Collection<DocumentFlag> flags){ _documentFlags.clear();_documentFlags.addAll(flags);}
-    public final void addDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.addAll(DocumentFlag.unPack(encodedFlags));}
-    public final void addDocumentFlag(DocumentFlag flag){ _documentFlags.add(flag);}
-    public final void addDocumentFlags(Collection<DocumentFlag> flags){ _documentFlags.addAll(flags);}
-    public final void removeDocumentFlag(DocumentFlag flag){ _documentFlags.remove(flag);}
-    public final void removeDocumentFlags(Collection<DocumentFlag> flags){_documentFlags.remove(flags);}
+    public final Integer getDocumentEncodedFlags(){ return DocumentFlag.pack(_documentFlags); }
+    public final void setDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.clear(); _documentFlags.addAll(DocumentFlag.unPack(encodedFlags)); }
+    public final void setDocumentFlags(Collection<DocumentFlag> flags){ _documentFlags.clear(); _documentFlags.addAll(flags); }
+    public final void addDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.addAll(DocumentFlag.unPack(encodedFlags)); }
+    public final void addDocumentFlag(DocumentFlag flag){ _documentFlags.add(flag); }
+    public final void addDocumentFlags(Collection<DocumentFlag> flags){ _documentFlags.addAll(flags); }
+    public final void removeDocumentFlag(DocumentFlag flag){ _documentFlags.remove(flag); }
+    public final void removeDocumentFlags(Collection<DocumentFlag> flags){_documentFlags.remove(flags); }
     public boolean hasDocumentFlag(DocumentFlag flag){ return _documentFlags.contains(flag); }
     
     

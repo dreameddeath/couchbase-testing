@@ -3,9 +3,7 @@ package com.dreameddeath.common.storage;
 import java.util.concurrent.Future;
 import net.spy.memcached.CASValue;
 
-/**
-*  Class used to perform storage 
-*/
+
 public abstract class FutureWrapper<T>{
     public abstract String getKey();
     public abstract Future<T> getFuture();

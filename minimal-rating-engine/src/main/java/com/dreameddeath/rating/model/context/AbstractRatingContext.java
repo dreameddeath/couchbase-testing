@@ -17,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="@class")
 public abstract class AbstractRatingContext extends CouchbaseDocument{
     
-    
     private DateTime _billingPeriodStartDate;
     private DateTime _billingPeriodEndDate;
     private String _billingAccountUid;

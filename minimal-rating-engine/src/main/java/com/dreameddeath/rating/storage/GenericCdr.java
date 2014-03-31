@@ -14,8 +14,9 @@ import com.dreameddeath.common.storage.BinarySerializer;
    - a series of bytes for each rating attemps (or rerating attempts)
 */
 public abstract class GenericCdr<T_CDRDATA,T_CDRRATING>{
-    
+    ///abstract method which should return the Serializer of the Cdr Data Part
     protected abstract BinarySerializer<T_CDRDATA> getCdrDataSerializer();
+    ///abstract method which should return the Serializer of the Cdr Rating Result Part
     protected abstract BinarySerializer<T_CDRRATING> getCdrRatingSerializer();
     
     private String _uid;

@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 
 import java.util.concurrent.Future;
 
-
 import net.spy.memcached.internal.OperationFuture;
 import com.couchbase.client.CouchbaseClient;
 import net.spy.memcached.CASResponse;
@@ -93,7 +92,11 @@ public class CouchbaseClientWrapper{
     
     //Todo Check Cas value
     public <T extends CouchbaseDocument> Future<Boolean> appendCas(T doc){ return _couchbaseClient.append(doc.getCas(),doc.getKey(),doc,(Transcoder<T>)doc.getTranscoder()); }
-    public <T extends CouchbaseDocument> Future<Boolean> append(T doc){ return _couchbaseClient.append(doc.getKey(),doc,(Transcoder<T>)doc.getTranscoder()); }    
+    public <T extends CouchbaseDocument> Future<Boolean> append(T doc){ return _couchbaseClient.append(doc.getKey(),doc,(Transcoder<T>)doc.getTranscoder()); }
+    
+    //Todo Check Cas value
+    public <T extends CouchbaseDocument> Future<Boolean> prependCas(T doc){ return _couchbaseClient.prepend(doc.getCas(),doc.getKey(),doc,(Transcoder<T>)doc.getTranscoder()); }
+    public <T extends CouchbaseDocument> Future<Boolean> prepend(T doc){ return _couchbaseClient.prepend(doc.getKey(),doc,(Transcoder<T>)doc.getTranscoder()); }
    
    
     public boolean shutdown(long timeout,java.util.concurrent.TimeUnit unit){
