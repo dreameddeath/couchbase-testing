@@ -69,7 +69,7 @@ public class CouchbaseConnection {
         StandardRatingContext ratingCtxt = new StandardRatingContext();
         ratingCtxt.setUid("ratCxt/1");
         
-        client.set(ratingCtxt.getUid(),0,ratingCtxt,new StandardRatingTranscoder());
+        client.set(ratingCtxt.getUid(),0,ratingCtxt,ratingCtxt.getTranscoder());
         
         StringCdrRatingTrancoder transcoder = new StringCdrRatingTrancoder();
         //List<RawCdr> list=new ArrayList<RawCdr>();

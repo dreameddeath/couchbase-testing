@@ -8,9 +8,21 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.dreameddeath.common.storage.GenericJacksonTranscoder;
+import net.spy.memcached.transcoders.Transcoder;
+import com.dreameddeath.common.storage.CouchbaseDocument;
 
 @JsonInclude(Include.NON_EMPTY)
-public class StandardRatingContext extends AbstractRatingContext{
+public final class StandardRatingContext extends AbstractRatingContext{
+    private static GenericJacksonTranscoder<StandardRatingContext> _tc = new GenericJacksonTranscoder<StandardRatingContext>(StandardRatingContext.class);
+    @JsonIgnore
+    public  Transcoder<StandardRatingContext> getTranscoder(){
+        return _tc;
+    }
+
+
     private List<RatingContextGuidingKey> _guidingKeys;
     private List<RatingContextRatePlan> _ratePlans;
     private List<RatingContextSharedLink> _sharedRatingCtxtLinks;

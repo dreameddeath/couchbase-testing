@@ -1,4 +1,4 @@
-package com.dreameddeath.rating.storage;
+package com.dreameddeath.common.storage;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,11 +18,11 @@ import com.dreameddeath.rating.model.context.*;
 /**
 *  Class used to perform storage 
 */
-public class GenericTranscoder<T> implements Transcoder<T>{
+public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Transcoder<T>{
     private static final ObjectMapper _mapper = new ObjectMapper();
     private final Class<T> _dummyClass;
     
-    public RatingContextTranscoder(Class<T> clazz){
+    public GenericJacksonTranscoder(Class<T> clazz){
         super();
         _dummyClass=clazz;
     }
@@ -41,7 +41,9 @@ public class GenericTranscoder<T> implements Transcoder<T>{
     @Override
     public T decode(CachedData cachedData){
         try{
-            return (T)_mapper.readValue(cachedData.getData(),_dummyClass);
+            T result = (T)_mapper.readValue(cachedData.getData(),_dummyClass);
+            result.setDbDocSize(cachedData.getData().length);
+            return result;
         }
         catch (JsonParseException e){
             e.printStackTrace();

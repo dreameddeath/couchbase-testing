@@ -3,6 +3,7 @@ package com.dreameddeath.rating.model.context;
 import java.util.List;
 import java.util.ArrayList;
 
+import com.dreameddeath.common.storage.CouchbaseDocument;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,8 +15,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(Include.NON_EMPTY)
 @JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="@class")
-public abstract class AbstractRatingContext{
-    private String   _uid;
+public abstract class AbstractRatingContext extends CouchbaseDocument{
+    
+    
     private DateTime _billingPeriodStartDate;
     private DateTime _billingPeriodEndDate;
     private String _billingAccountUid;
@@ -27,8 +29,8 @@ public abstract class AbstractRatingContext{
     private List<RatingContextAttribute> _attributes;
     
     @JsonProperty("uid")
-    public String getUid(){ return _uid;}
-    public void setUid(String uid){ this._uid = uid; }
+    public String getUid(){ return getKey();}
+    public void setUid(String uid){ setKey(uid); }
     
     @JsonProperty("billingPeriodStartDate")
     public DateTime getBillingPeriodStartDate(){ return _billingPeriodStartDate; }
