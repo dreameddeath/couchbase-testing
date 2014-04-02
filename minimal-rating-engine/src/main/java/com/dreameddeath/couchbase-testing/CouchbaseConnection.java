@@ -12,9 +12,12 @@ import org.joda.time.DateTime;
 
 import net.spy.memcached.transcoders.Transcoder;
 
+import java.util.concurrent.Future;
+import net.spy.memcached.internal.OperationFuture;
 
 import com.dreameddeath.common.storage.BinarySerializer;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
+import com.dreameddeath.common.storage.OperationFutureWrapper;
 import com.dreameddeath.rating.storage.*;
 import com.dreameddeath.rating.model.context.*;
 import com.dreameddeath.billing.model.*;
@@ -68,8 +71,10 @@ public class CouchbaseConnection {
             BillingAccount ba = new BillingAccount();
             ba.setKey("ba/1");
             ba.setUid("1");
-            client.set(ba).get();
-            
+            OperationFutureWrapper<Boolean,BillingAccount> future=client.set(ba);
+            future.get();
+            System.out.println("Set Ba Result :"+ba);
+            System.out.println("Set Cas :"+future.getFuture().getCas());
             BillingCycle billCycle = new BillingCycle();
             billCycle.setKey(ba.getKey()+"/c/1");
             billCycle.setBillingAccountLink(ba.buildLink());

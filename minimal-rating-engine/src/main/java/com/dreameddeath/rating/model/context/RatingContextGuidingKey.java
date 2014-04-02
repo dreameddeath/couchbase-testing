@@ -23,7 +23,7 @@ public class RatingContextGuidingKey{
     @JsonProperty("type")
     public String getType(){ return _type;}
     public void setType(String type){ this._type = type; }
- 
+    
     @JsonProperty("startDate")
     public DateTime getStartDate(){ return _startDate;}
     public void setStartDate(DateTime startDate){ this._startDate = startDate; }

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.spy.memcached.transcoders.Transcoder;
 
-public abstract class CouchbaseDocumentLink<T>{
+public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument>{
     private String _key;
     private T      _docObject;
     

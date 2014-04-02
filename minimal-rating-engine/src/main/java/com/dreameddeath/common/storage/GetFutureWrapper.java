@@ -3,7 +3,7 @@ package com.dreameddeath.common.storage;
 import net.spy.memcached.internal.GetFuture;
 
 
-public class GetFutureWrapper<T> extends FutureWrapper<T>{
+public class GetFutureWrapper<T extends CouchbaseDocument> extends FutureWrapper<T,T>{
     private String _key;
     protected GetFuture<T> _futureOp;
     
@@ -16,7 +16,10 @@ public class GetFutureWrapper<T> extends FutureWrapper<T>{
         _key =key;
     }
     
-    
+    public GetFutureWrapper(GetFuture<T> futureOp,String key,CouchbaseDocumentLink<T> link){
+        this(futureOp,key);
+        setLink(link);
+    }
     public GetFuture<T> getFuture(){
         return _futureOp;
     }

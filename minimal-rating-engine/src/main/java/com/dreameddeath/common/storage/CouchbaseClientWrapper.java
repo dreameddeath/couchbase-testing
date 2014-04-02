@@ -42,6 +42,15 @@ public class CouchbaseClientWrapper{
         return result;
     }
     
+    public <T extends CouchbaseDocument> GetFutureWrapper<T> asyncGet(CouchbaseDocumentLink<T> link){
+        return new GetFutureWrapper<T>(_couchbaseClient.asyncGet(link.getKey(),link.getTranscoder()),link.getKey(),link);
+    }
+
+    public <T extends CouchbaseDocument> OperationFutureWrapper<CASValue<T>,T> asyncGets(CouchbaseDocumentLink<T> link){
+        return new OperationFutureWrapper<CASValue<T>,T>(_couchbaseClient.asyncGets(link.getKey(),link.getTranscoder()),link);
+    }
+
+    
     public <T extends CouchbaseDocument> T get(String key, Transcoder<T> tc){
         try {
             return asyncGet(key,tc).get();
@@ -72,21 +81,23 @@ public class CouchbaseClientWrapper{
     }
     
     
+    
+    
     public <T extends CouchbaseDocument> GetFutureWrapper<T> asyncGet(String key, Transcoder<T> tc){
         return new GetFutureWrapper<T>(_couchbaseClient.asyncGet(key,tc),key);
     }
 
-    public <T extends CouchbaseDocument> OperationFutureWrapper<CASValue<T>> asyncGets(String key, Transcoder<T> tc){
-        return new OperationFutureWrapper<CASValue<T>>(_couchbaseClient.asyncGets(key,tc));
+    public <T extends CouchbaseDocument> OperationFutureWrapper<CASValue<T>,T> asyncGets(String key, Transcoder<T> tc){
+        return new OperationFutureWrapper<CASValue<T>,T>(_couchbaseClient.asyncGets(key,tc));
     }
 
     
-    public <T extends CouchbaseDocument> OperationFuture<Boolean> set(T doc,int exp){ return _couchbaseClient.set(doc.getKey(),exp,doc,(Transcoder<T>)doc.getTranscoder()); }
+    public <T extends CouchbaseDocument> OperationFutureWrapper<Boolean,T> set(T doc,int exp){ return new OperationFutureWrapper(_couchbaseClient.set(doc.getKey(),exp,doc,(Transcoder<T>)doc.getTranscoder()),doc); }
     //public OperationFuture<Boolean> set(CouchbaseDocument doc,int exp,ReplicateTo rep){  return _couchbaseClient.set(doc.getKey(),exp,doc,doc.getTranscoder(),rep);}
     //public OperationFuture<Boolean> set(CouchbaseDocument doc,int exp,PersistTo req){ return _couchbaseClient.set(doc.getKey(),exp,doc,doc.getTranscoder(),req);}
     //public OperationFuture<Boolean> set(CouchbaseDocument doc,int exp,PersistTo req,ReplicateTo rep){return _couchbaseClient.set(doc.getKey(),exp,doc,doc.getTranscoder(),req,rep);}
     
-    public <T extends CouchbaseDocument> OperationFuture<Boolean> set(T doc){ return set(doc,0); }    
+    public <T extends CouchbaseDocument> OperationFutureWrapper<Boolean,T> set(T doc){ return set(doc,0); }    
     //public OperationFuture<Boolean> set(CouchbaseDocument doc,ReplicateTo rep){ return set(doc,0,rep); }
     //public OperationFuture<Boolean> set(CouchbaseDocument doc,PersistTo req){ return set(doc,0,req);}
     //public OperationFuture<Boolean> set(CouchbaseDocument doc,PersistTo req,ReplicateTo rep){ return set(doc,0,req,rep);}
