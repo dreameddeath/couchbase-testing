@@ -13,11 +13,17 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.dreameddeath.common.storage.CouchbaseConstants;
-
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Transcoder<T>{
-    private static final ObjectMapper _mapper = new ObjectMapper();
+    private static final ObjectMapper _mapper;
     private final Class<T> _dummyClass;
+    
+    static {
+        _mapper = new ObjectMapper();
+        _mapper.registerModule(new JodaModule());
+    }
+    
     
     public GenericJacksonTranscoder(Class<T> clazz){
         super();

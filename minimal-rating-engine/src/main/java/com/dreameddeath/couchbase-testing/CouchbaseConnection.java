@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.joda.time.DateTime;
+
 import net.spy.memcached.transcoders.Transcoder;
 
 
@@ -15,6 +17,7 @@ import com.dreameddeath.common.storage.BinarySerializer;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
 import com.dreameddeath.rating.storage.*;
 import com.dreameddeath.rating.model.context.*;
+import com.dreameddeath.billing.model.*;
 
 public class CouchbaseConnection {
      public static class StringSerializer implements BinarySerializer<String>{
@@ -62,10 +65,31 @@ public class CouchbaseConnection {
         CouchbaseClientWrapper client = new CouchbaseClientWrapper(new CouchbaseClient(hosts, bucket, password));
             
         try{
+            BillingAccount ba = new BillingAccount();
+            ba.setKey("ba/1");
+            ba.setUid("1");
+            client.set(ba).get();
+            
+            BillingCycle billCycle = new BillingCycle();
+            billCycle.setKey(ba.getKey()+"/c/1");
+            billCycle.setBillingAccountLink(ba.buildLink());
+            billCycle.setStartDate((new DateTime()).withTime(0,0,0,0));
+            billCycle.setEndDate(billCycle.getStartDate().plusMonths(1));
+            
             StandardRatingContext ratingCtxt = new StandardRatingContext();
             ratingCtxt.setUid("ratCxt/1");
+            ratingCtxt.setBillingAccountLink(ba.buildLink());
+            ratingCtxt.setBillingCycleLink(billCycle.buildLink());
+            billCycle.addRatingContextLink(ratingCtxt.buildLink());
             
-            client.set(ratingCtxt);
+            client.set(billCycle).get();
+            client.set(ratingCtxt).get();
+            
+            AbstractRatingContext newRatingCtxt = client.get(ratingCtxt.getKey(),ratingCtxt.getTranscoder());
+            System.out.println("Read Result :"+((StandardRatingContext)newRatingCtxt));
+            BillingAccount newBillingAccount = client.getsFromLink(newRatingCtxt.getBillingAccountLink());
+            System.out.println("Read Ba Result :"+newBillingAccount);
+            System.out.println("Read Ba Result Link :"+newRatingCtxt.getBillingAccountLink().getLinkedObject());
             
             StringCdrBucket cdrsBucket = new StringCdrBucket(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
             cdrsBucket.setKey("my-first-document2");

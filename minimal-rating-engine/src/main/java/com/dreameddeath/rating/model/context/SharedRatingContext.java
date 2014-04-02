@@ -15,10 +15,6 @@ import com.dreameddeath.common.storage.CouchbaseDocument;
 
 @JsonInclude(Include.NON_EMPTY)
 public final class SharedRatingContext extends AbstractRatingContext{
-    private static GenericJacksonTranscoder<SharedRatingContext> _tc = new GenericJacksonTranscoder<SharedRatingContext>(SharedRatingContext.class);
-    @JsonIgnore
-    public  Transcoder<SharedRatingContext> getTranscoder(){
-        return _tc;
-    }
+    
 
 }

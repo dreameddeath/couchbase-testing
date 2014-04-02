@@ -12,17 +12,24 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import net.spy.memcached.transcoders.Transcoder;
+
+import com.dreameddeath.common.storage.GenericJacksonTranscoder;
+import com.dreameddeath.billing.model.BillingAccountLink;
+import com.dreameddeath.billing.model.BillingCycleLink;
 
 @JsonInclude(Include.NON_EMPTY)
-@JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="@class")
+@JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
 public abstract class AbstractRatingContext extends CouchbaseDocument{
+    private static GenericJacksonTranscoder<AbstractRatingContext> _tc = new GenericJacksonTranscoder<AbstractRatingContext>(AbstractRatingContext.class);
+    @JsonIgnore
+    public  Transcoder<AbstractRatingContext> getTranscoder(){
+        return _tc;
+    }
     
-    private DateTime _billingPeriodStartDate;
-    private DateTime _billingPeriodEndDate;
-    private String _billingAccountUid;
-    private String _holderUid;
-    private String _rootInstalledBaseUid;
-    private String _parentInstalledBaseUid;
+    private BillingCycleLink _billingCycle;
+    private BillingAccountLink _billingAccount;
     
     private List<RatingContextBucket> _buckets;
     private List<RatingContextAttribute> _attributes;
@@ -31,29 +38,13 @@ public abstract class AbstractRatingContext extends CouchbaseDocument{
     public String getUid(){ return getKey();}
     public void setUid(String uid){ setKey(uid); }
     
-    @JsonProperty("billingPeriodStartDate")
-    public DateTime getBillingPeriodStartDate(){ return _billingPeriodStartDate; }
-    public void setBillingPeriodStartDate(DateTime billingPeriodStartDate){ _billingPeriodStartDate=billingPeriodStartDate;}
+    @JsonProperty("billingCycle")
+    public BillingCycleLink getBillingCycleLink(){ return _billingCycle; }
+    public void setBillingCycleLink(BillingCycleLink billingCycle){ _billingCycle=billingCycle;}
     
-    @JsonProperty("billingPeriodEndDate")
-    public DateTime getBillingPeriodEndDate(){ return _billingPeriodEndDate; }
-    public void setBillingPeriodEndDate(DateTime billingPeriodEndDate){ _billingPeriodEndDate=billingPeriodEndDate;}
-    
-    @JsonProperty("billingAccountUid")
-    public String getBillingAccountUid(){ return _billingAccountUid;}
-    public void setBillingAccountUid(String uid){ _billingAccountUid = uid;}
-    
-    @JsonProperty("holderUid")
-    public String getHolderUid(){return _holderUid;}
-    public void setHolderUid(String uid){_holderUid = uid;}
-    
-    @JsonProperty("rootInstalledBaseUid")
-    public String getRootInstalledBaseUid(){return _rootInstalledBaseUid;}
-    public void setRootInstalledBaseUid(String uid){_rootInstalledBaseUid = uid;}
-    
-    @JsonProperty("parentInstalledBaseUid")
-    public String getParentInstalledBaseUid(){return _parentInstalledBaseUid;}
-    public void setParentInstalledBaseUid(String uid){_parentInstalledBaseUid = uid;}
+    @JsonProperty("billingAccount")
+    public BillingAccountLink getBillingAccountLink(){ return _billingAccount;}
+    public void setBillingAccountLink(BillingAccountLink billingAccount){ _billingAccount = billingAccount;}
     
     @JsonProperty("buckets")
     public List<RatingContextBucket> getBuckets(){
@@ -69,5 +60,16 @@ public abstract class AbstractRatingContext extends CouchbaseDocument{
     }
     public void setAttributes(List<RatingContextAttribute> attributes){_attributes = attributes;}
     
+    public RatingContextLink buildLink(){
+        return RatingContextLink.buildLink(this);
+    }
     
+    @Override
+    public String toString(){
+        String result = super.toString()+"\n";
+        result+="uid : "+getUid()+",\n";
+        result+="ba : "+getBillingAccountLink().toString()+",\n";
+        result+="billCycle : "+getBillingCycleLink().toString()+",\n";
+        return result;
+    }
 }

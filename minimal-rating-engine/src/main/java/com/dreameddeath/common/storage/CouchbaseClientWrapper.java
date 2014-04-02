@@ -30,6 +30,18 @@ public class CouchbaseClientWrapper{
         return _couchbaseClient;
     }
     
+    public <T extends CouchbaseDocument> T getFromLink(CouchbaseDocumentLink<T> link){
+        T result = get(link.getKey(),link.getTranscoder());
+        link.setLinkedObject(result);
+        return result;
+    }
+    
+    public <T extends CouchbaseDocument> T getsFromLink(CouchbaseDocumentLink<T> link){
+        T result = gets(link.getKey(),link.getTranscoder());
+        link.setLinkedObject(result);
+        return result;
+    }
+    
     public <T extends CouchbaseDocument> T get(String key, Transcoder<T> tc){
         try {
             return asyncGet(key,tc).get();
