@@ -1,4 +1,4 @@
-package com.dreameddeath.common.storage;
+package com.dreameddeath.common.model;
 
 import java.util.HashSet;
 import java.util.Collection;
@@ -11,8 +11,8 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument>{
     private String _key;
     private T      _docObject;
     
-    @JsonIgnore
-    public abstract Transcoder<T> getTranscoder();
+    //@JsonIgnore
+    //public abstract Transcoder<T> getTranscoder();
     
     @JsonProperty("key")
     public final String getKey(){ return _key;}
@@ -20,7 +20,7 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument>{
     
     @JsonIgnore
     public T getLinkedObject(){ return _docObject; }
-    public void setLinkedObject(T docObj){ _docObject=docObj; }
+    public void setLinkedObject(T docObj){ _docObject=docObj; docObj.addReverseLink(this);}
     
     
     @Override

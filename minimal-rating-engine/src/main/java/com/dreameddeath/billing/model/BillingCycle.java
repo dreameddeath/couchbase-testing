@@ -11,21 +11,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import net.spy.memcached.transcoders.Transcoder;
-
-
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-import com.dreameddeath.common.storage.CouchbaseDocument;
+import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.rating.model.context.RatingContextLink;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingCycle extends CouchbaseDocument{
-    private static GenericJacksonTranscoder<BillingCycle> _tc = new GenericJacksonTranscoder<BillingCycle>(BillingCycle.class);
-    @JsonIgnore
-    public  Transcoder<BillingCycle> getTranscoder(){
-        return _tc;
-    }
-    
     private BillingAccountLink  _baLink;
     private DateTime _startDate;
 	private DateTime _endDate;

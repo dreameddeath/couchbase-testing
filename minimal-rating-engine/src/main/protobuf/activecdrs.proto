@@ -21,17 +21,23 @@ message PartialCdrRecord{
 }
 
 message NormalCdrsAppender{ //Class used to append when adding cdrs to be rated or compacting results
-    repeated NormalCdr normalCdrs=1;
-    required fixed32 endingCheckSum=5;
+    optional string baKey=1;
+    optional string baCycleKey=2;
+    optional string ratingCtxtKey=3;
+    repeated NormalCdr normalCdrs=4;
+    required fixed32 endingCheckSum=6;
 }
 
 message PartialCdrsAppender{ //Class used to append for rating result Comparing with rating result
-    repeated PartialCdrRecord partialCdrs=2;
-    required fixed32 endingCheckSum=5;
+    repeated PartialCdrRecord partialCdrs=5;
+    required fixed32 endingCheckSum=6;
 }
 
 message OverallCdrsMessage{ //Reading Class concatenating all messages
-    repeated NormalCdr normalCdrs=1;
-    repeated PartialCdrRecord partialResultCdrs=2;
-    required fixed32 endingCheckSum=5; //Check not used for reading
+    required string baKey=1;
+    required string baCycleKey=2;
+    required string ratingCtxtKey=3;
+    repeated NormalCdr normalCdrs=4;
+    repeated PartialCdrRecord partialResultCdrs=5;
+    required fixed32 endingCheckSum=6; //Check not used for reading
 }

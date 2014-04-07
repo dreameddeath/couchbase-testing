@@ -10,21 +10,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import net.spy.memcached.transcoders.Transcoder;
-
-
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-import com.dreameddeath.common.storage.CouchbaseDocumentLink;
+import com.dreameddeath.common.model.CouchbaseDocumentLink;
 
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingCycleLink extends CouchbaseDocumentLink<BillingCycle>{
+    /*import net.spy.memcached.transcoders.Transcoder;
+    import com.dreameddeath.common.storage.GenericJacksonTranscoder;
+
     private static GenericJacksonTranscoder<BillingCycle> _tc = new GenericJacksonTranscoder<BillingCycle>(BillingCycle.class);
     @JsonIgnore
     public  Transcoder<BillingCycle> getTranscoder(){
         return _tc;
-    }
+    }*/
     
     private DateTime _startDate;
 	private DateTime _endDate;

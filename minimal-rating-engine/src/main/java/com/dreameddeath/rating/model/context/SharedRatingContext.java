@@ -9,9 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-import net.spy.memcached.transcoders.Transcoder;
-import com.dreameddeath.common.storage.CouchbaseDocument;
 
 @JsonInclude(Include.NON_EMPTY)
 public final class SharedRatingContext extends AbstractRatingContext{

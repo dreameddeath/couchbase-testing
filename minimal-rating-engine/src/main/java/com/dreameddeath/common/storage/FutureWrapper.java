@@ -3,6 +3,9 @@ package com.dreameddeath.common.storage;
 import java.util.concurrent.Future;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.internal.OperationFuture;
+import com.dreameddeath.common.model.CouchbaseDocument;
+import com.dreameddeath.common.model.CouchbaseDocumentLink;
+
 
 public abstract class FutureWrapper<T,TDOC extends CouchbaseDocument>{
     private CouchbaseDocumentLink<TDOC> _link;
@@ -15,13 +18,19 @@ public abstract class FutureWrapper<T,TDOC extends CouchbaseDocument>{
         _link = link;
     }
     
-    public void setDoc(TDOC doc){
+    protected void setDoc(TDOC doc){
         _linkedDoc = doc;
+    }
+    public TDOC getDoc(){
+        return _linkedDoc;
     }
     
     protected final T enrich(T input){
         if(input instanceof CouchbaseDocument){
             ((CouchbaseDocument)input).setKey(getKey());
+            if(getFuture() instanceof OperationFuture){
+                ((CouchbaseDocument)input).setCas(((OperationFuture)getFuture()).getCas());
+            }
             if(_link!=null){
                 _link.setLinkedObject((TDOC)input);
             }

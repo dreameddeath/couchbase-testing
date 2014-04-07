@@ -10,20 +10,22 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import net.spy.memcached.transcoders.Transcoder;
+
+import com.dreameddeath.common.model.CouchbaseDocumentLink;
 
 
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-import com.dreameddeath.common.storage.CouchbaseDocumentLink;
+
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingAccountLink extends CouchbaseDocumentLink<BillingAccount>{
+    /*import net.spy.memcached.transcoders.Transcoder;
+    import com.dreameddeath.common.storage.GenericJacksonTranscoder;
     private static GenericJacksonTranscoder<BillingAccount> _tc = new GenericJacksonTranscoder<BillingAccount>(BillingAccount.class);
     @JsonIgnore
     public  Transcoder<BillingAccount> getTranscoder(){
         return _tc;
     }
-    
+    */
     private String _uid;
 	
     @JsonProperty("uid")

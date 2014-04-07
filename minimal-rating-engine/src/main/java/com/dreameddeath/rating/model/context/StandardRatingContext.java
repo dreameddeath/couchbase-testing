@@ -10,35 +10,22 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-import net.spy.memcached.transcoders.Transcoder;
-import com.dreameddeath.common.storage.CouchbaseDocument;
-
 @JsonInclude(Include.NON_EMPTY)
 public final class StandardRatingContext extends AbstractRatingContext{
-    private List<RatingContextGuidingKey> _guidingKeys;
-    private List<RatingContextRatePlan> _ratePlans;
-    private List<RatingContextSharedLink> _sharedRatingCtxtLinks;
+    private List<RatingContextGuidingKey> _guidingKeys=new ArrayList<RatingContextGuidingKey>();
+    private List<RatingContextRatePlan> _ratePlans=new ArrayList<RatingContextRatePlan>();
+    private List<RatingContextSharedLink> _sharedRatingCtxtLinks=new ArrayList<RatingContextSharedLink>();
 
     @JsonProperty("guidingKeys")
-    public List<RatingContextGuidingKey> getGuidingKeys(){
-        if(_guidingKeys==null){ _guidingKeys = new ArrayList<RatingContextGuidingKey>();}
-        return _guidingKeys;
-    }
-    public void setGuidingKeys(List<RatingContextGuidingKey> guidingKeys){_guidingKeys = guidingKeys;}
+    public List<RatingContextGuidingKey> getGuidingKeys(){ return _guidingKeys; }
+    public void setGuidingKeys(List<RatingContextGuidingKey> guidingKeys){ _guidingKeys = guidingKeys; }
     
     @JsonProperty("ratePlans")
-    public List<RatingContextRatePlan> getRatePlans(){
-        if(_ratePlans==null){ _ratePlans = new ArrayList<RatingContextRatePlan>();}
-        return _ratePlans;
-    }
-    public void setRatePlans(List<RatingContextRatePlan> ratePlans){_ratePlans = ratePlans;}
+    public List<RatingContextRatePlan> getRatePlans(){ return _ratePlans; }
+    public void setRatePlans(List<RatingContextRatePlan> ratePlans){_ratePlans.clear();_ratePlans.addAll(ratePlans);}
     
     @JsonProperty("sharedContexts")
-    public List<RatingContextSharedLink> getSharedContexts(){
-        if(_sharedRatingCtxtLinks==null){ _sharedRatingCtxtLinks = new ArrayList<RatingContextSharedLink>();}
-        return _sharedRatingCtxtLinks;
-    }
-    public void setSharedContexts(List<RatingContextSharedLink> sharedContexts){_sharedRatingCtxtLinks = sharedContexts;}
+    public List<RatingContextSharedLink> getSharedContexts(){return _sharedRatingCtxtLinks;}
+    public void setSharedContexts(List<RatingContextSharedLink> sharedContexts){_sharedRatingCtxtLinks.clear();_sharedRatingCtxtLinks.addAll(sharedContexts);}
     
 }

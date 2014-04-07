@@ -11,21 +11,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import net.spy.memcached.transcoders.Transcoder;
-
-
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-import com.dreameddeath.common.storage.CouchbaseDocument;
+import com.dreameddeath.common.model.CouchbaseDocument;
 
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingAccount extends CouchbaseDocument{
-    private static GenericJacksonTranscoder<BillingAccount> _tc = new GenericJacksonTranscoder<BillingAccount>(BillingAccount.class);
-    @JsonIgnore
-    public  Transcoder<BillingAccount> getTranscoder(){
-        return _tc;
-    }
-    
     private String _uid;
 	private String _ledgerSegment;
 	private String _taxProfile;
@@ -73,8 +63,8 @@ public class BillingAccount extends CouchbaseDocument{
     public String getPaymentMethod() { return _paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { _paymentMethod=paymentMethod; }
     
-    @JsonProperty("billlingPeriods")
-    public Collection<BillingCycleLink> getBillingPeriods() { return _billingCycleLinks; }
+    @JsonProperty("billingPeriods")
+    public Collection<BillingCycleLink> getBillingCycles() { return _billingCycleLinks; }
     public void setBillingCycles(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();_billingCycleLinks.addAll(billingCycleLinks); }
     public void addBillingCycle(BillingCycleLink billingCycleLink) { _billingCycleLinks.add(billingCycleLink); }
     

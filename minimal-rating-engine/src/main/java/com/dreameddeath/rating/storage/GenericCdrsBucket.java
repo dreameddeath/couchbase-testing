@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import com.dreameddeath.common.storage.CouchbaseConstants;
-import com.dreameddeath.common.storage.CouchbaseDocument;
+import com.dreameddeath.common.model.CouchbaseDocument;
 /**
 *  This abstract class is use to manage a bucket of CDRs :
 *  - it have to keep the original order of cdrs
@@ -19,6 +19,13 @@ import com.dreameddeath.common.storage.CouchbaseDocument;
 *  The cdr itself is managed by the @see GenericCdr class.
 */
 public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseDocument{
+    ///The key of the parent billing account
+    private String _billingAccountKey;
+    ///The key of the parent billing cycle
+    private String _billingCycleKey;
+    ///The key of the parent rating Context
+    private String _ratingContextKey;
+    
     /// The document type is used during the Transcoder
     private DocumentType _cdrBucketDocumentType;
     /// The check-sum of the last cdrs read to detect the error
@@ -60,9 +67,22 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
         setKey(key);
     }
     
+    /// Billing Account Key Getter/Setter
+    public String getBillingAccountKey(){ return _billingAccountKey;}
+    public void setBillingAccountKey(String baKey){_billingAccountKey=baKey;}
+    
+    /// Billing Account Key Getter/Setter
+    public String getBillingCycleKey(){ return _billingCycleKey;}
+    public void setBillingCycleKey(String cycleKey){_billingCycleKey=cycleKey;}
+    
+    /// Rating Context Account Key Getter/Setter
+    public String getRatingContextKey(){ return _ratingContextKey;}
+    public void setRatingContextKey(String ratingCtxtKey){_ratingContextKey=ratingCtxtKey;}
+    
     /// Checksum Getter/Setter
     public int getEndingCheckSum(){ return _endingCheckSum;}
     public void setEndingCheckSum(int endingCheckSum){_endingCheckSum=endingCheckSum;}
+    
     
     /// Last Written Size Getter/Setter
     public int getLastWrittenSize(){return _lastWrittenSize;}
@@ -139,7 +159,10 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
     public String toString(){
         return 
             "{\n"+
-            "    "+super.toString()+"\n"+
+            "    "+super.toString()+",\n"+
+            "    ba : "+_billingAccountKey+",\n"+
+            "    cycle : "+_billingCycleKey+",\n"+
+            "    ctxt : "+_ratingContextKey+",\n"+
             "    cdrs : \n"+
             "    "+_cdrs.toString()+"\n"+
             "    \n"+

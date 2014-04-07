@@ -15,6 +15,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.dreameddeath.common.storage.CouchbaseConstants;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
+import com.dreameddeath.common.model.CouchbaseDocument;
+
+
 public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Transcoder<T>{
     private static final ObjectMapper _mapper;
     private final Class<T> _dummyClass;
@@ -66,7 +69,9 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
     @Override
     public CachedData encode(T input){
         try{
-            return new CachedData(0,_mapper.writeValueAsBytes(input),CachedData.MAX_SIZE);
+            byte[] encoded= _mapper.writeValueAsBytes(input);
+            input.setDbDocSize(encoded.length);
+            return new CachedData(0,encoded,CachedData.MAX_SIZE);
         }
         catch (JsonProcessingException e){
             e.printStackTrace();

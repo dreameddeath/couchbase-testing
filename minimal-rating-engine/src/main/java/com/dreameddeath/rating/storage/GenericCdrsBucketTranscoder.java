@@ -22,7 +22,7 @@ import com.dreameddeath.rating.storage.ActiveCdrsProtos.PartialCdrsAppender;
 *
 *  The cdr itself is managed by the @see GenericCdr class.
 */
-public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implements Transcoder<GenericCdrsBucket<T>>{
+public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET extends GenericCdrsBucket<T>> implements Transcoder<TBUCKET>{
     /**
     * abstract "callback" function used to initialize the CDR while unpacking
     */
@@ -31,7 +31,7 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
     /**
     * abstract "callback" function used to initialize the CDR Bucket while unpacking
     */
-    abstract protected GenericCdrsBucket<T> genericCdrBucketBuilder(GenericCdrsBucket.DocumentType docType);
+    abstract protected TBUCKET genericCdrBucketBuilder(GenericCdrsBucket.DocumentType docType);
     
     
     ///The max size of the bucket
@@ -52,8 +52,8 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
     * @param cachedData the database bucket
     */
     @Override
-    public GenericCdrsBucket<T> decode(CachedData cachedData){
-        GenericCdrsBucket<T> result = genericCdrBucketBuilder(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
+    public TBUCKET decode(CachedData cachedData){
+        TBUCKET result = genericCdrBucketBuilder(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
         result.addDocumentEncodedFlags(cachedData.getFlags());
         result.setDbDocSize(cachedData.getData().length);
         try{
@@ -70,7 +70,7 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
     * @param input the CDR bucket to be encoded
     */
     @Override
-    public CachedData encode(GenericCdrsBucket<T> input){
+    public CachedData encode(TBUCKET input){
         byte[] packedResult = packStorageDocument(input);
         input.setLastWrittenSize(packedResult.length);
         return new CachedData(input.getDocumentEncodedFlags(),packedResult,CachedData.MAX_SIZE);
@@ -84,9 +84,14 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
     * @param message the message to unpack (parse) and add them to the cdrsBucket parameter
     * @throws InvalidProtocolBufferException when the message isn't well formatted
     */
-    private  void unpackStorageDocument(GenericCdrsBucket<T> cdrsBucket, byte[] message) throws InvalidProtocolBufferException{
+    private  void unpackStorageDocument(TBUCKET cdrsBucket, byte[] message) throws InvalidProtocolBufferException{
         //Unpack Cdrs
         OverallCdrsMessage unpackedMessage = OverallCdrsMessage.parseFrom(message);
+        
+        //Read Link keys
+        cdrsBucket.setBillingAccountKey(unpackedMessage.getBaKey());
+        cdrsBucket.setRatingContextKey(unpackedMessage.getRatingCtxtKey());
+        cdrsBucket.setBillingCycleKey(unpackedMessage.getBaCycleKey());
         
         //Normal Cdrs uncompress and fill-up Hash Map
         for(NormalCdr unpackedCdr :unpackedMessage.getNormalCdrsList()){
@@ -136,11 +141,15 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr> implemen
     * @param cdrsToStoreList The cdrMap from which to submit cdrs
     * @return the array of bytes of the packed message (to be appended at the end of existing document)
     */
-    private byte[] packStorageDocument(GenericCdrsBucket<T> cdrsToStoreList){
+    private byte[] packStorageDocument(TBUCKET cdrsToStoreList){
         //If it is a full bucket, use the normal cdrs writer
         if(cdrsToStoreList.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL)){
             NormalCdrsAppender.Builder normalAppenderBuilder = NormalCdrsAppender.newBuilder();
-             
+            
+            normalAppenderBuilder.setBaKey(cdrsToStoreList.getBillingAccountKey());
+            normalAppenderBuilder.setRatingCtxtKey(cdrsToStoreList.getRatingContextKey());
+            normalAppenderBuilder.setBaCycleKey(cdrsToStoreList.getBillingCycleKey());
+            
             for(T cdrToStore:cdrsToStoreList.getCdrs()){
                 NormalCdr.Builder cdrBuilder = NormalCdr.newBuilder();
                 cdrBuilder.setUid(cdrToStore.getUid());
