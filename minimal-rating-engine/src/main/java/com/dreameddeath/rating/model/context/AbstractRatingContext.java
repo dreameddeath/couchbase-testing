@@ -47,10 +47,6 @@ public abstract class AbstractRatingContext extends CouchbaseDocument{
     public List<RatingContextAttribute> getAttributes(){return _attributes;}
     public void setAttributes(List<RatingContextAttribute> attributes){_attributes.clear(); _attributes.addAll(attributes);}
     
-    public RatingContextLink buildLink(){
-        return RatingContextLink.buildLink(this);
-    }
-    
     @Override
     public String toString(){
         String result = super.toString()+"\n";

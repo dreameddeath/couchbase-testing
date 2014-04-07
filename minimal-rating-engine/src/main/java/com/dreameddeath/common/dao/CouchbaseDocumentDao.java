@@ -24,12 +24,17 @@ import com.dreameddeath.common.storage.OperationFutureWrapper;
 
 
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
+    private CouchbaseDocumentDaoFactory _parentFactory;
     private CouchbaseClientWrapper _client;
     public abstract Transcoder<T> getTranscoder();
     protected abstract void buildKey(T newObject);
     
     public CouchbaseClientWrapper getClientWrapper(){
         return _client;
+    }
+    
+    public CouchbaseDocumentDaoFactory getDaoFactory(){
+        return _parentFactory;
     }
     
     //Maybe overriden to improve (bulk key attribution)
@@ -42,8 +47,20 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
     }
     
-    public CouchbaseDocumentDao(CouchbaseClientWrapper client){
+    //Maybe overriden to improve (bulk key attribution)
+    public void buildKeysForLinks(Collection<? extends CouchbaseDocumentLink<? extends T>> links){
+        for(CouchbaseDocumentLink<? extends T> link:links){
+            if(link.getKey()!=null){
+                continue;
+            }
+            buildKey(link.getLinkedObject());
+        }
+    }
+    
+    
+    public CouchbaseDocumentDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
         _client = client;
+        _parentFactory = factory;
     }
     
     public T create(T obj){

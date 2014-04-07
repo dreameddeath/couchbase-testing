@@ -38,11 +38,4 @@ public class BillingCycle extends CouchbaseDocument{
     public void setRatingContextsLinks(Collection<RatingContextLink> ratingCtxtLinks) { _ratingContexts.clear();_ratingContexts.addAll(ratingCtxtLinks); }
     public void addRatingContextLink(RatingContextLink ratingCtxtLink) { _ratingContexts.add(ratingCtxtLink); }
     
-    
-    @JsonIgnore
-    public BillingCycleLink buildLink(){
-        return BillingCycleLink.buildLink(this);
-    }
-    
-    
 }

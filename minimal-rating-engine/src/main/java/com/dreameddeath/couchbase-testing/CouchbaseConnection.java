@@ -49,10 +49,10 @@ public class CouchbaseConnection {
 
     private static final CouchbaseDocumentDaoFactory _daoFactory = new CouchbaseDocumentDaoFactory();
     static {
-        _daoFactory.addDaoFor(BillingAccount.class,new BillingAccountDao(_client));
-        _daoFactory.addDaoFor(BillingCycle.class,new BillingCycleDao(_client));
-        _daoFactory.addDaoFor(AbstractRatingContext.class,new AbstractRatingContextDao(_client));
-        _daoFactory.addDaoFor(StringCdrBucket.class,new StringCdrBucketDao(_client));
+        _daoFactory.addDaoFor(BillingAccount.class,new BillingAccountDao(_client,_daoFactory));
+        _daoFactory.addDaoFor(BillingCycle.class,new BillingCycleDao(_client,_daoFactory));
+        _daoFactory.addDaoFor(AbstractRatingContext.class,new AbstractRatingContextDao(_client,_daoFactory));
+        _daoFactory.addDaoFor(StringCdrBucket.class,new StringCdrBucketDao(_client,_daoFactory));
     }
     
     public static class StringSerializer implements BinarySerializer<String>{
@@ -73,7 +73,14 @@ public class CouchbaseConnection {
         public StringCdrBucket(String key,Integer origDbSize,DocumentType documentType){ super(key,origDbSize,documentType); }
     }
     
-    
+    // public static CdrsBucketLink<GenericCdrsBucket> buildLink(T genCdrsBucket){
+        // CdrsBucketLink<T> newLink = new CdrsBucketLink<T>();
+        // newLink.setKey(genCdrsBucket.getKey());
+        // newLink.setType(genCdrsBucket.getClass().getSimpleName());
+        // newLink.updateFromBucket(genCdrsBucket);
+        // newLink.setLinkedObject(genCdrsBucket);
+        // return newLink;
+    // }
     public static class StringCdrRatingTrancoder extends GenericCdrsBucketTranscoder<StringCdr,StringCdrBucket>{
         @Override
         protected StringCdr genericCdrBuilder(String uid){ return new StringCdr(uid); }
@@ -94,8 +101,8 @@ public class CouchbaseConnection {
             return _tc;
         }
        
-        public StringCdrBucketDao(CouchbaseClientWrapper client){
-            super(client);
+        public StringCdrBucketDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
+            super(client,factory);
         }
     
         public void buildKey(StringCdrBucket obj){
@@ -105,32 +112,32 @@ public class CouchbaseConnection {
     }
     
     public static void main(String[] args) throws Exception {
-        
+        _client.getClient().flush();
         try{
             BillingAccount ba = new BillingAccount();
             //ba.setKey("ba/1");
             //ba.setUid("1");
             //OperationFutureWrapper<Boolean,BillingAccount> future=client.set(ba);
             //future.get();
-            _daoFactory.getDaoFor(BillingAccount.class).create(ba);
             //System.out.println("Set Cas :"+future.getFuture().getCas());
             BillingCycle billCycle = new BillingCycle();
             //billCycle.setKey(ba.getKey()+"/c/1");
-            billCycle.setBillingAccountLink(ba.buildLink());
+            billCycle.setBillingAccountLink(new BillingAccountLink(ba));
             billCycle.setStartDate((new DateTime()).withTime(0,0,0,0));
             billCycle.setEndDate(billCycle.getStartDate().plusMonths(1));
             
             StandardRatingContext ratingCtxt = new StandardRatingContext();
             //ratingCtxt.setUid("ratCxt/1");
-            ratingCtxt.setBillingAccountLink(ba.buildLink());
-            ratingCtxt.setBillingCycleLink(billCycle.buildLink());
-            billCycle.addRatingContextLink(ratingCtxt.buildLink());
-            ba.addBillingCycle(billCycle.buildLink());
+            ratingCtxt.setBillingAccountLink(new BillingAccountLink(ba));
+            ratingCtxt.setBillingCycleLink(new BillingCycleLink(billCycle));
+            billCycle.addRatingContextLink(new RatingContextLink(ratingCtxt));
+            ba.addBillingCycle(new BillingCycleLink(billCycle));
+            _daoFactory.getDaoFor(BillingAccount.class).create(ba);
             _daoFactory.getDaoFor(BillingCycle.class).create(billCycle);
             _daoFactory.getDaoFor(AbstractRatingContext.class).create(ratingCtxt);
-            _daoFactory.getDaoFor(BillingCycle.class).update(billCycle);
-            _daoFactory.getDaoFor(AbstractRatingContext.class).update(ratingCtxt);
-            _daoFactory.getDaoFor(BillingAccount.class).update(ba);
+            //_daoFactory.getDaoFor(BillingCycle.class).update(billCycle);
+            //_daoFactory.getDaoFor(AbstractRatingContext.class).update(ratingCtxt);
+            //_daoFactory.getDaoFor(BillingAccount.class).update(ba);
             
             System.out.println("Set Ba Result :"+ba);
             

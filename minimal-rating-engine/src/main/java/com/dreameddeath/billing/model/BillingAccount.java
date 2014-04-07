@@ -68,10 +68,6 @@ public class BillingAccount extends CouchbaseDocument{
     public void setBillingCycles(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();_billingCycleLinks.addAll(billingCycleLinks); }
     public void addBillingCycle(BillingCycleLink billingCycleLink) { _billingCycleLinks.add(billingCycleLink); }
     
-    public BillingAccountLink buildLink(){ 
-        return BillingAccountLink.buildLink(this);
-    }
-    
     /**
      * the types of billing account
      */

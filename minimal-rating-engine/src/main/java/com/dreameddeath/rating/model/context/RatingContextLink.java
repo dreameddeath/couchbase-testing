@@ -30,12 +30,9 @@ public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingConte
         return result;
     }
     
-    
-    public static RatingContextLink buildLink(AbstractRatingContext ratingCtxt){
-        RatingContextLink newLink = new RatingContextLink();
-        newLink.setKey(ratingCtxt.getKey());
-        newLink.setType(ratingCtxt.getClass().getSimpleName());
-        newLink.setLinkedObject(ratingCtxt);
-        return newLink;
+    public RatingContextLink(){}
+    public RatingContextLink(AbstractRatingContext ratingCtxt){
+        super(ratingCtxt);
+        setType(ratingCtxt.getClass().getSimpleName());
     }
 }

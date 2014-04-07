@@ -18,27 +18,18 @@ import com.dreameddeath.common.model.CouchbaseDocumentLink;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingAccountLink extends CouchbaseDocumentLink<BillingAccount>{
-    /*import net.spy.memcached.transcoders.Transcoder;
-    import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-    private static GenericJacksonTranscoder<BillingAccount> _tc = new GenericJacksonTranscoder<BillingAccount>(BillingAccount.class);
-    @JsonIgnore
-    public  Transcoder<BillingAccount> getTranscoder(){
-        return _tc;
-    }
-    */
     private String _uid;
 	
     @JsonProperty("uid")
     public String getUid() { return _uid; }
     public void setUid(String uid) { _uid=uid; }
     
+    public BillingAccountLink(){}
+    
     @JsonIgnore
-    public static BillingAccountLink buildLink(BillingAccount ba){
-        BillingAccountLink newLink = new BillingAccountLink();
-        newLink.setKey(ba.getKey());
-        newLink.setUid(ba.getUid());
-        newLink.setLinkedObject(ba);
-        return newLink;
+    public BillingAccountLink (BillingAccount ba){
+        super(ba);
+        setUid(ba.getUid());
     }
     
     @Override

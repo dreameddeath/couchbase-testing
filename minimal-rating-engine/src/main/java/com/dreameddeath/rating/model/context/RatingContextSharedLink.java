@@ -21,5 +21,10 @@ public class RatingContextSharedLink extends RatingContextLink {
     @JsonProperty("endDate")
     public DateTime getEndDate(){ return _endDate;}
     public void setEndDate(DateTime endDate){ this._endDate = endDate; }
+    
+    public RatingContextSharedLink(){}
+    public RatingContextSharedLink(SharedRatingContext ctxt){
+        super(ctxt);
+    }
  
 }

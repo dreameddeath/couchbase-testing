@@ -23,6 +23,13 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument>{
     public void setLinkedObject(T docObj){ _docObject=docObj; docObj.addReverseLink(this);}
     
     
+    public CouchbaseDocumentLink(){}
+    public CouchbaseDocumentLink(T targetDoc){
+        setKey(targetDoc.getKey());
+        setLinkedObject(targetDoc);
+    }
+    
+    
     @Override
     public String toString(){
         return "key : "+getKey();

@@ -16,15 +16,6 @@ import com.dreameddeath.rating.model.context.AbstractRatingContext;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingCycleLink extends CouchbaseDocumentLink<BillingCycle>{
-    /*import net.spy.memcached.transcoders.Transcoder;
-    import com.dreameddeath.common.storage.GenericJacksonTranscoder;
-
-    private static GenericJacksonTranscoder<BillingCycle> _tc = new GenericJacksonTranscoder<BillingCycle>(BillingCycle.class);
-    @JsonIgnore
-    public  Transcoder<BillingCycle> getTranscoder(){
-        return _tc;
-    }*/
-    
     private DateTime _startDate;
 	private DateTime _endDate;
 	
@@ -36,15 +27,16 @@ public class BillingCycleLink extends CouchbaseDocumentLink<BillingCycle>{
     public DateTime getEndDate() { return _endDate; }
     public void setEndDate(DateTime endDate) { _endDate=endDate; }
     
-    @JsonIgnore
-    public static BillingCycleLink buildLink(BillingCycle billCycle){
-        BillingCycleLink newLink = new BillingCycleLink();
-        newLink.setKey(billCycle.getKey());
-        newLink.setStartDate(billCycle.getStartDate());
-        newLink.setEndDate(billCycle.getEndDate());
-        newLink.setLinkedObject(billCycle);
-        return newLink;
+    public BillingCycleLink(){}
+    
+    public BillingCycleLink(BillingCycle billCycle){
+        super(billCycle);
+        setKey(billCycle.getKey());
+        setStartDate(billCycle.getStartDate());
+        setEndDate(billCycle.getEndDate());
+        setLinkedObject(billCycle);
     }
+    
     
     @Override
     public String toString(){

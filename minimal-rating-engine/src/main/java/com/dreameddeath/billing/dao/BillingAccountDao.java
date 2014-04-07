@@ -1,7 +1,9 @@
 package com.dreameddeath.billing.dao;
 
 import com.dreameddeath.billing.model.BillingAccount;
+import com.dreameddeath.billing.model.BillingCycle;
 import com.dreameddeath.common.dao.CouchbaseDocumentDao;
+import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
 
 import net.spy.memcached.transcoders.Transcoder;
 import com.dreameddeath.common.storage.GenericJacksonTranscoder;
@@ -18,8 +20,8 @@ public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
         return _tc;
     }
     
-    public BillingAccountDao(CouchbaseClientWrapper client){
-        super(client);
+    public BillingAccountDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
+        super(client,factory);
     }
     
     public void buildKey(BillingAccount obj){
@@ -28,5 +30,7 @@ public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
         if(obj.getUid()==null){
             obj.setUid(String.format(BA_FMT_UID,result));
         }
+        
+        getDaoFactory().getDaoFor(BillingCycle.class).buildKeysForLinks(obj.getBillingCycles());
     }
 }
