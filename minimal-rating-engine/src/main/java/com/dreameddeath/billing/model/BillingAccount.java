@@ -8,14 +8,10 @@ import java.util.List;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
 
-@JsonInclude(Include.NON_EMPTY)
 public class BillingAccount extends CouchbaseDocument{
     @JsonProperty("uid")
     private String _uid;
@@ -37,7 +33,6 @@ public class BillingAccount extends CouchbaseDocument{
     private String _paymentMethod;
     @JsonProperty("billingPeriods")
     private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
-    
     
     public String getUid() { return _uid; }
     public void setUid(String uid) { _uid=uid; }

@@ -112,51 +112,40 @@ public class CouchbaseConnection {
     }
     
     public static void main(String[] args) throws Exception {
-        _client.getClient().flush().get();
+        //_client.getClient().flush().get();
         try{
             BillingAccount ba = new BillingAccount();
             ba.setLedgerSegment("test");
-            ba.setLedgerSegment("test");
-            //ba.setKey("ba/1");
-            //ba.setUid("1");
-            //OperationFutureWrapper<Boolean,BillingAccount> future=client.set(ba);
-            //future.get();
-            //System.out.println("Set Cas :"+future.getFuture().getCas());
             BillingCycle billCycle = new BillingCycle();
-            //billCycle.setKey(ba.getKey()+"/c/1");
             billCycle.setBillingAccountLink(new BillingAccountLink(ba));
             billCycle.setStartDate((new DateTime()).withTime(0,0,0,0));
             billCycle.setEndDate(billCycle.getStartDate().plusMonths(1));
             
             StandardRatingContext ratingCtxt = new StandardRatingContext();
-            //ratingCtxt.setUid("ratCxt/1");
             ratingCtxt.setBillingAccountLink(new BillingAccountLink(ba));
             ratingCtxt.setBillingCycleLink(new BillingCycleLink(billCycle));
+            RatingContextAttribute attr =  new RatingContextAttribute();
+            ratingCtxt.addAttribute(attr);
+            attr.setCode("testing");
             billCycle.addRatingContextLink(new RatingContextLink(ratingCtxt));
             ba.addBillingCycle(new BillingCycleLink(billCycle));
             System.out.println("PreCreate Ba Result :"+ba);
             _daoFactory.getDaoFor(BillingAccount.class).create(ba);
             _daoFactory.getDaoFor(BillingCycle.class).create(billCycle);
             _daoFactory.getDaoFor(AbstractRatingContext.class).create(ratingCtxt);
-            //_daoFactory.getDaoFor(BillingCycle.class).update(billCycle);
-            //_daoFactory.getDaoFor(AbstractRatingContext.class).update(ratingCtxt);
-            //_daoFactory.getDaoFor(BillingAccount.class).update(ba);
             
-            
-            System.out.println("Set Ba Result :"+ba);
-            BillingAccount readBa = _daoFactory.getDaoFor(BillingAccount.class).get(ba.getKey());
-            System.out.println("Read Ba Result :"+readBa);
-            readBa.setLedgerSegment("Bis");
-            System.out.println("After Update Ba Result :"+readBa);
-            //System.out.println("Set Cycle Result :"+billCycle);
-            //System.out.println("Set Rating ctxt Result :"+ratingCtxt);
-            
+            System.out.println("Set Rating Result :"+ratingCtxt);
+            //BillingAccount readBa = _daoFactory.getDaoFor(BillingAccount.class).get(ba.getKey());
+            //System.out.println("Read Ba Result :"+readBa);
+            //readBa.setLedgerSegment("Bis");
+            attr.setCode("testing2");
+            System.out.println("After Update Rating Result :"+ratingCtxt);
             
             StringCdrBucket cdrsBucket = new StringCdrBucket(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
             cdrsBucket.setBillingAccountKey(ba.getKey());
             cdrsBucket.setBillingCycleKey(billCycle.getKey());
             cdrsBucket.setRatingContextKey(ratingCtxt.getKey());
-            //cdrsBucket.setKey("my-first-document2");
+            
             for(int i=0;i<5;++i){
                 StringCdr cdr = new StringCdr("CDR_"+i);
                 cdr.setCdrData("BaseCdrContent_"+i);
@@ -165,9 +154,7 @@ public class CouchbaseConnection {
             
             _daoFactory.getDaoFor(StringCdrBucket.class).create(cdrsBucket);
             
-            
             GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.gets(cdrsBucket.getKey(),_daoFactory.getDaoFor(StringCdrBucket.class).getTranscoder());
-            //System.out.println("Result :\n"+unpackedCdrsMap.toString());
             
             StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getKey(),unpackedCdrsMap.getDbDocSize(),GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
             int pos=0;

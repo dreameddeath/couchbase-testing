@@ -5,27 +5,16 @@ import java.util.Collection;
 import com.dreameddeath.common.annotation.CouchbaseCollectionField;
 
 @CouchbaseCollectionField
-public class CouchbaseDocumentArrayList<T> extends ArrayList<T>{
-    private CouchbaseDocument _parent;
+public class CouchbaseDocumentArrayList<T extends CouchbaseDocumentElement> extends ArrayList<T>{
+    private CouchbaseDocumentElement _parentElt;
     
-    public CouchbaseDocumentArrayList(CouchbaseDocument parent){
-        _parent=parent;
+    public CouchbaseDocumentArrayList(CouchbaseDocumentElement parentElt){
+        _parentElt=parentElt;
     }
+    
     @Override
     public boolean add(T elt){
-        if(elt instanceof CouchbaseDocumentLink){
-            ((CouchbaseDocumentLink)elt).setSourceObject(_parent);
-        }
+        elt.setParentDocument(_parentElt.getParentDocument());
         return super.add(elt);
     }
-    
-    /*@Override
-    public boolean addAll(Collection<? extends T> elts){
-        for(T elt:elts){
-            if(elt instanceof CouchbaseDocumentLink){
-                ((CouchbaseDocumentLink)elt).setSourceObject(_parent);
-            }
-        }
-        return super.addAll(elts);
-    }*/
 }

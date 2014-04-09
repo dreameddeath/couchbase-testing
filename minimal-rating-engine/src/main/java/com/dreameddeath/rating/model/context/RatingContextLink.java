@@ -6,19 +6,13 @@ import java.util.ArrayList;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
 
-
-
-@JsonInclude(Include.NON_EMPTY)
 public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingContext>{
+    @JsonProperty("@c")
     private String _class;
     
-    @JsonProperty("@c")
     public String getType() { return _class;}
     public void setType(String clazz) { _class=clazz;}
     

@@ -3,17 +3,14 @@ package com.dreameddeath.common.model;
 import java.util.HashSet;
 import java.util.Collection;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.dreameddeath.common.storage.CouchbaseConstants.DocumentFlag;
-import com.dreameddeath.common.annotation.CouchbaseEntity;
 
-@CouchbaseEntity
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
-public abstract class CouchbaseDocument{
+public abstract class CouchbaseDocument extends CouchbaseDocumentElement{
     private String _key;
     private Long   _cas;
     private Boolean _isLocked;
@@ -23,26 +20,25 @@ public abstract class CouchbaseDocument{
     
     private State _state=State.NEW;
     
-    @JsonIgnore
+    @Override
+    public CouchbaseDocument getParentDocument() { return this;}
+    @Override
+    public void setParentDocument(CouchbaseDocument parent) { }
+    
     public final String getKey(){ return _key; }
     public final void setKey(String key){ this._key = key; updateReverseLinkKeys(); }
 
-    @JsonIgnore
     public final Long getCas(){ return _cas; }
     public final void setCas(Long cas){ this._cas = cas; }
     
-    @JsonIgnore
     public final Boolean getIsLocked(){ return _isLocked; }
     public final void setIsLocked(Boolean isLocked){ this._isLocked = isLocked; }
 
-    @JsonIgnore
     public final Integer getDbDocSize(){ return _dbDocSize; }
     public final void setDbDocSize(Integer docSize){ this._dbDocSize = docSize; }
 
-    @JsonIgnore
     public final Collection<DocumentFlag> getDocumentFlags(){ return _documentFlags; }
     
-    @JsonIgnore
     public final Integer getDocumentEncodedFlags(){ return DocumentFlag.pack(_documentFlags); }
     public final void setDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.clear(); _documentFlags.addAll(DocumentFlag.unPack(encodedFlags)); }
     public final void setDocumentFlags(Collection<DocumentFlag> flags){ _documentFlags.clear(); _documentFlags.addAll(flags); }
@@ -53,8 +49,8 @@ public abstract class CouchbaseDocument{
     public final void removeDocumentFlags(Collection<DocumentFlag> flags){_documentFlags.remove(flags); }
     public boolean hasDocumentFlag(DocumentFlag flag){ return _documentFlags.contains(flag); }
     
-    @JsonIgnore
     public void addReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
+    public void removeReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
     
     //Called by setKey
     private void updateReverseLinkKeys(){ for(CouchbaseDocumentLink lnk: _reverseLinks){ lnk.setKey(_key); } }

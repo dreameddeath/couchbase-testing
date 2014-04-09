@@ -6,29 +6,28 @@ import java.util.ArrayList;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-@JsonInclude(Include.NON_EMPTY)
-public class RatingContextGuidingKey{
+import com.dreameddeath.common.model.CouchbaseDocumentElement;
+
+public class RatingContextGuidingKey extends CouchbaseDocumentElement{
+    @JsonProperty("key")
     private String   _key;
+    @JsonProperty("type")
     private String   _type;
+    @JsonProperty("startDate")
     private DateTime _startDate;
+    @JsonProperty("endDate")
     private DateTime _endDate;
 
-    @JsonProperty("key")
     public String getKey(){ return _key;}
     public void setKey(String key){ this._key = key; }
     
-    @JsonProperty("type")
     public String getType(){ return _type;}
     public void setType(String type){ this._type = type; }
     
-    @JsonProperty("startDate")
     public DateTime getStartDate(){ return _startDate;}
     public void setStartDate(DateTime startDate){ this._startDate = startDate; }
     
-    @JsonProperty("endDate")
     public DateTime getEndDate(){ return _endDate;}
     public void setEndDate(DateTime endDate){ this._endDate = endDate; }
  

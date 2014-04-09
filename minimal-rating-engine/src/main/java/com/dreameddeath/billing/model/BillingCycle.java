@@ -3,19 +3,16 @@ package com.dreameddeath.billing.model;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
 import com.dreameddeath.rating.model.context.RatingContextLink;
 
-@JsonInclude(Include.NON_EMPTY)
 public class BillingCycle extends CouchbaseDocument{
     @JsonProperty("ba")
     private BillingAccountLink  _baLink;
@@ -35,7 +32,7 @@ public class BillingCycle extends CouchbaseDocument{
     public DateTime getEndDate() { return _endDate; }
     public void setEndDate(DateTime endDate) { _endDate=endDate; }
     
-    public Collection<RatingContextLink> getRatingContextsLinks() { return _ratingContexts; }
+    public Collection<RatingContextLink> getRatingContextsLinks() { return Collections.unmodifiableList(_ratingContexts); }
     public void setRatingContextsLinks(Collection<RatingContextLink> ratingCtxtLinks) { _ratingContexts.clear();_ratingContexts.addAll(ratingCtxtLinks); }
     public void addRatingContextLink(RatingContextLink ratingCtxtLink) { _ratingContexts.add(ratingCtxtLink); }
     

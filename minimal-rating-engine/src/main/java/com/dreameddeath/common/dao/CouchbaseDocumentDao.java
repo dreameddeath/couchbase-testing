@@ -37,7 +37,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return _parentFactory;
     }
     
-    //Maybe overriden to improve (bulk key attribution)
+    //May be overriden to improve (bulk key attribution)
     protected void buildKeys(Collection<T> newObjects){
         for(T newObject:newObjects){
             if(newObject.getKey()!=null){
