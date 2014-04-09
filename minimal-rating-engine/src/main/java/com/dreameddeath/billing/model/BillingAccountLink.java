@@ -18,15 +18,13 @@ import com.dreameddeath.common.model.CouchbaseDocumentLink;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingAccountLink extends CouchbaseDocumentLink<BillingAccount>{
+    @JsonProperty("uid")
     private String _uid;
 	
-    @JsonProperty("uid")
     public String getUid() { return _uid; }
     public void setUid(String uid) { _uid=uid; }
     
     public BillingAccountLink(){}
-    
-    @JsonIgnore
     public BillingAccountLink (BillingAccount ba){
         super(ba);
         setUid(ba.getUid());

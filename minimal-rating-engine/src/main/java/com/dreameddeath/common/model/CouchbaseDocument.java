@@ -4,8 +4,15 @@ import java.util.HashSet;
 import java.util.Collection;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.dreameddeath.common.storage.CouchbaseConstants.DocumentFlag;
+import com.dreameddeath.common.annotation.CouchbaseEntity;
 
+@CouchbaseEntity
+@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
 public abstract class CouchbaseDocument{
     private String _key;
     private Long   _cas;
@@ -13,6 +20,8 @@ public abstract class CouchbaseDocument{
     private Integer _dbDocSize;
     private Collection<DocumentFlag> _documentFlags=new HashSet<DocumentFlag>();
     private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
+    
+    private State _state=State.NEW;
     
     @JsonIgnore
     public final String getKey(){ return _key; }
@@ -50,6 +59,22 @@ public abstract class CouchbaseDocument{
     //Called by setKey
     private void updateReverseLinkKeys(){ for(CouchbaseDocumentLink lnk: _reverseLinks){ lnk.setKey(_key); } }
     
+    
+    public void setStateDirty(){
+        if(_state.equals(State.SYNC)){
+            _state=State.DIRTY;
+        }
+    }
+    
+    public void setStateSync(){
+        _state = State.SYNC;
+    }
+    
+    public State getState(){
+        return _state;
+    }
+    
+    
     @Override
     public String toString(){
         return 
@@ -57,6 +82,13 @@ public abstract class CouchbaseDocument{
             "cas   : "+_cas+",\n"+
             "lock  : "+_isLocked+",\n"+
             "size  : "+_dbDocSize+",\n"+
+            "state  : "+_state+",\n"+
             "flags : "+_documentFlags.toString();
+    }
+    
+    public enum State{
+        NEW,
+        DIRTY,
+        SYNC;
     }
 }

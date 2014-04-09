@@ -43,7 +43,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             if(newObject.getKey()!=null){
                 ///TODO throw an error
             }
-            buildKey(newObject);
+            else{
+                buildKey(newObject);
+            }
         }
     }
     
@@ -65,7 +67,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     
     public T create(T obj){
         if(obj.getKey()!=null){/**TODO throw an error*/}
-        buildKey(obj);
+        else { buildKey(obj);}
         try {
             _client.add(obj,getTranscoder()).get();
         } catch (InterruptedException e) {
@@ -77,7 +79,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 throw new RuntimeException("Exception waiting for cas update", e);
             }
         }
-        
+        obj.setStateSync();
         return obj;
     }
     
@@ -96,6 +98,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                     future.getDoc().setKey(null);
                     ///TODO better error management for errors
                 }
+                else{
+                    future.getDoc().setStateSync();
+                }
             }
             catch (InterruptedException e) {
                 exceptions.add(new RuntimeException("Interrupted waiting for value", e));
@@ -112,7 +117,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
 
     public T get(String key){
-        return _client.gets(key,getTranscoder());
+        T result=_client.gets(key,getTranscoder());
+        result.setStateSync();
+        return result;
     }
     
     public List<T> bulkGet(Set<String> keys){
@@ -124,7 +131,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
         for(OperationFutureWrapper<CASValue<T>,T> future : futures){
             try{
-                results.add(future.get().getValue());
+                T result = future.get().getValue();
+                result.setStateSync();
+                results.add(result);
             }
             catch (InterruptedException e) {
                 exceptions.add(new RuntimeException("Interrupted waiting for value", e));
@@ -143,6 +152,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public T update(T obj){
         if(obj.getKey()==null){/**TODO throw an error*/}
         _client.cas(obj,getTranscoder());
+        obj.setStateSync();
         return obj;
     }
     
@@ -157,8 +167,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
         for(OperationFutureWrapper<CASResponse,T> future:futures){
             try{
+                
                 CASResponse result = future.get();
-                ///TODO manage errors
+                if(result.equals(CASResponse.OK)){
+                    future.getDoc().setStateSync();
+                }
+                else{
+                    ///TODO manage errors
+                }
             }
             catch (InterruptedException e) {
                 exceptions.add(new RuntimeException("Interrupted waiting for value", e));

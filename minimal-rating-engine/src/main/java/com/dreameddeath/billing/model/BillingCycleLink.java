@@ -16,14 +16,14 @@ import com.dreameddeath.rating.model.context.AbstractRatingContext;
 
 @JsonInclude(Include.NON_EMPTY)
 public class BillingCycleLink extends CouchbaseDocumentLink<BillingCycle>{
-    private DateTime _startDate;
-	private DateTime _endDate;
-	
     @JsonProperty("startDate")
+    private DateTime _startDate;
+	@JsonProperty("endDate")
+    private DateTime _endDate;
+	
     public DateTime getStartDate() { return _startDate; }
     public void setStartDate(DateTime startDate) { _startDate=startDate; }
     
-    @JsonProperty("endDate")
     public DateTime getEndDate() { return _endDate; }
     public void setEndDate(DateTime endDate) { _endDate=endDate; }
     
