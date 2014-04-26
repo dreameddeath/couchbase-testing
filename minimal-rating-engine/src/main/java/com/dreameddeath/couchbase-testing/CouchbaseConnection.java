@@ -94,6 +94,7 @@ public class CouchbaseConnection {
     public static class StringCdrBucketDao extends CouchbaseDocumentDao<StringCdrBucket>{
         public static final String CDR_BUCKET_CNT_KEY="%s/cdrs/cnt";
         public static final String CDR_BUCKET_FMT_KEY="%s/cdrs/%d";
+        public static final String CDR_BUCKET_KEY_PATTERN=BillingAccountDao.BA_KEY_PATTERN+"/cdrs/\\d+";
     
         private static StringCdrRatingTrancoder _tc = new StringCdrRatingTrancoder();
     
@@ -107,35 +108,42 @@ public class CouchbaseConnection {
     
         public void buildKey(StringCdrBucket obj){
             long result = getClientWrapper().getClient().incr(String.format(CDR_BUCKET_CNT_KEY,obj.getBillingAccountKey()),1,1,0);
-            obj.setKey(String.format(CDR_BUCKET_FMT_KEY,obj.getRatingContextKey(),result));
+            obj.setKey(String.format(CDR_BUCKET_FMT_KEY,obj.getBillingAccountKey(),result));
+        }
+        public String getKeyPattern(){
+            return CDR_BUCKET_KEY_PATTERN;
         }
     }
     
     public static void main(String[] args) throws Exception {
         //_client.getClient().flush().get();
         try{
-            BillingAccount ba = new BillingAccount();
+            CouchbaseSession session=_daoFactory.newSession();
+            
+            BillingAccount ba = session.newEntity(BillingAccount.class);
             ba.setLedgerSegment("test");
-            BillingCycle billCycle = new BillingCycle();
-            billCycle.setBillingAccountLink(new BillingAccountLink(ba));
+            BillingCycle billCycle =  session.newEntity(BillingCycle.class);
+            billCycle.setBillingAccount(ba);
             billCycle.setStartDate((new DateTime()).withTime(0,0,0,0));
             billCycle.setEndDate(billCycle.getStartDate().plusMonths(1));
             
-            StandardRatingContext ratingCtxt = new StandardRatingContext();
-            ratingCtxt.setBillingAccountLink(new BillingAccountLink(ba));
-            ratingCtxt.setBillingCycleLink(new BillingCycleLink(billCycle));
+            StandardRatingContext ratingCtxt = session.newEntity(StandardRatingContext.class);
+            ratingCtxt.setBillingCycle(billCycle);
             RatingContextAttribute attr =  new RatingContextAttribute();
             ratingCtxt.addAttribute(attr);
             attr.setCode("testing");
-            billCycle.addRatingContextLink(new RatingContextLink(ratingCtxt));
-            ba.addBillingCycle(new BillingCycleLink(billCycle));
+            //billCycle.addRatingContext(ratingContext.newRatingContextLink(ratingCtxt));
+            //ba.addBillingCycle(new BillingCycleLink(billCycle));
             System.out.println("PreCreate Ba Result :"+ba);
-            _daoFactory.getDaoFor(BillingAccount.class).create(ba);
-            _daoFactory.getDaoFor(BillingCycle.class).create(billCycle);
-            _daoFactory.getDaoFor(AbstractRatingContext.class).create(ratingCtxt);
+            ///_daoFactory.getDaoForClass(BillingAccount.class).create(ba);
+            ///_daoFactory.getDaoForClass(BillingCycle.class).create(billCycle);
+            ///_daoFactory.getDaoForClass(AbstractRatingContext.class).create(ratingCtxt);
+            session.create(ba);
+            session.create(billCycle);
+            session.create(ratingCtxt);
             
             System.out.println("Set Rating Result :"+ratingCtxt);
-            //BillingAccount readBa = _daoFactory.getDaoFor(BillingAccount.class).get(ba.getKey());
+            //BillingAccount readBa = _daoFactory.getDaoForClass(BillingAccount.class).get(ba.getKey());
             //System.out.println("Read Ba Result :"+readBa);
             //readBa.setLedgerSegment("Bis");
             attr.setCode("testing2");
@@ -152,9 +160,9 @@ public class CouchbaseConnection {
                 cdrsBucket.addCdr(cdr);
             }
             
-            _daoFactory.getDaoFor(StringCdrBucket.class).create(cdrsBucket);
+            _daoFactory.getDaoForClass(StringCdrBucket.class).create(cdrsBucket);
             
-            GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.gets(cdrsBucket.getKey(),_daoFactory.getDaoFor(StringCdrBucket.class).getTranscoder());
+            GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.gets(cdrsBucket.getKey(),_daoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             
             StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getKey(),unpackedCdrsMap.getDbDocSize(),GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
             int pos=0;
@@ -168,8 +176,8 @@ public class CouchbaseConnection {
                 pos++;
             }
             
-            _client.append(newCdrsBucket,_daoFactory.getDaoFor(StringCdrBucket.class).getTranscoder()).get();
-            unpackedCdrsMap = _client.gets(cdrsBucket.getKey(), _daoFactory.getDaoFor(StringCdrBucket.class).getTranscoder());
+            _client.append(newCdrsBucket,_daoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder()).get();
+            unpackedCdrsMap = _client.gets(cdrsBucket.getKey(), _daoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             //System.out.println("Result :\n"+unpackedCdrsMap.toString());
         }
         catch(Exception e){

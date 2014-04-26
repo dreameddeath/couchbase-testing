@@ -27,10 +27,18 @@ public class BillingCycleLink extends CouchbaseDocumentLink<BillingCycle>{
     
     public BillingCycleLink(BillingCycle billCycle){
         super(billCycle);
-        setKey(billCycle.getKey());
         setStartDate(billCycle.getStartDate());
         setEndDate(billCycle.getEndDate());
-        setLinkedObject(billCycle);
+    }
+    
+    public BillingCycleLink(BillingCycleLink srcLink){
+        super(srcLink);
+        setStartDate(srcLink.getStartDate());
+        setEndDate(srcLink.getEndDate());
+    }
+    
+    public boolean isValidForDate(DateTime refDate){
+        return BillingCycle.isValidForDate(refDate,_startDate,_endDate);
     }
     
     

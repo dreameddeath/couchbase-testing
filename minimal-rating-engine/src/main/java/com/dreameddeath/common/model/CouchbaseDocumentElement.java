@@ -14,8 +14,35 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 @JsonInclude(Include.NON_EMPTY)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
 public abstract class CouchbaseDocumentElement{
-    private CouchbaseDocument _parent;
+    private ImmutableProperty<CouchbaseDocumentElement> _parentElt=new ImmutableProperty<CouchbaseDocumentElement>(null);
     
-    public CouchbaseDocument getParentDocument() { return _parent;}
-    public void setParentDocument(CouchbaseDocument parent) { _parent=parent;}
+    public CouchbaseDocumentElement getParentElement() { return _parentElt.get();}
+    public void setParentElement(CouchbaseDocumentElement parentElt) {  _parentElt.set(parentElt); }
+    
+    public CouchbaseDocument getParentDocument() { 
+        if(this instanceof CouchbaseDocument){
+            return (CouchbaseDocument)this;
+        }
+        else if(_parentElt.get() !=null){
+            return _parentElt.get().getParentDocument();
+        }
+        return null;
+    }
+    
+    public <T extends CouchbaseDocumentElement> T getFirstParentOfClass(Class<T> clazz){
+        if(_parentElt!=null){
+            if(_parentElt.getClass().equals(clazz)){
+                return (T) (_parentElt.get());
+            }
+            else{
+                return _parentElt.get().getFirstParentOfClass(clazz);
+            }
+        }
+        return null;
+    }
+    
+    public boolean validate(){
+        return true;
+    }
+    
 }

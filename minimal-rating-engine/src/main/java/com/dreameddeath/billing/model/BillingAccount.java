@@ -11,10 +11,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
+import com.dreameddeath.common.model.ImmutableProperty;
 
 public class BillingAccount extends CouchbaseDocument{
-    @JsonProperty("uid")
-    private String _uid;
+    private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);
 	@JsonProperty("ledgerSegment")
     private String _ledgerSegment;
     @JsonProperty("taxProfile")
@@ -34,8 +34,9 @@ public class BillingAccount extends CouchbaseDocument{
     @JsonProperty("billingPeriods")
     private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
     
-    public String getUid() { return _uid; }
-    public void setUid(String uid) { _uid=uid; }
+    @JsonProperty("uid")
+    public String getUid() { return _uid.get(); }
+    public void setUid(String uid) { _uid.set(uid); }
     
     public String getLedgerSegment() { return _ledgerSegment; }
     public void setLedgerSegment(String ledgerSegment) { _ledgerSegment=ledgerSegment; }
@@ -61,9 +62,27 @@ public class BillingAccount extends CouchbaseDocument{
     public String getPaymentMethod() { return _paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { _paymentMethod=paymentMethod; }
     
-    public Collection<BillingCycleLink> getBillingCycles() { return Collections.unmodifiableCollection(_billingCycleLinks); }
-    public void setBillingCycles(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();_billingCycleLinks.addAll(billingCycleLinks); }
-    public void addBillingCycle(BillingCycleLink billingCycleLink) { _billingCycleLinks.add(billingCycleLink); }
+    public Collection<BillingCycleLink> getBillingCycleLinks() { return Collections.unmodifiableCollection(_billingCycleLinks); }
+    public BillingCycleLink getBillingCycleLink(DateTime refDate){
+        for(BillingCycleLink billCycleLink:_billingCycleLinks){
+            if(billCycleLink.isValidForDate(refDate)){
+                return billCycleLink;
+            }
+        }
+        return null;
+    }
+    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();_billingCycleLinks.addAll(billingCycleLinks); }
+    public void addBillingCycle(BillingCycle billingCycle){
+        if(getBillingCycleLink(billingCycle.getStartDate())!=null){
+            ///TODO generate an error
+        }
+        _billingCycleLinks.add(billingCycle.newBillingCycleLink());
+        billingCycle.setBillingAccountLink(newBillingAccountLink());
+    }
+    
+    public BillingAccountLink newBillingAccountLink(){
+        return new BillingAccountLink(this);
+    }
     
     /**
      * the types of billing account

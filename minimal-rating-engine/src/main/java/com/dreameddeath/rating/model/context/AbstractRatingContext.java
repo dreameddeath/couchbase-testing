@@ -11,31 +11,36 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
+
+import com.dreameddeath.common.model.ImmutableProperty;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
+
 import com.dreameddeath.billing.model.BillingAccountLink;
 import com.dreameddeath.billing.model.BillingCycleLink;
+import com.dreameddeath.billing.model.BillingCycle;
+
 
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
 public abstract class AbstractRatingContext extends CouchbaseDocument{
-    @JsonProperty("uid")
-    private Long _uid;
-    @JsonProperty("billingCycle")
-    private BillingCycleLink _billingCycle;
-    @JsonProperty("billingAccount")
-    private BillingAccountLink _billingAccount;
+    private ImmutableProperty<BillingCycleLink> _billingCycle=new ImmutableProperty<BillingCycleLink>(AbstractRatingContext.this);
+    private ImmutableProperty<BillingAccountLink> _billingAccount=new ImmutableProperty<BillingAccountLink>(AbstractRatingContext.this);
     @JsonProperty("attributes")
     private List<RatingContextAttribute> _attributes=new CouchbaseDocumentArrayList<RatingContextAttribute>(AbstractRatingContext.this);
     @JsonProperty("buckets")
     private List<RatingContextBucket> _buckets=new CouchbaseDocumentArrayList<RatingContextBucket>(AbstractRatingContext.this);
-   
-    public Long getUid(){ return _uid;}
-    public void setUid(Long uid){ _uid = uid; }
     
-    public BillingCycleLink getBillingCycleLink(){ return _billingCycle; }
-    public void setBillingCycleLink(BillingCycleLink billingCycle){ _billingCycle=billingCycle;}
     
-    public BillingAccountLink getBillingAccountLink(){ return _billingAccount;}
-    public void setBillingAccountLink(BillingAccountLink billingAccount){ _billingAccount = billingAccount;}
+    @JsonProperty("billingCycle")
+    public BillingCycleLink getBillingCycleLink(){ return _billingCycle.get(); }
+    public void setBillingCycleLink(BillingCycleLink billingCycleLink){
+        _billingAccount.set(new BillingAccountLink(billingCycleLink.getLinkedObject().getBillingAccountLink()));
+        _billingCycle.set(billingCycleLink);
+    }
+    public void setBillingCycle(BillingCycle billingCycle){ billingCycle.addRatingContext(this); }
+    
+    @JsonProperty("billingAccount")
+    public BillingAccountLink getBillingAccountLink(){ return _billingAccount.get();}
+    public void setBillingAccountLink(BillingAccountLink baLink){ _billingAccount.set(baLink);}
     
     public List<RatingContextBucket> getBuckets(){ return Collections.unmodifiableList(_buckets); }
     public void setBuckets(List<RatingContextBucket> buckets){_buckets.clear(); _buckets.addAll(buckets);}
@@ -47,10 +52,11 @@ public abstract class AbstractRatingContext extends CouchbaseDocument{
     public void addAttributes(List<RatingContextAttribute> attributes){_attributes.addAll(attributes);}
     public void addAttribute(RatingContextAttribute attribute){_attributes.add(attribute);}
     
+    public RatingContextLink newRatingContextLink(){ return new RatingContextLink(this);}
+    
     @Override
     public String toString(){
         String result = super.toString()+"\n";
-        result+="uid : "+getUid()+",\n";
         result+="ba : "+getBillingAccountLink().toString()+",\n";
         result+="billCycle : "+getBillingCycleLink().toString()+",\n";
         return result;

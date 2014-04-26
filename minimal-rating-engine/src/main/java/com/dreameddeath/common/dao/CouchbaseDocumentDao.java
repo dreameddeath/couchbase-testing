@@ -21,13 +21,12 @@ import com.dreameddeath.common.model.CouchbaseDocumentLink;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
 import com.dreameddeath.common.storage.OperationFutureWrapper;
 
-
-
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private CouchbaseDocumentDaoFactory _parentFactory;
     private CouchbaseClientWrapper _client;
     public abstract Transcoder<T> getTranscoder();
     protected abstract void buildKey(T newObject);
+    public abstract String getKeyPattern();
     
     public CouchbaseClientWrapper getClientWrapper(){
         return _client;
@@ -40,10 +39,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     //May be overriden to improve (bulk key attribution)
     protected void buildKeys(Collection<T> newObjects){
         for(T newObject:newObjects){
-            if(newObject.getKey()!=null){
-                ///TODO throw an error
-            }
-            else{
+            if(newObject.getKey()==null){
                 buildKey(newObject);
             }
         }
@@ -66,8 +62,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
     
     public T create(T obj){
-        if(obj.getKey()!=null){/**TODO throw an error*/}
-        else { buildKey(obj);}
+        if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
+            /**TODO throw an error*/
+        }
+        if(obj.getKey()==null){
+            buildKey(obj);
+        }
+        
         try {
             _client.add(obj,getTranscoder()).get();
         } catch (InterruptedException e) {
@@ -85,8 +86,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     
     public Collection<T> createBulk(Collection<T> objs){
         List<OperationFutureWrapper<Boolean,T>> futures = new ArrayList<OperationFutureWrapper<Boolean,T>>(objs.size());
+        for(T obj : objs){
+            if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
+                /**TODO throw an error*/
+            }
+        }
         
         buildKeys(objs);
+        
         for(T obj:objs){
             futures.add(_client.add(obj,getTranscoder()));
         }
@@ -122,7 +129,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return result;
     }
     
-    public List<T> bulkGet(Set<String> keys){
+    public List<T> getBulk(Set<String> keys){
         List<OperationFutureWrapper<CASValue<T>,T>> futures = new ArrayList<OperationFutureWrapper<CASValue<T>,T>>(keys.size());
         List<T> results = new ArrayList<T>(keys.size());
         for(String key : keys){
@@ -206,7 +213,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 linkedDocs.put(link.getKey(),linksPerKeyList);
             }
         }
-        Collection<T> objs = bulkGet(linkedDocs.keySet());
+        Collection<T> objs = getBulk(linkedDocs.keySet());
         results.addAll(objs);
         for(T obj:objs){
             for(CouchbaseDocumentLink<T> link: linkedDocs.get(obj.getKey())){

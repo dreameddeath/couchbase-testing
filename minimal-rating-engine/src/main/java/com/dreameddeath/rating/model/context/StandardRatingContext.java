@@ -21,7 +21,9 @@ public final class StandardRatingContext extends AbstractRatingContext{
     private List<RatingContextSharedLink> _sharedRatingCtxtLinks=new CouchbaseDocumentArrayList<RatingContextSharedLink>(StandardRatingContext.this);
 
     public List<CdrsBucketLink> getCdrsBuckets(){ return _cdrsBuckets; }
-    public void setCdrsBuckets(List<CdrsBucketLink> cdrsBucketsLnk){ _cdrsBuckets.clear(); _cdrsBuckets.addAll(cdrsBucketsLnk); }
+    public void setCdrsBucketLinks(List<CdrsBucketLink> cdrsBucketsLnk){ _cdrsBuckets.clear(); _cdrsBuckets.addAll(cdrsBucketsLnk); }
+    //public void addCdrsBucketLinks(List<CdrsBucketLink> cdrsBucketsLnk){  _cdrsBuckets.addAll(cdrsBucketsLnk); }
+    public void addCdrsBucketLink(CdrsBucketLink cdrsBucketsLnk){  _cdrsBuckets.add(cdrsBucketsLnk); }
     
     public List<RatingContextGuidingKey> getGuidingKeys(){ return Collections.unmodifiableList(_guidingKeys); }
     public void setGuidingKeys(List<RatingContextGuidingKey> guidingKeys){ _guidingKeys.clear(); _guidingKeys.addAll(guidingKeys); }
@@ -35,6 +37,8 @@ public final class StandardRatingContext extends AbstractRatingContext{
     
     public List<RatingContextSharedLink> getSharedContexts(){return Collections.unmodifiableList(_sharedRatingCtxtLinks);}
     public void setSharedContexts(List<RatingContextSharedLink> sharedContexts){_sharedRatingCtxtLinks.clear();_sharedRatingCtxtLinks.addAll(sharedContexts);}
-    public void addSharedContexts(List<RatingContextSharedLink> sharedContexts){_sharedRatingCtxtLinks.addAll(sharedContexts);}
-    public void addSharedContext(RatingContextSharedLink sharedContext){_sharedRatingCtxtLinks.add(sharedContext);}
+    //public void addSharedContexts(List<RatingContextSharedLink> sharedContexts){_sharedRatingCtxtLinks.addAll(sharedContexts);}
+    public void addSharedContext(SharedRatingContext sharedContext){_sharedRatingCtxtLinks.add(sharedContext.newSharedContextLink());}
+    
+    
 }

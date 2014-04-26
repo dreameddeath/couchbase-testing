@@ -2,19 +2,47 @@ package com.dreameddeath.common.dao;
 
 import java.util.Map;
 import java.util.HashMap;
-
+import java.util.regex.Pattern;
+//import java.util.AbstractMap.SimpleEntry;
 import com.dreameddeath.common.model.CouchbaseDocument;
 
 public class CouchbaseDocumentDaoFactory{
     private Map<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>> _daosMap
             = new HashMap<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>>();
+    private Map<Pattern,CouchbaseDocumentDao<?>> _patternsMap 
+            = new HashMap<Pattern,CouchbaseDocumentDao<?>>();
+    
+    
+    public CouchbaseSession newSession(){
+        return new CouchbaseSession(this);
+    }
     
     public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClass,CouchbaseDocumentDao<T> dao){
         _daosMap.put(entityClass,dao);
+        _patternsMap.put(Pattern.compile("^"+dao.getKeyPattern()+"$"),dao);
     }
     
+    public <T extends CouchbaseDocument> CouchbaseDocumentDao<T> getDaoForClass(Class<T> entityClass) {
+        CouchbaseDocumentDao<T> result = (CouchbaseDocumentDao<T>)_daosMap.get(entityClass);
+        if(result==null){
+            Class parentClass=entityClass.getSuperclass();
+            if(CouchbaseDocument.class.isAssignableFrom(parentClass)){
+                result = getDaoForClass(parentClass.asSubclass(CouchbaseDocument.class));
+                if(result!=null){
+                    _daosMap.put(entityClass,result);
+                }
+            }
+        }
+        ///TODO throw an error if null
+        return result;
+    }
     
-    public <T extends CouchbaseDocument> CouchbaseDocumentDao<T> getDaoFor(Class<T> entityClass) {
-        return (CouchbaseDocumentDao<T>) _daosMap.get(entityClass);
+    public CouchbaseDocumentDao getDaoForKey(String key) {
+        for(Pattern pattern:_patternsMap.keySet()){
+            if(pattern.matcher(key).matches()){
+                return _patternsMap.get(pattern);
+            }
+        }
+        return null;
     }
 }

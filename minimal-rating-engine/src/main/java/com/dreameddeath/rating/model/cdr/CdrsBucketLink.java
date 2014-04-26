@@ -35,6 +35,13 @@ public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocume
         setDbSize(bucket.getLastWrittenSize());
     }
     
+    public CdrsBucketLink(CdrsBucketLink srcLink){
+        super(srcLink);
+        setType(srcLink.getType());
+        setNbCdrs(srcLink.getNbCdrs());
+        setDbSize(srcLink.getDbSize());
+    }
+    
     public void updateFromBucket(T bucketUpdate) {
         if(bucketUpdate.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL)){
             _nbCdrs=bucketUpdate.getCdrs().size();

@@ -13,6 +13,7 @@ public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
     public static final String BA_CNT_KEY="ba/cnt";
     public static final String BA_FMT_KEY="ba/%010d";
     public static final String BA_FMT_UID="%010d";
+    public static final String BA_KEY_PATTERN="ba/\\d{10}";
     
     private static GenericJacksonTranscoder<BillingAccount> _tc = new GenericJacksonTranscoder<BillingAccount>(BillingAccount.class);
     
@@ -31,6 +32,11 @@ public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
             obj.setUid(String.format(BA_FMT_UID,result));
         }
         
-        getDaoFactory().getDaoFor(BillingCycle.class).buildKeysForLinks(obj.getBillingCycles());
+        getDaoFactory().getDaoForClass(BillingCycle.class).buildKeysForLinks(obj.getBillingCycleLinks());
     }
+    
+    public String getKeyPattern(){
+        return BA_KEY_PATTERN;
+    }
+    
 }

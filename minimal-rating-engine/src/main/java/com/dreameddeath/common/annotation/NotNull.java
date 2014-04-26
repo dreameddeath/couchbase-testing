@@ -8,6 +8,5 @@ import java.lang.annotation.ElementType;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
-public @interface CouchbaseCollectionField {
+public @interface NotNull {
 }

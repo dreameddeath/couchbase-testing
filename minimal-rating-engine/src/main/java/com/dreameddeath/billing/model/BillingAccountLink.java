@@ -11,22 +11,18 @@ import com.dreameddeath.common.model.CouchbaseDocumentLink;
 
 
 public class BillingAccountLink extends CouchbaseDocumentLink<BillingAccount>{
-    @JsonProperty("uid")
-    private String _uid;
-	
-    public String getUid() { return _uid; }
-    public void setUid(String uid) { _uid=uid; }
     
     public BillingAccountLink(){}
     public BillingAccountLink (BillingAccount ba){
         super(ba);
-        setUid(ba.getUid());
+    }
+    public BillingAccountLink(BillingAccountLink srcLink){
+        super(srcLink);
     }
     
     @Override
     public String toString(){
         String result = "{\n"+super.toString()+",\n";
-        result+="uid : "+getUid()+",\n";
         result+="}\n";
         return result;
     }

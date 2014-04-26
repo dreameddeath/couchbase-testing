@@ -9,7 +9,7 @@ import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.CouchbaseDocumentElement;
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
-import com.dreameddeath.common.annotation.CouchbaseCollectionField;
+//import com.dreameddeath.common.annotation.CollectionField;
 import java.lang.reflect.ParameterizedType;
 
 
@@ -32,6 +32,11 @@ public aspect CouchbaseFieldAspect {
             source.setStateDirty();
         }
         //System.out.println("Changing value of "+thisJoinPoint.getThis().getClass().getName()+"."+thisJoinPoint.getSignature().getName());
+	}
+    
+    before(CouchbaseDocumentLink o) : set(CouchbaseDocumentLink+ *) && args(o) && within(CouchbaseDocumentElement+) {
+        o.setParentElement((CouchbaseDocumentElement)thisJoinPoint.getThis());
+        System.out.println("Set Link value of "+thisJoinPoint.getThis().getClass().getName()+"."+thisJoinPoint.getSignature().getName());
 	} 
 
 }

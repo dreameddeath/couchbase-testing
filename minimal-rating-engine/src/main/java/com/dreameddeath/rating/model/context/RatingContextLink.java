@@ -29,4 +29,10 @@ public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingConte
         super(ratingCtxt);
         setType(ratingCtxt.getClass().getSimpleName());
     }
+    
+    public RatingContextLink(RatingContextLink srcLink){
+        super(srcLink);
+        setType(srcLink.getType());
+    }
+    
 }

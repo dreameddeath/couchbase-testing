@@ -9,5 +9,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public final class SharedRatingContext extends AbstractRatingContext{
     
+    public RatingContextSharedLink newSharedContextLink(){
+        return new RatingContextSharedLink(this);
+    }
 
 }

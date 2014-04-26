@@ -23,5 +23,10 @@ public class RatingContextSharedLink extends RatingContextLink {
     public RatingContextSharedLink(SharedRatingContext ctxt){
         super(ctxt);
     }
+    
+    public RatingContextSharedLink(RatingContextSharedLink srcLink){
+        super(srcLink);
+    }
+    
  
 }
