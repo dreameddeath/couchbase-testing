@@ -14,6 +14,7 @@ import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.ImmutableProperty;
 
 public class BillingAccount extends CouchbaseDocument{
+    @JsonProperty("uid")
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);
 	@JsonProperty("ledgerSegment")
     private String _ledgerSegment;
@@ -34,7 +35,6 @@ public class BillingAccount extends CouchbaseDocument{
     @JsonProperty("billingPeriods")
     private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
     
-    @JsonProperty("uid")
     public String getUid() { return _uid.get(); }
     public void setUid(String uid) { _uid.set(uid); }
     
@@ -96,5 +96,12 @@ public class BillingAccount extends CouchbaseDocument{
         public String toString(){ return _value; }
     }
     
-
+    @Override
+    public String toString(){
+        String result=super.toString()+",\n";
+        result+="uid:"+_uid+",\n";
+        result+="ledgerSegment:"+_ledgerSegment+",\n";
+        result+="billingCycleLinks: "+_billingCycleLinks+"\n";
+        return result;
+    }
 }

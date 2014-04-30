@@ -16,6 +16,7 @@ import com.dreameddeath.rating.model.context.AbstractRatingContext;
 import com.dreameddeath.common.model.ImmutableProperty;
 
 public class BillingCycle extends CouchbaseDocument{
+    @JsonProperty("ba")
     private ImmutableProperty<BillingAccountLink>  _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);
     @JsonProperty("startDate")
     private DateTime _startDate;
@@ -24,7 +25,6 @@ public class BillingCycle extends CouchbaseDocument{
 	@JsonProperty("ratingContexts")
     private List<RatingContextLink> _ratingContexts=new CouchbaseDocumentArrayList<RatingContextLink>(BillingCycle.this);
     
-    @JsonProperty("ba")
     public BillingAccountLink getBillingAccountLink() { return _baLink.get(); }
     public void setBillingAccountLink(BillingAccountLink baLink) { _baLink.set(baLink); }
     public void setBillingAccount(BillingAccount ba){ ba.addBillingCycle(this); }

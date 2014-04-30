@@ -179,6 +179,12 @@ public class CouchbaseConnection {
             _client.append(newCdrsBucket,_daoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder()).get();
             unpackedCdrsMap = _client.gets(cdrsBucket.getKey(), _daoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             //System.out.println("Result :\n"+unpackedCdrsMap.toString());
+            
+            
+            CouchbaseSession readSession=_daoFactory.newSession();
+            BillingAccount readBa = readSession.get(ba.getKey(),BillingAccount.class);
+            System.out.println("Read Ba Result :"+readBa);
+            
         }
         catch(Exception e){
             e.printStackTrace();

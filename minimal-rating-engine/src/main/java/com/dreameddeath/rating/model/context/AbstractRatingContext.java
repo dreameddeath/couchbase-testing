@@ -22,25 +22,25 @@ import com.dreameddeath.billing.model.BillingCycle;
 
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
 public abstract class AbstractRatingContext extends CouchbaseDocument{
-    private ImmutableProperty<BillingCycleLink> _billingCycle=new ImmutableProperty<BillingCycleLink>(AbstractRatingContext.this);
-    private ImmutableProperty<BillingAccountLink> _billingAccount=new ImmutableProperty<BillingAccountLink>(AbstractRatingContext.this);
+    @JsonProperty("billingCycle")
+    private ImmutableProperty<BillingCycleLink> _billingCycleLink=new ImmutableProperty<BillingCycleLink>(AbstractRatingContext.this);
+    @JsonProperty("billingAccount")
+    private ImmutableProperty<BillingAccountLink> _billingAccountLink=new ImmutableProperty<BillingAccountLink>(AbstractRatingContext.this);
     @JsonProperty("attributes")
     private List<RatingContextAttribute> _attributes=new CouchbaseDocumentArrayList<RatingContextAttribute>(AbstractRatingContext.this);
     @JsonProperty("buckets")
     private List<RatingContextBucket> _buckets=new CouchbaseDocumentArrayList<RatingContextBucket>(AbstractRatingContext.this);
     
     
-    @JsonProperty("billingCycle")
-    public BillingCycleLink getBillingCycleLink(){ return _billingCycle.get(); }
+    public BillingCycleLink getBillingCycleLink(){ return _billingCycleLink.get(); }
     public void setBillingCycleLink(BillingCycleLink billingCycleLink){
-        _billingAccount.set(new BillingAccountLink(billingCycleLink.getLinkedObject().getBillingAccountLink()));
-        _billingCycle.set(billingCycleLink);
+        _billingAccountLink.set(new BillingAccountLink(billingCycleLink.getLinkedObject().getBillingAccountLink()));
+        _billingCycleLink.set(billingCycleLink);
     }
     public void setBillingCycle(BillingCycle billingCycle){ billingCycle.addRatingContext(this); }
     
-    @JsonProperty("billingAccount")
-    public BillingAccountLink getBillingAccountLink(){ return _billingAccount.get();}
-    public void setBillingAccountLink(BillingAccountLink baLink){ _billingAccount.set(baLink);}
+    public BillingAccountLink getBillingAccountLink(){ return _billingAccountLink.get();}
+    public void setBillingAccountLink(BillingAccountLink baLink){ _billingAccountLink.set(baLink);}
     
     public List<RatingContextBucket> getBuckets(){ return Collections.unmodifiableList(_buckets); }
     public void setBuckets(List<RatingContextBucket> buckets){_buckets.clear(); _buckets.addAll(buckets);}

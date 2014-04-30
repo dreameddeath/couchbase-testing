@@ -27,7 +27,7 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     public final void setSession(CouchbaseSession session){ _session = session; }
     
     public final String getKey(){ return _key.get(); }
-    public final void setKey(String key){ _key.set(key); updateReverseLinkKeys(); }
+    public final void setKey(String key){ _key.set(key);}
     
     public final Long getCas(){ return _cas; }
     public final void setCas(Long cas){ this._cas = cas; }
@@ -51,10 +51,6 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     
     public void addReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
     public void removeReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
-    
-    //Called by setKey
-    private void updateReverseLinkKeys(){ for(CouchbaseDocumentLink lnk: _reverseLinks){ lnk.setKey(_key.get()); } }
-    
     
     public void setStateDirty(){
         if(_state.equals(State.SYNC)){

@@ -3,7 +3,7 @@ package com.dreameddeath.common.model;
 import java.lang.UnsupportedOperationException;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public class ImmutableProperty<T>  {
+public class ImmutableProperty<T> implements Property<T> {
     CouchbaseDocumentElement _parentElt;
     T _value;
     
@@ -12,8 +12,7 @@ public class ImmutableProperty<T>  {
         _parentElt=parentElement;
     }
     
-    public final T getValue() { return get(); }
-    public final void  setValue(T value) { set(value); }
+    @JsonValue
     public final T get(){ return _value; }
     public final boolean set(T value) {
         if((_value!=null) && !equals(value)){
