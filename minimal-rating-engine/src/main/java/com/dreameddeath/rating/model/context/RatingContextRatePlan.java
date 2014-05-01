@@ -10,19 +10,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.dreameddeath.common.model.CouchbaseDocumentElement;
 
 public class RatingContextRatePlan extends CouchbaseDocumentElement {
-    @JsonProperty("code")
     private String   _code;
-    @JsonProperty("startDate")
     private DateTime _startDate;
-    @JsonProperty("endDate")
     private DateTime _endDate;
     
+    @JsonProperty("code")
     public String getCode(){ return _code;}
     public void setCode(String code){ this._code = code; }
     
+    @JsonProperty("startDate")
     public DateTime getStartDate(){ return _startDate;}
     public void setStartDate(DateTime startDate){ this._startDate = startDate; }
     
+    @JsonProperty("endDate")
     public DateTime getEndDate(){ return _endDate;}
     public void setEndDate(DateTime endDate){ this._endDate = endDate; }
  

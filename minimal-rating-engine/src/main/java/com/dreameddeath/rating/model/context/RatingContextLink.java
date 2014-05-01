@@ -10,9 +10,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
 
 public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingContext>{
-    @JsonProperty("@c")
     private String _class;
     
+    @JsonProperty("@c")
     public String getType() { return _class;}
     public void setType(String clazz) { _class=clazz;}
     

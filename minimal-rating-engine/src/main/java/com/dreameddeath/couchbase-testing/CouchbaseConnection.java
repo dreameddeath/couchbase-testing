@@ -135,9 +135,6 @@ public class CouchbaseConnection {
             //billCycle.addRatingContext(ratingContext.newRatingContextLink(ratingCtxt));
             //ba.addBillingCycle(new BillingCycleLink(billCycle));
             System.out.println("PreCreate Ba Result :"+ba);
-            ///_daoFactory.getDaoForClass(BillingAccount.class).create(ba);
-            ///_daoFactory.getDaoForClass(BillingCycle.class).create(billCycle);
-            ///_daoFactory.getDaoForClass(AbstractRatingContext.class).create(ratingCtxt);
             session.create(ba);
             session.create(billCycle);
             session.create(ratingCtxt);
@@ -180,10 +177,17 @@ public class CouchbaseConnection {
             unpackedCdrsMap = _client.gets(cdrsBucket.getKey(), _daoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             //System.out.println("Result :\n"+unpackedCdrsMap.toString());
             
+            System.out.println("New Session");
             
             CouchbaseSession readSession=_daoFactory.newSession();
             BillingAccount readBa = readSession.get(ba.getKey(),BillingAccount.class);
+            System.out.println("Ba Read finished");
+            BillingCycle readCycle = readSession.get(billCycle.getKey(),BillingCycle.class);
+            System.out.println("Cycle Read finished");
             System.out.println("Read Ba Result :"+readBa);
+            System.out.println("Read BillCycle Result :"+readCycle);
+            System.out.println("Read Cycle link :<"+readBa.getBillingCycleLinks().get(0).getLinkedObject(true)+">");
+            
             
         }
         catch(Exception e){

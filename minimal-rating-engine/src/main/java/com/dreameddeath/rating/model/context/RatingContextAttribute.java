@@ -11,14 +11,14 @@ import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.CouchbaseDocumentElement;
 
 public class RatingContextAttribute extends CouchbaseDocumentElement{
-    @JsonProperty("code")
     private String _code;
-    @JsonProperty("values")
     private List<RatingContextAttributeValue> _values=new CouchbaseDocumentArrayList<RatingContextAttributeValue>(RatingContextAttribute.this);
     
+    @JsonProperty("code")
     public String getCode(){ return _code;}
     public void setCode(String code){ this._code = code; }
  
+    @JsonProperty("values")
     public List<RatingContextAttributeValue> getValues(){return Collections.unmodifiableList(_values);}
     public void setValues(List<RatingContextAttributeValue> values){ _values.clear();_values.addAll(values); }
     public void addValues(List<RatingContextAttributeValue> values){ _values.addAll(values); }

@@ -18,21 +18,35 @@ public class CouchbaseDocumentArrayList<T extends CouchbaseDocumentElement> exte
         _duplicateStrategy=duplicateStrategy;
     }
     
-    @Override
-    public boolean add(T elt){
+    protected boolean manageElt(T elt){
         ///TODO check NULL
-        if(_duplicateStrategy.equals(DuplicateStrategy.ADD)){
-            if(contains(elt)){
-                if(_duplicateStrategy.equals(DuplicateStrategy.FAIL)){
-                    ///TODO generate an error
-                }
-                return false;
+        if(contains(elt)){
+            switch(_duplicateStrategy){
+                case FAIL:
+                    ///TODO generated an error
+                    return false;
+                case SKIP:
+                    return false;
             }
         }
         CouchbaseDocument rootDoc = _parentElt.getParentDocument();
         if(rootDoc!=null){ rootDoc.setStateDirty();}
+        System.out.println("Adding elt "+elt+" of type "+elt.getClass().getName() +" to parent "+_parentElt);
         elt.setParentElement(_parentElt);
-        return super.add(elt);
+        return true;
+    }
+    
+    @Override
+    public boolean add(T elt){
+        return manageElt(elt) && super.add(elt);
+    }
+    
+    @Override
+    public boolean addAll(Collection<? extends T> list){
+        for(T elt:list){
+            manageElt(elt);
+        }
+        return super.addAll(list);
     }
     
     public enum DuplicateStrategy{

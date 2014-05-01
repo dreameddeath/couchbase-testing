@@ -13,9 +13,8 @@ public abstract class SynchronizedLinkProperty<T,TDOC extends CouchbaseDocument>
     
     protected abstract T getRealValue(TDOC doc);
     
-    @JsonValue
     public final T get(){ 
-        if(_parentLink.getLinkedObject(false)!=null){
+        if(_parentLink.getLinkedObject(true)!=null){
             _cachedValue = getRealValue(_parentLink.getLinkedObject());
         }
         

@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
 public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends CouchbaseDocumentElement{
-    @JsonProperty("key")
     private Property<String>    _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
         protected  String getRealValue(T doc){
@@ -22,15 +21,16 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     };
     private Property<T>            _docObject=new ImmutableProperty<T>(null);
     
+    @JsonProperty("key")
     public final String getKey(){ return _key.get();}
     public final void setKey(String key){ _key.set(key); }
     
     public T getLinkedObject(){
-        return getLinkedObject(true);
+        return getLinkedObject(false);
     }
     
     public T getLinkedObject(boolean fromCache){
-        if((_docObject.get()==null) && (fromCache==true)){
+        if((_docObject.get()==null) && (fromCache==false)){
             if(_key==null){
                 ///TODO throw an error
             }

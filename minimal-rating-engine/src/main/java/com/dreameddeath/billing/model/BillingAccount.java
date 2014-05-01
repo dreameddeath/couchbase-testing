@@ -14,55 +14,55 @@ import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.ImmutableProperty;
 
 public class BillingAccount extends CouchbaseDocument{
-    @JsonProperty("uid")
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);
-	@JsonProperty("ledgerSegment")
-    private String _ledgerSegment;
-    @JsonProperty("taxProfile")
-	private String _taxProfile;
-	@JsonProperty("type")
-    private Type _type;
-	@JsonProperty("creationDate")
-    private DateTime _creationDate;
-	@JsonProperty("billDay")
-    private Integer _billDay;
-	@JsonProperty("billCycleLength")
+	private String _ledgerSegment;
+    private String _taxProfile;
+	private Type _type;
+	private DateTime _creationDate;
+	private Integer _billDay;
     private Integer _billingCycleLength;
-	@JsonProperty("currency")
-    private String _currency;
-	@JsonProperty("paymentMethod")
-    private String _paymentMethod;
-    @JsonProperty("billingPeriods")
+	private String _currency;
+	private String _paymentMethod;
     private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
     
+    @JsonProperty("uid")
     public String getUid() { return _uid.get(); }
     public void setUid(String uid) { _uid.set(uid); }
     
+    @JsonProperty("ledgerSegment")
     public String getLedgerSegment() { return _ledgerSegment; }
     public void setLedgerSegment(String ledgerSegment) { _ledgerSegment=ledgerSegment; }
     
-    public String getTaxProfile() { return _taxProfile; }
+    @JsonProperty("taxProfile")
+	public String getTaxProfile() { return _taxProfile; }
     public void setTaxProfile(String taxProfile) { _taxProfile=taxProfile; }
     
+    @JsonProperty("type")
     public Type getType() { return _type; }
     public void setType(Type type) { _type=type; }
     
+    @JsonProperty("creationDate")
     public DateTime getCreationDate() { return _creationDate; }
     public void setCreationDate(DateTime creationDate) { _creationDate=creationDate; }
     
+    @JsonProperty("billDay")
     public Integer getBillDay() { return _billDay; }
     public void setBillDay(Integer billDay) { _billDay=billDay; }
     
+    @JsonProperty("billCycleLength")
     public Integer getBillingCycleLength() { return _billingCycleLength; }
     public void setBillingCycleLength(Integer billingCycleLength) { _billingCycleLength=billingCycleLength; }
     
+    @JsonProperty("currency")
     public String getCurrency() { return _currency; }
     public void setCurrency(String currency) { _currency=currency; }
     
+    @JsonProperty("paymentMethod")
     public String getPaymentMethod() { return _paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { _paymentMethod=paymentMethod; }
     
-    public Collection<BillingCycleLink> getBillingCycleLinks() { return Collections.unmodifiableCollection(_billingCycleLinks); }
+    @JsonProperty("billingCycles")
+    public List<BillingCycleLink> getBillingCycleLinks() { return Collections.unmodifiableList(_billingCycleLinks); }
     public BillingCycleLink getBillingCycleLink(DateTime refDate){
         for(BillingCycleLink billCycleLink:_billingCycleLinks){
             if(billCycleLink.isValidForDate(refDate)){
@@ -71,10 +71,10 @@ public class BillingAccount extends CouchbaseDocument{
         }
         return null;
     }
-    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();_billingCycleLinks.addAll(billingCycleLinks); }
+    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();System.out.println("Adding links to ba"+billingCycleLinks); _billingCycleLinks.addAll(billingCycleLinks); }
     public void addBillingCycle(BillingCycle billingCycle){
         if(getBillingCycleLink(billingCycle.getStartDate())!=null){
-            ///TODO generate an error
+            ///TODO generate a duplicate error
         }
         _billingCycleLinks.add(billingCycle.newBillingCycleLink());
         billingCycle.setBillingAccountLink(newBillingAccountLink());

@@ -10,9 +10,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.dreameddeath.common.model.CouchbaseDocumentElement;
 
 public class RatingContextBucket extends CouchbaseDocumentElement{
-    @JsonProperty("code")
     private String _code;
     
+    @JsonProperty("code")
     public String getCode(){ return _code;}
     public void setCode(String code){ this._code = code; }
 }

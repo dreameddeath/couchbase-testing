@@ -8,14 +8,14 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RatingContextSharedLink extends RatingContextLink {
-    @JsonProperty("startDate")
     private DateTime _startDate;
-    @JsonProperty("endDate")
     private DateTime _endDate;
     
+    @JsonProperty("startDate")
     public DateTime getStartDate(){ return _startDate;}
     public void setStartDate(DateTime startDate){ this._startDate = startDate; }
     
+    @JsonProperty("endDate")
     public DateTime getEndDate(){ return _endDate;}
     public void setEndDate(DateTime endDate){ this._endDate = endDate; }
     

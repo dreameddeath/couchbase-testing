@@ -13,24 +13,24 @@ import com.dreameddeath.common.model.SynchronizedLinkProperty;
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
 
 public class BillingCycleLink extends CouchbaseDocumentLink<BillingCycle>{
-    @JsonProperty("startDate")
     private Property<DateTime> _startDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
         @Override
         protected  DateTime getRealValue(BillingCycle cycle){
             return cycle.getStartDate();
         }
     };
-	@JsonProperty("endDate")
-    private Property<DateTime> _endDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
+	private Property<DateTime> _endDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
         @Override
         protected  DateTime getRealValue(BillingCycle cycle){
             return cycle.getEndDate();
         }
     };
     
+    @JsonProperty("startDate")
     public DateTime getStartDate() { return _startDate.get(); }
     public void setStartDate(DateTime startDate) { _startDate.set(startDate); }
     
+    @JsonProperty("endDate")
     public DateTime getEndDate() { return _endDate.get(); }
     public void setEndDate(DateTime endDate) { _endDate.set(endDate); }
     

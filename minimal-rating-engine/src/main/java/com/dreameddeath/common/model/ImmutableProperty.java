@@ -12,10 +12,14 @@ public class ImmutableProperty<T> implements Property<T> {
         _parentElt=parentElement;
     }
     
-    @JsonValue
+    //@JsonCreator
+    //public ImmutableProperty(T value){
+    //    _value=value;
+    //}
+    
     public final T get(){ return _value; }
     public final boolean set(T value) {
-        if((_value!=null) && !equals(value)){
+        if((_value!=null) && !equalsValue(value)){
             throw new UnsupportedOperationException("Cannot reassign value <"+_value+"> with newValue <"+_value+">");
         }
         if(value!=null){
