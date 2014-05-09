@@ -1,18 +1,11 @@
 package com.dreameddeath.rating.storage;
 
 
+import com.dreameddeath.rating.storage.ActiveCdrsProtos.*;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
-
-import net.spy.memcached.transcoders.Transcoder;
 import net.spy.memcached.CachedData;
-
-import com.dreameddeath.rating.storage.ActiveCdrsProtos.NormalCdr; 
-import com.dreameddeath.rating.storage.ActiveCdrsProtos.PartialCdrRecord;
-import com.dreameddeath.rating.storage.ActiveCdrsProtos.OverallCdrsMessage;
-import com.dreameddeath.rating.storage.ActiveCdrsProtos.NormalCdrsAppender;
-import com.dreameddeath.rating.storage.ActiveCdrsProtos.PartialCdrsAppender;
+import net.spy.memcached.transcoders.Transcoder;
 
 /**
 *  This abstract class is use to manage binary transcoding of a bucket of CDR. It exists with three modes :
@@ -40,7 +33,7 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
         return CachedData.MAX_SIZE;
     }
     
-    ///No aynchronous decoding mode (doesn't seems usefull : to be benchmarked)
+    ///No asynchronous decoding mode (doesn't seems useful : to be benched
     @Override
     public boolean asyncDecode(CachedData cachedData){
         return false;

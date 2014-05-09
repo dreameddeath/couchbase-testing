@@ -1,22 +1,28 @@
 package com.dreameddeath.couchbase_testing;
 
 import com.couchbase.client.CouchbaseClient;
+import com.dreameddeath.billing.dao.BillingAccountDao;
+import com.dreameddeath.billing.dao.BillingCycleDao;
+import com.dreameddeath.billing.model.BillingAccount;
+import com.dreameddeath.billing.model.BillingCycle;
+import com.dreameddeath.common.dao.CouchbaseDocumentDao;
+import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.common.dao.CouchbaseSession;
+import com.dreameddeath.common.storage.BinarySerializer;
+import com.dreameddeath.common.storage.CouchbaseClientWrapper;
+import com.dreameddeath.rating.dao.context.AbstractRatingContextDao;
+import com.dreameddeath.rating.model.context.AbstractRatingContext;
+import com.dreameddeath.rating.model.context.RatingContextAttribute;
+import com.dreameddeath.rating.model.context.StandardRatingContext;
+import com.dreameddeath.rating.storage.GenericCdr;
+import com.dreameddeath.rating.storage.GenericCdrsBucket;
+import com.dreameddeath.rating.storage.GenericCdrsBucketTranscoder;
+import net.spy.memcached.transcoders.Transcoder;
+import org.joda.time.DateTime;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-
-import org.joda.time.DateTime;
-
-import net.spy.memcached.transcoders.Transcoder;
-
-import com.dreameddeath.common.storage.BinarySerializer;
-import com.dreameddeath.common.storage.CouchbaseClientWrapper;
-import com.dreameddeath.common.dao.*;
-import com.dreameddeath.rating.storage.*;
-import com.dreameddeath.rating.model.context.*;
-import com.dreameddeath.billing.model.*;
-import com.dreameddeath.billing.dao.*;
-import com.dreameddeath.rating.dao.context.*;
 
 public class CouchbaseConnection {
     protected static final CouchbaseClientWrapper _client;
@@ -138,7 +144,9 @@ public class CouchbaseConnection {
             //readBa.setLedgerSegment("Bis");
             attr.setCode("testing2");
             System.out.println("After Update Rating Result :"+ratingCtxt);
-            
+            billCycle.setEndDate(billCycle.getEndDate().plusMonths(1));
+            System.out.println("After Update Billing Cycle Result :"+ba);
+
             StringCdrBucket cdrsBucket = new StringCdrBucket(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
             cdrsBucket.setBillingAccountKey(ba.getKey());
             cdrsBucket.setBillingCycleKey(billCycle.getKey());

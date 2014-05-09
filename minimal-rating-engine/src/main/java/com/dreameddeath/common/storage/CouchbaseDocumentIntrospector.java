@@ -1,14 +1,15 @@
 package com.dreameddeath.common.storage;
 
-import java.lang.reflect.Field;
-
-
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.Versioned;
-import com.fasterxml.jackson.databind.introspect.*;
 import com.fasterxml.jackson.core.util.VersionUtil;
 import com.fasterxml.jackson.databind.PropertyName;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+
+import java.lang.reflect.Field;
 
 
 public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector implements

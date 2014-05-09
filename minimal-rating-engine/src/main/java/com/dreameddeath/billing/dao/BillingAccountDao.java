@@ -4,10 +4,9 @@ import com.dreameddeath.billing.model.BillingAccount;
 import com.dreameddeath.billing.model.BillingCycle;
 import com.dreameddeath.common.dao.CouchbaseDocumentDao;
 import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
-
-import net.spy.memcached.transcoders.Transcoder;
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
+import com.dreameddeath.common.storage.GenericJacksonTranscoder;
+import net.spy.memcached.transcoders.Transcoder;
 
 public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
     public static final String BA_CNT_KEY="ba/cnt";

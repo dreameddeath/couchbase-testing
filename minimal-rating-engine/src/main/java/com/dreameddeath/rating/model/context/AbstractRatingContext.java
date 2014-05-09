@@ -1,22 +1,18 @@
 package com.dreameddeath.rating.model.context;
 
-import java.util.List;
-import java.util.Collections;
-import com.dreameddeath.common.model.CouchbaseDocument;
-
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-
-
-import com.dreameddeath.common.model.ImmutableProperty;
-import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.annotation.DocumentProperty;
-
 import com.dreameddeath.billing.model.BillingAccountLink;
-import com.dreameddeath.billing.model.BillingCycleLink;
 import com.dreameddeath.billing.model.BillingCycle;
+import com.dreameddeath.billing.model.BillingCycleLink;
+import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.CouchbaseDocument;
+import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
+import com.dreameddeath.common.model.ImmutableProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+
+import java.util.Collections;
+import java.util.List;
 
 
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")

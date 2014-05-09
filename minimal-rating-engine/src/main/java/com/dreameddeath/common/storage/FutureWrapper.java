@@ -1,10 +1,11 @@
 package com.dreameddeath.common.storage;
 
-import java.util.concurrent.Future;
-import net.spy.memcached.CASValue;
-import net.spy.memcached.internal.OperationFuture;
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import net.spy.memcached.CASValue;
+import net.spy.memcached.internal.OperationFuture;
+
+import java.util.concurrent.Future;
 
 
 public abstract class FutureWrapper<T,TDOC extends CouchbaseDocument>{

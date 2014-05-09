@@ -1,10 +1,12 @@
 package com.dreameddeath.common.dao;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.regex.Pattern;
-//import java.util.AbstractMap.SimpleEntry;
 import com.dreameddeath.common.model.CouchbaseDocument;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+//import java.util.AbstractMap.SimpleEntry;
 
 public class CouchbaseDocumentDaoFactory{
     private Map<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>> _daosMap

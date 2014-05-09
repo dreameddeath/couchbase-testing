@@ -1,25 +1,22 @@
 package com.dreameddeath.billing.model;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Collections;
-
+import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.*;
+import com.dreameddeath.rating.model.context.AbstractRatingContext;
+import com.dreameddeath.rating.model.context.RatingContextLink;
 import org.joda.time.DateTime;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.CouchbaseDocument;
-import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
-import com.dreameddeath.rating.model.context.RatingContextLink;
-import com.dreameddeath.rating.model.context.AbstractRatingContext;
-import com.dreameddeath.common.model.ImmutableProperty;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class BillingCycle extends CouchbaseDocument{
     @DocumentProperty("ba")
     private ImmutableProperty<BillingAccountLink>  _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);
     @DocumentProperty("startDate")
-    private DateTime _startDate;
+    private Property<DateTime> _startDate = new StandardProperty<DateTime>(BillingCycle.this);
     @DocumentProperty("endDate")
-    private DateTime _endDate;
+    private Property<DateTime> _endDate= new StandardProperty<DateTime>(BillingCycle.this);
     @DocumentProperty("ratingContexts")
     private List<RatingContextLink> _ratingContexts=new CouchbaseDocumentArrayList<RatingContextLink>(BillingCycle.this);
     
@@ -28,12 +25,12 @@ public class BillingCycle extends CouchbaseDocument{
     public void setBillingAccountLink(BillingAccountLink baLink) { _baLink.set(baLink); }
     public void setBillingAccount(BillingAccount ba){ ba.addBillingCycle(this); }
     
-    public DateTime getStartDate() { return _startDate; }
-    public void setStartDate(DateTime startDate) { _startDate=startDate; }
+    public DateTime getStartDate() { return _startDate.get(); }
+    public void setStartDate(DateTime startDate) { _startDate.set(startDate); }
     
 
-    public DateTime getEndDate() { return _endDate; }
-    public void setEndDate(DateTime endDate) { _endDate=endDate; }
+    public DateTime getEndDate() { return _endDate.get(); }
+    public void setEndDate(DateTime endDate) { _endDate.set(endDate); }
     
     public List<RatingContextLink> getRatingContextLinks() { return Collections.unmodifiableList(_ratingContexts); }
     public void setRatingContextLinks(Collection<RatingContextLink> ratingCtxtLinks) { _ratingContexts.clear();_ratingContexts.addAll(ratingCtxtLinks); }
@@ -48,7 +45,7 @@ public class BillingCycle extends CouchbaseDocument{
     }
     
     public boolean isValidForDate(DateTime refDate){
-        return BillingCycle.isValidForDate(refDate,_startDate,_endDate);
+        return BillingCycle.isValidForDate(refDate,_startDate.get(),_endDate.get());
     }
     
     public static boolean isValidForDate(DateTime refDate, DateTime startTime,DateTime endTime){

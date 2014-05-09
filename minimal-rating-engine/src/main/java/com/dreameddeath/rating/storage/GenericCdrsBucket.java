@@ -1,14 +1,9 @@
 package com.dreameddeath.rating.storage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.Collections;
-
-import com.dreameddeath.common.storage.CouchbaseConstants;
 import com.dreameddeath.common.model.CouchbaseDocument;
+import com.dreameddeath.common.storage.CouchbaseConstants;
+
+import java.util.*;
 /**
 *  This abstract class is use to manage a bucket of CDRs :
 *  - it have to keep the original order of cdrs

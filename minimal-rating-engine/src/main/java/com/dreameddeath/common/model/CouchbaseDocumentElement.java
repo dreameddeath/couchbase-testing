@@ -1,15 +1,13 @@
 package com.dreameddeath.common.model;
 
-import java.util.HashSet;
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -51,7 +49,14 @@ public abstract class CouchbaseDocumentElement{
         }
         return null;
     }
-    
+
+    public void dirtyDocument(){
+        CouchbaseDocument doc = getParentDocument();
+        if(doc!=null){
+            doc.setStateDirty();
+        }
+    }
+
     public <T extends CouchbaseDocumentElement> T getFirstParentOfClass(Class<T> clazz){
         if(_parentElt!=null){
             if(_parentElt.getClass().equals(clazz)){

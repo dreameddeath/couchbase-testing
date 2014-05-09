@@ -1,27 +1,28 @@
 package com.dreameddeath.rating.model.context;
 
 
-import org.joda.time.DateTime;
-
-import com.dreameddeath.common.model.CouchbaseDocumentElement;
 import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.CouchbaseDocumentElement;
+import com.dreameddeath.common.model.StandardProperty;
+import com.dreameddeath.common.model.Property;
+import org.joda.time.DateTime;
 
 public class RatingContextRatePlan extends CouchbaseDocumentElement {
     @DocumentProperty("code")
-    private String   _code;
+    private Property<String>   _code=new StandardProperty<String>(RatingContextRatePlan.this);
     @DocumentProperty("startDate")
-    private DateTime _startDate;
+    private Property<DateTime> _startDate=new StandardProperty<DateTime>(RatingContextRatePlan.this);
     @DocumentProperty("endDate")
-    private DateTime _endDate;
+    private Property<DateTime> _endDate=new StandardProperty<DateTime>(RatingContextRatePlan.this);
     
-    public String getCode(){ return _code;}
-    public void setCode(String code){ this._code = code; }
+    public String getCode(){ return _code.get();}
+    public void setCode(String code){ _code.set(code); }
     
-    public DateTime getStartDate(){ return _startDate;}
-    public void setStartDate(DateTime startDate){ this._startDate = startDate; }
+    public DateTime getStartDate(){ return _startDate.get();}
+    public void setStartDate(DateTime startDate){ _startDate.set(startDate); }
     
 
-    public DateTime getEndDate(){ return _endDate;}
-    public void setEndDate(DateTime endDate){ this._endDate = endDate; }
+    public DateTime getEndDate(){ return _endDate.get();}
+    public void setEndDate(DateTime endDate){ _endDate.set(endDate); }
  
 }

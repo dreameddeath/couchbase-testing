@@ -1,26 +1,28 @@
 package com.dreameddeath.rating.model.cdr;
 
 
-import com.dreameddeath.common.model.CouchbaseDocumentLink;
-import com.dreameddeath.rating.storage.GenericCdrsBucket;
 import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import com.dreameddeath.common.model.StandardProperty;
+import com.dreameddeath.common.model.Property;
+import com.dreameddeath.rating.storage.GenericCdrsBucket;
 
 public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocumentLink<T>{
     @DocumentProperty("@c")
-    private String _class;
+    private Property<String> _class= new StandardProperty<String>(CdrsBucketLink.this);
     @DocumentProperty("nbCdrs")
-    private Integer   _nbCdrs;
+    private Property<Integer>   _nbCdrs= new StandardProperty<Integer>(CdrsBucketLink.this,0);
     @DocumentProperty("dbSize")
-    private Integer   _dbSize;
+    private Property<Integer>  _dbSize= new StandardProperty<Integer>(CdrsBucketLink.this,0);
     
-    public String getType() { return _class;}
-    public void setType(String clazz) { _class=clazz;}
+    public String getType() { return _class.get();}
+    public void setType(String clazz) { _class.set(clazz);}
     
-    public Integer getNbCdrs() { return _nbCdrs;}
-    public void setNbCdrs(Integer nbCdrs) { _nbCdrs=nbCdrs;}
+    public Integer getNbCdrs() { return _nbCdrs.get();}
+    public void setNbCdrs(Integer nbCdrs) { _nbCdrs.set(nbCdrs);}
     
-    public Integer getDbSize() { return _dbSize;}
-    public void setDbSize(Integer dbSize) { _dbSize=dbSize;}
+    public Integer getDbSize() { return _dbSize.get();}
+    public void setDbSize(Integer dbSize) { _dbSize.set(dbSize);}
     
     public CdrsBucketLink(){}
     public CdrsBucketLink(T bucket){
@@ -39,12 +41,12 @@ public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocume
     
     public void updateFromBucket(T bucketUpdate) {
         if(bucketUpdate.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL)){
-            _nbCdrs=bucketUpdate.getCdrs().size();
-            _dbSize=bucketUpdate.getLastWrittenSize();
+            _nbCdrs.set(bucketUpdate.getCdrs().size());
+            _dbSize.set(bucketUpdate.getLastWrittenSize());
         }
         else{
-            _nbCdrs+=bucketUpdate.getCdrs().size();
-            _dbSize+=bucketUpdate.getLastWrittenSize();
+            _nbCdrs.set(_nbCdrs.get()+bucketUpdate.getCdrs().size());
+            _dbSize.set(_dbSize.get()+bucketUpdate.getLastWrittenSize());
         }
     }
     

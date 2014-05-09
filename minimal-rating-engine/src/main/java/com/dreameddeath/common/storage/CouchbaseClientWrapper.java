@@ -1,23 +1,14 @@
 package com.dreameddeath.common.storage;
 
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.ExecutionException;
-
-import java.util.concurrent.Future;
-
-import net.spy.memcached.internal.OperationFuture;
 import com.couchbase.client.CouchbaseClient;
+import com.dreameddeath.common.model.CouchbaseDocument;
 import net.spy.memcached.CASResponse;
-import net.spy.memcached.PersistTo;
-import net.spy.memcached.ReplicateTo;
-
 import net.spy.memcached.CASValue;
 import net.spy.memcached.transcoders.Transcoder;
-import net.spy.memcached.OperationTimeoutException;
 
-import com.dreameddeath.common.model.CouchbaseDocument;
-import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
 *  Class used to perform storage 

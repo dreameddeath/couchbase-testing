@@ -1,5 +1,9 @@
 package com.dreameddeath.common.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -8,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
 public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends CouchbaseDocumentElement{
+    private List<SynchronizedLinkProperty> _childLinks=new ArrayList<SynchronizedLinkProperty>();
+
     @DocumentProperty("key")
     private Property<String>    _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
@@ -17,6 +23,10 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     };
     private Property<T>            _docObject=new ImmutableProperty<T>(null);
 
+
+    public void addChildSynchronizedProperty(SynchronizedLinkProperty prop){
+        _childLinks.add(prop);
+    }
 
     public final String getKey(){ return _key.get();}
     public final void setKey(String key){ _key.set(key); }
@@ -94,4 +104,12 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
         }
         return result;
     }
+
+    public void syncFields(){
+        for(SynchronizedLinkProperty prop:_childLinks){
+            prop.sync();
+        }
+
+    }
+
 }

@@ -1,18 +1,17 @@
 package com.dreameddeath.common.storage;
 
 
-import java.io.IOException;
-
-import net.spy.memcached.transcoders.Transcoder;
-import net.spy.memcached.CachedData;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dreameddeath.common.model.CouchbaseDocument;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.dreameddeath.common.model.CouchbaseDocument;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
+import net.spy.memcached.CachedData;
+import net.spy.memcached.transcoders.Transcoder;
+
+import java.io.IOException;
 
 
 public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Transcoder<T>{

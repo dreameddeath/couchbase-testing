@@ -1,12 +1,11 @@
 package com.dreameddeath.rating.storage;
 
 
+import com.dreameddeath.common.storage.BinarySerializer;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.ArrayList;
-
-
-import com.dreameddeath.common.storage.BinarySerializer;
 /**
    class used to store raw result having as an hypothesis that a cdrs is represented by
    - identified by a unique id
@@ -49,7 +48,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING>{
 
     /**
     *  Setter for duplicate Flag
-    *  @param the new duplicated flag
+    *  @param isDuplicated the new duplicated flag
     */
     public void setDuplicated(boolean isDuplicated){
         this._isDuplicated=isDuplicated;
@@ -65,7 +64,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING>{
 
     /**
     *  Setter for discarded Flag
-    *  @param the new discarded flag
+    *  @param isDiscarded the new discarded flag
     */
     public void setDiscarded(boolean isDiscarded){
         this._isDiscarded=isDiscarded;

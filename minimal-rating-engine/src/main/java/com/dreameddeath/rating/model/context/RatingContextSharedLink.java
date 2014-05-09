@@ -1,21 +1,22 @@
 package com.dreameddeath.rating.model.context;
 
-import org.joda.time.DateTime;
-
 import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.StandardProperty;
+import com.dreameddeath.common.model.Property;
+import org.joda.time.DateTime;
 
 public class RatingContextSharedLink extends RatingContextLink {
     @DocumentProperty("startDate")
-    private DateTime _startDate;
+    private Property<DateTime> _startDate= new StandardProperty<DateTime>(RatingContextSharedLink.this);
     @DocumentProperty("endDate")
-    private DateTime _endDate;
+    private Property<DateTime> _endDate=new StandardProperty<DateTime>(RatingContextSharedLink.this);
     
-    public DateTime getStartDate(){ return _startDate;}
-    public void setStartDate(DateTime startDate){ this._startDate = startDate; }
+    public DateTime getStartDate(){ return _startDate.get();}
+    public void setStartDate(DateTime startDate){ _startDate.set(startDate); }
     
 
-    public DateTime getEndDate(){ return _endDate;}
-    public void setEndDate(DateTime endDate){ this._endDate = endDate; }
+    public DateTime getEndDate(){ return _endDate.get();}
+    public void setEndDate(DateTime endDate){ _endDate.set(endDate); }
     
     public RatingContextSharedLink(){}
     public RatingContextSharedLink(SharedRatingContext ctxt){

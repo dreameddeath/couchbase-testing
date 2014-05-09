@@ -1,8 +1,9 @@
 package com.dreameddeath.common.model;
 
+import com.dreameddeath.common.annotation.CouchbaseCollection;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import com.dreameddeath.common.annotation.CouchbaseCollection;
 
 @CouchbaseCollection
 public class CouchbaseDocumentArrayList<T extends CouchbaseDocumentElement> extends ArrayList<T>{

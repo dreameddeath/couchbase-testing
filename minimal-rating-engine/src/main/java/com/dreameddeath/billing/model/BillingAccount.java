@@ -1,66 +1,66 @@
 package com.dreameddeath.billing.model;
 
-import java.util.Collection;
-import java.util.Collections;
-//import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.DateTime;
-
-
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
+import com.dreameddeath.common.model.StandardProperty;
+import com.dreameddeath.common.model.Property;
 import com.dreameddeath.common.model.ImmutableProperty;
+import org.joda.time.DateTime;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 
 public class BillingAccount extends CouchbaseDocument{
     @DocumentProperty("uid")
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);
 	@DocumentProperty("ledgerSegment")
-    private String _ledgerSegment;
+    private Property<String> _ledgerSegment = new StandardProperty<String>(BillingAccount.this);
     @DocumentProperty("taxProfile")
-    private String _taxProfile;
+    private Property<String> _taxProfile = new StandardProperty<String>(BillingAccount.this);
 	@DocumentProperty("type")
-    private Type _type;
+    private Property<Type> _type= new StandardProperty<Type>(BillingAccount.this);;
 	@DocumentProperty("creationDate")
-    private DateTime _creationDate;
+    private Property<DateTime> _creationDate= new StandardProperty<DateTime>(BillingAccount.this);;
 	@DocumentProperty("billDay")
-    private Integer _billDay;
+    private Property<Integer> _billDay = new StandardProperty<Integer>(BillingAccount.this);;
     @DocumentProperty("billCycleLength")
-    private Integer _billingCycleLength;
+    private Property<Integer> _billingCycleLength = new StandardProperty<Integer>(BillingAccount.this);;
 	@DocumentProperty("currency")
-    private String _currency;
+    private Property<String> _currency = new StandardProperty<String>(BillingAccount.this);;
 	@DocumentProperty("paymentMethod")
-    private String _paymentMethod;
+    private Property<String> _paymentMethod = new StandardProperty<String>(BillingAccount.this);;
     @DocumentProperty(value="billCycle",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
     private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
     
     public String getUid() { return _uid.get(); }
     public void setUid(String uid) { _uid.set(uid); }
     
-    public String getLedgerSegment() { return _ledgerSegment; }
-    public void setLedgerSegment(String ledgerSegment) { _ledgerSegment=ledgerSegment; }
+    public String getLedgerSegment() { return _ledgerSegment.get(); }
+    public void setLedgerSegment(String ledgerSegment) { _ledgerSegment.set(ledgerSegment); }
     
-    public String getTaxProfile() { return _taxProfile; }
-    public void setTaxProfile(String taxProfile) { _taxProfile=taxProfile; }
+    public String getTaxProfile() { return _taxProfile.get(); }
+    public void setTaxProfile(String taxProfile) { _taxProfile.set(taxProfile); }
     
-    public Type getType() { return _type; }
-    public void setType(Type type) { _type=type; }
+    public Type getType() { return _type.get(); }
+    public void setType(Type type) { _type.set(type); }
     
-    public DateTime getCreationDate() { return _creationDate; }
-    public void setCreationDate(DateTime creationDate) { _creationDate=creationDate; }
+    public DateTime getCreationDate() { return _creationDate.get(); }
+    public void setCreationDate(DateTime creationDate) { _creationDate.set(creationDate); }
     
-    public Integer getBillDay() { return _billDay; }
-    public void setBillDay(Integer billDay) { _billDay=billDay; }
+    public Integer getBillDay() { return _billDay.get(); }
+    public void setBillDay(Integer billDay) { _billDay.set(billDay); }
     
-    public Integer getBillingCycleLength() { return _billingCycleLength; }
-    public void setBillingCycleLength(Integer billingCycleLength) { _billingCycleLength=billingCycleLength; }
+    public Integer getBillingCycleLength() { return _billingCycleLength.get(); }
+    public void setBillingCycleLength(Integer billingCycleLength) { _billingCycleLength.set(billingCycleLength); }
     
-    public String getCurrency() { return _currency; }
-    public void setCurrency(String currency) { _currency=currency; }
+    public String getCurrency() { return _currency.get(); }
+    public void setCurrency(String currency) { _currency.set(currency); }
     
-    public String getPaymentMethod() { return _paymentMethod; }
-    public void setPaymentMethod(String paymentMethod) { _paymentMethod=paymentMethod; }
+    public String getPaymentMethod() { return _paymentMethod.get(); }
+    public void setPaymentMethod(String paymentMethod) { _paymentMethod.set(paymentMethod); }
     
     public List<BillingCycleLink> getBillingCycleLinks() { return Collections.unmodifiableList(_billingCycleLinks); }
     public BillingCycleLink getBillingCycleLink(DateTime refDate){

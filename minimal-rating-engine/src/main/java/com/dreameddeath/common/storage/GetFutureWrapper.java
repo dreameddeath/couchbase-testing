@@ -1,8 +1,8 @@
 package com.dreameddeath.common.storage;
 
-import net.spy.memcached.internal.GetFuture;
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import net.spy.memcached.internal.GetFuture;
 
 public class GetFutureWrapper<T extends CouchbaseDocument> extends FutureWrapper<T,T>{
     private String _key;

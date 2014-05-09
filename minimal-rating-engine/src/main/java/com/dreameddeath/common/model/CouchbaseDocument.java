@@ -1,14 +1,13 @@
 package com.dreameddeath.common.model;
 
-import java.util.HashSet;
-import java.util.Collection;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.dreameddeath.common.dao.CouchbaseSession;
+import com.dreameddeath.common.storage.CouchbaseConstants.DocumentFlag;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import com.dreameddeath.common.storage.CouchbaseConstants.DocumentFlag;
-import com.dreameddeath.common.dao.CouchbaseSession;
+import java.util.Collection;
+import java.util.HashSet;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
@@ -55,6 +54,9 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     public void setStateDirty(){
         if(_state.equals(State.SYNC)){
             _state=State.DIRTY;
+        }
+        for(CouchbaseDocumentLink link: _reverseLinks){
+            link.syncFields();
         }
     }
     

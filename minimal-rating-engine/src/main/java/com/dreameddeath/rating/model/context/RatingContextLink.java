@@ -1,14 +1,16 @@
 package com.dreameddeath.rating.model.context;
 
-import com.dreameddeath.common.model.CouchbaseDocumentLink;
 import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import com.dreameddeath.common.model.StandardProperty;
+import com.dreameddeath.common.model.Property;
 
 public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingContext>{
     @DocumentProperty("@c")
-    private String _class;
+    private Property<String> _class=new StandardProperty<String>(RatingContextLink.this);
     
-    public String getType() { return _class;}
-    public void setType(String clazz) { _class=clazz;}
+    public String getType() { return _class.get();}
+    public void setType(String clazz) { _class.set(clazz);}
     
     @Override
     public String toString(){

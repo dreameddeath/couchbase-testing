@@ -1,12 +1,12 @@
 package com.dreameddeath.rating.model.context;
 
-import java.util.List;
+import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
+import com.dreameddeath.rating.model.cdr.CdrsBucketLink;
+
 import java.util.ArrayList;
 import java.util.Collections;
-
-import com.dreameddeath.rating.model.cdr.CdrsBucketLink;
-import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.annotation.DocumentProperty;
+import java.util.List;
 
 public final class StandardRatingContext extends AbstractRatingContext{
     @DocumentProperty("cdrsBucketLinks")

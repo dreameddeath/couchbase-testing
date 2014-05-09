@@ -1,8 +1,8 @@
 package com.dreameddeath.common.storage;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 public interface CouchbaseConstants {
 
