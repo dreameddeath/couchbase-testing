@@ -1,23 +1,16 @@
-package com.dreamddeath.couchbase_testing;
+package com.dreameddeath.couchbase_testing;
 
 import com.couchbase.client.CouchbaseClient;
 import java.net.URI;
-import java.io.Externalizable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.ArrayList;
 
 import org.joda.time.DateTime;
 
 import net.spy.memcached.transcoders.Transcoder;
 
-import java.util.concurrent.Future;
-import net.spy.memcached.internal.OperationFuture;
-
 import com.dreameddeath.common.storage.BinarySerializer;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
-import com.dreameddeath.common.storage.OperationFutureWrapper;
 import com.dreameddeath.common.dao.*;
 import com.dreameddeath.rating.storage.*;
 import com.dreameddeath.rating.model.context.*;

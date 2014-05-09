@@ -1,18 +1,14 @@
 package com.dreameddeath.common.model;
 
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collection;
-
+import com.dreameddeath.common.annotation.DocumentProperty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
 public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends CouchbaseDocumentElement{
+    @DocumentProperty("key")
     private Property<String>    _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
         protected  String getRealValue(T doc){
@@ -20,8 +16,8 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
         }
     };
     private Property<T>            _docObject=new ImmutableProperty<T>(null);
-    
-    @JsonProperty("key")
+
+
     public final String getKey(){ return _key.get();}
     public final void setKey(String key){ _key.set(key); }
     
@@ -30,7 +26,7 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     }
     
     public T getLinkedObject(boolean fromCache){
-        if((_docObject.get()==null) && (fromCache==false)){
+        if((_docObject.get()==null) && (!fromCache)){
             if(_key==null){
                 ///TODO throw an error
             }
@@ -64,22 +60,25 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     }
     
     
-    public boolean equals(CouchbaseDocumentLink<T> target){
+    @Override
+    public boolean equals(Object target){
         if(target==null){
             return false;
         }
         else if(this == target){
             return true;
         }
-        else if((_key!=null) && (target._key!=null)){
-            return _key.equals(target._key);
+        else if(target instanceof CouchbaseDocumentLink){
+            CouchbaseDocumentLink targetLnk=(CouchbaseDocumentLink) target;
+            if((_key!=null) && _key.equals(targetLnk._key)){
+                return true;
+            }
+            else if((_docObject!=null)&& _docObject.equals(targetLnk._docObject)){
+                return true;
+            }
         }
-        else if((_docObject!=null)&& (target._docObject!=null)){
-            return _docObject.equals(target._docObject);
-        }
-        else{
-            return false;
-        }
+
+        return false;
     }
     
     @Override

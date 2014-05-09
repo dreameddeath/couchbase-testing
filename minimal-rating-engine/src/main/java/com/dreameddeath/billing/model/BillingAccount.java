@@ -7,61 +7,61 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.ImmutableProperty;
 
 public class BillingAccount extends CouchbaseDocument{
+    @DocumentProperty("uid")
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);
-	private String _ledgerSegment;
+	@DocumentProperty("ledgerSegment")
+    private String _ledgerSegment;
+    @DocumentProperty("taxProfile")
     private String _taxProfile;
-	private Type _type;
-	private DateTime _creationDate;
-	private Integer _billDay;
+	@DocumentProperty("type")
+    private Type _type;
+	@DocumentProperty("creationDate")
+    private DateTime _creationDate;
+	@DocumentProperty("billDay")
+    private Integer _billDay;
+    @DocumentProperty("billCycleLength")
     private Integer _billingCycleLength;
-	private String _currency;
-	private String _paymentMethod;
+	@DocumentProperty("currency")
+    private String _currency;
+	@DocumentProperty("paymentMethod")
+    private String _paymentMethod;
+    @DocumentProperty(value="billCycle",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
     private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
     
-    @JsonProperty("uid")
     public String getUid() { return _uid.get(); }
     public void setUid(String uid) { _uid.set(uid); }
     
-    @JsonProperty("ledgerSegment")
     public String getLedgerSegment() { return _ledgerSegment; }
     public void setLedgerSegment(String ledgerSegment) { _ledgerSegment=ledgerSegment; }
     
-    @JsonProperty("taxProfile")
-	public String getTaxProfile() { return _taxProfile; }
+    public String getTaxProfile() { return _taxProfile; }
     public void setTaxProfile(String taxProfile) { _taxProfile=taxProfile; }
     
-    @JsonProperty("type")
     public Type getType() { return _type; }
     public void setType(Type type) { _type=type; }
     
-    @JsonProperty("creationDate")
     public DateTime getCreationDate() { return _creationDate; }
     public void setCreationDate(DateTime creationDate) { _creationDate=creationDate; }
     
-    @JsonProperty("billDay")
     public Integer getBillDay() { return _billDay; }
     public void setBillDay(Integer billDay) { _billDay=billDay; }
     
-    @JsonProperty("billCycleLength")
     public Integer getBillingCycleLength() { return _billingCycleLength; }
     public void setBillingCycleLength(Integer billingCycleLength) { _billingCycleLength=billingCycleLength; }
     
-    @JsonProperty("currency")
     public String getCurrency() { return _currency; }
     public void setCurrency(String currency) { _currency=currency; }
     
-    @JsonProperty("paymentMethod")
     public String getPaymentMethod() { return _paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { _paymentMethod=paymentMethod; }
     
-    @JsonProperty("billingCycles")
     public List<BillingCycleLink> getBillingCycleLinks() { return Collections.unmodifiableList(_billingCycleLinks); }
     public BillingCycleLink getBillingCycleLink(DateTime refDate){
         for(BillingCycleLink billCycleLink:_billingCycleLinks){
@@ -71,6 +71,7 @@ public class BillingAccount extends CouchbaseDocument{
         }
         return null;
     }
+    
     public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();System.out.println("Adding links to ba"+billingCycleLinks); _billingCycleLinks.addAll(billingCycleLinks); }
     public void addBillingCycle(BillingCycle billingCycle){
         if(getBillingCycleLink(billingCycle.getStartDate())!=null){
@@ -93,6 +94,7 @@ public class BillingAccount extends CouchbaseDocument{
         private String _value;
         
         Type(String value){ _value = value; }
+        @Override
         public String toString(){ return _value; }
     }
     

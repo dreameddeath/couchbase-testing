@@ -1,19 +1,15 @@
 package com.dreameddeath.common.storage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+
 import java.io.IOException;
 
 import net.spy.memcached.transcoders.Transcoder;
 import net.spy.memcached.CachedData;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.dreameddeath.common.storage.CouchbaseConstants;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.dreameddeath.common.model.CouchbaseDocument;
@@ -26,7 +22,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
     static {
         _mapper = new ObjectMapper();
         _mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        
+        _mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
         _mapper.registerModule(new JodaModule());
     }
     
@@ -52,7 +48,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
         String baseString="";
         try{
             baseString=new String(cachedData.getData(),"UTF-8");
-            T result = (T)_mapper.readValue(cachedData.getData(),_dummyClass);
+            T result = _mapper.readValue(cachedData.getData(),_dummyClass);
             result.setDbDocSize(cachedData.getData().length);
             return result;
         }
@@ -64,10 +60,6 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
             System.out.println("Raw data <" +baseString+">");
             e.printStackTrace();
         } 
-        catch (JsonProcessingException e){
-            System.out.println("Raw data <" +baseString+">");
-            e.printStackTrace();
-        }
         catch (IOException e) {
             System.out.println("Raw data <" +baseString+">");
             e.printStackTrace();

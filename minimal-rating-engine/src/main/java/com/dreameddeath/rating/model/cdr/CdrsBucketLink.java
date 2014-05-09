@@ -1,31 +1,24 @@
 package com.dreameddeath.rating.model.cdr;
 
-import java.util.List;
-import java.util.ArrayList;
-
-import org.joda.time.DateTime;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
-import com.dreameddeath.common.model.Property;
-import com.dreameddeath.common.model.SynchronizedLinkProperty;
 import com.dreameddeath.rating.storage.GenericCdrsBucket;
+import com.dreameddeath.common.annotation.DocumentProperty;
 
 public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocumentLink<T>{
+    @DocumentProperty("@c")
     private String _class;
+    @DocumentProperty("nbCdrs")
     private Integer   _nbCdrs;
+    @DocumentProperty("dbSize")
     private Integer   _dbSize;
     
-    @JsonProperty("@c")
     public String getType() { return _class;}
     public void setType(String clazz) { _class=clazz;}
     
-    @JsonProperty("nbCdrs")
     public Integer getNbCdrs() { return _nbCdrs;}
     public void setNbCdrs(Integer nbCdrs) { _nbCdrs=nbCdrs;}
     
-    @JsonProperty("dbSize")
     public Integer getDbSize() { return _dbSize;}
     public void setDbSize(Integer dbSize) { _dbSize=dbSize;}
     

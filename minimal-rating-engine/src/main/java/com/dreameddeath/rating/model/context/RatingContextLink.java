@@ -1,18 +1,12 @@
 package com.dreameddeath.rating.model.context;
 
-import java.util.List;
-import java.util.ArrayList;
-
-import org.joda.time.DateTime;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import com.dreameddeath.common.annotation.DocumentProperty;
 
 public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingContext>{
+    @DocumentProperty("@c")
     private String _class;
     
-    @JsonProperty("@c")
     public String getType() { return _class;}
     public void setType(String clazz) { _class=clazz;}
     

@@ -1,8 +1,7 @@
 package com.dreameddeath.rating.dao.context;
 
-import com.dreameddeath.rating.storage.GenericCdrsBucket;
+
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
-import com.dreameddeath.rating.model.context.StandardRatingContext;
 import com.dreameddeath.billing.dao.BillingAccountDao;
 import com.dreameddeath.common.dao.CouchbaseDocumentDao;
 import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
