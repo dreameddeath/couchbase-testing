@@ -1,38 +1,33 @@
 package com.dreameddeath.common.task;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.dreameddeath.common.model.CouchbaseDocumentElement;
+import com.dreameddeath.common.model.ImmutableProperty;
+import com.dreameddeath.common.model.Property;
+import com.dreameddeath.common.model.StandardProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import org.joda.time.DateTime;
-
 import java.util.UUID;
 
-@JsonIgnoreProperties(ignoreUnknown=true)
-@JsonInclude(Include.NON_EMPTY)
-@JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
-public abstract class AbstractTask{
+public abstract class AbstractTask extends CouchbaseDocumentElement{
     @DocumentProperty("uid")
-    private UUID _uid=UUID.randomUUID();
+    private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractTask.this,UUID.randomUUID());
     @DocumentProperty("state")
-    private State _state=State.PENDING;
+    private Property<State> _state=new StandardProperty<State>(AbstractTask.this,State.PENDING);
     @DocumentProperty("effectiveDate")
-    private DateTime _effectiveDate;
+    private Property<DateTime> _effectiveDate=new StandardProperty<DateTime>(AbstractTask.this);
     
-    public State getState() { return _state; }
-    public void setState(State state) { _state=state; }
+    public State getState() { return _state.get(); }
+    public void setState(State state) { _state.set(state); }
     
-    public UUID getUid() { return _uid; }
-    public void setUid(UUID uid) { _uid=uid; }
+    public UUID getUid() { return _uid.get(); }
+    public void setUid(UUID uid) { _uid.set(uid); }
     
-    public DateTime getEffectiveDate() { return _effectiveDate; }
-    public void setEffectiveDate(DateTime date) { _effectiveDate=date; }
+    public DateTime getEffectiveDate() { return _effectiveDate.get(); }
+    public void setEffectiveDate(DateTime date) { _effectiveDate.set(date); }
     
     
     

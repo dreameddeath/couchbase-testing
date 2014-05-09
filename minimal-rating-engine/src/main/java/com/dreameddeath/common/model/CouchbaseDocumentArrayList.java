@@ -32,7 +32,6 @@ public class CouchbaseDocumentArrayList<T extends CouchbaseDocumentElement> exte
         }
         CouchbaseDocument rootDoc = _parentElt.getParentDocument();
         if(rootDoc!=null){ rootDoc.setStateDirty();}
-        System.out.println("Adding elt "+elt+" of type "+elt.getClass().getName() +" to parent "+_parentElt);
         elt.setParentElement(_parentElt);
         return true;
     }

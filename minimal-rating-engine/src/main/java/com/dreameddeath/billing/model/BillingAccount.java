@@ -72,7 +72,11 @@ public class BillingAccount extends CouchbaseDocument{
         return null;
     }
     
-    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks) { _billingCycleLinks.clear();System.out.println("Adding links to ba"+billingCycleLinks); _billingCycleLinks.addAll(billingCycleLinks); }
+    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks){
+        _billingCycleLinks.clear();
+        _billingCycleLinks.addAll(billingCycleLinks);
+    }
+
     public void addBillingCycle(BillingCycle billingCycle){
         if(getBillingCycleLink(billingCycle.getStartDate())!=null){
             ///TODO generate a duplicate error

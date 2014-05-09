@@ -21,6 +21,7 @@ import net.spy.memcached.transcoders.Transcoder;
 import org.joda.time.DateTime;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -143,7 +144,7 @@ public class CouchbaseConnection {
             //System.out.println("Read Ba Result :"+readBa);
             //readBa.setLedgerSegment("Bis");
             attr.setCode("testing2");
-            System.out.println("After Update Rating Result :"+ratingCtxt);
+            System.out.println("After Update Rating Result :" + ratingCtxt);
             billCycle.setEndDate(billCycle.getEndDate().plusMonths(1));
             System.out.println("After Update Billing Cycle Result :"+ba);
 
@@ -189,7 +190,10 @@ public class CouchbaseConnection {
             System.out.println("Read BillCycle Result :"+readCycle);
             System.out.println("Read Cycle link :<"+readBa.getBillingCycleLinks().get(0).getLinkedObject(true)+">");
             
-            
+
+            //bench();
+
+
         }
         catch(Exception e){
             e.printStackTrace();
@@ -197,4 +201,40 @@ public class CouchbaseConnection {
         _client.shutdown();
   }
 
+    public static void bench(){
+        CouchbaseSession benchSession=_daoFactory.newSession();
+        //Tries to create 1 Ba
+        int nbBa = 10000;
+        List<BillingAccount> bas = new ArrayList<BillingAccount>(nbBa);
+        List<BillingCycle> billingCycles = new ArrayList<BillingCycle>(nbBa);
+        List<StandardRatingContext> ratCtxts = new ArrayList<StandardRatingContext>(nbBa);
+
+
+        for(int i=0;i<nbBa;++i){
+            BillingAccount baBench = benchSession.newEntity(BillingAccount.class);
+            baBench.setLedgerSegment("test");
+            BillingCycle billCycleBench =  benchSession.newEntity(BillingCycle.class);
+            billCycleBench.setBillingAccount(baBench);
+            billCycleBench.setStartDate((new DateTime()).withTime(0,0,0,0));
+            billCycleBench.setEndDate(billCycleBench.getStartDate().plusMonths(1));
+
+            StandardRatingContext ratingCtxtBench = benchSession.newEntity(StandardRatingContext.class);
+            ratingCtxtBench.setBillingCycle(billCycleBench);
+            RatingContextAttribute attrBench =  new RatingContextAttribute();
+            ratingCtxtBench.addAttribute(attrBench);
+            attrBench.setCode("testing");
+
+
+            bas.add(baBench);
+            billingCycles.add(billCycleBench);
+            ratCtxts.add(ratingCtxtBench);
+            if(i%10==0) System.out.println("Nb Created "+i);
+        }
+        System.out.println("Starting bench");
+        long startTime = System.currentTimeMillis();
+        benchSession.create(bas,BillingAccount.class);
+        benchSession.create(billingCycles,BillingCycle.class);
+        benchSession.create(ratCtxts,StandardRatingContext.class);
+        System.out.println("Duration : "+((System.currentTimeMillis()-startTime)*1.0/1000));
+    }
 }

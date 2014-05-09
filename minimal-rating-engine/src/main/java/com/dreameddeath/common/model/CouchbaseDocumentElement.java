@@ -18,14 +18,12 @@ public abstract class CouchbaseDocumentElement{
     private List<CouchbaseDocumentElement> _childElementList=new ArrayList<CouchbaseDocumentElement>();
     
     protected void addChildElement(CouchbaseDocumentElement elt){
-        System.out.println("Adding child element "+elt);
         _childElementList.add(elt);
     }
     
     public <T extends CouchbaseDocumentElement> List<T> getChildElementsOfType(Class<T> clazz){
         List<T> res=new ArrayList<T>();
         for(CouchbaseDocumentElement child : _childElementList){
-            System.out.println("Checking child element "+child);
             if(clazz.isAssignableFrom(child.getClass())){
                 res.add((T)child);
             }

@@ -15,7 +15,7 @@ import java.lang.reflect.ParameterizedType;
 
 public aspect CouchbaseFieldAspect { 
 	
-    before() : (call(* remove*(..)) || call(* add*(..)) || call(* clear())) && target(CouchbaseDocumentArrayList+) && within(CouchbaseDocumentElement+) {
+    /*before() : (call(* remove*(..)) || call(* add*(..)) || call(* clear())) && target(CouchbaseDocumentArrayList+) && within(CouchbaseDocumentElement+) {
 		CouchbaseDocument source=((CouchbaseDocumentElement)thisJoinPoint.getThis()).getParentDocument();
         if(source!=null){
             source.setStateDirty();
@@ -31,7 +31,7 @@ public aspect CouchbaseFieldAspect {
             source.setStateDirty();
         }
         //System.out.println("Changing value of "+thisJoinPoint.getThis().getClass().getName()+"."+thisJoinPoint.getSignature().getName());
-	}
+	}*/
     
     /*before(CouchbaseDocumentLink o) : set(CouchbaseDocumentLink+ *) && args(o) && within(CouchbaseDocumentElement+) {
         o.setParentElement((CouchbaseDocumentElement)thisJoinPoint.getThis());

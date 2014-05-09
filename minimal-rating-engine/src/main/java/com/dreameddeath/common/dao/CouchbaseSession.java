@@ -16,7 +16,6 @@ public class CouchbaseSession {
     
     public void attachLink(CouchbaseDocumentLink link){
         if(link.getKey()!=null){
-            System.out.println("Adding link "+link.getClass().getName() + " for key "+link.getKey()+" with value "+link);
             if((link.getLinkedObject(true)==null) && (_sessionCache.containsKey(link.getKey()))){
                 link.setLinkedObject(_sessionCache.get(link.getKey()));
             }

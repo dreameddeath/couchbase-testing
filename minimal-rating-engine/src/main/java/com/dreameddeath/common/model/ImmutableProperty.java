@@ -5,6 +5,10 @@ public class ImmutableProperty<T> extends AbstractProperty<T> {
     public ImmutableProperty(CouchbaseDocumentElement parentElement){
         super(parentElement);
     }
+    public ImmutableProperty(CouchbaseDocumentElement parentElement, T defaultValue){
+        super(parentElement,defaultValue);
+    }
+
 
     @Override
     public final boolean set(T value) {
