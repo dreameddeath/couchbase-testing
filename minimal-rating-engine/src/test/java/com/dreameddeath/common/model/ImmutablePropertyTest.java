@@ -1,5 +1,6 @@
 package com.dreameddeath.common.model;
 
+import com.dreameddeath.common.model.property.ImmutableProperty;
 import junit.framework.TestCase;
 
 public class ImmutablePropertyTest extends TestCase {
@@ -26,7 +27,7 @@ public class ImmutablePropertyTest extends TestCase {
             fail("Should have thrown exception");
         }
         catch(UnsupportedOperationException e){
-
+            //Nominal Case
         }
         catch(Exception e) {
             fail("Should have throw UnsupportedOperationException");

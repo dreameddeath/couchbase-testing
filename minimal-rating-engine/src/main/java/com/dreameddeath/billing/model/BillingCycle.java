@@ -2,6 +2,9 @@ package com.dreameddeath.billing.model;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.model.*;
+import com.dreameddeath.common.model.property.ImmutableProperty;
+import com.dreameddeath.common.model.property.Property;
+import com.dreameddeath.common.model.property.StandardProperty;
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
 import com.dreameddeath.rating.model.context.RatingContextLink;
 import org.joda.time.DateTime;
@@ -12,14 +15,13 @@ import java.util.List;
 
 public class BillingCycle extends CouchbaseDocument{
     @DocumentProperty("ba")
-    private ImmutableProperty<BillingAccountLink>  _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);
+    private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);
     @DocumentProperty("startDate")
     private Property<DateTime> _startDate = new StandardProperty<DateTime>(BillingCycle.this);
     @DocumentProperty("endDate")
     private Property<DateTime> _endDate= new StandardProperty<DateTime>(BillingCycle.this);
     @DocumentProperty("ratingContexts")
     private List<RatingContextLink> _ratingContexts=new CouchbaseDocumentArrayList<RatingContextLink>(BillingCycle.this);
-    
 
     public BillingAccountLink getBillingAccountLink() { return _baLink.get(); }
     public void setBillingAccountLink(BillingAccountLink baLink) { _baLink.set(baLink); }
@@ -27,7 +29,6 @@ public class BillingCycle extends CouchbaseDocument{
     
     public DateTime getStartDate() { return _startDate.get(); }
     public void setStartDate(DateTime startDate) { _startDate.set(startDate); }
-    
 
     public DateTime getEndDate() { return _endDate.get(); }
     public void setEndDate(DateTime endDate) { _endDate.set(endDate); }

@@ -101,6 +101,23 @@ public class CouchbaseSession {
             return result;
         }
     }
-    
-    
+
+    public <T extends CouchbaseDocument> Collection<T> update(Collection<T> objs,Class<T> targetClass){
+        CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForClass(targetClass);
+        dao.updateBulk(objs);
+        return objs;
+    }
+
+    public <T extends CouchbaseDocument> T update(T obj,Class<T> targetClass){
+        CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForClass(targetClass);
+        dao.update(obj);
+        return obj;
+    }
+
+    public <T extends CouchbaseDocument> T update(T obj){
+        CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForKey(obj.getKey());
+        dao.update(obj);
+        return obj;
+    }
+
 }

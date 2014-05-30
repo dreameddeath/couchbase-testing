@@ -18,7 +18,7 @@ public final class StandardRatingContext extends AbstractRatingContext{
     @DocumentProperty("sharedContexts")
     private List<RatingContextSharedLink> _sharedRatingCtxtLinks=new CouchbaseDocumentArrayList<RatingContextSharedLink>(StandardRatingContext.this);
 
-    public List<CdrsBucketLink> getCdrsBuckets(){ return _cdrsBuckets; }
+    public List<CdrsBucketLink> getCdrsBuckets(){ return Collections.unmodifiableList(_cdrsBuckets); }
     public void setCdrsBucketLinks(List<CdrsBucketLink> cdrsBucketsLnk){ _cdrsBuckets.clear(); _cdrsBuckets.addAll(cdrsBucketsLnk); }
     public void addCdrsBucketLink(CdrsBucketLink cdrsBucketsLnk){  _cdrsBuckets.add(cdrsBucketsLnk); }
 

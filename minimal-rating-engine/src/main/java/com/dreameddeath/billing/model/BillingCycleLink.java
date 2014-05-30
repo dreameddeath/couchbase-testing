@@ -3,8 +3,8 @@ package com.dreameddeath.billing.model;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
-import com.dreameddeath.common.model.Property;
-import com.dreameddeath.common.model.SynchronizedLinkProperty;
+import com.dreameddeath.common.model.property.Property;
+import com.dreameddeath.common.model.property.SynchronizedLinkProperty;
 import org.joda.time.DateTime;
 
 public class BillingCycleLink extends CouchbaseDocumentLink<BillingCycle>{

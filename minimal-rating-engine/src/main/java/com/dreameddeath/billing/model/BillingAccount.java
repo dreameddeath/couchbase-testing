@@ -3,9 +3,9 @@ package com.dreameddeath.billing.model;
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.model.StandardProperty;
-import com.dreameddeath.common.model.Property;
-import com.dreameddeath.common.model.ImmutableProperty;
+import com.dreameddeath.common.model.property.StandardProperty;
+import com.dreameddeath.common.model.property.Property;
+import com.dreameddeath.common.model.property.ImmutableProperty;
 import org.joda.time.DateTime;
 
 import java.util.Collection;

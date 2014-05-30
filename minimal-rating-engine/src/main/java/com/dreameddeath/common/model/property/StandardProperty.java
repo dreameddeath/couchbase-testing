@@ -1,4 +1,6 @@
-package com.dreameddeath.common.model;
+package com.dreameddeath.common.model.property;
+
+import com.dreameddeath.common.model.CouchbaseDocumentElement;
 
 /**
  * Created by ceaj8230 on 09/05/2014.

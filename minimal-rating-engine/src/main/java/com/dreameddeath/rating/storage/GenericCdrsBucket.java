@@ -34,7 +34,7 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
     
     /**
     * Standard constructor 
-    * @param documentType It has to be carefully choosen.
+    * @param documentType It has to be carefully chosen.
     *        if type == CDRS_BUCKET_FULL, the object contains the whole bucket
     *        if type == CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM, the object will be used to normally a CDR to be rating
     *        if type == CDRS_BUCKET_PARTIAL_WITH_CHECKSUM, the object will be used to append a rated CDR
@@ -51,7 +51,7 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
     * Incremental rating constructor 
     * @param key the key of the CDR bucket
     * @param origDbSize the database size prior to the appending of the cdr
-    * @param documentType It has to be carefully choosen.
+    * @param documentType It has to be carefully chosen.
     *        if type == CDRS_BUCKET_FULL, it shouldn't be used (add this constructor is more designed to be a delta mode)
     *        if type == CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM, the object will be used to normally add CDR to the rating
     *        if type == CDRS_BUCKET_PARTIAL_WITH_CHECKSUM, the object will be used to append a rated CDR

@@ -1,4 +1,4 @@
-package com.dreameddeath.common.model;
+package com.dreameddeath.common.model.property;
 
 public interface Property<T>  {
     public  T get();

@@ -1,13 +1,19 @@
 package com.dreameddeath.common.model;
 
+import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.dao.CouchbaseSession;
+import com.dreameddeath.common.model.process.AbstractTask;
+import com.dreameddeath.common.model.process.CouchbaseDocumentAttachedTaskRef;
+import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.dreameddeath.common.storage.CouchbaseConstants.DocumentFlag;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
@@ -19,7 +25,8 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     private Integer _dbDocSize;
     private Collection<DocumentFlag> _documentFlags=new HashSet<DocumentFlag>();
     private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
-    
+    @DocumentProperty("attachedTasks")
+    private List<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new CouchbaseDocumentArrayList<CouchbaseDocumentAttachedTaskRef>(CouchbaseDocument.this);
     private State _state=State.NEW;
     
     public final CouchbaseSession getSession(){ return _session; }
@@ -70,7 +77,61 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
         else if(_key!=null) { return _key.equals(doc._key); }
         else                { return false; }
     }
-    
+
+
+    public void save(){
+        if(_state.equals(State.NEW)) {
+            this.getSession().create(this);
+        }
+        else{
+            this.getSession().update(this);
+        }
+    }
+
+    public List<CouchbaseDocumentAttachedTaskRef> getAttachedTasks(){return Collections.unmodifiableList(_attachedTasks);}
+    public void setAttachedTasks(Collection<CouchbaseDocumentAttachedTaskRef> tasks){
+        _attachedTasks.clear();
+        _attachedTasks.addAll(tasks);
+    }
+
+    public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(String jobKey,String taskId){
+        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks) {
+            if (jobKey.equals(taskRef.getJobKey()) && (taskId.equals(taskRef.getTaskId()))) {
+                return taskRef;
+            }
+        }
+        return null;
+    }
+
+    public void addAttachedTaskRef(CouchbaseDocumentAttachedTaskRef task){
+        if(getAttachedTaskRef(task.getJobKey(), task.getTaskId())!=null){
+            ///TODO throw error
+        }
+        _attachedTasks.add(task);
+    }
+
+    public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(AbstractTask task){
+        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks){
+            if(taskRef.isForTask(task)){
+                return taskRef;
+            }
+        }
+        return null;
+    }
+
+    public void cleanupAttachedTaskRef(AbstractTask task){
+        CouchbaseDocumentAttachedTaskRef result=null;
+        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks){
+            if(taskRef.isForTask(task)) {
+                result = taskRef;
+                break;
+            }
+        }
+        if(result!=null){
+            _attachedTasks.remove(result);
+        }
+    }
+
     @Override
     public String toString(){
         return 

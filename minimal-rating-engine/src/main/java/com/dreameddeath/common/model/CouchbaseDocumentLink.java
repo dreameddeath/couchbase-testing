@@ -5,6 +5,9 @@ import java.util.List;
 
 
 import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.property.ImmutableProperty;
+import com.dreameddeath.common.model.property.Property;
+import com.dreameddeath.common.model.property.SynchronizedLinkProperty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -15,7 +18,7 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     private List<SynchronizedLinkProperty> _childLinks=new ArrayList<SynchronizedLinkProperty>();
 
     @DocumentProperty("key")
-    private Property<String>    _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
+    private Property<String> _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
         protected  String getRealValue(T doc){
             return doc.getKey();

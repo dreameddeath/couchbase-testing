@@ -6,7 +6,7 @@ import com.dreameddeath.billing.model.BillingCycleLink;
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.model.CouchbaseDocument;
 import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.model.ImmutableProperty;
+import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;

@@ -3,8 +3,8 @@ package com.dreameddeath.rating.model.cdr;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.model.CouchbaseDocumentLink;
-import com.dreameddeath.common.model.StandardProperty;
-import com.dreameddeath.common.model.Property;
+import com.dreameddeath.common.model.property.StandardProperty;
+import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.rating.storage.GenericCdrsBucket;
 
 public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocumentLink<T>{

@@ -1,4 +1,6 @@
-package com.dreameddeath.common.model;
+package com.dreameddeath.common.model.property;
+
+import com.dreameddeath.common.model.CouchbaseDocumentElement;
 
 public class ImmutableProperty<T> extends AbstractProperty<T> {
 
