@@ -1,7 +1,7 @@
 package com.dreameddeath.common.dao;
 
-import com.dreameddeath.common.model.CouchbaseDocument;
-import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocumentLink;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
 import com.dreameddeath.common.storage.OperationFutureWrapper;
 import net.spy.memcached.CASResponse;
@@ -18,7 +18,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public abstract Transcoder<T> getTranscoder();
     protected abstract void buildKey(T newObject);
     public abstract String getKeyPattern();
-    
+
     public CouchbaseClientWrapper getClientWrapper(){
         return _client;
     }

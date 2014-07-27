@@ -1,18 +1,15 @@
 package com.dreameddeath.common.model.process;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
-import java.util.List;
-
-import com.dreameddeath.common.model.*;
+import com.dreameddeath.common.event.TaskProcessEvent;
 import com.dreameddeath.common.annotation.DocumentProperty;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.common.model.property.StandardProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import java.util.UUID;
 
 /**
  * Created by ceaj8230 on 21/05/2014.
@@ -75,6 +72,24 @@ public abstract class AbstractJob extends CouchbaseDocument {
         return String.format("%10d", _taskList.size());
     }
 
+    public List<AbstractTask> getPendingTasks() {
+        List<AbstractTask> pendingTasks=new ArrayList<AbstractTask>();
+        for(AbstractTask task:_taskList){
+            if(! task.isDone()){
+                pendingTasks.add(task);
+            }
+        }
+        return pendingTasks;
+    }
+
+    public AbstractTask getNextPendingTask(){
+        for(AbstractTask task:_taskList){
+            if(! task.isDone()){
+                return task;
+            }
+        }
+        return null;
+    }
     public static enum State{
         NEW, //Init done
         INITIALIZED, //Init done
@@ -83,4 +98,12 @@ public abstract class AbstractJob extends CouchbaseDocument {
         POSTPROCESSED, //Job Update Processing done
         DONE;//Cleaning done
     }
+
+
+    public void init(){}
+    public void preprocess(){}
+    public abstract void when(TaskProcessEvent evt);
+    public void postprocess(){}
+    public void cleanup(){}
+
 }

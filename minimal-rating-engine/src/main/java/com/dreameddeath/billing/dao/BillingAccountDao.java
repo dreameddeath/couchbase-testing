@@ -4,18 +4,20 @@ import com.dreameddeath.billing.model.BillingAccount;
 import com.dreameddeath.billing.model.BillingCycle;
 import com.dreameddeath.common.dao.CouchbaseDocumentDao;
 import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.common.dao.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
 import com.dreameddeath.common.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
-public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
+public class BillingAccountDao extends CouchbaseDocumentDaoWithUID<BillingAccount> {
     public static final String BA_CNT_KEY="ba/cnt";
     public static final String BA_FMT_KEY="ba/%010d";
     public static final String BA_FMT_UID="%010d";
     public static final String BA_KEY_PATTERN="ba/\\d{10}";
     
     private static GenericJacksonTranscoder<BillingAccount> _tc = new GenericJacksonTranscoder<BillingAccount>(BillingAccount.class);
-    
+
+    @Override
     public  Transcoder<BillingAccount> getTranscoder(){
         return _tc;
     }
@@ -23,7 +25,8 @@ public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
     public BillingAccountDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
         super(client,factory);
     }
-    
+
+    @Override
     public void buildKey(BillingAccount obj){
         long result = getClientWrapper().getClient().incr(BA_CNT_KEY,1,1,0);
         obj.setKey(String.format(BA_FMT_KEY,result));
@@ -33,9 +36,12 @@ public class BillingAccountDao extends CouchbaseDocumentDao<BillingAccount> {
         
         getDaoFactory().getDaoForClass(BillingCycle.class).buildKeysForLinks(obj.getBillingCycleLinks());
     }
-    
+
+    @Override
     public String getKeyPattern(){
         return BA_KEY_PATTERN;
     }
-    
+
+    @Override
+    public String getKeyFromUID(String uid){return String.format(BA_FMT_KEY,Long.parseLong(uid));}
 }

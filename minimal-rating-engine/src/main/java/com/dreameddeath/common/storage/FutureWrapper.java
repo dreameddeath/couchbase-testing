@@ -1,7 +1,7 @@
 package com.dreameddeath.common.storage;
 
-import com.dreameddeath.common.model.CouchbaseDocument;
-import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocumentLink;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.internal.OperationFuture;
 

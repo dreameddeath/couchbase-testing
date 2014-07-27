@@ -2,7 +2,7 @@ package com.dreameddeath.billing.model;
 
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import com.dreameddeath.common.model.document.CouchbaseDocumentLink;
 import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.common.model.property.SynchronizedLinkProperty;
 import org.joda.time.DateTime;

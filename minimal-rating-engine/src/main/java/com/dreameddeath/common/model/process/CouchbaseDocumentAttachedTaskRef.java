@@ -1,7 +1,7 @@
 package com.dreameddeath.common.model.process;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.CouchbaseDocumentElement;
+import com.dreameddeath.common.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.dreameddeath.common.model.property.Property;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

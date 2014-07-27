@@ -1,8 +1,8 @@
 package com.dreameddeath.rating.model.context;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.model.CouchbaseDocumentElement;
+import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
+import com.dreameddeath.common.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.common.model.property.StandardProperty;
 import com.dreameddeath.common.model.property.Property;
 

@@ -1,7 +1,7 @@
 package com.dreameddeath.common.dao;
 
-import com.dreameddeath.common.model.CouchbaseDocument;
-import com.dreameddeath.common.model.CouchbaseDocumentLink;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocumentLink;
 
 import java.util.*;
 
@@ -13,7 +13,7 @@ public class CouchbaseSession {
     public CouchbaseSession(CouchbaseDocumentDaoFactory daoFactory){
         _daoFactory = daoFactory;
     }
-    
+    public CouchbaseDocumentDaoFactory getFactory(){return _daoFactory;}
     public void attachLink(CouchbaseDocumentLink link){
         if(link.getKey()!=null){
             if((link.getLinkedObject(true)==null) && (_sessionCache.containsKey(link.getKey()))){
@@ -118,6 +118,12 @@ public class CouchbaseSession {
         CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForKey(obj.getKey());
         dao.update(obj);
         return obj;
+    }
+
+    public <T extends CouchbaseDocument> T getFromUID(String uid,Class<T> targetClass){
+        CouchbaseDocumentDaoWithUID<T> dao = (CouchbaseDocumentDaoWithUID)_daoFactory.getDaoForClass(targetClass);
+        return get(dao.getKeyFromUID(uid),targetClass);
+
     }
 
 }

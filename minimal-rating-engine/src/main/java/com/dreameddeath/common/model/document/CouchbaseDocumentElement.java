@@ -1,4 +1,4 @@
-package com.dreameddeath.common.model;
+package com.dreameddeath.common.model.document;
 
 import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;

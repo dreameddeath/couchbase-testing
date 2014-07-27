@@ -1,7 +1,7 @@
 package com.dreameddeath.common.model.property;
 
-import com.dreameddeath.common.model.CouchbaseDocument;
-import com.dreameddeath.common.model.CouchbaseDocumentElement;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocumentElement;
 
 import java.util.ArrayList;
 import java.util.Collection;

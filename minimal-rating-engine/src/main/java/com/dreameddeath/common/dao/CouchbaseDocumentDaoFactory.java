@@ -1,6 +1,6 @@
 package com.dreameddeath.common.dao;
 
-import com.dreameddeath.common.model.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,7 +1,7 @@
 package com.dreameddeath.common.storage;
 
 import com.couchbase.client.CouchbaseClient;
-import com.dreameddeath.common.model.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.transcoders.Transcoder;

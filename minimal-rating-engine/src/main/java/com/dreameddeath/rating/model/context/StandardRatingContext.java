@@ -1,7 +1,7 @@
 package com.dreameddeath.rating.model.context;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
+import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
 import com.dreameddeath.rating.model.cdr.CdrsBucketLink;
 
 import java.util.ArrayList;

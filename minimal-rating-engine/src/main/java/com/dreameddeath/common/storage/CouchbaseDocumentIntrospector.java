@@ -6,11 +6,12 @@ import com.fasterxml.jackson.core.Versioned;
 import com.fasterxml.jackson.core.util.VersionUtil;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 import java.lang.reflect.Field;
-
+import java.lang.reflect.Modifier;
 
 public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector implements
         Versioned {
@@ -43,6 +44,13 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
                     }
                 }
             }
+            else if(a instanceof AnnotatedField){
+                AnnotatedField af = (AnnotatedField) a;
+                DocumentProperty fieldProp = af.getAnnotation(DocumentProperty.class);
+                if(((af.getModifiers() & Modifier.PUBLIC)!=0)&&(fieldProp!=null)){
+                    name=new PropertyName(fieldProp.value());
+                }
+            }
         }
 
         return name;
@@ -57,16 +65,19 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(am.getName().startsWith("set")) {
-                    if(am.getDeclaringClass().getSimpleName().startsWith("AbstractRating")){
-                        String test = "sample";
-
-                    }
                     for(Field field: am.getDeclaringClass().getDeclaredFields()) {
                         DocumentProperty fieldProp = field.getAnnotation(DocumentProperty.class);
                         if((fieldProp!=null) && (am.getName().equals(fieldProp.setter()))){
                             name = new PropertyName(fieldProp.value());
                         }
                     }
+                }
+            }
+            else if(a instanceof AnnotatedField){
+                AnnotatedField af = (AnnotatedField) a;
+                DocumentProperty fieldProp = af.getAnnotation(DocumentProperty.class);
+                if(((af.getModifiers() & Modifier.PUBLIC)!=0)&&(fieldProp!=null)){
+                    name=new PropertyName(fieldProp.value());
                 }
             }
         }

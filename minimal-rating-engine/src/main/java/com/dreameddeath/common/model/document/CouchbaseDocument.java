@@ -1,4 +1,4 @@
-package com.dreameddeath.common.model;
+package com.dreameddeath.common.model.document;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
 import com.dreameddeath.common.dao.CouchbaseSession;
@@ -119,6 +119,11 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
         return null;
     }
 
+    /**
+     * Detach the task from the document as it has been processed
+     *
+     * @param task the task to be detached
+     */
     public void cleanupAttachedTaskRef(AbstractTask task){
         CouchbaseDocumentAttachedTaskRef result=null;
         for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks){

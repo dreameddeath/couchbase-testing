@@ -1,7 +1,8 @@
 package com.dreameddeath.billing.model;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.*;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.common.model.property.StandardProperty;
@@ -13,7 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class BillingCycle extends CouchbaseDocument{
+public class BillingCycle extends CouchbaseDocument {
     @DocumentProperty("ba")
     private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);
     @DocumentProperty("startDate")

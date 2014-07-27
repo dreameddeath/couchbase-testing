@@ -1,11 +1,12 @@
 package com.dreameddeath.billing.model;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.CouchbaseDocument;
-import com.dreameddeath.common.model.CouchbaseDocumentArrayList;
+import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.property.StandardProperty;
 import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.common.model.property.ImmutableProperty;
+import com.dreameddeath.party.model.PartyLink;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
@@ -32,9 +33,12 @@ public class BillingAccount extends CouchbaseDocument{
     private Property<String> _currency = new StandardProperty<String>(BillingAccount.this);;
 	@DocumentProperty("paymentMethod")
     private Property<String> _paymentMethod = new StandardProperty<String>(BillingAccount.this);;
-    @DocumentProperty(value="billCycle",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
+    @DocumentProperty(value="billCycles",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
     private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
-    
+    @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")
+    private List<PartyLink> _partyLinks = new CouchbaseDocumentArrayList<PartyLink>(BillingAccount.this);
+
+
     public String getUid() { return _uid.get(); }
     public void setUid(String uid) { _uid.set(uid); }
     
@@ -88,7 +92,12 @@ public class BillingAccount extends CouchbaseDocument{
     public BillingAccountLink newBillingAccountLink(){
         return new BillingAccountLink(this);
     }
-    
+
+
+    public List<PartyLink> getPartyLinks() { return Collections.unmodifiableList(_partyLinks); }
+    public void getPartyLinks(List<PartyLink> links) { _partyLinks.clear();_partyLinks.addAll(links);}
+    public void addPartyLink(PartyLink link){_partyLinks.add(link);}
+
     /**
      * the types of billing account
      */

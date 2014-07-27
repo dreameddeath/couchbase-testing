@@ -1,7 +1,7 @@
 package com.dreameddeath.common.model.process;
 
 import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.CouchbaseDocumentElement;
+import com.dreameddeath.common.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.common.model.property.StandardProperty;
@@ -25,6 +25,8 @@ public abstract class AbstractTask extends CouchbaseDocumentElement{
 
     public void setParentJob(AbstractJob job){ _parentJob = job;}
     public AbstractJob getParentJob(){ return _parentJob;}
+    public <T extends AbstractJob> T getParentJob(Class<T> clazz){ return (T)_parentJob;}
+
 
     public State getState() { return _state.get(); }
     public void setState(State state) { _state.set(state); }
@@ -47,4 +49,12 @@ public abstract class AbstractTask extends CouchbaseDocumentElement{
         POSTPROCESSED, //Job Update Processing done
         DONE;//Cleaning done
     }
+
+
+    public void init(){}
+    public void preprocess(){}
+    public void process(){}
+    public void postprocess(){}
+    public void finalize(){}
+    public void cleanup(){}
 }
