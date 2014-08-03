@@ -12,20 +12,31 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
     @DocumentProperty("docKey")
     private Property<String> _docKey=new ImmutableProperty<String>(DocumentCreateTask.this);
 
-    public String getDocId(){return _docKey.get(); }
-    public void setDocId(String docKey){_docKey.set(docKey); }
+    public String getDocKey(){return _docKey.get(); }
+    public void setDocKey(String docKey){_docKey.set(docKey); }
     public T getDocument(){
         return (T)this.getParentJob().getSession().get(_docKey.get());
     }
 
 
     @Override
-    public void process(){
+    public boolean process(){
+        //Recovery mode
+        if(getDocKey()!=null){
+            if(getDocument()!=null){
+                return false;
+            }
+        }
         T doc = buildDocument();
+        //Prebuild key
+        setDocKey(doc.getSession().buildKey(doc).getKey());
+        //Attach it to the document
+        this.getParentJob().save();
+        //Save Document afterwards
         doc.save();
-        setDocId(doc.getKey());
+        return false; //No need to save (retry allowed)
     }
 
-    public abstract T buildDocument();
+    protected abstract T buildDocument();
 
 }

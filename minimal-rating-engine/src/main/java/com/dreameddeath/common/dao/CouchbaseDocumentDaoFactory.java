@@ -1,9 +1,11 @@
 package com.dreameddeath.common.dao;
 
 import com.dreameddeath.common.model.document.CouchbaseDocument;
+import com.dreameddeath.common.model.process.AbstractJob;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 
 //import java.util.AbstractMap.SimpleEntry;
@@ -13,8 +15,8 @@ public class CouchbaseDocumentDaoFactory{
             = new HashMap<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>>();
     private Map<Pattern,CouchbaseDocumentDao<?>> _patternsMap 
             = new HashMap<Pattern,CouchbaseDocumentDao<?>>();
-    
-    
+
+
     public CouchbaseSession newSession(){
         return new CouchbaseSession(this);
     }
@@ -35,7 +37,9 @@ public class CouchbaseDocumentDaoFactory{
                 }
             }
         }
-        ///TODO throw an error if null
+        if(result==null){
+            throw new NoSuchElementException("Cannot found dao for class <"+entityClass.getName()+">");
+        }
         return result;
     }
     
@@ -45,6 +49,7 @@ public class CouchbaseDocumentDaoFactory{
                 return _patternsMap.get(pattern);
             }
         }
-        return null;
+        throw new NoSuchElementException("Cannot found dao for key <"+key+">");
+
     }
 }

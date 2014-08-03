@@ -8,7 +8,11 @@ import com.dreameddeath.common.event.TaskProcessEvent;
 import com.dreameddeath.common.model.process.AbstractJob;
 import com.dreameddeath.common.model.process.DocumentCreateTask;
 import com.dreameddeath.common.model.process.DocumentUpdateTask;
+import com.dreameddeath.common.model.process.SubJobProcessTask;
 import com.dreameddeath.party.model.*;
+import org.joda.time.DateTime;
+
+import java.util.ArrayList;
 
 /**
  * Created by ceaj8230 on 29/05/2014.
@@ -18,6 +22,8 @@ public class CreateBillingAccountJob extends AbstractJob {
     public String partyId;
     @DocumentProperty("billDay")
     public Integer billDay;
+    @DocumentProperty("cycleLength")
+    public Integer cycleLength;
     @DocumentProperty("baCreated")
     public BillingAccountLink baLink;
     @DocumentProperty("partyLink")
@@ -25,15 +31,22 @@ public class CreateBillingAccountJob extends AbstractJob {
 
 
     @Override
-    public void init(){
-        addTask(new CreateBillingAccountTask());
+    public boolean init(){
+        addTask(new CreateBillingAccountTask()); return false;
     }
 
     @Override
-    public void when(TaskProcessEvent evt){
+    public boolean when(TaskProcessEvent evt){
         if(evt.getTask() instanceof CreateBillingAccountTask){
             addTask((new CreatePartyRolesTask()).setDocId(partyLink.getKey()));
+            return false;
         }
+        if(evt.getTask() instanceof CreatePartyRolesTask){
+            addTask(new CreateBillingCycleTask());//.setDocId(partyLink.getKey()));
+            return false;
+        }
+
+        return false; //can be retried without saving
     }
 
 
@@ -42,9 +55,11 @@ public class CreateBillingAccountJob extends AbstractJob {
      */
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> {
         @Override
-        public BillingAccount buildDocument() {
-            BillingAccount newBa = new BillingAccount();
-            newBa.setBillDay(getParentJob(CreateBillingAccountJob.class).billDay);
+        protected BillingAccount buildDocument() {
+            BillingAccount newBa = newEntity(BillingAccount.class);
+            CreateBillingAccountJob job= getParentJob(CreateBillingAccountJob.class);
+            newBa.setBillDay((job.billDay!=null)?job.billDay:1);
+            newBa.setBillingCycleLength((job.cycleLength!=null)?job.cycleLength:1);
 
             Party party = getParentJob().getSession().getFromUID(getParentJob(CreateBillingAccountJob.class).partyId, Party.class);
             getParentJob(CreateBillingAccountJob.class).partyLink = party.newPartyLink();
@@ -60,10 +75,28 @@ public class CreateBillingAccountJob extends AbstractJob {
      */
     public static class CreatePartyRolesTask extends DocumentUpdateTask<Party> {
         @Override
-        public void processDocument() {
+        protected void processDocument() {
             BillingAccountPartyRole newPartyRole = new BillingAccountPartyRole();
             newPartyRole.setBa(getParentJob(CreateBillingAccountJob.class).baLink.getLinkedObject().newBillingAccountLink());
+            newPartyRole.addRole(BillingAccountPartyRole.RoleType.HOLDER);
+            newPartyRole.addRole(BillingAccountPartyRole.RoleType.PAYER);
             getDocument().addPartyRole(newPartyRole);
+        }
+    }
+
+
+    /**
+     * Created by ceaj8230 on 27/07/2014.
+     */
+    public static class CreateBillingCycleTask extends SubJobProcessTask<CreateBillingCycleJob> {
+        @Override
+        protected CreateBillingCycleJob buildSubJob() {
+            CreateBillingCycleJob job = newEntity(CreateBillingCycleJob.class);
+            BillingAccount ba = getParentJob(CreateBillingAccountJob.class).baLink.getLinkedObject();
+
+            job.baLink = ba.newBillingAccountLink();
+            job.startDate = ba.getCreationDate();
+            return job;
         }
     }
 }

@@ -14,6 +14,11 @@ public class CouchbaseSession {
         _daoFactory = daoFactory;
     }
     public CouchbaseDocumentDaoFactory getFactory(){return _daoFactory;}
+
+    public void clean(){
+        _sessionCache.clear();
+        _links.clear();
+    }
     public void attachLink(CouchbaseDocumentLink link){
         if(link.getKey()!=null){
             if((link.getLinkedObject(true)==null) && (_sessionCache.containsKey(link.getKey()))){
@@ -78,6 +83,13 @@ public class CouchbaseSession {
         }
         return objs;
     }
+
+    public <T extends CouchbaseDocument> T buildKey(T obj){
+        if(obj.getState()== CouchbaseDocument.State.NEW){
+            ((CouchbaseDocumentDao<T>)_daoFactory.getDaoForClass(obj.getClass())).buildKey(obj);
+        }
+        return obj;
+    }
     
     public CouchbaseDocument get(String key){
         CouchbaseDocument result = _sessionCache.get(key);
@@ -115,7 +127,7 @@ public class CouchbaseSession {
     }
 
     public <T extends CouchbaseDocument> T update(T obj){
-        CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForKey(obj.getKey());
+        CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForClass((Class<T>)obj.getClass());
         dao.update(obj);
         return obj;
     }

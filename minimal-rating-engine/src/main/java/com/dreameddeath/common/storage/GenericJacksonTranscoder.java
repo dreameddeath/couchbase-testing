@@ -22,6 +22,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
         _mapper = new ObjectMapper();
         _mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         _mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
+        //_mapper.setDefaultTyping(new DocumentTypeResolverBuilder());
         _mapper.registerModule(new JodaModule());
     }
     
@@ -29,6 +30,12 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
     public GenericJacksonTranscoder(Class<T> clazz){
         super();
         _dummyClass=clazz;
+        try {
+            _mapper.getSerializerProvider().findTypedValueSerializer(clazz, true, null);
+        }
+        catch (Exception e){
+
+        }
     }
     
     @Override

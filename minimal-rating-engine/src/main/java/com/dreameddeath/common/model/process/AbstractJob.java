@@ -9,12 +9,14 @@ import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
 import com.dreameddeath.common.model.property.ImmutableProperty;
 import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.common.model.property.StandardProperty;
+import com.dreameddeath.common.process.JobProcessingService;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 /**
  * Created by ceaj8230 on 21/05/2014.
  */
-@JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
+@JsonTypeInfo(use=Id.MINIMAL_CLASS,include=As.PROPERTY, property="@t")
 public abstract class AbstractJob extends CouchbaseDocument {
     @DocumentProperty("uid")
     private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
@@ -22,6 +24,10 @@ public abstract class AbstractJob extends CouchbaseDocument {
     private Property<State> _state=new StandardProperty<State>(AbstractJob.this,State.NEW);
     @DocumentProperty("tasks")
     private List<AbstractTask> _taskList = new CouchbaseDocumentArrayList<AbstractTask>(AbstractJob.this);
+
+
+    //Save current processing Service
+    private JobProcessingService _processingService=null;
 
 
     public State getJobState() { return _state.get(); }
@@ -39,9 +45,9 @@ public abstract class AbstractJob extends CouchbaseDocument {
     public void setTasks(Collection<AbstractTask> tasks) {
         _taskList.clear();
         for(AbstractTask task : tasks){
-            task.setParentElement(this);
+            addTask(task);
         }
-        _taskList.addAll(tasks);
+        //_taskList.addAll(tasks);
     }
 
     public AbstractTask getTask(String id) {
@@ -52,6 +58,16 @@ public abstract class AbstractJob extends CouchbaseDocument {
         }
         return null;
     }
+
+    public AbstractTask getTask(Integer pos) {
+        return _taskList.get(pos);
+    }
+
+    public <T extends AbstractTask> T  getTask(Integer pos,Class<T> clazz) {
+        return (T)_taskList.get(pos);
+    }
+
+
     public <T extends AbstractTask> T getTask(String id, Class<T>clazz) {
         return (T)getTask(id);
     }
@@ -64,7 +80,12 @@ public abstract class AbstractJob extends CouchbaseDocument {
             ///TODO throw an error
         }
         task.setParentElement(this);
+        task.setParentJob(this);
         _taskList.add(task);
+    }
+
+    public <T extends CouchbaseDocument> T newEntity(Class<T> clazz){
+        return getSession().newEntity(clazz);
     }
 
 
@@ -91,7 +112,7 @@ public abstract class AbstractJob extends CouchbaseDocument {
         return null;
     }
     public static enum State{
-        NEW, //Init done
+        NEW, //Just created
         INITIALIZED, //Init done
         PREPROCESSED,    //Preparation done
         PROCESSED, //Processing Done
@@ -100,10 +121,17 @@ public abstract class AbstractJob extends CouchbaseDocument {
     }
 
 
-    public void init(){}
-    public void preprocess(){}
-    public abstract void when(TaskProcessEvent evt);
-    public void postprocess(){}
-    public void cleanup(){}
+    public boolean init(){return false;}
+    public boolean preprocess(){return false;}
+    public abstract boolean when(TaskProcessEvent evt);
+    public boolean postprocess(){return false;}
+    public boolean cleanup(){return false;}
 
+    public final void setProcessingService(JobProcessingService service){
+        _processingService = service;
+    }
+
+    public final JobProcessingService getProcessingService(){
+        return _processingService ;
+    }
 }

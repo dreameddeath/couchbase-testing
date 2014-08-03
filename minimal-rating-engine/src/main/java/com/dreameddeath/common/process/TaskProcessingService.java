@@ -1,4 +1,4 @@
-package com.dreameddeath.common.service;
+package com.dreameddeath.common.process;
 
 import com.dreameddeath.common.model.process.AbstractTask;
 
@@ -7,4 +7,5 @@ import com.dreameddeath.common.model.process.AbstractTask;
  */
 public interface TaskProcessingService<T extends AbstractTask> {
     public void execute(T task);
+    public ProcessingServiceFactory getFactory();
 }

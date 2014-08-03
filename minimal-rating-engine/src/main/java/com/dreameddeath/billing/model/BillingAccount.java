@@ -24,7 +24,7 @@ public class BillingAccount extends CouchbaseDocument{
 	@DocumentProperty("type")
     private Property<Type> _type= new StandardProperty<Type>(BillingAccount.this);;
 	@DocumentProperty("creationDate")
-    private Property<DateTime> _creationDate= new StandardProperty<DateTime>(BillingAccount.this);;
+    private Property<DateTime> _creationDate= new ImmutableProperty<DateTime>(BillingAccount.this,DateTime.now());
 	@DocumentProperty("billDay")
     private Property<Integer> _billDay = new StandardProperty<Integer>(BillingAccount.this);;
     @DocumentProperty("billCycleLength")
@@ -81,14 +81,13 @@ public class BillingAccount extends CouchbaseDocument{
         _billingCycleLinks.addAll(billingCycleLinks);
     }
 
-    public void addBillingCycle(BillingCycle billingCycle){
-        if(getBillingCycleLink(billingCycle.getStartDate())!=null){
+    public void addBillingCycleLink(BillingCycleLink billingCycleLink){
+        if(getBillingCycleLink(billingCycleLink.getLinkedObject().getStartDate())!=null){
             ///TODO generate a duplicate error
         }
-        _billingCycleLinks.add(billingCycle.newBillingCycleLink());
-        billingCycle.setBillingAccountLink(newBillingAccountLink());
+        _billingCycleLinks.add(billingCycleLink);
     }
-    
+
     public BillingAccountLink newBillingAccountLink(){
         return new BillingAccountLink(this);
     }

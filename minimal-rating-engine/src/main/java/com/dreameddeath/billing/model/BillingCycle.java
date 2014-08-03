@@ -15,19 +15,18 @@ import java.util.Collections;
 import java.util.List;
 
 public class BillingCycle extends CouchbaseDocument {
-    @DocumentProperty("ba")
+    @DocumentProperty(value="ba",getter = "getBillingAccountLink",setter="setBillingAccountLink")
     private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);
     @DocumentProperty("startDate")
     private Property<DateTime> _startDate = new StandardProperty<DateTime>(BillingCycle.this);
     @DocumentProperty("endDate")
     private Property<DateTime> _endDate= new StandardProperty<DateTime>(BillingCycle.this);
-    @DocumentProperty("ratingContexts")
+    @DocumentProperty(value = "ratingContexts",getter="getRatingContextLinks",setter = "setRatingContextLinks")
     private List<RatingContextLink> _ratingContexts=new CouchbaseDocumentArrayList<RatingContextLink>(BillingCycle.this);
 
     public BillingAccountLink getBillingAccountLink() { return _baLink.get(); }
     public void setBillingAccountLink(BillingAccountLink baLink) { _baLink.set(baLink); }
-    public void setBillingAccount(BillingAccount ba){ ba.addBillingCycle(this); }
-    
+
     public DateTime getStartDate() { return _startDate.get(); }
     public void setStartDate(DateTime startDate) { _startDate.set(startDate); }
 

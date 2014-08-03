@@ -35,6 +35,17 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             }
         }
     }
+
+    protected  void updateRevision(T obj){
+        obj.incDocRevision();
+        obj.updateDocLastModDate();
+    }
+
+    protected void updateRevision(Collection<T> objs){
+        for(T obj:objs){
+            updateRevision(obj);
+        }
+    }
     
     //Maybe overriden to improve (bulk key attribution)
     public void buildKeysForLinks(Collection<? extends CouchbaseDocumentLink<? extends T>> links){
@@ -84,7 +95,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
         
         buildKeys(objs);
-        
+        updateRevision(objs);
         for(T obj:objs){
             futures.add(_client.add(obj,getTranscoder()));
         }
@@ -149,6 +160,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     
     public T update(T obj){
         if(obj.getKey()==null){/**TODO throw an error*/}
+        updateRevision(obj);
         _client.cas(obj,getTranscoder());
         obj.setStateSync();
         return obj;
@@ -158,6 +170,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         List<OperationFutureWrapper<CASResponse,T>> futures = new ArrayList<OperationFutureWrapper<CASResponse,T>>(objs.size());
         
         buildKeys(objs);
+        updateRevision(objs);
         for(T obj:objs){
             futures.add(_client.asyncCas(obj,getTranscoder()));
         }

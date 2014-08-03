@@ -80,7 +80,7 @@
     <junit.version>4.11</junit.version>
     <!--<cglib.version>3.1</cglib.version>-->
     <apache.common.version>2.6</apache.common.version>
-    <jackson.version>2.3.1</jackson.version>
+    <jackson.version>2.4.1</jackson.version>
     <joda-time.version>2.3</joda-time.version>
     <aspectj.version>1.7.4</aspectj.version> 
     <aspectj-mvn.version>1.6</aspectj-mvn.version>

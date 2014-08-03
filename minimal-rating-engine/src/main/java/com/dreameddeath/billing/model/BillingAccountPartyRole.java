@@ -21,6 +21,11 @@ public class BillingAccountPartyRole extends PartyRole {
 
     public List<RoleType> getRoles(){ return Collections.unmodifiableList(_roles);}
     public void setRoles(List<RoleType> roles){_roles.clear();_roles.addAll(roles);}
+    public void addRole(RoleType role){
+        if(_roles.indexOf(role)<0){
+            _roles.add(role);
+        }
+    }
 
     public void setBa(BillingAccountLink baLink){_ba.set(baLink);}
     public BillingAccountLink getBa(){return _ba.get();}

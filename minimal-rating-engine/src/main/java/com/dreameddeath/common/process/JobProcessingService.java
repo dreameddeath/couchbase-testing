@@ -1,4 +1,4 @@
-package com.dreameddeath.common.service;
+package com.dreameddeath.common.process;
 
 import com.dreameddeath.common.model.process.AbstractJob;
 
@@ -7,4 +7,5 @@ import com.dreameddeath.common.model.process.AbstractJob;
  */
 public interface JobProcessingService<T extends AbstractJob> {
     public void execute(T job);
+    public ProcessingServiceFactory getFactory();
 }

@@ -20,13 +20,14 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
 
 
     @Override
-    public final void cleanup(){
+    public final boolean cleanup(){
         getDocument().cleanupAttachedTaskRef(this);
         getDocument().save();
+        return false;
     }
 
     @Override
-    public final void process(){
+    public final boolean process(){
         CouchbaseDocumentAttachedTaskRef reference = getDocument().getAttachedTaskRef(this);
         if(reference==null){
             processDocument();
@@ -35,8 +36,10 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
             attachedTaskRef.setTaskId(this.getUid());
             getDocument().addAttachedTaskRef(attachedTaskRef);
             getDocument().save();
+            return true;
         }
+        return false;
     }
 
-    public abstract void processDocument();
+    protected abstract void processDocument();
 }

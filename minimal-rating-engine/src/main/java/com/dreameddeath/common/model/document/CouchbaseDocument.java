@@ -5,10 +5,12 @@ import com.dreameddeath.common.dao.CouchbaseSession;
 import com.dreameddeath.common.model.process.AbstractTask;
 import com.dreameddeath.common.model.process.CouchbaseDocumentAttachedTaskRef;
 import com.dreameddeath.common.model.property.ImmutableProperty;
+import com.dreameddeath.common.model.property.Property;
 import com.dreameddeath.common.storage.CouchbaseConstants.DocumentFlag;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.joda.time.DateTime;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -25,13 +27,29 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     private Integer _dbDocSize;
     private Collection<DocumentFlag> _documentFlags=new HashSet<DocumentFlag>();
     private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
+    private State _state=State.NEW;
+
     @DocumentProperty("attachedTasks")
     private List<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new CouchbaseDocumentArrayList<CouchbaseDocumentAttachedTaskRef>(CouchbaseDocument.this);
-    private State _state=State.NEW;
-    
+    @DocumentProperty("docRevision")
+    private Long _revision = 0L;
+    @DocumentProperty("docLastModDate")
+    private DateTime _lastModificationDate;
+
+
     public final CouchbaseSession getSession(){ return _session; }
     public final void setSession(CouchbaseSession session){ _session = session; }
-    
+
+
+    public final Long getDocRevision(){ return _revision; }
+    public final void setDocRevision(Long rev){ _revision=rev; }
+    public final Long incDocRevision(){ return (++_revision); }
+
+    public final DateTime getDocLastModDate(){ return _lastModificationDate; }
+    public final void setDocLastModDate(DateTime date){ _lastModificationDate=date; }
+    public final void updateDocLastModDate(){ _lastModificationDate=DateTime.now(); }
+
+
     public final String getKey(){ return _key.get(); }
     public final void setKey(String key){ _key.set(key);}
     

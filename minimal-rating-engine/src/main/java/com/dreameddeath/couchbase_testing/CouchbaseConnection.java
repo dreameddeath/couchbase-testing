@@ -5,11 +5,19 @@ import com.dreameddeath.billing.dao.BillingAccountDao;
 import com.dreameddeath.billing.dao.BillingCycleDao;
 import com.dreameddeath.billing.model.BillingAccount;
 import com.dreameddeath.billing.model.BillingCycle;
+import com.dreameddeath.billing.process.CreateBillingAccountJob;
 import com.dreameddeath.common.dao.CouchbaseDocumentDao;
 import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.common.dao.CouchbaseSession;
+import com.dreameddeath.common.dao.JobDao;
+import com.dreameddeath.common.model.process.AbstractJob;
+import com.dreameddeath.common.process.ProcessingServiceFactory;
 import com.dreameddeath.common.storage.BinarySerializer;
 import com.dreameddeath.common.storage.CouchbaseClientWrapper;
+import com.dreameddeath.party.dao.PartyDao;
+import com.dreameddeath.party.model.Party;
+import com.dreameddeath.party.model.process.CreatePartyRequest;
+import com.dreameddeath.party.process.CreatePartyJob;
 import com.dreameddeath.rating.dao.context.AbstractRatingContextDao;
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
 import com.dreameddeath.rating.model.context.RatingContextAttribute;
@@ -53,6 +61,8 @@ public class CouchbaseConnection {
         _daoFactory.addDaoFor(BillingCycle.class,new BillingCycleDao(_client,_daoFactory));
         _daoFactory.addDaoFor(AbstractRatingContext.class,new AbstractRatingContextDao(_client,_daoFactory));
         _daoFactory.addDaoFor(StringCdrBucket.class,new StringCdrBucketDao(_client,_daoFactory));
+        _daoFactory.addDaoFor(Party.class,new PartyDao(_client,_daoFactory));
+        _daoFactory.addDaoFor(AbstractJob.class,new JobDao(_client,_daoFactory));
     }
     
     public static class StringSerializer implements BinarySerializer<String>{
@@ -116,11 +126,31 @@ public class CouchbaseConnection {
     }
     
     public static void main(String[] args) throws Exception {
-        //_client.getClient().flush().get();
+        _client.getClient().flush().get();
         try{
             CouchbaseSession session=_daoFactory.newSession();
-            
-            BillingAccount ba = session.newEntity(BillingAccount.class);
+            ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
+
+            CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
+            createPartyJob.request = new CreatePartyRequest();
+            createPartyJob.request.type = CreatePartyRequest.Type.person;
+            createPartyJob.request.person = new CreatePartyRequest.Person();
+            createPartyJob.request.person.firstName = "christophe";
+            createPartyJob.request.person.lastName = "jeunesse";
+            serviceFactory.getJobServiceForClass(CreatePartyJob.class).execute(createPartyJob);
+
+            session.clean();
+
+            CreatePartyJob readJob = (CreatePartyJob)session.get(createPartyJob.getKey());
+            System.out.println("Job <"+readJob.getKey()+"> status <"+readJob.getState()+">");
+            System.out.println("PartyUID <" + ((CreatePartyJob.CreatePartyTask) readJob.getTasks().get(0)).getDocument().getUid() + ">");
+
+            CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
+            createBaJob.billDay = 2;
+            createBaJob.partyId = ((CreatePartyJob.CreatePartyTask) readJob.getTasks().get(0)).getDocument().getUid();
+            serviceFactory.getJobServiceForClass(CreateBillingAccountJob.class).execute(createBaJob);
+
+            /*BillingAccount ba = session.newEntity(BillingAccount.class);
             ba.setLedgerSegment("test");
             BillingCycle billCycle =  session.newEntity(BillingCycle.class);
             billCycle.setBillingAccount(ba);
@@ -133,7 +163,6 @@ public class CouchbaseConnection {
             ratingCtxt.addAttribute(attr);
             attr.setCode("testing");
             //billCycle.addRatingContext(ratingContext.newRatingContextLink(ratingCtxt));
-            //ba.addBillingCycle(new BillingCycleLink(billCycle));
             System.out.println("PreCreate Ba Result :"+ba);
             session.create(ba);
             session.create(billCycle);
@@ -190,7 +219,7 @@ public class CouchbaseConnection {
             System.out.println("Read BillCycle Result :"+readCycle);
             System.out.println("Read Cycle link :<"+readBa.getBillingCycleLinks().get(0).getLinkedObject(true)+">");
             
-
+            */
             //bench();
 
 
@@ -201,7 +230,7 @@ public class CouchbaseConnection {
         _client.shutdown();
   }
 
-    public static void bench(){
+    /*public static void bench(){
         CouchbaseSession benchSession=_daoFactory.newSession();
         //Tries to create 1 Ba
         int nbBa = 10000;
@@ -236,5 +265,5 @@ public class CouchbaseConnection {
         benchSession.create(billingCycles,BillingCycle.class);
         benchSession.create(ratCtxts,StandardRatingContext.class);
         System.out.println("Duration : "+((System.currentTimeMillis()-startTime)*1.0/1000));
-    }
+    }*/
 }

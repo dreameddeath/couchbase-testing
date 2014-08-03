@@ -1,5 +1,6 @@
 package com.dreameddeath.party.dao;
 
+import com.dreameddeath.common.dao.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.party.model.Party;
 import com.dreameddeath.common.dao.CouchbaseDocumentDao;
 import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
@@ -7,7 +8,7 @@ import com.dreameddeath.common.storage.CouchbaseClientWrapper;
 import com.dreameddeath.common.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
-public class PartyDao extends CouchbaseDocumentDao<Party> {
+public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
     public static final String PARTY_CNT_KEY="party/cnt";
     public static final String PARTY_FMT_KEY="party/%010d";
     public static final String PARTY_FMT_UID="%010d";
@@ -35,5 +36,5 @@ public class PartyDao extends CouchbaseDocumentDao<Party> {
         return PARTY_KEY_PATTERN;
     }
 
-    public String getKeyFromUID(long uid){return String.format(PARTY_FMT_KEY,uid);}
+    public String getKeyFromUID(String uid){return String.format(PARTY_FMT_KEY,Long.parseLong(uid));}
 }
