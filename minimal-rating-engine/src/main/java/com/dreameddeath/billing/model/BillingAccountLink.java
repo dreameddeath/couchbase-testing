@@ -1,7 +1,7 @@
 package com.dreameddeath.billing.model;
 
 
-import com.dreameddeath.common.model.document.CouchbaseDocumentLink;
+import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 
 
 public class BillingAccountLink extends CouchbaseDocumentLink<BillingAccount>{

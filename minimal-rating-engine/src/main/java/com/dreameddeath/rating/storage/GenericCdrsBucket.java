@@ -1,7 +1,7 @@
 package com.dreameddeath.rating.storage;
 
-import com.dreameddeath.common.model.document.CouchbaseDocument;
-import com.dreameddeath.common.storage.CouchbaseConstants;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.storage.CouchbaseConstants;
 
 import java.util.*;
 /**

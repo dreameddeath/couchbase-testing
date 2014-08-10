@@ -1,11 +1,8 @@
 package com.dreameddeath.billing.model;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocument;
-import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.model.property.StandardProperty;
-import com.dreameddeath.common.model.property.Property;
-import com.dreameddeath.common.model.property.ImmutableProperty;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.property.*;
 import com.dreameddeath.party.model.PartyLink;
 import org.joda.time.DateTime;
 
@@ -34,9 +31,9 @@ public class BillingAccount extends CouchbaseDocument{
 	@DocumentProperty("paymentMethod")
     private Property<String> _paymentMethod = new StandardProperty<String>(BillingAccount.this);;
     @DocumentProperty(value="billCycles",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
-    private List<BillingCycleLink> _billingCycleLinks = new CouchbaseDocumentArrayList<BillingCycleLink>(BillingAccount.this);
+    private ListProperty<BillingCycleLink> _billingCycleLinks = new ArrayListProperty<BillingCycleLink>(BillingAccount.this);
     @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")
-    private List<PartyLink> _partyLinks = new CouchbaseDocumentArrayList<PartyLink>(BillingAccount.this);
+    private ListProperty<PartyLink> _partyLinks = new ArrayListProperty<PartyLink>(BillingAccount.this);
 
 
     public String getUid() { return _uid.get(); }
@@ -66,7 +63,7 @@ public class BillingAccount extends CouchbaseDocument{
     public String getPaymentMethod() { return _paymentMethod.get(); }
     public void setPaymentMethod(String paymentMethod) { _paymentMethod.set(paymentMethod); }
     
-    public List<BillingCycleLink> getBillingCycleLinks() { return Collections.unmodifiableList(_billingCycleLinks); }
+    public List<BillingCycleLink> getBillingCycleLinks() { return _billingCycleLinks.get(); }
     public BillingCycleLink getBillingCycleLink(DateTime refDate){
         for(BillingCycleLink billCycleLink:_billingCycleLinks){
             if(billCycleLink.isValidForDate(refDate)){
@@ -77,8 +74,8 @@ public class BillingAccount extends CouchbaseDocument{
     }
     
     public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks){
-        _billingCycleLinks.clear();
-        _billingCycleLinks.addAll(billingCycleLinks);
+       _billingCycleLinks.set(billingCycleLinks);
+
     }
 
     public void addBillingCycleLink(BillingCycleLink billingCycleLink){

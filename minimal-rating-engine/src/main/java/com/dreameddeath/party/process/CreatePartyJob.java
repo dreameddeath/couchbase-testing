@@ -1,18 +1,17 @@
 package com.dreameddeath.party.process;
 
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.event.TaskProcessEvent;
-import com.dreameddeath.common.model.process.AbstractJob;
-import com.dreameddeath.common.model.process.DocumentCreateTask;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.event.TaskProcessEvent;
+import com.dreameddeath.core.model.process.AbstractJob;
+import com.dreameddeath.core.model.process.DocumentCreateTask;
 import com.dreameddeath.party.model.Organization;
 import com.dreameddeath.party.model.Party;
 import com.dreameddeath.party.model.Person;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 /**
- * Created by ceaj8230 on 01/08/2014.
+ * Created by Christophe Jeunesse on 01/08/2014.
  */
 public class CreatePartyJob extends AbstractJob {
     @DocumentProperty("request")

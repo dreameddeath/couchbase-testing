@@ -1,9 +1,9 @@
 package com.dreameddeath.party.model;
 
-import com.dreameddeath.common.model.document.CouchbaseDocumentLink;
+import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 
 /**
- * Created by ceaj8230 on 27/07/2014.
+ * Created by Christophe Jeunesse on 27/07/2014.
  */
 public class PartyLink extends CouchbaseDocumentLink<Party> {
     public PartyLink(){}

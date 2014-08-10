@@ -1,11 +1,10 @@
 package com.dreameddeath.party.model.process;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocument;
-import com.dreameddeath.common.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 
 /**
- * Created by ceaj8230 on 01/08/2014.
+ * Created by Christophe Jeunesse on 01/08/2014.
  */
 public class CreatePartyRequest extends CouchbaseDocumentElement {
     @DocumentProperty("type")

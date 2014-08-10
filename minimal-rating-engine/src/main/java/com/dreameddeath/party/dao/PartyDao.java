@@ -1,11 +1,10 @@
 package com.dreameddeath.party.dao;
 
-import com.dreameddeath.common.dao.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.party.model.Party;
-import com.dreameddeath.common.dao.CouchbaseDocumentDao;
-import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.common.storage.CouchbaseClientWrapper;
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
+import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
 public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {

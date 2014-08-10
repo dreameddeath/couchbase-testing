@@ -1,10 +1,10 @@
 package com.dreameddeath.billing.dao;
 
 import com.dreameddeath.billing.model.BillingCycle;
-import com.dreameddeath.common.dao.CouchbaseDocumentDao;
-import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.common.storage.CouchbaseClientWrapper;
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
+import com.dreameddeath.core.dao.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
 import net.spy.memcached.transcoders.Transcoder;
 

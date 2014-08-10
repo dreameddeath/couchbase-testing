@@ -1,9 +1,9 @@
 package com.dreameddeath.rating.model.context;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocumentLink;
-import com.dreameddeath.common.model.property.StandardProperty;
-import com.dreameddeath.common.model.property.Property;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
+import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.Property;
 
 public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingContext>{
     @DocumentProperty("@c")

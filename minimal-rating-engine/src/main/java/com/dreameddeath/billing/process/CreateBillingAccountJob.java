@@ -3,19 +3,16 @@ package com.dreameddeath.billing.process;
 import com.dreameddeath.billing.model.BillingAccount;
 import com.dreameddeath.billing.model.BillingAccountLink;
 import com.dreameddeath.billing.model.BillingAccountPartyRole;
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.event.TaskProcessEvent;
-import com.dreameddeath.common.model.process.AbstractJob;
-import com.dreameddeath.common.model.process.DocumentCreateTask;
-import com.dreameddeath.common.model.process.DocumentUpdateTask;
-import com.dreameddeath.common.model.process.SubJobProcessTask;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.event.TaskProcessEvent;
+import com.dreameddeath.core.model.process.AbstractJob;
+import com.dreameddeath.core.model.process.DocumentCreateTask;
+import com.dreameddeath.core.model.process.DocumentUpdateTask;
+import com.dreameddeath.core.model.process.SubJobProcessTask;
 import com.dreameddeath.party.model.*;
-import org.joda.time.DateTime;
-
-import java.util.ArrayList;
 
 /**
- * Created by ceaj8230 on 29/05/2014.
+ * Created by Christophe Jeunesse on 29/05/2014.
  */
 public class CreateBillingAccountJob extends AbstractJob {
     @DocumentProperty("partyId")
@@ -51,7 +48,7 @@ public class CreateBillingAccountJob extends AbstractJob {
 
 
     /**
-     * Created by ceaj8230 on 27/07/2014.
+     * Created by Christophe Jeunesse on 27/07/2014.
      */
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> {
         @Override
@@ -71,7 +68,7 @@ public class CreateBillingAccountJob extends AbstractJob {
     }
 
     /**
-     * Created by ceaj8230 on 27/07/2014.
+     * Created by Christophe Jeunesse on 27/07/2014.
      */
     public static class CreatePartyRolesTask extends DocumentUpdateTask<Party> {
         @Override
@@ -86,7 +83,7 @@ public class CreateBillingAccountJob extends AbstractJob {
 
 
     /**
-     * Created by ceaj8230 on 27/07/2014.
+     * Created by Christophe Jeunesse on 27/07/2014.
      */
     public static class CreateBillingCycleTask extends SubJobProcessTask<CreateBillingCycleJob> {
         @Override

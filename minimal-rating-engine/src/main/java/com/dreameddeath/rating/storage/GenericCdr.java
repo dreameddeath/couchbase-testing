@@ -1,7 +1,7 @@
 package com.dreameddeath.rating.storage;
 
 
-import com.dreameddeath.common.storage.BinarySerializer;
+import com.dreameddeath.core.storage.BinarySerializer;
 
 import java.util.ArrayList;
 import java.util.Collection;

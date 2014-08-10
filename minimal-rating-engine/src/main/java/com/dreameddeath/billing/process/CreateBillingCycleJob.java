@@ -4,15 +4,15 @@ import com.dreameddeath.billing.model.BillingAccount;
 import com.dreameddeath.billing.model.BillingAccountLink;
 import com.dreameddeath.billing.model.BillingCycle;
 import com.dreameddeath.billing.util.BillCycleUtils;
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.event.TaskProcessEvent;
-import com.dreameddeath.common.model.process.AbstractJob;
-import com.dreameddeath.common.model.process.DocumentCreateTask;
-import com.dreameddeath.common.model.process.DocumentUpdateTask;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.event.TaskProcessEvent;
+import com.dreameddeath.core.model.process.AbstractJob;
+import com.dreameddeath.core.model.process.DocumentCreateTask;
+import com.dreameddeath.core.model.process.DocumentUpdateTask;
 import org.joda.time.DateTime;
 
 /**
- * Created by CEAJ8230 on 03/08/2014.
+ * Created by Christophe Jeunesse on 03/08/2014.
  */
 public class CreateBillingCycleJob extends AbstractJob{
     @DocumentProperty("ba")

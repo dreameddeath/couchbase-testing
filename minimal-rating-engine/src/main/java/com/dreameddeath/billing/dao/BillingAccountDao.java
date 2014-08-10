@@ -2,11 +2,10 @@ package com.dreameddeath.billing.dao;
 
 import com.dreameddeath.billing.model.BillingAccount;
 import com.dreameddeath.billing.model.BillingCycle;
-import com.dreameddeath.common.dao.CouchbaseDocumentDao;
-import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.common.dao.CouchbaseDocumentDaoWithUID;
-import com.dreameddeath.common.storage.CouchbaseClientWrapper;
-import com.dreameddeath.common.storage.GenericJacksonTranscoder;
+import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
 public class BillingAccountDao extends CouchbaseDocumentDaoWithUID<BillingAccount> {

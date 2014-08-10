@@ -6,32 +6,31 @@ import com.dreameddeath.billing.dao.BillingCycleDao;
 import com.dreameddeath.billing.model.BillingAccount;
 import com.dreameddeath.billing.model.BillingCycle;
 import com.dreameddeath.billing.process.CreateBillingAccountJob;
-import com.dreameddeath.common.dao.CouchbaseDocumentDao;
-import com.dreameddeath.common.dao.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.common.dao.CouchbaseSession;
-import com.dreameddeath.common.dao.JobDao;
-import com.dreameddeath.common.model.process.AbstractJob;
-import com.dreameddeath.common.process.ProcessingServiceFactory;
-import com.dreameddeath.common.storage.BinarySerializer;
-import com.dreameddeath.common.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.dao.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.CouchbaseSession;
+import com.dreameddeath.core.dao.JobDao;
+import com.dreameddeath.core.model.process.AbstractJob;
+import com.dreameddeath.core.process.ProcessingServiceFactory;
+import com.dreameddeath.core.storage.BinarySerializer;
+import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.Party;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
 import com.dreameddeath.party.process.CreatePartyJob;
 import com.dreameddeath.rating.dao.context.AbstractRatingContextDao;
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
-import com.dreameddeath.rating.model.context.RatingContextAttribute;
-import com.dreameddeath.rating.model.context.StandardRatingContext;
 import com.dreameddeath.rating.storage.GenericCdr;
 import com.dreameddeath.rating.storage.GenericCdrsBucket;
 import com.dreameddeath.rating.storage.GenericCdrsBucketTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
-import org.joda.time.DateTime;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class CouchbaseConnection {
     protected static final CouchbaseClientWrapper _client;
@@ -39,6 +38,7 @@ public class CouchbaseConnection {
         CouchbaseClient realClient=null;
         try{
             // (Subset) of nodes in the cluster to establish a connection
+            /*List<URI> hosts = Arrays.asList(new URI("http://192.168.1.5:8091/pools"));*/
             List<URI> hosts = Arrays.asList(new URI("http://127.0.0.1:8091/pools"));
         
             // Name of the Bucket to connect to
@@ -126,9 +126,11 @@ public class CouchbaseConnection {
     }
     
     public static void main(String[] args) throws Exception {
-        _client.getClient().flush().get();
+        //_client.getClient().flush().get();
         try{
-            CouchbaseSession session=_daoFactory.newSession();
+            bench();
+            //bench();
+            /*CouchbaseSession session=_daoFactory.newSession();
             ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
 
             CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
@@ -149,7 +151,7 @@ public class CouchbaseConnection {
             createBaJob.billDay = 2;
             createBaJob.partyId = ((CreatePartyJob.CreatePartyTask) readJob.getTasks().get(0)).getDocument().getUid();
             serviceFactory.getJobServiceForClass(CreateBillingAccountJob.class).execute(createBaJob);
-
+            */
             /*BillingAccount ba = session.newEntity(BillingAccount.class);
             ba.setLedgerSegment("test");
             BillingCycle billCycle =  session.newEntity(BillingCycle.class);
@@ -229,7 +231,77 @@ public class CouchbaseConnection {
         }
         _client.shutdown();
   }
+    static Long counter;
+    public static void bench(){
 
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(1,4,1,
+                    TimeUnit.MINUTES,
+                new ArrayBlockingQueue<Runnable>(100,true),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+
+        counter = 0L;
+        long nbPut=0L;
+        long startTime = System.currentTimeMillis();
+
+        for(int i=0;i<500;++i) {
+            final int id=i;
+            try {
+                pool.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            CouchbaseSession session = _daoFactory.newSession();
+                            ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
+
+                            CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
+                            createPartyJob.request = new CreatePartyRequest();
+                            createPartyJob.request.type = CreatePartyRequest.Type.person;
+                            createPartyJob.request.person = new CreatePartyRequest.Person();
+                            createPartyJob.request.person.firstName = "christophe " + id;
+                            createPartyJob.request.person.lastName = "jeunesse" + id;
+                            serviceFactory.getJobServiceForClass(CreatePartyJob.class).execute(createPartyJob);
+                            CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
+                            createBaJob.billDay = 2;
+                            createBaJob.partyId = ((CreatePartyJob.CreatePartyTask) createPartyJob.getTasks().get(0)).getDocument().getUid();
+                            serviceFactory.getJobServiceForClass(CreateBillingAccountJob.class).execute(createBaJob);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        synchronized (counter){
+                            counter++;
+                            if(counter%100==0){
+                                System.out.println("Reaching "+counter);
+                            }
+                        }
+                    }
+                });
+                nbPut++;
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+        pool.shutdown();
+        try {
+            if (!pool.awaitTermination(5, TimeUnit.MINUTES)) {
+                // pool didn't terminate after the first try
+                pool.shutdownNow();
+            }
+            else {
+                Long endTime = System.currentTimeMillis();
+                System.out.println("Duration : "+((endTime-startTime)*1.0/1000));
+                System.out.println("Avg Throughput : "+(nbPut/((endTime-startTime)*1.0/1000)));
+            }
+
+             if (!pool.awaitTermination(1, TimeUnit.MINUTES)) {
+                // pool didn't terminate after the second try
+             }
+        } catch (InterruptedException ex) {
+            pool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
     /*public static void bench(){
         CouchbaseSession benchSession=_daoFactory.newSession();
         //Tries to create 1 Ba

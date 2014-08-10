@@ -1,10 +1,10 @@
 package com.dreameddeath.rating.model.context;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.common.model.property.StandardProperty;
-import com.dreameddeath.common.model.property.Property;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.property.ArrayListProperty;
+import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.Property;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +13,7 @@ public class RatingContextAttribute extends CouchbaseDocumentElement{
     @DocumentProperty("code")
     private Property<String> _code=new StandardProperty<String>(RatingContextAttribute.this);
     @DocumentProperty("values")
-    private List<RatingContextAttributeValue> _values=new CouchbaseDocumentArrayList<RatingContextAttributeValue>(RatingContextAttribute.this);
+    private List<RatingContextAttributeValue> _values=new ArrayListProperty<RatingContextAttributeValue>(RatingContextAttribute.this);
     
     public String getCode(){ return _code.get();}
     public void setCode(String code){ _code.set(code); }

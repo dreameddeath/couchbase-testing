@@ -1,17 +1,13 @@
 package com.dreameddeath.billing.model;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocument;
-import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.model.property.ImmutableProperty;
-import com.dreameddeath.common.model.property.Property;
-import com.dreameddeath.common.model.property.StandardProperty;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.property.*;
 import com.dreameddeath.rating.model.context.AbstractRatingContext;
 import com.dreameddeath.rating.model.context.RatingContextLink;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class BillingCycle extends CouchbaseDocument {
@@ -22,7 +18,7 @@ public class BillingCycle extends CouchbaseDocument {
     @DocumentProperty("endDate")
     private Property<DateTime> _endDate= new StandardProperty<DateTime>(BillingCycle.this);
     @DocumentProperty(value = "ratingContexts",getter="getRatingContextLinks",setter = "setRatingContextLinks")
-    private List<RatingContextLink> _ratingContexts=new CouchbaseDocumentArrayList<RatingContextLink>(BillingCycle.this);
+    private ListProperty<RatingContextLink> _ratingContexts=new ArrayListProperty<RatingContextLink>(BillingCycle.this);
 
     public BillingAccountLink getBillingAccountLink() { return _baLink.get(); }
     public void setBillingAccountLink(BillingAccountLink baLink) { _baLink.set(baLink); }
@@ -33,8 +29,8 @@ public class BillingCycle extends CouchbaseDocument {
     public DateTime getEndDate() { return _endDate.get(); }
     public void setEndDate(DateTime endDate) { _endDate.set(endDate); }
     
-    public List<RatingContextLink> getRatingContextLinks() { return Collections.unmodifiableList(_ratingContexts); }
-    public void setRatingContextLinks(Collection<RatingContextLink> ratingCtxtLinks) { _ratingContexts.clear();_ratingContexts.addAll(ratingCtxtLinks); }
+    public List<RatingContextLink> getRatingContextLinks() { return _ratingContexts.get(); }
+    public void setRatingContextLinks(Collection<RatingContextLink> ratingCtxtLinks) { _ratingContexts.set(ratingCtxtLinks); }
     public void addRatingContext(AbstractRatingContext ratingCtxt){  
         if(_ratingContexts.add(ratingCtxt.newRatingContextLink())){
             ratingCtxt.setBillingCycleLink(newBillingCycleLink());

@@ -1,11 +1,11 @@
 package com.dreameddeath.party.model;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.property.Property;
-import com.dreameddeath.common.model.property.StandardProperty;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.StandardProperty;
 
 /**
- * Created by ceaj8230 on 01/08/2014.
+ * Created by Christophe Jeunesse on 01/08/2014.
  */
 public class Organization extends Party {
     @DocumentProperty("tradingName")

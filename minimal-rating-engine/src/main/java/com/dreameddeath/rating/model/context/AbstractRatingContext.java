@@ -3,10 +3,10 @@ package com.dreameddeath.rating.model.context;
 import com.dreameddeath.billing.model.BillingAccountLink;
 import com.dreameddeath.billing.model.BillingCycle;
 import com.dreameddeath.billing.model.BillingCycleLink;
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocument;
-import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
-import com.dreameddeath.common.model.property.ImmutableProperty;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.property.ArrayListProperty;
+import com.dreameddeath.core.model.property.ImmutableProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
@@ -22,9 +22,9 @@ public abstract class AbstractRatingContext extends CouchbaseDocument{
     @DocumentProperty("billingAccount")
     private ImmutableProperty<BillingAccountLink> _billingAccountLink=new ImmutableProperty<BillingAccountLink>(AbstractRatingContext.this);
     @DocumentProperty("attributes")
-    private List<RatingContextAttribute> _attributes=new CouchbaseDocumentArrayList<RatingContextAttribute>(AbstractRatingContext.this);
+    private List<RatingContextAttribute> _attributes=new ArrayListProperty<RatingContextAttribute>(AbstractRatingContext.this);
     @DocumentProperty("buckets")
-    private List<RatingContextBucket> _buckets=new CouchbaseDocumentArrayList<RatingContextBucket>(AbstractRatingContext.this);
+    private List<RatingContextBucket> _buckets=new ArrayListProperty<RatingContextBucket>(AbstractRatingContext.this);
     
     
     public BillingCycleLink getBillingCycleLink(){ return _billingCycleLink.get(); }

@@ -1,15 +1,15 @@
 package com.dreameddeath.party.model;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.common.model.property.ImmutableProperty;
-import com.dreameddeath.common.model.property.Property;
-import com.dreameddeath.common.model.property.StandardProperty;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.property.ImmutableProperty;
+import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.StandardProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.joda.time.DateTime;
 
 /**
- * Created by ceaj8230 on 27/07/2014.
+ * Created by Christophe Jeunesse on 27/07/2014.
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public abstract class PartyRole extends CouchbaseDocumentElement {

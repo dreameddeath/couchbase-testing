@@ -1,22 +1,22 @@
 package com.dreameddeath.rating.model.context;
 
-import com.dreameddeath.common.annotation.DocumentProperty;
-import com.dreameddeath.common.model.document.CouchbaseDocumentArrayList;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.property.ArrayListProperty;
+import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.rating.model.cdr.CdrsBucketLink;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public final class StandardRatingContext extends AbstractRatingContext{
     @DocumentProperty("cdrsBucketLinks")
-    private List<CdrsBucketLink> _cdrsBuckets=new ArrayList<CdrsBucketLink>();
+    private ListProperty<CdrsBucketLink> _cdrsBuckets=new ArrayListProperty<CdrsBucketLink>(StandardRatingContext.this);
     @DocumentProperty("guidingKeys")
-    private List<RatingContextGuidingKey> _guidingKeys=new CouchbaseDocumentArrayList<RatingContextGuidingKey>(StandardRatingContext.this);
+    private ListProperty<RatingContextGuidingKey> _guidingKeys=new ArrayListProperty<RatingContextGuidingKey>(StandardRatingContext.this);
     @DocumentProperty("ratePlans")
-    private List<RatingContextRatePlan> _ratePlans=new CouchbaseDocumentArrayList<RatingContextRatePlan>(StandardRatingContext.this);
+    private ListProperty<RatingContextRatePlan> _ratePlans=new ArrayListProperty<RatingContextRatePlan>(StandardRatingContext.this);
     @DocumentProperty("sharedContexts")
-    private List<RatingContextSharedLink> _sharedRatingCtxtLinks=new CouchbaseDocumentArrayList<RatingContextSharedLink>(StandardRatingContext.this);
+    private ListProperty<RatingContextSharedLink> _sharedRatingCtxtLinks=new ArrayListProperty<RatingContextSharedLink>(StandardRatingContext.this);
 
     public List<CdrsBucketLink> getCdrsBuckets(){ return Collections.unmodifiableList(_cdrsBuckets); }
     public void setCdrsBucketLinks(List<CdrsBucketLink> cdrsBucketsLnk){ _cdrsBuckets.clear(); _cdrsBuckets.addAll(cdrsBucketsLnk); }
