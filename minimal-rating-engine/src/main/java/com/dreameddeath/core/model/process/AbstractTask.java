@@ -34,6 +34,8 @@ public abstract class AbstractTask extends CouchbaseDocumentElement{
     public void setParentJob(AbstractJob job){ _parentJob = job;}
     public AbstractJob getParentJob(){ return _parentJob;}
     public <T extends AbstractJob> T getParentJob(Class<T> clazz){ return (T)_parentJob;}
+    public <T> T getJobRequest(Class<T> reqClass){ return (T) getParentJob().getRequest();}
+    public <T> T getJobResult(Class<T> resClass){ return (T) getParentJob().getResult();}
 
     public String getLastRunError(){return _errorName.get();}
     public void setLastRunError(String errorName){_errorName.set(errorName);}

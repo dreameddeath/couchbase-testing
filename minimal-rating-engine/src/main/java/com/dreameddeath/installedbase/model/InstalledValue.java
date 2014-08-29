@@ -25,6 +25,11 @@ public class InstalledValue extends CouchbaseDocumentElement {
      */
     @DocumentProperty("endDate")
     private Property<DateTime> _endDate = new StandardProperty<DateTime>(InstalledValue.this);
+    /**
+     *  keyType : Type of public key if applicable
+     */
+    @DocumentProperty("keyType")
+    private Property<String> _keyType = new StandardProperty<String>(InstalledValue.this);
 
     // value accessors
     public String getValue() { return _value.get(); }
@@ -37,4 +42,9 @@ public class InstalledValue extends CouchbaseDocumentElement {
     // endDate accessors
     public DateTime getEndDate() { return _endDate.get(); }
     public void setEndDate(DateTime val) { _endDate.set(val); }
+
+    // keyType accessors
+    public String getKeyType() { return _keyType.get(); }
+    public void setKeyType(String val) { _keyType.set(val); }
+
 }

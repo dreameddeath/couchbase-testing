@@ -13,8 +13,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
-@JsonTypeInfo(use=Id.MINIMAL_CLASS,include=As.PROPERTY, property="@t")
-public abstract class AbstractJob extends CouchbaseDocument {
+@JsonTypeInfo(use=Id.MINIMAL_CLASS,include=As.PROPERTY, property="@c")
+public abstract class AbstractJob<TREQ,TRES> extends CouchbaseDocument {
     @DocumentProperty("uid")
     private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
     @DocumentProperty(value = "state",getter = "getJobState",setter = "setJobState")
@@ -23,10 +23,23 @@ public abstract class AbstractJob extends CouchbaseDocument {
     private ListProperty<AbstractTask> _taskList = new ArrayListProperty<AbstractTask>(AbstractJob.this);
     @DocumentProperty("lastRunError")
     private Property<String> _errorName=new StandardProperty<String>(AbstractJob.this);
+    /**
+     *  request : The request content for this job
+     */
+    @DocumentProperty("request")
+    private Property<TREQ> _request = new StandardProperty<TREQ>(AbstractJob.this);
+    /**
+     *  result : The result content for this job
+     */
+    @DocumentProperty("result")
+    private Property<TRES> _result = new StandardProperty<TRES>(AbstractJob.this);
 
 
     //Save current processing Service
     private JobProcessingService _processingService=null;
+
+    public AbstractJob(TREQ request){_request.set(request);}
+    public AbstractJob(){}
 
 
     public String getLastRunError(){return _errorName.get();}
@@ -39,9 +52,16 @@ public abstract class AbstractJob extends CouchbaseDocument {
     public boolean isProcessed(){ return _state.get().compareTo(State.PROCESSED)>=0; }
     public boolean isFinalized(){ return _state.get().compareTo(State.POSTPROCESSED)>=0; }
     public boolean isDone(){ return _state.get().compareTo(State.DONE)>=0; }
-
+    // uid accessors
     public UUID getUid() { return _uid.get(); }
     public void setUid(UUID uid) { _uid.set(uid); }
+    // result accessors
+    public TRES getResult() { return _result.get(); }
+    public void setResult(TRES val) { _result.set(val); }
+
+    // request accessors
+    public TREQ getRequest() { return _request.get(); }
+    public void setRequest(TREQ val) { _request.set(val); }
 
     public List<AbstractTask> getTasks() { return _taskList.get();}
     public void setTasks(Collection<AbstractTask> tasks) {
@@ -67,7 +87,6 @@ public abstract class AbstractJob extends CouchbaseDocument {
     public <T extends AbstractTask> T  getTask(Integer pos,Class<T> clazz) {
         return (T)_taskList.get(pos);
     }
-
 
     public <T extends AbstractTask> T getTask(String id, Class<T>clazz) {
         return (T)getTask(id);

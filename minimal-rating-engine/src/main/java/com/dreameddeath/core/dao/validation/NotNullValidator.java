@@ -1,5 +1,6 @@
 package com.dreameddeath.core.dao.validation;
 
+import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 
@@ -10,7 +11,7 @@ import java.lang.reflect.Field;
  */
 public class NotNullValidator<T> implements Validator<T> {
     final private Field _field;
-    public NotNullValidator(Field field){
+    public NotNullValidator(Field field,NotNull ann){
         _field = field;
     }
     public void validate(T value,CouchbaseDocumentElement parent) throws ValidationException{

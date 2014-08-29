@@ -8,7 +8,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.FIELD,ElementType.METHOD})
+/**
+ * Created by ceaj8230 on 16/08/2014.
+ */
+
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface NotNull {
+public @interface ValidationConstraint {
+    Class<? extends Validator> validationClass() default NotNullValidator.class;
 }

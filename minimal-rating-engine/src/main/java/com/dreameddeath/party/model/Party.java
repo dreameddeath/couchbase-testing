@@ -34,7 +34,7 @@ public abstract class Party extends CouchbaseDocument {
         _partyRoles.add(partyRole);
     }
 
-    public PartyLink newPartyLink(){
+    public PartyLink newLink(){
         return new PartyLink(this);
     }
 

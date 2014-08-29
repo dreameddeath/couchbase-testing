@@ -1,8 +1,8 @@
 package com.dreameddeath.billing.process;
 
-import com.dreameddeath.billing.model.BillingAccount;
-import com.dreameddeath.billing.model.BillingAccountLink;
-import com.dreameddeath.billing.model.BillingCycle;
+import com.dreameddeath.billing.model.account.BillingAccount;
+import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.billing.util.BillCycleUtils;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.event.TaskProcessEvent;
@@ -43,7 +43,7 @@ public class CreateBillingCycleJob extends AbstractJob{
             BillingCycle billCycle = newEntity(BillingCycle.class);
             billCycle.setStartDate(job.startDate);
             billCycle.setEndDate(BillCycleUtils.CalcCycleEndDate(job.startDate,ba.getBillDay(),ba.getBillingCycleLength()));
-            billCycle.setBillingAccountLink(ba.newBillingAccountLink());
+            billCycle.setBillingAccountLink(ba.newLink());
             return billCycle;
 
         }
@@ -53,7 +53,7 @@ public class CreateBillingCycleJob extends AbstractJob{
         @Override
         public void processDocument(){
             BillingAccount ba = getDocument();
-            ba.addBillingCycleLink(getParentJob().getTask(0,CreateBillingCycleTask.class).getDocument().newBillingCycleLink());
+            ba.addBillingCycleLink(getParentJob().getTask(0,CreateBillingCycleTask.class).getDocument().newLink());
         }
     }
 }

@@ -3,8 +3,8 @@ package com.dreameddeath.couchbase_testing;
 import com.couchbase.client.CouchbaseClient;
 import com.dreameddeath.billing.dao.BillingAccountDao;
 import com.dreameddeath.billing.dao.BillingCycleDao;
-import com.dreameddeath.billing.model.BillingAccount;
-import com.dreameddeath.billing.model.BillingCycle;
+import com.dreameddeath.billing.model.account.BillingAccount;
+import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.billing.process.CreateBillingAccountJob;
 import com.dreameddeath.core.dao.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
@@ -243,7 +243,7 @@ public class CouchbaseConnection {
         long nbPut=0L;
         long startTime = System.currentTimeMillis();
 
-        for(int i=0;i<500;++i) {
+        for(int i=0;i<100;++i) {
             final int id=i;
             try {
                 pool.submit(new Runnable() {

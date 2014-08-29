@@ -7,8 +7,8 @@ import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
  */
 public class AbstractProperty<T> implements Property<T> {
     CouchbaseDocumentElement _parentElt;
-    T _value;
-    T _defaultValue;
+    protected T _value;
+    protected T _defaultValue;
 
     public AbstractProperty(CouchbaseDocumentElement parentElement){
         _parentElt=parentElement;
@@ -17,6 +17,9 @@ public class AbstractProperty<T> implements Property<T> {
     public AbstractProperty(CouchbaseDocumentElement parentElement,T defaultValue){
         _parentElt=parentElement;
         _defaultValue=defaultValue;
+        if((_defaultValue!=null) &&(_defaultValue instanceof CouchbaseDocumentElement)) {
+            ((CouchbaseDocumentElement) _defaultValue).setParentElement(_parentElt);
+        }
     }
 
     protected T getRawValue(){return _value;}

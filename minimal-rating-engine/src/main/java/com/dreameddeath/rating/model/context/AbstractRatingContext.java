@@ -1,8 +1,8 @@
 package com.dreameddeath.rating.model.context;
 
-import com.dreameddeath.billing.model.BillingAccountLink;
-import com.dreameddeath.billing.model.BillingCycle;
-import com.dreameddeath.billing.model.BillingCycleLink;
+import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.cycle.BillingCycle;
+import com.dreameddeath.billing.model.cycle.BillingCycleLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.ArrayListProperty;

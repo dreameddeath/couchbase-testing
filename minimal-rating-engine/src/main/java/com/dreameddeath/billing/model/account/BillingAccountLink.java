@@ -1,4 +1,4 @@
-package com.dreameddeath.billing.model;
+package com.dreameddeath.billing.model.account;
 
 
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;

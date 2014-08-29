@@ -1,6 +1,6 @@
 package com.dreameddeath.billing.dao;
 
-import com.dreameddeath.billing.model.BillingCycle;
+import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.core.dao.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;

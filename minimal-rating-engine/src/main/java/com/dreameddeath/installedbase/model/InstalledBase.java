@@ -1,6 +1,6 @@
 package com.dreameddeath.installedbase.model;
 
-import com.dreameddeath.billing.model.BillingAccountLink;
+import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.ArrayListProperty;
@@ -27,7 +27,7 @@ public class InstalledBase extends CouchbaseDocument {
     @DocumentProperty("partys")
     private ListProperty<PartyLink> _partys = new ArrayListProperty<PartyLink>(InstalledBase.this);
     /**
-     *  billingAccount : Billing Account linked to this installed Base
+     *  billingAccount : Default Billing Account linked to this installed Base
      */
     @DocumentProperty("billingAccount")
     private Property<BillingAccountLink> _billingAccount = new StandardProperty<BillingAccountLink>(InstalledBase.this);
@@ -47,4 +47,5 @@ public class InstalledBase extends CouchbaseDocument {
     // billingAccount accessors
     public BillingAccountLink getBillingAccount() { return _billingAccount.get(); }
     public void setBillingAccount(BillingAccountLink val) { _billingAccount.set(val); }
+
 }

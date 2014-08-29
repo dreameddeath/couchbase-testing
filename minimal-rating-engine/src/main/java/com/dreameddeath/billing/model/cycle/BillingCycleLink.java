@@ -1,4 +1,4 @@
-package com.dreameddeath.billing.model;
+package com.dreameddeath.billing.model.cycle;
 
 
 import com.dreameddeath.core.annotation.DocumentProperty;

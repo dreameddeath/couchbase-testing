@@ -1,31 +1,24 @@
 package com.dreameddeath.billing.process;
 
-import com.dreameddeath.billing.model.BillingAccount;
-import com.dreameddeath.billing.model.BillingAccountLink;
-import com.dreameddeath.billing.model.BillingAccountPartyRole;
+import com.dreameddeath.billing.model.account.BillingAccount;
+import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.account.BillingAccountPartyRole;
+import com.dreameddeath.billing.model.process.CreateBillingAccountRequest;
+import com.dreameddeath.billing.model.process.CreateBillingAccountResult;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.model.process.DocumentCreateTask;
 import com.dreameddeath.core.model.process.DocumentUpdateTask;
 import com.dreameddeath.core.model.process.SubJobProcessTask;
+import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.StandardProperty;
 import com.dreameddeath.party.model.*;
 
 /**
  * Created by Christophe Jeunesse on 29/05/2014.
  */
-public class CreateBillingAccountJob extends AbstractJob {
-    @DocumentProperty("partyId")
-    public String partyId;
-    @DocumentProperty("billDay")
-    public Integer billDay;
-    @DocumentProperty("cycleLength")
-    public Integer cycleLength;
-    @DocumentProperty("baCreated")
-    public BillingAccountLink baLink;
-    @DocumentProperty("partyLink")
-    public PartyLink partyLink;
-
+public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountRequest,CreateBillingAccountResult> {
 
     @Override
     public boolean init(){
@@ -55,14 +48,14 @@ public class CreateBillingAccountJob extends AbstractJob {
         protected BillingAccount buildDocument() {
             BillingAccount newBa = newEntity(BillingAccount.class);
             CreateBillingAccountJob job= getParentJob(CreateBillingAccountJob.class);
-            newBa.setBillDay((job.billDay!=null)?job.billDay:1);
-            newBa.setBillingCycleLength((job.cycleLength!=null)?job.cycleLength:1);
+            newBa.setBillDay((job.request.billDay!=null)?job.request.billDay:1);
+            newBa.setBillingCycleLength((job.request.cycleLength!=null)?job.request.cycleLength:1);
 
-            Party party = getParentJob().getSession().getFromUID(getParentJob(CreateBillingAccountJob.class).partyId, Party.class);
-            getParentJob(CreateBillingAccountJob.class).partyLink = party.newPartyLink();
+            Party party = getParentJob().getSession().getFromUID(getParentJob(CreateBillingAccountJob.class).request.partyId, Party.class);
+            getParentJob(CreateBillingAccountJob.class).partyLink = party.newLink();
             newBa.addPartyLink(getParentJob(CreateBillingAccountJob.class).partyLink);
 
-            getParentJob(CreateBillingAccountJob.class).baLink = newBa.newBillingAccountLink();
+            getParentJob(CreateBillingAccountJob.class).baLink = newBa.newLink();
             return newBa;
         }
     }
@@ -74,7 +67,7 @@ public class CreateBillingAccountJob extends AbstractJob {
         @Override
         protected void processDocument() {
             BillingAccountPartyRole newPartyRole = new BillingAccountPartyRole();
-            newPartyRole.setBa(getParentJob(CreateBillingAccountJob.class).baLink.getLinkedObject().newBillingAccountLink());
+            newPartyRole.setBa(getParentJob(CreateBillingAccountJob.class).baLink.getLinkedObject().newLink());
             newPartyRole.addRole(BillingAccountPartyRole.RoleType.HOLDER);
             newPartyRole.addRole(BillingAccountPartyRole.RoleType.PAYER);
             getDocument().addPartyRole(newPartyRole);
@@ -91,7 +84,7 @@ public class CreateBillingAccountJob extends AbstractJob {
             CreateBillingCycleJob job = newEntity(CreateBillingCycleJob.class);
             BillingAccount ba = getParentJob(CreateBillingAccountJob.class).baLink.getLinkedObject();
 
-            job.baLink = ba.newBillingAccountLink();
+            job.baLink = ba.newLink();
             job.startDate = ba.getCreationDate();
             return job;
         }

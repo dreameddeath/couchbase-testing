@@ -1,5 +1,6 @@
-package com.dreameddeath.billing.model;
+package com.dreameddeath.billing.model.cycle;
 
+import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.*;
@@ -33,11 +34,11 @@ public class BillingCycle extends CouchbaseDocument {
     public void setRatingContextLinks(Collection<RatingContextLink> ratingCtxtLinks) { _ratingContexts.set(ratingCtxtLinks); }
     public void addRatingContext(AbstractRatingContext ratingCtxt){  
         if(_ratingContexts.add(ratingCtxt.newRatingContextLink())){
-            ratingCtxt.setBillingCycleLink(newBillingCycleLink());
+            ratingCtxt.setBillingCycleLink(newLink());
         }
     }
     
-    public BillingCycleLink newBillingCycleLink(){
+    public BillingCycleLink newLink(){
         return new BillingCycleLink(this);
     }
     

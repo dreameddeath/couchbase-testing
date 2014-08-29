@@ -1,9 +1,12 @@
-package com.dreameddeath.billing.model;
+package com.dreameddeath.billing.model.account;
 
+import com.dreameddeath.billing.model.cycle.BillingCycleLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.*;
+import com.dreameddeath.installedbase.model.InstalledBaseLink;
 import com.dreameddeath.party.model.PartyLink;
+import com.sun.istack.internal.NotNull;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
@@ -34,11 +37,15 @@ public class BillingAccount extends CouchbaseDocument{
     private ListProperty<BillingCycleLink> _billingCycleLinks = new ArrayListProperty<BillingCycleLink>(BillingAccount.this);
     @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")
     private ListProperty<PartyLink> _partyLinks = new ArrayListProperty<PartyLink>(BillingAccount.this);
-
-
+    /**
+     *  installedBases : List of installed base (or parts of installed base) to bill
+     */
+    @DocumentProperty("installedBases")
+    private ListProperty<InstalledBaseLink> _installedBases = new ArrayListProperty<InstalledBaseLink>(BillingAccount.this);
+    // uid Accessors
     public String getUid() { return _uid.get(); }
     public void setUid(String uid) { _uid.set(uid); }
-    
+    //
     public String getLedgerSegment() { return _ledgerSegment.get(); }
     public void setLedgerSegment(String ledgerSegment) { _ledgerSegment.set(ledgerSegment); }
     
@@ -73,10 +80,7 @@ public class BillingAccount extends CouchbaseDocument{
         return null;
     }
     
-    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks){
-       _billingCycleLinks.set(billingCycleLinks);
-
-    }
+    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks){_billingCycleLinks.set(billingCycleLinks);}
 
     public void addBillingCycleLink(BillingCycleLink billingCycleLink){
         if(getBillingCycleLink(billingCycleLink.getLinkedObject().getStartDate())!=null){
@@ -85,7 +89,14 @@ public class BillingAccount extends CouchbaseDocument{
         _billingCycleLinks.add(billingCycleLink);
     }
 
-    public BillingAccountLink newBillingAccountLink(){
+    // InstalledBases Accessors
+    public List<InstalledBaseLink> getInstalledBases() { return _installedBases.get(); }
+    public void setInstalledBases(Collection<InstalledBaseLink> vals) { _installedBases.set(vals); }
+    public boolean addInstalledBases(InstalledBaseLink val){ return _installedBases.add(val); }
+    public boolean removeInstalledBases(InstalledBaseLink val){ return _installedBases.remove(val); }
+
+
+    public BillingAccountLink newLink(){
         return new BillingAccountLink(this);
     }
 

@@ -1,4 +1,4 @@
-package com.dreameddeath.billing.model;
+package com.dreameddeath.billing.model.account;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ArrayListProperty;
@@ -32,6 +32,7 @@ public class BillingAccountPartyRole extends PartyRole {
 
     public enum RoleType{
         HOLDER,
-        PAYER
+        PAYER,
+        BILL_RECEIVER
     }
 }
