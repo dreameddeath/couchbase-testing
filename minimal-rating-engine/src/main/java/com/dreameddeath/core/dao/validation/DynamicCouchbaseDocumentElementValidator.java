@@ -11,19 +11,14 @@ import java.util.Map;
  */
 public class DynamicCouchbaseDocumentElementValidator implements Validator<CouchbaseDocumentElement>{
     final private Field _field;
-    final Map<Class<? extends CouchbaseDocumentElement>,Validator<? extends CouchbaseDocumentElement>> _cache;
+    final ValidatorFactory _factory;
 
-    public DynamicCouchbaseDocumentElementValidator(Field field,Map<Class<? extends CouchbaseDocumentElement>,Validator<? extends CouchbaseDocumentElement>> cache){
+    public DynamicCouchbaseDocumentElementValidator(Field field,ValidatorFactory factory){
         _field=field;
-        _cache = cache;
+        _factory = factory;
     }
 
     public void validate(CouchbaseDocumentElement elt,CouchbaseDocumentElement parent) throws ValidationException{
-        Validator<CouchbaseDocumentElement> validator = (Validator<CouchbaseDocumentElement>)_cache.get(elt.getClass());
-        if(validator==null){
-            validator = new CouchbaseDocumentElementValidator(elt.getClass(),_cache);
-            _cache.put(elt.getClass(),validator);
-        }
-        validator.validate(elt,parent);
+        _factory.getValidator(elt).validate(elt,parent);
     }
 }

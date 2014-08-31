@@ -8,7 +8,7 @@ import com.dreameddeath.rating.model.cdr.CdrsBucketLink;
 import java.util.Collections;
 import java.util.List;
 
-public final class StandardRatingContext extends AbstractRatingContext{
+public final class StandardRatingContext extends RatingContext {
     @DocumentProperty("cdrsBucketLinks")
     private ListProperty<CdrsBucketLink> _cdrsBuckets=new ArrayListProperty<CdrsBucketLink>(StandardRatingContext.this);
     @DocumentProperty("guidingKeys")

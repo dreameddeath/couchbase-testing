@@ -5,7 +5,7 @@ import com.dreameddeath.core.dao.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import com.dreameddeath.rating.model.context.AbstractRatingContext;
+import com.dreameddeath.rating.model.context.RatingContext;
 import net.spy.memcached.transcoders.Transcoder;
 
 public class BillingCycleDao extends CouchbaseDocumentDao<BillingCycle> {
@@ -28,7 +28,7 @@ public class BillingCycleDao extends CouchbaseDocumentDao<BillingCycle> {
         long result = getClientWrapper().getClient().incr(String.format(BA_CYCLE_CNT_KEY,obj.getBillingAccountLink().getKey()),1,1,0);
         obj.setKey(String.format(BA_CYCLE_FMT_KEY,obj.getBillingAccountLink().getKey(),result));
         
-        getDaoFactory().getDaoForClass(AbstractRatingContext.class).buildKeysForLinks(obj.getRatingContextLinks());
+        getDaoFactory().getDaoForClass(RatingContext.class).buildKeysForLinks(obj.getRatingContextLinks());
     }
     
     public String getKeyPattern(){

@@ -65,12 +65,12 @@ public abstract class AbstractTask extends CouchbaseDocumentElement{
     }
 
 
-    public boolean init(){return false;}
-    public boolean preprocess(){return false;}
+    public boolean init() throws TaskExecutionException{return false;}
+    public boolean preprocess() throws TaskExecutionException{return false;}
     public boolean process() throws TaskExecutionException {return false;}
-    public boolean postprocess(){return false;}
-    public boolean finish(){return false;}
-    public boolean cleanup(){return false;}
+    public boolean postprocess() throws TaskExecutionException{return false;}
+    public boolean finish() throws TaskExecutionException{return false;}
+    public boolean cleanup() throws TaskExecutionException{return false;}
 
     public final void setProcessingService(TaskProcessingService service){
         _processingService = service;

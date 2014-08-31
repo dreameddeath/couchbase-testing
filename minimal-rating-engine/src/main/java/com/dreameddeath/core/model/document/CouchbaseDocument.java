@@ -2,6 +2,7 @@ package com.dreameddeath.core.model.document;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.dao.CouchbaseSession;
+import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.model.process.AbstractTask;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
 import com.dreameddeath.core.model.property.ArrayListProperty;
@@ -93,7 +94,7 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     }
 
 
-    public void save(){
+    public void save() throws ValidationException{
         if(_state.equals(State.NEW)) {
             this.getSession().create(this);
         }

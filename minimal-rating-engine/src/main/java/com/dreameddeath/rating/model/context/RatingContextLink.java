@@ -5,7 +5,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 import com.dreameddeath.core.model.property.StandardProperty;
 import com.dreameddeath.core.model.property.Property;
 
-public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingContext>{
+public class RatingContextLink extends CouchbaseDocumentLink<RatingContext>{
     @DocumentProperty("@c")
     private Property<String> _class=new StandardProperty<String>(RatingContextLink.this);
     
@@ -21,7 +21,7 @@ public class RatingContextLink extends CouchbaseDocumentLink<AbstractRatingConte
     }
     
     public RatingContextLink(){}
-    public RatingContextLink(AbstractRatingContext ratingCtxt){
+    public RatingContextLink(RatingContext ratingCtxt){
         super(ratingCtxt);
         setType(ratingCtxt.getClass().getSimpleName());
     }

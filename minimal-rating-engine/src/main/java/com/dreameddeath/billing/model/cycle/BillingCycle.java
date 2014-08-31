@@ -4,7 +4,7 @@ import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.*;
-import com.dreameddeath.rating.model.context.AbstractRatingContext;
+import com.dreameddeath.rating.model.context.RatingContext;
 import com.dreameddeath.rating.model.context.RatingContextLink;
 import org.joda.time.DateTime;
 
@@ -32,7 +32,7 @@ public class BillingCycle extends CouchbaseDocument {
     
     public List<RatingContextLink> getRatingContextLinks() { return _ratingContexts.get(); }
     public void setRatingContextLinks(Collection<RatingContextLink> ratingCtxtLinks) { _ratingContexts.set(ratingCtxtLinks); }
-    public void addRatingContext(AbstractRatingContext ratingCtxt){  
+    public void addRatingContext(RatingContext ratingCtxt){
         if(_ratingContexts.add(ratingCtxt.newRatingContextLink())){
             ratingCtxt.setBillingCycleLink(newLink());
         }

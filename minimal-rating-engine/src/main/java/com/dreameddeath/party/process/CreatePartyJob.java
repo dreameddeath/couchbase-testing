@@ -1,10 +1,9 @@
 package com.dreameddeath.party.process;
 
-
-import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.model.process.DocumentCreateTask;
+import com.dreameddeath.core.model.process.EmptyJobResult;
 import com.dreameddeath.party.model.Organization;
 import com.dreameddeath.party.model.Party;
 import com.dreameddeath.party.model.Person;
@@ -13,23 +12,28 @@ import com.dreameddeath.party.model.process.CreatePartyRequest;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-public class CreatePartyJob extends AbstractJob {
-    @DocumentProperty("request")
-    public CreatePartyRequest request;
+public class CreatePartyJob extends AbstractJob<CreatePartyRequest,EmptyJobResult> {
+    @Override
+    public CreatePartyRequest newRequest(){return new CreatePartyRequest();}
+    @Override
+    public EmptyJobResult newResult(){return new EmptyJobResult();}
 
-    public boolean when(TaskProcessEvent evt){
-        return false;
-    }
-
+    @Override
     public boolean init(){
         addTask(new CreatePartyTask());
         return false;
     }
 
+    @Override
+    public boolean when(TaskProcessEvent evt){
+        return false;
+    }
+
     public static class CreatePartyTask extends DocumentCreateTask<Party>{
+        @Override
         public Party buildDocument(){
             Party result;
-            CreatePartyRequest req = getParentJob(CreatePartyJob.class).request;
+            CreatePartyRequest req = getParentJob(CreatePartyJob.class).getRequest();
             if(req.type == CreatePartyRequest.Type.person){
                 Person person=newEntity(Person.class);
 

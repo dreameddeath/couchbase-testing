@@ -1,5 +1,6 @@
 package com.dreameddeath.core.dao;
 
+import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 
@@ -68,14 +69,14 @@ public class CouchbaseSession {
     }
     
     
-    public <T extends CouchbaseDocument> T create(T obj){
+    public <T extends CouchbaseDocument> T create(T obj) throws ValidationException{
         CouchbaseDocumentDao<T> dao = (CouchbaseDocumentDao<T>)_daoFactory.getDaoForClass(obj.getClass());
         dao.create(obj);
         attachDocument(obj);
         return obj;
     }
     
-    public <T extends CouchbaseDocument> Collection<T> create(Collection<T> objs,Class<T> targetClass){
+    public <T extends CouchbaseDocument> Collection<T> create(Collection<T> objs,Class<T> targetClass) throws ValidationException{
         CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForClass(targetClass);
         dao.createBulk(objs);
         for(T obj:objs){
@@ -114,19 +115,19 @@ public class CouchbaseSession {
         }
     }
 
-    public <T extends CouchbaseDocument> Collection<T> update(Collection<T> objs,Class<T> targetClass){
+    public <T extends CouchbaseDocument> Collection<T> update(Collection<T> objs,Class<T> targetClass)throws ValidationException{
         CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForClass(targetClass);
         dao.updateBulk(objs);
         return objs;
     }
 
-    public <T extends CouchbaseDocument> T update(T obj,Class<T> targetClass){
+    public <T extends CouchbaseDocument> T update(T obj,Class<T> targetClass)throws ValidationException{
         CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForClass(targetClass);
         dao.update(obj);
         return obj;
     }
 
-    public <T extends CouchbaseDocument> T update(T obj){
+    public <T extends CouchbaseDocument> T update(T obj)throws ValidationException{
         CouchbaseDocumentDao<T> dao = _daoFactory.getDaoForClass((Class<T>)obj.getClass());
         dao.update(obj);
         return obj;

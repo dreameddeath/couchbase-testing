@@ -1,6 +1,7 @@
 package com.dreameddeath.core.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.StandardProperty;
@@ -20,17 +21,22 @@ public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractT
     public T getJob(){return (T)this.getParentJob().getSession().getFromUID(_jobId.get().toString(),AbstractJob.class);}
 
     @Override
-    public final boolean init(){
+    public final boolean init() throws TaskExecutionException{
         if(_jobId.get()!=null){
             if(getJob()!=null) return false;
         }
         T job=buildSubJob();
         //Retrieve UID
         _jobId.set(job.getUid());
-        //Save task to allow retries without creation duplicates
-        this.getParentJob().save();
-        //Save job (should be a creation)
-        job.save();
+        try {
+            //Save task to allow retries without creation duplicates
+            this.getParentJob().save();
+            //Save job (should be a creation)
+            job.save();
+        }
+        catch(ValidationException e){
+            throw new TaskExecutionException(this,this.getState(),"Validation of job or parent job failed",e);
+        }
         return false;
     }
 

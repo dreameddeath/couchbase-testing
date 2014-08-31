@@ -10,6 +10,7 @@ import com.dreameddeath.core.dao.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.CouchbaseSession;
 import com.dreameddeath.core.dao.JobDao;
+import com.dreameddeath.core.dao.validation.ValidatorFactory;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.process.ProcessingServiceFactory;
 import com.dreameddeath.core.storage.BinarySerializer;
@@ -18,10 +19,10 @@ import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.Party;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
 import com.dreameddeath.party.process.CreatePartyJob;
-import com.dreameddeath.rating.dao.context.AbstractRatingContextDao;
-import com.dreameddeath.rating.model.context.AbstractRatingContext;
-import com.dreameddeath.rating.storage.GenericCdr;
-import com.dreameddeath.rating.storage.GenericCdrsBucket;
+import com.dreameddeath.rating.dao.RatingContextDao;
+import com.dreameddeath.rating.model.context.RatingContext;
+import com.dreameddeath.rating.model.cdr.GenericCdr;
+import com.dreameddeath.rating.model.cdr.GenericCdrsBucket;
 import com.dreameddeath.rating.storage.GenericCdrsBucketTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
@@ -57,9 +58,10 @@ public class CouchbaseConnection {
 
     private static final CouchbaseDocumentDaoFactory _daoFactory = new CouchbaseDocumentDaoFactory();
     static {
+        _daoFactory.setValidatorFactory(new ValidatorFactory());
         _daoFactory.addDaoFor(BillingAccount.class,new BillingAccountDao(_client,_daoFactory));
         _daoFactory.addDaoFor(BillingCycle.class,new BillingCycleDao(_client,_daoFactory));
-        _daoFactory.addDaoFor(AbstractRatingContext.class,new AbstractRatingContextDao(_client,_daoFactory));
+        _daoFactory.addDaoFor(RatingContext.class,new RatingContextDao(_client,_daoFactory));
         _daoFactory.addDaoFor(StringCdrBucket.class,new StringCdrBucketDao(_client,_daoFactory));
         _daoFactory.addDaoFor(Party.class,new PartyDao(_client,_daoFactory));
         _daoFactory.addDaoFor(AbstractJob.class,new JobDao(_client,_daoFactory));
@@ -234,7 +236,7 @@ public class CouchbaseConnection {
     static Long counter;
     public static void bench(){
 
-        ThreadPoolExecutor pool = new ThreadPoolExecutor(1,4,1,
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(1,1,1,
                     TimeUnit.MINUTES,
                 new ArrayBlockingQueue<Runnable>(100,true),
                 new ThreadPoolExecutor.CallerRunsPolicy());
@@ -242,7 +244,10 @@ public class CouchbaseConnection {
         counter = 0L;
         long nbPut=0L;
         long startTime = System.currentTimeMillis();
+        //Person person=new Person();
 
+        //_daoFactory.getValidatorFactory().getValidator(person.getClass());
+        //_daoFactory.getValidatorFactory().getValidator(Person.class);
         for(int i=0;i<100;++i) {
             final int id=i;
             try {
@@ -254,15 +259,16 @@ public class CouchbaseConnection {
                             ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
 
                             CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
-                            createPartyJob.request = new CreatePartyRequest();
-                            createPartyJob.request.type = CreatePartyRequest.Type.person;
-                            createPartyJob.request.person = new CreatePartyRequest.Person();
-                            createPartyJob.request.person.firstName = "christophe " + id;
-                            createPartyJob.request.person.lastName = "jeunesse" + id;
+                            createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
+                            createPartyJob.getRequest().person = new CreatePartyRequest.Person();
+                            createPartyJob.getRequest().person.firstName = "christophe " + id;
+                            if(id%2==0) {
+                                createPartyJob.getRequest().person.lastName = "jeunesse " + id;
+                            }
                             serviceFactory.getJobServiceForClass(CreatePartyJob.class).execute(createPartyJob);
                             CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
-                            createBaJob.billDay = 2;
-                            createBaJob.partyId = ((CreatePartyJob.CreatePartyTask) createPartyJob.getTasks().get(0)).getDocument().getUid();
+                            createBaJob.getRequest().billDay=2;
+                            createBaJob.getRequest().partyId = ((CreatePartyJob.CreatePartyTask) createPartyJob.getTasks().get(0)).getDocument().getUid();
                             serviceFactory.getJobServiceForClass(CreateBillingAccountJob.class).execute(createBaJob);
 
                         } catch (Exception e) {

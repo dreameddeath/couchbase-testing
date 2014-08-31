@@ -1,6 +1,8 @@
 package com.dreameddeath.rating.storage;
 
 
+import com.dreameddeath.rating.model.cdr.GenericCdr;
+import com.dreameddeath.rating.model.cdr.GenericCdrsBucket;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.*;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;

@@ -1,6 +1,7 @@
 package com.dreameddeath.core.dao;
 
 import com.dreameddeath.core.dao.validation.Validator;
+import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
@@ -19,8 +20,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public abstract Transcoder<T> getTranscoder();
     protected abstract void buildKey(T newObject);
     public abstract String getKeyPattern();
-
-    protected Map<Class<? extends T>,Validator<?>> _validators = new HashMap<Class<? extends T>, Validator<?>>();
 
     public CouchbaseClientWrapper getClientWrapper(){
         return _client;
@@ -65,8 +64,16 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         _client = client;
         _parentFactory = factory;
     }
-    
-    public T create(T obj){
+
+    public void validate(T obj) throws ValidationException{
+        Validator<T> validator = getDaoFactory().getValidatorFactory().getValidator(obj);
+        if(validator!=null){
+            validator.validate(obj,null);
+        }
+    }
+
+    public T create(T obj) throws ValidationException{
+        validate(obj);
         if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
             /**TODO throw an error*/
         }
@@ -89,12 +96,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return obj;
     }
     
-    public Collection<T> createBulk(Collection<T> objs){
+    public Collection<T> createBulk(Collection<T> objs) throws ValidationException{
         List<OperationFutureWrapper<Boolean,T>> futures = new ArrayList<OperationFutureWrapper<Boolean,T>>(objs.size());
         for(T obj : objs){
             if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
                 /**TODO throw an error*/
             }
+            validate(obj);
         }
         
         buildKeys(objs);
@@ -161,7 +169,8 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return results;
     }
     
-    public T update(T obj){
+    public T update(T obj) throws ValidationException{
+        validate(obj);
         if(obj.getKey()==null){/**TODO throw an error*/}
         updateRevision(obj);
         _client.cas(obj,getTranscoder());
@@ -169,12 +178,16 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return obj;
     }
     
-    public Collection<T> updateBulk(Collection<T> objs){
+    public Collection<T> updateBulk(Collection<T> objs) throws ValidationException{
         List<OperationFutureWrapper<CASResponse,T>> futures = new ArrayList<OperationFutureWrapper<CASResponse,T>>(objs.size());
-        
+
+        for(T obj:objs){
+            validate(obj);
+        }
         buildKeys(objs);
         updateRevision(objs);
         for(T obj:objs){
+
             futures.add(_client.asyncCas(obj,getTranscoder()));
         }
         

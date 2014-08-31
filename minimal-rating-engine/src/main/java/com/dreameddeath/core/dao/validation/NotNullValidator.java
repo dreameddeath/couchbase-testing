@@ -16,7 +16,7 @@ public class NotNullValidator<T> implements Validator<T> {
     }
     public void validate(T value,CouchbaseDocumentElement parent) throws ValidationException{
         if(value==null){
-            throw new ValidationException(parent,_field,"The field "+_field.getName()+" shouldn't be null");
+            throw new ValidationException(parent,_field,"The field should be set");
         }
     }
 }

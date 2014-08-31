@@ -19,16 +19,20 @@ import com.dreameddeath.party.model.*;
  * Created by Christophe Jeunesse on 29/05/2014.
  */
 public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountRequest,CreateBillingAccountResult> {
-
+    @Override
+    public CreateBillingAccountRequest newRequest(){return new CreateBillingAccountRequest();}
+    @Override
+    public CreateBillingAccountResult newResult(){return new CreateBillingAccountResult();}
     @Override
     public boolean init(){
-        addTask(new CreateBillingAccountTask()); return false;
+        addTask(new CreateBillingAccountTask());
+        return false;
     }
 
     @Override
     public boolean when(TaskProcessEvent evt){
         if(evt.getTask() instanceof CreateBillingAccountTask){
-            addTask((new CreatePartyRolesTask()).setDocId(partyLink.getKey()));
+            addTask((new CreatePartyRolesTask()).setDocId(getResult().partyLink.getKey()));
             return false;
         }
         if(evt.getTask() instanceof CreatePartyRolesTask){
@@ -48,14 +52,14 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
         protected BillingAccount buildDocument() {
             BillingAccount newBa = newEntity(BillingAccount.class);
             CreateBillingAccountJob job= getParentJob(CreateBillingAccountJob.class);
-            newBa.setBillDay((job.request.billDay!=null)?job.request.billDay:1);
-            newBa.setBillingCycleLength((job.request.cycleLength!=null)?job.request.cycleLength:1);
+            newBa.setBillDay((job.getRequest().billDay!=null)?job.getRequest().billDay:1);
+            newBa.setBillingCycleLength((job.getRequest().cycleLength!=null)?job.getRequest().cycleLength:1);
 
-            Party party = getParentJob().getSession().getFromUID(getParentJob(CreateBillingAccountJob.class).request.partyId, Party.class);
-            getParentJob(CreateBillingAccountJob.class).partyLink = party.newLink();
-            newBa.addPartyLink(getParentJob(CreateBillingAccountJob.class).partyLink);
+            Party party = getParentJob().getSession().getFromUID(getParentJob(CreateBillingAccountJob.class).getRequest().partyId, Party.class);
+            job.getResult().partyLink = party.newLink();
+            newBa.addPartyLink(job.getResult().partyLink);
 
-            getParentJob(CreateBillingAccountJob.class).baLink = newBa.newLink();
+            job.getResult().baLink = newBa.newLink();
             return newBa;
         }
     }
@@ -67,7 +71,7 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
         @Override
         protected void processDocument() {
             BillingAccountPartyRole newPartyRole = new BillingAccountPartyRole();
-            newPartyRole.setBa(getParentJob(CreateBillingAccountJob.class).baLink.getLinkedObject().newLink());
+            newPartyRole.setBa(getParentJob(CreateBillingAccountJob.class).getResult().baLink.getLinkedObject().newLink());
             newPartyRole.addRole(BillingAccountPartyRole.RoleType.HOLDER);
             newPartyRole.addRole(BillingAccountPartyRole.RoleType.PAYER);
             getDocument().addPartyRole(newPartyRole);
@@ -82,10 +86,10 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
         @Override
         protected CreateBillingCycleJob buildSubJob() {
             CreateBillingCycleJob job = newEntity(CreateBillingCycleJob.class);
-            BillingAccount ba = getParentJob(CreateBillingAccountJob.class).baLink.getLinkedObject();
+            BillingAccount ba = getParentJob(CreateBillingAccountJob.class).getResult().baLink.getLinkedObject();
 
-            job.baLink = ba.newLink();
-            job.startDate = ba.getCreationDate();
+            job.getRequest().baLink = ba.newLink();
+            job.getRequest().startDate = ba.getCreationDate();
             return job;
         }
     }

@@ -4,7 +4,9 @@ import java.util.*;
 
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.process.JobExecutionException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.*;
 import com.dreameddeath.core.process.JobProcessingService;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -14,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 @JsonTypeInfo(use=Id.MINIMAL_CLASS,include=As.PROPERTY, property="@c")
-public abstract class AbstractJob<TREQ,TRES> extends CouchbaseDocument {
+public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES extends CouchbaseDocumentElement> extends CouchbaseDocument {
     @DocumentProperty("uid")
     private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
     @DocumentProperty(value = "state",getter = "getJobState",setter = "setJobState")
@@ -38,9 +40,22 @@ public abstract class AbstractJob<TREQ,TRES> extends CouchbaseDocument {
     //Save current processing Service
     private JobProcessingService _processingService=null;
 
-    public AbstractJob(TREQ request){_request.set(request);}
-    public AbstractJob(){}
+    public AbstractJob(TREQ request,TRES result){
+        _request.set(request);
+        _result.set(result);
+    }
 
+    public AbstractJob(TREQ request){
+        _request.set(request);
+        _result.set(newResult());
+    }
+    public AbstractJob(){
+        _request.set(newRequest());
+        _result.set(newResult());
+    }
+
+    public abstract TREQ newRequest();
+    public abstract TRES newResult();
 
     public String getLastRunError(){return _errorName.get();}
     public void setLastRunError(String errorName){_errorName.set(errorName);}
@@ -73,9 +88,7 @@ public abstract class AbstractJob<TREQ,TRES> extends CouchbaseDocument {
 
     public AbstractTask getTask(String id) {
         for(AbstractTask task :_taskList){
-            if(id.equals(task.getUid())){
-               return task;
-            }
+            if(id.equals(task.getUid())){ return task; }
         }
         return null;
     }
@@ -83,11 +96,7 @@ public abstract class AbstractJob<TREQ,TRES> extends CouchbaseDocument {
     public AbstractTask getTask(Integer pos) {
         return _taskList.get(pos);
     }
-
-    public <T extends AbstractTask> T  getTask(Integer pos,Class<T> clazz) {
-        return (T)_taskList.get(pos);
-    }
-
+    public <T extends AbstractTask> T getTask(Integer pos,Class<T> clazz) {return (T)getTask(pos);}
     public <T extends AbstractTask> T getTask(String id, Class<T>clazz) {
         return (T)getTask(id);
     }
@@ -142,11 +151,11 @@ public abstract class AbstractJob<TREQ,TRES> extends CouchbaseDocument {
     }
 
 
-    public boolean init(){return false;}
-    public boolean preprocess(){return false;}
-    public abstract boolean when(TaskProcessEvent evt);
-    public boolean postprocess(){return false;}
-    public boolean cleanup(){return false;}
+    public boolean init() throws JobExecutionException{return false;}
+    public boolean preprocess()throws JobExecutionException{return false;}
+    public abstract boolean when(TaskProcessEvent evt) throws JobExecutionException;
+    public boolean postprocess()throws JobExecutionException{return false;}
+    public boolean cleanup()throws JobExecutionException{return false;}
 
     public final void setProcessingService(JobProcessingService service){
         _processingService = service;

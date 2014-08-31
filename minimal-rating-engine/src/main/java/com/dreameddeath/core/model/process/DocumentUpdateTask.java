@@ -1,6 +1,8 @@
 package com.dreameddeath.core.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -20,14 +22,19 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
 
 
     @Override
-    public final boolean cleanup(){
+    public final boolean cleanup() throws TaskExecutionException{
         getDocument().cleanupAttachedTaskRef(this);
-        getDocument().save();
+        try {
+            getDocument().save();
+        }
+        catch(ValidationException e){
+            throw new TaskExecutionException(this,this.getState(),"Cleaned updated document Validation exception",e);
+        }
         return false;
     }
 
     @Override
-    public final boolean process(){
+    public final boolean process() throws TaskExecutionException{
         CouchbaseDocumentAttachedTaskRef reference = getDocument().getAttachedTaskRef(this);
         if(reference==null){
             processDocument();
@@ -35,7 +42,12 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
             attachedTaskRef.setJobKey(getParentJob().getKey());
             attachedTaskRef.setTaskId(this.getUid());
             getDocument().addAttachedTaskRef(attachedTaskRef);
-            getDocument().save();
+            try {
+                getDocument().save();
+            }
+            catch(ValidationException e){
+                throw new TaskExecutionException(this,this.getState(),"Updated Document Validation exception",e);
+            }
             return true;
         }
         return false;

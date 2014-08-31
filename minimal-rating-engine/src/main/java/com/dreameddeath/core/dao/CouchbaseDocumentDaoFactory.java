@@ -1,19 +1,31 @@
 package com.dreameddeath.core.dao;
 
+import com.dreameddeath.core.dao.validation.ValidatorFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 //import java.util.AbstractMap.SimpleEntry;
 
 public class CouchbaseDocumentDaoFactory{
     private Map<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>> _daosMap
-            = new HashMap<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>>();
+            = new ConcurrentHashMap<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>>();
     private Map<Pattern,CouchbaseDocumentDao<?>> _patternsMap 
-            = new HashMap<Pattern,CouchbaseDocumentDao<?>>();
+            = new ConcurrentHashMap<Pattern,CouchbaseDocumentDao<?>>();
+
+    private ValidatorFactory _validatorFactory;
+
+    public void setValidatorFactory(ValidatorFactory factory){
+        _validatorFactory = factory;
+    }
+
+    public ValidatorFactory getValidatorFactory(){
+        return _validatorFactory;
+    }
 
 
     public CouchbaseSession newSession(){

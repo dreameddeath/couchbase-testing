@@ -1,12 +1,13 @@
 package com.dreameddeath.billing.model.account;
 
 import com.dreameddeath.billing.model.cycle.BillingCycleLink;
+import com.dreameddeath.billing.model.installedbase.BillingInstalledBaseLink;
+import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.*;
-import com.dreameddeath.installedbase.model.InstalledBaseLink;
+import com.dreameddeath.installedbase.model.common.InstalledBaseLink;
 import com.dreameddeath.party.model.PartyLink;
-import com.sun.istack.internal.NotNull;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
@@ -38,10 +39,15 @@ public class BillingAccount extends CouchbaseDocument{
     @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")
     private ListProperty<PartyLink> _partyLinks = new ArrayListProperty<PartyLink>(BillingAccount.this);
     /**
+     *  externalIds : List of external ids of the billing account
+     */
+    @DocumentProperty("externalIds")
+    private ListProperty<ExternalId> _externalIds = new ArrayListProperty<ExternalId>(BillingAccount.this);
+    /**
      *  installedBases : List of installed base (or parts of installed base) to bill
      */
     @DocumentProperty("installedBases")
-    private ListProperty<InstalledBaseLink> _installedBases = new ArrayListProperty<InstalledBaseLink>(BillingAccount.this);
+    private ListProperty<BillingInstalledBaseLink> _installedBases = new ArrayListProperty<BillingInstalledBaseLink>(BillingAccount.this);
     // uid Accessors
     public String getUid() { return _uid.get(); }
     public void setUid(String uid) { _uid.set(uid); }
@@ -90,11 +96,16 @@ public class BillingAccount extends CouchbaseDocument{
     }
 
     // InstalledBases Accessors
-    public List<InstalledBaseLink> getInstalledBases() { return _installedBases.get(); }
-    public void setInstalledBases(Collection<InstalledBaseLink> vals) { _installedBases.set(vals); }
-    public boolean addInstalledBases(InstalledBaseLink val){ return _installedBases.add(val); }
-    public boolean removeInstalledBases(InstalledBaseLink val){ return _installedBases.remove(val); }
+    public List<BillingInstalledBaseLink> getInstalledBases() { return _installedBases.get(); }
+    public void setInstalledBases(Collection<BillingInstalledBaseLink> vals) { _installedBases.set(vals); }
+    public boolean addInstalledBases(BillingInstalledBaseLink val){ return _installedBases.add(val); }
+    public boolean removeInstalledBases(BillingInstalledBaseLink val){ return _installedBases.remove(val); }
 
+    // ExternalIds Accessors
+    public List<ExternalId> getExternalIds() { return _externalIds.get(); }
+    public void setExternalIds(Collection<ExternalId> vals) { _externalIds.set(vals); }
+    public boolean addExternalIds(ExternalId val){ return _externalIds.add(val); }
+    public boolean removeExternalIds(ExternalId val){ return _externalIds.remove(val); }
 
     public BillingAccountLink newLink(){
         return new BillingAccountLink(this);

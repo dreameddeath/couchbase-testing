@@ -26,7 +26,6 @@ public class BillingInstalledBaseItemStatus extends CouchbaseDocumentElement {
     @DocumentProperty("endDate")
     private Property<DateTime> _endDate = new StandardProperty<DateTime>(BillingInstalledBaseItemStatus.this);
 
-
     // status accessors
     public Status getStatus() { return _status.get(); }
     public void setStatus(Status val) { _status.set(val); }
@@ -36,7 +35,6 @@ public class BillingInstalledBaseItemStatus extends CouchbaseDocumentElement {
     // endDate accessors
     public DateTime getEndDate() { return _endDate.get(); }
     public void setEndDate(DateTime val) { _endDate.set(val); }
-
 
     public enum Status{
         ACTIVE,

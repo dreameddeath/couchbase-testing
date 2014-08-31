@@ -20,7 +20,6 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
         return _factory;
     }
 
-
     public void onSave(AbstractJob job,State state){}
     public void onEndProcessing(AbstractJob job,State state){}
 
@@ -105,5 +104,4 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
         }
         job.setProcessingService(null);
     }
-
 }

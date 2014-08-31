@@ -1,6 +1,8 @@
 package com.dreameddeath.core.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -20,20 +22,25 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
 
 
     @Override
-    public boolean process(){
+    public boolean process() throws TaskExecutionException{
         //Recovery mode
         if(getDocKey()!=null){
             if(getDocument()!=null){
                 return false;
             }
         }
-        T doc = buildDocument();
-        //Prebuild key
-        setDocKey(doc.getSession().buildKey(doc).getKey());
-        //Attach it to the document
-        this.getParentJob().save();
-        //Save Document afterwards
-        doc.save();
+        try {
+            T doc = buildDocument();
+            //Prebuild key
+            setDocKey(doc.getSession().buildKey(doc).getKey());
+            //Attach it to the document
+            this.getParentJob().save();
+            //Save Document afterwards
+            doc.save();
+        }
+        catch(ValidationException e){
+            throw new TaskExecutionException(this,State.PROCESSED,"Validation error", e);
+        }
         return false; //No need to save (retry allowed)
     }
 
