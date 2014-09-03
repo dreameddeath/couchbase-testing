@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class ValidationException extends Exception {
+public class ValidationException extends DaoException {
     CouchbaseDocumentElement _docElt;
     AccessibleObject _field;
     Object _value;

@@ -17,7 +17,7 @@ public class ExternalId extends CouchbaseDocumentElement {
     /**
      *  refCode : Id of the referential for this code
      */
-    @DocumentProperty("refCode")
+    @DocumentProperty("referentialCode")
     private Property<String> _refCode = new StandardProperty<String>(ExternalId.this);
     
     // id accessors

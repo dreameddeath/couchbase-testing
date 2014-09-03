@@ -2,7 +2,9 @@ package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.annotation.*;
 import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.property.Property;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -49,30 +51,57 @@ public class CouchbaseDocumentElementValidator<T extends CouchbaseDocumentElemen
         return Collections.unmodifiableMap(_validationRules);
     }
 
-    public String fieldGetterName(Field field){
+    public Method fieldGetterFinder(Field field) throws NoSuchMethodException{
         if(field.getAnnotation(DocumentProperty.class)!=null){
-            String getter = field.getAnnotation(DocumentProperty.class).getter();
+            DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
+            String getter = prop.getter();
             if((getter!=null)&& !getter.equals("")){
-                return getter;
+                return field.getDeclaringClass().getDeclaredMethod(getter);
+            }
+            else {
+                String name = prop.value();
+                name = "get"+name.substring(0,1).toUpperCase()+name.substring(1);
+                try {
+                    return field.getDeclaringClass().getDeclaredMethod(name);
+                }
+                catch(NoSuchMethodException e){
+                    //Do nothing
+                }
             }
         }
+
         String name=field.getName();
         if(name.startsWith("_")){
             name = name.substring(1);
         }
-        name = name.substring(0,1).toUpperCase()+name.substring(1);
-        return "get"+name;
+        name = "get"+name.substring(0,1).toUpperCase()+name.substring(1);
+        return field.getDeclaringClass().getDeclaredMethod(name);
+
     }
 
     public AccessibleObject getAccessibleObj(Field member) throws NoSuchMethodException{
         if(!member.isAccessible()){
-            String getterName = fieldGetterName(member);
-            Method getter = member.getDeclaringClass().getDeclaredMethod(getterName);
-            return getter;
+            return fieldGetterFinder(member);
         }
         else{
             return member;
         }
+    }
+
+    private void addPropertyValidator(Field field,AccessibleObject obj,Validator validator){
+        if (!_validationRules.containsKey(obj)) {
+            _validationRules.put(obj, new CouchbaseDocumentValidatorFieldEntry(field));
+        }
+
+        for(Validator existingValidator:_validationRules.get(obj).getValidators()){
+            if(existingValidator instanceof PropertyValidator){
+                ((IterableValidator) existingValidator).addRule(validator);
+                return;
+            }
+        }
+        PropertyValidator newPropertyValidator = new PropertyValidator((Member)obj);
+        newPropertyValidator.addRule(validator);
+        _validationRules.get(obj).addValidator(newPropertyValidator);
     }
 
 
@@ -104,16 +133,29 @@ public class CouchbaseDocumentElementValidator<T extends CouchbaseDocumentElemen
             addIterableValidator(field,obj,validator);
         }
         else{
-            addSimpleValidator(field,obj,validator);
+            Class<?> returnClass;
+            if(obj instanceof Method){
+                returnClass = ((Method)obj).getReturnType();
+            }
+            else{
+                returnClass = ((Field)obj).getType();
+            }
+
+            if(Property.class.isAssignableFrom(returnClass)){
+                addPropertyValidator(field, obj, validator);
+            }
+            else {
+                addSimpleValidator(field, obj, validator);
+            }
         }
     }
 
     private void addValidator(Field field,Validator validator){
         try {
-            addValidator(field,getAccessibleObj(field),Iterable.class.isAssignableFrom(field.getDeclaringClass()),validator);
+            addValidator(field,getAccessibleObj(field),Iterable.class.isAssignableFrom(field.getType()),validator);
         }
         catch(NoSuchMethodException e){
-            //TODO manage error
+            throw new RuntimeException("Cannot find the getter of field "+field.getName(),e);
         }
     }
 
@@ -122,6 +164,19 @@ public class CouchbaseDocumentElementValidator<T extends CouchbaseDocumentElemen
     public CouchbaseDocumentElementValidator(Class<T> rootObj,ValidatorFactory factory){
         for(Field member : rootObj.getDeclaredFields()){
             if(member.getAnnotation(Validate.class)!=null){
+                addValidator(member,new DynamicCouchbaseDocumentElementValidator(member,factory));
+            }
+            else if(
+                    (member.getAnnotation(DocumentProperty.class)!=null) &&
+                    (
+                        (CouchbaseDocument.class.isAssignableFrom(member.getType()))||
+                        (
+                            Property.class.isAssignableFrom(member.getType()) &&
+                            ! (((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0] instanceof TypeVariable) &&
+                            CouchbaseDocumentElement.class.isAssignableFrom((Class<?>)((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0])
+                        )
+                    )
+                ){
                 addValidator(member,new DynamicCouchbaseDocumentElementValidator(member,factory));
             }
 

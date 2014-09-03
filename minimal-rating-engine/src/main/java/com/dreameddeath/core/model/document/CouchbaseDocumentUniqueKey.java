@@ -1,7 +1,9 @@
 package com.dreameddeath.core.model.document;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.DuplicateKeyException;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.property.HashMapProperty;
 import com.dreameddeath.core.model.property.MapProperty;
 
@@ -26,7 +28,7 @@ public class CouchbaseDocumentUniqueKey extends CouchbaseDocument {
 
     public Map<String,String> getKeyMaps(){return _keyMaps.get();}
 
-    public boolean addKey(String nameSpace,String value,CouchbaseDocument doc) throws DuplicateKeyException{
+    public boolean addKey(String nameSpace,String value,CouchbaseDocument doc) throws StorageException,DaoException{
         if(doc.getKey()==null){
             doc.getSession().buildKey(doc);
         }

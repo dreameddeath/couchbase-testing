@@ -4,9 +4,9 @@ import com.dreameddeath.billing.model.cycle.BillingCycleLink;
 import com.dreameddeath.billing.model.installedbase.BillingInstalledBaseLink;
 import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.*;
-import com.dreameddeath.installedbase.model.common.InstalledBaseLink;
 import com.dreameddeath.party.model.PartyLink;
 import org.joda.time.DateTime;
 
@@ -16,7 +16,7 @@ import java.util.List;
 
 
 public class BillingAccount extends CouchbaseDocument{
-    @DocumentProperty("uid")
+    @DocumentProperty("uid") @NotNull
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);
 	@DocumentProperty("ledgerSegment")
     private Property<String> _ledgerSegment = new StandardProperty<String>(BillingAccount.this);
@@ -26,10 +26,10 @@ public class BillingAccount extends CouchbaseDocument{
     private Property<Type> _type= new StandardProperty<Type>(BillingAccount.this);;
 	@DocumentProperty("creationDate")
     private Property<DateTime> _creationDate= new ImmutableProperty<DateTime>(BillingAccount.this,DateTime.now());
-	@DocumentProperty("billDay")
+	@DocumentProperty("billDay") @NotNull
     private Property<Integer> _billDay = new StandardProperty<Integer>(BillingAccount.this);;
-    @DocumentProperty("billCycleLength")
-    private Property<Integer> _billingCycleLength = new StandardProperty<Integer>(BillingAccount.this);;
+    @DocumentProperty("billCycleLength") @NotNull
+    private Property<Integer> _billCycleLength = new StandardProperty<Integer>(BillingAccount.this);;
 	@DocumentProperty("currency")
     private Property<String> _currency = new StandardProperty<String>(BillingAccount.this);;
 	@DocumentProperty("paymentMethod")
@@ -67,8 +67,8 @@ public class BillingAccount extends CouchbaseDocument{
     public Integer getBillDay() { return _billDay.get(); }
     public void setBillDay(Integer billDay) { _billDay.set(billDay); }
     
-    public Integer getBillingCycleLength() { return _billingCycleLength.get(); }
-    public void setBillingCycleLength(Integer billingCycleLength) { _billingCycleLength.set(billingCycleLength); }
+    public Integer getBillCycleLength() { return _billCycleLength.get(); }
+    public void setBillCycleLength(Integer billingCycleLength) { _billCycleLength.set(billingCycleLength); }
     
     public String getCurrency() { return _currency.get(); }
     public void setCurrency(String currency) { _currency.set(currency); }
@@ -89,7 +89,7 @@ public class BillingAccount extends CouchbaseDocument{
     public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks){_billingCycleLinks.set(billingCycleLinks);}
 
     public void addBillingCycleLink(BillingCycleLink billingCycleLink){
-        if(getBillingCycleLink(billingCycleLink.getLinkedObject().getStartDate())!=null){
+        if(getBillingCycleLink(billingCycleLink.getStartDate())!=null){
             ///TODO generate a duplicate error
         }
         _billingCycleLinks.add(billingCycleLink);

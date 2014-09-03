@@ -1,5 +1,7 @@
-package com.dreameddeath.core.dao;
+package com.dreameddeath.core.dao.unique;
 
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocumentUniqueKey;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
@@ -21,7 +23,7 @@ public class UniqueKeyDao extends CouchbaseDocumentDao<CouchbaseDocumentUniqueKe
     }
 
     public UniqueKeyDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
-        super(client,factory);
+      super(client,factory);
     }
 
     @Override
@@ -36,7 +38,7 @@ public class UniqueKeyDao extends CouchbaseDocumentDao<CouchbaseDocumentUniqueKe
     }
 
     public String getKeyPattern(){
-        return "uniq/.*$";
+        return "^"+UNIQ_KEY_PATTERN+"$";
     }
 
 }

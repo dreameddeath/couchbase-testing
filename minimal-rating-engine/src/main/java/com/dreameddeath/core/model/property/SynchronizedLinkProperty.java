@@ -16,8 +16,8 @@ public abstract class SynchronizedLinkProperty<T,TDOC extends CouchbaseDocument>
 
     @Override
     public final T get(){ 
-        if(_parentLink.getLinkedObject(true)!=null){
-            set(getRealValue(_parentLink.getLinkedObject()));
+        if(_parentLink.getLinkedObjectFromCache()!=null){
+            set(getRealValue(_parentLink.getLinkedObjectFromCache()));
         }
         return super.get();
     }

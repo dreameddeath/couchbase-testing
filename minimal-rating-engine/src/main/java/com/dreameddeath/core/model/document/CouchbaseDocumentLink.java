@@ -5,6 +5,8 @@ import java.util.List;
 
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.dao.DaoException;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.property.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.SynchronizedLinkProperty;
@@ -16,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
 public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends CouchbaseDocumentElement{
     private List<SynchronizedLinkProperty> _childLinks=new ArrayList<SynchronizedLinkProperty>();
-
+    private Property<T>            _docObject=new ImmutableProperty<T>(null);
     @DocumentProperty("key")
     private Property<String> _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
@@ -24,7 +26,6 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
             return doc.getKey();
         }
     };
-    private Property<T>            _docObject=new ImmutableProperty<T>(null);
 
 
     public void addChildSynchronizedProperty(SynchronizedLinkProperty prop){
@@ -34,12 +35,13 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     public final String getKey(){ return _key.get();}
     public final void setKey(String key){ _key.set(key); }
     
-    public T getLinkedObject(){
-        return getLinkedObject(false);
+
+    public T getLinkedObjectFromCache(){
+        return _docObject.get();
     }
-    
-    public T getLinkedObject(boolean fromCache){
-        if((_docObject.get()==null) && (!fromCache)){
+
+    public T getLinkedObject() throws DaoException,StorageException{
+        if((_docObject.get()==null)){
             if(_key==null){
                 ///TODO throw an error
             }
@@ -69,7 +71,7 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     
     public CouchbaseDocumentLink(CouchbaseDocumentLink<T> srcLink){
         setKey(srcLink.getKey());
-        setLinkedObject(srcLink.getLinkedObject());
+        setLinkedObject(srcLink._docObject.get());
     }
     
     

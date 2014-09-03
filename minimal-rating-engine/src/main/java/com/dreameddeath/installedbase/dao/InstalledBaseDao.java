@@ -1,20 +1,26 @@
 package com.dreameddeath.installedbase.dao;
 
-import com.dreameddeath.core.dao.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 
-import com.dreameddeath.core.dao.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import com.dreameddeath.installedbase.model.common.InstalledBase;
 import net.spy.memcached.transcoders.Transcoder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by ceaj8230 on 31/08/2014.
  */
 public class InstalledBaseDao extends CouchbaseDocumentDao<InstalledBase> {
-    public static final String INSTALLED_BASE_CNT_KEY="ba/cnt";
-    public static final String INSTALLED_BASE_FMT_KEY="ba/%010d";
-    public static final String INSTALLED_BASE_KEY_PATTERN="ba/\\d{10}";
+    public static final String INSTALLED_BASE_CNT_KEY="instBase/cnt";
+    public static final String INSTALLED_BASE_FMT_KEY="instBase/%010d";
+    public static final String INSTALLED_BASE_KEY_PATTERN="instBase/\\d{10}";
+    public static final String INSTALLED_BASE_CNT_PATTERN="instBase/cnt";
 
     private static GenericJacksonTranscoder<InstalledBase> _tc = new GenericJacksonTranscoder<InstalledBase>(InstalledBase.class);
 
@@ -25,11 +31,12 @@ public class InstalledBaseDao extends CouchbaseDocumentDao<InstalledBase> {
 
     public InstalledBaseDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
         super(client,factory);
+        registerCounterDao(new CouchbaseCounterDao.Builder().withKeyPattern(INSTALLED_BASE_CNT_PATTERN).withDefaultValue(1L));
     }
 
     @Override
-    public void buildKey(InstalledBase obj){
-        long result = getClientWrapper().getClient().incr(INSTALLED_BASE_CNT_KEY,1,1,0);
+    public void buildKey(InstalledBase obj) throws DaoException{
+        long result = obj.getSession().incrCounter(INSTALLED_BASE_CNT_KEY,1);
         obj.setKey(String.format(INSTALLED_BASE_FMT_KEY,result));
     }
 

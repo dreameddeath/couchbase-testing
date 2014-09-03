@@ -1,7 +1,10 @@
-package com.dreameddeath.core.dao;
+package com.dreameddeath.core.dao.document;
 
+import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.validation.Validator;
+import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
@@ -18,19 +21,20 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private CouchbaseDocumentDaoFactory _parentFactory;
     private CouchbaseClientWrapper _client;
     public abstract Transcoder<T> getTranscoder();
-    protected abstract void buildKey(T newObject);
+    public abstract void buildKey(T newObject) throws DaoException,StorageException;
     public abstract String getKeyPattern();
 
-    public CouchbaseClientWrapper getClientWrapper(){
+    private CouchbaseClientWrapper getClientWrapper(){
         return _client;
     }
-    
+
+
     public CouchbaseDocumentDaoFactory getDaoFactory(){
         return _parentFactory;
     }
     
     //May be overriden to improve (bulk key attribution)
-    protected void buildKeys(Collection<T> newObjects){
+    protected void buildKeys(Collection<T> newObjects) throws DaoException,StorageException{
         for(T newObject:newObjects){
             if(newObject.getKey()==null){
                 buildKey(newObject);
@@ -50,7 +54,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
     
     //Maybe overriden to improve (bulk key attribution)
-    public void buildKeysForLinks(Collection<? extends CouchbaseDocumentLink<? extends T>> links){
+    public void buildKeysForLinks(Collection<? extends CouchbaseDocumentLink<? extends T>> links) throws DaoException,StorageException{
         for(CouchbaseDocumentLink<? extends T> link:links){
             if(link.getKey()!=null){
                 continue;
@@ -65,6 +69,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         _parentFactory = factory;
     }
 
+    protected void registerCounterDao(CouchbaseCounterDao.Builder counterDaoBuilder){
+        if(counterDaoBuilder.getClient()==null){
+            counterDaoBuilder.withClient(getClientWrapper());
+        }
+        getDaoFactory().registerCounter(new CouchbaseCounterDao(counterDaoBuilder));
+    }
+
     public void validate(T obj) throws ValidationException{
         Validator<T> validator = getDaoFactory().getValidatorFactory().getValidator(obj);
         if(validator!=null){
@@ -72,7 +83,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
     }
 
-    public T create(T obj) throws ValidationException{
+    public T create(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         validate(obj);
         if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
             /**TODO throw an error*/
@@ -82,7 +93,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
         
         try {
-            _client.add(obj,getTranscoder()).get();
+            if(!isCalcOnly) {
+                _client.add(obj, getTranscoder()).get();
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted waiting for cas update", e);
         } catch (ExecutionException e) {
@@ -96,7 +109,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return obj;
     }
     
-    public Collection<T> createBulk(Collection<T> objs) throws ValidationException{
+    public Collection<T> createBulk(Collection<T> objs,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         List<OperationFutureWrapper<Boolean,T>> futures = new ArrayList<OperationFutureWrapper<Boolean,T>>(objs.size());
         for(T obj : objs){
             if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
@@ -107,8 +120,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         
         buildKeys(objs);
         updateRevision(objs);
-        for(T obj:objs){
-            futures.add(_client.add(obj,getTranscoder()));
+        for (T obj : objs) {
+            if(!isCalcOnly) {
+                futures.add(_client.add(obj, getTranscoder()));
+            }
+            else{
+                obj.setStateSync();
+            }
         }
         List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
         for(OperationFutureWrapper<Boolean,T> future:futures){
@@ -136,13 +154,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return objs;
     }
 
-    public T get(String key){
+    public T get(String key) throws DaoException,StorageException{
         T result=_client.gets(key,getTranscoder());
         result.setStateSync();
         return result;
     }
     
-    public List<T> getBulk(Set<String> keys){
+    public List<T> getBulk(Set<String> keys) throws StorageException,DaoException{
         List<OperationFutureWrapper<CASValue<T>,T>> futures = new ArrayList<OperationFutureWrapper<CASValue<T>,T>>(keys.size());
         List<T> results = new ArrayList<T>(keys.size());
         for(String key : keys){
@@ -169,16 +187,18 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return results;
     }
     
-    public T update(T obj) throws ValidationException{
+    public T update(T obj,boolean isCalcOnly) throws ValidationException{
         validate(obj);
         if(obj.getKey()==null){/**TODO throw an error*/}
         updateRevision(obj);
-        _client.cas(obj,getTranscoder());
+        if(!isCalcOnly) {
+            _client.cas(obj, getTranscoder());
+        }
         obj.setStateSync();
         return obj;
     }
     
-    public Collection<T> updateBulk(Collection<T> objs) throws ValidationException{
+    public Collection<T> updateBulk(Collection<T> objs,boolean isCalcOnly) throws DaoException,StorageException{
         List<OperationFutureWrapper<CASResponse,T>> futures = new ArrayList<OperationFutureWrapper<CASResponse,T>>(objs.size());
 
         for(T obj:objs){
@@ -187,14 +207,17 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         buildKeys(objs);
         updateRevision(objs);
         for(T obj:objs){
-
-            futures.add(_client.asyncCas(obj,getTranscoder()));
+            if(!isCalcOnly) {
+                futures.add(_client.asyncCas(obj, getTranscoder()));
+            }
+            else{
+                obj.setStateSync();
+            }
         }
         
         List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
         for(OperationFutureWrapper<CASResponse,T> future:futures){
             try{
-                
                 CASResponse result = future.get();
                 if(result.equals(CASResponse.OK)){
                     future.getDoc().setStateSync();
@@ -217,13 +240,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return objs;
     }
     
-    public Collection<T> getLinkObjBulk(Collection<CouchbaseDocumentLink<T>> links){
+    public Collection<T> getLinkObjBulk(Collection<CouchbaseDocumentLink<T>> links) throws DaoException,StorageException{
         Collection<T> results = new ArrayList<T>(links.size());
         
         Map<String,List<CouchbaseDocumentLink<T>>> linkedDocs = new HashMap<String,List<CouchbaseDocumentLink<T>>>(links.size());
         //Retrive Unique Key
         for(CouchbaseDocumentLink<T> link : links){
-            if(link.getLinkedObject()!=null){ results.add(link.getLinkedObject()); continue; }
+            if(link.getLinkedObjectFromCache()!=null){ results.add(link.getLinkedObjectFromCache()); continue; }
             if(linkedDocs.containsKey(link.getKey())){
                 linkedDocs.get(link.getKey()).add(link);
             }
@@ -243,8 +266,8 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return results;
     }
     
-    public T getLinkObj(CouchbaseDocumentLink<T> link){
-        if(link.getLinkedObject()!=null) { return link.getLinkedObject(); }
+    public T getLinkObj(CouchbaseDocumentLink<T> link) throws StorageException,DaoException{
+        if(link.getLinkedObjectFromCache()!=null) { return link.getLinkedObjectFromCache(); }
         T result = get(link.getKey());
         link.setLinkedObject(result);
         

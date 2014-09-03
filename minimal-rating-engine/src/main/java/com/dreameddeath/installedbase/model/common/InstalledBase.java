@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class InstalledBase extends CouchbaseDocument {
     /**
-     *  contract : The installed Contract for this installed base
+     *  contract : The installed Contract for this installed base (if any)
      */
     @DocumentProperty("contract")
     private Property<InstalledContract> _contract = new StandardProperty<InstalledContract>(InstalledBase.this);

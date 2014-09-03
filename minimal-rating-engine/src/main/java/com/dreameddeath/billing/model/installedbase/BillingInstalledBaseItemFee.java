@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class BillingInstalledBaseItemFee extends BillingInstalledBaseItem {
     /**
-     *  tariffId : Instance of the tariff corresponding to the billingItem
+     *  tariffId : Instance of the tariff of the installed base corresponding to the billingItem
      */
     @DocumentProperty("tariffId")
     private Property<String> _tariffId = new StandardProperty<String>(BillingInstalledBaseItemFee.this);

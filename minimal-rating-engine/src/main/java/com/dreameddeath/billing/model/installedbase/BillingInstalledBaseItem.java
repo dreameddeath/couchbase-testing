@@ -22,7 +22,7 @@ public class BillingInstalledBaseItem extends CouchbaseDocumentElement {
     @DocumentProperty("id")
     private Property<Long> _id = new StandardProperty<Long>(BillingInstalledBaseItem.this);
     /**
-     *  statuses : List of statuses (history by dates
+     *  statuses : List of statuses (history by dates)
      */
     @DocumentProperty("statuses")
     private ListProperty<BillingInstalledBaseItemStatus> _statuses = new ArrayListProperty<BillingInstalledBaseItemStatus>(BillingInstalledBaseItem.this);

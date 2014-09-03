@@ -1,8 +1,10 @@
 package com.dreameddeath.core.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -16,20 +18,21 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
 
     public String getDocKey(){return _docKey.get(); }
     public void setDocKey(String docKey){_docKey.set(docKey); }
-    public T getDocument(){
+    public T getDocument() throws DaoException,StorageException{
         return (T)this.getParentJob().getSession().get(_docKey.get());
     }
 
 
     @Override
     public boolean process() throws TaskExecutionException{
-        //Recovery mode
-        if(getDocKey()!=null){
-            if(getDocument()!=null){
-                return false;
-            }
-        }
         try {
+            //Recovery mode
+            if(getDocKey()!=null){
+                if(getDocument()!=null){
+                    return false;
+                }
+            }
+
             T doc = buildDocument();
             //Prebuild key
             setDocKey(doc.getSession().buildKey(doc).getKey());
@@ -41,9 +44,15 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
         catch(ValidationException e){
             throw new TaskExecutionException(this,State.PROCESSED,"Validation error", e);
         }
+        catch(DaoException e){
+            throw new TaskExecutionException(this,State.PROCESSED,"Dao error", e);
+        }
+        catch(StorageException e){
+            throw new TaskExecutionException(this,State.PROCESSED,"Dao error", e);
+        }
         return false; //No need to save (retry allowed)
     }
 
-    protected abstract T buildDocument();
+    protected abstract T buildDocument() throws DaoException,StorageException;
 
 }

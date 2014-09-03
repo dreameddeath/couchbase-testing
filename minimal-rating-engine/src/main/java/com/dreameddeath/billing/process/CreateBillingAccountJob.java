@@ -1,18 +1,16 @@
 package com.dreameddeath.billing.process;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.billing.model.account.BillingAccountPartyRole;
 import com.dreameddeath.billing.model.process.CreateBillingAccountRequest;
 import com.dreameddeath.billing.model.process.CreateBillingAccountResult;
-import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.event.TaskProcessEvent;
+import com.dreameddeath.core.exception.dao.DaoException;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.model.process.DocumentCreateTask;
 import com.dreameddeath.core.model.process.DocumentUpdateTask;
 import com.dreameddeath.core.model.process.SubJobProcessTask;
-import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
 import com.dreameddeath.party.model.*;
 
 /**
@@ -32,7 +30,7 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
     @Override
     public boolean when(TaskProcessEvent evt){
         if(evt.getTask() instanceof CreateBillingAccountTask){
-            addTask((new CreatePartyRolesTask()).setDocId(getResult().partyLink.getKey()));
+            addTask((new CreatePartyRolesTask()).setDocKey(getResult().partyLink.getKey()));
             return false;
         }
         if(evt.getTask() instanceof CreatePartyRolesTask){
@@ -49,11 +47,11 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
      */
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> {
         @Override
-        protected BillingAccount buildDocument() {
+        protected BillingAccount buildDocument() throws DaoException,StorageException {
             BillingAccount newBa = newEntity(BillingAccount.class);
             CreateBillingAccountJob job= getParentJob(CreateBillingAccountJob.class);
             newBa.setBillDay((job.getRequest().billDay!=null)?job.getRequest().billDay:1);
-            newBa.setBillingCycleLength((job.getRequest().cycleLength!=null)?job.getRequest().cycleLength:1);
+            newBa.setBillCycleLength((job.getRequest().cycleLength != null) ? job.getRequest().cycleLength : 1);
 
             Party party = getParentJob().getSession().getFromUID(getParentJob(CreateBillingAccountJob.class).getRequest().partyId, Party.class);
             job.getResult().partyLink = party.newLink();
@@ -69,7 +67,7 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
      */
     public static class CreatePartyRolesTask extends DocumentUpdateTask<Party> {
         @Override
-        protected void processDocument() {
+        protected void processDocument() throws DaoException,StorageException{
             BillingAccountPartyRole newPartyRole = new BillingAccountPartyRole();
             newPartyRole.setBa(getParentJob(CreateBillingAccountJob.class).getResult().baLink.getLinkedObject().newLink());
             newPartyRole.addRole(BillingAccountPartyRole.RoleType.HOLDER);
@@ -84,7 +82,7 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
      */
     public static class CreateBillingCycleTask extends SubJobProcessTask<CreateBillingCycleJob> {
         @Override
-        protected CreateBillingCycleJob buildSubJob() {
+        protected CreateBillingCycleJob buildSubJob() throws DaoException,StorageException{
             CreateBillingCycleJob job = newEntity(CreateBillingCycleJob.class);
             BillingAccount ba = getParentJob(CreateBillingAccountJob.class).getResult().baLink.getLinkedObject();
 

@@ -2,6 +2,8 @@ package com.dreameddeath.core.model.process;
 
 import java.util.*;
 
+import com.dreameddeath.core.annotation.NotNull;
+import com.dreameddeath.core.annotation.Validate;
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.process.JobExecutionException;
@@ -21,14 +23,14 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
     private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
     @DocumentProperty(value = "state",getter = "getJobState",setter = "setJobState")
     private Property<State> _state=new StandardProperty<State>(AbstractJob.this,State.NEW);
-    @DocumentProperty("tasks")
+    @DocumentProperty("tasks") @Validate
     private ListProperty<AbstractTask> _taskList = new ArrayListProperty<AbstractTask>(AbstractJob.this);
     @DocumentProperty("lastRunError")
     private Property<String> _errorName=new StandardProperty<String>(AbstractJob.this);
     /**
      *  request : The request content for this job
      */
-    @DocumentProperty("request")
+    @DocumentProperty("request") @NotNull @Validate
     private Property<TREQ> _request = new StandardProperty<TREQ>(AbstractJob.this);
     /**
      *  result : The result content for this job

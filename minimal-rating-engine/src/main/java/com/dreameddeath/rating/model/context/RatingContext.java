@@ -25,15 +25,10 @@ public abstract class RatingContext extends CouchbaseDocument{
     private List<RatingContextAttribute> _attributes=new ArrayListProperty<RatingContextAttribute>(RatingContext.this);
     @DocumentProperty("buckets")
     private List<RatingContextBucket> _buckets=new ArrayListProperty<RatingContextBucket>(RatingContext.this);
-    
-    
+
     public BillingCycleLink getBillingCycleLink(){ return _billingCycleLink.get(); }
-    public void setBillingCycleLink(BillingCycleLink billingCycleLink){
-        _billingAccountLink.set(new BillingAccountLink(billingCycleLink.getLinkedObject().getBillingAccountLink()));
-        _billingCycleLink.set(billingCycleLink);
-    }
+    public void setBillingCycleLink(BillingCycleLink billingCycleLink){ _billingCycleLink.set(billingCycleLink); }
     public void setBillingCycle(BillingCycle billingCycle){ billingCycle.addRatingContext(this); }
-    
 
     public BillingAccountLink getBillingAccountLink(){ return _billingAccountLink.get();}
     public void setBillingAccountLink(BillingAccountLink baLink){ _billingAccountLink.set(baLink);}

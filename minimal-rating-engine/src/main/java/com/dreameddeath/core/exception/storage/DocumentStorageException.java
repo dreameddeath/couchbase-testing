@@ -6,7 +6,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class DocumentStorageException extends Exception {
+public class DocumentStorageException extends StorageException {
     CouchbaseDocument _doc;
 
     public DocumentStorageException(CouchbaseDocument doc,String message) {

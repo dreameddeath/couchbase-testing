@@ -44,9 +44,10 @@ public class InstalledItemLink extends CouchbaseDocumentElement {
     public void setStatus(InstalledStatus val) { _status.set(val); }
 
     public enum Type{
-        RELIES,
-        BRINGS,
-        MIGRATE
+        RELIES, //The item is relying on the targetted item
+        BRINGS, //The item has been automatically added the targetted item
+        MIGRATE,//The item has been migrated to another item
+        MOVED //The item has been moved to a new Parent
     }
 
     public enum Direction{

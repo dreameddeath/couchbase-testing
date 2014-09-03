@@ -1,6 +1,7 @@
 package com.dreameddeath.core.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
@@ -16,11 +17,11 @@ import org.joda.time.DateTime;
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
 public abstract class AbstractTask extends CouchbaseDocumentElement{
     private AbstractJob _parentJob;
-    @DocumentProperty("uid")
+    @DocumentProperty("uid") @NotNull
     private Property<String> _uid=new ImmutableProperty<String>(AbstractTask.this);
     @DocumentProperty("label")
     private Property<String> _label=new StandardProperty<String>(AbstractTask.this);
-    @DocumentProperty(value = "state")
+    @DocumentProperty(value = "state") @NotNull
     private Property<State> _state=new StandardProperty<State>(AbstractTask.this,State.NEW);
     @DocumentProperty("effectiveDate")
     private Property<DateTime> _effectiveDate=new StandardProperty<DateTime>(AbstractTask.this);

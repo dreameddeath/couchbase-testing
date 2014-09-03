@@ -1,4 +1,4 @@
-package com.dreameddeath.core.dao;
+package com.dreameddeath.core.dao.document;
 
 
 import com.dreameddeath.core.model.process.AbstractJob;

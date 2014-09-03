@@ -1,5 +1,7 @@
-package com.dreameddeath.core.dao;
+package com.dreameddeath.core.dao.document;
 
+import com.dreameddeath.core.exception.dao.DaoException;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 
@@ -13,8 +15,8 @@ public abstract class CouchbaseDocumentDaoWithUID<T extends CouchbaseDocument> e
 
     public abstract String getKeyFromUID(String uid);
 
-    public T getFromUID(String uid){
-        T result=getClientWrapper().gets(getKeyFromUID(uid), getTranscoder());
+    public T getFromUID(String uid) throws DaoException,StorageException{
+        T result= get(getKeyFromUID(uid));
         result.setStateSync();
         return result;
     }
