@@ -1,11 +1,11 @@
 package com.dreameddeath.billing.model.account;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.property.ArrayListProperty;
-import com.dreameddeath.core.model.property.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.party.model.PartyRole;
+import com.dreameddeath.party.model.base.PartyRole;
 
 import java.util.List;
 

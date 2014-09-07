@@ -7,7 +7,7 @@ import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.process.JobProcessingService;
 
 import java.util.UUID;

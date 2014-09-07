@@ -3,13 +3,11 @@ package com.dreameddeath.core.model.document;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.dao.CouchbaseSession;
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.dao.ReadOnlyException;
-import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.process.AbstractTask;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
-import com.dreameddeath.core.model.property.ArrayListProperty;
-import com.dreameddeath.core.model.property.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.storage.CouchbaseConstants.DocumentFlag;
 import org.joda.time.DateTime;
@@ -27,7 +25,7 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     private Integer _dbDocSize;
     private Collection<DocumentFlag> _documentFlags=new HashSet<DocumentFlag>();
     private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
-    private State _state=State.NEW;
+    private DocumentState _docState = DocumentState.NEW;
 
     @DocumentProperty("attachedTasks")
     private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(CouchbaseDocument.this);
@@ -76,17 +74,17 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     public void addReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
     public void removeReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
     
-    public void setStateDirty(){
-        if(_state.equals(State.SYNC)){
-            _state=State.DIRTY;
+    public void setDocStateDirty(){
+        if(_docState.equals(DocumentState.SYNC)){
+            _docState = DocumentState.DIRTY;
         }
         for(CouchbaseDocumentLink link: _reverseLinks){
             link.syncFields();
         }
     }
     
-    public void setStateSync(){ _state = State.SYNC; }
-    public State getState(){ return _state; }
+    public void setDocStateSync(){ _docState = DocumentState.SYNC; }
+    public DocumentState getDocState(){ return _docState; }
     
     
     public boolean equals(CouchbaseDocument doc){
@@ -98,7 +96,7 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
 
 
     public void save() throws DaoException,StorageException {
-        if(_state.equals(State.NEW)) {
+        if(_docState.equals(DocumentState.NEW)) {
             this.getSession().create(this);
         }
         else{
@@ -161,11 +159,11 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
             "cas   : "+_cas+",\n"+
             "lock  : "+_isLocked+",\n"+
             "size  : "+_dbDocSize+",\n"+
-            "state  : "+_state+",\n"+
+            "state  : "+ _docState +",\n"+
             "flags : "+_documentFlags.toString();
     }
     
-    public enum State{
+    public enum DocumentState {
         NEW,
         DIRTY,
         SYNC;

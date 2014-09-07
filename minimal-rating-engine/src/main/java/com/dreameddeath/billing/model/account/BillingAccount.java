@@ -7,7 +7,10 @@ import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.*;
-import com.dreameddeath.party.model.PartyLink;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.party.model.base.PartyLink;
 import org.joda.time.DateTime;
 
 import java.util.Collection;

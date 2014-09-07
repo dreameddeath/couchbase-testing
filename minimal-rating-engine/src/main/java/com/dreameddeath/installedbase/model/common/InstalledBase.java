@@ -3,13 +3,13 @@ package com.dreameddeath.installedbase.model.common;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.property.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.model.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.offer.InstalledOffer;
-import com.dreameddeath.party.model.PartyLink;
+import com.dreameddeath.party.model.base.PartyLink;
 
 import java.util.Collection;
 import java.util.List;

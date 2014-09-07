@@ -8,8 +8,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * Created by Christophe Jeunesse on 03/08/2014.
  */
 public class CustomMinimalClassNameIdResolver extends MinimalClassNameIdResolver{
-    protected CustomMinimalClassNameIdResolver(JavaType baseType, TypeFactory typeFactory)
-    {
+    protected CustomMinimalClassNameIdResolver(JavaType baseType, TypeFactory typeFactory){
         super(baseType,typeFactory);
     }
 }

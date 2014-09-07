@@ -10,6 +10,9 @@ import com.dreameddeath.core.exception.process.JobExecutionException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.*;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.process.JobProcessingService;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
@@ -110,7 +113,7 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
         if(getTask(task.getUid())!=null){
             ///TODO throw an error
         }
-        task.setParentElement(this);
+        task.setParentDocumentElement(this);
         task.setParentJob(this);
         _taskList.add(task);
     }

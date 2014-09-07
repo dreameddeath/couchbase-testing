@@ -17,7 +17,7 @@ public abstract class CouchbaseDocumentDaoWithUID<T extends CouchbaseDocument> e
 
     public T getFromUID(String uid) throws DaoException,StorageException{
         T result= get(getKeyFromUID(uid));
-        result.setStateSync();
+        result.setDocStateSync();
         return result;
     }
 }

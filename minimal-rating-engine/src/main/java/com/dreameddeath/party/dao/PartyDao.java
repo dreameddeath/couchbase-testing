@@ -3,14 +3,11 @@ package com.dreameddeath.party.dao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.party.model.Party;
+import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
     public static final String PARTY_CNT_KEY="party/cnt";

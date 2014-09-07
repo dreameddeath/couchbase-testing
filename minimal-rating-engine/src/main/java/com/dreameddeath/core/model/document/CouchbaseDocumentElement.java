@@ -1,7 +1,8 @@
 package com.dreameddeath.core.model.document;
 
+import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -15,7 +16,7 @@ import java.util.List;
 @JsonInclude(Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE,isGetterVisibility = Visibility.NONE,setterVisibility = Visibility.NONE,creatorVisibility = Visibility.NONE)
-public abstract class CouchbaseDocumentElement{
+public abstract class CouchbaseDocumentElement implements HasParentDocumentElement{
     private Property<CouchbaseDocumentElement> _parentElt=new StandardProperty<CouchbaseDocumentElement>(null);
     private List<CouchbaseDocumentElement> _childElementList=new ArrayList<CouchbaseDocumentElement>();
     
@@ -37,8 +38,8 @@ public abstract class CouchbaseDocumentElement{
         return res;
     }
     
-    public CouchbaseDocumentElement getParentElement() { return _parentElt.get();}
-    public void setParentElement(CouchbaseDocumentElement parentElt) {
+    public CouchbaseDocumentElement getParentDocumentElement() { return _parentElt.get();}
+    public void setParentDocumentElement(CouchbaseDocumentElement parentElt) {
         if(_parentElt.get()!=null){
             _parentElt.get().removeChildElement(this);
         }
@@ -61,7 +62,7 @@ public abstract class CouchbaseDocumentElement{
     public void dirtyDocument(){
         CouchbaseDocument doc = getParentDocument();
         if(doc!=null){
-            doc.setStateDirty();
+            doc.setDocStateDirty();
         }
     }
 

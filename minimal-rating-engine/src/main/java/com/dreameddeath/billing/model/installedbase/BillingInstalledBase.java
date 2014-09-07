@@ -4,6 +4,9 @@ import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.*;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.StandardLongProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.model.common.InstalledBaseLink;
 
 import java.util.Collection;

@@ -8,7 +8,6 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.exception.dao.ReadOnlyException;
-import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
@@ -181,7 +180,7 @@ public class CouchbaseSession {
     }
 
     public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException{
-        if(obj.getState()== CouchbaseDocument.State.NEW){
+        if(obj.getDocState()== CouchbaseDocument.DocumentState.NEW){
             ((CouchbaseDocumentDao<T>) _documentDaoFactory.getDaoForClass(obj.getClass())).buildKey(obj);
         }
         return obj;

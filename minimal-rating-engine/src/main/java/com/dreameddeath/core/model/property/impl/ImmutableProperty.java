@@ -1,4 +1,4 @@
-package com.dreameddeath.core.model.property;
+package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 

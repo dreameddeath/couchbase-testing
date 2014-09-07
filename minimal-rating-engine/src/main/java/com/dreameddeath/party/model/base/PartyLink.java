@@ -1,4 +1,4 @@
-package com.dreameddeath.party.model;
+package com.dreameddeath.party.model.base;
 
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 

@@ -1,23 +1,27 @@
-package com.dreameddeath.core.model.property;
+package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.property.HasParentDocumentElement;
+import com.dreameddeath.core.model.property.SetProperty;
 
 import java.util.*;
 
 /**
  * Created by ceaj8230 on 08/08/2014.
  */
-public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T> {
+public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,HasParentDocumentElement {
     CouchbaseDocumentElement _parentElt;
 
     public HashSetProperty(CouchbaseDocumentElement parentElement){
         _parentElt=parentElement;
     }
+    public void setParentDocumentElement(CouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
+    public CouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
 
     protected boolean dirtyParent(){
         CouchbaseDocument rootDoc = _parentElt.getParentDocument();
-        if(rootDoc!=null){ rootDoc.setStateDirty();}
+        if(rootDoc!=null){ rootDoc.setDocStateDirty();}
         return true;
     }
 
@@ -32,8 +36,8 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T> {
         boolean res = super.remove(elt);
         if(res){
             dirtyParent();
-            if((elt!=null) && (elt instanceof CouchbaseDocumentElement)){
-                ((CouchbaseDocumentElement) elt).setParentElement(null);
+            if((elt!=null) && (elt instanceof HasParentDocumentElement)){
+                ((HasParentDocumentElement) elt).setParentDocumentElement(null);
             }
         }
         return res;
@@ -42,8 +46,8 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T> {
     @Override
     public boolean removeAll(Collection<?> elts){
         for(Object elt:elts) {
-            if ((elt != null) && (elt instanceof CouchbaseDocumentElement)) {
-                ((CouchbaseDocumentElement) elt).setParentElement(null);
+            if ((elt != null) && (elt instanceof HasParentDocumentElement)) {
+                ((HasParentDocumentElement) elt).setParentDocumentElement(null);
             }
         }
         return super.removeAll(elts);
@@ -52,8 +56,8 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T> {
     @Override
     public boolean add(T elt){
         dirtyParent();
-        if((elt!=null) && (elt instanceof CouchbaseDocumentElement)){
-            ((CouchbaseDocumentElement) elt).setParentElement(_parentElt);
+        if((elt!=null) && (elt instanceof HasParentDocumentElement)){
+            ((HasParentDocumentElement) elt).setParentDocumentElement(_parentElt);
         }
         return super.add(elt);
     }
@@ -62,8 +66,8 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T> {
     public boolean addAll(Collection<? extends T> elts){
         dirtyParent();
         for(T elt:elts) {
-            if ((elt != null) && (elt instanceof CouchbaseDocumentElement)) {
-                ((CouchbaseDocumentElement) elt).setParentElement(_parentElt);
+            if ((elt != null) && (elt instanceof HasParentDocumentElement)) {
+                ((HasParentDocumentElement) elt).setParentDocumentElement(_parentElt);
             }
         }
         return super.addAll(elts);

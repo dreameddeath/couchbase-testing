@@ -4,9 +4,9 @@ import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.model.process.DocumentCreateTask;
 import com.dreameddeath.core.model.process.EmptyJobResult;
-import com.dreameddeath.party.model.Organization;
-import com.dreameddeath.party.model.Party;
-import com.dreameddeath.party.model.Person;
+import com.dreameddeath.party.model.base.Organization;
+import com.dreameddeath.party.model.base.Party;
+import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
 
 /**

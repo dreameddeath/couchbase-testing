@@ -7,7 +7,7 @@ import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.property.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
 
 /**

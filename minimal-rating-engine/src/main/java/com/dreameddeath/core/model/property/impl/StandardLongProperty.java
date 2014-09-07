@@ -1,6 +1,7 @@
-package com.dreameddeath.core.model.property;
+package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.property.NumericProperty;
 
 /**
  * Created by ceaj8230 on 14/08/2014.

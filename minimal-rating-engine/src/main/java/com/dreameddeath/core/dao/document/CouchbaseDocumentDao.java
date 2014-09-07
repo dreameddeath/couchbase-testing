@@ -85,7 +85,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public T create(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         validate(obj);
-        if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
+        if(!obj.getDocState().equals(CouchbaseDocument.DocumentState.NEW)){
             /**TODO throw an error*/
         }
         if(obj.getKey()==null){
@@ -105,14 +105,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 throw new RuntimeException("Exception waiting for cas update", e);
             }
         }
-        obj.setStateSync();
+        obj.setDocStateSync();
         return obj;
     }
     
     public Collection<T> createBulk(Collection<T> objs,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         List<OperationFutureWrapper<Boolean,T>> futures = new ArrayList<OperationFutureWrapper<Boolean,T>>(objs.size());
         for(T obj : objs){
-            if(!obj.getState().equals(CouchbaseDocument.State.NEW)){
+            if(!obj.getDocState().equals(CouchbaseDocument.DocumentState.NEW)){
                 /**TODO throw an error*/
             }
             validate(obj);
@@ -125,7 +125,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 futures.add(_client.add(obj, getTranscoder()));
             }
             else{
-                obj.setStateSync();
+                obj.setDocStateSync();
             }
         }
         List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
@@ -137,7 +137,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                     ///TODO better error management for errors
                 }
                 else{
-                    future.getDoc().setStateSync();
+                    future.getDoc().setDocStateSync();
                 }
             }
             catch (InterruptedException e) {
@@ -156,7 +156,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public T get(String key) throws DaoException,StorageException{
         T result=_client.gets(key,getTranscoder());
-        result.setStateSync();
+        result.setDocStateSync();
         return result;
     }
     
@@ -170,7 +170,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         for(OperationFutureWrapper<CASValue<T>,T> future : futures){
             try{
                 T result = future.get().getValue();
-                result.setStateSync();
+                result.setDocStateSync();
                 results.add(result);
             }
             catch (InterruptedException e) {
@@ -194,7 +194,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         if(!isCalcOnly) {
             _client.cas(obj, getTranscoder());
         }
-        obj.setStateSync();
+        obj.setDocStateSync();
         return obj;
     }
     
@@ -211,7 +211,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 futures.add(_client.asyncCas(obj, getTranscoder()));
             }
             else{
-                obj.setStateSync();
+                obj.setDocStateSync();
             }
         }
         
@@ -220,7 +220,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             try{
                 CASResponse result = future.get();
                 if(result.equals(CASResponse.OK)){
-                    future.getDoc().setStateSync();
+                    future.getDoc().setDocStateSync();
                 }
                 else{
                     ///TODO manage errors

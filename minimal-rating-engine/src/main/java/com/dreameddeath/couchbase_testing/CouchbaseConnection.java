@@ -20,7 +20,7 @@ import com.dreameddeath.core.process.ProcessingServiceFactory;
 import com.dreameddeath.core.storage.BinarySerializer;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.party.dao.PartyDao;
-import com.dreameddeath.party.model.Party;
+import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
 import com.dreameddeath.party.process.CreatePartyJob;
 import com.dreameddeath.rating.dao.RatingContextDao;
@@ -158,7 +158,7 @@ public class CouchbaseConnection {
             session.clean();
 
             CreatePartyJob readJob = (CreatePartyJob)session.get(createPartyJob.getKey());
-            System.out.println("Job <"+readJob.getKey()+"> status <"+readJob.getState()+">");
+            System.out.println("Job <"+readJob.getKey()+"> status <"+readJob.getDocState()+">");
             System.out.println("PartyUID <" + ((CreatePartyJob.CreatePartyTask) readJob.getTasks().get(0)).getDocument().getUid() + ">");
 
             CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);

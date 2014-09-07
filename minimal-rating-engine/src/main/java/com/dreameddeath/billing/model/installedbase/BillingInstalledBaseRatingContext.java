@@ -1,7 +1,7 @@
 package com.dreameddeath.billing.model.installedbase;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.property.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 
 import java.util.Collection;

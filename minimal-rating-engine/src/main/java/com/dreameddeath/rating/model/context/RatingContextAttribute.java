@@ -2,8 +2,8 @@ package com.dreameddeath.rating.model.context;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.model.property.ArrayListProperty;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.model.property.Property;
 
 import java.util.Collections;

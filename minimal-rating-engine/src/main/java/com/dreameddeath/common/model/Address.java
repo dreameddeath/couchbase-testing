@@ -3,7 +3,7 @@ package com.dreameddeath.common.model;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 /**
  * Created by ceaj8230 on 11/08/2014.

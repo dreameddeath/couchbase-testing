@@ -1,8 +1,8 @@
-package com.dreameddeath.party.model;
+package com.dreameddeath.party.model.base;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.

@@ -2,10 +2,10 @@ package com.dreameddeath.installedbase.model.common;
 
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.property.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;
 
 import java.util.Collection;

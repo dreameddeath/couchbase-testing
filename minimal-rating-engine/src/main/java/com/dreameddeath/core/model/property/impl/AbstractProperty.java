@@ -1,11 +1,13 @@
-package com.dreameddeath.core.model.property;
+package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.property.HasParentDocumentElement;
+import com.dreameddeath.core.model.property.Property;
 
 /**
  * Created by Christophe Jeunesse on 09/05/2014.
  */
-public class AbstractProperty<T> implements Property<T> {
+public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement {
     CouchbaseDocumentElement _parentElt;
     protected T _value;
     protected T _defaultValue;
@@ -17,19 +19,23 @@ public class AbstractProperty<T> implements Property<T> {
     public AbstractProperty(CouchbaseDocumentElement parentElement,T defaultValue){
         _parentElt=parentElement;
         _defaultValue=defaultValue;
-        if((_defaultValue!=null) &&(_defaultValue instanceof CouchbaseDocumentElement)) {
-            ((CouchbaseDocumentElement) _defaultValue).setParentElement(_parentElt);
+        if((_defaultValue!=null) && (_defaultValue instanceof HasParentDocumentElement)){
+            ((HasParentDocumentElement) _defaultValue).setParentDocumentElement(_parentElt);
         }
     }
 
+    public void setParentDocumentElement(CouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
+    public CouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+
     protected T getRawValue(){return _value;}
+
     public T get(){ if(_value==null){_value =_defaultValue; _defaultValue=null;} return _value; }
     public boolean set(T value) {
         if(!equalsValue(value)){
             _value = value;
             if(_parentElt!=null) {
-                if (value instanceof CouchbaseDocumentElement) {
-                    ((CouchbaseDocumentElement) value).setParentElement(_parentElt);
+                if (value instanceof HasParentDocumentElement) {
+                    ((HasParentDocumentElement) value).setParentDocumentElement(_parentElt);
                 }
                 _parentElt.dirtyDocument();
             }

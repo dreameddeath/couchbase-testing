@@ -5,9 +5,9 @@ import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.model.property.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.StandardProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.process.TaskProcessingService;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
@@ -55,7 +55,7 @@ public abstract class AbstractTask extends CouchbaseDocumentElement{
     public String getLabel(){ return _label.get(); }
     public void setLabel(String label){ _label.set(label); }
     
-    public static enum State{
+    public enum State{
         UNKNOWN,
         NEW,
         INITIALIZED, //Init done
