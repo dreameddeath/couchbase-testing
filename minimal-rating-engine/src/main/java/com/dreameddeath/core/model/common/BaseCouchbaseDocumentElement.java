@@ -1,5 +1,6 @@
-package com.dreameddeath.core.model.document;
+package com.dreameddeath.core.model.common;
 
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -16,20 +17,20 @@ import java.util.List;
 @JsonInclude(Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE,isGetterVisibility = Visibility.NONE,setterVisibility = Visibility.NONE,creatorVisibility = Visibility.NONE)
-public abstract class CouchbaseDocumentElement implements HasParentDocumentElement{
-    private Property<CouchbaseDocumentElement> _parentElt=new StandardProperty<CouchbaseDocumentElement>(null);
-    private List<CouchbaseDocumentElement> _childElementList=new ArrayList<CouchbaseDocumentElement>();
-    
-    protected void addChildElement(CouchbaseDocumentElement elt){
+public abstract class BaseCouchbaseDocumentElement implements HasParentDocumentElement{
+    private Property<BaseCouchbaseDocumentElement> _parentElt=new StandardProperty<BaseCouchbaseDocumentElement>(null);
+    private List<BaseCouchbaseDocumentElement> _childElementList=new ArrayList<BaseCouchbaseDocumentElement>();
+
+    protected void addChildElement(BaseCouchbaseDocumentElement elt){
         _childElementList.add(elt);
     }
-    protected void removeChildElement(CouchbaseDocumentElement elt){
+    protected void removeChildElement(BaseCouchbaseDocumentElement elt){
         _childElementList.remove(elt);
     }
 
-    public <T extends CouchbaseDocumentElement> List<T> getChildElementsOfType(Class<T> clazz){
+    public <T extends BaseCouchbaseDocumentElement> List<T> getChildElementsOfType(Class<T> clazz){
         List<T> res=new ArrayList<T>();
-        for(CouchbaseDocumentElement child : _childElementList){
+        for(BaseCouchbaseDocumentElement child : _childElementList){
             if(clazz.isAssignableFrom(child.getClass())){
                 res.add((T)child);
             }
@@ -38,8 +39,8 @@ public abstract class CouchbaseDocumentElement implements HasParentDocumentEleme
         return res;
     }
     
-    public CouchbaseDocumentElement getParentDocumentElement() { return _parentElt.get();}
-    public void setParentDocumentElement(CouchbaseDocumentElement parentElt) {
+    public BaseCouchbaseDocumentElement getParentDocumentElement() { return _parentElt.get();}
+    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElt) {
         if(_parentElt.get()!=null){
             _parentElt.get().removeChildElement(this);
         }
@@ -49,7 +50,7 @@ public abstract class CouchbaseDocumentElement implements HasParentDocumentEleme
         }
     }
     
-    public CouchbaseDocument getParentDocument() { 
+    public CouchbaseDocument getParentDocument() {
         if(this instanceof CouchbaseDocument){
             return (CouchbaseDocument)this;
         }
@@ -66,7 +67,7 @@ public abstract class CouchbaseDocumentElement implements HasParentDocumentEleme
         }
     }
 
-    public <T extends CouchbaseDocumentElement> T getFirstParentOfClass(Class<T> clazz){
+    public <T extends BaseCouchbaseDocumentElement> T getFirstParentOfClass(Class<T> clazz){
         if(_parentElt!=null){
             if(_parentElt.getClass().equals(clazz)){
                 return (T) (_parentElt.get());

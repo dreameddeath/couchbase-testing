@@ -12,13 +12,16 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.CouchbaseSession;
-import com.dreameddeath.core.dao.document.JobDao;
+import com.dreameddeath.core.dao.process.JobDao;
+import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
+import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.validation.ValidatorFactory;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.process.ProcessingServiceFactory;
 import com.dreameddeath.core.storage.BinarySerializer;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.user.User;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
@@ -61,11 +64,12 @@ public class CouchbaseConnection {
     }
 
     private static final CouchbaseCounterDaoFactory _counterDaoFactory = new CouchbaseCounterDaoFactory();
-
+    private static final CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory=new CouchbaseUniqueKeyDaoFactory();
     private static final CouchbaseDocumentDaoFactory _docDaoFactory = new CouchbaseDocumentDaoFactory();
     static {
         _docDaoFactory.setCounterDaoFactory(_counterDaoFactory);
         _docDaoFactory.setValidatorFactory(new ValidatorFactory());
+        _uniqueKeyDaoFactory.addDaoFor("personName", new CouchbaseUniqueKeyDao(_client,_uniqueKeyDaoFactory));
         _docDaoFactory.addDaoFor(BillingAccount.class, new BillingAccountDao(_client, _docDaoFactory));
         _docDaoFactory.addDaoFor(BillingCycle.class, new BillingCycleDao(_client, _docDaoFactory));
         _docDaoFactory.addDaoFor(RatingContext.class, new RatingContextDao(_client, _docDaoFactory));
@@ -74,7 +78,7 @@ public class CouchbaseConnection {
         _docDaoFactory.addDaoFor(AbstractJob.class, new JobDao(_client, _docDaoFactory));
     }
 
-    private static final CouchbaseSessionFactory _sessionFactory = new CouchbaseSessionFactory(_docDaoFactory,_counterDaoFactory);
+    private static final CouchbaseSessionFactory _sessionFactory = new CouchbaseSessionFactory(_docDaoFactory,_counterDaoFactory,_uniqueKeyDaoFactory);
     
     public static class StringSerializer implements BinarySerializer<String>{
         public byte[] serialize(String str){ return str.getBytes(); }
@@ -96,7 +100,7 @@ public class CouchbaseConnection {
     
     // public static CdrsBucketLink<GenericCdrsBucket> buildLink(T genCdrsBucket){
         // CdrsBucketLink<T> newLink = new CdrsBucketLink<T>();
-        // newLink.setKey(genCdrsBucket.getKey());
+        // newLink.setDocumentKey(genCdrsBucket.getDocumentKey());
         // newLink.setType(genCdrsBucket.getClass().getSimpleName());
         // newLink.updateFromBucket(genCdrsBucket);
         // newLink.setLinkedObject(genCdrsBucket);
@@ -131,7 +135,7 @@ public class CouchbaseConnection {
 
         public void buildKey(StringCdrBucket obj) throws DaoException{
             long result = obj.getSession().incrCounter(String.format(CDR_BUCKET_CNT_KEY, obj.getBillingAccountKey()), 1);
-            obj.setKey(String.format(CDR_BUCKET_FMT_KEY,obj.getBillingAccountKey(),result));
+            obj.setDocumentKey(String.format(CDR_BUCKET_FMT_KEY, obj.getBillingAccountKey(), result));
         }
 
         public String getKeyPattern(){
@@ -157,8 +161,8 @@ public class CouchbaseConnection {
 
             session.clean();
 
-            CreatePartyJob readJob = (CreatePartyJob)session.get(createPartyJob.getKey());
-            System.out.println("Job <"+readJob.getKey()+"> status <"+readJob.getDocState()+">");
+            CreatePartyJob readJob = (CreatePartyJob)session.get(createPartyJob.getDocumentKey());
+            System.out.println("Job <"+readJob.getDocumentKey()+"> status <"+readJob.getDocState()+">");
             System.out.println("PartyUID <" + ((CreatePartyJob.CreatePartyTask) readJob.getTasks().get(0)).getDocument().getUid() + ">");
 
             CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
@@ -185,7 +189,7 @@ public class CouchbaseConnection {
             session.create(ratingCtxt);
             
             System.out.println("Set Rating Result :"+ratingCtxt);
-            //BillingAccount readBa = _docDaoFactory.getDaoForClass(BillingAccount.class).get(ba.getKey());
+            //BillingAccount readBa = _docDaoFactory.getDaoForClass(BillingAccount.class).get(ba.getDocumentKey());
             //System.out.println("Read Ba Result :"+readBa);
             //readBa.setLedgerSegment("Bis");
             attr.setCode("testing2");
@@ -194,9 +198,9 @@ public class CouchbaseConnection {
             System.out.println("After Update Billing Cycle Result :"+ba);
 
             StringCdrBucket cdrsBucket = new StringCdrBucket(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
-            cdrsBucket.setBillingAccountKey(ba.getKey());
-            cdrsBucket.setBillingCycleKey(billCycle.getKey());
-            cdrsBucket.setRatingContextKey(ratingCtxt.getKey());
+            cdrsBucket.setBillingAccountKey(ba.getDocumentKey());
+            cdrsBucket.setBillingCycleKey(billCycle.getDocumentKey());
+            cdrsBucket.setRatingContextKey(ratingCtxt.getDocumentKey());
             
             for(int i=0;i<5;++i){
                 StringCdr cdr = new StringCdr("CDR_"+i);
@@ -206,9 +210,9 @@ public class CouchbaseConnection {
             
             _docDaoFactory.getDaoForClass(StringCdrBucket.class).create(cdrsBucket);
             
-            GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.gets(cdrsBucket.getKey(),_docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
+            GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.gets(cdrsBucket.getDocumentKey(),_docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             
-            StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getKey(),unpackedCdrsMap.getDbDocSize(),GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
+            StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getDocumentKey(),unpackedCdrsMap.getDocumentDbSize(),GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
             int pos=0;
             for(StringCdr cdr : unpackedCdrsMap.getCdrs()){
                 if(pos%2==0){
@@ -221,15 +225,15 @@ public class CouchbaseConnection {
             }
             
             _client.append(newCdrsBucket,_docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder()).get();
-            unpackedCdrsMap = _client.gets(cdrsBucket.getKey(), _docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
+            unpackedCdrsMap = _client.gets(cdrsBucket.getDocumentKey(), _docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             //System.out.println("Result :\n"+unpackedCdrsMap.toString());
             
             System.out.println("New Session");
             
             CouchbaseSession readSession=_docDaoFactory.newSession();
-            BillingAccount readBa = readSession.get(ba.getKey(),BillingAccount.class);
+            BillingAccount readBa = readSession.get(ba.getDocumentKey(),BillingAccount.class);
             System.out.println("Ba Read finished");
-            BillingCycle readCycle = readSession.get(billCycle.getKey(),BillingCycle.class);
+            BillingCycle readCycle = readSession.get(billCycle.getDocumentKey(),BillingCycle.class);
             System.out.println("Cycle Read finished");
             System.out.println("Read Ba Result :"+readBa);
             System.out.println("Read BillCycle Result :"+readCycle);
@@ -260,23 +264,37 @@ public class CouchbaseConnection {
 
         //_docDaoFactory.getValidatorFactory().getValidator(person.getClass());
         //_docDaoFactory.getValidatorFactory().getValidator(Person.class);
-        for(int i=0;i<10000;++i) {
+        for(int i=0;i<100;++i) {
             final int id=i;
             try {
                 pool.submit(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            CouchbaseSession session = _sessionFactory.newReadWriteSession();
+                            CouchbaseSession session = _sessionFactory.newReadWriteSession(new User() {
+                                @Override
+                                public String getUserId() {
+                                    return null;
+                                }
+
+                                @Override
+                                public Boolean hasRight(String namme) {
+                                    return null;
+                                }
+
+                                @Override
+                                public String getProperty(String name) {
+                                    return null;
+                                }
+                            });
                             ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
 
                             CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
                             createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
                             createPartyJob.getRequest().person = new CreatePartyRequest.Person();
                             createPartyJob.getRequest().person.firstName = "christophe " + id;
-                            //if(id%2==0) {
-                                createPartyJob.getRequest().person.lastName = "jeunesse " + id;
-                            //}
+
+                            createPartyJob.getRequest().person.lastName = "jeunesse " + (id/10);
                             serviceFactory.getJobServiceForClass(CreatePartyJob.class).execute(createPartyJob);
                             CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
                             createBaJob.getRequest().billDay=2;

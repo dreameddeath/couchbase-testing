@@ -1,9 +1,6 @@
 package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-
-import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.

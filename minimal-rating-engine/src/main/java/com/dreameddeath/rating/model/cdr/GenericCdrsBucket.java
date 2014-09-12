@@ -58,8 +58,8 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
     */
     public GenericCdrsBucket(String key,Integer origDbSize,DocumentType documentType){
         this(documentType);
-        setDbDocSize(origDbSize);
-        setKey(key);
+        setDocumentDbSize(origDbSize);
+        setDocumentKey(key);
     }
     
     /// Billing Account Key Getter/Setter

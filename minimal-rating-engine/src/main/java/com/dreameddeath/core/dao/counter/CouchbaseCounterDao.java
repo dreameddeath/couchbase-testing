@@ -39,22 +39,6 @@ public class CouchbaseCounterDao {
     public CouchbaseCounterDao(Builder builder){
         this(builder.getClient(), builder.getKeyPattern(), builder.getDefaultValue(), builder.getModulus(), builder.getExpiration().intValue());
     }
-    /*public CouchbaseCounterDao(CouchbaseClientWrapper client,String key, Long defaultValue, Long modulus){
-        this(client,key,defaultValue,modulus,null);
-    }
-
-    public CouchbaseCounterDao(CouchbaseClientWrapper client,String key, Long defaultValue,Integer expiration){
-        this(client,key,defaultValue,null,expiration);
-    }
-
-
-    public CouchbaseCounterDao(CouchbaseClientWrapper client,String key, Long defaultValue){
-        this(client,key,defaultValue,null,null);
-    }
-
-    public CouchbaseCounterDao(CouchbaseClientWrapper client,String key){
-        this(client,key,null,null,null);
-    }*/
 
     public String getKeyPattern(){
         return _keyPattern;

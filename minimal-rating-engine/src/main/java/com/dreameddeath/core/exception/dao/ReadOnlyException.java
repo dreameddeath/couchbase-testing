@@ -7,7 +7,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  */
 public class ReadOnlyException extends DaoException {
     public ReadOnlyException(CouchbaseDocument doc){
-        super("Trying to update the document  <"+doc.getClass().getName()+">"+((doc.getKey()!=null)?" withKey <"+doc.getKey()+">":"")+" while being in a read only session");
+        super("Trying to update the document  <"+doc.getClass().getName()+">"+((doc.getDocumentKey()!=null)?" withKey <"+doc.getDocumentKey()+">":"")+" while being in a read only session");
     }
 
     public ReadOnlyException(Class docClass){

@@ -23,7 +23,6 @@ public class CouchbaseDocumentDaoFactory{
     public void setValidatorFactory(ValidatorFactory factory){
         _validatorFactory = factory;
     }
-
     public ValidatorFactory getValidatorFactory(){
         return _validatorFactory;
     }
@@ -31,7 +30,6 @@ public class CouchbaseDocumentDaoFactory{
     public CouchbaseCounterDaoFactory getCounterDaoFactory(){
         return _counterDaoFactory;
     }
-
     public void setCounterDaoFactory(CouchbaseCounterDaoFactory factory){
         _counterDaoFactory = factory;
     }
@@ -68,6 +66,6 @@ public class CouchbaseDocumentDaoFactory{
                 return _patternsMap.get(pattern);
             }
         }
-        throw new DaoNotFoundException(key,true);
+        throw new DaoNotFoundException(key, DaoNotFoundException.Type.DOC);
     }
 }

@@ -1,5 +1,6 @@
 package com.dreameddeath.core.storage;
 
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 import net.spy.memcached.CASValue;
@@ -8,16 +9,16 @@ import net.spy.memcached.internal.OperationFuture;
 import java.util.concurrent.Future;
 
 
-public abstract class FutureWrapper<T,TDOC extends CouchbaseDocument>{
-    private CouchbaseDocumentLink<TDOC> _link;
+public abstract class FutureWrapper<T,TDOC extends BaseCouchbaseDocument>{
+    //private CouchbaseDocumentLink<TDOC> _link;
     private TDOC _linkedDoc;
     
     public abstract String getKey();
     public abstract Future<T> getFuture();
 
-    public void setLink(CouchbaseDocumentLink<TDOC> link){
+    /*public void setLink(CouchbaseDocumentLink<TDOC> link){
         _link = link;
-    }
+    }*/
     
     protected void setDoc(TDOC doc){
         _linkedDoc = doc;
@@ -28,27 +29,27 @@ public abstract class FutureWrapper<T,TDOC extends CouchbaseDocument>{
     
     protected final T enrich(T input){
         if(input instanceof CouchbaseDocument){
-            ((CouchbaseDocument)input).setKey(getKey());
+            ((CouchbaseDocument)input).setDocumentKey(getKey());
             if(getFuture() instanceof OperationFuture){
-                ((CouchbaseDocument)input).setCas(((OperationFuture)getFuture()).getCas());
+                ((CouchbaseDocument)input).setDocumentCas(((OperationFuture) getFuture()).getCas());
             }
-            if(_link!=null){
+            /*if(_link!=null){
                 _link.setLinkedObject((TDOC)input);
-            }
+            }*/
         }
         else if(input instanceof CASValue){
             Object doc = ((CASValue)input).getValue();
             if(doc instanceof CouchbaseDocument){
-                ((CouchbaseDocument)doc).setKey(getKey());
-                ((CouchbaseDocument)doc).setCas(((CASValue)input).getCas());
-                if(_link!=null){
+                ((CouchbaseDocument)doc).setDocumentKey(getKey());
+                ((CouchbaseDocument)doc).setDocumentCas(((CASValue) input).getCas());
+                /*if(_link!=null){
                     _link.setLinkedObject(((TDOC)input));
-                }
+                }*/
             }
         }
         
         if((_linkedDoc !=null) && (getFuture() instanceof OperationFuture)){
-            _linkedDoc.setCas(((OperationFuture)getFuture()).getCas());
+            _linkedDoc.setDocumentCas(((OperationFuture) getFuture()).getCas());
         }
         
         return input;

@@ -1,13 +1,13 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 
 public class ImmutableProperty<T> extends AbstractProperty<T> {
 
-    public ImmutableProperty(CouchbaseDocumentElement parentElement){
+    public ImmutableProperty(BaseCouchbaseDocumentElement parentElement){
         super(parentElement);
     }
-    public ImmutableProperty(CouchbaseDocumentElement parentElement, T defaultValue){
+    public ImmutableProperty(BaseCouchbaseDocumentElement parentElement, T defaultValue){
         super(parentElement,defaultValue);
     }
 

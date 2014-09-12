@@ -7,6 +7,7 @@ import java.util.List;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.SynchronizedLinkProperty;
@@ -14,16 +15,14 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown=true)
-@JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE)
-public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends CouchbaseDocumentElement{
+public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends BaseCouchbaseDocumentElement {
     private List<SynchronizedLinkProperty> _childLinks=new ArrayList<SynchronizedLinkProperty>();
     private Property<T>            _docObject=new ImmutableProperty<T>(null);
     @DocumentProperty("key")
     private Property<String> _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
         protected  String getRealValue(T doc){
-            return doc.getKey();
+            return doc.getDocumentKey();
         }
     };
 
@@ -63,8 +62,8 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     
     public CouchbaseDocumentLink(){}
     public CouchbaseDocumentLink(T targetDoc){
-        if(targetDoc.getKey()!=null){
-            setKey(targetDoc.getKey());
+        if(targetDoc.getDocumentKey()!=null){
+            setKey(targetDoc.getDocumentKey());
         }
         setLinkedObject(targetDoc);
     }

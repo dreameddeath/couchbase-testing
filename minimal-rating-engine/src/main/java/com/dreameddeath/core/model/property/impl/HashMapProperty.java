@@ -1,9 +1,8 @@
 package com.dreameddeath.core.model.property.impl;
 
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
-import com.dreameddeath.core.model.property.MapDefaultValueBuilder;
 import com.dreameddeath.core.model.property.MapProperty;
 
 import java.util.Collections;
@@ -14,13 +13,13 @@ import java.util.Map;
  * Created by ceaj8230 on 06/08/2014.
  */
 public class HashMapProperty<K,V> extends HashMap<K,V> implements MapProperty<K,V>,HasParentDocumentElement {
-    CouchbaseDocumentElement _parentElt;
-    public HashMapProperty(CouchbaseDocumentElement parentElement){
+    BaseCouchbaseDocumentElement _parentElt;
+    public HashMapProperty(BaseCouchbaseDocumentElement parentElement){
         _parentElt=parentElement;
     }
 
-    public void setParentDocumentElement(CouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
-    public CouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
+    public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
 
     protected boolean dirtyParent(){
         CouchbaseDocument rootDoc = _parentElt.getParentDocument();

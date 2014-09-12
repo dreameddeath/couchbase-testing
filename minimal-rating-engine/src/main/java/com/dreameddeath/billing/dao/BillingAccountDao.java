@@ -11,9 +11,6 @@ import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class BillingAccountDao extends CouchbaseDocumentDaoWithUID<BillingAccount> {
     public static final String BA_CNT_KEY="ba/cnt";
     public static final String BA_CNT_KEY_PATTERN="ba/cnt";
@@ -36,7 +33,7 @@ public class BillingAccountDao extends CouchbaseDocumentDaoWithUID<BillingAccoun
     @Override
     public void buildKey(BillingAccount obj) throws DaoException,StorageException{
         long result = obj.getSession().incrCounter(BA_CNT_KEY,1);
-        obj.setKey(String.format(BA_FMT_KEY,result));
+        obj.setDocumentKey(String.format(BA_FMT_KEY, result));
         if(obj.getUid()==null){
             obj.setUid(String.format(BA_FMT_UID,result));
         }

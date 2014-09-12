@@ -34,7 +34,7 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
             return false;
         }
         if(evt.getTask() instanceof CreatePartyRolesTask){
-            addTask(new CreateBillingCycleTask());//.setDocId(partyLink.getKey()));
+            addTask(new CreateBillingCycleTask());//.setDocId(partyLink.getDocumentKey()));
             return false;
         }
 

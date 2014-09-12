@@ -7,8 +7,8 @@ import com.dreameddeath.core.annotation.Validate;
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.process.JobExecutionException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.*;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 @JsonTypeInfo(use=Id.MINIMAL_CLASS,include=As.PROPERTY, property="@c")
-public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES extends CouchbaseDocumentElement> extends CouchbaseDocument {
+public abstract class AbstractJob<TREQ extends BaseCouchbaseDocumentElement,TRES extends BaseCouchbaseDocumentElement> extends CouchbaseDocument {
     @DocumentProperty("uid")
     private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
     @DocumentProperty(value = "state",getter = "getJobState",setter = "setJobState")

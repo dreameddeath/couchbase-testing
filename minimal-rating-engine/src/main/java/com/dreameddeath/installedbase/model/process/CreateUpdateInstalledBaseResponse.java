@@ -1,7 +1,7 @@
 package com.dreameddeath.installedbase.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by ceaj8230 on 04/09/2014.
  */
-public class CreateUpdateInstalledBaseResponse extends CouchbaseDocumentElement {
+public class CreateUpdateInstalledBaseResponse extends BaseCouchbaseDocumentElement {
     @DocumentProperty("contracts")
     public List<Contract> contracts=new ArrayList<Contract>();
     @DocumentProperty("offers")

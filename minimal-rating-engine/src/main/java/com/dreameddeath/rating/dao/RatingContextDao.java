@@ -34,7 +34,7 @@ public class RatingContextDao extends CouchbaseDocumentDao<RatingContext> {
     @Override
     public void buildKey(RatingContext obj) throws DaoException{
         long result = obj.getSession().incrCounter(String.format(RATING_CTXT_CNT_KEY,obj.getBillingAccountLink().getKey()),1);
-        obj.setKey(String.format(RATING_CTXT_FMT_KEY,obj.getBillingAccountLink().getKey(),result));
+        obj.setDocumentKey(String.format(RATING_CTXT_FMT_KEY, obj.getBillingAccountLink().getKey(), result));
         //if(obj instanceof StandardRatingContext){
         //    getDaoFactory().getDaoFor(GenericCdrsBucket.class).buildKeysForLinks(((StandardRatingContext)obj).getCdrsBuckets());
         //}

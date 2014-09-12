@@ -14,7 +14,13 @@ public class DaoNotFoundException extends DaoException {
         this(doc.getClass());
     }
 
-    public DaoNotFoundException(String key, boolean forDoc){
-        super("The dao for "+((forDoc)?"doc":"counter")+ " with key <"+key+"> hasn't been found");
+    public DaoNotFoundException(String key, Type type){
+        super("The dao for "+type.toString()+ " with key <"+key+"> hasn't been found");
+    }
+
+    public enum Type{
+        DOC,
+        COUNTER,
+        KEY
     }
 }

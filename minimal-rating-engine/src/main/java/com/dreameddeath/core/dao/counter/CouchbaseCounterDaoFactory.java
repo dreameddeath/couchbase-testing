@@ -23,7 +23,7 @@ public class CouchbaseCounterDaoFactory {
                 return _patternsMap.get(pattern);
             }
         }
-        throw new DaoNotFoundException(key,false);
+        throw new DaoNotFoundException(key, DaoNotFoundException.Type.COUNTER);
     }
 
 }

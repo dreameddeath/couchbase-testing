@@ -4,7 +4,9 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.validation.Validator;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.exception.storage.BulkUpdateException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
@@ -36,7 +38,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     //May be overriden to improve (bulk key attribution)
     protected void buildKeys(Collection<T> newObjects) throws DaoException,StorageException{
         for(T newObject:newObjects){
-            if(newObject.getKey()==null){
+            if(newObject.getDocumentKey()==null){
                 buildKey(newObject);
             }
         }
@@ -85,10 +87,10 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public T create(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         validate(obj);
-        if(!obj.getDocState().equals(CouchbaseDocument.DocumentState.NEW)){
+        if(!obj.getDocState().equals(BaseCouchbaseDocument.DocumentState.NEW)){
             /**TODO throw an error*/
         }
-        if(obj.getKey()==null){
+        if(obj.getDocumentKey()==null){
             buildKey(obj);
         }
         
@@ -133,7 +135,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             try{
                 Boolean result = future.get();
                 if(!result){
-                    future.getDoc().setKey(null);
+                    future.getDoc().setDocumentKey(null);
                     ///TODO better error management for errors
                 }
                 else{
@@ -186,15 +188,26 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
         return results;
     }
-    
-    public T update(T obj,boolean isCalcOnly) throws ValidationException{
+
+    public void cleanRemovedUniqueKey(T obj) throws DaoException,StorageException{
+        for(String key :obj.getRemovedUniqueKeys()){
+            obj.getSession().removeUniqueKey(key);
+        }
+    }
+
+    public T update(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         validate(obj);
-        if(obj.getKey()==null){/**TODO throw an error*/}
+        if(obj.getDocumentKey()==null){/**TODO throw an error*/}
         updateRevision(obj);
         if(!isCalcOnly) {
-            _client.cas(obj, getTranscoder());
+            CASResponse response = _client.cas(obj, getTranscoder());
+            if(!response.equals(CASResponse.OK)){
+                throw new StorageException("The update of the object <"+obj.getDocumentKey()+"> failed with erreor <"+response+">");
+            }
         }
+        cleanRemovedUniqueKey(obj);
         obj.setDocStateSync();
+
         return obj;
     }
     
@@ -215,27 +228,31 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             }
         }
         
-        List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
+        List<BulkUpdateException> exceptions = new ArrayList<BulkUpdateException>();
         for(OperationFutureWrapper<CASResponse,T> future:futures){
             try{
                 CASResponse result = future.get();
                 if(result.equals(CASResponse.OK)){
+                    cleanRemovedUniqueKey(future.getDoc());
                     future.getDoc().setDocStateSync();
                 }
                 else{
-                    ///TODO manage errors
+                   exceptions.add(new BulkUpdateException("The update of the object <"+future.getDoc().getDocumentKey()+"> failed with erreor <"+result+">"));
                 }
             }
             catch (InterruptedException e) {
-                exceptions.add(new RuntimeException("Interrupted waiting for value", e));
+                exceptions.add(new BulkUpdateException("Interrupted waiting for value", e));
             }
             catch (ExecutionException e) {
                 if(e.getCause() instanceof CancellationException) {
-                    exceptions.add((CancellationException) e.getCause());
+                    exceptions.add(new BulkUpdateException("The update was called with erreor",e.getCause()));
                 } else {
-                    exceptions.add(new RuntimeException("Exception waiting for value", e));
+                    exceptions.add(new BulkUpdateException("Exception waiting for value", e));
                 }
             }
+        }
+        if(exceptions.size()>0){
+            throw new BulkUpdateException("Error during bulk update",exceptions);
         }
         return objs;
     }
@@ -259,7 +276,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         Collection<T> objs = getBulk(linkedDocs.keySet());
         results.addAll(objs);
         for(T obj:objs){
-            for(CouchbaseDocumentLink<T> link: linkedDocs.get(obj.getKey())){
+            for(CouchbaseDocumentLink<T> link: linkedDocs.get(obj.getDocumentKey())){
                 link.setLinkedObject(obj);
             }
         }
@@ -273,5 +290,11 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         
         return result;
     }
-    
+
+    public enum AccessRight{
+        READ,
+        CREATE,
+        UPDATE,
+        DELETE
+    }
 }

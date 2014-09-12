@@ -1,7 +1,7 @@
 package com.dreameddeath.core.storage;
 
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -15,7 +15,7 @@ import net.spy.memcached.transcoders.Transcoder;
 import java.io.IOException;
 
 
-public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Transcoder<T>{
+public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> implements Transcoder<T>{
     private static final ObjectMapper _mapper;
     private final Class<T> _dummyClass;
     
@@ -56,7 +56,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
         try{
             baseString=new String(cachedData.getData(),"UTF-8");
             T result = _mapper.readValue(cachedData.getData(),_dummyClass);
-            result.setDbDocSize(cachedData.getData().length);
+            result.setDocumentDbSize(cachedData.getData().length);
             return result;
         }
         catch (JsonParseException e){
@@ -78,7 +78,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
     public CachedData encode(T input){
         try{
             byte[] encoded= _mapper.writeValueAsBytes(input);
-            input.setDbDocSize(encoded.length);
+            input.setDocumentDbSize(encoded.length);
             return new CachedData(0,encoded,CachedData.MAX_SIZE);
         }
         catch (JsonProcessingException e){
@@ -86,5 +86,4 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements Tr
         }
         return null;
     }
-       
 }

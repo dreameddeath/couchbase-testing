@@ -3,6 +3,7 @@ package com.dreameddeath.party.model.base;
 import com.dreameddeath.core.annotation.DocumentProperty;
 
 import com.dreameddeath.core.annotation.NotNull;
+import com.dreameddeath.core.annotation.Unique;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;
@@ -13,7 +14,7 @@ import org.joda.time.DateTime;
 public class Person extends Party {
     @DocumentProperty("firstName") @NotNull
     private Property<String> _firstName=new StandardProperty<String>(Person.this);
-    @DocumentProperty("lastName") @NotNull
+    @DocumentProperty("lastName") @NotNull @Unique(nameSpace = "personName")
     private Property<String> _lastName=new StandardProperty<String>(Person.this);
     @DocumentProperty("birthDate")
     private Property<DateTime> _birthDate = new StandardProperty<DateTime>(Person.this);

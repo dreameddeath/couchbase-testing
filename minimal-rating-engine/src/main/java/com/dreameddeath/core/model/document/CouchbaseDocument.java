@@ -1,31 +1,24 @@
 package com.dreameddeath.core.model.document;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.dao.CouchbaseSession;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.process.AbstractTask;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
+import com.dreameddeath.core.model.property.MapProperty;
+import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.ListProperty;
-import com.dreameddeath.core.storage.CouchbaseConstants.DocumentFlag;
+import com.dreameddeath.core.model.property.impl.HashMapProperty;
+import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import org.joda.time.DateTime;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 
-public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
-    private CouchbaseSession _session;
-    private ImmutableProperty<String> _key=new ImmutableProperty<String>(CouchbaseDocument.this);
-    private Long   _cas;
-    private Boolean _isLocked;
-    private Integer _dbDocSize;
-    private Collection<DocumentFlag> _documentFlags=new HashSet<DocumentFlag>();
+public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
     private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
-    private DocumentState _docState = DocumentState.NEW;
 
     @DocumentProperty("attachedTasks")
     private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(CouchbaseDocument.this);
@@ -33,10 +26,12 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     private Long _revision = 0L;
     @DocumentProperty("docLastModDate")
     private DateTime _lastModificationDate;
-
-
-    public final CouchbaseSession getSession(){ return _session; }
-    public final void setSession(CouchbaseSession session){ _session = session; }
+    /**
+     *  docUniqKeys : List of uniqueness Keys attached to this document
+     */
+    @DocumentProperty("docUniqKeys")
+    private SetProperty<String> _docUniqKeys = new HashSetProperty<String>(CouchbaseDocument.this);
+    private Set<String> _inDbUniqKeys = new HashSet<String>();
 
 
     public final Long getDocRevision(){ return _revision; }
@@ -47,61 +42,36 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
     public final void setDocLastModDate(DateTime date){ _lastModificationDate=date; }
     public final void updateDocLastModDate(){ _lastModificationDate=DateTime.now(); }
 
+    // DocUniqKeys Accessors
+    public final Set<String> getDocUniqKeys() { return _docUniqKeys.get(); }
+    public final void setDocUniqKeys(Set<String> vals) { _docUniqKeys.set(vals); }
+    public final boolean addDocUniqKeys(String key){ return _docUniqKeys.add(key); }
+    public final boolean removeDocUniqKeys(String key){ return _docUniqKeys.remove(key); }
 
-    public final String getKey(){ return _key.get(); }
-    public final void setKey(String key){ _key.set(key);}
-    
-    public final Long getCas(){ return _cas; }
-    public final void setCas(Long cas){ this._cas = cas; }
-    
-    public final Boolean getIsLocked(){ return _isLocked; }
-    public final void setIsLocked(Boolean isLocked){ this._isLocked = isLocked; }
-    
-    public final Integer getDbDocSize(){ return _dbDocSize; }
-    public final void setDbDocSize(Integer docSize){ this._dbDocSize = docSize; }
-    
-    public final Collection<DocumentFlag> getDocumentFlags(){ return _documentFlags; }
-    public final Integer getDocumentEncodedFlags(){ return DocumentFlag.pack(_documentFlags); }
-    public final void setDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.clear(); _documentFlags.addAll(DocumentFlag.unPack(encodedFlags)); }
-    public final void setDocumentFlags(Collection<DocumentFlag> flags){ _documentFlags.clear(); _documentFlags.addAll(flags); }
-    public final void addDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.addAll(DocumentFlag.unPack(encodedFlags)); }
-    public final void addDocumentFlag(DocumentFlag flag){ _documentFlags.add(flag); }
-    public final void addDocumentFlags(Collection<DocumentFlag> flags){ _documentFlags.addAll(flags); }
-    public final void removeDocumentFlag(DocumentFlag flag){ _documentFlags.remove(flag); }
-    public final void removeDocumentFlags(Collection<DocumentFlag> flags){_documentFlags.remove(flags); }
-    public boolean hasDocumentFlag(DocumentFlag flag){ return _documentFlags.contains(flag); }
-    
+
     public void addReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
     public void removeReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
     
+    @Override
     public void setDocStateDirty(){
-        if(_docState.equals(DocumentState.SYNC)){
-            _docState = DocumentState.DIRTY;
-        }
+        super.setDocStateDirty();
+
         for(CouchbaseDocumentLink link: _reverseLinks){
             link.syncFields();
         }
     }
-    
-    public void setDocStateSync(){ _docState = DocumentState.SYNC; }
-    public DocumentState getDocState(){ return _docState; }
-    
-    
-    public boolean equals(CouchbaseDocument doc){
-        if     (doc == null){ return false;}
-        else if(doc == this){ return true; }
-        else if(_key!=null) { return _key.equals(doc._key); }
-        else                { return false; }
+    @Override
+    public void setDocStateSync(){
+        _inDbUniqKeys.clear();
+        _inDbUniqKeys.addAll(_docUniqKeys.get());
+        _docUniqKeys.clear();
+        super.setDocStateSync();
     }
 
-
-    public void save() throws DaoException,StorageException {
-        if(_docState.equals(DocumentState.NEW)) {
-            this.getSession().create(this);
-        }
-        else{
-            this.getSession().update(this);
-        }
+    public Set<String> getRemovedUniqueKeys(){
+        Set<String> removed=new HashSet<String>(_inDbUniqKeys);
+        removed.removeAll(_docUniqKeys.get());
+        return removed;
     }
 
     public List<CouchbaseDocumentAttachedTaskRef> getAttachedTasks(){return _attachedTasks.get();}
@@ -152,21 +122,14 @@ public abstract class CouchbaseDocument extends CouchbaseDocumentElement {
         }
     }
 
-    @Override
-    public String toString(){
-        return 
-            "key   : "+_key+",\n"+
-            "cas   : "+_cas+",\n"+
-            "lock  : "+_isLocked+",\n"+
-            "size  : "+_dbDocSize+",\n"+
-            "state  : "+ _docState +",\n"+
-            "flags : "+_documentFlags.toString();
-    }
-    
-    public enum DocumentState {
-        NEW,
-        DIRTY,
-        SYNC;
+
+    public void save() throws DaoException,StorageException {
+        if(getDocState().equals(DocumentState.NEW)) {
+            this.getSession().create(this);
+        }
+        else{
+            this.getSession().update(this);
+        }
     }
 
 }

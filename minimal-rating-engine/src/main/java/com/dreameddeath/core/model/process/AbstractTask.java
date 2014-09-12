@@ -3,8 +3,8 @@ package com.dreameddeath.core.model.process;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import org.joda.time.DateTime;
 
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
-public abstract class AbstractTask extends CouchbaseDocumentElement{
+public abstract class AbstractTask extends BaseCouchbaseDocumentElement {
     private AbstractJob _parentJob;
     @DocumentProperty("uid") @NotNull
     private Property<String> _uid=new ImmutableProperty<String>(AbstractTask.this);

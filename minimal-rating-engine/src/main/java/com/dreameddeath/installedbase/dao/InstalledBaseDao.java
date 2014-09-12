@@ -10,9 +10,6 @@ import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import com.dreameddeath.installedbase.model.common.InstalledBase;
 import net.spy.memcached.transcoders.Transcoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by ceaj8230 on 31/08/2014.
  */
@@ -37,7 +34,7 @@ public class InstalledBaseDao extends CouchbaseDocumentDao<InstalledBase> {
     @Override
     public void buildKey(InstalledBase obj) throws DaoException{
         long result = obj.getSession().incrCounter(INSTALLED_BASE_CNT_KEY,1);
-        obj.setKey(String.format(INSTALLED_BASE_FMT_KEY,result));
+        obj.setDocumentKey(String.format(INSTALLED_BASE_FMT_KEY, result));
     }
 
     @Override

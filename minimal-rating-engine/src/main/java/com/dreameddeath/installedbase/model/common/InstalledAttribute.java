@@ -1,7 +1,7 @@
 package com.dreameddeath.installedbase.model.common;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by ceaj8230 on 10/08/2014.
  */
-public abstract class InstalledAttribute extends CouchbaseDocumentElement {
+public abstract class InstalledAttribute extends BaseCouchbaseDocumentElement {
     /**
      *  code : The catalogue code of the attribute
      */

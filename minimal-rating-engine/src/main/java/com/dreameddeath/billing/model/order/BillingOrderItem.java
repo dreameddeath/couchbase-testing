@@ -1,7 +1,7 @@
 package com.dreameddeath.billing.model.order;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by ceaj8230 on 01/09/2014.
  */
-public class BillingOrderItem extends CouchbaseDocumentElement {
+public class BillingOrderItem extends BaseCouchbaseDocumentElement {
     /**
      *  id : The internal id of the order being billed
      */

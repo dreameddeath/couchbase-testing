@@ -1,14 +1,14 @@
 package com.dreameddeath.installedbase.model.common;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 /**
  * Created by ceaj8230 on 31/08/2014.
  */
-public class InstalledItemLink extends CouchbaseDocumentElement {
+public class InstalledItemLink extends BaseCouchbaseDocumentElement {
     /**
      *  id : Target item id
      */

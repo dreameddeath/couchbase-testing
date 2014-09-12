@@ -1,14 +1,14 @@
 package com.dreameddeath.catalog.model;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 /**
  * Created by ceaj8230 on 05/09/2014.
  */
-public class CatalogItemVersion extends CouchbaseDocumentElement implements Comparable<CatalogItemVersion> {
+public class CatalogItemVersion extends BaseCouchbaseDocumentElement implements Comparable<CatalogItemVersion> {
     /**
      *  major : Major Version
      */

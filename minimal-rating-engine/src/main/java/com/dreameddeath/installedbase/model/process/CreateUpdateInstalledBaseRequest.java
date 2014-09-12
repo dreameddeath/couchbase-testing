@@ -1,7 +1,8 @@
 package com.dreameddeath.installedbase.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.annotation.Unique;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
@@ -11,7 +12,9 @@ import java.util.List;
 /**
  * Created by ceaj8230 on 04/09/2014.
  */
-public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
+public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentElement {
+    @DocumentProperty("createRequestUid") @Unique(nameSpace = "createInstalledBaseJob")//If installed base creation, perform a duplicate check based on that
+    public String creationRequestUid;
     @DocumentProperty("contracts")
     public List<Contract> contracts=new ArrayList<Contract>();
     @DocumentProperty("offers")

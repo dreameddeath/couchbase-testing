@@ -1,7 +1,7 @@
 package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.exception.dao.ValidationException;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 
 import java.lang.reflect.AccessibleObject;
@@ -24,7 +24,7 @@ public class PropertyValidator<T> implements Validator<Property<T>>{
     }
 
 
-    public void validate(Property<T> elt,CouchbaseDocumentElement parent)throws ValidationException{
+    public void validate(Property<T> elt,BaseCouchbaseDocumentElement parent)throws ValidationException{
         T obj=elt.get();
         List<ValidationException> eltErrors=null;
         for(Validator<Object> validator:_validationRules){

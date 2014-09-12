@@ -1,7 +1,7 @@
 package com.dreameddeath.installedbase.model.common;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -15,7 +15,7 @@ import java.util.UUID;
 /**
  * Created by ceaj8230 on 10/08/2014.
  */
-public abstract class InstalledItem<T extends InstalledItemRevision> extends CouchbaseDocumentElement {
+public abstract class InstalledItem<T extends InstalledItemRevision> extends BaseCouchbaseDocumentElement {
     @DocumentProperty("id")
     private Property<String> _id = new StandardProperty<String>(InstalledItem.this, UUID.randomUUID().toString());
     @DocumentProperty("creationDate")

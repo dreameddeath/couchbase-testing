@@ -30,7 +30,7 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
             if (reference == null) {
                 processDocument();
                 CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
-                attachedTaskRef.setJobKey(getParentJob().getKey());
+                attachedTaskRef.setJobKey(getParentJob().getDocumentKey());
                 attachedTaskRef.setJobClass(getParentJob().getClass().getName());
                 attachedTaskRef.setTaskId(this.getUid());
                 attachedTaskRef.setTaskClass(this.getClass().getName());

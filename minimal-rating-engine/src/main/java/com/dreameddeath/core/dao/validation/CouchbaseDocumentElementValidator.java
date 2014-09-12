@@ -2,8 +2,8 @@ package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.annotation.*;
 import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 
 import java.lang.reflect.*;
@@ -12,7 +12,7 @@ import java.util.*;
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class CouchbaseDocumentElementValidator<T extends CouchbaseDocumentElement> implements Validator<T>{
+public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentElement> implements Validator<T>{
     Map<AccessibleObject,CouchbaseDocumentValidatorFieldEntry> _validationRules = new HashMap<AccessibleObject,CouchbaseDocumentValidatorFieldEntry>();
 
     public static class CouchbaseDocumentValidatorFieldEntry{
@@ -172,11 +172,14 @@ public class CouchbaseDocumentElementValidator<T extends CouchbaseDocumentElemen
                         (CouchbaseDocument.class.isAssignableFrom(member.getType()))||
                         (
                             Property.class.isAssignableFrom(member.getType()) &&
-                            ! (((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0] instanceof TypeVariable) &&
-                            CouchbaseDocumentElement.class.isAssignableFrom((Class<?>)((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0])
+                            (
+                                (((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0] instanceof TypeVariable) ||
+                                BaseCouchbaseDocumentElement.class.isAssignableFrom((Class<?>)((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0])
+                            )
                         )
                     )
-                ){
+                )
+            {
                 addValidator(member,new DynamicCouchbaseDocumentElementValidator(member,factory));
             }
 
@@ -207,13 +210,13 @@ public class CouchbaseDocumentElementValidator<T extends CouchbaseDocumentElemen
                 }
             }
         }
-        if((rootObj.getSuperclass()!=null) && CouchbaseDocumentElement.class.isAssignableFrom(rootObj.getSuperclass())){
-            Class<CouchbaseDocumentElement> parentClass = (Class<CouchbaseDocumentElement>)rootObj.getSuperclass();
+        if((rootObj.getSuperclass()!=null) && BaseCouchbaseDocumentElement.class.isAssignableFrom(rootObj.getSuperclass())){
+            Class<BaseCouchbaseDocumentElement> parentClass = (Class<BaseCouchbaseDocumentElement>)rootObj.getSuperclass();
             this._validationRules.putAll(((CouchbaseDocumentElementValidator) factory.getValidator(parentClass)).getValidationRules());
         }
     }
 
-    public void validate(T element,CouchbaseDocumentElement parent) throws ValidationException{
+    public void validate(T element,BaseCouchbaseDocumentElement parent) throws ValidationException{
         List<ValidationException> fieldsErrors=null;
         for(AccessibleObject elt:_validationRules.keySet()){
             Object obj=null;

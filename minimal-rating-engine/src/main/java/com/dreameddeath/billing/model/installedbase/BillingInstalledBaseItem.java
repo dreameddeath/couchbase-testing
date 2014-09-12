@@ -1,7 +1,7 @@
 package com.dreameddeath.billing.model.installedbase;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -15,7 +15,7 @@ import java.util.List;
  * Created by ceaj8230 on 12/08/2014.
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
-public class BillingInstalledBaseItem extends CouchbaseDocumentElement {
+public class BillingInstalledBaseItem extends BaseCouchbaseDocumentElement {
     /**
      *  id : internal id of the item for crossrefs
      */

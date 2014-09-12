@@ -1,7 +1,5 @@
 package com.dreameddeath.core.model.property;
 
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-
 import java.util.Collection;
 
 /**

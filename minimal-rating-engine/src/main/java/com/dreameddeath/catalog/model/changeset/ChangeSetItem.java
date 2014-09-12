@@ -1,14 +1,14 @@
 package com.dreameddeath.catalog.model.changeset;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 /**
  * Created by ceaj8230 on 07/09/2014.
  */
-public class ChangeSetItem extends CouchbaseDocumentElement {
+public class ChangeSetItem extends BaseCouchbaseDocumentElement {
     /**
      *  id : Catalog element item id
      */

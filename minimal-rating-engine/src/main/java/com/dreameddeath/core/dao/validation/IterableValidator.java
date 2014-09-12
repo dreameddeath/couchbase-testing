@@ -1,12 +1,10 @@
 package com.dreameddeath.core.dao.validation;
 
-import com.dreameddeath.core.annotation.Validate;
 import com.dreameddeath.core.exception.dao.ValidationException;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 
 import java.lang.Iterable;
 import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.util.*;
 
@@ -25,7 +23,7 @@ public class IterableValidator implements Validator<Iterable<?>> {
         _validationRules.add(validator);
     }
 
-    public void validate(Iterable value, CouchbaseDocumentElement parent) throws ValidationException{
+    public void validate(Iterable value, BaseCouchbaseDocumentElement parent) throws ValidationException{
         List<ValidationException> iterableExceptions=null;
 
         Iterator iter =value.iterator();

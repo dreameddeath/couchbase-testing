@@ -1,6 +1,6 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 
@@ -8,15 +8,15 @@ import com.dreameddeath.core.model.property.Property;
  * Created by Christophe Jeunesse on 09/05/2014.
  */
 public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement {
-    CouchbaseDocumentElement _parentElt;
+    BaseCouchbaseDocumentElement _parentElt;
     protected T _value;
     protected T _defaultValue;
 
-    public AbstractProperty(CouchbaseDocumentElement parentElement){
+    public AbstractProperty(BaseCouchbaseDocumentElement parentElement){
         _parentElt=parentElement;
     }
 
-    public AbstractProperty(CouchbaseDocumentElement parentElement,T defaultValue){
+    public AbstractProperty(BaseCouchbaseDocumentElement parentElement,T defaultValue){
         _parentElt=parentElement;
         _defaultValue=defaultValue;
         if((_defaultValue!=null) && (_defaultValue instanceof HasParentDocumentElement)){
@@ -24,8 +24,8 @@ public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement
         }
     }
 
-    public void setParentDocumentElement(CouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
-    public CouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
+    public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
 
     protected T getRawValue(){return _value;}
 

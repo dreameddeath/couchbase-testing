@@ -49,13 +49,13 @@ public abstract class CatalogElementDao<T extends CatalogElement> extends Couchb
         if(currVersion.getMinor()==null){currVersion.setMinor(0);}
         if(currVersion.getPatch()==null){currVersion.setPatch(0);}
 
-        obj.setKey(String.format(
+        obj.setDocumentKey(String.format(
                         CAT_ELEMENT_FMT_KEY,
                         _keyDomain,
                         obj.getUid(),
-                        currVersion.getMajor(),currVersion.getMinor(),currVersion.getPatch()
-                    )
-                );
+                        currVersion.getMajor(), currVersion.getMinor(), currVersion.getPatch()
+                )
+        );
     }
 
     @Override

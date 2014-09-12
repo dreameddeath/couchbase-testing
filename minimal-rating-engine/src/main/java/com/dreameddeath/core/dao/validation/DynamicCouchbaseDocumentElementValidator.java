@@ -1,15 +1,14 @@
 package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.exception.dao.ValidationException;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 
 import java.lang.reflect.Field;
-import java.util.Map;
 
 /**
  * Created by ceaj8230 on 30/08/2014.
  */
-public class DynamicCouchbaseDocumentElementValidator implements Validator<CouchbaseDocumentElement>{
+public class DynamicCouchbaseDocumentElementValidator implements Validator<Object>{
     final private Field _field;
     final ValidatorFactory _factory;
 
@@ -18,7 +17,8 @@ public class DynamicCouchbaseDocumentElementValidator implements Validator<Couch
         _factory = factory;
     }
 
-    public void validate(CouchbaseDocumentElement elt,CouchbaseDocumentElement parent) throws ValidationException{
-        _factory.getValidator(elt).validate(elt,parent);
+    public void validate(Object elt,BaseCouchbaseDocumentElement parent) throws ValidationException{
+        if(elt instanceof BaseCouchbaseDocumentElement)
+            _factory.getValidator((BaseCouchbaseDocumentElement)elt).validate((BaseCouchbaseDocumentElement)elt,parent);
     }
 }

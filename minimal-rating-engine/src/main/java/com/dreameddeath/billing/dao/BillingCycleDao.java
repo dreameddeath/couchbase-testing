@@ -11,9 +11,6 @@ import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import com.dreameddeath.rating.model.context.RatingContext;
 import net.spy.memcached.transcoders.Transcoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class BillingCycleDao extends CouchbaseDocumentDao<BillingCycle> {
     public static final String BA_CYCLE_CNT_KEY="%s/cycle/cnt";
     public static final String BA_CYCLE_FMT_KEY="%s/cycle/%d";
@@ -33,7 +30,7 @@ public class BillingCycleDao extends CouchbaseDocumentDao<BillingCycle> {
     
     public void buildKey(BillingCycle obj) throws DaoException,StorageException{
         long result = obj.getSession().incrCounter(String.format(BA_CYCLE_CNT_KEY,obj.getBillingAccountLink().getKey()),1);
-        obj.setKey(String.format(BA_CYCLE_FMT_KEY,obj.getBillingAccountLink().getKey(),result));
+        obj.setDocumentKey(String.format(BA_CYCLE_FMT_KEY, obj.getBillingAccountLink().getKey(), result));
         getDaoFactory().getDaoForClass(RatingContext.class).buildKeysForLinks(obj.getRatingContextLinks());
     }
     

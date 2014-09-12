@@ -1,6 +1,8 @@
-package com.dreameddeath.core.dao.document;
+package com.dreameddeath.core.dao.process;
 
 
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
@@ -26,7 +28,7 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
 
     @Override
     public void buildKey(AbstractJob obj){
-        obj.setKey(String.format(JOB_FMT_KEY,obj.getUid().toString()));
+        obj.setDocumentKey(String.format(JOB_FMT_KEY, obj.getUid().toString()));
     }
 
     @Override

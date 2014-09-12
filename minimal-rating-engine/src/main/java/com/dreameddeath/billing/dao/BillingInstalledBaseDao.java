@@ -10,9 +10,6 @@ import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by ceaj8230 on 12/08/2014.
  */
@@ -34,7 +31,7 @@ public class BillingInstalledBaseDao extends CouchbaseDocumentDao<BillingInstall
 
     public void buildKey(BillingInstalledBase obj) throws DaoException{
         long result = obj.getSession().incrCounter(String.format(BA_BASE_CNT_KEY,obj.getBaLink().getKey()),1);
-        obj.setKey(String.format(BA_BASE_FMT_KEY,obj.getBaLink().getKey(),result));
+        obj.setDocumentKey(String.format(BA_BASE_FMT_KEY, obj.getBaLink().getKey(), result));
     }
 
     public String getKeyPattern(){

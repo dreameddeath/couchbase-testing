@@ -1,12 +1,12 @@
 package com.dreameddeath.rating.model.context;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.model.property.Property;
 import org.joda.time.DateTime;
 
-public class RatingContextGuidingKey extends CouchbaseDocumentElement{
+public class RatingContextGuidingKey extends BaseCouchbaseDocumentElement {
     @DocumentProperty("key")
     private Property<String>   _key=new StandardProperty<String>(RatingContextGuidingKey.this);
     @DocumentProperty("type")

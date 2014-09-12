@@ -29,7 +29,7 @@ public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
 
     public void buildKey(Party obj) throws DaoException {
         long result = obj.getSession().incrCounter(PARTY_CNT_KEY,1);
-        obj.setKey(String.format(PARTY_FMT_KEY,result));
+        obj.setDocumentKey(String.format(PARTY_FMT_KEY, result));
         if(obj.getUid()==null){
             obj.setUid(String.format(PARTY_FMT_UID,result));
         }

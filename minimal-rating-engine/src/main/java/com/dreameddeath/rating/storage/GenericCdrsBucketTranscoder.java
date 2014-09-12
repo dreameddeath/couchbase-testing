@@ -50,7 +50,7 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
     public TBUCKET decode(CachedData cachedData){
         TBUCKET result = genericCdrBucketBuilder(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
         result.addDocumentEncodedFlags(cachedData.getFlags());
-        result.setDbDocSize(cachedData.getData().length);
+        result.setDocumentDbSize(cachedData.getData().length);
         try{
             unpackStorageDocument(result,cachedData.getData());
         }
@@ -163,11 +163,11 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
                 }
                 normalAppenderBuilder.addNormalCdrs(cdrBuilder.build());
             }
-            if(cdrsToStoreList.getDbDocSize()==null){
-                cdrsToStoreList.setDbDocSize(0);
+            if(cdrsToStoreList.getDocumentDbSize()==null){
+                cdrsToStoreList.setDocumentDbSize(0);
             }
-            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDbDocSize());
-            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDbDocSize() + normalAppenderBuilder.build().getSerializedSize());
+            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize());
+            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize() + normalAppenderBuilder.build().getSerializedSize());
 
             return normalAppenderBuilder.build().toByteArray();
         }
@@ -201,8 +201,8 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
             }
             //else it is a nominal process, try to build a valid checksum
             else{
-                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDbDocSize());
-                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDbDocSize() + partialAppenderBuilder.build().getSerializedSize());
+                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize());
+                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize() + partialAppenderBuilder.build().getSerializedSize());
             }
             return partialAppenderBuilder.build().toByteArray();
         }

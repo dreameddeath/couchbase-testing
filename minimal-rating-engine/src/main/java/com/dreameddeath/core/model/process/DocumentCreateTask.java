@@ -35,7 +35,7 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
 
             T doc = buildDocument();
             //Prebuild key
-            setDocKey(doc.getSession().buildKey(doc).getKey());
+            setDocKey(doc.getSession().buildKey(doc).getDocumentKey());
             //Attach it to the document
             this.getParentJob().save();
             //Save Document afterwards

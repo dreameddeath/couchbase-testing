@@ -1,7 +1,7 @@
 package com.dreameddeath.core.model.property.impl;
 
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapDefaultValueBuilder;
@@ -13,16 +13,16 @@ import java.util.*;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T>,HasParentDocumentElement {
-    CouchbaseDocumentElement _parentElt;
-    public ArrayListProperty(CouchbaseDocumentElement parentElement){
+    BaseCouchbaseDocumentElement _parentElt;
+    public ArrayListProperty(BaseCouchbaseDocumentElement parentElement){
         _parentElt=parentElement;
     }
 
 
-    public void setParentDocumentElement(CouchbaseDocumentElement parentElement){
+    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){
         _parentElt=parentElement;
     }
-    public CouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+    public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
 
     protected boolean dirtyParent(){
         CouchbaseDocument rootDoc = _parentElt.getParentDocument();
@@ -83,7 +83,7 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
 
     public static class MapValueBuilder<T> implements MapDefaultValueBuilder<List<T>>{
         public ListProperty<T> build(MapProperty<?,List<T>> map){
-            CouchbaseDocumentElement parent=null;
+            BaseCouchbaseDocumentElement parent=null;
             if(map instanceof HasParentDocumentElement){
                 parent = ((HasParentDocumentElement) map).getParentDocumentElement();
             }

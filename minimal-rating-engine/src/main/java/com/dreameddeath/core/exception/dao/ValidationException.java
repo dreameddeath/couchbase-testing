@@ -1,41 +1,38 @@
 package com.dreameddeath.core.exception.dao;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class ValidationException extends DaoException {
-    CouchbaseDocumentElement _docElt;
+    BaseCouchbaseDocumentElement _docElt;
     AccessibleObject _field;
     Object _value;
     Long _iterablePos;
     List<ValidationException> _childList;
 
-    public ValidationException(CouchbaseDocumentElement docElt,AccessibleObject field,String message,List<ValidationException> listChildException){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,String message,List<ValidationException> listChildException){
         super(message);
         _docElt = docElt;
         _field = field;
         _childList = listChildException;
     }
 
-    public ValidationException(CouchbaseDocumentElement docElt,String message,List<ValidationException> listChildException){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,String message,List<ValidationException> listChildException){
         super(message);
         _docElt = docElt;
         _childList = listChildException;
     }
 
-    public ValidationException(CouchbaseDocumentElement docElt,Long iterablePos,String message,List<ValidationException> listChildException){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,Long iterablePos,String message,List<ValidationException> listChildException){
         super(message);
         _docElt = docElt;
         _iterablePos = iterablePos;
@@ -43,19 +40,19 @@ public class ValidationException extends DaoException {
     }
 
 
-    public ValidationException(CouchbaseDocumentElement docElt,AccessibleObject field,String message){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,String message){
         super(message);
         _docElt = docElt;
         _field = field;
     }
 
-    public ValidationException(CouchbaseDocumentElement docElt,AccessibleObject field,String message,Throwable e){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,String message,Throwable e){
         super(message,e);
         _docElt = docElt;
         _field = field;
     }
 
-    public ValidationException(CouchbaseDocumentElement docElt,AccessibleObject field,Throwable e){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Throwable e){
         super(e);
         _docElt = docElt;
         _field = field;
@@ -63,21 +60,21 @@ public class ValidationException extends DaoException {
 
 
 
-    public ValidationException(CouchbaseDocumentElement docElt,AccessibleObject field,Object value,String message){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Object value,String message){
         super(message);
         _docElt = docElt;
         _field = field;
         _value = value;
     }
 
-    public ValidationException(CouchbaseDocumentElement docElt,AccessibleObject field,Object value,String message,Throwable e){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Object value,String message,Throwable e){
         super(message,e);
         _docElt = docElt;
         _field = field;
         _value = value;
     }
 
-    public ValidationException(CouchbaseDocumentElement docElt,AccessibleObject field,Object value,Throwable e){
+    public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Object value,Throwable e){
         super(e);
         _docElt = docElt;
         _field = field;
@@ -93,7 +90,7 @@ public class ValidationException extends DaoException {
             buf.append(_docElt.getClass().getSimpleName()).append(" ");
             if(_docElt instanceof CouchbaseDocument){
                 buf.append("The document [");
-                String key = ((CouchbaseDocument) _docElt).getKey();
+                String key = ((CouchbaseDocument) _docElt).getDocumentKey();
                 if(key!=null){ buf.append(key); }
                 else{ buf.append("NEW");}
                 buf.append("] ");

@@ -1,7 +1,7 @@
 package com.dreameddeath.billing.model.installedbase;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;
@@ -9,7 +9,7 @@ import org.joda.time.DateTime;
 /**
  * Created by ceaj8230 on 12/08/2014.
  */
-public class BillingInstalledBaseItemStatus extends CouchbaseDocumentElement {
+public class BillingInstalledBaseItemStatus extends BaseCouchbaseDocumentElement {
     /**
      *  status : Status of the billing item
      */
