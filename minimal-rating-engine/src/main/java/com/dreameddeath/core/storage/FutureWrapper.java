@@ -1,8 +1,6 @@
 package com.dreameddeath.core.storage;
 
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.internal.OperationFuture;
 
@@ -28,10 +26,11 @@ public abstract class FutureWrapper<T,TDOC extends BaseCouchbaseDocument>{
     }
     
     protected final T enrich(T input){
-        if(input instanceof CouchbaseDocument){
-            ((CouchbaseDocument)input).setDocumentKey(getKey());
+        if(input instanceof BaseCouchbaseDocument){
+            BaseCouchbaseDocument inputDoc = (BaseCouchbaseDocument)input;
+            inputDoc.setDocumentKey(getKey());
             if(getFuture() instanceof OperationFuture){
-                ((CouchbaseDocument)input).setDocumentCas(((OperationFuture) getFuture()).getCas());
+                inputDoc.setDocumentCas(((OperationFuture) getFuture()).getCas());
             }
             /*if(_link!=null){
                 _link.setLinkedObject((TDOC)input);
@@ -39,9 +38,10 @@ public abstract class FutureWrapper<T,TDOC extends BaseCouchbaseDocument>{
         }
         else if(input instanceof CASValue){
             Object doc = ((CASValue)input).getValue();
-            if(doc instanceof CouchbaseDocument){
-                ((CouchbaseDocument)doc).setDocumentKey(getKey());
-                ((CouchbaseDocument)doc).setDocumentCas(((CASValue) input).getCas());
+            if(doc instanceof BaseCouchbaseDocument){
+                BaseCouchbaseDocument inputDoc = (BaseCouchbaseDocument)doc;
+                inputDoc.setDocumentKey(getKey());
+                inputDoc.setDocumentCas(((CASValue) input).getCas());
                 /*if(_link!=null){
                     _link.setLinkedObject(((TDOC)input));
                 }*/

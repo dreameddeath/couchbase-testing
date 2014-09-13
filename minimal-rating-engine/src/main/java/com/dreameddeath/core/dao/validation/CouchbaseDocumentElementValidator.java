@@ -95,7 +95,7 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
 
         for(Validator existingValidator:_validationRules.get(obj).getValidators()){
             if(existingValidator instanceof PropertyValidator){
-                ((IterableValidator) existingValidator).addRule(validator);
+                ((PropertyValidator) existingValidator).addRule(validator);
                 return;
             }
         }
@@ -247,10 +247,16 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
                 }
             }
             catch(IllegalAccessException e){
-
+                if(fieldsErrors==null){
+                    fieldsErrors=new ArrayList<ValidationException>();
+                }
+                fieldsErrors.add(new ValidationException(element,_validationRules.get(elt).getField(),"Cannot access to the value of the field",e));
             }
             catch(InvocationTargetException e){
-
+                if(fieldsErrors==null){
+                    fieldsErrors=new ArrayList<ValidationException>();
+                }
+                fieldsErrors.add(new ValidationException(element,_validationRules.get(elt).getField(),"Cannot access to the target of the field",e));
             }
 
             if(fieldsErrors!=null){

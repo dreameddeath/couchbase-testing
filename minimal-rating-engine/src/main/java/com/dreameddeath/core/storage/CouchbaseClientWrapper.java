@@ -1,6 +1,7 @@
 package com.dreameddeath.core.storage;
 
 import com.couchbase.client.CouchbaseClient;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 
 import net.spy.memcached.CASResponse;
@@ -26,17 +27,13 @@ public class CouchbaseClientWrapper{
     }
     
     
-    public <T extends BaseCouchbaseDocument> T gets(String key, Transcoder<T> tc){
+    public <T extends BaseCouchbaseDocument> T gets(String key, Transcoder<T> tc) throws StorageException{
         try {
             return asyncGets(key,tc).get().getValue();
         } catch (InterruptedException e) {
-            throw new RuntimeException("Interrupted waiting for value", e);
+            throw new StorageException("Interrupted waiting for value", e);
         } catch (ExecutionException e) {
-            if(e.getCause() instanceof CancellationException) {
-                throw (CancellationException) e.getCause();
-            } else {
-                throw new RuntimeException("Exception waiting for value", e);
-            }
+            throw new StorageException("Error during fetch execution",e);
         }
     }
     

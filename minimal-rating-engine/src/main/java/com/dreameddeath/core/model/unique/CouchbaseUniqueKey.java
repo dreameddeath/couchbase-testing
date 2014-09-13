@@ -4,24 +4,24 @@ import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.DuplicateKeyException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.impl.HashMapProperty;
 import com.dreameddeath.core.model.property.MapProperty;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 /**
  * Created by ceaj8230 on 06/08/2014.
  */
-public class CouchbaseUniqueKey extends CouchbaseDocument {
+public class CouchbaseUniqueKey extends BaseCouchbaseDocument {
     @DocumentProperty("maps")
     MapProperty<String,String> _keyMaps = new HashMapProperty<String, String>(CouchbaseUniqueKey.this);
 
-    public void checkKey(String buildKey,CouchbaseDocument doc) throws DuplicateKeyException,StorageException,DaoException{
+    public Map<String,String> getMaps(){ return _keyMaps.get();}
+    public void setMaps(Map<String,String> maps){_keyMaps.set(maps);}
 
-
+    public void checkKey(String buildKey,CouchbaseDocument doc) throws StorageException,DaoException{
         //If the key already exists
         if(_keyMaps.containsKey(buildKey)){
             //Compare the attached document key

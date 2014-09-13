@@ -33,6 +33,8 @@
     <slf4j.version>1.7.6</slf4j.version>
     <junit.version>4.11</junit.version>
     <cglib.version>3.1</cglib.version>
+    <apache.common.codec.version>1.9</apache.common.codec.version>
+    <google.protobuf.version>2.5.0</google.protobuf.version>
   </properties>
 
   
@@ -40,7 +42,7 @@
     <dependency>
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
-        <version>2.5.0</version>
+        <version>${google.protobuf.version}</version>
     </dependency>
     <dependency>
       <groupId>com.couchbase.client</groupId>
@@ -63,6 +65,11 @@
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
     </dependency>
-    
+      <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <version>${apache.common.codec.version}</version>
+      </dependency>
+
   </dependencies>
 </project>

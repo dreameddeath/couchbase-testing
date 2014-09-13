@@ -3,18 +3,16 @@ package com.dreameddeath.core.dao.unique;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
+
 import net.spy.memcached.transcoders.Transcoder;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-
+import org.apache.commons.codec.digest.DigestUtils;
 /**
  * Created by ceaj8230 on 06/08/2014.
  */
@@ -38,14 +36,7 @@ public class CouchbaseUniqueKeyDao {
     }
 
     public String getHashKey(String builtKey) throws DaoException{
-        try {
-            return MessageDigest.getInstance("SHA1")
-                    .digest(builtKey.getBytes())
-                    .toString();
-        }
-        catch(NoSuchAlgorithmException e){
-            throw new DaoException("Cannot hash the key <"+builtKey+">",e);
-        }
+        return DigestUtils.sha1Hex(builtKey);
     }
 
     public String getHashKey(String nameSpace,String value) throws DaoException{
@@ -96,8 +87,10 @@ public class CouchbaseUniqueKeyDao {
         return result;
     }
 
-    private CouchbaseUniqueKey update(CouchbaseUniqueKey obj,boolean isCalcOnly) throws ValidationException{
-        if(obj.getDocumentKey()==null){/**TODO throw an error*/}
+    private CouchbaseUniqueKey update(CouchbaseUniqueKey obj,boolean isCalcOnly) throws DaoException,StorageException{
+        if(obj.getDocumentKey()==null){
+            throw new DaoException("The key object doesn't have a key before update. The doc was :"+obj);
+        }
         if(!isCalcOnly) {
             _client.cas(obj, getTranscoder());
         }
@@ -105,8 +98,10 @@ public class CouchbaseUniqueKeyDao {
         return obj;
     }
 
-    private CouchbaseUniqueKey delete(CouchbaseUniqueKey obj,boolean isCalcOnly) throws ValidationException{
-        if(obj.getDocumentKey()==null){/**TODO throw an error*/}
+    private CouchbaseUniqueKey delete(CouchbaseUniqueKey obj,boolean isCalcOnly) throws DaoException,StorageException{
+        if(obj.getDocumentKey()==null){
+            throw new DaoException("The key object doesn't have a key before deletion. The doc was :"+obj);
+        }
         if(!isCalcOnly) {
             _client.deleteCas(obj);
         }
@@ -127,7 +122,7 @@ public class CouchbaseUniqueKeyDao {
 
     public CouchbaseUniqueKey addOrUpdateUniqueKey(String nameSpace,String value,CouchbaseDocument doc,boolean isCalcOnly) throws StorageException,DaoException{
         CouchbaseUniqueKey keyDoc = new CouchbaseUniqueKey();
-        String internalKey =buildKey(nameSpace,value.toString());
+        String internalKey =buildKey(nameSpace,value);
         keyDoc.setDocumentKey(buildObjKey(nameSpace,value));
         keyDoc.addKey(internalKey,doc);
 
@@ -138,14 +133,23 @@ public class CouchbaseUniqueKeyDao {
                 existingKeyDoc.addKey(internalKey,doc);
                 return existingKeyDoc;
             }
+            else{
+                doc.addDocUniqKeys(internalKey);
+                return keyDoc;
+            }
         }
         else{
             try {
-                if(_client.add(keyDoc, getTranscoder()).get()==false){
+                if(!_client.add(keyDoc, getTranscoder()).get()){
                     CouchbaseUniqueKey existingKeyDoc = get(keyDoc.getDocumentKey());
                     existingKeyDoc.addKey(internalKey,doc);
                     update(existingKeyDoc,isCalcOnly);
+                    doc.addDocUniqKeys(internalKey);
                     return existingKeyDoc;
+                }
+                else{
+                    doc.addDocUniqKeys(internalKey);
+                    keyDoc.setDocStateSync();
                 }
             }
             catch(InterruptedException e) {

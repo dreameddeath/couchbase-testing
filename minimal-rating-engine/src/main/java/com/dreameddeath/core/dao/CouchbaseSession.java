@@ -6,7 +6,6 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
-import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.exception.dao.ReadOnlyException;
@@ -75,6 +74,12 @@ public class CouchbaseSession {
     protected void checkReadOnly(String counterKey) throws ReadOnlyException{
         if(isReadOnly()){
             throw new ReadOnlyException(counterKey);
+        }
+    }
+
+    protected void checkReadOnly(CouchbaseUniqueKey uniqueKeyObj) throws ReadOnlyException{
+        if(isReadOnly()){
+            throw new ReadOnlyException(uniqueKeyObj);
         }
     }
 

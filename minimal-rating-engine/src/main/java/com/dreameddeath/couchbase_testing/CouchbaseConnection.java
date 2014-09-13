@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 public class CouchbaseConnection {
     protected static final CouchbaseClientWrapper _client;
     static{
-        CouchbaseClient realClient=null;
+        CouchbaseClient realClient;
         try{
             // (Subset) of nodes in the cluster to establish a connection
             /*List<URI> hosts = Arrays.asList(new URI("http://192.168.1.5:8091/pools"));*/
@@ -57,7 +57,7 @@ public class CouchbaseConnection {
             realClient = new CouchbaseClient(hosts, bucket, password);
         }
         catch(Exception e){
-            
+            throw new RuntimeException("Init error",e);
         }
         
         _client = new CouchbaseClientWrapper(realClient);
@@ -252,7 +252,7 @@ public class CouchbaseConnection {
     static Long counter;
     public static void bench(){
 
-        ThreadPoolExecutor pool = new ThreadPoolExecutor(2,2,1,
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(1,1,1,
                     TimeUnit.MINUTES,
                 new ArrayBlockingQueue<Runnable>(100,true),
                 new ThreadPoolExecutor.CallerRunsPolicy());
@@ -294,7 +294,7 @@ public class CouchbaseConnection {
                             createPartyJob.getRequest().person = new CreatePartyRequest.Person();
                             createPartyJob.getRequest().person.firstName = "christophe " + id;
 
-                            createPartyJob.getRequest().person.lastName = "jeunesse " + (id/10);
+                            createPartyJob.getRequest().person.lastName = "jeunesse " + (id/5);
                             serviceFactory.getJobServiceForClass(CreatePartyJob.class).execute(createPartyJob);
                             CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
                             createBaJob.getRequest().billDay=2;
