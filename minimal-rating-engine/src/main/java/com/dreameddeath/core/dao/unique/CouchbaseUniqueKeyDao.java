@@ -1,7 +1,9 @@
 package com.dreameddeath.core.dao.unique;
 
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.exception.storage.DocumentNotFoundException;
+import com.dreameddeath.core.exception.storage.DuplicateDocumentKeyException;
+import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
@@ -69,23 +71,51 @@ public class CouchbaseUniqueKeyDao {
         return String.format(UNIQ_FMT_KEY, getHashKey(nameSpace,value));
     }
 
+    public String buildObjKey(String internalKey) throws DaoException{
+        return String.format(UNIQ_FMT_KEY, getHashKey(internalKey));
+    }
+
     private CouchbaseUniqueKey get(String objKey) throws DaoException,StorageException{
-        CouchbaseUniqueKey result=_client.gets(objKey,getTranscoder());
+        CouchbaseUniqueKey result=_client.get(objKey, getTranscoder());
         result.setDocStateSync();
         return result;
     }
 
     public CouchbaseUniqueKey get(String nameSpace,String value) throws DaoException,StorageException{
-        CouchbaseUniqueKey result=_client.gets(getHashKey(nameSpace,value),getTranscoder());
+        CouchbaseUniqueKey result=_client.get(buildObjKey(nameSpace, value), getTranscoder());
         result.setDocStateSync();
         return result;
     }
 
     public CouchbaseUniqueKey getFromInternalKey(String internalKey) throws DaoException,StorageException{
-        CouchbaseUniqueKey result=_client.gets(getHashKey(internalKey),getTranscoder());
+        CouchbaseUniqueKey result=_client.get(buildObjKey(internalKey), getTranscoder());
         result.setDocStateSync();
         return result;
     }
+
+    private CouchbaseUniqueKey create(CouchbaseDocument doc,String internalKey,boolean isCalcOnly) throws DaoException,StorageException{
+        if(doc.getDocumentKey()==null){
+            throw new DaoException("The key object doesn't have a key before unique key setup. The doc was :"+doc);
+        }
+        CouchbaseUniqueKey keyDoc = new CouchbaseUniqueKey();
+        keyDoc.setDocumentKey(buildObjKey(internalKey));
+        keyDoc.addKey(internalKey,doc);
+
+        if(isCalcOnly) {
+            try {
+                CouchbaseUniqueKey existingKeyDoc = doc.getSession().getUniqueKey(internalKey);
+            } catch (DocumentNotFoundException e) {
+                //Nothing to do as it means no duplicates
+            }
+        }
+        else{
+            _client.add(keyDoc, getTranscoder());
+        }
+        keyDoc.setDocStateSync();
+        doc.addDocUniqKeys(internalKey);
+        return keyDoc;
+    }
+
 
     private CouchbaseUniqueKey update(CouchbaseUniqueKey obj,boolean isCalcOnly) throws DaoException,StorageException{
         if(obj.getDocumentKey()==null){
@@ -98,12 +128,17 @@ public class CouchbaseUniqueKeyDao {
         return obj;
     }
 
-    private CouchbaseUniqueKey delete(CouchbaseUniqueKey obj,boolean isCalcOnly) throws DaoException,StorageException{
+    private CouchbaseUniqueKey delete(CouchbaseUniqueKey obj,boolean isCalcOnly,int expiration) throws DaoException,StorageException{
         if(obj.getDocumentKey()==null){
             throw new DaoException("The key object doesn't have a key before deletion. The doc was :"+obj);
         }
         if(!isCalcOnly) {
-            _client.deleteCas(obj);
+            if(expiration>0){
+                _client.cas(obj,_tc,expiration);
+            }
+            else {
+                _client.deleteCas(obj);
+            }
         }
         obj.setDocStateDeleted();
         return obj;
@@ -113,57 +148,41 @@ public class CouchbaseUniqueKeyDao {
     public void removeUniqueKey(CouchbaseUniqueKey doc,String internalKey,boolean isCalcOnly) throws StorageException,DaoException{
         doc.removeKey(internalKey);
         if(doc.isEmpty()){
-            delete(doc,isCalcOnly);
+            delete(doc,isCalcOnly,0);//TODO manage expiration for timed removed document
         }
         else{
            update(doc,isCalcOnly);
         }
     }
 
-    public CouchbaseUniqueKey addOrUpdateUniqueKey(String nameSpace,String value,CouchbaseDocument doc,boolean isCalcOnly) throws StorageException,DaoException{
-        CouchbaseUniqueKey keyDoc = new CouchbaseUniqueKey();
-        String internalKey =buildKey(nameSpace,value);
-        keyDoc.setDocumentKey(buildObjKey(nameSpace,value));
-        keyDoc.addKey(internalKey,doc);
-
-
-        if(isCalcOnly){
-            CouchbaseUniqueKey existingKeyDoc = doc.getSession().getUniqueKey(internalKey);
-            if(existingKeyDoc!=null){
-                existingKeyDoc.addKey(internalKey,doc);
-                return existingKeyDoc;
-            }
-            else{
-                doc.addDocUniqKeys(internalKey);
-                return keyDoc;
-            }
+    public void removeUniqueKey(CouchbaseUniqueKey doc,String internalKey,boolean isCalcOnly,int expiration) throws StorageException,DaoException{
+        doc.removeKey(internalKey);
+        if(doc.isEmpty()){
+            delete(doc,isCalcOnly,expiration);
         }
         else{
-            try {
-                if(!_client.add(keyDoc, getTranscoder()).get()){
-                    CouchbaseUniqueKey existingKeyDoc = get(keyDoc.getDocumentKey());
-                    existingKeyDoc.addKey(internalKey,doc);
-                    update(existingKeyDoc,isCalcOnly);
-                    doc.addDocUniqKeys(internalKey);
-                    return existingKeyDoc;
-                }
-                else{
-                    doc.addDocUniqKeys(internalKey);
-                    keyDoc.setDocStateSync();
-                }
-            }
-            catch(InterruptedException e) {
-                throw new StorageException("Interrupted waiting for cas update", e);
-            }
-            catch (ExecutionException e) {
-                if(e.getCause() instanceof CancellationException) {
-                    throw new StorageException("Cancelled Update",e);
-                } else {
-                    throw new StorageException("Exception waiting for cas update",e);
-                }
-            }
+            update(doc,isCalcOnly);
         }
-        return keyDoc;
+    }
+
+
+    public CouchbaseUniqueKey addOrUpdateUniqueKey(String nameSpace,String value,CouchbaseDocument doc,boolean isCalcOnly) throws StorageException,DaoException{
+        if(doc.getDocumentKey()==null){
+            doc.getSession().buildKey(doc);
+        }
+
+        String internalKey=buildKey(nameSpace,value);
+        try{
+            CouchbaseUniqueKey result=create(doc,internalKey,isCalcOnly);
+            doc.addDocUniqKeys(buildKey(nameSpace,value));
+            return result;
+        }
+        catch(DuplicateDocumentKeyException e){
+            CouchbaseUniqueKey existingKeyDoc = doc.getSession().getUniqueKey(internalKey);
+            existingKeyDoc.addKey(internalKey,doc);
+            doc.addDocUniqKeys(internalKey);
+            return existingKeyDoc;
+        }
     }
 
 

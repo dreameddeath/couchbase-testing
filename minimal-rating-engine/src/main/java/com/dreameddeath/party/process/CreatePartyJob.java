@@ -1,8 +1,8 @@
 package com.dreameddeath.party.process;
 
 import com.dreameddeath.core.event.TaskProcessEvent;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.DocumentCreateTask;
+import com.dreameddeath.core.process.common.AbstractJob;
+import com.dreameddeath.core.process.document.DocumentCreateTask;
 import com.dreameddeath.core.model.process.EmptyJobResult;
 import com.dreameddeath.party.model.base.Organization;
 import com.dreameddeath.party.model.base.Party;

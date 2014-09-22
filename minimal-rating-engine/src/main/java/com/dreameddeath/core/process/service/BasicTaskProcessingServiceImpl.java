@@ -1,9 +1,9 @@
-package com.dreameddeath.core.process;
+package com.dreameddeath.core.process.service;
 
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
-import com.dreameddeath.core.model.process.AbstractTask;
-import com.dreameddeath.core.model.process.AbstractTask.State;
+import com.dreameddeath.core.process.common.AbstractTask;
+import com.dreameddeath.core.process.common.AbstractTask.State;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */

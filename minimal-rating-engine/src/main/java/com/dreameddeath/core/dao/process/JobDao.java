@@ -3,7 +3,7 @@ package com.dreameddeath.core.dao.process;
 
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
-import com.dreameddeath.core.model.process.AbstractJob;
+import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import net.spy.memcached.transcoders.Transcoder;

@@ -1,4 +1,4 @@
-package com.dreameddeath.core.model.process;
+package com.dreameddeath.core.process.common;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
@@ -8,7 +8,7 @@ import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.core.process.JobProcessingService;
+import com.dreameddeath.core.process.service.JobProcessingService;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-package com.dreameddeath.core.model.process;
+package com.dreameddeath.core.process.common;
 
 import java.util.*;
 
@@ -13,7 +13,7 @@ import com.dreameddeath.core.model.property.*;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.core.process.JobProcessingService;
+import com.dreameddeath.core.process.service.JobProcessingService;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;

@@ -1,6 +1,9 @@
 package com.dreameddeath.core.storage;
 
 
+import com.dreameddeath.core.exception.storage.DocumentDecodingException;
+import com.dreameddeath.core.exception.storage.DocumentEncodingException;
+import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,11 +14,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import net.spy.memcached.CachedData;
 import net.spy.memcached.transcoders.Transcoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 
 public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> implements Transcoder<T>{
+    private final static Logger logger = LoggerFactory.getLogger(GenericJacksonTranscoder.class);
+
     private static final ObjectMapper _mapper;
     private final Class<T> _dummyClass;
     
@@ -52,26 +59,20 @@ public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> implement
     
     @Override
     public T decode(CachedData cachedData){
-        String baseString="";
         try{
-            baseString=new String(cachedData.getData(),"UTF-8");
             T result = _mapper.readValue(cachedData.getData(),_dummyClass);
             result.setDocumentDbSize(cachedData.getData().length);
             return result;
         }
         catch (JsonParseException e){
-            System.out.println("Raw data <" +baseString+">");
-            e.printStackTrace();
+            throw new DocumentDecodingException("Error during decoding of data using GenericJacksonTranscoder<"+_dummyClass.getName()+"> :",cachedData,e);
         }
         catch (JsonMappingException e) {
-            System.out.println("Raw data <" +baseString+">");
-            e.printStackTrace();
-        } 
-        catch (IOException e) {
-            System.out.println("Raw data <" +baseString+">");
-            e.printStackTrace();
+            throw new DocumentDecodingException("Error during decoding of data using GenericJacksonTranscoder<"+_dummyClass.getName()+"> :",cachedData,e);
         }
-        return null;
+        catch(IOException e){
+            throw new DocumentDecodingException("Error during decoding of data using GenericJacksonTranscoder<"+_dummyClass.getName()+"> :",cachedData,e);
+        }
     }
     
     @Override
@@ -82,8 +83,7 @@ public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> implement
             return new CachedData(0,encoded,CachedData.MAX_SIZE);
         }
         catch (JsonProcessingException e){
-            e.printStackTrace();
+            throw new DocumentEncodingException("Error during encoding of data using GenericJacksonTranscoder<"+_dummyClass.getName()+">  of input "+input.toString(),e);
         }
-        return null;
     }
 }

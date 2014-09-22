@@ -74,11 +74,11 @@ public class BaseCouchbaseDocument extends BaseCouchbaseDocumentElement {
     public String toString(){
         return
                 "key   : "+_key+",\n"+
-                        "cas   : "+_cas+",\n"+
-                        "lock  : "+_isLocked+",\n"+
-                        "size  : "+_dbDocSize+",\n"+
-                        "state  : "+ _docState +",\n"+
-                        "flags : "+_documentFlags.toString();
+                "cas   : "+_cas+",\n"+
+                "lock  : "+_isLocked+",\n"+
+                "size  : "+_dbDocSize+",\n"+
+                "state : "+_docState +",\n"+
+                "flags : "+_documentFlags.toString();
     }
 
     public enum DocumentState {

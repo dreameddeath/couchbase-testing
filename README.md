@@ -12,7 +12,7 @@ Infrastructure Layer :
 
 Couchbase Layer :
 - Views
-- Unique Index
+- Unique Index (remain tests plus delete management)
 - Datamodel upgrade management
 - History :
     - Keep previous revision at document level
@@ -29,13 +29,21 @@ Couchbase Layer :
         - With Archive + Delete
         - With Archive + Delete after TTL
         - Archive in Zipped format or not
-        - Management of DataModel Updates for archives
+        - Management of DataModel Updates for archives (or use pure anonymous archive? generic json for instance ?)
 
 Framework Layer :
-- Job Unit Tests (calc only mode)
-- Automated Errors Tests
+- Generate classes base on XML similar (include datamodel upgrade definition)
+- MDC integration
 - Integration with Storm, kafka (& ElaticSearch, Esper?)
-- Unified SOAP & REST API
+- Unified SOAP & REST API (Use of jibx code gen)
+
+Testing:
+- Job Unit Tests (~ integration tests) with or without calc only
+- Job Unit Tests with failure automation
+- Job Unit Tests with race condition
+- Overriding of logs for tests/production purposes
+
+
 
 Business Layer :
 - Catalog Cache and version deployment

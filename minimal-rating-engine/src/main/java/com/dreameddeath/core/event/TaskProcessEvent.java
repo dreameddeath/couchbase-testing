@@ -1,7 +1,7 @@
 package com.dreameddeath.core.event;
 
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.AbstractTask;
+import com.dreameddeath.core.process.common.AbstractJob;
+import com.dreameddeath.core.process.common.AbstractTask;
 
 /**
  * Created by Christophe Jeunesse on 27/07/2014.

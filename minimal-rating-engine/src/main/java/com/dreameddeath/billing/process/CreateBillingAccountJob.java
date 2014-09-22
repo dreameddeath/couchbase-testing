@@ -7,10 +7,10 @@ import com.dreameddeath.billing.model.process.CreateBillingAccountResult;
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.DocumentCreateTask;
-import com.dreameddeath.core.model.process.DocumentUpdateTask;
-import com.dreameddeath.core.model.process.SubJobProcessTask;
+import com.dreameddeath.core.process.common.AbstractJob;
+import com.dreameddeath.core.process.document.DocumentCreateTask;
+import com.dreameddeath.core.process.document.DocumentUpdateTask;
+import com.dreameddeath.core.process.common.SubJobProcessTask;
 import com.dreameddeath.party.model.base.Party;
 
 /**

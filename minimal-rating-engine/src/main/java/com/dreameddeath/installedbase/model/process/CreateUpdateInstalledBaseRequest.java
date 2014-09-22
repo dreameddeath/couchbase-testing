@@ -37,7 +37,12 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
     }
 
     public class Contract extends IdentifiedItem {
-        //TODO add contract Spec
+        @DocumentProperty("holderId")
+        public String holderId;
+        @DocumentProperty("billingAccountId")
+        public String billingAccountId;
+        @DocumentProperty("links")
+        public List<IdentifiedItemLink> links = new ArrayList<IdentifiedItemLink>();
     }
 
 
@@ -55,7 +60,8 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
     public enum LinkType{
         RELIES_ON,
         BRINGS,
-        AGGREGATE
+        AGGREGATE,
+        MIGRATE
     }
 
     public enum LinkDirection{
@@ -104,7 +110,6 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
         public List<IdentifiedItemLink> links = new ArrayList<IdentifiedItemLink>();
         @DocumentProperty("attributes")
         public List<Attribute> attributes = new ArrayList<Attribute>();
-
         @DocumentProperty("spec")
         public Specification spec = new Specification();
 
@@ -131,6 +136,7 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
     public class Discount extends IdentifiedItem {
         @DocumentProperty("spec")
         public Specification spec=new Specification();
+
         public class Specification{
             @DocumentProperty("code")
             public String code;
@@ -148,7 +154,6 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
         public class Value extends Item{
             @DocumentProperty("value")
             public String value;
-
             @DocumentProperty("spec")
             public Specification spec=new Specification();
 
@@ -173,7 +178,7 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
 
     public class ItemStatus {
         @DocumentProperty("status")
-        public Status code;
+        public Status statusCode;
         @DocumentProperty("startDate")
         public DateTime startDate;
         @DocumentProperty("endDate")
@@ -185,7 +190,7 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
         ACTIVE,
         SUSPEND,
         REMOVED,
-        ABORTED
+        CANCELLED
     }
 
     public class OrderItemInfo{
@@ -211,7 +216,8 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
         MIGRATE,
         ACTIVATE,
         SUSPEND,
-        UNCHANGE
+        UNCHANGE,
+        CANCEL
     }
 
 }

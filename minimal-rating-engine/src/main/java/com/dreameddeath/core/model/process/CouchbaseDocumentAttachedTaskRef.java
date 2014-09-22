@@ -5,6 +5,8 @@ import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.process.common.AbstractJob;
+import com.dreameddeath.core.process.common.AbstractTask;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 

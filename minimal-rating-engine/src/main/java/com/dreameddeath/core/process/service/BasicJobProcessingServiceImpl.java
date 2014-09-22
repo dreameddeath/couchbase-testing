@@ -1,9 +1,9 @@
-package com.dreameddeath.core.process;
+package com.dreameddeath.core.process.service;
 
 import com.dreameddeath.core.exception.process.JobExecutionException;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.AbstractJob.State;
-import com.dreameddeath.core.model.process.AbstractTask;
+import com.dreameddeath.core.process.common.AbstractJob;
+import com.dreameddeath.core.process.common.AbstractJob.State;
+import com.dreameddeath.core.process.common.AbstractTask;
 
 
 /**

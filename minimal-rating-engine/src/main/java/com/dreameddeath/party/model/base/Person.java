@@ -14,7 +14,7 @@ import org.joda.time.DateTime;
 public class Person extends Party {
     @DocumentProperty("firstName") @NotNull
     private Property<String> _firstName=new StandardProperty<String>(Person.this);
-    @DocumentProperty("lastName") @NotNull @Unique(nameSpace = "personName")
+    @DocumentProperty("lastName") @NotNull
     private Property<String> _lastName=new StandardProperty<String>(Person.this);
     @DocumentProperty("birthDate")
     private Property<DateTime> _birthDate = new StandardProperty<DateTime>(Person.this);

@@ -4,13 +4,11 @@ import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.model.process.AbstractTask;
+import com.dreameddeath.core.process.common.AbstractTask;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
-import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
-import com.dreameddeath.core.model.property.impl.HashMapProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import org.joda.time.DateTime;
 
@@ -60,12 +58,30 @@ public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
             link.syncFields();
         }
     }
-    @Override
-    public void setDocStateSync(){
+
+
+    protected void syncKeyWithDb(){
         _inDbUniqKeys.clear();
         _inDbUniqKeys.addAll(_docUniqKeys.get());
         _docUniqKeys.clear();
+    }
+
+    @Override
+    public void setDocStateDeleted(){
+        //syncKeyWithDb(); voluntary to key in db values up to date
+        super.setDocStateDeleted();
+    }
+
+    @Override
+    public void setDocStateSync(){
+        syncKeyWithDb();
         super.setDocStateSync();
+    }
+
+    public Set<String> getToBeDeletedUniqueKeys(){
+        Set<String> toRemoveKeyList=new HashSet<String>(_inDbUniqKeys);
+        toRemoveKeyList.addAll(_docUniqKeys.get());
+        return toRemoveKeyList;
     }
 
     public Set<String> getRemovedUniqueKeys(){

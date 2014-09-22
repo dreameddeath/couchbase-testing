@@ -9,7 +9,8 @@ public interface CouchbaseConstants {
     public static enum DocumentFlag {
         CdrBucket(0x01),
         CdrCompacted(0x02),
-        Compressed(0x100);
+        Compressed(0x100),
+        Deleted(0x200);
         
         private int _value;
         

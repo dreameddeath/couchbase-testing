@@ -80,7 +80,7 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
     }
 
     public AccessibleObject getAccessibleObj(Field member) throws NoSuchMethodException{
-        if(!member.isAccessible()){
+        if((member.getModifiers() & Modifier.PUBLIC)==0){
             return fieldGetterFinder(member);
         }
         else{

@@ -17,11 +17,12 @@ import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.validation.ValidatorFactory;
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.process.ProcessingServiceFactory;
+import com.dreameddeath.core.process.common.AbstractJob;
+import com.dreameddeath.core.process.service.ProcessingServiceFactory;
 import com.dreameddeath.core.storage.BinarySerializer;
 import com.dreameddeath.core.storage.CouchbaseClientWrapper;
 import com.dreameddeath.core.user.User;
+import com.dreameddeath.installedbase.process.CreateUpdateInstalledBaseJob;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
@@ -70,6 +71,7 @@ public class CouchbaseConnection {
         _docDaoFactory.setCounterDaoFactory(_counterDaoFactory);
         _docDaoFactory.setValidatorFactory(new ValidatorFactory());
         _uniqueKeyDaoFactory.addDaoFor("personName", new CouchbaseUniqueKeyDao(_client,_uniqueKeyDaoFactory));
+        _uniqueKeyDaoFactory.addDaoFor("createInstalledBaseJob", new CouchbaseUniqueKeyDao(_client,_uniqueKeyDaoFactory));
         _docDaoFactory.addDaoFor(BillingAccount.class, new BillingAccountDao(_client, _docDaoFactory));
         _docDaoFactory.addDaoFor(BillingCycle.class, new BillingCycleDao(_client, _docDaoFactory));
         _docDaoFactory.addDaoFor(RatingContext.class, new RatingContextDao(_client, _docDaoFactory));
@@ -210,7 +212,7 @@ public class CouchbaseConnection {
             
             _docDaoFactory.getDaoForClass(StringCdrBucket.class).create(cdrsBucket);
             
-            GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.gets(cdrsBucket.getDocumentKey(),_docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
+            GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.get(cdrsBucket.getDocumentKey(),_docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             
             StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getDocumentKey(),unpackedCdrsMap.getDocumentDbSize(),GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
             int pos=0;
@@ -225,7 +227,7 @@ public class CouchbaseConnection {
             }
             
             _client.append(newCdrsBucket,_docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder()).get();
-            unpackedCdrsMap = _client.gets(cdrsBucket.getDocumentKey(), _docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
+            unpackedCdrsMap = _client.get(cdrsBucket.getDocumentKey(), _docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             //System.out.println("Result :\n"+unpackedCdrsMap.toString());
             
             System.out.println("New Session");
@@ -250,21 +252,22 @@ public class CouchbaseConnection {
         _client.shutdown();
   }
     static Long counter;
+    static Long errorCounter;
     public static void bench(){
 
-        ThreadPoolExecutor pool = new ThreadPoolExecutor(1,1,1,
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(2,2,1,
                     TimeUnit.MINUTES,
                 new ArrayBlockingQueue<Runnable>(100,true),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
         counter = 0L;
+        errorCounter=0L;
         long nbPut=0L;
         long startTime = System.currentTimeMillis();
-        //Person person=new Person();
 
-        //_docDaoFactory.getValidatorFactory().getValidator(person.getClass());
-        //_docDaoFactory.getValidatorFactory().getValidator(Person.class);
-        for(int i=0;i<100;++i) {
+        final ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
+
+        for(int i=0;i<10000;++i) {
             final int id=i;
             try {
                 pool.submit(new Runnable() {
@@ -287,22 +290,30 @@ public class CouchbaseConnection {
                                     return null;
                                 }
                             });
-                            ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
 
                             CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
                             createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
                             createPartyJob.getRequest().person = new CreatePartyRequest.Person();
                             createPartyJob.getRequest().person.firstName = "christophe " + id;
 
-                            createPartyJob.getRequest().person.lastName = "jeunesse " + (id/5);
+                            createPartyJob.getRequest().person.lastName = "jeunesse " + (id);
                             serviceFactory.getJobServiceForClass(CreatePartyJob.class).execute(createPartyJob);
                             CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
                             createBaJob.getRequest().billDay=2;
                             createBaJob.getRequest().partyId = ((CreatePartyJob.CreatePartyTask) createPartyJob.getTasks().get(0)).getDocument().getUid();
                             serviceFactory.getJobServiceForClass(CreateBillingAccountJob.class).execute(createBaJob);
 
+                            CreateUpdateInstalledBaseJob createInstalledBaseJob = session.newEntity(CreateUpdateInstalledBaseJob.class);
+                            createInstalledBaseJob.getRequest().creationRequestUid = "newInstalledBase "+ id;
+                            serviceFactory.getJobServiceForClass(CreateUpdateInstalledBaseJob.class).execute(createInstalledBaseJob);
+
+                            session.delete(createInstalledBaseJob);
+
                         } catch (Exception e) {
                             e.printStackTrace();
+                            synchronized (errorCounter){
+                                errorCounter++;
+                            }
                         }
                         synchronized (counter){
                             counter++;
@@ -318,6 +329,7 @@ public class CouchbaseConnection {
                 e.printStackTrace();
             }
         }
+
         pool.shutdown();
         try {
             if (!pool.awaitTermination(5, TimeUnit.MINUTES)) {
@@ -337,6 +349,7 @@ public class CouchbaseConnection {
             pool.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        System.out.println("Having "+errorCounter+" errors");
     }
     /*public static void bench(){
         CouchbaseSession benchSession=_docDaoFactory.newSession();

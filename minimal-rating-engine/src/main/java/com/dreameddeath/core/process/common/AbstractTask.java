@@ -1,4 +1,4 @@
-package com.dreameddeath.core.model.process;
+package com.dreameddeath.core.process.common;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
@@ -8,7 +8,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.core.process.TaskProcessingService;
+import com.dreameddeath.core.process.service.TaskProcessingService;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;

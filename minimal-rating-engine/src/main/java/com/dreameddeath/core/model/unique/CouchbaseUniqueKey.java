@@ -2,7 +2,7 @@ package com.dreameddeath.core.model.unique;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.DuplicateKeyException;
+import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -28,7 +28,7 @@ public class CouchbaseUniqueKey extends BaseCouchbaseDocument {
             if(!_keyMaps.get(buildKey).equals(doc.getDocumentKey())){
                 //If target document still exists
                 if(doc.getSession().get(_keyMaps.get(buildKey))!=null){
-                    throw new DuplicateKeyException(doc,"The key <"+buildKey+"> is already used by the document <"+_keyMaps.get(buildKey)+">");
+                    throw new DuplicateUniqueKeyException(doc,"The key <"+buildKey+"> is already used by the document <"+_keyMaps.get(buildKey)+">");
                 }
             }
         }
