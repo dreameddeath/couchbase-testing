@@ -3,10 +3,11 @@ package com.dreameddeath.core.dao.validation;
 import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 
-import java.lang.Iterable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by ceaj8230 on 29/08/2014.

@@ -90,7 +90,7 @@ public class ValidationException extends DaoException {
             buf.append(_docElt.getClass().getSimpleName()).append(" ");
             if(_docElt instanceof CouchbaseDocument){
                 buf.append("The document [");
-                String key = ((CouchbaseDocument) _docElt).getDocumentKey();
+                String key = ((CouchbaseDocument) _docElt).getBaseMeta().getKey();
                 if(key!=null){ buf.append(key); }
                 else{ buf.append("NEW");}
                 buf.append("] ");

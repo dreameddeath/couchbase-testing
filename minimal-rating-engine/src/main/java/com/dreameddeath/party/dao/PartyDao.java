@@ -1,13 +1,14 @@
 package com.dreameddeath.party.dao;
 
+import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.party.model.base.Party;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import net.spy.memcached.transcoders.Transcoder;
+import com.dreameddeath.core.storage.GenericTranscoder;
+import com.dreameddeath.party.model.base.Party;
 
 public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
     public static final String PARTY_CNT_KEY="party/cnt";
@@ -16,20 +17,24 @@ public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
     public static final String PARTY_KEY_PATTERN="party/\\d{10}";
     public static final String PARTY_CNT_KEY_PATTERN="party/cnt";
 
-    private static GenericJacksonTranscoder<Party> _tc = new GenericJacksonTranscoder<Party>(Party.class);
+    public static class LocalBucketDocument extends BucketDocument<Party>{
+        public LocalBucketDocument(Party party){super(party);}
+    }
 
-    public  Transcoder<Party> getTranscoder(){
+    private static GenericJacksonTranscoder<Party> _tc = new GenericJacksonTranscoder<Party>(Party.class,LocalBucketDocument.class);
+
+    public GenericTranscoder<Party> getTranscoder(){
         return _tc;
     }
 
-    public PartyDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
+    public PartyDao(CouchbaseBucketWrapper client,BaseCouchbaseDocumentDaoFactory factory){
         super(client,factory);
         registerCounterDao(new CouchbaseCounterDao.Builder().withKeyPattern(PARTY_CNT_KEY_PATTERN).withDefaultValue(1L));
     }
 
     public void buildKey(Party obj) throws DaoException {
-        long result = obj.getSession().incrCounter(PARTY_CNT_KEY,1);
-        obj.setDocumentKey(String.format(PARTY_FMT_KEY, result));
+        long result = obj.getBaseMeta().getSession().incrCounter(PARTY_CNT_KEY, 1);
+        obj.getBaseMeta().setKey(String.format(PARTY_FMT_KEY, result));
         if(obj.getUid()==null){
             obj.setUid(String.format(PARTY_FMT_UID,result));
         }

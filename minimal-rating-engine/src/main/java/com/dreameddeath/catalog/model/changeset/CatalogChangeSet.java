@@ -2,11 +2,10 @@ package com.dreameddeath.catalog.model.changeset;
 
 import com.dreameddeath.catalog.model.CatalogElement;
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.property.*;
+import com.dreameddeath.core.model.property.MapProperty;
+import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.HashMapCollectionProperty;
-import com.dreameddeath.core.model.property.impl.HashMapProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 import java.util.List;

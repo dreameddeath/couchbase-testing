@@ -1,8 +1,8 @@
 package com.dreameddeath.installedbase.model.offer;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
 
 import java.util.Collection;

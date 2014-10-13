@@ -8,8 +8,8 @@ import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.process.common.AbstractTask;
 
 /**
@@ -22,7 +22,7 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
     public String getDocKey(){return _docKey.get(); }
     public DocumentUpdateTask<T> setDocKey(String docKey){_docKey.set(docKey); return this;}
     public T getDocument() throws DaoException,StorageException{
-        return (T)this.getParentJob().getSession().get(_docKey.get());
+        return (T)this.getParentJob().getMeta().getSession().get(_docKey.get());
     }
 
     @Override
@@ -32,13 +32,13 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
             if (reference == null) {
                 processDocument();
                 CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
-                attachedTaskRef.setJobKey(getParentJob().getDocumentKey());
+                attachedTaskRef.setJobKey(getParentJob().getMeta().getKey());
                 attachedTaskRef.setJobClass(getParentJob().getClass().getName());
                 attachedTaskRef.setTaskId(this.getUid());
                 attachedTaskRef.setTaskClass(this.getClass().getName());
                 getDocument().addAttachedTaskRef(attachedTaskRef);
                 try {
-                    getDocument().save();
+                    getDocument().getMeta().getSession().save(getDocument());
                 } catch (ValidationException e) {
                     throw new TaskExecutionException(this, this.getState(), "Updated Document Validation exception", e);
                 }
@@ -58,7 +58,7 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
     public final boolean cleanup() throws TaskExecutionException{
         try {
             getDocument().cleanupAttachedTaskRef(this);
-            getDocument().save();
+            getDocument().getMeta().getSession().save(getDocument());
         }
         catch(ValidationException e){
             throw new TaskExecutionException(this,this.getState(),"Cleaned updated document Validation exception",e);

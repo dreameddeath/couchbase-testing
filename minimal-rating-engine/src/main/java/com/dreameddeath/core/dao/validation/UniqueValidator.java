@@ -4,6 +4,7 @@ import com.dreameddeath.core.annotation.Unique;
 import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 import java.lang.reflect.Field;
 
@@ -21,7 +22,7 @@ public class UniqueValidator<T> implements Validator<T> {
     public void validate(T value, BaseCouchbaseDocumentElement parent) throws ValidationException{
         if(value!=null){
             try {
-                parent.getParentDocument().getSession().addOrUpdateUniqueKey(parent.getParentDocument(), value, _annotation.nameSpace());
+                parent.getParentDocument().getBaseMeta().getSession().addOrUpdateUniqueKey((CouchbaseDocument)parent.getParentDocument(), value, _annotation.nameSpace());
             }
             catch(DuplicateUniqueKeyException e){
                 throw new ValidationException(parent,_field,"Duplicate Exception for value" ,e);

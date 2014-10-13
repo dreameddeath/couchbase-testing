@@ -29,12 +29,21 @@
     
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <couchbase.version>1.3.2</couchbase.version>
-    <slf4j.version>1.7.6</slf4j.version>
-    <junit.version>4.11</junit.version>
-    <cglib.version>3.1</cglib.version>
-    <apache.common.codec.version>1.9</apache.common.codec.version>
-    <google.protobuf.version>2.5.0</google.protobuf.version>
+      <!--<couchbase.version>1.4.1</couchbase.version>-->
+      <couchbase.version>2.0.0</couchbase.version>
+      <cglib.version>3.1</cglib.version>
+      <google.protobuf.version>2.5.0</google.protobuf.version>
+      <logback.version>1.1.2</logback.version>
+      <slf4j.version>1.7.6</slf4j.version>
+      <junit.version>4.11</junit.version>
+      <apache.common.version>2.6</apache.common.version>
+      <apache.common.codec.version>1.9</apache.common.codec.version>
+      <jackson.version>2.4.1</jackson.version>
+      <joda-time.version>2.3</joda-time.version>
+      <aspectj.version>1.7.4</aspectj.version>
+      <aspectj-mvn.version>1.6</aspectj-mvn.version>
+      <rxjava.version>1.0.0-rc.3</rxjava.version>
+      <javassist.version>3.12.1.GA</javassist.version>
   </properties>
 
   
@@ -44,10 +53,15 @@
         <artifactId>protobuf-java</artifactId>
         <version>${google.protobuf.version}</version>
     </dependency>
-    <dependency>
+   <!-- <dependency>
       <groupId>com.couchbase.client</groupId>
       <artifactId>couchbase-client</artifactId>
       <version>${couchbase.version}</version>
+    </dependency>-->
+    <dependency>
+          <groupId>com.couchbase.client</groupId>
+          <artifactId>java-client</artifactId>
+          <version>${couchbase.version}</version>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
@@ -70,6 +84,20 @@
           <artifactId>commons-codec</artifactId>
           <version>${apache.common.codec.version}</version>
       </dependency>
-
+      <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <version>${logback.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>io.reactivex</groupId>
+          <artifactId>rxjava</artifactId>
+          <version>${rxjava.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>javassist</groupId>
+          <artifactId>javassist</artifactId>
+          <version>${javassist.version}</version>
+      </dependency>
   </dependencies>
 </project>

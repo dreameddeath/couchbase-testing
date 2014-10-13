@@ -2,9 +2,10 @@ package com.dreameddeath.rating.model.cdr;
 
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
-import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocumentLink<T>{
     @DocumentProperty("@c")
@@ -28,7 +29,7 @@ public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocume
         super(bucket);
         setType(bucket.getClass().getSimpleName());
         setNbCdrs(bucket.getCdrs().size());
-        setDbSize(bucket.getLastWrittenSize());
+        setDbSize(bucket.getBinaryMeta().getLastWrittenSize());
     }
     
     public CdrsBucketLink(CdrsBucketLink srcLink){
@@ -39,13 +40,13 @@ public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocume
     }
     
     public void updateFromBucket(T bucketUpdate) {
-        if(bucketUpdate.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL)){
+        if(bucketUpdate.getBinaryMeta().getBinaryDocumentType().equals(BinaryCouchbaseDocument.BinaryDocumentType.BINARY_FULL)){
             _nbCdrs.set(bucketUpdate.getCdrs().size());
-            _dbSize.set(bucketUpdate.getLastWrittenSize());
+            _dbSize.set(bucketUpdate.getBinaryMeta().getLastWrittenSize());
         }
         else{
             _nbCdrs.set(_nbCdrs.get()+bucketUpdate.getCdrs().size());
-            _dbSize.set(_dbSize.get()+bucketUpdate.getLastWrittenSize());
+            _dbSize.set(_dbSize.get()+bucketUpdate.getBinaryMeta().getLastWrittenSize());
         }
     }
     

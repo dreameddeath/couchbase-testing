@@ -3,9 +3,9 @@ package com.dreameddeath.installedbase.model.common;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.model.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.offer.InstalledOffer;
@@ -18,6 +18,16 @@ import java.util.List;
  * Created by ceaj8230 on 10/08/2014.
  */
 public class InstalledBase extends CouchbaseDocument {
+    /**
+     *  uid : The unique id of the installed base
+     */
+    @DocumentProperty("uid")
+    private Property<String> _uid = new StandardProperty<String>(InstalledBase.this);
+
+    // uid accessors
+    public String getUid() { return _uid.get(); }
+    public void setUid(String val) { _uid.set(val); }
+
     /**
      *  contract : The installed Contract for this installed base (if any)
      */

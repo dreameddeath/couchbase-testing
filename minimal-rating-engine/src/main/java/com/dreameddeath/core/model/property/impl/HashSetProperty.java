@@ -1,11 +1,15 @@
 package com.dreameddeath.core.model.property.impl;
 
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.SetProperty;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by ceaj8230 on 08/08/2014.
@@ -20,8 +24,8 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,Has
     public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
 
     protected boolean dirtyParent(){
-        CouchbaseDocument rootDoc = _parentElt.getParentDocument();
-        if(rootDoc!=null){ rootDoc.setDocStateDirty();}
+        BaseCouchbaseDocument rootDoc = _parentElt.getParentDocument();
+        if(rootDoc!=null){ rootDoc.getBaseMeta().setStateDirty();}
         return true;
     }
 

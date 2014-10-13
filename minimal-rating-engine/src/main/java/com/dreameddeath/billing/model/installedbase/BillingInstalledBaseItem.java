@@ -2,9 +2,9 @@ package com.dreameddeath.billing.model.installedbase;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 

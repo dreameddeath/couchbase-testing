@@ -1,5 +1,6 @@
 package com.dreameddeath.core.model.property.impl;
 
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
@@ -7,7 +8,10 @@ import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapDefaultValueBuilder;
 import com.dreameddeath.core.model.property.MapProperty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
@@ -25,8 +29,8 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
     public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
 
     protected boolean dirtyParent(){
-        CouchbaseDocument rootDoc = _parentElt.getParentDocument();
-        if(rootDoc!=null){ rootDoc.setDocStateDirty();}
+        BaseCouchbaseDocument rootDoc = _parentElt.getParentDocument();
+        if(rootDoc!=null){ rootDoc.getBaseMeta().setStateDirty();}
         return true;
     }
 

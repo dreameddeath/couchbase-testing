@@ -1,16 +1,10 @@
 package com.dreameddeath.core.dao.unique;
 
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.storage.CouchbaseClientWrapper;
-import net.spy.memcached.transcoders.Transcoder;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 
 /**
  * Created by ceaj8230 on 11/09/2014.

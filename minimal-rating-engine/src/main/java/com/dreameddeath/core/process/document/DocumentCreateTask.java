@@ -6,8 +6,8 @@ import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.process.common.AbstractTask;
 
 /**
@@ -20,7 +20,7 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
     public String getDocKey(){return _docKey.get(); }
     public void setDocKey(String docKey){_docKey.set(docKey); }
     public T getDocument() throws DaoException,StorageException{
-        return (T)this.getParentJob().getSession().get(_docKey.get());
+        return (T)this.getParentJob().getMeta().getSession().get(_docKey.get());
     }
 
 
@@ -36,11 +36,11 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
 
             T doc = buildDocument();
             //Prebuild key
-            setDocKey(doc.getSession().buildKey(doc).getDocumentKey());
+            setDocKey(doc.getMeta().getSession().buildKey(doc).getMeta().getKey());
             //Attach it to the document
-            this.getParentJob().save();
+            getParentJob().getMeta().getSession().save(getParentJob());
             //Save Document afterwards
-            doc.save();
+            doc.getMeta().getSession().save(doc);
         }
         catch(ValidationException e){
             throw new TaskExecutionException(this,State.PROCESSED,"Validation error", e);

@@ -1,15 +1,15 @@
 package com.dreameddeath.core.process.common;
 
-import java.util.*;
-
+import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.annotation.Validate;
 import com.dreameddeath.core.event.TaskProcessEvent;
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.exception.process.DuplicateTaskException;
 import com.dreameddeath.core.exception.process.JobExecutionException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.property.*;
+import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -17,6 +17,8 @@ import com.dreameddeath.core.process.service.JobProcessingService;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+
+import java.util.*;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
@@ -84,11 +86,9 @@ public abstract class AbstractJob<TREQ extends BaseCouchbaseDocumentElement,TRES
     public void setRequest(TREQ val) { _request.set(val); }
 
     public List<AbstractTask> getTasks() { return _taskList.get();}
+    //should not be used direclty (only used for Jackson)
     public void setTasks(Collection<AbstractTask> tasks) {
-        _taskList.clear();
-        for(AbstractTask task : tasks){
-            addTask(task);
-        }
+        _taskList.set(tasks);
     }
 
     public AbstractTask getTask(String id) {
@@ -106,22 +106,45 @@ public abstract class AbstractJob<TREQ extends BaseCouchbaseDocumentElement,TRES
         return (T)getTask(id);
     }
 
-    public void addTask(AbstractTask task){
+
+    public <T extends AbstractTask> T addTask(T task,Collection<String> prerequisiteTasks) throws DuplicateTaskException{
         if(task.getUid()==null){
             task.setUid(buildTaskId(task));
         }
         if(getTask(task.getUid())!=null){
-            ///TODO throw an error
+            if(task!=getTask(task.getUid())) {
+                throw new DuplicateTaskException(task,this);
+            }
+            else{
+                for(String preReq:prerequisiteTasks){
+                    task.addDependency(preReq);
+                }
+            }
         }
-        task.setParentDocumentElement(this);
-        task.setParentJob(this);
-        _taskList.add(task);
+        else {
+            task.setDependency(prerequisiteTasks);
+            _taskList.add(task);
+        }
+        return task;
+    }
+
+    public <T extends AbstractTask> T addTask(T task) throws DuplicateTaskException{
+        return addTask(task,(Collection<String>)Collections.EMPTY_LIST);
+    }
+
+    public <T extends AbstractTask> T addTask(T task,String preRequisiteTaskUid) throws DuplicateTaskException{
+        List<String> preRequisiteTaskList= new ArrayList<String>(1);
+        preRequisiteTaskList.add(preRequisiteTaskUid);
+        return addTask(task,preRequisiteTaskList);
+    }
+
+    public <T extends AbstractTask> T  addTask(T task,AbstractTask preRequisiteTask) throws DuplicateTaskException{
+        return addTask(task,preRequisiteTask.getUid());
     }
 
     public <T extends CouchbaseDocument> T newEntity(Class<T> clazz){
-        return getSession().newEntity(clazz);
+        return getBaseMeta().getSession().newEntity(clazz);
     }
-
 
     public String buildTaskId(AbstractTask task){
         return String.format("%010d", _taskList.size());
@@ -137,14 +160,24 @@ public abstract class AbstractJob<TREQ extends BaseCouchbaseDocumentElement,TRES
         return pendingTasks;
     }
 
-    public AbstractTask getNextPendingTask(){
+    public AbstractTask getNextExecutableTask(){
         for(AbstractTask task:_taskList){
             if(! task.isDone()){
-                return task;
+                List<String> preRequisiteList = new ArrayList<String>();
+                for(String uid:task.getDependency()){
+                    if(!getTask(uid).isDone()){
+                        preRequisiteList.add(uid);
+                    }
+                }
+                if(preRequisiteList.size()==0){
+                    //TODO maybe log warning/debug message
+                    return task;
+                }
             }
         }
         return null;
     }
+
     public static enum State{
         UNKNOWN,
         NEW, //Just created
@@ -158,15 +191,16 @@ public abstract class AbstractJob<TREQ extends BaseCouchbaseDocumentElement,TRES
 
     public boolean init() throws JobExecutionException{return false;}
     public boolean preprocess()throws JobExecutionException{return false;}
-    public abstract boolean when(TaskProcessEvent evt) throws JobExecutionException;
+    public boolean when(TaskProcessEvent evt) throws JobExecutionException{return false;}
     public boolean postprocess()throws JobExecutionException{return false;}
     public boolean cleanup()throws JobExecutionException{return false;}
 
-    public final void setProcessingService(JobProcessingService service){
+    /*public final void setProcessingService(JobProcessingService service){
         _processingService = service;
-    }
+    }*/
 
-    public final JobProcessingService getProcessingService(){
+    /*public final JobProcessingService getProcessingService(){
         return _processingService ;
-    }
+    }*/
+
 }

@@ -3,8 +3,8 @@ package com.dreameddeath.core.model.process;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.process.common.AbstractTask;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -46,7 +46,7 @@ public class CouchbaseDocumentAttachedTaskRef extends BaseCouchbaseDocumentEleme
     public void setTaskClass(String val) { _taskClassName.set(val); }
 
     public boolean isForTask(AbstractTask task){
-        return task.getParentJob().getDocumentKey().equals(_jobKey.get()) && task.getUid().equals(_taskId.get());
+        return task.getParentJob().getBaseMeta().getKey().equals(_jobKey.get()) && task.getUid().equals(_taskId.get());
     }
 
     public boolean isOfJobType(Class<? extends AbstractJob> jobClass){

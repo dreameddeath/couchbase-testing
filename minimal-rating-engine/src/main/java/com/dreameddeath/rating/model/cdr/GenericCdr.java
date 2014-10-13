@@ -1,6 +1,8 @@
 package com.dreameddeath.rating.model.cdr;
 
 
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.storage.BinarySerializer;
 
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.List;
    - a series of bytes for the orig data
    - a series of bytes for each rating attemps (or rerating attempts)
 */
-public abstract class GenericCdr<T_CDRDATA,T_CDRRATING>{
+public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDocumentElement{
     ///abstract method which should return the Serializer of the Cdr Data Part
     protected abstract BinarySerializer<T_CDRDATA> getCdrDataSerializer();
     ///abstract method which should return the Serializer of the Cdr Rating Result Part

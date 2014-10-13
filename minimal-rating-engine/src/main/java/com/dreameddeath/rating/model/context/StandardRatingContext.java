@@ -1,8 +1,8 @@
 package com.dreameddeath.rating.model.context;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.rating.model.cdr.CdrsBucketLink;
 
 import java.util.Collections;

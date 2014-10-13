@@ -24,15 +24,17 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
     public void onEndProcessing(AbstractJob job,State state){}
 
     public void execute(AbstractJob job) throws JobExecutionException{
-        job.setProcessingService(this);
+        //job.setProcessingService(this);
         job.setLastRunError(null);
         try {
             if (!job.isInitialized()) {
                 try {
-                    if (job.init()) {
-                        job.setJobState(State.INITIALIZED);
+                    boolean saveAsked;
+                    saveAsked=job.init();
+                    job.setJobState(State.INITIALIZED);
+                    if(saveAsked){
                         onSave(job, State.INITIALIZED);
-                        job.save();
+                        job.getBaseMeta().getSession().save(job);
                     }
                     onEndProcessing(job, State.INITIALIZED);
                 } catch (Throwable e) {
@@ -42,10 +44,12 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
 
             if (!job.isPrepared()) {
                 try {
-                    if (job.preprocess()) {
-                        job.setJobState(State.PREPROCESSED);
+                    boolean saveAsked;
+                    saveAsked=job.preprocess();
+                    job.setJobState(State.PREPROCESSED);
+                    if(saveAsked){
                         onSave(job, State.PREPROCESSED);
-                        job.save();
+                        job.getBaseMeta().getSession().save(job);
                     }
                     onEndProcessing(job, State.PREPROCESSED);
                 } catch (Throwable e) {
@@ -56,13 +60,16 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
             if (!job.isProcessed()) {
                 AbstractTask task = null;
                 try {
-                    while ((task = job.getNextPendingTask()) != null) {
+                    while ((task = job.getNextExecutableTask()) != null) {
                         task.setLastRunError(null);
                         getFactory().getTaskServiceForClass(AbstractTask.class).execute(task);
                     }
+                    if(job.getPendingTasks().size()>0){
+                        //TODO throw an error
+                    }
                     onSave(job, State.PROCESSED);
                     job.setJobState(State.PROCESSED);
-                    job.save();
+                    job.getBaseMeta().getSession().save(job);
                     onEndProcessing(job, State.PROCESSED);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.PROCESSED, e);
@@ -71,10 +78,12 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
 
             if (!job.isFinalized()) {
                 try {
-                    if (job.postprocess()) {
-                        job.setJobState(State.POSTPROCESSED);
+                    boolean saveAsked;
+                    saveAsked=job.postprocess();
+                    job.setJobState(State.POSTPROCESSED);
+                    if(saveAsked){
                         onSave(job, State.POSTPROCESSED);
-                        job.save();
+                        job.getBaseMeta().getSession().save(job);
                     }
                     onEndProcessing(job, State.POSTPROCESSED);
                 } catch (Throwable e) {
@@ -87,7 +96,7 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
                     job.cleanup();
                     job.setJobState(State.DONE);
                     onSave(job,State.DONE);
-                    job.save();
+                    job.getBaseMeta().getSession().save(job);
                     onEndProcessing(job,State.DONE);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.DONE, e);
@@ -102,6 +111,6 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
             job.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
             throw new JobExecutionException(job,State.UNKNOWN,e);
         }
-        job.setProcessingService(null);
+        //job.setProcessingService(null);
     }
 }

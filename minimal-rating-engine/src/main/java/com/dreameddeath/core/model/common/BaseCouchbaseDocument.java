@@ -1,9 +1,7 @@
 package com.dreameddeath.core.model.common;
 
 import com.dreameddeath.core.dao.CouchbaseSession;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.exception.dao.InconsistentStateException;
 import com.dreameddeath.core.storage.CouchbaseConstants;
 
 import java.util.Collection;
@@ -13,72 +11,87 @@ import java.util.HashSet;
  * Created by ceaj8230 on 11/09/2014.
  */
 public class BaseCouchbaseDocument extends BaseCouchbaseDocumentElement {
-    private CouchbaseSession _session;
-    private ImmutableProperty<String> _key=new ImmutableProperty<String>(BaseCouchbaseDocument.this);
-    private Long   _cas;
-    private Boolean _isLocked;
-    private Integer _dbDocSize;
-    private Collection<CouchbaseConstants.DocumentFlag> _documentFlags=new HashSet<CouchbaseConstants.DocumentFlag>();
-    private DocumentState _docState = DocumentState.NEW;
+    private BaseMetaInfo _meta;
 
-    public final CouchbaseSession getSession(){ return _session; }
-    public final void setSession(CouchbaseSession session){ _session = session; }
+    public BaseMetaInfo getBaseMeta(){return _meta;}
+    public void setBaseMeta(BaseMetaInfo meta){ _meta=meta;}
 
-    public final String getDocumentKey(){ return _key.get(); }
-    public final void setDocumentKey(String key){ _key.set(key);}
+    public BaseCouchbaseDocument(){_meta=this.new BaseMetaInfo();}
+    public BaseCouchbaseDocument(BaseMetaInfo meta){_meta=meta;}
 
-    public final Long getDocumentCas(){ return _cas; }
-    public final void setDocumentCas(Long cas){ this._cas = cas; }
+    public class BaseMetaInfo {
+        private CouchbaseSession _session;
+        private String _key;
+        private long   _cas;
+        private Boolean _isLocked;
+        private Integer _dbDocSize;
+        private Collection<CouchbaseConstants.DocumentFlag> _flags =new HashSet<CouchbaseConstants.DocumentFlag>();
+        private int _expiry;
+        private DocumentState _docState = DocumentState.NEW;
 
-    public final Boolean getIsLocked(){ return _isLocked; }
-    public final void setIsLocked(Boolean isLocked){ this._isLocked = isLocked; }
+        public final CouchbaseSession getSession(){ return _session; }
+        public final void setSession(CouchbaseSession session){ _session = session; }
 
-    public final Integer getDocumentDbSize(){ return _dbDocSize; }
-    public final void setDocumentDbSize(Integer docSize){ this._dbDocSize = docSize; }
+        public final String getKey(){ return _key; }
+        public final void setKey(String key){ _key=key;}
 
-    public final Collection<CouchbaseConstants.DocumentFlag> getDocumentFlags(){ return _documentFlags; }
-    public final Integer getDocumentEncodedFlags(){ return CouchbaseConstants.DocumentFlag.pack(_documentFlags); }
-    public final void setDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.clear(); _documentFlags.addAll(CouchbaseConstants.DocumentFlag.unPack(encodedFlags)); }
-    public final void setDocumentFlags(Collection<CouchbaseConstants.DocumentFlag> flags){ _documentFlags.clear(); _documentFlags.addAll(flags); }
-    public final void addDocumentEncodedFlags(Integer encodedFlags){ _documentFlags.addAll(CouchbaseConstants.DocumentFlag.unPack(encodedFlags)); }
-    public final void addDocumentFlag(CouchbaseConstants.DocumentFlag flag){ _documentFlags.add(flag); }
-    public final void addDocumentFlags(Collection<CouchbaseConstants.DocumentFlag> flags){ _documentFlags.addAll(flags); }
-    public final void removeDocumentFlag(CouchbaseConstants.DocumentFlag flag){ _documentFlags.remove(flag); }
-    public final void removeDocumentFlags(Collection<CouchbaseConstants.DocumentFlag> flags){_documentFlags.remove(flags); }
-    public boolean hasDocumentFlag(CouchbaseConstants.DocumentFlag flag){ return _documentFlags.contains(flag); }
+        public final long getCas(){ return _cas; }
+        public final void setCas(long cas){ this._cas = cas; }
 
-    public void setDocStateDirty(){
-        if(_docState.equals(DocumentState.SYNC)){
-            _docState = DocumentState.DIRTY;
+        public final Boolean getIsLocked(){ return _isLocked; }
+        public final void setIsLocked(Boolean isLocked){ this._isLocked = isLocked; }
+
+        public final Integer getDbSize(){ return _dbDocSize; }
+        public final void setDbSize(Integer docSize){ this._dbDocSize = docSize; }
+
+        public final Collection<CouchbaseConstants.DocumentFlag> getFlags(){ return _flags; }
+        public final Integer getEncodedFlags(){ return CouchbaseConstants.DocumentFlag.pack(_flags); }
+        public final void setEncodedFlags(Integer encodedFlags){ _flags.clear(); _flags.addAll(CouchbaseConstants.DocumentFlag.unPack(encodedFlags)); }
+        public final void setFlags(Collection<CouchbaseConstants.DocumentFlag> flags){ _flags.clear(); _flags.addAll(flags); }
+        public final void addEncodedFlags(Integer encodedFlags){ _flags.addAll(CouchbaseConstants.DocumentFlag.unPack(encodedFlags)); }
+        public final void addFlag(CouchbaseConstants.DocumentFlag flag){ _flags.add(flag); }
+        public final void addFlags(Collection<CouchbaseConstants.DocumentFlag> flags){ _flags.addAll(flags); }
+        public final void removeFlag(CouchbaseConstants.DocumentFlag flag){ _flags.remove(flag); }
+        public final void removeFlags(Collection<CouchbaseConstants.DocumentFlag> flags){_flags.remove(flags); }
+        public boolean hasFlag(CouchbaseConstants.DocumentFlag flag){ return _flags.contains(flag); }
+
+
+        public int getExpiry(){return _expiry;}
+        public void setExpiry(int expiry){ _expiry=expiry;}
+
+        public void setStateDirty(){
+            if(_docState.equals(DocumentState.SYNC)){
+                _docState = DocumentState.DIRTY;
+            }
         }
+
+        public void setStateDeleted(){
+            _docState = DocumentState.DELETED;
+        }
+
+        public void setStateSync(){ _docState = DocumentState.SYNC; }
+        public DocumentState getState(){ return _docState; }
+
+
+
+        @Override
+        public String toString(){
+            return
+                    "key   : "+_key+",\n"+
+                    "cas   : "+_cas+",\n"+
+                    "lock  : "+_isLocked+",\n"+
+                    "size  : "+_dbDocSize+",\n"+
+                    "state : "+_docState +",\n"+
+                    "flags : "+ _flags.toString();
+        }
+
     }
-
-    public void setDocStateDeleted(){
-        _docState = DocumentState.DELETED;
-    }
-
-    public void setDocStateSync(){ _docState = DocumentState.SYNC; }
-    public DocumentState getDocState(){ return _docState; }
-
 
     public boolean equals(BaseCouchbaseDocument doc){
         if     (doc == null){ return false;}
         else if(doc == this){ return true; }
-        else if(_key!=null) { return _key.equals(doc._key); }
+        else if(_meta.getKey()!=null) { return _meta.getKey().equals(doc._meta.getKey()); }
         else                { return false; }
-    }
-
-
-
-    @Override
-    public String toString(){
-        return
-                "key   : "+_key+",\n"+
-                "cas   : "+_cas+",\n"+
-                "lock  : "+_isLocked+",\n"+
-                "size  : "+_dbDocSize+",\n"+
-                "state : "+_docState +",\n"+
-                "flags : "+_documentFlags.toString();
     }
 
     public enum DocumentState {
@@ -87,4 +100,5 @@ public class BaseCouchbaseDocument extends BaseCouchbaseDocumentElement {
         SYNC,
         DELETED;
     }
+
 }

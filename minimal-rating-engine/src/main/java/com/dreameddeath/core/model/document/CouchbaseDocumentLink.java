@@ -1,28 +1,25 @@
 package com.dreameddeath.core.model.document;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.SynchronizedLinkProperty;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends BaseCouchbaseDocumentElement {
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class CouchbaseDocumentLink<T extends BaseCouchbaseDocument> extends BaseCouchbaseDocumentElement {
     private List<SynchronizedLinkProperty> _childLinks=new ArrayList<SynchronizedLinkProperty>();
     private Property<T>            _docObject=new ImmutableProperty<T>(null);
     @DocumentProperty("key")
     private Property<String> _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
         protected  String getRealValue(T doc){
-            return doc.getDocumentKey();
+            return doc.getBaseMeta().getKey();
         }
     };
 
@@ -45,9 +42,9 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
                 ///TODO throw an error
             }
             else{
-                CouchbaseDocument parentDoc = getParentDocument();
-                if((parentDoc!=null) && parentDoc.getSession()!=null){
-                    _docObject.set((T)parentDoc.getSession().get(_key.get()));
+                BaseCouchbaseDocument parentDoc = getParentDocument();
+                if((parentDoc!=null) && parentDoc.getBaseMeta().getSession()!=null){
+                    _docObject.set((T)parentDoc.getBaseMeta().getSession().get(_key.get()));
                 }
             }
         }
@@ -56,14 +53,16 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
     
     public void setLinkedObject(T docObj){ 
         _docObject.set(docObj);
-        docObj.addReverseLink(this);
+        if(docObj instanceof CouchbaseDocument) {
+            ((CouchbaseDocument)docObj).getMeta().addReverseLink(this);
+        }
     }
     
     
     public CouchbaseDocumentLink(){}
     public CouchbaseDocumentLink(T targetDoc){
-        if(targetDoc.getDocumentKey()!=null){
-            setKey(targetDoc.getDocumentKey());
+        if(targetDoc.getBaseMeta().getKey()!=null){
+            setKey(targetDoc.getBaseMeta().getKey());
         }
         setLinkedObject(targetDoc);
     }
@@ -104,7 +103,6 @@ public abstract class CouchbaseDocumentLink<T extends CouchbaseDocument> extends
         for(SynchronizedLinkProperty prop:_childLinks){
             prop.sync();
         }
-
     }
 
 }

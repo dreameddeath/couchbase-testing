@@ -1,13 +1,23 @@
 package com.dreameddeath.rating.storage;
 
 
+import com.couchbase.client.core.lang.Tuple;
+import com.couchbase.client.core.lang.Tuple2;
+import com.couchbase.client.core.message.ResponseStatus;
+import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
+import com.couchbase.client.deps.io.netty.buffer.Unpooled;
+import com.couchbase.client.java.transcoder.Transcoder;
+import com.dreameddeath.core.exception.storage.DocumentEncodingException;
+import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
+import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.storage.GenericTranscoder;
 import com.dreameddeath.rating.model.cdr.GenericCdr;
 import com.dreameddeath.rating.model.cdr.GenericCdrsBucket;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import net.spy.memcached.CachedData;
-import net.spy.memcached.transcoders.Transcoder;
+
 
 /**
 *  This abstract class is use to manage binary transcoding of a bucket of CDR. It exists with three modes :
@@ -17,7 +27,7 @@ import net.spy.memcached.transcoders.Transcoder;
 *
 *  The cdr itself is managed by the @see GenericCdr class.
 */
-public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET extends GenericCdrsBucket<T>> implements Transcoder<TBUCKET>{
+public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET extends GenericCdrsBucket<T>> extends GenericTranscoder<TBUCKET> {
     /**
     * abstract "callback" function used to initialize the CDR while unpacking
     */
@@ -26,51 +36,43 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
     /**
     * abstract "callback" function used to initialize the CDR Bucket while unpacking
     */
-    abstract protected TBUCKET genericCdrBucketBuilder(GenericCdrsBucket.DocumentType docType);
-    
-    
-    ///The max size of the bucket
-    @Override
-    public int getMaxSize(){
-        return CachedData.MAX_SIZE;
-    }
-    
-    ///No asynchronous decoding mode (doesn't seems useful : to be benched
-    @Override
-    public boolean asyncDecode(CachedData cachedData){
-        return false;
-    }
-    
-    
+    abstract protected TBUCKET genericCdrBucketBuilder(BinaryCouchbaseDocument.BinaryDocumentType docType);
+
+    public GenericCdrsBucketTranscoder(Class<TBUCKET> clazz, Class<? extends BucketDocument<TBUCKET>> baseDocumentClazz){ super(clazz,baseDocumentClazz);}
     /**
     * Decode the database CDR bucket
-    * @param cachedData the database bucket
-    */
+    * @param id the bucket key
+    * @param content the binary content
+    * @param cas the current database cas
+    * @param expiry the current expiration
+    * @param flags the flags
+    * @param status the response status
+    * */
     @Override
-    public TBUCKET decode(CachedData cachedData){
-        TBUCKET result = genericCdrBucketBuilder(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
-        result.addDocumentEncodedFlags(cachedData.getFlags());
-        result.setDocumentDbSize(cachedData.getData().length);
-        try{
-            unpackStorageDocument(result,cachedData.getData());
+    public BucketDocument<TBUCKET> decode(String id, ByteBuf content, long cas, int expiry, int flags, ResponseStatus status) {
+        try {
+            TBUCKET result = genericCdrBucketBuilder(BinaryCouchbaseDocument.BinaryDocumentType.BINARY_FULL);
+            result.getBaseMeta().setDbSize(content.array().length);
+            unpackStorageDocument(result,content.array());
+            return newDocument(id,expiry,result,cas);
         }
         catch(InvalidProtocolBufferException e){
             return null;
         }
-        return result;
+        //return result;
     }
-    
+
     /**
-    * Encode The CDR bucket prior to database storage (can be in append mode)
-    * @param input the CDR bucket to be encoded
-    */
+     * Encode The CDR bucket prior to database storage (can be in append mode)
+     * @param document the CDR bucket to be encoded
+     */
     @Override
-    public CachedData encode(TBUCKET input){
-        byte[] packedResult = packStorageDocument(input);
-        input.setLastWrittenSize(packedResult.length);
-        return new CachedData(input.getDocumentEncodedFlags(),packedResult,CachedData.MAX_SIZE);
+    public Tuple2<ByteBuf, Integer> encode(BucketDocument<TBUCKET> document) {
+        byte[] encoded = packStorageDocument(document.content());
+        document.content().getBinaryMeta().setLastWrittenSize(encoded.length);
+        return Tuple.create(Unpooled.wrappedBuffer(encoded), document.content().getBaseMeta().getEncodedFlags());
     }
-    
+
 
 
     /**
@@ -127,7 +129,7 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
                 foundCdr.incOverheadCounter();
             }            
         }
-        cdrsBucket.setEndingCheckSum(unpackedMessage.getEndingCheckSum());
+        cdrsBucket.getBinaryMeta().setEndingCheckSum(unpackedMessage.getEndingCheckSum());
     }
     
     
@@ -138,7 +140,7 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
     */
     private byte[] packStorageDocument(TBUCKET cdrsToStoreList){
         //If it is a full bucket, use the normal cdrs writer
-        if(cdrsToStoreList.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL)){
+        if(cdrsToStoreList.getBinaryMeta().getBinaryDocumentType().equals(BinaryCouchbaseDocument.BinaryDocumentType.BINARY_FULL)){
             NormalCdrsAppender.Builder normalAppenderBuilder = NormalCdrsAppender.newBuilder();
             
             normalAppenderBuilder.setBaKey(cdrsToStoreList.getBillingAccountKey());
@@ -163,11 +165,11 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
                 }
                 normalAppenderBuilder.addNormalCdrs(cdrBuilder.build());
             }
-            if(cdrsToStoreList.getDocumentDbSize()==null){
-                cdrsToStoreList.setDocumentDbSize(0);
+            if(cdrsToStoreList.getBaseMeta().getDbSize()==null){
+                cdrsToStoreList.getBaseMeta().setDbSize(0);
             }
-            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize());
-            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize() + normalAppenderBuilder.build().getSerializedSize());
+            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getBaseMeta().getDbSize());
+            normalAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getBaseMeta().getDbSize() + normalAppenderBuilder.build().getSerializedSize());
 
             return normalAppenderBuilder.build().toByteArray();
         }
@@ -196,13 +198,13 @@ public abstract class GenericCdrsBucketTranscoder<T extends GenericCdr,TBUCKET e
             }
             
             //if it is a partial cdr to add, build a fake checksum
-            if(cdrsToStoreList.getCdrBucketDocumentType().equals(GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM)){
+            if(cdrsToStoreList.getBinaryMeta().getBinaryDocumentType().equals(BinaryCouchbaseDocument.BinaryDocumentType.BINARY_PARTIAL_WITHOUT_CHECKSUM)){
                 partialAppenderBuilder.setEndingCheckSum(0);
             }
             //else it is a nominal process, try to build a valid checksum
             else{
-                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize());
-                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getDocumentDbSize() + partialAppenderBuilder.build().getSerializedSize());
+                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getBaseMeta().getDbSize());
+                partialAppenderBuilder.setEndingCheckSum(cdrsToStoreList.getBaseMeta().getDbSize() + partialAppenderBuilder.build().getSerializedSize());
             }
             return partialAppenderBuilder.build().toByteArray();
         }

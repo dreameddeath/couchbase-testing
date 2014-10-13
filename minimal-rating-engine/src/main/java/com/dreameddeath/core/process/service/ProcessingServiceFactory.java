@@ -1,21 +1,24 @@
 package com.dreameddeath.core.process.service;
 
+import com.dreameddeath.core.exception.process.ExecutionServiceNotFoundException;
+import com.dreameddeath.core.exception.process.JobExecutionException;
+import com.dreameddeath.core.exception.process.TaskExecutionException;
 import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.process.common.AbstractTask;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
 public class ProcessingServiceFactory {
     private Map<Class<? extends AbstractJob>, JobProcessingService<?>> _jobServicesMap
-            = new HashMap<Class<? extends AbstractJob>, JobProcessingService<?>>();
+            = new ConcurrentHashMap<Class<? extends AbstractJob>, JobProcessingService<?>>();
 
 
     private Map<Class<? extends AbstractTask>, TaskProcessingService<?>> _taskServicesMap
-            = new HashMap<Class<? extends AbstractTask>, TaskProcessingService<?>>();
+            = new ConcurrentHashMap<Class<? extends AbstractTask>, TaskProcessingService<?>>();
 
 
     public ProcessingServiceFactory(){
@@ -48,7 +51,7 @@ public class ProcessingServiceFactory {
         _jobServicesMap.put(entityClass,service);
     }
 
-    public <T extends AbstractJob> JobProcessingService<T> getJobServiceForClass(Class<T> entityClass) {
+    public <T extends AbstractJob> JobProcessingService<T> getJobServiceForClass(Class<T> entityClass) throws ExecutionServiceNotFoundException{
         JobProcessingService<T> result = (JobProcessingService<T>) _jobServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
@@ -59,7 +62,19 @@ public class ProcessingServiceFactory {
                 }
             }
         }
+        if(result==null){
+            throw new ExecutionServiceNotFoundException("Cannot find execution class for job <"+entityClass.getName()+">");
+        }
         ///TODO throw an error if null
         return result;
+    }
+
+
+    public <T extends AbstractJob> void execute(T job) throws JobExecutionException,ExecutionServiceNotFoundException {
+        ((JobProcessingService<T>)getJobServiceForClass(job.getClass())).execute(job);
+    }
+
+    public <T extends AbstractTask> void execute(T task) throws TaskExecutionException,ExecutionServiceNotFoundException {
+        ((TaskProcessingService<T>)getTaskServiceForClass(task.getClass())).execute(task);
     }
 }

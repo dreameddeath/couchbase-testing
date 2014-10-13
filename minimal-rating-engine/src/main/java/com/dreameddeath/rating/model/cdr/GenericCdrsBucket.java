@@ -1,5 +1,7 @@
 package com.dreameddeath.rating.model.cdr;
 
+import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.CouchbaseConstants;
 
@@ -13,7 +15,7 @@ import java.util.*;
 *
 *  The cdr itself is managed by the @see GenericCdr class.
 */
-public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseDocument{
+public abstract class GenericCdrsBucket<T extends GenericCdr> extends BinaryCouchbaseDocument {
     ///The key of the parent billing account
     private String _billingAccountKey;
     ///The key of the parent billing cycle
@@ -21,12 +23,6 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
     ///The key of the parent rating Context
     private String _ratingContextKey;
     
-    /// The document type is used during the Transcoder
-    private DocumentType _cdrBucketDocumentType;
-    /// The check-sum of the last cdrs read to detect the error
-    private int _endingCheckSum;
-    /// The last append/written size
-    private int _lastWrittenSize;
     /// List of CDRs in the database order
     private List<T> _cdrs=new ArrayList<T>();
     /// Map of the uid to CDRs to allow search of a CDR from the unique id
@@ -35,31 +31,25 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
     /**
     * Standard constructor 
     * @param documentType It has to be carefully chosen.
-    *        if type == CDRS_BUCKET_FULL, the object contains the whole bucket
-    *        if type == CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM, the object will be used to normally a CDR to be rating
-    *        if type == CDRS_BUCKET_PARTIAL_WITH_CHECKSUM, the object will be used to append a rated CDR
+    *        if type == BINARY_FULL, the object contains the whole bucket
+    *        if type == BINARY_PARTIAL_WITHOUT_CHECKSUM, the object will be used to normally a CDR to be rating
+    *        if type == BINARY_PARTIAL_WITH_CHECKSUM, the object will be used to append a rated CDR
     */
-    public GenericCdrsBucket(DocumentType documentType){
-        _cdrBucketDocumentType = documentType;
-        _endingCheckSum = 0;
-        _lastWrittenSize = 0;
-        addDocumentFlag(CouchbaseConstants.DocumentFlag.CdrBucket);
+    public GenericCdrsBucket(BinaryDocumentType documentType) {
+        super(documentType);
+        getBinaryMeta().addFlag(CouchbaseConstants.DocumentFlag.CdrBucket);
     }
-    
     
     /**
     * Incremental rating constructor 
-    * @param key the key of the CDR bucket
     * @param origDbSize the database size prior to the appending of the cdr
     * @param documentType It has to be carefully chosen.
-    *        if type == CDRS_BUCKET_FULL, it shouldn't be used (add this constructor is more designed to be a delta mode)
-    *        if type == CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM, the object will be used to normally add CDR to the rating
-    *        if type == CDRS_BUCKET_PARTIAL_WITH_CHECKSUM, the object will be used to append a rated CDR
+    *        if type == BINARY_BUCKET_FULL, it shouldn't be used (add this constructor is more designed to be a delta mode)
+    *        if type == BINARY_BUCKET_PARTIAL_WITHOUT_CHECKSUM, the object will be used to normally add CDR to the rating
+    *        if type == BINARY_BUCKET_PARTIAL_WITH_CHECKSUM, the object will be used to append a rated CDR
     */
-    public GenericCdrsBucket(String key,Integer origDbSize,DocumentType documentType){
-        this(documentType);
-        setDocumentDbSize(origDbSize);
-        setDocumentKey(key);
+    public GenericCdrsBucket(Integer origDbSize,BinaryDocumentType documentType){
+        super(origDbSize,documentType);
     }
     
     /// Billing Account Key Getter/Setter
@@ -73,19 +63,9 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
     /// Rating Context Account Key Getter/Setter
     public String getRatingContextKey(){ return _ratingContextKey;}
     public void setRatingContextKey(String ratingCtxtKey){_ratingContextKey=ratingCtxtKey;}
-    
-    /// Checksum Getter/Setter
-    public int getEndingCheckSum(){ return _endingCheckSum;}
-    public void setEndingCheckSum(int endingCheckSum){_endingCheckSum=endingCheckSum;}
-    
-    
-    /// Last Written Size Getter/Setter
-    public int getLastWrittenSize(){return _lastWrittenSize;}
-    public void setLastWrittenSize(int appendedSize){_lastWrittenSize=appendedSize;}
-    
-    /// Getter of document Type
-    public DocumentType getCdrBucketDocumentType(){return _cdrBucketDocumentType; }
-    
+
+
+
     public int getGlobalOverheadCounter(){
         int result=0;
         for(T cdr:_cdrs){
@@ -163,26 +143,4 @@ public abstract class GenericCdrsBucket<T extends GenericCdr> extends CouchbaseD
             "    \n"+
             "}\n";
     }
-    
-    /**
-    *  CDR Bucket Document Types
-    */
-    public static enum DocumentType{
-        CDRS_BUCKET_FULL("full"),
-        CDRS_BUCKET_PARTIAL_WITH_CHECKSUM("partial_with_checksum"),
-        CDRS_BUCKET_PARTIAL_WITHOUT_CHECKSUM("partiel_without_checksum");
-        
-        
-        private String _value;
-        
-        DocumentType(String value){
-            this._value = value;
-        }
-        
-        @Override
-        public String toString(){
-            return _value;
-        }
-    }
-    
 }

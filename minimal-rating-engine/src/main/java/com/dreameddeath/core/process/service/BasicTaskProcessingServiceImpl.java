@@ -2,8 +2,11 @@ package com.dreameddeath.core.process.service;
 
 import com.dreameddeath.core.event.TaskProcessEvent;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
+import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.process.common.AbstractTask;
 import com.dreameddeath.core.process.common.AbstractTask.State;
+import com.dreameddeath.core.process.common.SubJobProcessTask;
+
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
@@ -21,16 +24,19 @@ public class BasicTaskProcessingServiceImpl implements TaskProcessingService<Abs
     public void onSave(AbstractTask task, State state){}
     public void onEndProcessing(AbstractTask task, State state){}
 
+
     public void execute(AbstractTask task) throws TaskExecutionException {
-        task.setProcessingService(this);
         task.setLastRunError(null);
         try {
             if (!task.isInitialized()) {
                 try {
-                    if (task.init()) {
-                        task.setState(State.INITIALIZED);
+                    boolean saveAsked;
+                    saveAsked = task.init();
+                    task.setState(State.INITIALIZED);
+
+                    if (saveAsked) {
                         onSave(task, State.INITIALIZED);
-                        task.getParentJob().save();
+                        task.getParentJob().getBaseMeta().getSession().save(task.getParentJob());
                     }
                     onEndProcessing(task, State.INITIALIZED);
                 } catch (Throwable e) {
@@ -40,10 +46,13 @@ public class BasicTaskProcessingServiceImpl implements TaskProcessingService<Abs
 
             if (!task.isPrepared()) {
                 try {
-                    if (task.preprocess()) {
-                        task.setState(State.PREPROCESSED);
+                    boolean saveAsked;
+                    saveAsked =task.preprocess();
+                    task.setState(State.PREPROCESSED);
+
+                    if(saveAsked){
                         onSave(task, State.PREPROCESSED);
-                        task.getParentJob().save();
+                        task.getParentJob().getBaseMeta().getSession().save(task.getParentJob());
                     }
                     onEndProcessing(task, State.PREPROCESSED);
                 } catch (Throwable e) {
@@ -53,10 +62,23 @@ public class BasicTaskProcessingServiceImpl implements TaskProcessingService<Abs
 
             if (!task.isProcessed()) {
                 try {
-                    if (task.process()) {
-                        task.setState(State.PROCESSED);
+                    boolean saveAsked;
+                    if(task instanceof SubJobProcessTask){
+                        SubJobProcessTask subJobTask = (SubJobProcessTask)task;
+                        AbstractJob job = subJobTask.getJob();
+                        if (!job.isDone()) {
+                            JobProcessingService processingService = getFactory().getJobServiceForClass(job.getClass());
+                            processingService.execute(job);
+                        }
+                        saveAsked=true;
+                    }
+                    else {
+                        saveAsked = task.process();
+                    }
+                    task.setState(State.PROCESSED);
+                    if(saveAsked){
                         onSave(task, State.PROCESSED);
-                        task.getParentJob().save();
+                        task.getParentJob().getBaseMeta().getSession().save(task.getParentJob());
                     }
                     onEndProcessing(task, State.PROCESSED);
                 } catch (Throwable e) {
@@ -66,10 +88,12 @@ public class BasicTaskProcessingServiceImpl implements TaskProcessingService<Abs
 
             if (!task.isFinalized()) {
                 try {
-                    if (task.postprocess()) {
-                        task.setState(State.POSTPROCESSED);
+                    boolean saveAsked;
+                    saveAsked=task.postprocess();
+                    task.setState(State.POSTPROCESSED);
+                    if(saveAsked){
                         onSave(task, State.POSTPROCESSED);
-                        task.getParentJob().save();
+                        task.getParentJob().getBaseMeta().getSession().save(task.getParentJob());
                     }
                     onEndProcessing(task, State.POSTPROCESSED);
                 } catch (Throwable e) {
@@ -83,7 +107,7 @@ public class BasicTaskProcessingServiceImpl implements TaskProcessingService<Abs
                     task.setState(State.DONE);
                     if (task.getParentJob().when(new TaskProcessEvent(task))) {
                         onSave(task, State.DONE);
-                        task.getParentJob().save();//Save has it has been requested by the "when"
+                        task.getParentJob().getBaseMeta().getSession().save(task.getParentJob());//Save has it has been requested by the "when"
                     }
                     onEndProcessing(task, State.DONE);
                 } catch (Throwable e) {
@@ -95,8 +119,6 @@ public class BasicTaskProcessingServiceImpl implements TaskProcessingService<Abs
         } catch (Throwable e){
             throw new TaskExecutionException(task,State.UNKNOWN,e);
         }
-
-        task.setProcessingService(null);
     }
 
 }

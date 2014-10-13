@@ -1,26 +1,29 @@
 package com.dreameddeath.couchbase_testing;
 
-import com.couchbase.client.CouchbaseClient;
+import com.couchbase.client.java.CouchbaseCluster;
 import com.dreameddeath.billing.dao.BillingAccountDao;
 import com.dreameddeath.billing.dao.BillingCycleDao;
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.billing.process.CreateBillingAccountJob;
+import com.dreameddeath.core.dao.CouchbaseSession;
 import com.dreameddeath.core.dao.CouchbaseSessionFactory;
+import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
+import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.dao.CouchbaseSession;
 import com.dreameddeath.core.dao.process.JobDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.validation.ValidatorFactory;
 import com.dreameddeath.core.exception.dao.DaoException;
+import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
+import com.dreameddeath.core.model.common.BucketDocument;
 import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
 import com.dreameddeath.core.storage.BinarySerializer;
-import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
+import com.dreameddeath.core.storage.GenericTranscoder;
 import com.dreameddeath.core.user.User;
 import com.dreameddeath.installedbase.process.CreateUpdateInstalledBaseJob;
 import com.dreameddeath.party.dao.PartyDao;
@@ -28,45 +31,33 @@ import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
 import com.dreameddeath.party.process.CreatePartyJob;
 import com.dreameddeath.rating.dao.RatingContextDao;
-import com.dreameddeath.rating.model.context.RatingContext;
 import com.dreameddeath.rating.model.cdr.GenericCdr;
 import com.dreameddeath.rating.model.cdr.GenericCdrsBucket;
+import com.dreameddeath.rating.model.context.RatingContext;
 import com.dreameddeath.rating.storage.GenericCdrsBucketTranscoder;
-import net.spy.memcached.transcoders.Transcoder;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class CouchbaseConnection {
-    protected static final CouchbaseClientWrapper _client;
+    protected static final CouchbaseBucketWrapper _client;
     static{
-        CouchbaseClient realClient;
+
         try{
-            // (Subset) of nodes in the cluster to establish a connection
-            /*List<URI> hosts = Arrays.asList(new URI("http://192.168.1.5:8091/pools"));*/
-            List<URI> hosts = Arrays.asList(new URI("http://127.0.0.1:8091/pools"));
-        
-            // Name of the Bucket to connect to
-            String bucket = "test";
-            // Password of the bucket (empty) string if none
-            String password = "adminuser";
-            // Connect to the Cluster
-            realClient = new CouchbaseClient(hosts, bucket, password);
+            _client = new CouchbaseBucketWrapper(CouchbaseCluster.create("127.0.0.1"),"test","adminuser");
         }
         catch(Exception e){
             throw new RuntimeException("Init error",e);
         }
         
-        _client = new CouchbaseClientWrapper(realClient);
+
     }
 
     private static final CouchbaseCounterDaoFactory _counterDaoFactory = new CouchbaseCounterDaoFactory();
     private static final CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory=new CouchbaseUniqueKeyDaoFactory();
-    private static final CouchbaseDocumentDaoFactory _docDaoFactory = new CouchbaseDocumentDaoFactory();
+    private static final BaseCouchbaseDocumentDaoFactory _docDaoFactory = new BaseCouchbaseDocumentDaoFactory();
     static {
         _docDaoFactory.setCounterDaoFactory(_counterDaoFactory);
         _docDaoFactory.setValidatorFactory(new ValidatorFactory());
@@ -96,8 +87,8 @@ public class CouchbaseConnection {
     }
 
     public static class StringCdrBucket extends GenericCdrsBucket<StringCdr>{
-        public StringCdrBucket(GenericCdrsBucket.DocumentType docType){ super(docType); }
-        public StringCdrBucket(String key,Integer origDbSize,DocumentType documentType){ super(key,origDbSize,documentType); }
+        public StringCdrBucket(BinaryCouchbaseDocument.BinaryDocumentType docType){ super(docType); }
+        public StringCdrBucket(Integer origDbSize,BinaryCouchbaseDocument.BinaryDocumentType documentType){ super(origDbSize,documentType); }
     }
     
     // public static CdrsBucketLink<GenericCdrsBucket> buildLink(T genCdrsBucket){
@@ -113,31 +104,37 @@ public class CouchbaseConnection {
         protected StringCdr genericCdrBuilder(String uid){ return new StringCdr(uid); }
 
         @Override
-        protected StringCdrBucket genericCdrBucketBuilder(GenericCdrsBucket.DocumentType docType){ return new StringCdrBucket(docType); }
+        protected StringCdrBucket genericCdrBucketBuilder(BinaryCouchbaseDocument.BinaryDocumentType docType){ return new StringCdrBucket(docType); }
+
+        public StringCdrRatingTrancoder(Class<StringCdrBucket> clazz, Class<? extends BucketDocument<StringCdrBucket>> baseDocumentClazz){ super(clazz,baseDocumentClazz);}
     }
     
     
     
-    public static class StringCdrBucketDao extends CouchbaseDocumentDao<StringCdrBucket>{
+    public static class StringCdrBucketDao extends BaseCouchbaseDocumentDao<StringCdrBucket> {
         public static final String CDR_BUCKET_CNT_KEY="%s/cdrs/cnt";
         public static final String CDR_BUCKET_FMT_KEY="%s/cdrs/%d";
         public static final String CDR_BUCKET_KEY_PATTERN=BillingAccountDao.BA_KEY_PATTERN+"/cdrs/\\d+";
         public static final String CDR_BUCKET_CNT_PATTERN=BillingAccountDao.BA_KEY_PATTERN+"/cdrs/cnt";
 
-        private static StringCdrRatingTrancoder _tc = new StringCdrRatingTrancoder();
+        public static class LocalBucketDocument extends BucketDocument<StringCdrBucket> {
+            public LocalBucketDocument(StringCdrBucket obj){super(obj);}
+        }
+
+        private static StringCdrRatingTrancoder _tc = new StringCdrRatingTrancoder(StringCdrBucket.class,StringCdrBucketDao.LocalBucketDocument.class);
     
-        public  Transcoder<StringCdrBucket> getTranscoder(){
+        public GenericTranscoder<StringCdrBucket> getTranscoder(){
             return _tc;
         }
        
-        public StringCdrBucketDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
+        public StringCdrBucketDao(CouchbaseBucketWrapper client,BaseCouchbaseDocumentDaoFactory factory){
             super(client,factory);
             registerCounterDao(new CouchbaseCounterDao.Builder().withKeyPattern(CDR_BUCKET_CNT_PATTERN).withDefaultValue(1L));
         }
 
         public void buildKey(StringCdrBucket obj) throws DaoException{
-            long result = obj.getSession().incrCounter(String.format(CDR_BUCKET_CNT_KEY, obj.getBillingAccountKey()), 1);
-            obj.setDocumentKey(String.format(CDR_BUCKET_FMT_KEY, obj.getBillingAccountKey(), result));
+            long result = obj.getBaseMeta().getSession().incrCounter(String.format(CDR_BUCKET_CNT_KEY, obj.getBillingAccountKey()), 1);
+            obj.getBaseMeta().setKey(String.format(CDR_BUCKET_FMT_KEY, obj.getBillingAccountKey(), result));
         }
 
         public String getKeyPattern(){
@@ -147,6 +144,7 @@ public class CouchbaseConnection {
     
     public static void main(String[] args) throws Exception {
         //_client.getClient().flush().get();
+        _client.start();
         try{
             bench();
             //bench();
@@ -199,7 +197,7 @@ public class CouchbaseConnection {
             billCycle.setEndDate(billCycle.getEndDate().plusMonths(1));
             System.out.println("After Update Billing Cycle Result :"+ba);
 
-            StringCdrBucket cdrsBucket = new StringCdrBucket(GenericCdrsBucket.DocumentType.CDRS_BUCKET_FULL);
+            StringCdrBucket cdrsBucket = new StringCdrBucket(GenericCdrsBucket.BinaryDocumentType.CDRS_BUCKET_FULL);
             cdrsBucket.setBillingAccountKey(ba.getDocumentKey());
             cdrsBucket.setBillingCycleKey(billCycle.getDocumentKey());
             cdrsBucket.setRatingContextKey(ratingCtxt.getDocumentKey());
@@ -214,7 +212,7 @@ public class CouchbaseConnection {
             
             GenericCdrsBucket<StringCdr> unpackedCdrsMap = _client.get(cdrsBucket.getDocumentKey(),_docDaoFactory.getDaoForClass(StringCdrBucket.class).getTranscoder());
             
-            StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getDocumentKey(),unpackedCdrsMap.getDocumentDbSize(),GenericCdrsBucket.DocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
+            StringCdrBucket newCdrsBucket = new StringCdrBucket(unpackedCdrsMap.getDocumentKey(),unpackedCdrsMap.getDocumentDbSize(),GenericCdrsBucket.BinaryDocumentType.CDRS_BUCKET_PARTIAL_WITH_CHECKSUM);
             int pos=0;
             for(StringCdr cdr : unpackedCdrsMap.getCdrs()){
                 if(pos%2==0){
@@ -255,7 +253,7 @@ public class CouchbaseConnection {
     static Long errorCounter;
     public static void bench(){
 
-        ThreadPoolExecutor pool = new ThreadPoolExecutor(2,2,1,
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(2,4,1,
                     TimeUnit.MINUTES,
                 new ArrayBlockingQueue<Runnable>(100,true),
                 new ThreadPoolExecutor.CallerRunsPolicy());
@@ -267,7 +265,7 @@ public class CouchbaseConnection {
 
         final ProcessingServiceFactory serviceFactory = new ProcessingServiceFactory();
 
-        for(int i=0;i<10000;++i) {
+        for(int i=0;i<20000;++i) {
             final int id=i;
             try {
                 pool.submit(new Runnable() {
@@ -295,17 +293,17 @@ public class CouchbaseConnection {
                             createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
                             createPartyJob.getRequest().person = new CreatePartyRequest.Person();
                             createPartyJob.getRequest().person.firstName = "christophe " + id;
-
                             createPartyJob.getRequest().person.lastName = "jeunesse " + (id);
-                            serviceFactory.getJobServiceForClass(CreatePartyJob.class).execute(createPartyJob);
+                            serviceFactory.execute(createPartyJob);
+
                             CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
                             createBaJob.getRequest().billDay=2;
                             createBaJob.getRequest().partyId = ((CreatePartyJob.CreatePartyTask) createPartyJob.getTasks().get(0)).getDocument().getUid();
-                            serviceFactory.getJobServiceForClass(CreateBillingAccountJob.class).execute(createBaJob);
+                            serviceFactory.execute(createBaJob);
 
                             CreateUpdateInstalledBaseJob createInstalledBaseJob = session.newEntity(CreateUpdateInstalledBaseJob.class);
                             createInstalledBaseJob.getRequest().creationRequestUid = "newInstalledBase "+ id;
-                            serviceFactory.getJobServiceForClass(CreateUpdateInstalledBaseJob.class).execute(createInstalledBaseJob);
+                            serviceFactory.execute(createInstalledBaseJob);
 
                             session.delete(createInstalledBaseJob);
 

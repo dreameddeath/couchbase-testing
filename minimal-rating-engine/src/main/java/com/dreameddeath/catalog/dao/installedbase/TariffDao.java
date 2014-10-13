@@ -2,25 +2,33 @@ package com.dreameddeath.catalog.dao.installedbase;
 
 import com.dreameddeath.catalog.dao.CatalogElementDao;
 import com.dreameddeath.catalog.model.installedbase.Tariff;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import net.spy.memcached.transcoders.Transcoder;
+import com.dreameddeath.core.storage.GenericTranscoder;
 
 /**
  * Created by ceaj8230 on 07/09/2014.
  */
 public class TariffDao extends CatalogElementDao<Tariff> {
     public static final String TARIFF_DOMAIN="tariff";
-    private static GenericJacksonTranscoder<Tariff> _tc = new GenericJacksonTranscoder<Tariff>(Tariff.class);
+
+    public static class LocalBucketDocument extends BucketDocument<Tariff> {
+        public LocalBucketDocument(Tariff obj){super(obj);}
+    }
+
+    private static GenericJacksonTranscoder<Tariff> _tc = new GenericJacksonTranscoder<Tariff>(Tariff.class,LocalBucketDocument.class);
+
+
 
     @Override
-    public Transcoder<Tariff> getTranscoder(){return _tc;}
+    public GenericTranscoder<Tariff> getTranscoder(){return _tc;}
 
     @Override
     public String getKeyDomain(){ return TARIFF_DOMAIN;}
 
-    public TariffDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
+    public TariffDao(CouchbaseBucketWrapper client,BaseCouchbaseDocumentDaoFactory factory){
         super(client,factory);
     }
 }

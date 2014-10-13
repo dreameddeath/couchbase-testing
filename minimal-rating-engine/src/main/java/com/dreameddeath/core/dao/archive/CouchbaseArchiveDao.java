@@ -1,24 +1,23 @@
 package com.dreameddeath.core.dao.archive;
 
-import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.couchbase.client.java.transcoder.Transcoder;
+import com.dreameddeath.core.model.common.BucketDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.storage.CouchbaseClientWrapper;
-import net.spy.memcached.transcoders.Transcoder;
+import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 
 /**
  * Created by CEAJ8230 on 17/09/2014.
  */
 public abstract class CouchbaseArchiveDao<T extends CouchbaseDocument> {
-    private CouchbaseClientWrapper _client;
+    private CouchbaseBucketWrapper _client;
     private Integer _expiration;
-    public abstract Transcoder<T> getTranscoder();
+    public abstract Transcoder<BucketDocument<T>,T> getTranscoder();
 
-    protected CouchbaseClientWrapper getClientWrapper(){
+    protected CouchbaseBucketWrapper getClientWrapper(){
         return _client;
     }
 
-    public CouchbaseArchiveDao(CouchbaseClientWrapper client,String key, Integer expiration){
+    public CouchbaseArchiveDao(CouchbaseBucketWrapper client,String key, Integer expiration){
         _client = client;
         _expiration = expiration;
     }

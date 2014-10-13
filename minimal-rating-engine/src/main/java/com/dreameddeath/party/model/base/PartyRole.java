@@ -2,8 +2,8 @@ package com.dreameddeath.party.model.base;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.joda.time.DateTime;

@@ -9,7 +9,7 @@ public class ImmutablePropertyTest extends TestCase {
     public void test(){
         //Init Doc
         CouchbaseDocument dummyDoc = new CouchbaseDocument(){};
-        dummyDoc.setDocStateSync();
+        dummyDoc.getBaseMeta().setStateSync();
 
         //Init Property
         ImmutableProperty<String> testStr = new ImmutableProperty<String>(dummyDoc);
@@ -17,7 +17,7 @@ public class ImmutablePropertyTest extends TestCase {
         //Check Set
         testStr.set("str");
         assertEquals(testStr.get(),"str");
-        assertEquals(dummyDoc.getDocState(), CouchbaseDocument.DocumentState.DIRTY);
+        assertEquals(dummyDoc.getBaseMeta().getState(), CouchbaseDocument.DocumentState.DIRTY);
 
         //Check reset with same value
         testStr.set("str");

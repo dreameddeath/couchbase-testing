@@ -15,29 +15,31 @@ public class CreateUpdateInstalledBaseResponse extends BaseCouchbaseDocumentElem
     @DocumentProperty("offers")
     public List<Offer> offers=new ArrayList<Offer>();
 
-    public abstract class IdentifiedItem {
+    public abstract static class IdentifiedItem {
         @DocumentProperty("id")
         public String id;
         @DocumentProperty("tempId")
         public String tempId;
+        @DocumentProperty("installedBaseKey")
+        public String installedBaseKey;
     }
 
-    public class Contract extends IdentifiedItem{}
+    public static class Contract extends IdentifiedItem{}
 
-    public class Offer extends IdentifiedItem{
+    public static class Offer extends IdentifiedItem{
         @DocumentProperty("tariffs")
         public List<Tariff> tariffs=new ArrayList<Tariff>();
         @DocumentProperty("productService")
         public List<ProductService> productServices=new ArrayList<ProductService>();
     }
 
-    public class ProductService extends IdentifiedItem{}
+    public static class ProductService extends IdentifiedItem{}
 
-    public class Tariff extends IdentifiedItem{
+    public static class Tariff extends IdentifiedItem{
         @DocumentProperty("discounts")
         public List<Discount> discounts=new ArrayList<Discount>();
     }
 
-    public class Discount extends IdentifiedItem{}
+    public static class Discount extends IdentifiedItem{}
 
 }

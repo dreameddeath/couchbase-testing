@@ -6,8 +6,8 @@ import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.property.impl.HashMapProperty;
 import com.dreameddeath.core.model.property.MapProperty;
+import com.dreameddeath.core.model.property.impl.HashMapProperty;
 
 import java.util.Map;
 
@@ -25,9 +25,9 @@ public class CouchbaseUniqueKey extends BaseCouchbaseDocument {
         //If the key already exists
         if(_keyMaps.containsKey(buildKey)){
             //Compare the attached document key
-            if(!_keyMaps.get(buildKey).equals(doc.getDocumentKey())){
+            if(!_keyMaps.get(buildKey).equals(doc.getBaseMeta().getKey())){
                 //If target document still exists
-                if(doc.getSession().get(_keyMaps.get(buildKey))!=null){
+                if(doc.getBaseMeta().getSession().get(_keyMaps.get(buildKey))!=null){
                     throw new DuplicateUniqueKeyException(doc,"The key <"+buildKey+"> is already used by the document <"+_keyMaps.get(buildKey)+">");
                 }
             }
@@ -35,9 +35,9 @@ public class CouchbaseUniqueKey extends BaseCouchbaseDocument {
     }
 
     public void addKey(String key,CouchbaseDocument doc) throws StorageException,DaoException{
-        if(doc.getDocumentKey()==null){ doc.getSession().buildKey(doc); }
+        if(doc.getBaseMeta().getKey()==null){ doc.getBaseMeta().getSession().buildKey(doc); }
         checkKey(key,doc);
-        _keyMaps.put(key,doc.getDocumentKey());
+        _keyMaps.put(key,doc.getBaseMeta().getKey());
     }
 
     public boolean isEmpty(){

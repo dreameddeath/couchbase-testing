@@ -1,9 +1,9 @@
 package com.dreameddeath.party.process;
 
-import com.dreameddeath.core.event.TaskProcessEvent;
+import com.dreameddeath.core.exception.process.JobExecutionException;
+import com.dreameddeath.core.model.process.EmptyJobResult;
 import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.process.document.DocumentCreateTask;
-import com.dreameddeath.core.model.process.EmptyJobResult;
 import com.dreameddeath.party.model.base.Organization;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;
@@ -19,13 +19,8 @@ public class CreatePartyJob extends AbstractJob<CreatePartyRequest,EmptyJobResul
     public EmptyJobResult newResult(){return new EmptyJobResult();}
 
     @Override
-    public boolean init(){
+    public boolean init() throws JobExecutionException{
         addTask(new CreatePartyTask());
-        return false;
-    }
-
-    @Override
-    public boolean when(TaskProcessEvent evt){
         return false;
     }
 
@@ -36,10 +31,8 @@ public class CreatePartyJob extends AbstractJob<CreatePartyRequest,EmptyJobResul
             CreatePartyRequest req = getParentJob(CreatePartyJob.class).getRequest();
             if(req.type == CreatePartyRequest.Type.person){
                 Person person=newEntity(Person.class);
-
                 person.setFirstName(req.person.firstName);
                 person.setLastName(req.person.lastName);
-
                 result = person;
             }
             else{

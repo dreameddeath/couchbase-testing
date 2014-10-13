@@ -1,23 +1,22 @@
 package com.dreameddeath.core.model.document;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.process.common.AbstractTask;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
+import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
-import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
+import com.dreameddeath.core.process.common.AbstractTask;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
-    private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
-
     @DocumentProperty("attachedTasks")
     private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(CouchbaseDocument.this);
     @DocumentProperty("docRevision")
@@ -47,35 +46,10 @@ public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
     public final boolean removeDocUniqKeys(String key){ return _docUniqKeys.remove(key); }
 
 
-    public void addReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
-    public void removeReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
-    
-    @Override
-    public void setDocStateDirty(){
-        super.setDocStateDirty();
-
-        for(CouchbaseDocumentLink link: _reverseLinks){
-            link.syncFields();
-        }
-    }
-
-
     protected void syncKeyWithDb(){
         _inDbUniqKeys.clear();
         _inDbUniqKeys.addAll(_docUniqKeys.get());
         _docUniqKeys.clear();
-    }
-
-    @Override
-    public void setDocStateDeleted(){
-        //syncKeyWithDb(); voluntary to key in db values up to date
-        super.setDocStateDeleted();
-    }
-
-    @Override
-    public void setDocStateSync(){
-        syncKeyWithDb();
-        super.setDocStateSync();
     }
 
     public Set<String> getToBeDeletedUniqueKeys(){
@@ -139,13 +113,39 @@ public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
     }
 
 
-    public void save() throws DaoException,StorageException {
-        if(getDocState().equals(DocumentState.NEW)) {
-            this.getSession().create(this);
-        }
-        else{
-            this.getSession().update(this);
-        }
+    public CouchbaseDocument(){
+        super(null);
+        setBaseMeta(CouchbaseDocument.this.new MetaInfo());
     }
 
+    public MetaInfo getMeta(){
+        return (MetaInfo) getBaseMeta();
+    }
+
+    public class MetaInfo extends BaseMetaInfo {
+        private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
+
+        public void addReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
+        public void removeReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
+
+        @Override
+        public void setStateDirty(){
+            super.setStateDirty();
+            for(CouchbaseDocumentLink link: _reverseLinks){
+                link.syncFields();
+            }
+        }
+
+        @Override
+        public void setStateDeleted(){
+            //syncKeyWithDb(); voluntary to key in db values up to date
+            super.setStateDeleted();
+        }
+
+        @Override
+        public void setStateSync(){
+            syncKeyWithDb();
+            super.setStateSync();
+        }
+    }
 }

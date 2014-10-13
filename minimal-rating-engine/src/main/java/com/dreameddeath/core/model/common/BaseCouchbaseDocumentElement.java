@@ -1,6 +1,5 @@
 package com.dreameddeath.core.model.common;
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -50,9 +49,9 @@ public abstract class BaseCouchbaseDocumentElement implements HasParentDocumentE
         }
     }
     
-    public CouchbaseDocument getParentDocument() {
-        if(this instanceof CouchbaseDocument){
-            return (CouchbaseDocument)this;
+    public  BaseCouchbaseDocument getParentDocument() {
+        if(this instanceof BaseCouchbaseDocument){
+            return (BaseCouchbaseDocument)this;
         }
         else if(_parentElt.get() !=null){
             return _parentElt.get().getParentDocument();
@@ -61,15 +60,15 @@ public abstract class BaseCouchbaseDocumentElement implements HasParentDocumentE
     }
 
     public void dirtyDocument(){
-        CouchbaseDocument doc = getParentDocument();
+        BaseCouchbaseDocument doc = getParentDocument();
         if(doc!=null){
-            doc.setDocStateDirty();
+            doc.getBaseMeta().setStateDirty();
         }
     }
 
     public <T extends BaseCouchbaseDocumentElement> T getFirstParentOfClass(Class<T> clazz){
-        if(_parentElt!=null){
-            if(_parentElt.getClass().equals(clazz)){
+        if(_parentElt.get()!=null){
+            if(clazz.isAssignableFrom(_parentElt.get().getClass())){
                 return (T) (_parentElt.get());
             }
             else{

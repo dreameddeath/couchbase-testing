@@ -1,9 +1,10 @@
 package com.dreameddeath.core.model.property.impl;
 
+import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 
-public abstract class SynchronizedLinkProperty<T,TDOC extends CouchbaseDocument> extends StandardProperty<T> {
+public abstract class SynchronizedLinkProperty<T,TDOC extends BaseCouchbaseDocument> extends StandardProperty<T> {
     CouchbaseDocumentLink<TDOC> _parentLink;
 
     public SynchronizedLinkProperty(CouchbaseDocumentLink<TDOC> parentLink){

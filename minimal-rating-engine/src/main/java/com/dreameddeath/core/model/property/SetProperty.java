@@ -1,6 +1,5 @@
 package com.dreameddeath.core.model.property;
 
-import java.util.Collection;
 import java.util.Set;
 
 /**

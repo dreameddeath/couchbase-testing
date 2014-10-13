@@ -1,10 +1,10 @@
 package com.dreameddeath.installedbase.model.offer;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.ListProperty;
-import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
+import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.Collection;

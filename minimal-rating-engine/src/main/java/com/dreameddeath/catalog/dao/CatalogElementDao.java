@@ -2,11 +2,11 @@ package com.dreameddeath.catalog.dao;
 
 import com.dreameddeath.catalog.model.CatalogElement;
 import com.dreameddeath.catalog.model.CatalogItemVersion;
+import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.storage.CouchbaseClientWrapper;
+import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 
 /**
  * Created by ceaj8230 on 06/09/2014.
@@ -24,7 +24,7 @@ public abstract class CatalogElementDao<T extends CatalogElement> extends Couchb
     public abstract String getKeyDomain();
     protected String getDefaultKeyUidFmt(){return "%10d";}
 
-    public CatalogElementDao(CouchbaseClientWrapper client,CouchbaseDocumentDaoFactory factory){
+    public CatalogElementDao(CouchbaseBucketWrapper client,BaseCouchbaseDocumentDaoFactory factory){
         super(client,factory);
         _keyDomain = getKeyDomain();
         _keyUidFmt = getDefaultKeyUidFmt();
@@ -40,7 +40,7 @@ public abstract class CatalogElementDao<T extends CatalogElement> extends Couchb
     final public void buildKey(T obj) throws DaoException {
         //Uid generation by default
         if(obj.getUid()==null){
-            obj.setUid(String.format(_keyUidFmt,obj.getSession().incrCounter(_cntKey,1)));
+            obj.setUid(String.format(_keyUidFmt,obj.getBaseMeta().getSession().incrCounter(_cntKey,1)));
         }
         if(obj.getVersion()==null){ obj.setVersion(new CatalogItemVersion());}
         //Normalize version
@@ -49,7 +49,7 @@ public abstract class CatalogElementDao<T extends CatalogElement> extends Couchb
         if(currVersion.getMinor()==null){currVersion.setMinor(0);}
         if(currVersion.getPatch()==null){currVersion.setPatch(0);}
 
-        obj.setDocumentKey(String.format(
+        obj.getBaseMeta().setKey(String.format(
                         CAT_ELEMENT_FMT_KEY,
                         _keyDomain,
                         obj.getUid(),
