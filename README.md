@@ -1,6 +1,8 @@
 couchbase-testing
 =================
 
+[![Build Status](https://travis-ci.org/dreameddeath/couchbase-testing.png?branch=master)](https://travis-ci.org/travis-ci.org/dreameddeath/couchbase-testing)
+
 TODOs
 -----
 
