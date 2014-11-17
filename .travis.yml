@@ -1,5 +1,4 @@
 language: java
 
 before_install:
-  - chmod +x ./install-protobuf.sh
-  - ./install-protobuf.sh
+  - sudo apt-get install libprotobuf-dev protobuf-compiler
