@@ -33,15 +33,19 @@ TODOs
         - Management of DataModel Updates for archives (or use pure anonymous archive? generic json for instance ?)
 
 ### Framework Layer
-- Generate classes base on XML similar (include datamodel upgrade definition)
+- Be able to generate an model introspector (to extract XSD or Json-schema)
+- Generate classes base on XML Schema or JSon similar (include datamodel upgrade definition)
 - MDC integration
-- Integration with Storm, kafka (& ElaticSearch, Esper?)
+- Integration with Storm, kafka (& ElasticSearch, Esper?)
 - Unified SOAP & REST API (Use of jibx code gen)
 
 ### Testing
 - Job Unit Tests (~ integration tests) with or without calc only
 - Job Unit Tests with failure automation
 - Job Unit Tests with race condition
+- Unit Tests/Integration Test/Non regression Dataset Management tools :
+     * Json/XML based patch / checks definition
+     * Database loading with in memory (calc only) or real database insert
 - Overriding of logs for tests/production purposes
 
 ### Business Layer
