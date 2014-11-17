@@ -1,7 +1,8 @@
 language: java
 
 env:
- - PROTOBUF-VERSION:2.5.0
+ global:
+    - PROTOBUF_VERSION=2.5.0
 
 before_install:
   - chmod +x ./install-protobuf.sh
