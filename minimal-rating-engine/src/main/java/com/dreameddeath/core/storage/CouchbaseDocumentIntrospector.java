@@ -73,7 +73,6 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
     {
         PropertyName name = super.findNameForSerialization(a);
         if(name==null) {
-            DocumentProperty annotation= a.getAnnotation(DocumentProperty.class);
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(am.getName().startsWith("set")) {

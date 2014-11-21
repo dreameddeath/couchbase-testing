@@ -45,7 +45,6 @@ public class CreateUpdateInstalledBaseJob extends AbstractJob<CreateUpdateInstal
                 InitEmptyInstalledBase emptyCreateTask=addTask(new InitEmptyInstalledBase());
                 emptyCreateTask.setContractTempId(contract.tempId);
                 emptyCreateTask.chainWith(new UpdateInstalledBase());
-
             }
             else{
                 updateTask.setContractUid(contract.id);

@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 /**
  * Created by ceaj8230 on 30/08/2014.
  */
+@SuppressWarnings("ALL")
 public class DynamicCouchbaseDocumentElementValidator implements Validator<Object>{
     final private Field _field;
     final ValidatorFactory _factory;

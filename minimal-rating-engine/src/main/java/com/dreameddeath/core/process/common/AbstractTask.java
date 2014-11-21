@@ -96,7 +96,7 @@ public abstract class AbstractTask extends BaseCouchbaseDocumentElement {
         PREPROCESSED,
         PROCESSED, //Processing Done
         POSTPROCESSED, //Job Update Processing done
-        DONE;//Cleaning done
+        DONE//Cleaning done
     }
 
 

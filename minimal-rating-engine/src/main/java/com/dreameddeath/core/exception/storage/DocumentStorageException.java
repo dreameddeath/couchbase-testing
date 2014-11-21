@@ -30,8 +30,6 @@ public class DocumentStorageException extends StorageException {
 
     @Override
     public String getMessage(){
-        StringBuilder builder = new StringBuilder(super.getMessage());
-        builder.append("\n The doc was "+_doc);
-        return builder.toString();
+        return super.getMessage() + "\n The doc was " + _doc;
     }
 }

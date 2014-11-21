@@ -51,10 +51,7 @@ public class BillingCycle extends CouchbaseDocument {
     }
     
     public static boolean isValidForDate(DateTime refDate, DateTime startTime,DateTime endTime){
-        if((refDate.compareTo(startTime)>=0) && (refDate.compareTo(endTime)<0)){
-            return true;
-        }
-        return false;
+        return (refDate.compareTo(startTime) >= 0) && (refDate.compareTo(endTime) < 0);
     }
     
     @Override

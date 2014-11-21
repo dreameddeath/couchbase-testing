@@ -1,9 +1,7 @@
 package com.dreameddeath.core.dao.document;
 
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentWithKeyPatternDao;
-import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.validation.Validator;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ValidationException;
@@ -12,8 +10,6 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
 import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument> extends BaseCouchbaseDocumentWithKeyPatternDao<T> {

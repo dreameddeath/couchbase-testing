@@ -1,7 +1,6 @@
 package com.dreameddeath.rating.model.cdr;
 
 
-import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.storage.BinarySerializer;
 
@@ -12,7 +11,7 @@ import java.util.List;
    class used to store raw result having as an hypothesis that a cdrs is represented by
    - identified by a unique id
    - a series of bytes for the orig data
-   - a series of bytes for each rating attemps (or rerating attempts)
+   - a series of bytes for each rating attempts (or rerating attempts)
 */
 public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDocumentElement{
     ///abstract method which should return the Serializer of the Cdr Data Part

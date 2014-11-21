@@ -25,7 +25,7 @@ public class DocumentTypeResolverBuilder extends StdTypeResolverBuilder {
         if((_idType!=null)&&(_idType== JsonTypeInfo.Id.MINIMAL_CLASS)){
             Class<?> currClazz=baseType.getRawClass();
             JsonTypeInfo typeIdAnn;
-            while((typeIdAnn = currClazz.getAnnotation(JsonTypeInfo.class))==null) {
+            while(currClazz.getAnnotation(JsonTypeInfo.class)==null) {
                 currClazz = currClazz.getSuperclass();
                 if(currClazz==Object.class) break;
             }

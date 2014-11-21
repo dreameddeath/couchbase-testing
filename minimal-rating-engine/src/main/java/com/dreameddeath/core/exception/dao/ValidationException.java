@@ -81,6 +81,7 @@ public class ValidationException extends DaoException {
         _value = value;
     }
 
+    @SuppressWarnings("StringBufferMayBeStringBuilder")
     public String formatValidationIssues(AccessibleObject parentField,int level){
         StringBuffer buf=new StringBuffer(level*2);
         boolean hasSubBlock=false;
@@ -100,7 +101,7 @@ public class ValidationException extends DaoException {
             }
             hasSubBlock=true;
         }
-        else if((_field!=null) && (!_field.equals(parentField))){
+        else if(!_field.equals(parentField)){
             if(_field instanceof Field){
                 buf.append("The field ");
                 DocumentProperty docProp = _field.getAnnotation(DocumentProperty.class);
@@ -116,7 +117,7 @@ public class ValidationException extends DaoException {
             }
         }
         else if(_iterablePos!=null){
-            buf.append("["+_iterablePos+"] ");
+            buf.append("[").append(_iterablePos).append("] ");
             hasSubBlock=true;
         }
 
@@ -125,8 +126,8 @@ public class ValidationException extends DaoException {
         if(hasSubBlock){ buf.append(" {\n"); }
 
         if(_childList!=null) {
-            for (int childPos = 0; childPos < _childList.size(); ++childPos) {
-                buf.append(_childList.get(childPos).formatValidationIssues(_field, level + 1));
+            for (ValidationException a_childList : _childList) {
+                buf.append(a_childList.formatValidationIssues(_field, level + 1));
             }
         }
         else if(getCause()!=null){

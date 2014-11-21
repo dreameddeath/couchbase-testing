@@ -4,7 +4,7 @@
 
   <groupId>com.dreameddeath.couchbase</groupId>
   <artifactId>couchbase-testing</artifactId>
-  <version>0.1</version>
+  <version>${global.version}</version>
   <packaging>pom</packaging>
 
   <name>couchbase-testing</name>
@@ -24,11 +24,17 @@
   </build>
 
   <modules>
+    <module>core-validation</module>
+    <module>core-model</module>
+    <module>core-couchbase</module>
+    <module>core-dao</module>
+    <module>core-json-transcoder</module>
     <module>minimal-rating-engine</module>
   </modules>
     
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <global.version>0.1</global.version>
       <!--<couchbase.version>1.4.1</couchbase.version>-->
       <couchbase.version>2.0.0</couchbase.version>
       <cglib.version>3.1</cglib.version>
@@ -44,6 +50,7 @@
       <aspectj-mvn.version>1.6</aspectj-mvn.version>
       <rxjava.version>1.0.0-rc.3</rxjava.version>
       <javassist.version>3.12.1.GA</javassist.version>
+      <google.guava.version>15.0</google.guava.version>
   </properties>
 
   
@@ -98,6 +105,11 @@
           <groupId>javassist</groupId>
           <artifactId>javassist</artifactId>
           <version>${javassist.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>${google.guava.version}</version>
       </dependency>
   </dependencies>
 </project>

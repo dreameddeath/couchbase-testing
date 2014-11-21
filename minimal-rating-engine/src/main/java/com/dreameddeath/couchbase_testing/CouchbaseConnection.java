@@ -6,8 +6,8 @@ import com.dreameddeath.billing.dao.BillingCycleDao;
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.billing.process.CreateBillingAccountJob;
-import com.dreameddeath.core.dao.CouchbaseSession;
-import com.dreameddeath.core.dao.CouchbaseSessionFactory;
+import com.dreameddeath.core.CouchbaseSession;
+import com.dreameddeath.core.CouchbaseSessionFactory;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
@@ -16,6 +16,7 @@ import com.dreameddeath.core.dao.process.JobDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.validation.ValidatorFactory;
+import com.dreameddeath.core.date.DateTimeServiceFactory;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
 import com.dreameddeath.core.model.common.BucketDocument;
@@ -58,6 +59,7 @@ public class CouchbaseConnection {
     private static final CouchbaseCounterDaoFactory _counterDaoFactory = new CouchbaseCounterDaoFactory();
     private static final CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory=new CouchbaseUniqueKeyDaoFactory();
     private static final BaseCouchbaseDocumentDaoFactory _docDaoFactory = new BaseCouchbaseDocumentDaoFactory();
+
     static {
         _docDaoFactory.setCounterDaoFactory(_counterDaoFactory);
         _docDaoFactory.setValidatorFactory(new ValidatorFactory());
@@ -70,8 +72,8 @@ public class CouchbaseConnection {
         _docDaoFactory.addDaoFor(Party.class, new PartyDao(_client, _docDaoFactory));
         _docDaoFactory.addDaoFor(AbstractJob.class, new JobDao(_client, _docDaoFactory));
     }
-
-    private static final CouchbaseSessionFactory _sessionFactory = new CouchbaseSessionFactory(_docDaoFactory,_counterDaoFactory,_uniqueKeyDaoFactory);
+    private static final DateTimeServiceFactory _dateTimeServiceFactory = new DateTimeServiceFactory();
+    private static final CouchbaseSessionFactory _sessionFactory = new CouchbaseSessionFactory(_docDaoFactory,_counterDaoFactory,_uniqueKeyDaoFactory,_dateTimeServiceFactory);
     
     public static class StringSerializer implements BinarySerializer<String>{
         public byte[] serialize(String str){ return str.getBytes(); }

@@ -1,7 +1,6 @@
 package com.dreameddeath.core.model.common;
 
-import com.dreameddeath.core.dao.CouchbaseSession;
-import com.dreameddeath.core.exception.dao.InconsistentStateException;
+import com.dreameddeath.core.CouchbaseSession;
 import com.dreameddeath.core.storage.CouchbaseConstants;
 
 import java.util.Collection;
@@ -98,7 +97,7 @@ public class BaseCouchbaseDocument extends BaseCouchbaseDocumentElement {
         NEW,
         DIRTY,
         SYNC,
-        DELETED;
+        DELETED
     }
 
 }

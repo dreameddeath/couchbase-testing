@@ -27,17 +27,17 @@ public class BillingAccount extends CouchbaseDocument{
     @DocumentProperty("taxProfile")
     private Property<String> _taxProfile = new StandardProperty<String>(BillingAccount.this);
 	@DocumentProperty("type")
-    private Property<Type> _type= new StandardProperty<Type>(BillingAccount.this);;
-	@DocumentProperty("creationDate")
+    private Property<Type> _type= new StandardProperty<Type>(BillingAccount.this);
+    @DocumentProperty("creationDate")
     private Property<DateTime> _creationDate= new ImmutableProperty<DateTime>(BillingAccount.this,DateTime.now());
 	@DocumentProperty("billDay") @NotNull
-    private Property<Integer> _billDay = new StandardProperty<Integer>(BillingAccount.this);;
+    private Property<Integer> _billDay = new StandardProperty<Integer>(BillingAccount.this);
     @DocumentProperty("billCycleLength") @NotNull
-    private Property<Integer> _billCycleLength = new StandardProperty<Integer>(BillingAccount.this);;
-	@DocumentProperty("currency")
-    private Property<String> _currency = new StandardProperty<String>(BillingAccount.this);;
-	@DocumentProperty("paymentMethod")
-    private Property<String> _paymentMethod = new StandardProperty<String>(BillingAccount.this);;
+    private Property<Integer> _billCycleLength = new StandardProperty<Integer>(BillingAccount.this);
+    @DocumentProperty("currency")
+    private Property<String> _currency = new StandardProperty<String>(BillingAccount.this);
+    @DocumentProperty("paymentMethod")
+    private Property<String> _paymentMethod = new StandardProperty<String>(BillingAccount.this);
     @DocumentProperty(value="billCycles",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
     private ListProperty<BillingCycleLink> _billingCycleLinks = new ArrayListProperty<BillingCycleLink>(BillingAccount.this);
     @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")

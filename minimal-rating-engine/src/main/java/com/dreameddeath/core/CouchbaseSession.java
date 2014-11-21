@@ -1,13 +1,13 @@
-package com.dreameddeath.core.dao;
+package com.dreameddeath.core;
 
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
+import com.dreameddeath.core.date.DateTimeService;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.exception.dao.ReadOnlyException;
@@ -23,6 +23,7 @@ import java.util.*;
 public class CouchbaseSession {
     final private CouchbaseSessionFactory _sessionFactory;
     final private SessionType _sessionType;
+    final private DateTimeService _dateTimeService;
     final private User _user;
 
     private Map<String,BaseCouchbaseDocument> _sessionCache = new HashMap<String,BaseCouchbaseDocument>();
@@ -36,6 +37,7 @@ public class CouchbaseSession {
 
     public CouchbaseSession(CouchbaseSessionFactory factory,SessionType type,User user){
         _sessionFactory = factory;
+        _dateTimeService = factory.getDateTimeServiceFactory().getService();
         _sessionType = type;
         _user = user;
     }
@@ -81,6 +83,7 @@ public class CouchbaseSession {
 
 
 
+
     public long getCounter(String key) throws DaoNotFoundException{
         CouchbaseCounterDao dao = _sessionFactory.getCounterDaoFactory().getDaoForKey(key);
         if(isCalcOnly() && _counters.containsKey(key)){
@@ -93,7 +96,8 @@ public class CouchbaseSession {
         return value;
     }
 
-    public long incrCounter(String key,long byVal) throws ReadOnlyException, DaoNotFoundException{
+
+    public long incrCounter(String key, long byVal) throws ReadOnlyException, DaoNotFoundException{
         checkReadOnly(key);
         if(isCalcOnly()){
             Long result = getCounter(key);
@@ -106,6 +110,7 @@ public class CouchbaseSession {
             return dao.incrCounter(key,byVal,isCalcOnly());
         }
     }
+
 
     public long decrCounter(String key, long byVal) throws ReadOnlyException, DaoNotFoundException{
         checkReadOnly(key);
@@ -124,7 +129,7 @@ public class CouchbaseSession {
     public void attachLink(CouchbaseDocumentLink link){
         if(link.getKey()!=null){
             if((link.getLinkedObjectFromCache()==null) && (_sessionCache.containsKey(link.getKey()))){
-                link.setLinkedObject((CouchbaseDocument)_sessionCache.get(link.getKey()));
+                link.setLinkedObject(_sessionCache.get(link.getKey()));
             }
             if(_links.containsKey(link.getKey())){
                 _links.get(link.getKey()).add(link);
@@ -158,6 +163,7 @@ public class CouchbaseSession {
         }
     }
     
+
     public <T extends BaseCouchbaseDocument> T newEntity(Class<T> clazz){
         try{
             T obj=clazz.newInstance();
@@ -169,6 +175,7 @@ public class CouchbaseSession {
             return null;
         }
     }
+
 
     public <T extends BaseCouchbaseDocument> T create(T obj) throws DaoException,StorageException{
         checkReadOnly(obj);
@@ -188,6 +195,7 @@ public class CouchbaseSession {
         return objs;
     }*/
 
+
     public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException{
         if(obj.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
             ((CouchbaseDocumentDao<T>) _sessionFactory.getDocumentDaoFactory().getDaoForClass(obj.getClass())).buildKey(obj);
@@ -195,8 +203,9 @@ public class CouchbaseSession {
         return obj;
     }
     
+
     public BaseCouchbaseDocument get(String key) throws DaoException,StorageException{
-        BaseCouchbaseDocument result = (BaseCouchbaseDocument)_sessionCache.get(key);
+        BaseCouchbaseDocument result = _sessionCache.get(key);
         if(result==null){
             BaseCouchbaseDocumentDao dao = _sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
             result = dao.get(key);
@@ -205,7 +214,8 @@ public class CouchbaseSession {
         return result;
     }
     
-    public <T extends BaseCouchbaseDocument> T get(String key,Class<T> targetClass) throws DaoException,StorageException{
+
+    public <T extends BaseCouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException{
         BaseCouchbaseDocument cacheResult = _sessionCache.get(key);
         if(cacheResult !=null){
             return (T)cacheResult;
@@ -225,12 +235,14 @@ public class CouchbaseSession {
         return objs;
     }*/
 
+
     public <T extends BaseCouchbaseDocument> T update(T obj)throws DaoException,StorageException{
         checkReadOnly(obj);
         BaseCouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
         dao.update(obj,isCalcOnly());
         return obj;
     }
+
 
     public <T extends BaseCouchbaseDocument> T delete(T obj)throws DaoException,StorageException{
         checkReadOnly(obj);
@@ -240,15 +252,18 @@ public class CouchbaseSession {
     }
 
 
-    public <T extends CouchbaseDocument> T getFromUID(String uid,Class<T> targetClass) throws DaoException,StorageException{
+
+    public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException{
         CouchbaseDocumentDaoWithUID<T> dao = (CouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
         return get(dao.getKeyFromUID(uid),targetClass);
     }
+
 
     public <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException{
         CouchbaseDocumentDaoWithUID<T> dao = (CouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
         return dao.getKeyFromUID(uid);
     }
+
 
     public <T extends CouchbaseDocument> T save(T obj) throws DaoException,StorageException{
         if(obj.getBaseMeta().getState().equals(BaseCouchbaseDocument.DocumentState.NEW)){
@@ -264,6 +279,7 @@ public class CouchbaseSession {
 
 
 
+
     public void addOrUpdateUniqueKey(CouchbaseDocument doc, Object value, String nameSpace)throws DaoException,StorageException{
         //Skip null value
         if(value==null){
@@ -276,6 +292,7 @@ public class CouchbaseSession {
     }
 
 
+
     public CouchbaseUniqueKey getUniqueKey(String internalKey)throws DaoException,StorageException{
         CouchbaseUniqueKey keyDoc =_keyCache.get(_sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey).buildKey(internalKey));
         if(keyDoc==null){
@@ -284,6 +301,7 @@ public class CouchbaseSession {
         }
         return keyDoc;
     }
+
 
     public void removeUniqueKey(String internalKey) throws DaoException,StorageException{
         CouchbaseUniqueKey obj = getUniqueKey(internalKey);
@@ -301,4 +319,6 @@ public class CouchbaseSession {
         CALC_ONLY,
         READ_WRITE
     }
+
+    public DateTimeService getDateTimeService(){ return _dateTimeService; }
 }

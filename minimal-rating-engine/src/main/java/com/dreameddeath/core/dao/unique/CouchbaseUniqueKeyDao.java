@@ -21,8 +21,6 @@ public class CouchbaseUniqueKeyDao extends BaseCouchbaseDocumentDao<CouchbaseUni
     private static final String INTERNAL_KEY_FMT="%s/%s";
     private static final String INTERNAL_KEY_SEPARATOR="/";
 
-    private CouchbaseUniqueKeyDaoFactory _parentFactory;
-
     public static class LocalBucketDocument extends BucketDocument<CouchbaseUniqueKey> {
         public LocalBucketDocument(CouchbaseUniqueKey obj){super(obj);}
     }
@@ -62,7 +60,7 @@ public class CouchbaseUniqueKeyDao extends BaseCouchbaseDocumentDao<CouchbaseUni
 
     public CouchbaseUniqueKeyDao(CouchbaseBucketWrapper client, CouchbaseUniqueKeyDaoFactory factory){
         super(client,null);
-        _parentFactory = factory;
+        CouchbaseUniqueKeyDaoFactory _parentFactory = factory;
     }
 
     public String buildKey(String nameSpace, String value) throws DaoException{

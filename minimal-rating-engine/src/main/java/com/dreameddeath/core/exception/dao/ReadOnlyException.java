@@ -1,7 +1,6 @@
 package com.dreameddeath.core.exception.dao;
 
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 
 /**

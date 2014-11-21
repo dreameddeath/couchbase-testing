@@ -185,7 +185,7 @@ public abstract class AbstractJob<TREQ extends BaseCouchbaseDocumentElement,TRES
         PREPROCESSED,    //Preparation done
         PROCESSED, //Processing Done
         POSTPROCESSED, //Job Update Processing done
-        DONE;//Cleaning done
+        DONE//Cleaning done
     }
 
 

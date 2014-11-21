@@ -29,6 +29,6 @@ public class CreatePartyRequest extends BaseCouchbaseDocumentElement {
     }
 
     public enum Type{
-        person, organization;
+        person, organization
     }
 }

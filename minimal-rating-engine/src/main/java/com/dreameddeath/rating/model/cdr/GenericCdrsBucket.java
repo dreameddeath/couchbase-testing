@@ -1,8 +1,6 @@
 package com.dreameddeath.rating.model.cdr;
 
 import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.CouchbaseConstants;
 
 import java.util.*;

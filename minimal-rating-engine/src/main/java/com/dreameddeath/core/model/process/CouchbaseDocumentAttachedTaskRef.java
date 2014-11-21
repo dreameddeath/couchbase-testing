@@ -73,6 +73,6 @@ public class CouchbaseDocumentAttachedTaskRef extends BaseCouchbaseDocumentEleme
 
     public static enum State{
         INITIALIZED,
-        PROCESSED;
+        PROCESSED
     }
 }

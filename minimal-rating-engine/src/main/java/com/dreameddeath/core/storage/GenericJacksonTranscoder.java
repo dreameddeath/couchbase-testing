@@ -6,10 +6,8 @@ import com.couchbase.client.core.lang.Tuple2;
 import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
-import com.couchbase.client.java.transcoder.Transcoder;
 import com.dreameddeath.core.exception.storage.DocumentDecodingException;
 import com.dreameddeath.core.exception.storage.DocumentEncodingException;
-import com.dreameddeath.core.exception.storage.DocumentSetUpException;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.common.BucketDocument;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -24,8 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 
 public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> extends GenericTranscoder<T>{

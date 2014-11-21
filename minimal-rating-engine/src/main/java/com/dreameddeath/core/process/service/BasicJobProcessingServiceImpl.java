@@ -58,8 +58,8 @@ public class BasicJobProcessingServiceImpl implements JobProcessingService<Abstr
             }
 
             if (!job.isProcessed()) {
-                AbstractTask task = null;
                 try {
+                    AbstractTask task;
                     while ((task = job.getNextExecutableTask()) != null) {
                         task.setLastRunError(null);
                         getFactory().getTaskServiceForClass(AbstractTask.class).execute(task);

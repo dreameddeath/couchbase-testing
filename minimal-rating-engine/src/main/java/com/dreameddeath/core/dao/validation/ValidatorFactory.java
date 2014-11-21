@@ -11,7 +11,7 @@ public class ValidatorFactory {
     private ValidatorCache _cache = new ValidatorCache();
 
 
-    public <T extends Object> Validator<T> getValidator(Class<T> clazz){
+    public <T> Validator<T> getValidator(Class<T> clazz){
         Validator<BaseCouchbaseDocumentElement> validator = (Validator<BaseCouchbaseDocumentElement>)_cache.get(clazz);
         if(validator==null){
             if(BaseCouchbaseDocumentElement.class.isAssignableFrom(clazz)){

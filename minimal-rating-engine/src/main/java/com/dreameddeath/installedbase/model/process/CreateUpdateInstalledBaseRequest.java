@@ -15,6 +15,8 @@ import java.util.List;
 public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentElement {
     @DocumentProperty("createRequestUid") @Unique(nameSpace = "createInstalledBaseJob")//If installed base creation, perform a duplicate check based on that
     public String creationRequestUid;
+    @DocumentProperty("requestDate")
+    public DateTime requestDate;
     @DocumentProperty("contracts")
     public List<Contract> contracts=new ArrayList<Contract>();
     @DocumentProperty("offers")
@@ -186,20 +188,22 @@ public class CreateUpdateInstalledBaseRequest extends BaseCouchbaseDocumentEleme
     }
 
     public enum Status{
-        INITIALIZED,
         ACTIVE,
-        SUSPEND,
+        SUSPENDED,
         REMOVED,
+        CLOSED,
         CANCELLED
     }
 
     public class OrderItemInfo{
         @DocumentProperty("orderItemId")
-        public String orderItemID;
+        public String orderItemId;
         @DocumentProperty("orderId")
         public String orderId;
         @DocumentProperty("status")
         public OrderStatus status;
+        @DocumentProperty("effectiveDate")
+        public DateTime effectiveDate;
     }
 
     public enum OrderStatus{

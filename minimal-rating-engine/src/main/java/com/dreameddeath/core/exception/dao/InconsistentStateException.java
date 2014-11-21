@@ -5,6 +5,7 @@ import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 /**
  * Created by CEAJ8230 on 21/09/2014.
  */
+@SuppressWarnings("StringBufferReplaceableByString")
 public class InconsistentStateException extends DaoException {
     private BaseCouchbaseDocument _doc;
     public InconsistentStateException(BaseCouchbaseDocument doc,Throwable e){
@@ -26,6 +27,6 @@ public class InconsistentStateException extends DaoException {
 
     @Override
     public String getMessage(){
-        return new StringBuilder(super.getMessage()).append("\n The document was <"+_doc).toString();
+        return new StringBuilder(super.getMessage()).append("\n The document was <").append(_doc).toString();
     }
 }

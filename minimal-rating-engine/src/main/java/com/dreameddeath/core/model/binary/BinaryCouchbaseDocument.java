@@ -1,7 +1,6 @@
 package com.dreameddeath.core.model.binary;
 
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.storage.CouchbaseConstants;
 
 /**
  * Created by ceaj8230 on 12/10/2014.

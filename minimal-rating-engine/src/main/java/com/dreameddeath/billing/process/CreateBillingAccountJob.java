@@ -76,7 +76,7 @@ public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountReq
         @Override
         protected CreateBillingCycleJob buildSubJob() throws DaoException,StorageException{
             CreateBillingCycleJob job = newEntity(CreateBillingCycleJob.class);
-            BillingAccount ba = getDependentTask(CreateBillingAccountTask.class).getDocument();;
+            BillingAccount ba = getDependentTask(CreateBillingAccountTask.class).getDocument();
 
             job.getRequest().baLink = ba.newLink();
             job.getRequest().startDate = ba.getCreationDate();

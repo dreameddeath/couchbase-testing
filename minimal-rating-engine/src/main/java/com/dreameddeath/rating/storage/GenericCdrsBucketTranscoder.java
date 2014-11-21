@@ -6,15 +6,12 @@ import com.couchbase.client.core.lang.Tuple2;
 import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
-import com.couchbase.client.java.transcoder.Transcoder;
-import com.dreameddeath.core.exception.storage.DocumentEncodingException;
 import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
 import com.dreameddeath.core.model.common.BucketDocument;
 import com.dreameddeath.core.storage.GenericTranscoder;
 import com.dreameddeath.rating.model.cdr.GenericCdr;
 import com.dreameddeath.rating.model.cdr.GenericCdrsBucket;
 import com.dreameddeath.rating.storage.ActiveCdrsProtos.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 

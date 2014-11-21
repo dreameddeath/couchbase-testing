@@ -10,7 +10,7 @@ import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
  */
 public abstract class CouchbaseArchiveDao<T extends CouchbaseDocument> {
     private CouchbaseBucketWrapper _client;
-    private Integer _expiration;
+
     public abstract Transcoder<BucketDocument<T>,T> getTranscoder();
 
     protected CouchbaseBucketWrapper getClientWrapper(){
@@ -19,6 +19,6 @@ public abstract class CouchbaseArchiveDao<T extends CouchbaseDocument> {
 
     public CouchbaseArchiveDao(CouchbaseBucketWrapper client,String key, Integer expiration){
         _client = client;
-        _expiration = expiration;
+        Integer _expiration = expiration;
     }
 }

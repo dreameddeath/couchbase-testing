@@ -4,10 +4,10 @@
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
         <artifactId>couchbase-testing</artifactId>
-        <version>0.1</version>
+        <version>${global.version}</version>
     </parent>
   <artifactId>minimal-rating-engine</artifactId>
-  <version>0.1</version>
+  <version>${global.version}</version>
   <packaging>jar</packaging>
 
   <name>minimal-rating-engine</name>
@@ -79,6 +79,16 @@
 
   
   <dependencies>
+      <!--<dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-validation</artifactId>
+          <version>${global.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-model</artifactId>
+          <version>${global.version}</version>
+      </dependency>-->
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
@@ -103,6 +113,11 @@
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
-    </dependency>    
+    </dependency>
+      <dependency>
+          <groupId>joda-time</groupId>
+          <artifactId>joda-time</artifactId>
+          <version>${joda-time.version}</version>
+      </dependency>
   </dependencies>
 </project>

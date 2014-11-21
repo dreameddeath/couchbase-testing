@@ -38,10 +38,9 @@ public class InstalledStatus extends BaseCouchbaseDocumentElement {
 
     public enum Code{
         INITIALIZED,
-        IN_ORDER,
         ACTIVE,
         SUSPENDED,
-        REMOVED,
+        CLOSED,
         CANCELLED,
         ABORTED
     }

@@ -2,11 +2,11 @@ package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapDefaultValueBuilder;
 import com.dreameddeath.core.model.property.MapProperty;
+import com.sun.istack.internal.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,7 +61,7 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
     }
 
     @Override
-    public boolean addAll(Collection<? extends T> list){
+    public boolean addAll(@NotNull Collection<? extends T> list){
         for(T elt : list){
             if(elt instanceof HasParentDocumentElement){
                 ((HasParentDocumentElement) elt).setParentDocumentElement(_parentElt);
