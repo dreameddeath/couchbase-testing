@@ -4,10 +4,10 @@
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
         <artifactId>couchbase-testing</artifactId>
-        <version>${global.version}</version>
+        <version>0.1</version>
     </parent>
   <artifactId>core-json-transcoder</artifactId>
-  <version>${global.version}</version>
+  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>core-json-transcoder</name>

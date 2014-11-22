@@ -4,7 +4,7 @@
 
   <groupId>com.dreameddeath.couchbase</groupId>
   <artifactId>couchbase-testing</artifactId>
-  <version>${global.version}</version>
+  <version>0.1</version>
   <packaging>pom</packaging>
 
   <name>couchbase-testing</name>

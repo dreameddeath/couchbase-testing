@@ -4,7 +4,6 @@ import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapDefaultValueBuilder;
 import com.dreameddeath.core.model.property.MapProperty;
-import com.sun.istack.internal.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +54,7 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends T> list){
+    public boolean addAll(Collection<? extends T> list){
         for(T elt : list){
             if(elt instanceof HasParent){
                 ((HasParent) elt).setParentElement(_parentElt);

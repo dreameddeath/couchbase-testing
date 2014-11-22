@@ -4,10 +4,10 @@
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
         <artifactId>couchbase-testing</artifactId>
-        <version>${global.version}</version>
+        <version>0.1</version>
     </parent>
   <artifactId>minimal-rating-engine</artifactId>
-  <version>${global.version}</version>
+  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>minimal-rating-engine</name>
@@ -114,10 +114,5 @@
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
     </dependency>
-      <dependency>
-          <groupId>joda-time</groupId>
-          <artifactId>joda-time</artifactId>
-          <version>${joda-time.version}</version>
-      </dependency>
   </dependencies>
 </project>
