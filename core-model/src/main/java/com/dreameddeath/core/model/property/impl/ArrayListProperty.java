@@ -16,11 +16,9 @@ import java.util.List;
 public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T>,HasParent {
     HasParent _parentElt;
 
-
     public ArrayListProperty(HasParent parentElement){
         _parentElt=parentElement;
     }
-
 
     @Override
     public void setParentElement(HasParent parentElement){_parentElt=parentElement;}
@@ -43,6 +41,18 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
         return res;
     }
 
+    @Override
+    public T remove(int index){
+        T res = super.remove(index);
+        if(res!=null){
+            HasParent.Helper.dirtyParentDocument(this);
+            if(res instanceof HasParent) {
+                ((HasParent) res).setParentElement(null);
+            }
+        }
+        return res;
+    }
+
 
     @Override
     public boolean add(T elt){
@@ -51,6 +61,15 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
         }
         HasParent.Helper.dirtyParentDocument(this);
         return super.add(elt);
+    }
+
+    @Override
+    public void add(int index,T elt){
+        if(elt instanceof HasParent){
+            ((HasParent) elt).setParentElement(_parentElt);
+        }
+        HasParent.Helper.dirtyParentDocument(this);
+        super.add(index,elt);
     }
 
     @Override
@@ -64,16 +83,45 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
         return super.addAll(list);
     }
 
+    @Override
+    public boolean addAll(int index,Collection<? extends T> list){
+        for(T elt : list){
+            if(elt instanceof HasParent){
+                ((HasParent) elt).setParentElement(_parentElt);
+            }
+        }
+        HasParent.Helper.dirtyParentDocument(this);
+        return super.addAll(index,list);
+    }
+
+    @Override
     public List<T> get(){
         return Collections.unmodifiableList(this);
     }
 
+    @Override
     public boolean set(Collection<T> list){
         HasParent.Helper.dirtyParentDocument(this);
         clear();
         return addAll(list);
     }
 
+    @Override
+    public T set(int index,T elt){
+        T res = super.set(index,elt);
+        if(elt instanceof HasParent){
+            ((HasParent) elt).setParentElement(_parentElt);
+        }
+        HasParent.Helper.dirtyParentDocument(this);
+
+        if((res!=null)&& (res instanceof HasParent)){
+            ((HasParent) res).setParentElement(null);
+        }
+        return res;
+    }
+
+
+    @Override
     public boolean set(List<T> list){
         return set((Collection<T>)list);
     }

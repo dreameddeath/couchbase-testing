@@ -18,9 +18,6 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
     public AbstractProperty(HasParent parentElement,T defaultValue){
         _parentElt=parentElement;
         _defaultValue=defaultValue;
-        if((_defaultValue!=null) && (_defaultValue instanceof HasParent)){
-            ((HasParent) _defaultValue).setParentElement(this);
-        }
     }
 
     public void setParentElement(HasParent parentElement){ _parentElt=parentElement;}
@@ -28,7 +25,7 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
 
     protected T getRawValue(){return _value;}
 
-    public T get(){ if(_value==null){_value =_defaultValue; _defaultValue=null;} return _value; }
+    public T get(){ if(_value==null){set(_defaultValue);} return _value; }
     public boolean set(T value) {
         if(!equalsValue(value)){
             _value = value;
