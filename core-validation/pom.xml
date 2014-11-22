@@ -7,7 +7,7 @@
         <version>0.1</version>
     </parent>
   <artifactId>core-validation</artifactId>
-  <version>${global.version}</version>
+  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>core-validation</name>

@@ -3,7 +3,7 @@ package com.dreameddeath.core.model.process;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.annotation.Validate;
-import com.dreameddeath.core.exception.DuplicateTaskException;;
+import com.dreameddeath.core.exception.DuplicateTaskException;
 import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.ListProperty;
