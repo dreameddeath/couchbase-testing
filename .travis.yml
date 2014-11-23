@@ -1,5 +1,8 @@
 language: java
 
+jdk:
+    - oraclejdk6
+
 env:
  global:
     - PROTOBUF_VERSION=2.5.0
