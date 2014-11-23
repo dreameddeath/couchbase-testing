@@ -7,3 +7,6 @@ env:
 before_install:
   - chmod +x ./install-protobuf.sh
   - ./install-protobuf.sh
+
+after_success:
+  - mvn clean test jacoco:report coveralls:report
