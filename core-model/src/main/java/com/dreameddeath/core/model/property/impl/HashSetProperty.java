@@ -1,7 +1,5 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.SetProperty;
 

@@ -1,16 +1,12 @@
 package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.common.RawCouchbaseDocument;
-import com.dreameddeath.core.model.property.Property;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 public class ArrayListPropertyTest {
     @Test

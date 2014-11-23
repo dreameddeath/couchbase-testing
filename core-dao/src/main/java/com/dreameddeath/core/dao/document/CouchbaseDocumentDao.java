@@ -1,12 +1,11 @@
 package com.dreameddeath.core.dao.document;
 
-import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.validation.AbstractValidationException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.exception.validation.AbstractValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-
+import com.dreameddeath.core.session.ICouchbaseSession;
 
 import java.util.Set;
 

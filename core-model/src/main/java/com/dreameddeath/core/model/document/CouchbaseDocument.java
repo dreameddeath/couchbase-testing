@@ -3,13 +3,12 @@ package com.dreameddeath.core.model.document;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.DuplicateAttachedTaskException;
 import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.process.AbstractTask;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
-import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
-import com.dreameddeath.core.model.process.AbstractTask;
 import org.joda.time.DateTime;
 
 import java.util.Collection;

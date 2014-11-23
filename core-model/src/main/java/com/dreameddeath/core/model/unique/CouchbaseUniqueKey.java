@@ -1,7 +1,6 @@
 package com.dreameddeath.core.model.unique;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.common.RawCouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;

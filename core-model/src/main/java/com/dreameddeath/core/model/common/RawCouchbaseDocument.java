@@ -2,7 +2,6 @@ package com.dreameddeath.core.model.common;
 
 //import com.dreameddeath.core.CouchbaseSession;
 
-import com.dreameddeath.core.exception.IllegalMethodCall;
 import com.dreameddeath.core.model.property.HasParent;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

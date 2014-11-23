@@ -2,8 +2,6 @@ package com.dreameddeath.core.model.property;
 
 
 import com.dreameddeath.core.model.common.RawCouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
 
 /**
  * Created by ceaj8230 on 07/09/2014.

@@ -1,8 +1,8 @@
 package com.dreameddeath.core.model.document;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
 import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.SynchronizedLinkProperty;

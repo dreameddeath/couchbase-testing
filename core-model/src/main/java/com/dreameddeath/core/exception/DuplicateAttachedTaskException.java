@@ -1,8 +1,6 @@
 package com.dreameddeath.core.exception;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.AbstractTask;
 
 /**
  * Created by ceaj8230 on 20/11/2014.

@@ -1,13 +1,15 @@
 package com.dreameddeath.core.dao.common;
 
-import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.InconsistentStateException;
-import com.dreameddeath.core.exception.validation.AbstractValidationException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.exception.validation.AbstractValidationException;
 import com.dreameddeath.core.model.common.RawCouchbaseDocument;
-import com.dreameddeath.core.storage.*;
 import com.dreameddeath.core.model.common.RawCouchbaseDocument.DocumentFlag;
+import com.dreameddeath.core.session.ICouchbaseSession;
+import com.dreameddeath.core.storage.BucketDocument;
+import com.dreameddeath.core.storage.ICouchbaseBucket;
+import com.dreameddeath.core.storage.ICouchbaseTranscoder;
 
 import java.util.Collection;
 

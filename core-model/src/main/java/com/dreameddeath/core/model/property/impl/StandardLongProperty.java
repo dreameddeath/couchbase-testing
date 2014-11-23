@@ -1,6 +1,5 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.NumericProperty;
 

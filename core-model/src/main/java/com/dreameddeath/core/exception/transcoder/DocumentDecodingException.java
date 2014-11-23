@@ -1,7 +1,5 @@
 package com.dreameddeath.core.exception.transcoder;
 
-import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
-
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
