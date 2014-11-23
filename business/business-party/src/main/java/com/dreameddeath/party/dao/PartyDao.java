@@ -29,20 +29,15 @@ public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
     public Class<? extends BucketDocument<Party>> getBucketDocumentClass() {
         return LocalBucketDocument.class;
     }
+
+    @Override
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){
         return Arrays.asList(
                 new CouchbaseCounterDao.Builder().withKeyPattern(PARTY_CNT_KEY_PATTERN).withDefaultValue(1L).withBaseDao(this)
         );
     }
 
-    public CouchbaseCounterDao.Builder[] getCounterDaoBuilder() {
-        CouchbaseCounterDao.Builder[] array={
-
-        } ;
-        return array;
-    }
-
-
+    @Override
     public Party buildKey(ICouchbaseSession session,Party obj) throws DaoException,StorageException {
         long result = session.incrCounter(PARTY_CNT_KEY, 1);
         obj.getBaseMeta().setKey(String.format(PARTY_FMT_KEY, result));
@@ -52,9 +47,11 @@ public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
         return obj;
     }
 
+    @Override
     public String getKeyPattern(){
         return PARTY_KEY_PATTERN;
     }
 
+    @Override
     public String getKeyFromUID(String uid){return String.format(PARTY_FMT_KEY,Long.parseLong(uid));}
 }
