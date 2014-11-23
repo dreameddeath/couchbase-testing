@@ -43,11 +43,8 @@
   </build>
 
   <modules>
-    <module>core-validation</module>
-    <module>core-model</module>
-    <module>core-couchbase</module>
-    <module>core-dao</module>
-    <module>core-json-transcoder</module>
+    <module>core</module>
+    <module>business</module>
     <module>minimal-rating-engine</module>
   </modules>
     
