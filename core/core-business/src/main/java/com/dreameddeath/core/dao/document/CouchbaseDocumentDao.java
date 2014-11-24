@@ -1,5 +1,6 @@
 package com.dreameddeath.core.dao.document;
 
+import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
@@ -9,6 +10,7 @@ import com.dreameddeath.core.session.ICouchbaseSession;
 
 import java.util.Set;
 
+@DaoForClass(CouchbaseDocument.class)
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument> extends BaseCouchbaseDocumentWithKeyPatternDao<T> {
 
     protected  void updateRevision(ICouchbaseSession session,T obj){

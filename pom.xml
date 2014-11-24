@@ -45,7 +45,7 @@
   <modules>
     <module>core</module>
     <module>business</module>
-    <module>minimal-rating-engine</module>
+    <!--<module>minimal-rating-engine</module>-->
   </modules>
     
   <properties>

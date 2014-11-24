@@ -34,7 +34,7 @@ public class GenericJacksonTranscoder<T extends RawCouchbaseDocument> implements
     private final Class<T> _dummyClass;
 
 
-    public GenericJacksonTranscoder(Class<T> clazz, Class<? extends T> baseDocumentClazz){
+    public GenericJacksonTranscoder(Class<T> clazz){
         _dummyClass = clazz;
         try {
             //_mapper.getSerializerProvider().findTypedValueSerializer(clazz, true, null);

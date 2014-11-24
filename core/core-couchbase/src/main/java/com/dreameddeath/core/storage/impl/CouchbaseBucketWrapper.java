@@ -38,7 +38,23 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         _bucketPassword = bucketPassword;
     }
 
-    public CouchbaseBucketWrapper addTranscoder(ICouchbaseTranscoder transcoder){
+    public void start(long timeout,TimeUnit unit){_bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders,timeout,unit);}
+    public void start(){
+        _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders);
+    }
+
+    public boolean shutdown(long timeout,TimeUnit unit){
+        return _bucket.close(timeout,unit);
+    }
+    public void shutdown(){
+        _bucket.close();
+    }
+
+    @Override
+    public ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder){
+        if(_bucket!=null){
+            throw new IllegalStateException("Cannot add transcoder "+transcoder.getClass().getName()+" after client initialization");
+        }
         _transcoders.add(transcoder);
         return this;
     }
@@ -84,13 +100,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends RawCouchbaseDocument> Observable<T> asyncAdd(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().insert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
-            @Override
-            public T call(BucketDocument<T> tBucketDocument) {
-                bucketDoc.syncMeta(tBucketDocument);
-                return bucketDoc.content();
-            }
-        });
+        return _bucket.async().insert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
@@ -107,13 +117,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends RawCouchbaseDocument> Observable<T> asyncSet(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().upsert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
-            @Override
-            public T call(BucketDocument<T> tBucketDocument) {
-                bucketDoc.syncMeta(tBucketDocument);
-                return bucketDoc.content();
-            }
-        });
+        return _bucket.async().upsert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
@@ -130,13 +134,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends RawCouchbaseDocument> Observable<T> asyncReplace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().upsert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
-            @Override
-            public T call(BucketDocument<T> tBucketDocument) {
-                bucketDoc.syncMeta(tBucketDocument);
-                return bucketDoc.content();
-            }
-        });
+        return _bucket.async().upsert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
@@ -153,13 +151,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends RawCouchbaseDocument> Observable<T> asyncDelete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().remove(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
-            @Override
-            public T call(BucketDocument<T> tBucketDocument) {
-                bucketDoc.syncMeta(tBucketDocument);
-                return bucketDoc.content();
-            }
-        });
+        return _bucket.async().remove(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
 
@@ -177,13 +169,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends RawCouchbaseDocument> Observable<T> asyncAppend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().append(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
-            @Override
-            public T call(BucketDocument<T> tBucketDocument) {
-                bucketDoc.syncMeta(tBucketDocument);
-                return bucketDoc.content();
-            }
-        });
+        return _bucket.async().append(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
@@ -200,30 +186,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends RawCouchbaseDocument> Observable<T> asyncPrepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().prepend(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
-            @Override
-            public T call(BucketDocument<T> tBucketDocument) {
-                bucketDoc.syncMeta(tBucketDocument);
-                return bucketDoc.content();
-            }
-        });
+        return _bucket.async().prepend(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
-    public void start(long timeout,TimeUnit unit){_bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders,timeout,unit);}
-    public void start(){
-        _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders);
-    }
-
-    public boolean shutdown(long timeout,TimeUnit unit){
-        return _bucket.close(timeout,unit);
-    }
-    public void shutdown(){
-        _bucket.close();
-    }
 
     @Override
     public Long counter(String key, Long by, Long defaultValue, Integer expiry) throws StorageException{
-        return _bucket.counter(key,by,defaultValue,expiry).content();
+        return asyncCounter(key,by,defaultValue,expiry).toBlocking().singleOrDefault(null);
     }
 
     @Override
@@ -238,7 +207,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Long counter(String key, Long by, Long defaultValue) throws StorageException{
-        return _bucket.counter(key,by,defaultValue).content();
+        return asyncCounter(key,by,defaultValue).toBlocking().singleOrDefault(null);
     }
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue)throws StorageException{
@@ -252,8 +221,9 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Long counter(String key, Long by) throws StorageException{
-        return _bucket.counter(key,by).content();
+        return asyncCounter(key,by).toBlocking().singleOrDefault(null);
     }
+
     @Override
     public Observable<Long> asyncCounter(String key, Long by)throws StorageException{
         return _bucket.async().counter(key,by).map(new Func1<JsonLongDocument, Long>() {
@@ -262,5 +232,17 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
                 return jsonLongDocument.content();
             }
         });
+    }
+
+    public class DocumentResync<T extends RawCouchbaseDocument> implements Func1<BucketDocument<T>, T>{
+        private final BucketDocument<T> _bucketDoc;
+        public DocumentResync(final BucketDocument<T> doc){
+            _bucketDoc = doc;
+        }
+        @Override
+        public T call(BucketDocument<T> tBucketDocument) {
+            _bucketDoc.syncMeta(tBucketDocument);
+            return _bucketDoc.content();
+        }
     }
 }

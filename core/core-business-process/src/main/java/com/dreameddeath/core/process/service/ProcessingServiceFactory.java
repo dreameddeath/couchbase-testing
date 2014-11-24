@@ -1,5 +1,8 @@
 package com.dreameddeath.core.process.service;
 
+import com.dreameddeath.core.annotation.process.JobProcessingForClass;
+import com.dreameddeath.core.annotation.process.TaskProcessingForClass;
+import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.process.JobExecutionException;
 import com.dreameddeath.core.exception.process.ProcessingServiceNotFoundException;
 import com.dreameddeath.core.exception.process.TaskExecutionException;
@@ -19,9 +22,42 @@ public class ProcessingServiceFactory {
             = new ConcurrentHashMap<Class<? extends AbstractTask>, ITaskProcessingService<?>>();
 
 
+    public <T extends AbstractJob> void addJobProcessingServiceFor(Class<T> entityClass, IJobProcessingService<T> service){
+        _jobProcessingServicesMap.put(entityClass, service);
+    }
+
+    public ProcessingServiceFactory addJobProcessingService(Class<? extends IJobProcessingService> serviceClass){
+        JobProcessingForClass ann = serviceClass.getAnnotation(JobProcessingForClass.class);
+        try {
+            addJobProcessingServiceFor(ann.value(), serviceClass.newInstance());
+        }
+        catch(IllegalAccessException|InstantiationException e){
+            throw new RuntimeException("Cannot instantiate class <"+serviceClass.getName()+">",e);
+        }
+
+
+        for(Class innerClass:serviceClass.getClasses()){
+            if(ITaskProcessingService.class.isAssignableFrom(innerClass)){
+                addTaskProcessingService((Class<ITaskProcessingService>)innerClass);
+            }
+        }
+        return this;
+    }
+
     public <T extends AbstractTask> void addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<T> service){
         _taskProcessingServicesMap.put(entityClass, service);
     }
+
+    public void addTaskProcessingService(Class<? extends ITaskProcessingService> serviceClass){
+        TaskProcessingForClass ann = serviceClass.getAnnotation(TaskProcessingForClass.class);
+        try {
+            addTaskProcessingServiceFor(ann.value(), serviceClass.newInstance());
+        }
+        catch(IllegalAccessException|InstantiationException e){
+            throw new RuntimeException("Cannot instantiate class <"+serviceClass.getName()+">",e);
+        }
+    }
+
 
     public <T extends AbstractTask> ITaskProcessingService<T> getTaskProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException {
         ITaskProcessingService<T> result = (ITaskProcessingService<T>) _taskProcessingServicesMap.get(entityClass);
@@ -41,9 +77,6 @@ public class ProcessingServiceFactory {
     }
 
 
-    public <T extends AbstractJob> void addJobProcessingServiceFor(Class<T> entityClass, IJobProcessingService<T> service){
-        _jobProcessingServicesMap.put(entityClass, service);
-    }
 
     public <T extends AbstractJob> IJobProcessingService<T> getJobProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException{
         IJobProcessingService<T> result = (IJobProcessingService<T>) _jobProcessingServicesMap.get(entityClass);

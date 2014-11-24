@@ -1,5 +1,6 @@
 package com.dreameddeath.core.dao.unique;
 
+import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.exception.dao.DaoException;
@@ -13,16 +14,42 @@ import com.dreameddeath.core.model.common.RawCouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.storage.BucketDocument;
+import com.dreameddeath.core.storage.ICouchbaseBucket;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Created by ceaj8230 on 06/08/2014.
  */
+@DaoForClass(CouchbaseUniqueKey.class)
 public class CouchbaseUniqueKeyDao extends BaseCouchbaseDocumentDao<CouchbaseUniqueKey> {
     public static final String UNIQ_FMT_KEY="uniq/%s";
     public static final String UNIQ_KEY_PATTERN="uniq/.*";
     private static final String INTERNAL_KEY_FMT="%s/%s";
     private static final String INTERNAL_KEY_SEPARATOR="/";
+
+    private BaseCouchbaseDocumentDao _refDocumentDao;
+    private String _namespace;
+
+    public String getNameSpace(){return _namespace;}
+    public void setNameSpace(String nameSpace){_namespace=nameSpace;}
+
+
+    public CouchbaseUniqueKeyDao(Builder builder){
+        super();
+        setClient(builder.getClient());
+        setBaseDocumentDao(builder.getBaseDao());
+        setNameSpace(builder.getNameSpace());
+    }
+
+    public void setBaseDocumentDao(BaseCouchbaseDocumentDao dao){_refDocumentDao = dao;}
+    public BaseCouchbaseDocumentDao getBaseDocumentDao(){return _refDocumentDao;}
+
+    @Override
+    public ICouchbaseBucket getClient(){
+        ICouchbaseBucket client = super.getClient();
+        if(client!=null) return client;
+        else return _refDocumentDao.getClient();
+    }
 
     public static class LocalBucketDocument extends BucketDocument<CouchbaseUniqueKey> {
         public LocalBucketDocument(CouchbaseUniqueKey obj){super(obj);}
@@ -143,4 +170,33 @@ public class CouchbaseUniqueKeyDao extends BaseCouchbaseDocumentDao<CouchbaseUni
         return "^"+UNIQ_KEY_PATTERN+"$";
     }
 
+    public static class Builder{
+        private String _namespace;
+        private ICouchbaseBucket _client;
+        private BaseCouchbaseDocumentDao _baseDao;
+
+        public Builder withNameSpace(String key){
+            _namespace = key;
+            return this;
+        }
+
+
+        public Builder withClient(ICouchbaseBucket client){
+            _client = client;
+            return this;
+        }
+
+        public Builder withBaseDao(BaseCouchbaseDocumentDao dao){
+            _baseDao = dao;
+            return this;
+        }
+
+        public String getNameSpace(){return _namespace;}
+        public ICouchbaseBucket getClient(){return _client;}
+        public BaseCouchbaseDocumentDao getBaseDao(){return _baseDao;}
+
+        public CouchbaseUniqueKeyDao build(){
+            return new CouchbaseUniqueKeyDao(this);
+        }
+    }
 }

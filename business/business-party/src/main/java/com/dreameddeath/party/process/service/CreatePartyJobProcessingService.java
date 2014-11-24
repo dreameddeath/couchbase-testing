@@ -1,5 +1,7 @@
 package com.dreameddeath.party.process.service;
 
+import com.dreameddeath.core.annotation.process.JobProcessingForClass;
+import com.dreameddeath.core.annotation.process.TaskProcessingForClass;
 import com.dreameddeath.core.exception.DuplicateTaskException;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.process.JobExecutionException;
@@ -13,10 +15,12 @@ import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.process.model.CreatePartyRequest;
 import com.dreameddeath.party.process.model.CreatePartyJob;
+import com.dreameddeath.party.process.model.CreatePartyJob.CreatePartyTask;
 
 /**
  * Created by ceaj8230 on 23/11/2014.
  */
+@JobProcessingForClass(CreatePartyJob.class)
 public class CreatePartyJobProcessingService implements IJobProcessingService<CreatePartyJob> {
     @Override
     public boolean init(JobContext context, CreatePartyJob job) throws JobExecutionException {
@@ -45,8 +49,9 @@ public class CreatePartyJobProcessingService implements IJobProcessingService<Cr
         return false;
     }
 
-    public static class CreatePartyTaskProcessingService extends DocumentCreateTaskProcessingService<Party,CreatePartyJob.CreatePartyTask>{
 
+    @TaskProcessingForClass(CreatePartyTask.class)
+    public static class CreatePartyTaskProcessingService extends DocumentCreateTaskProcessingService<Party,CreatePartyTask>{
         @Override
         protected Party buildDocument(TaskContext ctxt,CreatePartyJob.CreatePartyTask task) throws DaoException, StorageException {
             Party result;

@@ -39,6 +39,12 @@ public class GenericCouchbaseTranscoder<T extends RawCouchbaseDocument> implemen
         }
     }
 
+    public GenericCouchbaseTranscoder(ITranscoder<T> transcoder, Class<? extends BucketDocument<T>> baseDocumentClazz) {
+        this(transcoder.getBaseClass(),baseDocumentClazz);
+        setTranscoder(transcoder);
+    }
+
+
     public final ITranscoder<T> getTranscoder(){return _transcoder;};
     public final void setTranscoder(ITranscoder<T> transcoder){_transcoder=transcoder;};
 
@@ -50,11 +56,8 @@ public class GenericCouchbaseTranscoder<T extends RawCouchbaseDocument> implemen
         content.getBaseMeta().setExpiry(expiry);
         try {
             return _baseDocumentContructor.newInstance(content);
-        } catch (IllegalAccessException e) {
-            throw new DocumentSetUpException("Error during setup", e);
-        } catch (InstantiationException e) {
-            throw new DocumentSetUpException("Error during setup", e);
-        } catch (InvocationTargetException e) {
+        }
+        catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
             throw new DocumentSetUpException("Error during setup", e);
         }
     }
@@ -63,11 +66,8 @@ public class GenericCouchbaseTranscoder<T extends RawCouchbaseDocument> implemen
     public BucketDocument<T> newDocument(T baseDocument){
         try {
             return _baseDocumentContructor.newInstance(baseDocument);
-        } catch (IllegalAccessException e) {
-            throw new DocumentSetUpException("Error during setup", e);
-        } catch (InstantiationException e) {
-            throw new DocumentSetUpException("Error during setup", e);
-        } catch (InvocationTargetException e) {
+        }
+        catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
             throw new DocumentSetUpException("Error during setup", e);
         }
     }

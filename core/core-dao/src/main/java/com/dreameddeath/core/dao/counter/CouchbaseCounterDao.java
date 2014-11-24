@@ -59,7 +59,7 @@ public class CouchbaseCounterDao {
         long result;
 
         if(isCalcOny){
-                result = _client.counter(key, 0L);
+                result = getClient().counter(key, 0L);
                 if(result<0){
                     result=_defaultValue;
                 }
@@ -68,13 +68,13 @@ public class CouchbaseCounterDao {
         else{
             switch (_mode) {
                 case WITH_DEFAULT:
-                    result = _client.counter(key, by, _defaultValue);
+                    result = getClient().counter(key, by, _defaultValue);
                     break;
                 case WITH_DEFAULT_AND_EXPIRATION:
-                    result = _client.counter(key, by, _defaultValue, _expiration);
+                    result = getClient().counter(key, by, _defaultValue, _expiration);
                     break;
                 default:
-                    result = _client.counter(key, by);
+                    result = getClient().counter(key, by);
             }
         }
         if (_modulus != null) {
@@ -87,7 +87,7 @@ public class CouchbaseCounterDao {
     public long decrCounter(String key, long by,boolean isCalcOny) throws StorageException {
         if(isCalcOny){
             long result;
-            result = _client.counter(key, 0L);
+            result = getClient().counter(key, 0L);
             if(result<0){
                 result=_defaultValue;
             }
@@ -98,11 +98,11 @@ public class CouchbaseCounterDao {
         else {
             switch (_mode) {
                 case WITH_DEFAULT:
-                    return _client.counter(key,-by, _defaultValue);
+                    return getClient().counter(key,-by, _defaultValue);
                 case WITH_DEFAULT_AND_EXPIRATION:
-                    return _client.counter(key, -by, _defaultValue, _expiration);
+                    return getClient().counter(key, -by, _defaultValue, _expiration);
                 default:
-                    return _client.counter(key,-by);
+                    return getClient().counter(key,-by);
             }
         }
     }

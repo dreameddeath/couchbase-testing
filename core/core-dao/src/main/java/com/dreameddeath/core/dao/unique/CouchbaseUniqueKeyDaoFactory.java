@@ -3,6 +3,10 @@ package com.dreameddeath.core.dao.unique;
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.model.HasUniqueKeysRef;
 import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.storage.ICouchbaseTranscoder;
+import com.dreameddeath.core.storage.impl.GenericCouchbaseTranscoder;
+import com.dreameddeath.core.transcoder.ITranscoder;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,7 +17,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CouchbaseUniqueKeyDaoFactory{
     private Map<String, CouchbaseUniqueKeyDao> _daosMap  = new ConcurrentHashMap<String, CouchbaseUniqueKeyDao>();
 
+    private ICouchbaseTranscoder<CouchbaseUniqueKey> _defaultTranscoder;
+
+    public void setDefaultTranscoder(ICouchbaseTranscoder<CouchbaseUniqueKey> trans){_defaultTranscoder=trans;}
+    public void setDefaultTranscoder(ITranscoder<CouchbaseUniqueKey> trans){
+        _defaultTranscoder=new GenericCouchbaseTranscoder<CouchbaseUniqueKey>(CouchbaseUniqueKey.class,CouchbaseUniqueKeyDao.LocalBucketDocument.class);
+    }
+
+
     public void addDaoFor(String nameSpace,CouchbaseUniqueKeyDao dao){
+        if(dao.getTranscoder()==null){
+            dao.setTranscoder(_defaultTranscoder);
+        }
         _daosMap.put(nameSpace,dao);
     }
 

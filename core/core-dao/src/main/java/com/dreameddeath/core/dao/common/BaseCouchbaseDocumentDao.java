@@ -1,6 +1,8 @@
 package com.dreameddeath.core.dao.common;
 
+import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
+import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.InconsistentStateException;
 import com.dreameddeath.core.exception.storage.StorageException;
@@ -19,28 +21,33 @@ import java.util.List;
 /**
  * Created by ceaj8230 on 12/10/2014.
  */
+@DaoForClass(RawCouchbaseDocument.class)
 public abstract class BaseCouchbaseDocumentDao<T extends RawCouchbaseDocument>{
     private ICouchbaseBucket _client;
     private ICouchbaseTranscoder<T> _transcoder;
 
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
+    public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder(){return Collections.emptyList();}
 
 
-    public void setClient(ICouchbaseBucket client){
+    public BaseCouchbaseDocumentDao<T> setClient(ICouchbaseBucket client){
         _client = client;
-        if(_transcoder!=null){
-            _client.addTranscoder(_transcoder);
+        if(getTranscoder()!=null){
+            _client.addTranscoder(getTranscoder());
         }
+        return this;
     }
     public ICouchbaseBucket getClient(){ return _client; }
 
     public ICouchbaseTranscoder<T> getTranscoder(){return _transcoder;}
-    public void setTranscoder(ICouchbaseTranscoder<T> transcoder){
+
+    public BaseCouchbaseDocumentDao<T> setTranscoder(ICouchbaseTranscoder<T> transcoder){
         _transcoder=transcoder;
-        if(_client!=null){
-            _client.addTranscoder(_transcoder);
+        if(getClient()!=null){
+            getClient().addTranscoder(_transcoder);
         }
+        return this;
     }
 
     //public abstract BucketDocument<T> buildBucketDocument(T doc);
