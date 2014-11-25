@@ -1,13 +1,18 @@
 package com.dreameddeath.billing.dao;
 
 import com.dreameddeath.billing.model.cycle.BillingCycle;
+import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDao;
+import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.storage.BucketDocument;
 
+import java.util.Arrays;
+import java.util.List;
 
+@DaoForClass(BillingCycle.class)
 public class BillingCycleDao extends BusinessCouchbaseDocumentDao<BillingCycle> {
     public static final String BA_CYCLE_CNT_KEY="%s/cycle/cnt";
     public static final String BA_CYCLE_FMT_KEY="%s/cycle/%d";
@@ -22,6 +27,14 @@ public class BillingCycleDao extends BusinessCouchbaseDocumentDao<BillingCycle> 
     public Class<? extends BucketDocument<BillingCycle>> getBucketDocumentClass() {
         return LocalBucketDocument.class;
     }
+
+    @Override
+    public List<CouchbaseCounterDao.Builder> getCountersBuilder() {
+        return Arrays.asList(
+                new CouchbaseCounterDao.Builder().withKeyPattern(BA_CYCLE_CNT_PATTERN).withDefaultValue(1L).withBaseDao(this)
+        );
+    }
+
 
     @Override
     public BillingCycle buildKey(ICouchbaseSession session,BillingCycle obj) throws DaoException,StorageException{

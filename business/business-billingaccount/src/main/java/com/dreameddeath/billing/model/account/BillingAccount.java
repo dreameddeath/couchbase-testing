@@ -112,7 +112,7 @@ public class BillingAccount extends BusinessCouchbaseDocument {
 
 
     public List<PartyLink> getPartyLinks() { return Collections.unmodifiableList(_partyLinks); }
-    public void getPartyLinks(List<PartyLink> links) { _partyLinks.clear();_partyLinks.addAll(links);}
+    public void setPartyLinks(List<PartyLink> links) { _partyLinks.clear();_partyLinks.addAll(links);}
     public void addPartyLink(PartyLink link){_partyLinks.add(link);}
 
     // Contributors Accessors

@@ -38,6 +38,9 @@ public class CouchbaseDocumentDaoFactory {
 
     public <T extends CouchbaseDocument> void addDao(CouchbaseDocumentDao<T> dao,ITranscoder<T> transcoder) {
         DaoForClass annotation = dao.getClass().getAnnotation(DaoForClass.class);
+        if(annotation==null){
+            throw new NullPointerException("Annotation DaoForClass not defined for dao <"+dao.getClass().getName()+">");
+        }
         dao.setTranscoder(new GenericCouchbaseTranscoder<T>(transcoder,dao.getBucketDocumentClass()));
         addDaoFor((Class<T>)annotation.value(),dao);
     }

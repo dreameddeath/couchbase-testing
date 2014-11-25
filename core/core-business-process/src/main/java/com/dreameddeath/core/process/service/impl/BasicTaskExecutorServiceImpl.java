@@ -55,7 +55,7 @@ public class BasicTaskExecutorServiceImpl implements ITaskExecutorService<Abstra
                     boolean saveAsked;
                     if(task instanceof SubJobProcessTask){
                         SubJobProcessTask subJobTask = (SubJobProcessTask)task;
-                        AbstractJob job = ctxt.getSession().getFromUID(subJobTask.getUid(), AbstractJob.class);
+                        AbstractJob job = ctxt.getSession().getFromUID(subJobTask.getJobId().toString(), AbstractJob.class);
                         if (!job.isDone()) {
                             ctxt.getExecutorFactory().execute(JobContext.newContext(ctxt.getJobContext()), job);
                         }

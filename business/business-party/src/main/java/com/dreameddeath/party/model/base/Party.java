@@ -33,7 +33,7 @@ public abstract class Party extends BusinessCouchbaseDocument {
     public void setUid(String uid) { _uid.set(uid); }
 
     public List<PartyRole> getPartyRoles() { return Collections.unmodifiableList(_partyRoles); }
-    public void setPartyRoleLinks(Collection<PartyRole> partyRoles){
+    public void setPartyRoles(Collection<PartyRole> partyRoles){
         _partyRoles.clear();
         _partyRoles.addAll(partyRoles);
     }
