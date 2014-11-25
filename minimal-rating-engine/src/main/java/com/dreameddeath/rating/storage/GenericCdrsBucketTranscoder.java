@@ -7,7 +7,7 @@ import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.dreameddeath.core.model.binary.BinaryCouchbaseDocument;
-import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.model.document.BucketDocument;
 import com.dreameddeath.core.storage.GenericTranscoder;
 import com.dreameddeath.rating.model.cdr.GenericCdr;
 import com.dreameddeath.rating.model.cdr.GenericCdrsBucket;

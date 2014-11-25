@@ -6,7 +6,7 @@ import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.dreameddeath.core.exception.storage.DocumentSetUpException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.BucketDocument;
 import com.dreameddeath.core.storage.ICouchbaseTranscoder;
 import com.dreameddeath.core.transcoder.ITranscoder;
@@ -19,7 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Created by ceaj8230 on 12/10/2014.
  */
-public class GenericCouchbaseTranscoder<T extends RawCouchbaseDocument> implements ICouchbaseTranscoder<T> {
+public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements ICouchbaseTranscoder<T> {
     private final static Logger logger = LoggerFactory.getLogger(GenericCouchbaseTranscoder.class);
     private ITranscoder<T> _transcoder;
     private final Class<T> _dummyClass;

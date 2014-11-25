@@ -1,6 +1,6 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParentDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 

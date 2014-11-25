@@ -2,7 +2,7 @@ package com.dreameddeath.party.dao;
 
 import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @DaoForClass(Party.class)
-public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
+public class PartyDao extends BusinessCouchbaseDocumentDaoWithUID<Party> {
     public static final String PARTY_CNT_KEY="party/cnt";
     public static final String PARTY_FMT_KEY="party/%010d";
     public static final String PARTY_FMT_UID="%010d";

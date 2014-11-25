@@ -2,7 +2,7 @@ package com.dreameddeath.core.exception;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.validation.ValidationException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParent;
 
 
@@ -91,9 +91,9 @@ public class ValidationFailedException extends ValidationException {
 
         if(_field==null){
             buf.append(_docElt.getClass().getSimpleName()).append(" ");
-            if(_docElt instanceof RawCouchbaseDocument){
+            if(_docElt instanceof CouchbaseDocument){
                 buf.append("The document [");
-                String key = ((RawCouchbaseDocument) _docElt).getBaseMeta().getKey();
+                String key = ((CouchbaseDocument) _docElt).getBaseMeta().getKey();
                 if(key!=null){ buf.append(key); }
                 else{ buf.append("NEW");}
                 buf.append("] ");

@@ -1,9 +1,8 @@
 package com.dreameddeath.core.dao.counter;
 
 
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
 import com.dreameddeath.core.storage.ICouchbaseBucket;
 
 /**
@@ -11,7 +10,7 @@ import com.dreameddeath.core.storage.ICouchbaseBucket;
  */
 public class CouchbaseCounterDao {
     private ICouchbaseBucket _client;
-    private BaseCouchbaseDocumentDao _baseDao;
+    private CouchbaseDocumentDao _baseDao;
     private String _keyPattern;
     private Long _defaultValue;
     private Long _modulus;
@@ -19,7 +18,7 @@ public class CouchbaseCounterDao {
 
     private CallingMode _mode;
 
-    public void setBaseDao(BaseCouchbaseDocumentDao dao){_baseDao=dao;}
+    public void setBaseDao(CouchbaseDocumentDao dao){_baseDao=dao;}
     public void setClient(ICouchbaseBucket client){_client = client;}
     public ICouchbaseBucket getClient(){
         if(_client!=null) return _client;
@@ -119,7 +118,7 @@ public class CouchbaseCounterDao {
         private Long _expiration=0L;
         private Long _modulus;
         private ICouchbaseBucket _client;
-        private BaseCouchbaseDocumentDao _baseDao;
+        private CouchbaseDocumentDao _baseDao;
 
         public Builder withKeyPattern(String key){
             _keyPattern = key;
@@ -146,7 +145,7 @@ public class CouchbaseCounterDao {
             return this;
         }
 
-        public Builder withBaseDao(BaseCouchbaseDocumentDao dao){
+        public Builder withBaseDao(CouchbaseDocumentDao dao){
             _baseDao = dao;
             return this;
         }
@@ -156,7 +155,7 @@ public class CouchbaseCounterDao {
         public Long getExpiration(){return _expiration;}
         public Long getModulus(){return _modulus;}
         public ICouchbaseBucket getClient(){return _client;}
-        public BaseCouchbaseDocumentDao getBaseDao(){return _baseDao;}
+        public CouchbaseDocumentDao getBaseDao(){return _baseDao;}
 
         public CouchbaseCounterDao build(){
             return new CouchbaseCounterDao(this);

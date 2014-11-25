@@ -1,12 +1,12 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.business.BusinessCouchbaseDocumentLink;
 
-public abstract class SynchronizedLinkProperty<T,TDOC extends RawCouchbaseDocument> extends StandardProperty<T> {
-    CouchbaseDocumentLink<TDOC> _parentLink;
+public abstract class SynchronizedLinkProperty<T,TDOC extends CouchbaseDocument> extends StandardProperty<T> {
+    BusinessCouchbaseDocumentLink<TDOC> _parentLink;
 
-    public SynchronizedLinkProperty(CouchbaseDocumentLink<TDOC> parentLink){
+    public SynchronizedLinkProperty(BusinessCouchbaseDocumentLink<TDOC> parentLink){
         super(parentLink);
         parentLink.addChildSynchronizedProperty(this);
         _parentLink=parentLink;

@@ -1,6 +1,6 @@
 package com.dreameddeath.core.exception.dao;
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 
 /**
  * Created by ceaj8230 on 02/09/2014.

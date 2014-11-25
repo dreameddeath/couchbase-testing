@@ -1,6 +1,6 @@
 package com.dreameddeath.core.exception.storage;
 
-import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
 
 /**
  * Created by ceaj8230 on 13/09/2014.

@@ -1,6 +1,6 @@
 package com.dreameddeath.core.annotation.dao;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.impl.GenericCouchbaseTranscoder;
 
 import java.lang.annotation.ElementType;
@@ -14,6 +14,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DaoForClass {
-    Class<? extends RawCouchbaseDocument> value();
+    Class<? extends CouchbaseDocument> value();
     Class<? extends GenericCouchbaseTranscoder> withTranscoder() default GenericCouchbaseTranscoder.class;
 }

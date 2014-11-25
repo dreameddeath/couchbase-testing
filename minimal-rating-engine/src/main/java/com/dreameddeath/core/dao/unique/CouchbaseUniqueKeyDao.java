@@ -1,12 +1,12 @@
 package com.dreameddeath.core.dao.unique;
 
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
+import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.DocumentNotFoundException;
 import com.dreameddeath.core.exception.storage.DuplicateDocumentKeyException;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.common.BucketDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.BucketDocument;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;

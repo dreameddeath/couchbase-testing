@@ -1,7 +1,7 @@
 package com.dreameddeath.billing.model.order;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;

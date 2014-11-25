@@ -1,7 +1,7 @@
 package com.dreameddeath.core.dao.unique;
 
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

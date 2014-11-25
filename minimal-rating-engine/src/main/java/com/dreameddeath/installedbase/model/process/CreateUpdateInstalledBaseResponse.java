@@ -1,7 +1,7 @@
 package com.dreameddeath.installedbase.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 
 import java.util.ArrayList;
 import java.util.List;

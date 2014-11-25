@@ -1,8 +1,8 @@
 package com.dreameddeath.core.dao.archive;
 
 import com.couchbase.client.java.transcoder.Transcoder;
-import com.dreameddeath.core.model.common.BucketDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.BucketDocument;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 
 /**

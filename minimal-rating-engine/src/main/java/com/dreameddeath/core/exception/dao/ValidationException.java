@@ -1,8 +1,8 @@
 package com.dreameddeath.core.exception.dao;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;

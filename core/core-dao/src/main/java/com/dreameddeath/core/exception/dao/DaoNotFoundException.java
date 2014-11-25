@@ -1,6 +1,6 @@
 package com.dreameddeath.core.exception.dao;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
  * Created by ceaj8230 on 02/09/2014.
@@ -10,7 +10,7 @@ public class DaoNotFoundException extends DaoException {
         super("The dao for doc Class "+docClass.getName()+" hasn't been found");
     }
 
-    public DaoNotFoundException(RawCouchbaseDocument doc){
+    public DaoNotFoundException(CouchbaseDocument doc){
         this(doc.getClass());
     }
 

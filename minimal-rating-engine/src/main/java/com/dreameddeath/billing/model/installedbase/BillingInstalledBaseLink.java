@@ -1,6 +1,6 @@
 package com.dreameddeath.billing.model.installedbase;
 
-import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
+import com.dreameddeath.core.model.business.CouchbaseDocumentLink;
 
 /**
  * Created by ceaj8230 on 13/08/2014.

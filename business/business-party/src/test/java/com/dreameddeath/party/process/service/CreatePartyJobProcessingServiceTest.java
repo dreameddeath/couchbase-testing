@@ -1,13 +1,6 @@
 package com.dreameddeath.party.process.service;
 
-import com.couchbase.client.java.CouchbaseCluster;
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.process.JobDao;
-import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
-import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.process.service.ExecutorServiceFactory;
@@ -15,10 +8,7 @@ import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.storage.ICouchbaseBucket;
 import com.dreameddeath.core.storage.impl.CouchbaseBucketSimulator;
-import com.dreameddeath.core.storage.impl.CouchbaseBucketWrapper;
-import com.dreameddeath.core.storage.impl.GenericCouchbaseTranscoder;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.base.Party;
@@ -35,9 +25,9 @@ public class CreatePartyJobProcessingServiceTest {
         CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
 
         _sessionFactory = (new CouchbaseSessionFactory.Builder()).build();
-        _sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<CouchbaseUniqueKey>(CouchbaseUniqueKey.class));
-        _sessionFactory.getDocumentDaoFactory().addDao(new PartyDao().setClient(client), new GenericJacksonTranscoder<Party>(Party.class));
-        _sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(client),new GenericJacksonTranscoder<AbstractJob>(AbstractJob.class));
+        _sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+        _sessionFactory.getDocumentDaoFactory().addDao(new PartyDao().setClient(client), new GenericJacksonTranscoder<>(Party.class));
+        _sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(client),new GenericJacksonTranscoder<>(AbstractJob.class));
 
         client.start();
     }

@@ -1,7 +1,7 @@
 package com.dreameddeath.core.model.property;
 
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
  * Created by ceaj8230 on 07/09/2014.
@@ -22,10 +22,10 @@ public interface HasParent {
             return null;
         }
 
-        public static RawCouchbaseDocument getParentDocument(HasParent src){
+        public static CouchbaseDocument getParentDocument(HasParent src){
             if (src != null) {
-                if (src instanceof RawCouchbaseDocument) {
-                    return (RawCouchbaseDocument) (src);
+                if (src instanceof CouchbaseDocument) {
+                    return (CouchbaseDocument) (src);
                 } else {
                     return getParentDocument(src.getParentElement());
                 }
@@ -34,7 +34,7 @@ public interface HasParent {
         }
 
         public static void dirtyParentDocument(HasParent src){
-            RawCouchbaseDocument doc = getParentDocument(src);
+            CouchbaseDocument doc = getParentDocument(src);
             if(doc!=null){
                 doc.getBaseMeta().setStateDirty();
             }

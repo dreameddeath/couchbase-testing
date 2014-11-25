@@ -9,8 +9,8 @@ import com.dreameddeath.core.exception.process.JobExecutionException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.process.common.SubJobProcessTask;
-import com.dreameddeath.core.process.document.DocumentCreateTask;
-import com.dreameddeath.core.process.document.DocumentUpdateTask;
+import com.dreameddeath.core.process.business.DocumentCreateTask;
+import com.dreameddeath.core.process.business.DocumentUpdateTask;
 import com.dreameddeath.party.model.base.Party;
 
 /**

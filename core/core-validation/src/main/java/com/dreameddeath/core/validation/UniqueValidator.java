@@ -3,7 +3,7 @@ package com.dreameddeath.core.validation;
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.exception.ValidationFailedException;
 import com.dreameddeath.core.exception.validation.ValidationException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.annotation.Unique;
 import com.dreameddeath.core.model.property.HasParent;
 
@@ -24,7 +24,7 @@ public class UniqueValidator<T> implements Validator<T> {
     public void validate(ValidatorContext ctxt,T value) throws ValidationException{
         if(value!=null){
             try {
-                ctxt.getSession().addOrUpdateUniqueKey(HasParent.Helper.getParentDocument((RawCouchbaseDocument)ctxt.head()), value, _annotation.nameSpace());
+                ctxt.getSession().addOrUpdateUniqueKey(HasParent.Helper.getParentDocument((CouchbaseDocument)ctxt.head()), value, _annotation.nameSpace());
             }
             catch(DuplicateUniqueKeyException e){
                 throw new ValidationFailedException(ctxt.head(),_field,"Duplicate Exception for value" ,e);

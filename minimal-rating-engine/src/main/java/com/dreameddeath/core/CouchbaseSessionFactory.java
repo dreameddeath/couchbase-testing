@@ -1,6 +1,6 @@
 package com.dreameddeath.core;
 
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.date.DateTimeServiceFactory;

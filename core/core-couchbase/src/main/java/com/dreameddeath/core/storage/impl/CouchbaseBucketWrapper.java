@@ -9,7 +9,7 @@ import com.couchbase.client.java.document.JsonLongDocument;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import com.couchbase.client.java.transcoder.Transcoder;
 import com.dreameddeath.core.exception.storage.*;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.BucketDocument;
 import com.dreameddeath.core.storage.ICouchbaseBucket;
 import com.dreameddeath.core.storage.ICouchbaseTranscoder;
@@ -64,7 +64,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T get(final String key,final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T get(final String key,final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncGet(key,transcoder).toBlocking().singleOrDefault(null);
             if(result==null){ throw new DocumentNotFoundException(key,"Cannot find document using key <"+key+">");}
@@ -76,7 +76,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncGet(final String id,final ICouchbaseTranscoder<T> transcoder){
+    public <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,final ICouchbaseTranscoder<T> transcoder){
         return _bucket.async().get(id,transcoder.documentType()).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
@@ -86,7 +86,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T add(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T add(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncAdd(doc,transcoder).toBlocking().singleOrDefault(null);
             if(result==null){ throw new DuplicateDocumentKeyException(doc);}
@@ -98,13 +98,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncAdd(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return _bucket.async().insert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T set(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T set(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncSet(doc,transcoder).toBlocking().singleOrDefault(null);
             if(result==null){ throw new DocumentStorageException(doc,"Cannot apply set method to the document");}
@@ -115,13 +115,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncSet(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return _bucket.async().upsert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T replace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T replace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncReplace(doc,transcoder).toBlocking().singleOrDefault(null);
             if(result==null){ throw new DocumentNotFoundException(doc,"Cannot apply replace method");}
@@ -132,13 +132,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncReplace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return _bucket.async().upsert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T delete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T delete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncDelete(doc,transcoder).toBlocking().singleOrDefault(null);
             if(result==null){ throw new DocumentNotFoundException(doc,"Cannot apply replace method");}
@@ -149,14 +149,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncDelete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return _bucket.async().remove(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
 
     @Override
-    public <T extends RawCouchbaseDocument> T append(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T append(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncAppend(doc,transcoder).toBlocking().singleOrDefault(null);
             if(result==null){ throw new DocumentNotFoundException(doc,"Cannot apply replace method");}
@@ -167,13 +167,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncAppend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return _bucket.async().append(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T prepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T prepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncAppend(doc,transcoder).toBlocking().singleOrDefault(null);
             if(result==null){ throw new DocumentNotFoundException(doc,"Cannot apply replace method");}
@@ -184,7 +184,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncPrepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return _bucket.async().prepend(bucketDoc).map(new DocumentResync<T>(bucketDoc));
     }
@@ -234,7 +234,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         });
     }
 
-    public class DocumentResync<T extends RawCouchbaseDocument> implements Func1<BucketDocument<T>, T>{
+    public class DocumentResync<T extends CouchbaseDocument> implements Func1<BucketDocument<T>, T>{
         private final BucketDocument<T> _bucketDoc;
         public DocumentResync(final BucketDocument<T> doc){
             _bucketDoc = doc;

@@ -8,8 +8,8 @@ import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import com.couchbase.client.java.transcoder.Transcoder;
 import com.dreameddeath.core.exception.storage.*;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
+import com.dreameddeath.core.model.document.BucketDocument;
 import rx.Observable;
 import rx.functions.Func1;
 

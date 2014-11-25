@@ -2,7 +2,7 @@ package com.dreameddeath.core.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
-import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
-public class CouchbaseDocumentAttachedTaskRef extends RawCouchbaseDocumentElement {
+public class CouchbaseDocumentAttachedTaskRef extends CouchbaseDocumentElement {
 
     @DocumentProperty("jobKey") @NotNull
     private Property<String> _jobKey = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);

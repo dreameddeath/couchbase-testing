@@ -2,7 +2,7 @@ package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.exception.dao.ValidationException;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 
 import java.lang.reflect.Field;
 

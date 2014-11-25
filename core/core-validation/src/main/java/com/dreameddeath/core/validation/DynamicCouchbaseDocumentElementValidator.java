@@ -1,7 +1,7 @@
 package com.dreameddeath.core.validation;
 
 import com.dreameddeath.core.exception.validation.ValidationException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 
 import java.lang.reflect.Field;
 
@@ -18,9 +18,9 @@ public class DynamicCouchbaseDocumentElementValidator implements Validator<Objec
     }
 
     public void validate(ValidatorContext ctxt,Object elt) throws ValidationException{
-        if(elt instanceof RawCouchbaseDocumentElement){
-            Validator<RawCouchbaseDocumentElement> validator = _factory.getValidator((RawCouchbaseDocumentElement)elt);
-            validator.validate(ctxt,(RawCouchbaseDocumentElement)elt);
+        if(elt instanceof CouchbaseDocumentElement){
+            Validator<CouchbaseDocumentElement> validator = _factory.getValidator((CouchbaseDocumentElement)elt);
+            validator.validate(ctxt,(CouchbaseDocumentElement)elt);
         }
     }
     /*public void validate(Object elt,RawCouchbaseDocumentElement parent) throws ValidationFailedException {

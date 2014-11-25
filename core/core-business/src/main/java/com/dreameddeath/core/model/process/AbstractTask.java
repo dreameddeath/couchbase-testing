@@ -2,8 +2,8 @@ package com.dreameddeath.core.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
-import com.dreameddeath.core.exception.DuplicateTaskException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
+import com.dreameddeath.core.exception.model.DuplicateTaskException;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.List;
 
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
-public abstract class AbstractTask extends RawCouchbaseDocumentElement {
+public abstract class AbstractTask extends CouchbaseDocumentElement {
     @DocumentProperty("uid") @NotNull
     private Property<String> _uid=new ImmutableProperty<String>(AbstractTask.this);
     @DocumentProperty("label")

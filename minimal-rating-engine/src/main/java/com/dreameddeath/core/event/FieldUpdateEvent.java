@@ -1,7 +1,7 @@
 package com.dreameddeath.core.event;
 
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 
 public class FieldUpdateEvent{
     private CouchbaseDocument _rootDoc;

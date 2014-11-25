@@ -1,6 +1,6 @@
 package com.dreameddeath.core.model.property;
 
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 
 /**
  * Created by ceaj8230 on 07/09/2014.

@@ -3,8 +3,8 @@ package com.dreameddeath.core.validation;
 import com.dreameddeath.core.annotation.*;
 import com.dreameddeath.core.exception.ValidationFailedException;
 import com.dreameddeath.core.exception.validation.ValidationException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.Property;
 
@@ -171,12 +171,12 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
             else if(
                     (member.getAnnotation(DocumentProperty.class)!=null) &&
                     (
-                        (RawCouchbaseDocument.class.isAssignableFrom(member.getType()))||
+                        (CouchbaseDocument.class.isAssignableFrom(member.getType()))||
                         (
                             Property.class.isAssignableFrom(member.getType()) &&
                             (
                                 (((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0] instanceof TypeVariable) ||
-                                RawCouchbaseDocumentElement.class.isAssignableFrom((Class<?>)((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0])
+                                CouchbaseDocumentElement.class.isAssignableFrom((Class<?>)((ParameterizedType)member.getGenericType()).getActualTypeArguments()[0])
                             )
                         )
                     )

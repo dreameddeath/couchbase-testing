@@ -1,6 +1,6 @@
 package com.dreameddeath.party.model.base;
 
-import com.dreameddeath.core.model.document.CouchbaseDocumentLink;
+import com.dreameddeath.core.model.business.CouchbaseDocumentLink;
 
 /**
  * Created by Christophe Jeunesse on 27/07/2014.

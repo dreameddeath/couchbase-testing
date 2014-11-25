@@ -1,7 +1,7 @@
 package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.CouchbaseSession;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
 import org.joda.time.DateTime;
 
 /**

@@ -3,7 +3,7 @@ package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.exception.transcoder.DocumentDecodingException;
 import com.dreameddeath.core.exception.transcoder.DocumentEncodingException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.transcoder.ITranscoder;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 
-public class GenericJacksonTranscoder<T extends RawCouchbaseDocument> implements ITranscoder<T> {
+public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements ITranscoder<T> {
     private final static Logger logger = LoggerFactory.getLogger(GenericJacksonTranscoder.class);
 
     private static final ObjectMapper _mapper;

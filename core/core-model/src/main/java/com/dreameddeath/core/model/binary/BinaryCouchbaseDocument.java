@@ -1,11 +1,11 @@
 package com.dreameddeath.core.model.binary;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
  * Created by ceaj8230 on 12/10/2014.
  */
-public class BinaryCouchbaseDocument extends RawCouchbaseDocument {
+public class BinaryCouchbaseDocument extends CouchbaseDocument {
     public BinaryCouchbaseDocument(){
         super(null);
         setBaseMeta(BinaryCouchbaseDocument.this.new BinaryMetaInfo());

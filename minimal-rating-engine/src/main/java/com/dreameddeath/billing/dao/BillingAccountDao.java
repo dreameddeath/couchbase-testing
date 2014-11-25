@@ -1,12 +1,12 @@
 package com.dreameddeath.billing.dao;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.business.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.model.document.BucketDocument;
 import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import com.dreameddeath.core.storage.GenericTranscoder;

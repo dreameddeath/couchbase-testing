@@ -1,7 +1,7 @@
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
-import com.dreameddeath.core.model.common.RawCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParent;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,11 +16,11 @@ public class ValidatorFactory {
     public <T extends HasParent> Validator<T> getValidator(Class<T> clazz){
         Validator<T> validator = (Validator<T>)_cache.get(clazz);
         if(validator==null){
-            if(RawCouchbaseDocument.class.isAssignableFrom(clazz)){
+            if(CouchbaseDocument.class.isAssignableFrom(clazz)){
                 validator = (Validator<T>)new RawCouchbaseDocumentValidator(clazz,this);
                 _cache.put(clazz,validator);
             }
-            else if(RawCouchbaseDocumentElement.class.isAssignableFrom(clazz)){
+            else if(CouchbaseDocumentElement.class.isAssignableFrom(clazz)){
                 validator = (Validator<T>)new CouchbaseDocumentElementValidator(clazz,this);
                 _cache.put(clazz,validator);
             }
@@ -28,7 +28,7 @@ public class ValidatorFactory {
         return validator;
     }
 
-    public <T extends RawCouchbaseDocumentElement> Validator<T> getValidator(T elt){
+    public <T extends CouchbaseDocumentElement> Validator<T> getValidator(T elt){
         return getValidator((Class<T>)elt.getClass());
     }
 

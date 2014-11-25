@@ -1,12 +1,12 @@
 package com.dreameddeath.core.storage;
 
 import com.couchbase.client.java.document.Document;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
  * Created by ceaj8230 on 10/10/2014.
  */
-public abstract class BucketDocument<T extends RawCouchbaseDocument> implements Document<T> {
+public abstract class BucketDocument<T extends CouchbaseDocument> implements Document<T> {
     final private T _doc;
 
     public BucketDocument(T doc){ _doc = doc;}

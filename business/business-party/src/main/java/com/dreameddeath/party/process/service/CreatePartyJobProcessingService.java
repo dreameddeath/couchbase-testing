@@ -2,11 +2,12 @@ package com.dreameddeath.party.process.service;
 
 import com.dreameddeath.core.annotation.process.JobProcessingForClass;
 import com.dreameddeath.core.annotation.process.TaskProcessingForClass;
-import com.dreameddeath.core.exception.DuplicateTaskException;
+import com.dreameddeath.core.exception.model.DuplicateTaskException;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.process.JobExecutionException;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.process.document.service.DocumentCreateTaskProcessingService;
+import com.dreameddeath.core.process.business.service.DocumentCreateTaskProcessingService;
+import com.dreameddeath.core.process.business.service.StandardJobProcessingService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.TaskContext;
@@ -21,7 +22,7 @@ import com.dreameddeath.party.process.model.CreatePartyJob.CreatePartyTask;
  * Created by ceaj8230 on 23/11/2014.
  */
 @JobProcessingForClass(CreatePartyJob.class)
-public class CreatePartyJobProcessingService implements IJobProcessingService<CreatePartyJob> {
+public class CreatePartyJobProcessingService extends StandardJobProcessingService<CreatePartyJob> {
     @Override
     public boolean init(JobContext context, CreatePartyJob job) throws JobExecutionException {
         try {
@@ -33,22 +34,6 @@ public class CreatePartyJobProcessingService implements IJobProcessingService<Cr
 
         return false;
     }
-
-    @Override
-    public boolean preprocess(JobContext context, CreatePartyJob job) throws JobExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean postprocess(JobContext context, CreatePartyJob job) throws JobExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean cleanup(JobContext context, CreatePartyJob job) throws JobExecutionException {
-        return false;
-    }
-
 
     @TaskProcessingForClass(CreatePartyTask.class)
     public static class CreatePartyTaskProcessingService extends DocumentCreateTaskProcessingService<Party,CreatePartyTask>{

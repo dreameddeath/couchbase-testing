@@ -1,7 +1,7 @@
 package com.dreameddeath.party.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.

@@ -2,7 +2,7 @@ package com.dreameddeath.party.process.model;
 
 import com.dreameddeath.core.model.process.EmptyJobResult;
 import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.process.document.model.DocumentCreateTask;
+import com.dreameddeath.core.process.business.model.DocumentCreateTask;
 import com.dreameddeath.party.model.base.Party;
 
 /**

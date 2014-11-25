@@ -1,6 +1,6 @@
 package com.dreameddeath.core.session.impl;
 
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
@@ -12,13 +12,13 @@ import com.dreameddeath.core.validation.ValidatorFactory;
  * Created by ceaj8230 on 02/09/2014.
  */
 public class CouchbaseSessionFactory {
-    private final BaseCouchbaseDocumentDaoFactory _documentDaoFactory;
+    private final CouchbaseDocumentDaoFactory _documentDaoFactory;
     private final CouchbaseCounterDaoFactory _counterDaoFactory;
     private final CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory;
     private final DateTimeServiceFactory _dateTimeServiceFactory;
     private final ValidatorFactory _validatorFactory;
 
-    public CouchbaseSessionFactory(BaseCouchbaseDocumentDaoFactory docDaoFactory, CouchbaseCounterDaoFactory counterDaoFactory, CouchbaseUniqueKeyDaoFactory uniqueDaoFactory, DateTimeServiceFactory dateTimeServiceFactory,ValidatorFactory validatorFactory){
+    public CouchbaseSessionFactory(CouchbaseDocumentDaoFactory docDaoFactory, CouchbaseCounterDaoFactory counterDaoFactory, CouchbaseUniqueKeyDaoFactory uniqueDaoFactory, DateTimeServiceFactory dateTimeServiceFactory,ValidatorFactory validatorFactory){
         _documentDaoFactory =  docDaoFactory;
         _counterDaoFactory = counterDaoFactory;
         _uniqueKeyDaoFactory = uniqueDaoFactory;
@@ -34,7 +34,7 @@ public class CouchbaseSessionFactory {
         _validatorFactory = builder.getValidatorFactory();
     }
 
-    public BaseCouchbaseDocumentDaoFactory getDocumentDaoFactory(){ return _documentDaoFactory;}
+    public CouchbaseDocumentDaoFactory getDocumentDaoFactory(){ return _documentDaoFactory;}
     public CouchbaseCounterDaoFactory getCounterDaoFactory(){ return _counterDaoFactory;}
     public CouchbaseUniqueKeyDaoFactory getUniqueKeyDaoFactory(){ return _uniqueKeyDaoFactory;}
     public DateTimeServiceFactory getDateTimeServiceFactory(){ return _dateTimeServiceFactory;}
@@ -50,14 +50,14 @@ public class CouchbaseSessionFactory {
 
 
     public static class Builder{
-        private BaseCouchbaseDocumentDaoFactory _documentDaoFactory;
+        private CouchbaseDocumentDaoFactory _documentDaoFactory;
         private CouchbaseCounterDaoFactory _counterDaoFactory;
         private CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory;
         private DateTimeServiceFactory _dateTimeServiceFactory;
         private ValidatorFactory _validatorFactory;
 
         public Builder(){
-            _documentDaoFactory = new BaseCouchbaseDocumentDaoFactory();
+            _documentDaoFactory = new CouchbaseDocumentDaoFactory();
             _counterDaoFactory = new CouchbaseCounterDaoFactory();
             _documentDaoFactory.setCounterDaoFactory(_counterDaoFactory);
             _uniqueKeyDaoFactory = new CouchbaseUniqueKeyDaoFactory();
@@ -66,13 +66,13 @@ public class CouchbaseSessionFactory {
             _validatorFactory = new ValidatorFactory();
         }
 
-        public BaseCouchbaseDocumentDaoFactory getDocumentDaoFactory(){ return _documentDaoFactory;}
+        public CouchbaseDocumentDaoFactory getDocumentDaoFactory(){ return _documentDaoFactory;}
         public CouchbaseCounterDaoFactory getCounterDaoFactory(){ return _counterDaoFactory;}
         public CouchbaseUniqueKeyDaoFactory getUniqueKeyDaoFactory(){ return _uniqueKeyDaoFactory;}
         public DateTimeServiceFactory getDateTimeServiceFactory(){ return _dateTimeServiceFactory;}
         public ValidatorFactory getValidatorFactory(){ return _validatorFactory;}
 
-        public Builder setDocumentDaoFactory(BaseCouchbaseDocumentDaoFactory docDaoFactory){ _documentDaoFactory=docDaoFactory;return this;}
+        public Builder setDocumentDaoFactory(CouchbaseDocumentDaoFactory docDaoFactory){ _documentDaoFactory=docDaoFactory;return this;}
         public Builder setCounterDaoFactory(CouchbaseCounterDaoFactory daoFactory){  _counterDaoFactory=daoFactory;return this;}
         public Builder setUniqueKeyDaoFactory(CouchbaseUniqueKeyDaoFactory daoFactory){ _uniqueKeyDaoFactory=daoFactory;return this;}
         public Builder setDateTimeServiceFactory(DateTimeServiceFactory serviceFactory){ _dateTimeServiceFactory=serviceFactory;return this;}

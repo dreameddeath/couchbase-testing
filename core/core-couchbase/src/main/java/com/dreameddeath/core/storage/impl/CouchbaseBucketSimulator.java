@@ -3,33 +3,19 @@ package com.dreameddeath.core.storage.impl;
 import com.couchbase.client.core.lang.Tuple2;
 import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
-import com.couchbase.client.deps.io.netty.buffer.ByteBufAllocator;
-import com.couchbase.client.deps.io.netty.buffer.ByteBufProcessor;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.couchbase.client.java.document.Document;
-import com.couchbase.client.java.document.JsonLongDocument;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import com.dreameddeath.core.exception.storage.DocumentAccessException;
 import com.dreameddeath.core.exception.storage.DocumentNotFoundException;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.BucketDocument;
 import com.dreameddeath.core.storage.ICouchbaseBucket;
 import com.dreameddeath.core.storage.ICouchbaseTranscoder;
 import com.dreameddeath.core.storage.impl.simulator.DocumentSimulator;
-import com.google.common.cache.AbstractCache;
 import rx.Observable;
-import com.google.common.cache.Cache;
 
-import javax.print.Doc;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.GatheringByteChannel;
-import java.nio.channels.ScatteringByteChannel;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -115,7 +101,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         REPLACE
     }
 
-    public <T extends RawCouchbaseDocument> Document<T> addOrReplaceCache(T doc,Class docType,ImpactMode mode,int expiry) throws StorageException{
+    public <T extends CouchbaseDocument> Document<T> addOrReplaceCache(T doc,Class docType,ImpactMode mode,int expiry) throws StorageException{
         ICouchbaseTranscoder transcoder = _transcoderMap.get(docType);
         DocumentSimulator foundDoc = _dbContent.get(doc.getBaseMeta().getKey());
         if((foundDoc==null) && mode.equals(ImpactMode.REPLACE)){
@@ -145,7 +131,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder) {
+    public <T extends CouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder) {
         try{
             return Observable.just((T)(getFromCache(id,transcoder.documentType()).content()));
         }
@@ -156,7 +142,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncAdd(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         try{
             final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
             return (Observable.just((BucketDocument<T>) addOrReplaceCache(doc,transcoder.documentType(), ImpactMode.ADD,0)).map(new DocumentResync(bucketDoc)));
@@ -168,7 +154,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncSet(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         try{
             final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
             return (Observable<T>)(Observable.just((BucketDocument<T>) addOrReplaceCache(doc,transcoder.documentType(), ImpactMode.UPDATE,0)).map(new DocumentResync(bucketDoc)));
@@ -180,7 +166,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncReplace(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         try{
             final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
             return (Observable<T>)(Observable.just((BucketDocument<T>)addOrReplaceCache(doc,transcoder.documentType(), ImpactMode.REPLACE,0)).map(new DocumentResync(bucketDoc)));
@@ -192,20 +178,20 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncDelete(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
 
         return null;
     }
 
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncAppend(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         return null;
     }
 
 
     @Override
-    public <T extends RawCouchbaseDocument> Observable<T> asyncPrepend(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         return null;
     }
 

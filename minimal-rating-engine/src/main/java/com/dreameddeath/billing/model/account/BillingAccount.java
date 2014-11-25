@@ -5,7 +5,7 @@ import com.dreameddeath.billing.model.installedbase.BillingInstalledBaseLink;
 import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;

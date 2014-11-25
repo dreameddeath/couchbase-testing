@@ -1,6 +1,6 @@
 package com.dreameddeath.core.model;
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import junit.framework.TestCase;
 

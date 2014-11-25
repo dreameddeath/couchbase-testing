@@ -2,7 +2,7 @@ package com.dreameddeath.core.dao.process;
 
 
 import com.dreameddeath.core.annotation.dao.DaoForClass;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.model.process.AbstractJob;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.storage.BucketDocument;
@@ -11,7 +11,7 @@ import com.dreameddeath.core.storage.BucketDocument;
  * Created by Christophe Jeunesse on 01/08/2014.
  */
 @DaoForClass(AbstractJob.class)
-public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
+public class JobDao extends BusinessCouchbaseDocumentDaoWithUID<AbstractJob> {
     public static final String JOB_FMT_KEY="job/%s";
     public static final String JOB_KEY_PATTERN="job/[^/]*";
 

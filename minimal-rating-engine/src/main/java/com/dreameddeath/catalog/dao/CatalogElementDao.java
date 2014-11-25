@@ -2,9 +2,9 @@ package com.dreameddeath.catalog.dao;
 
 import com.dreameddeath.catalog.model.CatalogElement;
 import com.dreameddeath.catalog.model.CatalogItemVersion;
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.business.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 

@@ -3,8 +3,8 @@ package com.dreameddeath.core.dao.validation;
 import com.dreameddeath.core.annotation.Unique;
 import com.dreameddeath.core.exception.dao.ValidationException;
 import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyException;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.business.CouchbaseDocument;
 
 import java.lang.reflect.Field;
 

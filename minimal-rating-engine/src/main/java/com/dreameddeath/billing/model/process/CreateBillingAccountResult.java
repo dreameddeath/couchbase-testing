@@ -2,7 +2,7 @@ package com.dreameddeath.billing.model.process;
 
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 import com.dreameddeath.party.model.base.PartyLink;
 
 /**

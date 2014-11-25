@@ -1,6 +1,6 @@
 package com.dreameddeath.core.dao.validation;
 
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 
 import java.util.concurrent.ConcurrentHashMap;
 

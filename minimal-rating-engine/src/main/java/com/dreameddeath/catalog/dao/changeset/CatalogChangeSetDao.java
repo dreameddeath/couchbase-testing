@@ -2,8 +2,8 @@ package com.dreameddeath.catalog.dao.changeset;
 
 import com.dreameddeath.catalog.dao.CatalogElementDao;
 import com.dreameddeath.catalog.model.changeset.CatalogChangeSet;
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.model.document.BucketDocument;
 import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;
 import com.dreameddeath.core.storage.GenericTranscoder;

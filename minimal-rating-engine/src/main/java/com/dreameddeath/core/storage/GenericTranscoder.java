@@ -2,8 +2,8 @@ package com.dreameddeath.core.storage;
 
 import com.couchbase.client.java.transcoder.Transcoder;
 import com.dreameddeath.core.exception.storage.DocumentSetUpException;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocument;
-import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
+import com.dreameddeath.core.model.document.BucketDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

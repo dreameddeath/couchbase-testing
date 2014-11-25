@@ -1,6 +1,6 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -9,7 +9,7 @@ public class AbstractPropertyTest {
 
     @Test
     public void testGetRawValue() throws Exception {
-        RawCouchbaseDocument doc=new RawCouchbaseDocument(){};
+        CouchbaseDocument doc=new CouchbaseDocument(){};
         doc.getBaseMeta().setStateSync();
         AbstractProperty<String> test = new AbstractProperty<String>(doc);
         AbstractProperty<String> test_with_default = new AbstractProperty<String>(doc,"test");
@@ -17,37 +17,37 @@ public class AbstractPropertyTest {
         //Assert
         assertNull(test.getRawValue());
         assertNull(test_with_default.getRawValue());
-        assertEquals(RawCouchbaseDocument.DocumentState.SYNC,doc.getBaseMeta().getState());
+        assertEquals(CouchbaseDocument.DocumentState.SYNC,doc.getBaseMeta().getState());
     }
 
     @Test
     public void testGet() throws Exception {
-        RawCouchbaseDocument doc=new RawCouchbaseDocument(){};
+        CouchbaseDocument doc=new CouchbaseDocument(){};
         doc.getBaseMeta().setStateSync();
         AbstractProperty<String> test = new AbstractProperty<String>(doc);
         AbstractProperty<String> test_with_default = new AbstractProperty<String>(doc,"test");
 
         //Test get with default value
         assertNull(test.get());
-        assertEquals(RawCouchbaseDocument.DocumentState.SYNC, doc.getBaseMeta().getState());
+        assertEquals(CouchbaseDocument.DocumentState.SYNC, doc.getBaseMeta().getState());
         assertEquals("test", test_with_default.get());
-        assertEquals(RawCouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
     }
 
     @Test
     public void testSet() throws Exception {
-        RawCouchbaseDocument doc=new RawCouchbaseDocument(){};
+        CouchbaseDocument doc=new CouchbaseDocument(){};
         doc.getBaseMeta().setStateSync();
         AbstractProperty<String> test = new AbstractProperty<String>(doc);
 
         test.set("test");
         assertEquals("test",test.get());
-        assertEquals(RawCouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
     }
 
     @Test
     public void testEquals() throws Exception {
-        RawCouchbaseDocument doc=new RawCouchbaseDocument(){};
+        CouchbaseDocument doc=new CouchbaseDocument(){};
         doc.getBaseMeta().setStateSync();
         AbstractProperty<String> test = new AbstractProperty<String>(doc);
         test.set("test");

@@ -1,7 +1,7 @@
 package com.dreameddeath.billing.model.process;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 
 /**
  * Created by ceaj8230 on 13/08/2014.

@@ -13,7 +13,12 @@
   <name>business</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
+
+        <module>business-common-model</module>
         <module>business-party</module>
+        <module>business-billingaccount</module>
+        <module>business-installedbase</module>
+        <module>business-installedbase-billing</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

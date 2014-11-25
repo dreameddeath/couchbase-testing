@@ -1,7 +1,7 @@
 package com.dreameddeath.rating.model.cdr;
 
 
-import com.dreameddeath.core.model.common.BaseCouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.storage.BinarySerializer;
 
 import java.util.ArrayList;

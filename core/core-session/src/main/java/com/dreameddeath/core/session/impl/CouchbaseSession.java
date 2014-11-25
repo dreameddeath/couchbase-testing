@@ -1,10 +1,10 @@
 package com.dreameddeath.core.session.impl;
 
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDao;
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.date.DateTimeService;
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
@@ -12,7 +12,7 @@ import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ReadOnlyException;
 import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.user.User;
@@ -31,8 +31,8 @@ public class CouchbaseSession implements ICouchbaseSession {
     final private DateTimeService _dateTimeService;
     final private User _user;
 
-    private Set<RawCouchbaseDocument> _objectCache = new HashSet<RawCouchbaseDocument>();
-    private Map<String,RawCouchbaseDocument> _sessionCache = new HashMap<String,RawCouchbaseDocument>();
+    private Set<CouchbaseDocument> _objectCache = new HashSet<CouchbaseDocument>();
+    private Map<String,CouchbaseDocument> _sessionCache = new HashMap<String,CouchbaseDocument>();
     private Map<String,CouchbaseUniqueKey> _keyCache = new HashMap<String,CouchbaseUniqueKey>();
     private Map<String,Long> _counters = new HashMap<String, Long>();
 
@@ -47,7 +47,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         _user = user;
     }
 
-    protected BaseCouchbaseDocumentDaoFactory getDocumentFactory(){
+    protected CouchbaseDocumentDaoFactory getDocumentFactory(){
         return _sessionFactory.getDocumentDaoFactory();
     }
 
@@ -66,7 +66,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     public boolean isReadOnly(){
         return _sessionType== SessionType.READ_ONLY;
     }
-    protected void checkReadOnly(RawCouchbaseDocument doc) throws ReadOnlyException{
+    protected void checkReadOnly(CouchbaseDocument doc) throws ReadOnlyException{
         if(isReadOnly()){
             throw new ReadOnlyException(doc);
         }
@@ -131,7 +131,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     
-    public void attachDocument(RawCouchbaseDocument doc){
+    public void attachDocument(CouchbaseDocument doc){
         if(doc.getBaseMeta().getKey()!=null){
             _sessionCache.put(doc.getBaseMeta().getKey(),doc);
         }
@@ -139,7 +139,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     
 
     @Override
-    public <T extends RawCouchbaseDocument> T newEntity(Class<T> clazz){
+    public <T extends CouchbaseDocument> T newEntity(Class<T> clazz){
         try{
             T obj=clazz.newInstance();
             attachDocument(obj);
@@ -153,27 +153,27 @@ public class CouchbaseSession implements ICouchbaseSession {
 
 
     @Override
-    public <T extends RawCouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException{
+    public <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException{
         checkReadOnly(obj);
-        BaseCouchbaseDocumentDao<T> dao = (BaseCouchbaseDocumentDao<T>) _sessionFactory.getDocumentDaoFactory().getDaoForClass(obj.getClass());
+        CouchbaseDocumentDao<T> dao = (CouchbaseDocumentDao<T>) _sessionFactory.getDocumentDaoFactory().getDaoForClass(obj.getClass());
         dao.create(this,obj,isCalcOnly());
         attachDocument(obj);
         return obj;
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException{
-        if(obj.getBaseMeta().getState()== RawCouchbaseDocument.DocumentState.NEW){
-            ((BaseCouchbaseDocumentDao<T>) _sessionFactory.getDocumentDaoFactory().getDaoForClass(obj.getClass())).buildKey(this,obj);
+    public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException{
+        if(obj.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
+            ((CouchbaseDocumentDao<T>) _sessionFactory.getDocumentDaoFactory().getDaoForClass(obj.getClass())).buildKey(this,obj);
         }
         return obj;
     }
 
     @Override
-    public RawCouchbaseDocument get(String key) throws DaoException,StorageException{
-        RawCouchbaseDocument result = _sessionCache.get(key);
+    public CouchbaseDocument get(String key) throws DaoException,StorageException{
+        CouchbaseDocument result = _sessionCache.get(key);
         if(result==null){
-            BaseCouchbaseDocumentDao dao = _sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
+            CouchbaseDocumentDao dao = _sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
             result = dao.get(key);
             attachDocument(result);
         }
@@ -181,13 +181,13 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException{
-        RawCouchbaseDocument cacheResult = _sessionCache.get(key);
+    public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException{
+        CouchbaseDocument cacheResult = _sessionCache.get(key);
         if(cacheResult !=null){
             return (T)cacheResult;
         }
         else{
-            BaseCouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+            CouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
             T result = dao.get(key);
             attachDocument(result);
             return result;
@@ -195,46 +195,46 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException{
+    public <T extends CouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException{
         checkReadOnly(obj);
-        BaseCouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+        CouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
         dao.update(this,obj,isCalcOnly());
         return obj;
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T delete(T obj)throws ValidationException,DaoException,StorageException{
+    public <T extends CouchbaseDocument> T delete(T obj)throws ValidationException,DaoException,StorageException{
         checkReadOnly(obj);
-        BaseCouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+        CouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
         dao.delete(this,obj,isCalcOnly());
         return obj;
     }
 
     @Override
-    public void validate(RawCouchbaseDocument doc) throws ValidationException {
-        ((Validator<RawCouchbaseDocument>)_sessionFactory.getValidatorFactory().getValidator(doc.getClass())).validate(ValidatorContext.buildContext(this),doc);
+    public void validate(CouchbaseDocument doc) throws ValidationException {
+        ((Validator<CouchbaseDocument>)_sessionFactory.getValidatorFactory().getValidator(doc.getClass())).validate(ValidatorContext.buildContext(this),doc);
     }
 
     @Override
-    public <T extends RawCouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException{
-        CouchbaseDocumentDaoWithUID dao = (CouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+    public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException{
+        BusinessCouchbaseDocumentDaoWithUID dao = (BusinessCouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
         return get(dao.getKeyFromUID(uid),targetClass);
     }
 
 
     @Override
-    public <T extends RawCouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException{
-        CouchbaseDocumentDaoWithUID dao = (CouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+    public <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException{
+        BusinessCouchbaseDocumentDaoWithUID dao = (BusinessCouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
         return dao.getKeyFromUID(uid);
     }
 
 
     @Override
-    public <T extends RawCouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException{
-        if(obj.getBaseMeta().getState().equals(RawCouchbaseDocument.DocumentState.NEW)){
+    public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException{
+        if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
             return create(obj);
         }
-        else if(obj.getBaseMeta().getState().equals(RawCouchbaseDocument.DocumentState.DELETED)){
+        else if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
             return delete(obj);
         }
         else{
@@ -243,7 +243,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public void addOrUpdateUniqueKey(RawCouchbaseDocument doc, Object value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException{
+    public void addOrUpdateUniqueKey(CouchbaseDocument doc, Object value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException{
         //Skip null value
         if(value==null){
             return;
@@ -273,7 +273,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         checkReadOnly(obj);
         CouchbaseUniqueKeyDao dao = _sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
         dao.removeUniqueKey(this,obj,internalKey,isCalcOnly());
-        if(obj.getBaseMeta().getState().equals(RawCouchbaseDocument.DocumentState.DELETED)){
+        if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
             _keyCache.remove(obj.getBaseMeta().getKey());
         }
     }

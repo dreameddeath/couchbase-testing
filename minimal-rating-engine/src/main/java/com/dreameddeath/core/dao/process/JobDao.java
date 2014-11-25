@@ -1,9 +1,9 @@
 package com.dreameddeath.core.dao.process;
 
 
-import com.dreameddeath.core.dao.common.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
-import com.dreameddeath.core.model.common.BucketDocument;
+import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.business.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.model.document.BucketDocument;
 import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 import com.dreameddeath.core.storage.GenericJacksonTranscoder;

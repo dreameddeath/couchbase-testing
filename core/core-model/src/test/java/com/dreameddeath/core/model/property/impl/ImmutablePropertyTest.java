@@ -1,13 +1,13 @@
 package com.dreameddeath.core.model.property.impl;
 
-import com.dreameddeath.core.model.common.RawCouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import junit.framework.TestCase;
 
 public class ImmutablePropertyTest extends TestCase {
 
     public void test(){
         //Init Doc
-        RawCouchbaseDocument dummyDoc = new RawCouchbaseDocument(){};
+        CouchbaseDocument dummyDoc = new CouchbaseDocument(){};
         dummyDoc.getBaseMeta().setStateSync();
 
         //Init Property
@@ -16,7 +16,7 @@ public class ImmutablePropertyTest extends TestCase {
         //Check Set
         testStr.set("str");
         assertEquals(testStr.get(),"str");
-        assertEquals(dummyDoc.getBaseMeta().getState(), RawCouchbaseDocument.DocumentState.DIRTY);
+        assertEquals(dummyDoc.getBaseMeta().getState(), CouchbaseDocument.DocumentState.DIRTY);
 
         //Check reset with same value
         testStr.set("str");
