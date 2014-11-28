@@ -29,7 +29,7 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
         try {
             job.addTask(new CreateBillingAccountJob.CreateBillingAccountTask())
                     .chainWith(new CreateBillingAccountJob.CreatePartyRolesTask().setDocKey(context.getSession().getKeyFromUID(job.getRequest().partyId, Party.class)))
-                    .chainWith(new CreateBillingAccountJob.CreateBillingCycleTask());
+                    .chainWith(new CreateBillingCycleJobTask());
         }
         catch(DaoException|DuplicateTaskException e){
             throw new JobExecutionException(job,job.getJobState(),"Cannot find Key from party id <"+job.getRequest().partyId+">",e);
@@ -70,11 +70,11 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
         }
     }
 
-    @TaskProcessingForClass(CreateBillingCycleTask.class)
-    public static class CreateBillingCycleTaskProcessingService extends StandardSubJobProcessTaskProcessingService<CreateBillingCycleJob,CreateBillingCycleTask> {
+    @TaskProcessingForClass(CreateBillingCycleJobTask.class)
+    public static class CreateBillingCycleTaskProcessingService extends StandardSubJobProcessTaskProcessingService<CreateBillingCycleJob,CreateBillingCycleJobTask> {
 
         @Override
-        protected CreateBillingCycleJob buildSubJob(TaskContext ctxt, CreateBillingCycleTask task) throws DaoException, StorageException {
+        protected CreateBillingCycleJob buildSubJob(TaskContext ctxt, CreateBillingCycleJobTask task) throws DaoException, StorageException {
             CreateBillingCycleJob job = ctxt.getSession().newEntity(CreateBillingCycleJob.class);
             BillingAccount ba = task.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession());
 

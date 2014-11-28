@@ -20,7 +20,6 @@ import java.util.*;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
-@JsonTypeInfo(use=Id.MINIMAL_CLASS,include=As.PROPERTY, property="@c")
 public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES extends CouchbaseDocumentElement> extends BusinessCouchbaseDocument {
     @DocumentProperty("uid")
     private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());

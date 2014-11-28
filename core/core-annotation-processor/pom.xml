@@ -6,17 +6,30 @@
         <artifactId>core</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>core-model</artifactId>
+  <artifactId>core-annotation-processor</artifactId>
   <version>0.1</version>
   <packaging>jar</packaging>
 
-  <name>core-model</name>
+  <name>core-annotation-processor</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <!-- Disable annotation processing for ourselves. -->
+                    <compilerArgument>-proc:none</compilerArgument>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
   
   <dependencies>
       <dependency>
@@ -24,12 +37,5 @@
           <artifactId>jackson-annotations</artifactId>
           <version>${jackson.version}</version>
       </dependency>
-
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-annotation-processor</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-
   </dependencies>
 </project>

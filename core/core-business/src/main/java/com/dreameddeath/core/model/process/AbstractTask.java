@@ -10,16 +10,26 @@ import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
 import java.util.List;
 
-@JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
+@JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@c",visible = true)
+@JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 public abstract class AbstractTask extends CouchbaseDocumentElement {
+    private String _classTypeId;
+    @JsonSetter("@t")
+    public void setClassTypeId(String typeId){
+        _classTypeId = typeId;
+    }
+
     @DocumentProperty("uid") @NotNull
     private Property<String> _uid=new ImmutableProperty<String>(AbstractTask.this);
     @DocumentProperty("label")

@@ -11,15 +11,22 @@ import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import com.dreameddeath.core.session.ICouchbaseSession;
+import com.dreameddeath.core.transcoder.json.CouchbaseBusinessDocumentDeserializer;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.joda.time.DateTime;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-
+@JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
+@JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 public abstract class BusinessCouchbaseDocument extends CouchbaseDocument implements HasUniqueKeysRef {
+    @JsonSetter("@t")
+    public void setClassTypeId(String typeId){getMeta().setTypeId(typeId);}
+
     @DocumentProperty("attachedTasks")
     private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(BusinessCouchbaseDocument.this);
     @DocumentProperty("docRevision")
@@ -126,10 +133,16 @@ public abstract class BusinessCouchbaseDocument extends CouchbaseDocument implem
     }
 
     public class MetaInfo extends BaseMetaInfo {
+        private String _typeId;
+
+        public void setTypeId(String typeId){_typeId = typeId;}
+        public String getTypeId(){return _typeId;}
+
         private Collection<BusinessCouchbaseDocumentLink> _reverseLinks=new HashSet<BusinessCouchbaseDocumentLink>();
 
         public void addReverseLink(BusinessCouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
         public void removeReverseLink(BusinessCouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
+
 
         @Override
         public void setStateDirty(){

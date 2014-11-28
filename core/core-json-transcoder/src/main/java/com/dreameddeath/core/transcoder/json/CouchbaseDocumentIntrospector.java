@@ -70,7 +70,7 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
     @Override
     public PropertyName findNameForDeserialization(Annotated a)
     {
-        PropertyName name = super.findNameForSerialization(a);
+        PropertyName name = super.findNameForDeserialization(a);
         if(name==null) {
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;

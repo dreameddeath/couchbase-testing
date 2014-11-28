@@ -1,6 +1,7 @@
 package com.dreameddeath.billing.model.cycle;
 
 import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
@@ -8,7 +9,7 @@ import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;
 
-
+@DocumentDef(domain = "billing",name="cycle",version="1.0.0")
 public class BillingCycle extends BusinessCouchbaseDocument {
     @DocumentProperty(value="ba",getter = "getBillingAccountLink",setter="setBillingAccountLink")
     private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);

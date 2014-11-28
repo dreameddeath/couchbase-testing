@@ -2,6 +2,7 @@ package com.dreameddeath.core.model.document;
 
 //import com.dreameddeath.core.CouchbaseSession;
 
+import com.couchbase.client.deps.com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.dreameddeath.core.model.property.HasParent;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

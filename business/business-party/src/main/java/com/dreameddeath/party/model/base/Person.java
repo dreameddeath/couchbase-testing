@@ -1,5 +1,6 @@
 package com.dreameddeath.party.model.base;
 
+import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.model.property.Property;
@@ -9,6 +10,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
+@DocumentDef(domain = "party",version="1.0.0")
 public class Person extends Party {
     @DocumentProperty("firstName") @NotNull
     private Property<String> _firstName=new StandardProperty<String>(Person.this);

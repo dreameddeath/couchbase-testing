@@ -24,6 +24,11 @@
           <artifactId>core-model</artifactId>
           <version>${global.version}</version>
       </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-annotation-processor</artifactId>
+          <version>${global.version}</version>
+      </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>

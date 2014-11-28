@@ -196,7 +196,7 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
                 Class[] argTypes={Field.class,ValidationConstraint.class};
                 Object[] args={member,ann};
                 try {
-                    addValidator(member, ann.validationClass().getConstructor(argTypes).newInstance(args));
+                    addValidator(member, (Validator) ann.validationClass().getConstructor(argTypes).newInstance(args));
                 }
                 catch(NoSuchMethodException e) {
                     //TODO throw error

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,16 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
         _mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         _mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
         _mapper.registerModule(new JodaModule());
+        _mapper.registerModule(new SimpleModule(){
+            protected CouchbaseBusinessDocumentDeserializerModifier modifier=new CouchbaseBusinessDocumentDeserializerModifier();
+            @Override
+            public void setupModule(SetupContext context) {
+                super.setupModule(context);
+                if (modifier != null) {
+                    context.addBeanDeserializerModifier(modifier);
+                }
+            }
+        });
     }
 
 

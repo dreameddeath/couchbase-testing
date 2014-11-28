@@ -21,6 +21,7 @@ import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.process.model.CreatePartyJob;
 import com.dreameddeath.party.process.model.CreatePartyRequest;
 import com.dreameddeath.party.process.service.CreatePartyJobProcessingService;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -47,6 +48,11 @@ public class CreateBillingAccountJobProcessingServiceTest {
         _processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
         _processFactory.addJobProcessingService(CreateBillingAccountJobProcessingService.class);
         _processFactory.addJobProcessingService(CreateBillingCycleJobProcessingService.class);
+    }
+
+    @Before
+    public void Init(){
+
     }
 
     @Test

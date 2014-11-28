@@ -2,6 +2,7 @@ package com.dreameddeath.billing.model.account;
 
 import com.dreameddeath.billing.model.cycle.BillingCycleLink;
 import com.dreameddeath.common.model.ExternalId;
+import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
@@ -17,7 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-
+@DocumentDef(domain = "billing",version="1.0.0",name="ba")
 public class BillingAccount extends BusinessCouchbaseDocument {
     @DocumentProperty("uid") @NotNull
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);

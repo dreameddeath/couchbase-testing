@@ -13,6 +13,7 @@
   <name>core</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
+        <module>core-annotation-processor</module>
         <module>core-validation</module>
         <module>core-model</module>
         <module>core-business</module>

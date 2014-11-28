@@ -17,6 +17,9 @@ public class CouchbaseArchiveDao<T extends CouchbaseDocument> extends CouchbaseD
     public static String BASE_PATTERN ="arch/";
     private CouchbaseDocumentDao<T> _refDao;
 
+    public void setRefDao(CouchbaseDocumentDao<T> refDao){_refDao = refDao;}
+    public CouchbaseDocumentDao<T> getRefDao(){return _refDao;}
+
     @Override
     public ICouchbaseTranscoder<T> getTranscoder(){
         return _refDao.getTranscoder();

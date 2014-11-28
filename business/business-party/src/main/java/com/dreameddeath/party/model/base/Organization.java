@@ -1,5 +1,6 @@
 package com.dreameddeath.party.model.base;
 
+import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -7,6 +8,7 @@ import com.dreameddeath.core.model.property.impl.StandardProperty;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
+@DocumentDef(domain = "party",version="1.0.0",name="organization")
 public class Organization extends Party {
     @DocumentProperty("tradingName")
     private Property<String> _tradingName=new StandardProperty<String>(Organization.this);

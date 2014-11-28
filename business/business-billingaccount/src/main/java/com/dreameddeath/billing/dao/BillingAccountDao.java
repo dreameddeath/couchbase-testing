@@ -25,8 +25,6 @@ public class BillingAccountDao extends BusinessCouchbaseDocumentDaoWithUID<Billi
         public LocalBucketDocument(BillingAccount obj){super(obj);}
     }
 
-
-
     @Override
     public Class<? extends BucketDocument<BillingAccount>> getBucketDocumentClass() {
         return LocalBucketDocument.class;

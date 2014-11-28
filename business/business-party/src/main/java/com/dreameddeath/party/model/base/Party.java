@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 27/07/2014.
  */
-@JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
+//@JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public abstract class Party extends BusinessCouchbaseDocument {
     @DocumentProperty("uid")
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(Party.this);
