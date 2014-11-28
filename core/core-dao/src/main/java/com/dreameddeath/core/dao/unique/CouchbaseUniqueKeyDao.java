@@ -9,7 +9,7 @@ import com.dreameddeath.core.exception.storage.DuplicateDocumentKeyException;
 import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyStorageException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.exception.validation.ValidationException;
-import com.dreameddeath.core.model.HasUniqueKeysRef;
+import com.dreameddeath.core.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.ICouchbaseSession;
@@ -130,7 +130,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             super.create(session,keyDoc,isCalcOnly); //getClient().add(getTranscoder().newDocument(keyDoc));
         }
         //keyDoc.getBaseMeta().setStateSync();
-        if(doc instanceof HasUniqueKeysRef){((HasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
+        if(doc instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
         return keyDoc;
     }
 
@@ -154,13 +154,13 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         String internalKey= buildInternalKey(nameSpace, value);
         try{
             CouchbaseUniqueKey result=create(session,doc,internalKey,isCalcOnly);
-            if(doc instanceof HasUniqueKeysRef){((HasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
+            if(doc instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
             return result;
         }
         catch(DuplicateDocumentKeyException e){
             CouchbaseUniqueKey existingKeyDoc = session.getUniqueKey(internalKey);
             existingKeyDoc.addKey(internalKey, doc);
-            if(doc instanceof HasUniqueKeysRef){((HasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
+            if(doc instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
             return existingKeyDoc;
         }
     }

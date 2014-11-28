@@ -1,1 +1,2 @@
 com.dreameddeath.core.annotation.processor.DocumentDefAnnotationProcessor
+com.dreameddeath.core.annotation.processor.DocumentVersionUpgraderAnnotationProcessor

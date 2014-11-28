@@ -67,6 +67,7 @@
       <rxjava.version>1.0.0-rc.3</rxjava.version>
       <javassist.version>3.12.1.GA</javassist.version>
       <google.guava.version>18.0</google.guava.version>
+      <reflectasm.version>1.10.0</reflectasm.version>
   </properties>
 
   

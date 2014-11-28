@@ -2,7 +2,8 @@ package com.dreameddeath.core.model.business;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.exception.model.DuplicateAttachedTaskException;
-import com.dreameddeath.core.model.HasUniqueKeysRef;
+import com.dreameddeath.core.model.IHasUniqueKeysRef;
+import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.process.AbstractTask;
 import com.dreameddeath.core.model.process.CouchbaseDocumentAttachedTaskRef;
@@ -11,21 +12,23 @@ import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.transcoder.json.CouchbaseBusinessDocumentDeserializer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.joda.time.DateTime;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
+import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
-public abstract class BusinessCouchbaseDocument extends CouchbaseDocument implements HasUniqueKeysRef {
+public abstract class BusinessCouchbaseDocument extends CouchbaseDocument implements IHasUniqueKeysRef,IVersionedDocument {
     @JsonSetter("@t")
-    public void setClassTypeId(String typeId){getMeta().setTypeId(typeId);}
+    public void setDocumentFullVersionId(String typeId){getMeta().setTypeId(typeId);}
+    public String getDocumentFullVersionId(){return getMeta().getTypeId();}
 
     @DocumentProperty("attachedTasks")
     private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(BusinessCouchbaseDocument.this);

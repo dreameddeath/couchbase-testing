@@ -37,5 +37,11 @@
           <artifactId>jackson-annotations</artifactId>
           <version>${jackson.version}</version>
       </dependency>
+
+      <dependency>
+          <groupId>com.esotericsoftware</groupId>
+          <artifactId>reflectasm</artifactId>
+          <version>${reflectasm.version}</version>
+      </dependency>
   </dependencies>
 </project>

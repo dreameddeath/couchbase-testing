@@ -5,19 +5,10 @@ import com.dreameddeath.core.annotation.utils.Helper;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.cfg.MapperConfig;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
-import com.fasterxml.jackson.databind.util.ClassUtil;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.regex.Matcher;
+import java.util.Map;
 import java.util.regex.Pattern;
 /**
  * Created by ceaj8230 on 07/11/2014.
@@ -31,6 +22,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     private JavaType _baseType;
     private String _domain;
+    private Map<String,JavaType> _mapClass = new HashMap<>();
 
 
     public  CouchbaseDocumentTypeIdResolver() {
@@ -50,11 +42,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     public String idFromValue(Object value){
         DocumentDef annot=value.getClass().getAnnotation(DocumentDef.class);
         if(annot!=null){
-            String name = annot.name();
-            if("".equals(name)){
-                name =value.getClass().getSimpleName();
-            }
-            return String.format(FORMAT,annot.domain(),name,annot.version());
+            return Helper.buildVersionnedTypeId(annot,value.getClass());
         }
         else{
             throw new RuntimeException("Need the DocumentRef annotation on class "+ value.getClass().getName());
@@ -63,12 +51,18 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     @Override
     public String idFromValueAndType(Object value, Class<?> suggestedType){
-        return null;
+        return idFromValue(value);
     }
 
     @Override @Deprecated
     public String idFromBaseType() {
-        return null;
+        DocumentDef annot = _baseType.getRawClass().getAnnotation(DocumentDef.class);
+        if(annot!=null){
+            return Helper.buildVersionnedTypeId(annot, _baseType.getRawClass());
+        }
+        else{
+            throw new RuntimeException("Need the DocumentRef annotation on class "+ _baseType.getRawClass().getName());
+        }
     }
 
     @Override
@@ -77,25 +71,10 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     }
 
     public JavaType typeFromId(DatabindContext context, String id) {
-        Matcher parseResult = ID_PATTERN.matcher(id);
-        if(parseResult.matches()) {
-            String domain = parseResult.group(1).toString();
-            String name = parseResult.group(2).toString();
-            String version = parseResult.group(3).toString();
-            String filename = Helper.getDocumentEntityFilename(domain, name, version);
-            InputStream is = getClass().getClassLoader().getResourceAsStream(filename);
-            BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
-            try {
-                String className = fileReader.readLine();
-                return context.getTypeFactory().constructType(ClassUtil.findClass(className));
-            }
-            catch(ClassNotFoundException|IOException e){
-                throw  new RuntimeException("Cannot find/read file <"+filename+"> for id <"+id+">");
-            }
+        if(!_mapClass.containsKey(id)){
+            _mapClass.put(id, context.getTypeFactory().constructType(Helper.findClassFromVersionnedTypeId(context, id)));
         }
-        throw  new RuntimeException("Cannot parse id <"+id+">");
-            //getClass().getClassLoader().getResource()
-        //context.getTypeFactory().constructFromCanonical()
+        return _mapClass.get(id);
     }
 
     @Override

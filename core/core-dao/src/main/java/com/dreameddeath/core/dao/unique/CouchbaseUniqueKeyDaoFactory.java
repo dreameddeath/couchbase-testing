@@ -1,7 +1,7 @@
 package com.dreameddeath.core.dao.unique;
 
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
-import com.dreameddeath.core.model.HasUniqueKeysRef;
+import com.dreameddeath.core.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.storage.ICouchbaseTranscoder;
@@ -53,8 +53,8 @@ public class CouchbaseUniqueKeyDaoFactory{
     public Map<CouchbaseUniqueKeyDao,List<String>> mapRemovedUniqueKeys(CouchbaseDocument doc) throws DaoNotFoundException{
         Map<CouchbaseUniqueKeyDao, List<String>> mapKeys = new HashMap<CouchbaseUniqueKeyDao, List<String>>();
 
-        if(doc instanceof HasUniqueKeysRef) {
-            Set<String> removedKeys = ((HasUniqueKeysRef)doc).getRemovedUniqueKeys();
+        if(doc instanceof IHasUniqueKeysRef) {
+            Set<String> removedKeys = ((IHasUniqueKeysRef)doc).getRemovedUniqueKeys();
             for (String key : removedKeys) {
                 CouchbaseUniqueKeyDao dao = getDaoForInternalKey(key);
                 if (!mapKeys.containsKey(dao)) {

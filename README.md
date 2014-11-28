@@ -16,7 +16,7 @@ TODOs
 ### Couchbase Layer
 - Views
 - ~~Unique Index (remain tests plus delete management)~~
-- Datamodel upgrade management
+- ~~Datamodel upgrade management~~
 - History :
     - Keep previous revision at document level
     - Audited Fields

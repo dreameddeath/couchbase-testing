@@ -3,6 +3,7 @@ package com.dreameddeath.core.model.process;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
 import com.dreameddeath.core.exception.model.DuplicateTaskException;
+import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -13,22 +14,19 @@ import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
 import java.util.List;
 
-@JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@c",visible = true)
+@JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
-public abstract class AbstractTask extends CouchbaseDocumentElement {
+public abstract class AbstractTask extends CouchbaseDocumentElement implements IVersionedDocument{
     private String _classTypeId;
     @JsonSetter("@t")
-    public void setClassTypeId(String typeId){
-        _classTypeId = typeId;
-    }
+    public void setDocumentFullVersionId(String typeId){_classTypeId=typeId;}
+    public String getDocumentFullVersionId(){return _classTypeId;}
 
     @DocumentProperty("uid") @NotNull
     private Property<String> _uid=new ImmutableProperty<String>(AbstractTask.this);
