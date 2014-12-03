@@ -1,7 +1,7 @@
 package com.dreameddeath.core.annotation.processor;
 
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.utils.Helper;
+import com.dreameddeath.core.upgrade.Utils;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -32,7 +32,7 @@ public class DocumentDefAnnotationProcessor extends AbstractProcessor {
             DocumentDef annot =classElem.getAnnotation(DocumentDef.class);
             Elements elementUtils = processingEnv.getElementUtils();
             try {
-                String fileName=Helper.getFilename(annot,classElem);
+                String fileName= Utils.getFilename(annot, classElem);
                 FileObject jfo = processingEnv.getFiler().createResource(
                         StandardLocation.CLASS_OUTPUT,
                         "",

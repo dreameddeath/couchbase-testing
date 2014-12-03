@@ -1,4 +1,4 @@
-package com.dreameddeath.core.annotation.utils;
+package com.dreameddeath.core.upgrade;
 
 import com.couchbase.client.deps.com.fasterxml.jackson.databind.util.ClassUtil;
 import com.dreameddeath.core.annotation.DocumentDef;
@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Created by ceaj8230 on 27/11/2014.
  */
-public class Helper {
+public class Utils {
     private static String ROOT_PATH="META-INF/core-annotation";
     private static String DOCUMENT_DEF_PATH="DocumentDef";
     private static String DOCUMENT_UPGRADE_PATH="DocumentUpgrade";
@@ -115,7 +115,7 @@ public class Helper {
         if(!_versionClassMap.containsKey(typeId)){
             String[] parts = extractFromVersionTypeId(typeId);
             //it will naturally exclude patch from typeId
-            String filename = Helper.getDocumentEntityFilename(parts[0], parts[1], parts[2]);
+            String filename = Utils.getDocumentEntityFilename(parts[0], parts[1], parts[2]);
             InputStream is = dummy.getClass().getClassLoader().getResourceAsStream(filename);
             BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
             try {
@@ -133,7 +133,7 @@ public class Helper {
         String typeId = buildVersionnedTypeId(domain,name,version);
 
         if(! _versionUpgraderMap.containsKey(typeId)){
-            String filename = Helper.getDocumentVersionUpgraderFilename(domain, name, version);
+            String filename = Utils.getDocumentVersionUpgraderFilename(domain, name, version);
             if(dummy.getClass().getClassLoader().getResource(filename)==null){
                 _versionClassMap.put(typeId,null);
             }

@@ -1,6 +1,6 @@
 package com.dreameddeath.core.transcoder.json;
 
-import com.dreameddeath.core.annotation.utils.Helper;
+import com.dreameddeath.core.upgrade.Utils;
 import com.dreameddeath.core.model.IVersionedDocument;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -65,7 +65,7 @@ public class CouchbaseBusinessDocumentDeserializer extends BeanDeserializer {
         Object res = super.deserialize(jp, ctxt);
         if(res instanceof  IVersionedDocument){
             String versionTypeId = ((IVersionedDocument) res).getDocumentFullVersionId();
-            res = Helper.performUpgrade(res,versionTypeId);
+            res = Utils.performUpgrade(res, versionTypeId);
         }
         return res;
     }

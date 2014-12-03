@@ -2,7 +2,6 @@ package com.dreameddeath.core.upgrade;
 
 import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.annotation.utils.Helper;
 import com.dreameddeath.core.model.IVersionedDocument;
 import org.junit.Test;
 
@@ -53,7 +52,7 @@ public class UpgraderTest {
         TestModel v1 = new TestModel();
         String refValue = "A first Value";
         v1.value = refValue;
-        Object result = Helper.performUpgrade(v1, "test", "test", "1.0.0");
+        Object result = Utils.performUpgrade(v1, "test", "test", "1.0.0");
         assertEquals(result.getClass(),TestModelV2.class);
         assertEquals(refValue+" v1.1 v2",((TestModelV2)result).value);
         assertEquals("test/test/2.0.0",((TestModelV2)result).getDocumentFullVersionId());

@@ -1,8 +1,8 @@
-package com.dreameddeath.core.annotation.utils;
+package com.dreameddeath.core.upgrade;
 
 import org.junit.Test;
 
-public class HelperTest {
+public class UtilsTest {
 
     @Test
     public void testGetDocumentVersionUpgraderFilename() throws Exception {

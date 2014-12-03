@@ -1,7 +1,7 @@
 package com.dreameddeath.core.annotation.processor;
 
 import com.dreameddeath.core.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.annotation.utils.Helper;
+import com.dreameddeath.core.upgrade.Utils;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -38,7 +38,7 @@ public class DocumentVersionUpgraderAnnotationProcessor extends AbstractProcesso
             DocumentVersionUpgrader annot =baseElem.getAnnotation(DocumentVersionUpgrader.class);
             Elements elementUtils = processingEnv.getElementUtils();
             try {
-                String fileName= Helper.getFilename(annot);
+                String fileName= Utils.getFilename(annot);
                 FileObject jfo = processingEnv.getFiler().createResource(
                         StandardLocation.CLASS_OUTPUT,
                         "",
@@ -55,10 +55,10 @@ public class DocumentVersionUpgraderAnnotationProcessor extends AbstractProcesso
                 bw.write(";");
                 bw.write(baseElem.getSimpleName().toString());
                 bw.write(";");
-                bw.write(Helper.buildTargetVersion(annot));
+                bw.write(Utils.buildTargetVersion(annot));
                 bw.flush();
                 bw.close();
-                messager.printMessage(Diagnostic.Kind.NOTE,"Creating file Upgrader "+fileName+" to upgrade to  "+Helper.buildTargetVersion(annot));
+                messager.printMessage(Diagnostic.Kind.NOTE,"Creating file Upgrader "+fileName+" to upgrade to  "+ Utils.buildTargetVersion(annot));
             }
             catch(IOException e){
                 messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());

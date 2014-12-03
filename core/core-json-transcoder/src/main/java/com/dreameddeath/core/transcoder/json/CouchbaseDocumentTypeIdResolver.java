@@ -1,7 +1,7 @@
 package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.utils.Helper;
+import com.dreameddeath.core.upgrade.Utils;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
@@ -42,7 +42,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     public String idFromValue(Object value){
         DocumentDef annot=value.getClass().getAnnotation(DocumentDef.class);
         if(annot!=null){
-            return Helper.buildVersionnedTypeId(annot,value.getClass());
+            return Utils.buildVersionnedTypeId(annot, value.getClass());
         }
         else{
             throw new RuntimeException("Need the DocumentRef annotation on class "+ value.getClass().getName());
@@ -58,7 +58,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     public String idFromBaseType() {
         DocumentDef annot = _baseType.getRawClass().getAnnotation(DocumentDef.class);
         if(annot!=null){
-            return Helper.buildVersionnedTypeId(annot, _baseType.getRawClass());
+            return Utils.buildVersionnedTypeId(annot, _baseType.getRawClass());
         }
         else{
             throw new RuntimeException("Need the DocumentRef annotation on class "+ _baseType.getRawClass().getName());
@@ -72,7 +72,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     public JavaType typeFromId(DatabindContext context, String id) {
         if(!_mapClass.containsKey(id)){
-            _mapClass.put(id, context.getTypeFactory().constructType(Helper.findClassFromVersionnedTypeId(context, id)));
+            _mapClass.put(id, context.getTypeFactory().constructType(Utils.findClassFromVersionnedTypeId(context, id)));
         }
         return _mapClass.get(id);
     }

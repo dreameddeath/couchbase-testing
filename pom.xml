@@ -45,6 +45,7 @@
   <modules>
     <module>core</module>
     <module>business</module>
+    <module>infrastructure</module>
     <!--<module>minimal-rating-engine</module>-->
   </modules>
     
@@ -68,6 +69,8 @@
       <javassist.version>3.12.1.GA</javassist.version>
       <google.guava.version>18.0</google.guava.version>
       <reflectasm.version>1.10.0</reflectasm.version>
+      <storm.version>0.9.3</storm.version>
+      <clojure.version>1.5.1</clojure.version>
   </properties>
 
   
