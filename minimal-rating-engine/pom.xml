@@ -7,7 +7,6 @@
         <version>0.1</version>
     </parent>
   <artifactId>minimal-rating-engine</artifactId>
-  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>minimal-rating-engine</name>
@@ -73,12 +72,12 @@
       <!--<dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-validation</artifactId>
-          <version>${global.version}</version>
+          <version>${project.version}</version>
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-model</artifactId>
-          <version>${global.version}</version>
+          <version>${project.version}</version>
       </dependency>-->
     <dependency>
       <groupId>org.aspectj</groupId>

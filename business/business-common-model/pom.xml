@@ -7,7 +7,6 @@
         <version>0.1</version>
     </parent>
   <artifactId>business-common-model</artifactId>
-  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>business-common-model</name>

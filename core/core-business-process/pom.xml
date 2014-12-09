@@ -7,7 +7,6 @@
         <version>0.1</version>
     </parent>
   <artifactId>core-business-process</artifactId>
-  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>core-business-process</name>

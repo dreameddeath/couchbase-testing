@@ -10,11 +10,20 @@
   <name>couchbase-testing</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
   <build>
+      <pluginManagement>
+          <plugins>
+              <plugin>
+                  <groupId>org.antlr</groupId>
+                  <artifactId>antlr4-maven-plugin</artifactId>
+                  <version>${antlr.version}</version>
+              </plugin>
+          </plugins>
+      </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
+        <version>${mvn.compiler.version}</version>
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
@@ -24,7 +33,7 @@
         <plugin>
             <groupId>org.eluder.coveralls</groupId>
             <artifactId>coveralls-maven-plugin</artifactId>
-            <version>3.0.1</version>
+            <version>${coveralls.mvn.plugin.version}</version>
         </plugin>
         <plugin>
             <groupId>org.jacoco</groupId>
@@ -46,13 +55,12 @@
     <module>core</module>
     <module>business</module>
     <module>infrastructure</module>
+      <module>testing</module>
     <!--<module>minimal-rating-engine</module>-->
   </modules>
     
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <global.version>0.1</global.version>
-      <!--<couchbase.version>1.4.1</couchbase.version>-->
       <couchbase.version>2.0.0</couchbase.version>
       <cglib.version>3.1</cglib.version>
       <google.protobuf.version>2.5.0</google.protobuf.version>
@@ -71,6 +79,12 @@
       <reflectasm.version>1.10.0</reflectasm.version>
       <storm.version>0.9.3</storm.version>
       <clojure.version>1.5.1</clojure.version>
+      <antlr.version>4.3</antlr.version>
+
+      <!-- maven versions-->
+      <mojo.builder.helper.version>1.9.1</mojo.builder.helper.version>
+      <coveralls.mvn.plugin.version>3.0.1</coveralls.mvn.plugin.version>
+      <mvn.compiler.version>3.2</mvn.compiler.version>
   </properties>
 
   

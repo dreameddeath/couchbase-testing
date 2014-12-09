@@ -7,7 +7,6 @@
         <version>0.1</version>
     </parent>
   <artifactId>core-couchbase</artifactId>
-  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>core-couchbase</name>
@@ -22,7 +21,7 @@
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-model</artifactId>
-          <version>${global.version}</version>
+          <version>${project.version}</version>
       </dependency>
   </dependencies>
 </project>

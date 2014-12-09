@@ -7,7 +7,6 @@
         <version>0.1</version>
     </parent>
   <artifactId>core-json-transcoder</artifactId>
-  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>core-json-transcoder</name>
@@ -22,12 +21,12 @@
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-model</artifactId>
-          <version>${global.version}</version>
+          <version>${project.version}</version>
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-annotation-processor</artifactId>
-          <version>${global.version}</version>
+          <version>${project.version}</version>
       </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

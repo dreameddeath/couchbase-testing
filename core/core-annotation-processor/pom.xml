@@ -7,7 +7,6 @@
         <version>0.1</version>
     </parent>
   <artifactId>core-annotation-processor</artifactId>
-  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>core-annotation-processor</name>
@@ -20,7 +19,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>${mvn.compiler.version}</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>

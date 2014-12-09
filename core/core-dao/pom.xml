@@ -7,7 +7,6 @@
         <version>0.1</version>
     </parent>
   <artifactId>core-dao</artifactId>
-  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>core-dao</name>
@@ -22,12 +21,12 @@
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-model</artifactId>
-          <version>${global.version}</version>
+          <version>${project.version}</version>
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-couchbase</artifactId>
-          <version>${global.version}</version>
+          <version>${project.version}</version>
       </dependency>
   </dependencies>
 </project>

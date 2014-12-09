@@ -6,25 +6,16 @@
         <artifactId>couchbase-testing</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>core</artifactId>
+  <artifactId>testing</artifactId>
   <packaging>pom</packaging>
 
-  <name>core</name>
+  <name>infrastructure</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
-        <module>core-annotation-processor</module>
-        <module>core-validation</module>
-        <module>core-model</module>
-        <module>core-business</module>
-        <module>core-business-process</module>
-        <module>core-couchbase</module>
-        <module>core-dao</module>
-        <module>core-session</module>
-        <module>core-date</module>
-        <module>core-json-transcoder</module>
+        <module>testing-json-dataset</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
+    <dependencies></dependencies>
 </project>
