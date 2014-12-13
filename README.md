@@ -6,15 +6,13 @@ couchbase-testing
 TODOs
 -----
 
-### Infrastructure Layer
-- Logging management
-- Security Layer (and Auditing)
-- Configuration (and configuration override/deploy)
-- Perfs/Stats Monitoring
-- Version Upgrades
-
 ### Couchbase Layer
-- Views
+- Metric Gathering
+- Views/Queries
+- Getting from Replicate Management (load-balancing)
+- Simulation (in-memory mode) for all verbs (get, update, -- append,prepend, ...--) for views also and cas/expiration
+- management of time to simulate data expiration
+- Replicate/Timeout/Persitance Management (ReplicateTo/PersistTo)
 - ~~Unique Index (remain tests plus delete management)~~
 - ~~Datamodel upgrade management~~
 - History :
@@ -35,28 +33,41 @@ TODOs
         - Management of DataModel Updates for archives (or use pure anonymous archive? generic json for instance ?)
 
 ### Framework Layer
-- Be able to generate an model introspector (to extract XSD or Json-schema)
+- event based notification
+- Be able to generate an model introspector (to extract XSD or Json-schema) - better at compile time
 - Generate classes base on XML Schema or JSon similar (include datamodel upgrade definition)
 - MDC integration
-- Integration with Storm, kafka (& ElasticSearch, Esper?)
 - Unified SOAP & REST API (Use of jibx code gen)
+- Configuration (properties + db config + overriding management) + AutoReload - timebase
+
+### Infrastructure Layer
+- Logging management (local + distributed & correlation)
+- Security Layer (and Auditing)
+- Configuration (and configuration override/deploy)
+- Perfs/Stats Monitoring (using - dropwizard metrics)
+- Version Upgrades
+- Integration with Storm - DRPC, standard - , kafka (& ElasticSearch, Esper?)
+
 
 ### Testing
-- Job Unit Tests (~ integration tests) with or without calc only
+- Job Unit Tests (~ integration tests) with or without calc only, db simulator
 - Job Unit Tests with failure automation
 - Job Unit Tests with race condition
 - Unit Tests/Integration Test/Non regression Dataset Management tools :
      * Json/XML based patch / checks definition
      * Database loading with in memory (calc only) or real database insert
-- Overriding of logs for tests/production purposes
+     * tools for easy BDD management (ex using Cucumber-JVM for instance)
+- Overriding of logs levels for tests/production purposes
 
 ### Business Layer
-- Catalog Cache and version deployment
+- Catalog Cache and version deployment (reuse of config checks) using change-sets as a base
 - Rating with 3 modes (rating engine itself doesn't matter) :
     * Batch (incremental, full context rerate,...)
     * Near-Realtime
     * RealTime
-- Billing (phases of billing - change of cycle, ...)
+- Billing (phases of billing - change of cycle, ...).
+    * Here also parts of engine (discount, fees billing, ledger,...)
+    * Should be replaceable
 - Installed Base updates management
 
 ###Admin

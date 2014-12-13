@@ -9,7 +9,7 @@
   <artifactId>testing</artifactId>
   <packaging>pom</packaging>
 
-  <name>infrastructure</name>
+  <name>testing</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
         <module>testing-json-dataset</module>

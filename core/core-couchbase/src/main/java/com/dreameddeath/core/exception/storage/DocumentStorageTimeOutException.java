@@ -3,30 +3,26 @@ package com.dreameddeath.core.exception.storage;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
- * Created by ceaj8230 on 13/09/2014.
+ * Created by ceaj8230 on 12/12/2014.
  */
-public class DocumentNotFoundException extends StorageException {
+public class DocumentStorageTimeOutException extends StorageException {
     private CouchbaseDocument _doc;
     private String _key;
-
-
-
-    public DocumentNotFoundException(String key,String message){
+    public DocumentStorageTimeOutException(String key, String message){
         super(message);
         _key=key;
     }
-    public DocumentNotFoundException(CouchbaseDocument doc, String message){
+    public DocumentStorageTimeOutException(String key, String message,Throwable e){
+        super(message,e);
+        _key=key;
+    }
+    public DocumentStorageTimeOutException(CouchbaseDocument doc, String message){
         super(message);
         _doc=doc;
     }
 
-    public DocumentNotFoundException(CouchbaseDocument doc, Throwable e){
-        super(e);
-        _doc=doc;
-    }
-
-    public DocumentNotFoundException(CouchbaseDocument doc, String message,Throwable e){
-        super(message);
+    public DocumentStorageTimeOutException(CouchbaseDocument doc, String message,Throwable e){
+        super(message,e);
         _doc=doc;
     }
 
