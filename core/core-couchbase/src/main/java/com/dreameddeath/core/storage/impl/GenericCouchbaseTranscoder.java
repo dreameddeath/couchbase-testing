@@ -25,6 +25,9 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
     private final Class<T> _dummyClass;
     private final Class<? extends BucketDocument<T>> _baseDocumentClazz;
     private final Constructor<? extends BucketDocument<T>> _baseDocumentContructor;
+    private String _keyPrefix;
+
+
 
     public GenericCouchbaseTranscoder(Class<T> clazz, Class<? extends BucketDocument<T>> baseDocumentClazz) {
         super();
@@ -32,7 +35,6 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
             _dummyClass = clazz;
             _baseDocumentClazz = baseDocumentClazz;
             _baseDocumentContructor = _baseDocumentClazz.getDeclaredConstructor(_dummyClass);
-
         } catch (Exception e) {
             logger.error("Error during transcoder init for class <{}>", clazz.getName(), e);
             throw new RuntimeException("Error during transcoder init for class <" + clazz.getName() + ">");
@@ -51,6 +53,11 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
 
     @Override
     public BucketDocument<T> newDocument(String id, int expiry, T content, long cas) {
+        if(_keyPrefix!=null){
+            if(id.startsWith(_keyPrefix)){
+                id=id.substring(_keyPrefix.length());
+            }
+        }
         content.getBaseMeta().setKey(id);
         content.getBaseMeta().setCas(cas);
         content.getBaseMeta().setExpiry(expiry);
@@ -65,7 +72,11 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
     @Override
     public BucketDocument<T> newDocument(T baseDocument){
         try {
-            return _baseDocumentContructor.newInstance(baseDocument);
+            BucketDocument<T> newDocument=_baseDocumentContructor.newInstance(baseDocument);
+            if(_keyPrefix!=null){
+                newDocument.setKeyPrefix(_keyPrefix);
+            }
+            return newDocument;
         }
         catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
             throw new DocumentSetUpException("Error during setup", e);
@@ -86,5 +97,14 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
     @Override
     public Tuple2<ByteBuf, Integer> encode(BucketDocument<T> document){
         return Tuple.create(Unpooled.wrappedBuffer(_transcoder.encode(document.content())), document.content().getBaseMeta().getEncodedFlags());
+    }
+
+    public String getKeyPrefix() {
+        return _keyPrefix;
+    }
+
+    @Override
+    public void setKeyPrefix(String keyPrefix) {
+        _keyPrefix = keyPrefix;
     }
 }

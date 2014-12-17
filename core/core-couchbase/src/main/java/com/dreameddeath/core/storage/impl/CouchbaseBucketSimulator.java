@@ -30,6 +30,9 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         super(null,bucketName,null);
     }
 
+    public CouchbaseBucketSimulator(String bucketName,String prefix){
+        super(null,bucketName,null,prefix);
+    }
 
     private Map<String,DocumentSimulator> _dbContent = new ConcurrentHashMap<String,DocumentSimulator>();
 
@@ -50,6 +53,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
     @Override
     public ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder) {
+        super.addTranscoder(transcoder);
         _transcoderMap.put(transcoder.documentType(),transcoder);
         return this;
     }
@@ -101,38 +105,40 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         REPLACE
     }
 
-    public <T extends CouchbaseDocument> Document<T> addOrReplaceCache(T doc,Class docType,ImpactMode mode,int expiry) throws StorageException{
+    public <T extends CouchbaseDocument> Document<T> addOrReplaceCache(BucketDocument<T> bucketDoc,Class docType,ImpactMode mode,int expiry) throws StorageException{
+        //T doc = bucketDoc.getDocument();
         ICouchbaseTranscoder transcoder = _transcoderMap.get(docType);
-        DocumentSimulator foundDoc = _dbContent.get(doc.getBaseMeta().getKey());
+        DocumentSimulator foundDoc = _dbContent.get(bucketDoc.id());
         if((foundDoc==null) && mode.equals(ImpactMode.REPLACE)){
-            throw new DocumentNotFoundException(doc.getBaseMeta().getKey(),"Key <"+doc.getBaseMeta().getKey()+"> already existing in couchbase simulator");
+            throw new DocumentNotFoundException(bucketDoc.id(),"Key <"+bucketDoc.id()+"> already existing in couchbase simulator");
         }
         if((foundDoc!=null) && mode.equals(ImpactMode.ADD)){
-            throw new DocumentAlreadyExistsException("Key <"+doc.getBaseMeta().getKey()+"> already existing in couchbase simulator");
+            throw new DocumentAlreadyExistsException("Key <"+bucketDoc.id()+"> already existing in couchbase simulator");
         }
         if(foundDoc==null){
             foundDoc = new DocumentSimulator();
-            foundDoc.setKey(doc.getBaseMeta().getKey());
+            foundDoc.setKey(bucketDoc.id());
             foundDoc.setCas(0L);
             _dbContent.put(foundDoc.getKey(),foundDoc);
         }
 
         if(transcoder==null){
-            throw new DocumentAccessException(doc.getBaseMeta().getKey(),"Error during document access attempt of <"+doc.getBaseMeta().getKey()+">");
+            throw new DocumentAccessException(bucketDoc.id(),"Error during document access attempt of <"+bucketDoc.id()+">");
         }
 
-        Tuple2<ByteBuf, Integer> encodedResult = transcoder.encode(transcoder.newDocument(doc));
+        Tuple2<ByteBuf, Integer> encodedResult = transcoder.encode(transcoder.newDocument(bucketDoc.content()));
         foundDoc.setExpiry(expiry);
         foundDoc.setCas(foundDoc.getCas()+1);
         foundDoc.setData(encodedResult.value1());
         foundDoc.setFlags(encodedResult.value2());
 
-        return getFromCache(doc.getBaseMeta().getKey(),docType);
+        return getFromCache(bucketDoc.id(),docType);
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder) {
         try{
+            if(_keyPrefix!=null){id = _keyPrefix+id;}
             return Observable.just((T)(getFromCache(id,transcoder.documentType()).content()));
         }
         catch(Throwable e){
@@ -145,31 +151,29 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         try{
             final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-            return (Observable.just((BucketDocument<T>) addOrReplaceCache(doc,transcoder.documentType(), ImpactMode.ADD,0)).map(new DocumentResync(bucketDoc)));
+            return (Observable.just((BucketDocument<T>) addOrReplaceCache(bucketDoc,transcoder.documentType(), ImpactMode.ADD,0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
             return Observable.error(e);
         }
     }
-
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         try{
             final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-            return (Observable<T>)(Observable.just((BucketDocument<T>) addOrReplaceCache(doc,transcoder.documentType(), ImpactMode.UPDATE,0)).map(new DocumentResync(bucketDoc)));
+            return (Observable<T>)(Observable.just((BucketDocument<T>) addOrReplaceCache(bucketDoc,transcoder.documentType(), ImpactMode.UPDATE,0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
             return Observable.error(e);
         }
     }
 
-
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
         try{
             final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-            return (Observable<T>)(Observable.just((BucketDocument<T>)addOrReplaceCache(doc,transcoder.documentType(), ImpactMode.REPLACE,0)).map(new DocumentResync(bucketDoc)));
+            return (Observable<T>)(Observable.just((BucketDocument<T>)addOrReplaceCache(bucketDoc,transcoder.documentType(), ImpactMode.REPLACE,0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
             return Observable.error(e);
@@ -179,7 +183,6 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
-
         return null;
     }
 
@@ -199,6 +202,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException {
         try{
+            if(_keyPrefix!=null){key = _keyPrefix+key;}
             return Observable.just(updateCacheCounter(key,by,defaultValue,expiration));
         }
         catch(Exception e){
@@ -207,23 +211,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
 
-    @Override
-    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue) throws StorageException {
-        try{
-            return Observable.just(updateCacheCounter(key,by,defaultValue,0));
-        }
-        catch(Exception e){
-            return Observable.error(e);
-        }
-    }
 
-    @Override
-    public Observable<Long> asyncCounter(String key, Long by) throws StorageException {
-        try{
-            return Observable.just(updateCacheCounter(key,by,null,0));
-        }
-        catch(Exception e){
-            return Observable.error(e);
-        }
-    }
+
+
 }

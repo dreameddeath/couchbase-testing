@@ -8,11 +8,15 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  */
 public abstract class BucketDocument<T extends CouchbaseDocument> implements Document<T> {
     final private T _doc;
+    private String _keyPrefix=null;
+
+
 
     public BucketDocument(T doc){ _doc = doc;}
     @Override
     public String id() {
-        return _doc.getBaseMeta().getKey();
+        if(_keyPrefix==null) return _doc.getBaseMeta().getKey();
+        else return _keyPrefix+_doc.getBaseMeta().getKey();
     }
 
     @Override
@@ -38,5 +42,13 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
 
     public T getDocument(){
         return _doc;
+    }
+
+    public String getKeyPrefix() {
+        return _keyPrefix;
+    }
+
+    public void setKeyPrefix(String keyPrefix) {
+        _keyPrefix = keyPrefix;
     }
 }

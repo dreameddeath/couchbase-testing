@@ -15,7 +15,7 @@ import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.user.User;
+import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.Validator;
 import com.dreameddeath.core.validation.ValidatorContext;
 import org.joda.time.DateTime;
@@ -29,18 +29,18 @@ public class CouchbaseSession implements ICouchbaseSession {
     final private CouchbaseSessionFactory _sessionFactory;
     final private SessionType _sessionType;
     final private DateTimeService _dateTimeService;
-    final private User _user;
+    final private IUser _user;
 
     private Set<CouchbaseDocument> _objectCache = new HashSet<CouchbaseDocument>();
     private Map<String,CouchbaseDocument> _sessionCache = new HashMap<String,CouchbaseDocument>();
     private Map<String,CouchbaseUniqueKey> _keyCache = new HashMap<String,CouchbaseUniqueKey>();
     private Map<String,Long> _counters = new HashMap<String, Long>();
 
-    public CouchbaseSession(CouchbaseSessionFactory factory, User user){
+    public CouchbaseSession(CouchbaseSessionFactory factory, IUser user){
         this(factory, SessionType.READ_ONLY,user);
     }
 
-    public CouchbaseSession(CouchbaseSessionFactory factory, SessionType type, User user){
+    public CouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user){
         _sessionFactory = factory;
         _dateTimeService = factory.getDateTimeServiceFactory().getService();
         _sessionType = type;

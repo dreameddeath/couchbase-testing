@@ -36,6 +36,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     private final Cluster _cluster;
     private final String _bucketName;
     private final String _bucketPassword;
+    protected final String _keyPrefix;
     private List<Transcoder<? extends Document, ?>> _transcoders = new ArrayList<Transcoder<? extends Document, ?>>();
 
 
@@ -44,6 +45,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         _cluster = cluster;
         _bucketName = bucketName;
         _bucketPassword = bucketPassword;
+        _keyPrefix=null;
+    }
+
+    public CouchbaseBucketWrapper(CouchbaseCluster cluster, String bucketName, String bucketPassword,String keyPrefix){
+        _cluster = cluster;
+        _bucketName = bucketName;
+        _bucketPassword = bucketPassword;
+        _keyPrefix=keyPrefix;
     }
 
     public void start(long timeout,TimeUnit unit){
@@ -101,6 +110,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
             throw new IllegalStateException("Cannot add transcoder "+transcoder.getClass().getName()+" after client initialization");
         }
         _transcoders.add(transcoder);
+        if(_keyPrefix!=null){transcoder.setKeyPrefix(_keyPrefix);}
         return this;
     }
 
@@ -109,7 +119,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T get(final String key,final ICouchbaseTranscoder<T> transcoder) throws StorageException{
+    public <T extends CouchbaseDocument> T get(String key,final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         try {
             T result=asyncGet(key,transcoder).toBlocking().single();
             if(result==null){ throw new DocumentNotFoundException(key,"Cannot find document using key <"+key+">");}
@@ -132,7 +142,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,final ICouchbaseTranscoder<T> transcoder){
+    public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,final ICouchbaseTranscoder<T> transcoder){
+        if(_keyPrefix!=null){id = _keyPrefix+id;}
         return _bucket.async().get(id,transcoder.documentType()).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
@@ -143,6 +154,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder, ReadParams params) {
+        if(_keyPrefix!=null){id = _keyPrefix+id;}
         Observable<BucketDocument<T>> result;
         switch (params.getReadMode()){
             case FROM_REPLICATE:result=_bucket.async().getFromReplica(id, getReplicat(),transcoder.documentType());break;
@@ -400,6 +412,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiry)throws StorageException{
+        if(_keyPrefix!=null){key = _keyPrefix+key;}
         return _bucket.async().counter(key, by, defaultValue, expiry).map(new Func1<JsonLongDocument, Long>() {
             @Override
             public Long call(JsonLongDocument jsonLongDocument) {
@@ -410,6 +423,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) throws StorageException {
+        if(_keyPrefix!=null){key = _keyPrefix+key;}
         Observable<JsonLongDocument> result = _bucket.async().counter(key, by, defaultValue, expiration);
 
         if(params.getTimeOutUnit()!=null){

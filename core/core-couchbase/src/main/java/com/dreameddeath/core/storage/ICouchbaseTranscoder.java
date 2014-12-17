@@ -9,4 +9,5 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  */
 public interface ICouchbaseTranscoder<T extends CouchbaseDocument> extends Transcoder<BucketDocument<T>,T> {
     public BucketDocument<T> newDocument(T baseDocument);
+    public void setKeyPrefix(String prefix);
 }
