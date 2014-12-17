@@ -3,20 +3,21 @@ package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.exception.transcoder.DocumentDecodingException;
 import com.dreameddeath.core.exception.transcoder.DocumentEncodingException;
+import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.transcoder.ITranscoder;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 
 
 public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements ITranscoder<T> {
@@ -43,37 +44,59 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
 
 
     private final Class<T> _dummyClass;
+    private final Class _rootClass;
 
+    public Class findRootClass(Class clazz) {
+        Class currentClass = clazz;
+        //For versionned document, find the root class
+        if (IVersionedDocument.class.isAssignableFrom(currentClass)) {
+            JsonTypeIdResolver foundAnnot = null;
+            while (!currentClass.isPrimitive()) {
+                Annotation[] annot = currentClass.getDeclaredAnnotations();
 
+                for (int pos = 0; pos < annot.length; ++pos) {
+                    if (JsonTypeIdResolver.class.isAssignableFrom(annot[pos].getClass())) {
+                        if (CouchbaseDocumentTypeIdResolver.class.isAssignableFrom(((JsonTypeIdResolver) annot[pos]).value())) {
+                            foundAnnot = (JsonTypeIdResolver) annot[pos];
+                            break;
+                        }
+                    }
+                }
+
+                if (foundAnnot != null) {
+                    break;
+                }
+                currentClass = currentClass.getSuperclass();
+            }
+        }
+        return currentClass;
+    }
     public GenericJacksonTranscoder(Class<T> clazz){
         _dummyClass = clazz;
-        try {
+        _rootClass = findRootClass(clazz);
+
+        /*try {
             //_mapper.getSerializerProvider().findTypedValueSerializer(clazz, true, null);
         }
         catch (Exception e){
             logger.error("Error during transcoder init for class <{}>",clazz.getName(),e);
             throw new RuntimeException("Error during transcoder init for class <"+clazz.getName()+">");
-        }
+        }*/
     }
 
     @Override
     public Class<T> getBaseClass() {return _dummyClass;}
 
+    public Class getRootClass(){return _rootClass;}
     @Override
     public T decode(byte[] content) throws DocumentDecodingException{
         try {
-            T result = _mapper.readValue(content,getBaseClass());
+            T result = (T)_mapper.readValue(content, getRootClass());
             result.getBaseMeta().setDbSize(content.length);
             return result;
         }
-        catch (JsonParseException e){
-            throw new DocumentDecodingException("Error during decoding of data using GenericJacksonCouchbaseTranscoder<"+getBaseClass().getName()+"> :",content,e);
-        }
-        catch (JsonMappingException e) {
-            throw new DocumentDecodingException("Error during decoding of data using GenericJacksonCouchbaseTranscoder<"+getBaseClass().getName()+"> :",content,e);
-        }
-        catch(IOException e){
-            throw new DocumentDecodingException("Error during decoding of data using GenericJacksonCouchbaseTranscoder<"+getBaseClass().getName()+"> :",content,e);
+        catch (IOException e) {
+            throw new DocumentDecodingException("Error during decoding of data using GenericJacksonCouchbaseTranscoder<" + getBaseClass().getName() + "> :", content, e);
         }
     }
 

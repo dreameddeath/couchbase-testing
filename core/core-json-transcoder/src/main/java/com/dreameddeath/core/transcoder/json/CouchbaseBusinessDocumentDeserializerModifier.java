@@ -1,5 +1,6 @@
 package com.dreameddeath.core.transcoder.json;
 
+import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.fasterxml.jackson.databind.BeanDescription;

@@ -1,17 +1,17 @@
 package com.dreameddeath.core.session.impl;
 
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.date.DateTimeService;
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
-import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ReadOnlyException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.ICouchbaseSession;
@@ -55,7 +55,8 @@ public class CouchbaseSession implements ICouchbaseSession {
         return _sessionFactory.getCounterDaoFactory();
     }
 
-    protected void clean(){
+    @Override
+    public void reset(){
         _sessionCache.clear();
         _counters.clear();
     }

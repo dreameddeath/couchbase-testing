@@ -1,9 +1,9 @@
 package com.dreameddeath.core.session;
 
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
-import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import org.joda.time.DateTime;
@@ -37,4 +37,6 @@ public interface ICouchbaseSession {
 
 
     public DateTime getCurrentDate();
+
+    public void reset();//Clean cache
 }

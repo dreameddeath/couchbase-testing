@@ -16,6 +16,14 @@ public interface ICouchbaseBucket {
     public <T extends CouchbaseDocument> T get(final String key, final ICouchbaseTranscoder<T> transcoder,ReadParams params) throws StorageException;
     public <T extends CouchbaseDocument> Observable<T> asyncGet(final String id, final ICouchbaseTranscoder<T> transcoder);
     public <T extends CouchbaseDocument> Observable<T> asyncGet(final String id, final ICouchbaseTranscoder<T> transcoder,ReadParams params);
+    //Observable<JsonDocument> getAndTouch(String id, int expiry);
+    //<D extends Document<?>> Observable<Boolean> touch(String id, int expiry);
+    //<D extends Document<?>> Observable<Boolean> touch(D document);
+
+
+    //Observable<JsonDocument> getAndLock(String id, int lockTime);
+    //Observable<Boolean> unlock(D document);
+    //Observable<Boolean> unlock(String id,long cas);
 
     public <T extends CouchbaseDocument> T add(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
     public <T extends CouchbaseDocument> T add(final T doc, final ICouchbaseTranscoder<T> transcoder,WriteParams params) throws StorageException;

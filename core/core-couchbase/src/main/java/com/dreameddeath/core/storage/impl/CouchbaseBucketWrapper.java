@@ -441,21 +441,21 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return asyncCounter(key,by,defaultValue,0,params);
     }
 
-
     @Override
     public Long counter(String key, Long by) throws StorageException{
         return counter(key, by, by);
     }
+
     @Override
     public Long counter(String key, Long by,WriteParams params) throws StorageException{
         return counter(key, by, by,params);
     }
 
-
     @Override
     public Observable<Long> asyncCounter(String key, Long by)throws StorageException {
         return asyncCounter(key,by,by);
     }
+
     @Override
     public Observable<Long> asyncCounter(String key, Long by,WriteParams params)throws StorageException {
         return asyncCounter(key,by,by,params);
