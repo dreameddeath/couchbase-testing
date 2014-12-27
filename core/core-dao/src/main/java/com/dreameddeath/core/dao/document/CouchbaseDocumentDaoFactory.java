@@ -6,7 +6,10 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
+import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import com.dreameddeath.core.dao.view.CouchbaseViewDaoFactory;
 import com.dreameddeath.core.exception.dao.DaoNotFoundException;
+import com.dreameddeath.core.exception.dao.DuplicateDaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.impl.GenericCouchbaseTranscoder;
 import com.dreameddeath.core.transcoder.ITranscoder;
@@ -23,6 +26,11 @@ public class CouchbaseDocumentDaoFactory {
 
     private CouchbaseCounterDaoFactory _counterDaoFactory;
     private CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory;
+    private CouchbaseViewDaoFactory _viewDaoFactory;
+
+    public CouchbaseViewDaoFactory getViewDaoFactory() {return _viewDaoFactory;}
+    public void setViewDaoFactory(CouchbaseViewDaoFactory viewDaoFactory) {_viewDaoFactory = viewDaoFactory;}
+
 
     public CouchbaseCounterDaoFactory getCounterDaoFactory(){
         return _counterDaoFactory;
@@ -46,6 +54,9 @@ public class CouchbaseDocumentDaoFactory {
     }
 
     public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClass,CouchbaseDocumentDao<T> dao){
+        if(_daosMap.containsKey(entityClass)) {
+            throw new DuplicateDaoException("The dao " + dao.getClass().getName() + " is already existing for class " + entityClass.getName());
+        }
         _daosMap.put(entityClass,dao);
         if(dao instanceof CouchbaseDocumentWithKeyPatternDao){
             _patternsMap.put(Pattern.compile("^"+((CouchbaseDocumentWithKeyPatternDao) dao).getKeyPattern()+"$"),(CouchbaseDocumentWithKeyPatternDao)dao);
@@ -55,6 +66,9 @@ public class CouchbaseDocumentDaoFactory {
         }
         for(CouchbaseUniqueKeyDao.Builder daoUniqueKeyBuilder:dao.getUniqueKeysBuilder()){
             _uniqueKeyDaoFactory.addDaoFor(daoUniqueKeyBuilder.getNameSpace(),daoUniqueKeyBuilder.build());
+        }
+        for(CouchbaseViewDao daoView:dao.getViews()){
+            _viewDaoFactory.addDaoFor(entityClass,daoView);
         }
     }
 

@@ -1,10 +1,16 @@
 package com.dreameddeath.core.storage;
 
+import com.couchbase.client.java.view.AsyncViewResult;
+import com.couchbase.client.java.view.ViewQuery;
+import com.couchbase.client.java.view.ViewResult;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.impl.ReadParams;
 import com.dreameddeath.core.storage.impl.WriteParams;
 import rx.Observable;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ceaj8230 on 21/11/2014.
@@ -69,5 +75,51 @@ public interface ICouchbaseBucket {
     public Long counter(String key, Long by,WriteParams params) throws StorageException;
     public Observable<Long> asyncCounter(String key, Long by)throws StorageException;
     public Observable<Long> asyncCounter(String key, Long by,WriteParams params)throws StorageException;
+
+
+    public String getPrefix();
+
+    public void createOrUpdateView(String designDoc,Map<String,String> viewMap) throws StorageException;
+
+    public Observable<AsyncViewResult> asyncQuery(ViewQuery query);
+    public ViewResult query(ViewQuery query);
+
+    public void start(long timeout,TimeUnit unit);
+    public void start();
+
+    public boolean shutdown(long timeout,TimeUnit unit);
+    public void shutdown();
+
+    public static class Utils{
+        public static final Character KEY_SEP='$';
+        public static final String KEY_WITH_PREFIX_FMT="%s"+KEY_SEP+"%s";
+
+        public static String buildDesignDoc(String prefix,String designDocName){
+            if(prefix!=null){
+                return String.format(KEY_WITH_PREFIX_FMT,prefix,designDocName);
+            }
+            else{
+                return designDocName;
+            }
+        }
+
+        public static String buildKey(String prefix,String key){
+            if(prefix!=null){
+                return String.format(KEY_WITH_PREFIX_FMT,prefix,key);
+            }
+            else{
+                return key;
+            }
+        }
+
+        public static String extractKey(String prefix,String key){
+            if((prefix!=null) && key.startsWith(prefix+KEY_SEP)){
+                return key.substring(prefix.length()+1);
+            }
+            else{
+                return key;
+            }
+        }
+    }
 
 }

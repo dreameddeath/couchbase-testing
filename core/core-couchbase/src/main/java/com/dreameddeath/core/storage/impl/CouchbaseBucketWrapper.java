@@ -8,6 +8,7 @@ import com.couchbase.client.java.error.CASMismatchException;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import com.couchbase.client.java.error.DocumentDoesNotExistException;
 import com.couchbase.client.java.transcoder.Transcoder;
+import com.couchbase.client.java.view.*;
 import com.dreameddeath.core.exception.storage.*;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.BucketDocument;
@@ -18,6 +19,7 @@ import rx.functions.Func1;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -55,18 +57,26 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         _keyPrefix=keyPrefix;
     }
 
+    public Bucket getInternalBucket(){
+        return _bucket;
+    }
+    @Override
     public void start(long timeout,TimeUnit unit){
         _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders,timeout,unit);
         initReplicatInfo();
     }
+
+    @Override
     public void start(){
         _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders);
         initReplicatInfo();
     }
 
+    @Override
     public boolean shutdown(long timeout,TimeUnit unit){
         return _bucket.close(timeout,unit);
     }
+    @Override
     public void shutdown(){
         _bucket.close();
     }
@@ -143,7 +153,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,final ICouchbaseTranscoder<T> transcoder){
-        if(_keyPrefix!=null){id = _keyPrefix+id;}
+        id = ICouchbaseBucket.Utils.buildKey(_keyPrefix,id);
         return _bucket.async().get(id,transcoder.documentType()).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
@@ -154,7 +164,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder, ReadParams params) {
-        if(_keyPrefix!=null){id = _keyPrefix+id;}
+        id = ICouchbaseBucket.Utils.buildKey(_keyPrefix,id);
         Observable<BucketDocument<T>> result;
         switch (params.getReadMode()){
             case FROM_REPLICATE:result=_bucket.async().getFromReplica(id, getReplicat(),transcoder.documentType());break;
@@ -412,7 +422,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiry)throws StorageException{
-        if(_keyPrefix!=null){key = _keyPrefix+key;}
+        key = ICouchbaseBucket.Utils.buildKey(_keyPrefix,key);
         return _bucket.async().counter(key, by, defaultValue, expiry).map(new Func1<JsonLongDocument, Long>() {
             @Override
             public Long call(JsonLongDocument jsonLongDocument) {
@@ -423,7 +433,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) throws StorageException {
-        if(_keyPrefix!=null){key = _keyPrefix+key;}
+        key = ICouchbaseBucket.Utils.buildKey(_keyPrefix,key);
         Observable<JsonLongDocument> result = _bucket.async().counter(key, by, defaultValue, expiration);
 
         if(params.getTimeOutUnit()!=null){
@@ -485,5 +495,37 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
             _bucketDoc.syncMeta(tBucketDocument);
             return _bucketDoc.content();
         }
+    }
+
+    @Override
+    public Observable<AsyncViewResult> asyncQuery(ViewQuery query){
+        return _bucket.async().query(query);
+    }
+
+    @Override
+    public ViewResult query(ViewQuery query){
+        return _bucket.query(query);
+    }
+
+    @Override
+    public String getPrefix(){
+        return _keyPrefix;
+    }
+
+
+
+
+    @Override
+    public void createOrUpdateView(String designDoc,Map<String,String> viewsMap) throws StorageException{
+        designDoc = ICouchbaseBucket.Utils.buildDesignDoc(_keyPrefix,designDoc);
+
+        DesignDocument existingDesignDocument = _bucket.bucketManager().getDesignDocument(designDoc);
+        List<View> viewList = new ArrayList<>();
+        for(Map.Entry<String,String> view:viewsMap.entrySet()){
+            viewList.add(DefaultView.create(view.getKey(),view.getValue()));
+        }
+        DesignDocument designDocument = DesignDocument.create(designDoc,viewList);
+
+        _bucket.bucketManager().upsertDesignDocument(designDocument);
     }
 }

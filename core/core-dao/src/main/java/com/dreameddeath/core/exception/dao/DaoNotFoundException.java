@@ -10,6 +10,10 @@ public class DaoNotFoundException extends DaoException {
         super("The dao for doc Class "+docClass.getName()+" hasn't been found");
     }
 
+    public DaoNotFoundException(Class docClass,String viewName){
+        super("The view <"+viewName+"> dao for doc Class "+docClass.getName()+" hasn't been found");
+    }
+
     public DaoNotFoundException(CouchbaseDocument doc){
         this(doc.getClass());
     }

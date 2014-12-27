@@ -8,6 +8,7 @@ import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.dreameddeath.core.exception.storage.DocumentSetUpException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.BucketDocument;
+import com.dreameddeath.core.storage.ICouchbaseBucket;
 import com.dreameddeath.core.storage.ICouchbaseTranscoder;
 import com.dreameddeath.core.transcoder.ITranscoder;
 import org.slf4j.Logger;
@@ -53,11 +54,7 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
 
     @Override
     public BucketDocument<T> newDocument(String id, int expiry, T content, long cas) {
-        if(_keyPrefix!=null){
-            if(id.startsWith(_keyPrefix)){
-                id=id.substring(_keyPrefix.length());
-            }
-        }
+        id = ICouchbaseBucket.Utils.extractKey(_keyPrefix,id);
         content.getBaseMeta().setKey(id);
         content.getBaseMeta().setCas(cas);
         content.getBaseMeta().setExpiry(expiry);

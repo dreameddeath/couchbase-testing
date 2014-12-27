@@ -6,6 +6,8 @@ import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.model.view.IViewQuery;
+import com.dreameddeath.core.model.view.IViewQueryResult;
 import org.joda.time.DateTime;
 
 /**
@@ -35,8 +37,10 @@ public interface ICouchbaseSession {
     public void addOrUpdateUniqueKey(CouchbaseDocument doc, Object value, String nameSpace) throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException;
     public void removeUniqueKey(String internalKey) throws DaoException,StorageException,ValidationException;
 
-
     public DateTime getCurrentDate();
 
-    public void reset();//Clean cache
+    public <T extends CouchbaseDocument> IViewQuery initViewQuery(Class<T> forClass,String viewName) throws DaoException;
+    public IViewQueryResult executeQuery(IViewQuery query) throws DaoException,StorageException;
+
+    public void reset(); //Clean cache
 }

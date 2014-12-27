@@ -6,6 +6,7 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
+import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.date.DateTimeService;
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.exception.dao.DaoException;
@@ -14,6 +15,8 @@ import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.model.view.IViewQuery;
+import com.dreameddeath.core.model.view.IViewQueryResult;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.Validator;
@@ -292,4 +295,16 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     public DateTimeService getDateTimeService(){ return _dateTimeService; }
+
+    @Override
+    public <T extends CouchbaseDocument> IViewQuery initViewQuery(Class<T> forClass,String viewName) throws DaoException{
+        CouchbaseViewDao viewDao = _sessionFactory.getDocumentDaoFactory().getViewDaoFactory().getViewDaoFor(forClass,viewName);
+        return viewDao.buildViewQuery();
+    }
+
+    @Override
+    public IViewQueryResult executeQuery(IViewQuery query){
+        return query.getDao().query(this,isCalcOnly(),query);
+    }
+
 }

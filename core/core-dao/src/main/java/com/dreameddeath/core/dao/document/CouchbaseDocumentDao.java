@@ -3,6 +3,7 @@ package com.dreameddeath.core.dao.document;
 import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
+import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.InconsistentStateException;
 import com.dreameddeath.core.exception.storage.StorageException;
@@ -29,7 +30,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
     public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder(){return Collections.emptyList();}
-
+    public List<CouchbaseViewDao> getViews(){ return Collections.emptyList();}
 
     public CouchbaseDocumentDao<T> setClient(ICouchbaseBucket client){
         _client = client;

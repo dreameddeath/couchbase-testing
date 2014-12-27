@@ -23,15 +23,16 @@ import java.lang.annotation.Annotation;
 public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements ITranscoder<T> {
     private final static Logger logger = LoggerFactory.getLogger(GenericJacksonTranscoder.class);
 
-    private static final ObjectMapper _mapper;
+    public static final ObjectMapper MAPPER;
     static {
-        _mapper = new ObjectMapper();
-        _mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        _mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        _mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
-        _mapper.registerModule(new JodaModule());
-        _mapper.registerModule(new SimpleModule(){
-            protected CouchbaseBusinessDocumentDeserializerModifier modifier=new CouchbaseBusinessDocumentDeserializerModifier();
+        MAPPER = new ObjectMapper();
+        MAPPER.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        MAPPER.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
+        MAPPER.registerModule(new JodaModule());
+        MAPPER.registerModule(new SimpleModule() {
+            protected CouchbaseBusinessDocumentDeserializerModifier modifier = new CouchbaseBusinessDocumentDeserializerModifier();
+
             @Override
             public void setupModule(SetupContext context) {
                 super.setupModule(context);
@@ -40,13 +41,14 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
                 }
             }
         });
+
     }
 
 
     private final Class<T> _dummyClass;
     private final Class _rootClass;
 
-    public Class findRootClass(Class clazz) {
+    public static Class findRootClass(Class clazz) {
         Class currentClass = clazz;
         //For versionned document, find the root class
         if (IVersionedDocument.class.isAssignableFrom(currentClass)) {
@@ -76,7 +78,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
         _rootClass = findRootClass(clazz);
 
         /*try {
-            //_mapper.getSerializerProvider().findTypedValueSerializer(clazz, true, null);
+            //MAPPER.getSerializerProvider().findTypedValueSerializer(clazz, true, null);
         }
         catch (Exception e){
             logger.error("Error during transcoder init for class <{}>",clazz.getName(),e);
@@ -91,7 +93,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     @Override
     public T decode(byte[] content) throws DocumentDecodingException{
         try {
-            T result = (T)_mapper.readValue(content, getRootClass());
+            T result = (T) MAPPER.readValue(content, getRootClass());
             result.getBaseMeta().setDbSize(content.length);
             return result;
         }
@@ -105,10 +107,12 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     @Override
     public byte[] encode(T doc) throws DocumentEncodingException{
         try {
-            return _mapper.writeValueAsBytes(doc);
+            return MAPPER.writeValueAsBytes(doc);
         }
         catch (JsonProcessingException e){
             throw new DocumentEncodingException(doc,"Error during encoding of data using GenericJacksonCouchbaseTranscoder<"+getBaseClass().getName()+">",e);
         }
     }
+
+
 }

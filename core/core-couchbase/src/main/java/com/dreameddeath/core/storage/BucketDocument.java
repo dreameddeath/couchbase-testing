@@ -10,13 +10,10 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
     final private T _doc;
     private String _keyPrefix=null;
 
-
-
     public BucketDocument(T doc){ _doc = doc;}
     @Override
     public String id() {
-        if(_keyPrefix==null) return _doc.getBaseMeta().getKey();
-        else return _keyPrefix+_doc.getBaseMeta().getKey();
+        return ICouchbaseBucket.Utils.buildKey(_keyPrefix,_doc.getBaseMeta().getKey());
     }
 
     @Override
