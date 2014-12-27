@@ -15,6 +15,7 @@ import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.model.view.IViewAsyncQueryResult;
 import com.dreameddeath.core.model.view.IViewQuery;
 import com.dreameddeath.core.model.view.IViewQueryResult;
 import com.dreameddeath.core.session.ICouchbaseSession;
@@ -22,6 +23,7 @@ import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.Validator;
 import com.dreameddeath.core.validation.ValidatorContext;
 import org.joda.time.DateTime;
+import rx.Observable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -306,5 +308,11 @@ public class CouchbaseSession implements ICouchbaseSession {
     public IViewQueryResult executeQuery(IViewQuery query){
         return query.getDao().query(this,isCalcOnly(),query);
     }
+
+    @Override
+    public Observable<IViewAsyncQueryResult> executeAsyncQuery(IViewQuery query) throws DaoException,StorageException{
+        return query.getDao().asyncQuery(this,isCalcOnly(),query);
+    }
+
 
 }

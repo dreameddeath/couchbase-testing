@@ -6,9 +6,11 @@ import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.model.view.IViewAsyncQueryResult;
 import com.dreameddeath.core.model.view.IViewQuery;
 import com.dreameddeath.core.model.view.IViewQueryResult;
 import org.joda.time.DateTime;
+import rx.Observable;
 
 /**
  * Created by ceaj8230 on 20/11/2014.
@@ -41,6 +43,7 @@ public interface ICouchbaseSession {
 
     public <T extends CouchbaseDocument> IViewQuery initViewQuery(Class<T> forClass,String viewName) throws DaoException;
     public IViewQueryResult executeQuery(IViewQuery query) throws DaoException,StorageException;
+    public Observable<IViewAsyncQueryResult> executeAsyncQuery(IViewQuery query) throws DaoException,StorageException;
 
     public void reset(); //Clean cache
 }

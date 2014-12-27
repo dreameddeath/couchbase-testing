@@ -20,4 +20,6 @@ public interface IViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> {
     public IViewQuery<TKEY,TVALUE,TDOC> syncWithDoc();
     public ViewQuery toCouchbaseQuery();
     public CouchbaseViewDao<TKEY,TVALUE,TDOC> getDao();
+
+    public IViewQuery<TKEY,TVALUE,TDOC> next(int nb);
 }

@@ -1,6 +1,5 @@
 package com.dreameddeath.core.model.view.impl;
 
-import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.view.Stale;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -12,7 +11,7 @@ import java.util.Collection;
 /**
  * Created by ceaj8230 on 19/12/2014.
  */
-public abstract class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IViewQuery<TKEY,TVALUE,TDOC> {
+public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IViewQuery<TKEY,TVALUE,TDOC> {
     private CouchbaseViewDao<TKEY,TVALUE,TDOC> _dao;
 
     private TKEY _key;
@@ -25,83 +24,50 @@ public abstract class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> impl
     private int _limit=10;
     private boolean _syncWithDoc;
 
-    public enum KeyType{
-        LONG,
-        DOUBLE,
-        BOOLEAN,
-        STRING,
-        ARRAY
-    }
-
-    public abstract KeyType getKeyType();
 
     public ViewQuery(CouchbaseViewDao<TKEY,TVALUE,TDOC> dao){
         _dao = dao;
     }
 
+    public ViewQuery(ViewQuery<TKEY,TVALUE,TDOC> src, int offset){
+        _dao = src._dao;
+        _startKey= src._startKey;
+        _endKey = src._endKey;
+        _key = src._key;
+        _keys = src._keys;
+        _isInclusive = src._isInclusive;
+        _isDescending = src._isDescending;
+        _start = src._start+offset;
+        _limit = offset;
+        _syncWithDoc = src._syncWithDoc;
+    }
+
     @Override
     public CouchbaseViewDao<TKEY,TVALUE,TDOC> getDao(){return _dao;}
+
+    @Override
+    public IViewQuery<TKEY, TVALUE, TDOC> next(int nb) {
+        return new ViewQuery(this,nb);
+    }
 
 
     @Override
     public com.couchbase.client.java.view.ViewQuery toCouchbaseQuery(){
         String designDoc = ICouchbaseBucket.Utils.buildDesignDoc(_dao.getClient().getPrefix(), _dao.getDesignDoc());
         com.couchbase.client.java.view.ViewQuery result = com.couchbase.client.java.view.ViewQuery.from(designDoc,_dao.getViewName());
-        if(_key!=null) {
-            switch(getKeyType()){
-                case BOOLEAN:result.key((Boolean)_key);break;
-                case LONG:result.key((Long)_key);break;
-                case DOUBLE:result.key((Double)_key);break;
-                case STRING:result.key((String)_key);break;
-                case ARRAY:result.key(JsonArray.from(((Collection)_key).toArray()));break;
-            }
-        }
-        else if(_keys!=null){
-            switch(getKeyType()){
-                case BOOLEAN:
-                case LONG:
-                case DOUBLE:
-                case STRING:
-                    result.keys(JsonArray.from(_keys.toArray()));
-                    break;
-                case ARRAY: {
-                    JsonArray keysList = JsonArray.create();
-                    for (TKEY key : _keys) {
-                        keysList.add(JsonArray.from(((Collection)key).toArray()));
-                    }
-                    result.keys(keysList);
-                }
-            }
-        }
+        if(_key!=null) {_dao.getKeyTranscoder().key(result,_key);}
+        else if(_keys!=null){_dao.getKeyTranscoder().keys(result,_keys);}
         else{
-            switch(getKeyType()){
-                case BOOLEAN:
-                    result.startKey((Boolean) _startKey);
-                    result.endKey((Boolean) _key);
-                    break;
-                case LONG:
-                    result.startKey((Long)_startKey);
-                    result.endKey((Long)_endKey);
-                    break;
-                case DOUBLE:
-                    result.startKey((Double)_startKey);
-                    result.endKey((Double)_endKey);
-                    break;
-                case STRING:
-                    result.startKey((String)_startKey);
-                    result.endKey((String)_endKey);
-                    break;
-                case ARRAY:
-                    result.startKey(JsonArray.from(((Collection) _startKey).toArray()));
-                    result.endKey(JsonArray.from(((Collection)_endKey).toArray()));
-                    break;
-            }
+            _dao.getKeyTranscoder().startKey(result, _startKey);
+            _dao.getKeyTranscoder().endKey(result,_endKey);
         }
-        result.descending(_isDescending);
-        result.inclusiveEnd(_isInclusive);
-        result.skip(_start);
-        result.limit(_limit);
-        if(_syncWithDoc) result.stale(Stale.TRUE);
+
+        result.descending(_isDescending).
+                inclusiveEnd(_isInclusive).
+                skip(_start).
+                limit(_limit);
+
+        if(_syncWithDoc) result.stale(Stale.FALSE);
         return result;
     }
 
@@ -158,6 +124,7 @@ public abstract class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> impl
         return this;
     }
 
+    @Override
     public ViewQuery<TKEY,TVALUE,TDOC> syncWithDoc(){
         _syncWithDoc = true;
         return this;

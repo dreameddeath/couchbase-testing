@@ -100,7 +100,7 @@ public class Utils {
         public void shutdown(boolean cleanUp){
             if(cleanUp && _client.getClass().equals(CouchbaseBucketWrapper.class)){
                 ViewQuery listQuery = ViewQuery.from(TESTING_DESIGN_DOC,VIEW_PER_PREFIX).key(_client.getPrefix());
-                listQuery.stale(Stale.TRUE);
+                listQuery.stale(Stale.FALSE);
                 final Bucket bucket=((CouchbaseBucketWrapper) _client).getBucket();
                 bucket.async().query(listQuery).
                         flatMap(

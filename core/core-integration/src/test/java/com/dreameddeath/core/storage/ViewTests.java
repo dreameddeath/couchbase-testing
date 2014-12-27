@@ -8,10 +8,7 @@ import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.view.IViewQuery;
-import com.dreameddeath.core.model.view.IViewQueryResult;
-import com.dreameddeath.core.model.view.IViewValueTranscoder;
-import com.dreameddeath.core.model.view.impl.ViewQuery;
+import com.dreameddeath.core.model.view.*;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.test.Utils;
 import org.junit.After;
@@ -22,14 +19,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 /**
  * Created by ceaj8230 on 18/12/2014.
  */
 public class ViewTests {
 
     public static class TestDoc extends CouchbaseDocument{
-        @DocumentProperty("name")
-        public String name;
+        @DocumentProperty("strVal")
+        public String strVal;
 
         @DocumentProperty("intVal")
         public Integer intVal;
@@ -69,33 +67,20 @@ public class ViewTests {
                 super("test/","testView",parentDao);
             }
 
-            public static class TestViewQuery extends ViewQuery<String,String,TestDoc>{
-                public TestViewQuery(CouchbaseViewDao dao) {super(dao);}
-
-                @Override
-                public KeyType getKeyType() {return KeyType.STRING;}
-            }
             @Override
             public String getContent() {
                 return
-                        "emit(meta.id,doc);"+
-                        "emit(doc.name,doc.name);"+
-                        "emit(doc.doubleVal,doc.doubleVal);"+
-                        "emit(doc.intVal,doc.intVal);"+
-                        "emit(doc.boolVal,doc.boolVal);"+
-                        "emit(doc.longVal,doc.longVal);"+
-                        "emit(doc.arrayVal,doc.arrayVal);";
+                        "emit(meta.id,doc);\n"+
+                        "emit(doc.strVal,doc.strVal);\n"+
+                        "emit(doc.doubleVal,doc.doubleVal);\n"+
+                        "emit(doc.intVal,doc.intVal);\n"+
+                        "emit(doc.boolVal,doc.boolVal);\n"+
+                        "emit(doc.longVal,doc.longVal);\n"+
+                        "emit(doc.arrayVal,doc.arrayVal);\n";
             }
 
-            @Override
-            public IViewQuery<String,String,TestDoc> buildViewQuery() {
-                return new TestViewQuery(this);
-            }
-
-            @Override
-            public IViewValueTranscoder<String> getValueTranscoder() {
-                return null;
-            }
+            @Override public IViewTranscoder<String> getValueTranscoder() {return IViewTranscoder.Utils.stringTranscoder();}
+            @Override public IViewKeyTranscoder<String> getKeyTranscoder() {return IViewTranscoder.Utils.stringKeyTranscoder();}
         }
 
         public static class LocalBucketDocument extends BucketDocument<TestDoc> {
@@ -142,7 +127,7 @@ public class ViewTests {
         ICouchbaseSession session = _env.getSessionFactory().newReadWriteSession(null);
         for(int i=0;i<10;++i){
             TestDoc doc = session.newEntity(TestDoc.class);
-            doc.name="test "+i;
+            doc.strVal="test "+i;
             doc.doubleVal=i*1.1;
             doc.longVal=i+1L;
             doc.intVal=i;
@@ -159,7 +144,9 @@ public class ViewTests {
         IViewQuery<String,String,TestDoc> query = session.initViewQuery(TestDoc.class, "testView");
         query.withStartKey("test 3").withEndKey("test 5",true).withLimit(20).syncWithDoc();
         IViewQueryResult<String,String,TestDoc> result = session.executeQuery(query);
+        List<IViewQueryRow<String,String,TestDoc>> rows = result.getAllRows();
 
+        assertEquals(3,rows.size());
     }
 
     @After
