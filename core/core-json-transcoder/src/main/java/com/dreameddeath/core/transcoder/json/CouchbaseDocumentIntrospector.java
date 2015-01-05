@@ -1,6 +1,7 @@
 package com.dreameddeath.core.transcoder.json;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.util.CouchbaseDocumentFieldReflection;
+import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.Versioned;
 import com.fasterxml.jackson.core.util.VersionUtil;
@@ -10,9 +11,6 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
 public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector implements
         Versioned {
@@ -39,27 +37,24 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
         if(name==null) {
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;
-                if(am.getName().startsWith("get") && (am.getName().length()>3)){
-                    String fieldName = am.getName().substring(3,4).toLowerCase()+am.getName().substring(4);
-
-                    for(Field field: am.getDeclaringClass().getDeclaredFields()) {
-                        DocumentProperty fieldProp = field.getAnnotation(DocumentProperty.class);
-                        if(fieldProp==null) continue;
-                        if(am.getName().equals(fieldProp.getter())){
-                            name = new PropertyName(fieldProp.value());
-                            break;
-                        }
-                        else if(fieldName.equals(fieldProp.value())){
-                            name=new PropertyName(fieldProp.value());
+                if(CouchbaseDocumentStructureReflection.isReflexible(am.getDeclaringClass())) {
+                    if (am.getName().startsWith("get") && (am.getName().length() > 3)) {
+                        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(am.getDeclaringClass());
+                        CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldByGetterName(am.getName());
+                        if (fieldReflection != null) {
+                            name = new PropertyName(fieldReflection.getName());
                         }
                     }
                 }
             }
             else if(a instanceof AnnotatedField){
                 AnnotatedField af = (AnnotatedField) a;
-                DocumentProperty fieldProp = af.getAnnotation(DocumentProperty.class);
-                if(((af.getModifiers() & Modifier.PUBLIC)!=0)&&(fieldProp!=null)){
-                    name=new PropertyName(fieldProp.value());
+                if(CouchbaseDocumentStructureReflection.isReflexible(af.getDeclaringClass())) {
+                    CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(af.getDeclaringClass());
+                    CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredField(af.getAnnotated());
+                    if (fieldReflection != null && fieldReflection.isPureField()) {
+                        name = new PropertyName(fieldReflection.getName());
+                    }
                 }
             }
         }
@@ -74,20 +69,24 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
         if(name==null) {
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;
-                if(am.getName().startsWith("set")) {
-                    for(Field field: am.getDeclaringClass().getDeclaredFields()) {
-                        DocumentProperty fieldProp = field.getAnnotation(DocumentProperty.class);
-                        if((fieldProp!=null) && (am.getName().equals(fieldProp.setter()))){
-                            name = new PropertyName(fieldProp.value());
+                if(CouchbaseDocumentStructureReflection.isReflexible(am.getDeclaringClass())) {
+                    if (am.getName().startsWith("set")) {
+                        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(am.getDeclaringClass());
+                        CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldBySetterName(am.getName());
+                        if (fieldReflection != null) {
+                            name = new PropertyName(fieldReflection.getName());
                         }
                     }
                 }
             }
             else if(a instanceof AnnotatedField){
                 AnnotatedField af = (AnnotatedField) a;
-                DocumentProperty fieldProp = af.getAnnotation(DocumentProperty.class);
-                if(((af.getModifiers() & Modifier.PUBLIC)!=0)&&(fieldProp!=null)){
-                    name=new PropertyName(fieldProp.value());
+                if(CouchbaseDocumentStructureReflection.isReflexible(af.getDeclaringClass())) {
+                    CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(af.getDeclaringClass());
+                    CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredField(af.getAnnotated());
+                    if (fieldReflection != null && fieldReflection.isPureField()) {
+                        name = new PropertyName(fieldReflection.getName());
+                    }
                 }
             }
         }

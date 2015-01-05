@@ -3,16 +3,17 @@ couchbase-testing
 
 [![Build Status](https://travis-ci.org/dreameddeath/couchbase-testing.png?branch=master)](https://travis-ci.org/dreameddeath/couchbase-testing)
 [![Coverage Status](https://img.shields.io/coveralls/dreameddeath/couchbase-testing.svg)](https://coveralls.io/r/dreameddeath/couchbase-testing?branch=master)
+
 TODOs
 -----
 
 ### Couchbase Layer
 - Metric Gathering
-- Views/Queries
-- Getting from Replicate Management (load-balancing)
-- Simulation (in-memory mode) for all verbs (get, update, -- append,prepend, ...--) for views also and cas/expiration
+- ~~Views/Queries~~
+- ~~Getting from Replicate Management (load-balancing)~~
+- Simulation (in-memory mode) for all verbs (~~get, update,~~ append,prepend, ...--) ~~for views~~ also and cas/expiration
 - management of time to simulate data expiration
-- Replicate/Timeout/Persitance Management (ReplicateTo/PersistTo)
+- ~~Replicate/Timeout/Persistance Management (ReplicateTo/PersistTo)~~
 - ~~Unique Index (remain tests plus delete management)~~
 - ~~Datamodel upgrade management~~
 - History :
@@ -32,16 +33,21 @@ TODOs
         - Archive in Zipped format or not
         - Management of DataModel Updates for archives (or use pure anonymous archive? generic json for instance ?)
 
-### Framework Layer
-- event based notification
+### Model layer
 - Be able to generate an model introspector (to extract XSD or Json-schema) - better at compile time
 - Generate classes base on XML Schema or JSon similar (include datamodel upgrade definition)
+- Visitor Tool
+- Validator rewrite
+
+
+### Framework Layer
+- event based notification
 - MDC integration
 - Unified SOAP & REST API (Use of jibx code gen)
 - Configuration (properties + db config + overriding management) + AutoReload - timebase
 
 ### Infrastructure Layer
-- Logging management (local + distributed & correlation)
+- Logging management (local + distributed & correlation) - LogStash
 - Security Layer (and Auditing)
 - Configuration (and configuration override/deploy)
 - Perfs/Stats Monitoring (using - dropwizard metrics)
@@ -65,6 +71,7 @@ TODOs
     * Batch (incremental, full context rerate,...)
     * Near-Realtime
     * RealTime
+    * use of logs for analysis (+elasticsearch)
 - Billing (phases of billing - change of cycle, ...).
     * Here also parts of engine (discount, fees billing, ledger,...)
     * Should be replaceable

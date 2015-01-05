@@ -570,7 +570,6 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         public int totalRows() {
             return _totalRows;
         }
-
     }
 
 }

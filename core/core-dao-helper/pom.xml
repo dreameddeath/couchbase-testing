@@ -6,16 +6,29 @@
         <artifactId>core</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>core-integration</artifactId>
+  <artifactId>core-dao-helper</artifactId>
   <packaging>jar</packaging>
 
-  <name>core-integration</name>
+  <name>core-dao-helper</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${mvn.compiler.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <!-- Disable annotation processing for ourselves. -->
+                    <compilerArgument>-proc:none</compilerArgument>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
   
   <dependencies>
       <dependency>
@@ -41,11 +54,6 @@
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-dao</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-dao-helper</artifactId>
           <version>${project.version}</version>
       </dependency>
       <dependency>

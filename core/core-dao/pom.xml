@@ -28,5 +28,11 @@
           <artifactId>core-couchbase</artifactId>
           <version>${project.version}</version>
       </dependency>
+      <dependency>
+          <groupId>org.apache.velocity</groupId>
+          <artifactId>velocity</artifactId>
+          <version>${velocity.version}</version>
+      </dependency>
+
   </dependencies>
 </project>

@@ -28,6 +28,8 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private ICouchbaseTranscoder<T> _transcoder;
 
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
+    public abstract T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException;
+
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
     public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder(){return Collections.emptyList();}
     public List<CouchbaseViewDao> getViews(){ return Collections.emptyList();}
@@ -51,8 +53,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return this;
     }
 
-    //public abstract BucketDocument<T> buildBucketDocument(T doc);
-    public abstract T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException;
 
     //May be overriden to improve (bulk key attribution)
     protected void buildKeys(ICouchbaseSession session,Collection<T> newObjects) throws DaoException,StorageException{

@@ -95,6 +95,14 @@ public abstract class AbstractTask extends CouchbaseDocumentElement implements I
     public <T> T getJobRequest(Class<T> reqClass){ return (T) getParentJob().getRequest();}
     public <T> T getJobResult(Class<T> resClass){ return (T) getParentJob().getResult();}
 
+    public DateTime getEffectiveDate() {
+        return _effectiveDate.get();
+    }
+
+    public void setEffectiveDate(DateTime effectiveDate) {
+        _effectiveDate.set(effectiveDate);
+    }
+
 
     public enum State{
         UNKNOWN,

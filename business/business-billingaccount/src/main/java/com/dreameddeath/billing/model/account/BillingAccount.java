@@ -19,6 +19,13 @@ import java.util.Collections;
 import java.util.List;
 
 @DocumentDef(domain = "billing",version="1.0.0",name="ba")
+//@Dao(type=withUid,path="ba/",idformat="%010d",pattern="\\d{10}")
+//@ParentDocument(BillingAccount.class)
+//@DaoUid(field='uid',type=Long.class)
+//@View(name=xxx,resource=xxx)
+//@Counter{name="cnt",...}
+//@RestApi(path='bas')
+//@Archive(ttl=20)
 public class BillingAccount extends BusinessCouchbaseDocument {
     @DocumentProperty("uid") @NotNull
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);

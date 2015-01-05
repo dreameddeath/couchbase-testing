@@ -1,0 +1,98 @@
+package ${packageName};
+
+
+import com.dreameddeath.core.annotation.dao.DaoForClass;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDao;
+import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
+import com.dreameddeath.core.exception.dao.DaoException;
+import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.session.ICouchbaseSession;
+import com.dreameddeath.core.storage.BucketDocument;
+
+import ${entity.name};
+import ${baseDao.name};
+
+@DaoForClass(${entity.simpleName}.class)
+public class ${entity.simpleName}Dao extends ${baseDao.simpleName}<${entity.simpleName}> {
+    public static final String FMT_KEY="${dbPath.formatPrefix}${dbPath.baseName}${dbPath.idFormat}";
+    public static final String PATTERN_KEY="${dbPath.patternPrefix}${dbPath.baseName}${dbPath.idPattern}";
+
+
+#foreach($counter in $counters)
+    public static final String CNT_${counter.name.toUpperCase()}="${dbPath.formatPrefix}${dbPath.baseName}${counter.dbName}";
+    public static final String CNT_${counter.name.toUpperCase()}_PATTERN="${dbPath.patternPrefix}${dbPath.baseName}${counter.dbPattern}";
+#end
+
+    public static class LocalBucketDocument extends BucketDocument<${entity.simpleName}> {
+        public LocalBucketDocument(${entity.simpleName} obj){super(obj);}
+    }
+
+    @Override
+    public Class<? extends BucketDocument<${entity.simpleName}>> getBucketDocumentClass() {
+        return LocalBucketDocument.class;
+    }
+
+
+
+#if $counters.size >0
+    @Override
+    public List<CouchbaseCounterDao.Builder> getCountersBuilder() {
+        List<CouchbaseCounterDao.Builder> result = new ArrayList<>();
+#foreach($counter in $counters)
+        result.add(
+                new CouchbaseCounterDao.Builder().withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN).withDefaultValue(${counter.default}).withBaseDao(this)
+        );
+#end
+    }
+#endif
+
+    @Override
+    public ${entity.simpleName} buildKey(ICouchbaseSession session,${entity.simpleName} obj) throws DaoException,StorageException{
+        long result = session.incrCounter(String.format(FMT_KEY, obj.${entity.parentKeyAccessor), 1);
+        obj.getBaseMeta().setKey(String.format(FMT_KEY, obj.${entity.parentKeyAccessor), result));
+        return obj;
+    }
+
+    @Override
+    public String getKeyPattern(){
+        return PATTERN_KEY;
+    }
+
+    @Override
+    public String getKeyFromUID(String uid){
+        return String.format(FMT_KEY,Long.parseLong(uid));
+    }
+
+#if $views.size >0
+    @Override
+    public List<CouchbaseViewDao> getViews(){
+        return Arrays.asList(
+#foreach($view in $views)
+            new ${view.className}ViewDao(this)
+#end
+        );
+    }
+
+#foreach($view in $views)
+public static class ${view.className}ViewDao extends CouchbaseViewDao<${view.key.type},${view.value.type},${entity.simpleName}>{
+            public ${view.className}ViewDao(${entity.simpleName}Dao parentDao){
+                super("${entity.domain}","${view.name}",parentDao);
+            }
+
+            @Override
+            public String getContent() {
+                return
+                        ${view.content}
+            }
+
+            @Override public IViewTranscoder<${view.key.type}> getValueTranscoder(){
+                return ${view.key.transcoder};
+            }
+            @Override public IViewKeyTranscoder<${view.value.type}> getKeyTranscoder(){
+                return ${view.value.transcoder};
+            }
+        }
+#end
+#end
+
+}

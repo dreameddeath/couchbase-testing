@@ -2,7 +2,6 @@ package com.dreameddeath.core.model.document;
 
 //import com.dreameddeath.core.CouchbaseSession;
 
-import com.couchbase.client.deps.com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.dreameddeath.core.model.property.HasParent;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -87,7 +86,7 @@ public class CouchbaseDocument implements HasParent {
                     "lock  : "+_isLocked+",\n"+
                     "size  : "+_dbDocSize+",\n"+
                     "state : "+_docState +",\n"+
-                    "flags : "+ _flags.toString();
+                    "flags : "+_flags.toString();
         }
 
     }
@@ -107,8 +106,7 @@ public class CouchbaseDocument implements HasParent {
     }
 
     public static enum DocumentFlag {
-        CdrBucket(0x01),
-        CdrCompacted(0x02),
+        Binary(0x01),
         Compressed(0x100),
         Deleted(0x200);
 

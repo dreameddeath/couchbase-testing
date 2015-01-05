@@ -22,6 +22,7 @@
         <module>core-session</module>
         <module>core-date</module>
         <module>core-json-transcoder</module>
+        <module>core-dao-helper</module>
         <module>core-integration</module>
     </modules>
   <properties>
