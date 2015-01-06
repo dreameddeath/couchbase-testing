@@ -34,7 +34,7 @@ public class ${entity.simpleName}Dao extends ${baseDao.simpleName}<${entity.simp
 
 
 
-#if $counters.size >0
+#if($counters.size >0)
     @Override
     public List<CouchbaseCounterDao.Builder> getCountersBuilder() {
         List<CouchbaseCounterDao.Builder> result = new ArrayList<>();
@@ -44,12 +44,12 @@ public class ${entity.simpleName}Dao extends ${baseDao.simpleName}<${entity.simp
         );
 #end
     }
-#endif
+#end
 
     @Override
     public ${entity.simpleName} buildKey(ICouchbaseSession session,${entity.simpleName} obj) throws DaoException,StorageException{
-        long result = session.incrCounter(String.format(FMT_KEY, obj.${entity.parentKeyAccessor), 1);
-        obj.getBaseMeta().setKey(String.format(FMT_KEY, obj.${entity.parentKeyAccessor), result));
+        long result = session.incrCounter(String.format(FMT_KEY, obj.${entity.parentKeyAccessor}), 1);
+        obj.getBaseMeta().setKey(String.format(FMT_KEY, obj.${entity.parentKeyAccessor}), result));
         return obj;
     }
 
@@ -63,7 +63,7 @@ public class ${entity.simpleName}Dao extends ${baseDao.simpleName}<${entity.simp
         return String.format(FMT_KEY,Long.parseLong(uid));
     }
 
-#if $views.size >0
+#if($views.size >0)
     @Override
     public List<CouchbaseViewDao> getViews(){
         return Arrays.asList(

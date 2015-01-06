@@ -1,9 +1,11 @@
 package com.dreameddeath.core.util;
 
+import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
+import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ClassInfo;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -25,6 +27,15 @@ public class CouchbaseDocumentStructureReflection {
     public static boolean isReflexible(Class clazz){
         return CouchbaseDocument.class.isAssignableFrom(clazz) || CouchbaseDocumentElement.class.isAssignableFrom(clazz);
     }
+
+    public static boolean isReflexible(Element element){
+        if(element instanceof TypeElement){
+            return AnnotationProcessorUtils.isAssignableFrom(CouchbaseDocument.class,(TypeElement)element) ||AnnotationProcessorUtils.isAssignableFrom(CouchbaseDocumentElement.class,(TypeElement)element);
+        }
+        return false;
+    }
+
+
     public static CouchbaseDocumentStructureReflection getReflectionFromClass(Class element){
         if(!_REFLECTION_CACHE.containsKey(element)){
             _REFLECTION_CACHE.put(element,new CouchbaseDocumentStructureReflection(element));
@@ -47,9 +58,12 @@ public class CouchbaseDocumentStructureReflection {
     }
 
 
-    private Class _rootClass;
-    private String _simpleName;
-    private String _name;
+
+    private ClassInfo _classInfo;
+    private String _structDomain;
+    private String _structName;
+    private String _structVersion;
+    private CouchbaseDocumentStructureReflection _parentClassReflexion;
     private List<CouchbaseDocumentFieldReflection> _fields=new ArrayList<>();
     private Map<String,CouchbaseDocumentFieldReflection> _nameMap=new HashMap<>();
     private Map<String,CouchbaseDocumentFieldReflection> _getterMap=new HashMap<>();
@@ -71,65 +85,54 @@ public class CouchbaseDocumentStructureReflection {
         }
     }
 
-    protected CouchbaseDocumentStructureReflection(Class element){
-        _rootClass = element;
-        _simpleName = element.getSimpleName();
-        _name = element.getName();
-        for(Field member : element.getDeclaredFields()) {
-            DocumentProperty annot = member.getAnnotation(DocumentProperty.class);
-            if (annot == null) continue;
-            addField(new CouchbaseDocumentFieldReflection(member));
+
+    protected void finalizeStructure() {
+        DocumentDef docDefAnnot = _classInfo.getAnnotation(DocumentDef.class);
+        if(docDefAnnot!=null){
+            _structDomain = docDefAnnot.domain();
+            _structName = docDefAnnot.name();
+            _structVersion = docDefAnnot.version();
         }
 
-
-        if(!CouchbaseDocument.class.equals(element) &&
-                !CouchbaseDocumentElement.class.equals(element)){
-            CouchbaseDocumentStructureReflection parentStructure=null;
-            if(CouchbaseDocument.class.isAssignableFrom(element)){
-                CouchbaseDocumentReflection result = CouchbaseDocumentReflection.getReflectionFromClass(element.getSuperclass());
-                parentStructure = result.getStructure();
-            }
-            else{
-                parentStructure = CouchbaseDocumentStructureReflection.getReflectionFromClass(element.getSuperclass());
-            }
-
-            if(parentStructure!=null) {
-                _allFields.addAll(parentStructure._allFields);
-                _allNameMap.putAll(parentStructure._allNameMap);
-            }
+        if(_parentClassReflexion!=null) {
+            _allFields.addAll(_parentClassReflexion._allFields);
+            _allNameMap.putAll(_parentClassReflexion._allNameMap);
         }
         _allFields.addAll(_fields);
         _allNameMap.putAll(_nameMap);
     }
 
+    protected CouchbaseDocumentStructureReflection(Class clazz){
+        _classInfo = new ClassInfo(clazz);
+
+        for(Field member : clazz.getDeclaredFields()) {
+            DocumentProperty annot = member.getAnnotation(DocumentProperty.class);
+            if (annot == null) continue;
+            addField(new CouchbaseDocumentFieldReflection(member));
+        }
+
+        if(CouchbaseDocumentStructureReflection.isReflexible(clazz.getSuperclass())){
+            _parentClassReflexion = CouchbaseDocumentStructureReflection.getReflectionFromClass(clazz.getSuperclass());
+        }
+
+        finalizeStructure();
+    }
+
     protected CouchbaseDocumentStructureReflection(TypeElement element){
-        _simpleName = element.getSimpleName().toString();
-        _name= AnnotationProcessorUtils.getClassName(element);
-        _rootClass = AnnotationProcessorUtils.getClass(element);
+        _classInfo = new ClassInfo((DeclaredType)element.asType());
+
         for(Element elt:element.getEnclosedElements()){
             if(elt.getAnnotation(DocumentProperty.class)!=null){
                 addField(new CouchbaseDocumentFieldReflection(elt));
             }
         }
 
-        if(!CouchbaseDocument.class.getName().equals(_name) &&
-                !CouchbaseDocument.class.getName().equals(_name)){
-            CouchbaseDocumentStructureReflection parentStructure=null;
-            if(AnnotationProcessorUtils.isAssignableFrom(CouchbaseDocument.class,element)){
-                CouchbaseDocumentReflection result = CouchbaseDocumentReflection.getReflectionFromTypeElement(AnnotationProcessorUtils.getSuperClass(element));
-                parentStructure = result.getStructure();
-            }
-            else{
-                parentStructure = CouchbaseDocumentStructureReflection.getReflectionFromTypeElement((TypeElement)((DeclaredType) element.getSuperclass()).asElement());
-            }
-
-            if(parentStructure!=null) {
-                _allFields.addAll(parentStructure._allFields);
-                _allNameMap.putAll(parentStructure._allNameMap);
-            }
+        TypeElement parent = AnnotationProcessorUtils.getSuperClass(element);
+        if((parent!=null) && isReflexible(parent)){
+            _parentClassReflexion = CouchbaseDocumentStructureReflection.getReflectionFromTypeElement(parent);
         }
-        _allFields.addAll(_fields);
-        _allNameMap.putAll(_nameMap);
+
+        finalizeStructure();
     }
 
     public List<CouchbaseDocumentFieldReflection> getDeclaredFields(){
@@ -160,4 +163,28 @@ public class CouchbaseDocumentStructureReflection {
         return _fieldMap.get(field);
     }
 
+    public String getSimpleName() {
+        return _classInfo.getSimpleName();
+    }
+
+    public Class getRootClass() {
+        return _classInfo.getRealClass();
+    }
+
+    public ClassInfo getClassInfo(){
+        return _classInfo;
+    }
+
+
+    public String getStructDomain() {
+        return _structDomain;
+    }
+
+    public String getStructName() {
+        return _structName;
+    }
+
+    public String getStructVersion() {
+        return _structVersion;
+    }
 }

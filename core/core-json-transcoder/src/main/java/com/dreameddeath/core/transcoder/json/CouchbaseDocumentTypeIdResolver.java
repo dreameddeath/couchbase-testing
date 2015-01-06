@@ -72,7 +72,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     public JavaType typeFromId(DatabindContext context, String id) {
         if(!_mapClass.containsKey(id)){
-            _mapClass.put(id, context.getTypeFactory().constructType(Utils.findClassFromVersionnedTypeId(context, id)));
+            _mapClass.put(id, context.getTypeFactory().constructType(Utils.findClassFromVersionnedTypeId(id)));
         }
         return _mapClass.get(id);
     }

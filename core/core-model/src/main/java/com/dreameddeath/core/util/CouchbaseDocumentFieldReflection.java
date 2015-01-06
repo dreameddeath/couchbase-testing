@@ -1,16 +1,14 @@
 package com.dreameddeath.core.util;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
+import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ClassInfo;
+import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ParameterizedInfo;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.*;
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * Created by CEAJ8230 on 04/01/2015.
@@ -29,122 +27,58 @@ public class CouchbaseDocumentFieldReflection {
 
 
     public static class TypeInfo{
-        private boolean _isWildCard=false;
-        private DeclaredType _modeType;
-        private Class<?> _class=null;
-        private boolean _isCollection;
-        private TypeInfo _collectionElementType;
-        private boolean _isMap;
-        private TypeInfo _mapKeyType;
-        private TypeInfo _mapValueType;
-
-        protected TypeInfo getParameterizedArgumentClass(DeclaredType field, int pos){
-            TypeMirror parameter = field.getTypeArguments().get(pos);
-            if(parameter instanceof javax.lang.model.type.WildcardType){
-                TypeMirror upperBound = ((javax.lang.model.type.WildcardType) parameter).getExtendsBound();
-                if(upperBound instanceof DeclaredType){
-                    return new TypeInfo((javax.lang.model.type.WildcardType)parameter,(DeclaredType)upperBound);
-                }
-            }
-            else if(parameter instanceof DeclaredType){
-                return new TypeInfo((DeclaredType)parameter);
-            }
-            return null;
-        }
-
-
-        protected TypeInfo getType(Type type){
-            if(type instanceof Class){
-                return new TypeInfo((Class) type);
-            }
-            else if(type instanceof java.lang.reflect.WildcardType){
-                Type[] types = ((java.lang.reflect.WildcardType)type).getUpperBounds();
-                if(types.length>0){
-                    if(types[0] instanceof Class){
-                        return new TypeInfo((Class) types[0]);
-                    }
-                }
-            }
-            return null;
-        }
-
-        protected TypeInfo getParameterizedArgumentClass(Field field, int pos){
-            Type type = field.getGenericType();
-            return  getType(((ParameterizedType)field.getGenericType()).getActualTypeArguments()[pos]);
-        }
-
-        protected TypeInfo getParameterizedArgumentClass(Method method, int pos){
-            return  getType(((AnnotatedParameterizedType)method.getAnnotatedReturnType()).getAnnotatedActualTypeArguments()[pos].getType());
-        }
-
-
-
-        public TypeInfo(javax.lang.model.type.WildcardType type,DeclaredType upperType){
-            this(upperType);
-            _isWildCard=true;
-        }
+        private ClassInfo _classInfo;
+        private ParameterizedInfo _collectionElementType;
+        private ParameterizedInfo _mapKeyType;
+        private ParameterizedInfo _mapValueType;
 
         public TypeInfo(DeclaredType type){
-            _modeType = type;
-            _class = AnnotationProcessorUtils.getClass(type);
-            if((type.asElement() instanceof TypeElement)){
-                TypeElement typeElement = (TypeElement)type.asElement();
-                if(AnnotationProcessorUtils.isAssignableFrom(Collection.class,typeElement)){
-                    _isCollection = true;
-                    _collectionElementType = getParameterizedArgumentClass(_modeType,0);
-                }
-                else if(AnnotationProcessorUtils.isAssignableFrom(Map.class,typeElement)){
-                    _isMap=true;
-                    _mapKeyType = getParameterizedArgumentClass(type,0);
-                    _mapValueType = getParameterizedArgumentClass(type,1);
-                }
+            _classInfo = new ClassInfo(type);
+            if(_classInfo.isCollection()){
+                _collectionElementType = ParameterizedInfo.getParameterizedArgumentClassInfo(type,0);
+            }
+            else if(_classInfo.isMap()){
+                _mapKeyType = ParameterizedInfo.getParameterizedArgumentClassInfo(type,0);
+                _mapValueType = ParameterizedInfo.getParameterizedArgumentClassInfo(type,1);
             }
         }
 
-        public TypeInfo(Class clazz){
-            _class = clazz;
-            if(Collection.class.isAssignableFrom(_class)) {
-                _isCollection = true;
+        public TypeInfo(Type type){
+            if(type instanceof ParameterizedType) {
+                _classInfo = new ClassInfo((Class) ((ParameterizedType) type).getRawType());
             }
-            else if(Map.class.isAssignableFrom(_class)){
-                _isMap = true;
+            else if(type instanceof Class){
+                _classInfo = new ClassInfo((Class)type);
+            }
+            else if(type instanceof TypeVariable){
+                if(((TypeVariable)type).getBounds()[0] instanceof Class){
+                    _classInfo = new ClassInfo((Class)((TypeVariable)type).getBounds()[0]);
+                }
+            }
+
+            if((_classInfo!=null) && _classInfo.isCollection() && (type instanceof ParameterizedType)){
+                _collectionElementType = ParameterizedInfo.getParameterizedArgumentClass((ParameterizedType)type,0);
+            }
+            else if((_classInfo!=null) && _classInfo.isMap() && (type instanceof ParameterizedType)) {
+                _mapKeyType= ParameterizedInfo.getParameterizedArgumentClass((ParameterizedType)type, 0);
+                _mapValueType= ParameterizedInfo.getParameterizedArgumentClass((ParameterizedType)type, 1);
             }
         }
 
-        public TypeInfo(Class clazz,AccessibleObject getter){
-            this(clazz);
-
-            if(_isCollection){
-                if(getter instanceof Method){
-                    _collectionElementType= getParameterizedArgumentClass((Method) getter, 0);
-                }
-                else{
-                    _collectionElementType= getParameterizedArgumentClass((Field)getter,0);
-                }
-            }
-            else if(_isMap){
-                if(getter instanceof Method){
-                    _mapKeyType = getParameterizedArgumentClass((Method)getter,0);
-                    _mapValueType = getParameterizedArgumentClass((Method)getter,1);
-                }
-                else{
-                    _mapKeyType = getParameterizedArgumentClass((Field)getter,0);
-                    _mapValueType = getParameterizedArgumentClass((Field)getter,1);
-                }
-            }
+        public ClassInfo getMainClass(){
+            return _classInfo;
         }
 
-        public String getName(){
-            if(_class!=null){
-                return _class.getName();
-            }
-            else{
-                return AnnotationProcessorUtils.getClassName((TypeElement)_modeType.asElement());
-            }
+        public ParameterizedInfo getCollectionElementType() {
+            return _collectionElementType;
         }
 
-        public Class getRealClass(){
-            return _class;
+        public ParameterizedInfo getMapKeyType() {
+            return _mapKeyType;
+        }
+
+        public ParameterizedInfo getMapValueType() {
+            return _mapValueType;
         }
 
 
@@ -203,12 +137,12 @@ public class CouchbaseDocumentFieldReflection {
             DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
             String setter = prop.setter();
             if((setter!=null)&& !setter.equals("")){
-                return field.getDeclaringClass().getDeclaredMethod(setter,_effectiveType.getRealClass());
+                return field.getDeclaringClass().getDeclaredMethod(setter,_effectiveType.getMainClass().getRealClass());
             }
             else {
                 String name = nameBuilder(prop.value(), "set");
                 try {
-                    return field.getDeclaringClass().getDeclaredMethod(name,_effectiveType.getRealClass());
+                    return field.getDeclaringClass().getDeclaredMethod(name,_effectiveType.getMainClass().getRealClass());
                 }
                 catch(NoSuchMethodException e){
                     //Do nothing
@@ -217,7 +151,7 @@ public class CouchbaseDocumentFieldReflection {
         }
 
         String name=nameBuilder(field.getName(), "set");
-        return field.getDeclaringClass().getDeclaredMethod(name,_effectiveType.getRealClass());
+        return field.getDeclaringClass().getDeclaredMethod(name,_effectiveType.getMainClass().getRealClass());
     }
 
 
@@ -296,11 +230,11 @@ public class CouchbaseDocumentFieldReflection {
 
         try {
             _getter = fieldGetterFinder(field);
-            _effectiveType = new TypeInfo(((Method)_getter).getReturnType(),_getter);
+            _effectiveType = new TypeInfo(((Method)_getter).getGenericReturnType());
         } catch (NoSuchMethodException e) {
             if ((field.getModifiers() & java.lang.reflect.Modifier.PUBLIC)!=0) {
                 _getter = field;
-                _effectiveType = new TypeInfo(field.getType(),_getter);
+                _effectiveType = new TypeInfo(field.getGenericType());
             } else {
                 //TODO throw an error
             }
@@ -334,7 +268,7 @@ public class CouchbaseDocumentFieldReflection {
     }
 
     public Class<?> getEffectiveTypeClass() {
-        return _effectiveType.getRealClass();
+        return _effectiveType.getMainClass().getRealClass();
     }
     public TypeInfo getEffectiveTypeInfo() {
         return _effectiveType;
@@ -370,31 +304,31 @@ public class CouchbaseDocumentFieldReflection {
     }
 
     public boolean isCollection() {
-        return _effectiveType._isCollection;
+        return _effectiveType.getMainClass().isCollection();
     }
 
     public Class<?> getCollectionElementClass() {
-        return _effectiveType._collectionElementType.getRealClass();
+        return _effectiveType.getCollectionElementType().getRealClass();
     }
-    public TypeInfo getCollectionElementTypeInfo() {
-        return _effectiveType._collectionElementType;
+    public ParameterizedInfo getCollectionElementTypeInfo() {
+        return _effectiveType.getCollectionElementType();
     }
 
     public boolean isMap() {
-        return _effectiveType._isMap;
+        return _effectiveType.getMainClass().isMap();
     }
 
     public Class<?> getMapKeyClass() {
-        return _effectiveType._mapKeyType.getRealClass();
+        return _effectiveType.getMapKeyType().getRealClass();
     }
-    public TypeInfo getMapKeyTypeInfo() {
-        return _effectiveType._mapKeyType;
+    public ParameterizedInfo getMapKeyTypeInfo() {
+        return _effectiveType.getMapKeyType();
     }
 
     public Class<?> getMapValueClass() {
-        return _effectiveType._mapKeyType.getRealClass();
+        return _effectiveType.getMapValueType().getRealClass();
     }
-    public TypeInfo getMapValueTypeInfo() {
-        return _effectiveType._mapKeyType;
+    public ParameterizedInfo getMapValueTypeInfo() {
+        return _effectiveType.getMapValueType();
     }
 }

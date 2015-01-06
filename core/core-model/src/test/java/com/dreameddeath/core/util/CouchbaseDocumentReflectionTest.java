@@ -166,7 +166,5 @@ public class CouchbaseDocumentReflectionTest {
             return SourceVersion.latestSupported();
         }
 
-
-
     }
 }

@@ -60,7 +60,6 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     private Map<String,DocumentSimulator> _dbContent = new ConcurrentHashMap<String,DocumentSimulator>();
 
     public Map<Class,ICouchbaseTranscoder> _transcoderMap = new HashMap<Class,ICouchbaseTranscoder>();
-    //public Map<String,Map<String,CompiledScript>> _viewsMaps = new HashMap<>();
     public Map<String,Map<String,ScriptObjectMirror>> _viewsMaps = new HashMap<>();
 
     @Override

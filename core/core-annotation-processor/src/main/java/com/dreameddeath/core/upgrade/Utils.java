@@ -52,7 +52,7 @@ public class Utils {
             }
             _sourceTypeId = sourceTypeId;
             _access = MethodAccess.get(clazz);
-            Class foundClass = findClassFromVersionnedTypeId(_upgraderObject, _sourceTypeId);
+            Class foundClass = findClassFromVersionnedTypeId(_sourceTypeId);
             _index = _access.getIndex(method,foundClass);
             _nextWrapper = nextWapper;
             _targetTypeId = targetTypeId;
@@ -120,16 +120,16 @@ public class Utils {
         return typeId.split("/");
     }
 
-    public static Class findClassFromVersion(Object dummy,String domain,String name,String version){
-        return findClassFromVersionnedTypeId(dummy,buildVersionnedTypeId(domain,name,version));
+    public static Class findClassFromVersion(String domain,String name,String version){
+        return findClassFromVersionnedTypeId(buildVersionnedTypeId(domain, name, version));
     }
 
-    public static Class findClassFromVersionnedTypeId(Object dummy,String typeId){
+    public static Class findClassFromVersionnedTypeId(String typeId){
         if(!_versionClassMap.containsKey(typeId)){
             String[] parts = extractFromVersionTypeId(typeId);
             //it will naturally exclude patch from typeId
             String filename = Utils.getDocumentEntityFilename(parts[0], parts[1], parts[2]);
-            InputStream is = dummy.getClass().getClassLoader().getResourceAsStream(filename);
+            InputStream is = Utils.class.getClassLoader().getResourceAsStream(filename);
             if(is==null){
                 throw  new RuntimeException("Cannot find/read file <"+filename+"> for id <"+typeId+">");
             }
@@ -145,16 +145,16 @@ public class Utils {
         return _versionClassMap.get(typeId);
     }
 
-    public static UpgradeMethodWrapper getUpgraderReference(Object dummy,String domain,String name,String version){
+    public static UpgradeMethodWrapper getUpgraderReference(String domain,String name,String version){
         String typeId = buildVersionnedTypeId(domain,name,version);
 
         if(! _versionUpgraderMap.containsKey(typeId)){
             String filename = Utils.getDocumentVersionUpgraderFilename(domain, name, version);
-            if(dummy.getClass().getClassLoader().getResource(filename)==null){
+            if(Utils.class.getClassLoader().getResource(filename)==null){
                 _versionUpgraderMap.put(typeId,null);
             }
             else{
-                InputStream is = dummy.getClass().getClassLoader().getResourceAsStream(filename);
+                InputStream is = Utils.class.getClassLoader().getResourceAsStream(filename);
                 BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
                 try {
                     String fullContent = fileReader.readLine();
@@ -165,7 +165,7 @@ public class Utils {
                                 new UpgradeMethodWrapper(
                                         ClassUtil.findClass(parts[0]),
                                         parts[1],
-                                        getUpgraderReference(dummy,idTargetIdParts[0],idTargetIdParts[1],idTargetIdParts[2]),
+                                        getUpgraderReference(idTargetIdParts[0],idTargetIdParts[1],idTargetIdParts[2]),
                                         typeId,
                                         parts[2]
                                 )
@@ -187,7 +187,7 @@ public class Utils {
 
 
     public static Object performUpgrade(Object obj,String domain,String name,String version){
-        UpgradeMethodWrapper updateMethod = getUpgraderReference(obj,domain,name,version);
+        UpgradeMethodWrapper updateMethod = getUpgraderReference(domain,name,version);
         Object res = obj;
         while(updateMethod!=null){
             if (_discardUpgrades.contains(updateMethod.getTargetTypeId()))break;

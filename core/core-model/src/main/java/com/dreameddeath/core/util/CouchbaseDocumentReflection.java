@@ -2,8 +2,11 @@ package com.dreameddeath.core.util;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
+import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ClassInfo;
 
+import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +17,18 @@ import java.util.Map;
 public class CouchbaseDocumentReflection {
     private static Map<Class<? extends CouchbaseDocument>,CouchbaseDocumentReflection> _REFLEXION_CACHE=new HashMap<>();
     private static Map<TypeElement,CouchbaseDocumentReflection> _TYPE_ElEMENT_REFLECTION_CACHE =new HashMap<>();
+
+
+    public static boolean isReflexible(Class clazz){
+        return CouchbaseDocument.class.isAssignableFrom(clazz);
+    }
+
+    public static boolean isReflexible(Element element){
+        if(element instanceof TypeElement){
+            return AnnotationProcessorUtils.isAssignableFrom(CouchbaseDocument.class,(TypeElement)element) ;
+        }
+        return false;
+    }
 
 
     public static CouchbaseDocumentReflection getReflectionFromClass(Class<? extends CouchbaseDocument> doc){
@@ -37,77 +52,46 @@ public class CouchbaseDocumentReflection {
         return _TYPE_ElEMENT_REFLECTION_CACHE.get(element);
     }
 
-
-
-    private String _simpleName;
-    private String _name;
-    private TypeElement _typeElement;
-    private Class<? extends CouchbaseDocument> _document;
+    private ClassInfo _classInfo;
     private CouchbaseDocumentStructureReflection _structure;
     private CouchbaseDocumentReflection _superclassReflection;
 
     protected CouchbaseDocumentReflection(Class<? extends CouchbaseDocument> document){
-        _document = document;
-        _simpleName = document.getSimpleName();
-        _name = document.getName();
-
-        if(!CouchbaseDocument.class.equals(document)){
-            Class<? extends CouchbaseDocument>superclassDocument = (Class<? extends CouchbaseDocument>)document.getSuperclass();
-            _superclassReflection = CouchbaseDocumentReflection.getReflectionFromClass(superclassDocument);
-        }
+        _classInfo = new ClassInfo(document);
         _structure = CouchbaseDocumentStructureReflection.getReflectionFromClass(document);
+
+        if((document.getSuperclass()!=null) && isReflexible(document.getSuperclass())){
+            _superclassReflection = CouchbaseDocumentReflection.getReflectionFromClass((Class<? extends CouchbaseDocument>) (document.getSuperclass()));
+        }
     }
 
-    protected CouchbaseDocumentReflection(TypeElement mirroredElement){
-        _typeElement = mirroredElement;
+    protected CouchbaseDocumentReflection(TypeElement element){
+        _classInfo = new ClassInfo((DeclaredType)element.asType());
+        _structure = CouchbaseDocumentStructureReflection.getReflectionFromTypeElement(element);
 
-        _simpleName = mirroredElement.getSimpleName().toString();
-        _name = AnnotationProcessorUtils.getClassName(mirroredElement);
-        _document = (Class<? extends CouchbaseDocument>) AnnotationProcessorUtils.getClass(mirroredElement);
-        _structure = CouchbaseDocumentStructureReflection.getReflectionFromTypeElement(mirroredElement);
-
-        if(!AnnotationProcessorUtils.getClassName(mirroredElement).equals(CouchbaseDocument.class.getName())) {
-            TypeElement parent = AnnotationProcessorUtils.getSuperClass(mirroredElement);
-            if(parent!=null) {
-                _superclassReflection = CouchbaseDocumentReflection.getReflectionFromTypeElement(parent);
-            }
+        TypeElement parent = AnnotationProcessorUtils.getSuperClass(element);
+        if((parent!=null) && isReflexible(parent)){
+            _superclassReflection = CouchbaseDocumentReflection.getReflectionFromTypeElement(parent);
         }
-
     }
 
     public CouchbaseDocumentStructureReflection getStructure() {
         return _structure;
     }
 
-
     public CouchbaseDocumentReflection getSuperclassReflection() {
         return _superclassReflection;
     }
 
     public String getSimpleName() {
-        return _simpleName;
+        return _classInfo.getSimpleName();
     }
 
     public String getName() {
-        return _name;
+        return _classInfo.getName();
     }
 
-    public <A extends Annotation> A getAnnotation(Class<A> clazz){
-        if(_typeElement!=null) {
-            return _typeElement.getAnnotation(clazz);
-        }
-        else{
-            return _document.getAnnotation(clazz);
-        }
+    public ClassInfo getClassInfo() {
+        return _classInfo;
     }
-
-    public <A extends Annotation> A[] getAnnotations(Class<A> clazz){
-        if(_typeElement!=null) {
-            return _typeElement.getAnnotationsByType(clazz);
-        }
-        else{
-            return _document.getAnnotationsByType(clazz);
-        }
-    }
-
 }
