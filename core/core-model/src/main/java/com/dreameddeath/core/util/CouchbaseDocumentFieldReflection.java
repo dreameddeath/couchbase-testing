@@ -278,6 +278,15 @@ public class CouchbaseDocumentFieldReflection {
         return _getter;
     }
 
+    public String buildGetterCode(){
+        if(isPureField()){
+            return getGetterName();
+        }
+        else{
+            return getGetterName()+"()";
+        }
+    }
+
     public String getGetterName(){
         if(_getterElement != null){
             return _getterElement.getSimpleName().toString();
@@ -293,6 +302,7 @@ public class CouchbaseDocumentFieldReflection {
     public Method getSetter() {
         return _setter;
     }
+
     public String getSetterName(){
         if(_setterElement!=null){
             return _setterElement.getSimpleName().toString();

@@ -195,6 +195,10 @@ public class AnnotationProcessorUtils {
             }
         }
 
+        public DeclaredType getModeType() {
+            return _modeType;
+        }
+
         public Class getRealClass() {
             return _class;
         }

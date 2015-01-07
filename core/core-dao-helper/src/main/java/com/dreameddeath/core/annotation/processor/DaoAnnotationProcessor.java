@@ -1,6 +1,8 @@
 package com.dreameddeath.core.annotation.processor;
 
+
 import com.dreameddeath.core.annotation.dao.DaoEntity;
+import com.dreameddeath.core.annotation.dao.ParentEntity;
 import com.dreameddeath.core.annotation.dao.UidDef;
 import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
@@ -23,9 +25,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.util.Elements;
 import java.net.URL;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by CEAJ8230 on 29/12/2014.
@@ -59,7 +59,9 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             CouchbaseDocumentReflection docReflection = CouchbaseDocumentReflection.getReflectionFromTypeElement((TypeElement)element);
             EntityDef entity = new EntityDef(docReflection);
             DaoDef daoDef = new DaoDef(docReflection);
-
+            DbPathDef dbPathDef =new DbPathDef(docReflection);
+            List<CounterDef>  counterDefList = new ArrayList<>();
+            List<ViewDef> viewDefList = new ArrayList<>();
             VelocityContext context = new VelocityContext();
 
 
@@ -122,13 +124,61 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
         return SourceVersion.latestSupported();
     }
 
-    public static class DbPathDef{
+    public static class DbPathDef {
         private String _baseName;
         private String _idFormat;
         private String _idPattern;
-        private String _formatPrefix="";
-        private String _patternPrefix="";
+        private String _formatPrefix = "";
+        private String _patternPrefix = "";
 
+        public DbPathDef(CouchbaseDocumentReflection docReflection) {
+            DaoEntity annot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
+            _baseName = annot.dbPath();
+            _idFormat = annot.idFormat();
+            _idPattern = annot.idPattern();
+            DbPathDef parentDbPath = null;
+            ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
+            try{
+                if(parentAnnot!=null){
+                    parentDbPath = new DbPathDef(CouchbaseDocumentReflection.getReflectionFromClass(parentAnnot.c()));
+                }
+            }
+            catch (MirroredTypeException e){
+                parentDbPath = new DbPathDef(CouchbaseDocumentReflection.getReflectionFromTypeElement((TypeElement)((DeclaredType) e.getTypeMirror()).asElement()));
+            }
+            if(parentDbPath!=null){
+                _formatPrefix="%s"+parentAnnot.separator();
+                _patternPrefix = parentDbPath.getFullPattern()+parentAnnot.separator();
+            }
+        }
+
+
+        public String getFullPattern(){
+            return _patternPrefix+_idPattern;
+        }
+        public String getFullFormat(){
+            return _formatPrefix+_idFormat;
+        }
+
+        public String getFormatPrefix() {
+            return _formatPrefix;
+        }
+
+        public String getPatternPrefix() {
+            return _patternPrefix;
+        }
+
+        public String getIdFormat() {
+            return _idFormat;
+        }
+
+        public String getIdPattern() {
+            return _idPattern;
+        }
+
+        public String getBaseName() {
+            return _baseName;
+        }
     }
 
     public static class DaoDef{
@@ -139,12 +189,9 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
         private String _uidGetterPattern;
 
         public DaoDef(CouchbaseDocumentReflection docReflection){
-
             try {
                 DaoEntity annot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
-
                 _baseDaoClassInfo= new AnnotationProcessorUtils.ClassInfo(annot.baseDao());
-
             }
             catch(MirroredTypeException e){
                 _baseDaoClassInfo= new AnnotationProcessorUtils.ClassInfo((DeclaredType) e.getTypeMirror());
@@ -177,12 +224,9 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                                 }
 
                             }
-                            _uidGetterPattern+="."+field.getGetterName()+"()";
+                            _uidGetterPattern+="."+field.buildGetterCode();
                             if(partPos+1<fieldNameParts.length){
-                                Class clazz = field.getEffectiveTypeClass();
-                                if(CouchbaseDocumentStructureReflection.isReflexible(clazz)){
-                                    currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClass(field.getEffectiveTypeClass());
-                                }
+                                currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(field.getEffectiveTypeInfo().getMainClass());
                             }
                         }
 
@@ -273,12 +317,23 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
 
     public static class EntityDef{
         private CouchbaseDocumentReflection _docReflection;
-        private String _simpleName;
-        private String _name;
-        private String _domain;
+
         private String _parentKeyAccessor;
         public EntityDef(CouchbaseDocumentReflection docReflection){
             _docReflection = docReflection;
+            ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
+            if(parentAnnot!=null){
+                String[] fieldNameParts = parentAnnot.keyPath().split("\\.");
+                CouchbaseDocumentStructureReflection currStructure = docReflection.getStructure();
+                _parentKeyAccessor = "";
+                for(int partPos=0;partPos<fieldNameParts.length;++partPos){
+                    CouchbaseDocumentFieldReflection field = currStructure.getFieldByName(fieldNameParts[partPos]);
+                    _parentKeyAccessor += "."+field.buildGetterCode();
+                    if(partPos+1<fieldNameParts.length){
+                        currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(field.getEffectiveTypeInfo().getMainClass());
+                    }
+                }
+            }
         }
 
         public String getSimpleName(){
@@ -293,5 +348,8 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             return _docReflection.getStructure().getStructDomain();
         }
 
+        public String getParentKeyAccessor() {
+            return _parentKeyAccessor;
+        }
     }
 }

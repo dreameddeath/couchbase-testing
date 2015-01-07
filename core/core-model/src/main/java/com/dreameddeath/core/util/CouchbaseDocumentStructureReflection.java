@@ -24,6 +24,11 @@ public class CouchbaseDocumentStructureReflection {
     private static Map<TypeElement,CouchbaseDocumentStructureReflection> _TYPE_ElEMENT_REFLECTION_CACHE=new HashMap<>();
 
 
+    public static boolean isReflexible(ClassInfo classInfo){
+        if(classInfo.getRealClass()!=null)return isReflexible(classInfo.getRealClass());
+        else{return isReflexible(classInfo.getModeType().asElement());}
+    }
+
     public static boolean isReflexible(Class clazz){
         return CouchbaseDocument.class.isAssignableFrom(clazz) || CouchbaseDocumentElement.class.isAssignableFrom(clazz);
     }
@@ -35,6 +40,10 @@ public class CouchbaseDocumentStructureReflection {
         return false;
     }
 
+    public static CouchbaseDocumentStructureReflection getReflectionFromClassInfo(ClassInfo classInfo){
+        if(classInfo.getRealClass()!=null)return getReflectionFromClass(classInfo.getRealClass());
+        else return getReflectionFromTypeElement((TypeElement)classInfo.getModeType().asElement());
+    }
 
     public static CouchbaseDocumentStructureReflection getReflectionFromClass(Class element){
         if(!_REFLECTION_CACHE.containsKey(element)){
