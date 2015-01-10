@@ -1,9 +1,15 @@
 package com.dreameddeath.billing.model.installedbase;
 
+import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.account.BillingAccountContributor;
-import com.dreameddeath.billing.model.account.BillingAccountContributorLink;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.annotation.NotNull;
+import com.dreameddeath.core.annotation.dao.Counter;
+import com.dreameddeath.core.annotation.dao.DaoEntity;
+import com.dreameddeath.core.annotation.dao.ParentEntity;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.NumericProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -18,16 +24,20 @@ import java.util.List;
 /**
  * Created by ceaj8230 on 12/08/2014.
  */
+@DocumentDef(domain = "billing",name="base",version = "1.0.0")
+@DaoEntity(baseDao= BusinessCouchbaseDocumentDao.class,dbPath = "base/",idPattern = "\\d{5}",idFormat = "%05d")
+@ParentEntity(c= BillingAccount.class,keyPath = "ba.key",separator = "/")
+@Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 public class BillingInstalledBase extends BillingAccountContributor {
     /**
      *  ba : Link toward the parent billing account
      */
-    @DocumentProperty("ba")
+    @DocumentProperty(value = "ba",getter = "getBaLink",setter = "setBaLink") @NotNull
     private Property<BillingAccountLink> _ba = new StandardProperty<BillingAccountLink>(BillingInstalledBase.this);
     /**
      *  installedBaseLink : Link toward the installed based being billed
      */
-    @DocumentProperty("installedBaseLink")
+    @DocumentProperty("installedBaseLink") @NotNull
     private Property<InstalledBaseLink> _installedBaseLink = new StandardProperty<InstalledBaseLink>(BillingInstalledBase.this);
     /**
      *  billingItems : List the corresponding billing Items

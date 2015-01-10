@@ -102,8 +102,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public T create(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         checkCreatableState(obj);
-        session.validate(obj);
+        //Precreate the key perform the validation with all target data
         if(obj.getBaseMeta().getKey()==null){buildKey(session,obj); }
+        session.validate(obj);
 
         if(!isCalcOnly) {
             getClient().add(obj,getTranscoder());

@@ -1,26 +1,27 @@
-package ${packageName};
+package ${daoDef.packageName};
 
 
 import com.dreameddeath.core.annotation.dao.DaoForClass;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
+import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.storage.BucketDocument;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import ${entity.name};
-import ${baseDao.name};
+import ${daoDef.baseName};
 
 @DaoForClass(${entity.simpleName}.class)
-public class ${entity.simpleName}Dao extends ${baseDao.simpleName}<${entity.simpleName}> {
-    public static final String FMT_KEY="${dbPath.formatPrefix}${dbPath.baseName}${dbPath.idFormat}";
-    public static final String PATTERN_KEY="${dbPath.patternPrefix}${dbPath.baseName}${dbPath.idPattern}";
-
-
+public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simpleName}> {
+    public static final String FMT_KEY="$esc.java($dbPath.fullFormat)";
+    public static final String PATTERN_KEY="$esc.java($dbPath.fullPattern)";
 #foreach($counter in $counters)
-    public static final String CNT_${counter.name.toUpperCase()}="${dbPath.formatPrefix}${dbPath.baseName}${counter.dbName}";
-    public static final String CNT_${counter.name.toUpperCase()}_PATTERN="${dbPath.patternPrefix}${dbPath.baseName}${counter.dbPattern}";
+    public static final String CNT_${counter.name.toUpperCase()}="$esc.java($counter.fullFormat)";
+    public static final String CNT_${counter.name.toUpperCase()}_PATTERN="$esc.java($counter.fullPattern)";
 #end
 
     public static class LocalBucketDocument extends BucketDocument<${entity.simpleName}> {
@@ -32,38 +33,51 @@ public class ${entity.simpleName}Dao extends ${baseDao.simpleName}<${entity.simp
         return LocalBucketDocument.class;
     }
 
+    @Override
+    public ${entity.simpleName} buildKey(ICouchbaseSession session,${entity.simpleName} obj) throws DaoException,StorageException{
+        long result = session.incrCounter(String.format(CNT_${keyCounter.name.toUpperCase()}#if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end),1);
+#if($daoDef.type.hasUid())
+        #if($daoDef.isUidTypeLong())
+            #set($uidInput="result")
+        #else
+            #set($uidInput="String.format(""${esc.java(${dbPath.idFormat})}"",result)")
+        #end
+        obj${daoDef.buildUidSetter($uidInput)};
+#end
+        obj.getBaseMeta().setKey(
+                String.format(FMT_KEY,#if("$!{entity.parentKeyAccessor}"!="")obj${entity.parentKeyAccessor},#end result));
+        return obj;
+    }
 
+#if(${daoDef.type.hasPattern()})
+    @Override
+    public String getKeyPattern(){
+        return PATTERN_KEY;
+    }
+#end
 
-#if($counters.size >0)
+#if(${daoDef.type.hasUid()})
+    @Override
+    public String getKeyFromUID(String uid){
+        return String.format(FMT_KEY,#if($daoDef.isUidTypeLong()) Long.parseLong(uid) #else uid #end );
+    }
+#end
+
+#if($counters.size() >0)
     @Override
     public List<CouchbaseCounterDao.Builder> getCountersBuilder() {
         List<CouchbaseCounterDao.Builder> result = new ArrayList<>();
 #foreach($counter in $counters)
         result.add(
-                new CouchbaseCounterDao.Builder().withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN).withDefaultValue(${counter.default}).withBaseDao(this)
+                new CouchbaseCounterDao.Builder().withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN).withDefaultValue(${counter.defaultValue}).withBaseDao(this)
         );
 #end
+        return result;
     }
 #end
 
-    @Override
-    public ${entity.simpleName} buildKey(ICouchbaseSession session,${entity.simpleName} obj) throws DaoException,StorageException{
-        long result = session.incrCounter(String.format(FMT_KEY, obj.${entity.parentKeyAccessor}), 1);
-        obj.getBaseMeta().setKey(String.format(FMT_KEY, obj.${entity.parentKeyAccessor}), result));
-        return obj;
-    }
 
-    @Override
-    public String getKeyPattern(){
-        return PATTERN_KEY;
-    }
-
-    @Override
-    public String getKeyFromUID(String uid){
-        return String.format(FMT_KEY,Long.parseLong(uid));
-    }
-
-#if($views.size >0)
+#if($views.size() >0)
     @Override
     public List<CouchbaseViewDao> getViews(){
         return Arrays.asList(
@@ -72,9 +86,9 @@ public class ${entity.simpleName}Dao extends ${baseDao.simpleName}<${entity.simp
 #end
         );
     }
-
+""
 #foreach($view in $views)
-public static class ${view.className}ViewDao extends CouchbaseViewDao<${view.key.type},${view.value.type},${entity.simpleName}>{
+    public static class ${view.className}ViewDao extends CouchbaseViewDao<${view.key.type},${view.value.type},${entity.simpleName}>{
             public ${view.className}ViewDao(${entity.simpleName}Dao parentDao){
                 super("${entity.domain}","${view.name}",parentDao);
             }

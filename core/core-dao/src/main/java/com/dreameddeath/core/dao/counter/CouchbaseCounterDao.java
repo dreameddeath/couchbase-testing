@@ -130,12 +130,27 @@ public class CouchbaseCounterDao {
             return this;
         }
 
+        public Builder withDefaultValue(long defaultVal){
+            _defaultValue = defaultVal;
+            return this;
+        }
+
         public Builder withExpiration(Long expiration){
             _expiration = expiration;
             return this;
         }
 
+        public Builder withExpiration(long expiration){
+            _expiration = expiration;
+            return this;
+        }
+
         public Builder withModulus(Long modulus){
+            _modulus = modulus;
+            return this;
+        }
+
+        public Builder withModulus(long modulus){
             _modulus = modulus;
             return this;
         }

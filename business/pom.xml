@@ -43,5 +43,10 @@
             <artifactId>core-business-process</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-integration</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 </dependencies>
 </project>

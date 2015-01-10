@@ -71,6 +71,7 @@
       <junit.version>4.11</junit.version>
       <apache.common.version>2.6</apache.common.version>
       <apache.common.codec.version>1.9</apache.common.codec.version>
+      <apache.common.lang3>3.3.1</apache.common.lang3>
       <jackson.version>2.4.1</jackson.version>
       <joda-time.version>2.3</joda-time.version>
       <aspectj.version>1.7.4</aspectj.version>
@@ -83,7 +84,7 @@
       <clojure.version>1.5.1</clojure.version>
       <antlr.version>4.3</antlr.version>
       <velocity.version>1.7</velocity.version>
-
+      <velocity.tootls.version>2.0</velocity.tootls.version>
       <!-- maven versions-->
       <mojo.builder.helper.version>1.9.1</mojo.builder.helper.version>
       <coveralls.mvn.plugin.version>3.0.1</coveralls.mvn.plugin.version>

@@ -5,6 +5,10 @@ import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
+import com.dreameddeath.core.annotation.dao.Counter;
+import com.dreameddeath.core.annotation.dao.DaoEntity;
+import com.dreameddeath.core.annotation.dao.UidDef;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -26,6 +30,9 @@ import java.util.List;
 //@Counter{name="cnt",...}
 //@RestApi(path='bas')
 //@Archive(ttl=20)
+@DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "ba/",idPattern = "\\d{10}",idFormat = "%010d")
+@Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
+@UidDef(fieldName = "uid")
 public class BillingAccount extends BusinessCouchbaseDocument {
     @DocumentProperty("uid") @NotNull
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);

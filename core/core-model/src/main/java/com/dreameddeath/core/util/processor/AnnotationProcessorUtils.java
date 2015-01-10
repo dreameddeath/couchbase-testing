@@ -1,6 +1,7 @@
 package com.dreameddeath.core.util.processor;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -30,6 +31,42 @@ public class AnnotationProcessorUtils {
             }
         }
         return result;
+    }
+
+    public static boolean isAssignableFrom(TypeMirror targetType,TypeMirror type){
+        if((targetType instanceof DeclaredType)&&(type instanceof DeclaredType)){
+            Element targetElement = ((DeclaredType) targetType).asElement();
+            Element element = ((DeclaredType) type).asElement();
+            if (
+                    (targetElement instanceof TypeElement)&&
+                    (element instanceof TypeElement)
+                )
+            {
+             return isAssignableFrom((TypeElement)targetElement,(TypeElement)element);
+            }
+        }
+        return false;
+    }
+
+    public static boolean isAssignableFrom(TypeElement targetElement,TypeElement element){
+        TypeElement currentElement = element;
+
+        //Compare at interface level
+        for (TypeMirror interfaceType : element.getInterfaces()) {
+            Element interfaceElement = ((DeclaredType) interfaceType).asElement();
+            if (targetElement.equals(interfaceElement)) {
+                return true;
+            }
+        }
+
+        //Compare at class level
+        while(currentElement!=null){
+            if(targetElement.equals(currentElement)){
+                return true;
+            }
+            currentElement = getSuperClass(currentElement);
+        }
+        return false;
     }
 
     public static boolean isAssignableFrom(Class clazz, TypeElement element) {
@@ -142,20 +179,6 @@ public class AnnotationProcessorUtils {
         private boolean _isCollection;
         private boolean _isMap;
 
-        /*public static ClassInfo getClassInfoFromType(Type type) {
-            if (type instanceof Class) {
-                return new ClassInfo((Class) type);
-            } else if (type instanceof java.lang.reflect.WildcardType) {
-                Type[] types = ((java.lang.reflect.WildcardType) type).getUpperBounds();
-                if (types.length > 0) {
-                    if (types[0] instanceof Class) {
-                        return new ClassInfo((Class) types[0]);
-                    }
-                }
-            }
-            return null;
-        }*/
-
         public ClassInfo(DeclaredType type) {
             _modeType = type;
             _class = AnnotationProcessorUtils.getClass(type);
@@ -220,6 +243,15 @@ public class AnnotationProcessorUtils {
             }
         }
 
+        public <A extends Annotation> A[] getAnnotationByType(Class<A> clazz){
+            if(_class!=null){
+                return _class.getAnnotationsByType(clazz);
+            }
+            else{
+                return _modeType.asElement().getAnnotationsByType(clazz);
+            }
+        }
+
         public boolean isInstanceOf(Class clazz){
             if(_class!=null){
                 return clazz.isAssignableFrom(_class);
@@ -227,6 +259,22 @@ public class AnnotationProcessorUtils {
             else {
                 return AnnotationProcessorUtils.isAssignableFrom(clazz, (TypeElement) _modeType.asElement());
             }
+        }
+
+        public String getPackageName(){
+            if(_class!=null){
+                return _class.getPackage().getName();
+            }
+            else{
+                Element currElement =_modeType.asElement();
+                while(currElement.getEnclosingElement()!=null){
+                    currElement = currElement.getEnclosingElement();
+                    if(currElement.getKind().equals(ElementKind.PACKAGE)){
+                        return ((PackageElement) currElement).getQualifiedName().toString();
+                    }
+                }
+            }
+            return null;
         }
     }
 }

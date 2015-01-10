@@ -76,5 +76,15 @@
           <artifactId>core-business-process</artifactId>
           <version>${project.version}</version>
       </dependency>
+      <dependency>
+          <groupId>org.apache.velocity</groupId>
+          <artifactId>velocity</artifactId>
+          <version>${velocity.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+          <version>${apache.common.lang3}</version>
+      </dependency>
   </dependencies>
 </project>

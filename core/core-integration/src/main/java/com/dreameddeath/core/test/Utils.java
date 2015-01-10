@@ -3,6 +3,7 @@ package com.dreameddeath.core.test;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.view.*;
+import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -48,6 +49,12 @@ public class Utils {
         public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao dao,Class<TOBJ> objClass){
             _sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(_client), new GenericJacksonTranscoder<>(objClass));
         }
+
+        public void addDocumentDao(CouchbaseDocumentDao dao){
+            Class<? extends CouchbaseDocument> clazz = dao.getClass().getAnnotation(DaoForClass.class).value();
+            _sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(_client), new GenericJacksonTranscoder<>(clazz));
+        }
+
 
         public Map<String,String> testingUtilsViews(){
             Map<String,String> listViews = new HashMap<>();

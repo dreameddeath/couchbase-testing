@@ -1,6 +1,7 @@
 package com.dreameddeath.core.util;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
 import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ClassInfo;
 import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ParameterizedInfo;
 
@@ -189,7 +190,7 @@ public class CouchbaseDocumentFieldReflection {
             if((sibling instanceof ExecutableElement) && sibling.getSimpleName().toString().equals(name)){
                 ExecutableElement methodElement = (ExecutableElement) sibling;
                 if(isSetter){
-                    if((methodElement.getParameters().size()==1) && methodElement.getParameters().get(0).asType().equals(getType(_getterElement))){
+                    if((methodElement.getParameters().size()==1) && AnnotationProcessorUtils.isAssignableFrom(methodElement.getParameters().get(0).asType(),getType(_getterElement))){
                         return sibling;
                     }
                 }
@@ -212,15 +213,19 @@ public class CouchbaseDocumentFieldReflection {
             if(element.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)){
                 _getterElement = element;
             }
+            else{
+                throw new RuntimeException("Cannot find getter of field "+_name+ " for entity "+element.getEnclosingElement().getSimpleName());
+            }
         }
         TypeMirror effectiveType = getType(_getterElement);
         if(effectiveType instanceof DeclaredType){
             _effectiveType = new TypeInfo((DeclaredType)effectiveType);
         }
 
-        _setterElement= fieldSetterFinder(element);
-        if(_setterElement!=null){
 
+        _setterElement= fieldSetterFinder(element);
+        if((_setterElement==null) && !isPureField()){
+            throw new RuntimeException("Cannot find setter of field "+_name+ " for entity" + element.getEnclosingElement().getSimpleName());
         }
 
     }
