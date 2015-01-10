@@ -53,7 +53,7 @@ TODOs
 - Perfs/Stats Monitoring (using - dropwizard metrics)
 - Version Upgrades
 - Integration with Storm - DRPC, standard - , kafka (& ElasticSearch, Esper?)
-
+- Integration with Apache Curator
 
 ### Testing
 - Job Unit Tests (~ integration tests) with or without calc only, db simulator

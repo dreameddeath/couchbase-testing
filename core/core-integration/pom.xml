@@ -63,5 +63,10 @@
           <artifactId>core-business-process</artifactId>
           <version>${project.version}</version>
       </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-annotation-processor</artifactId>
+          <version>${project.version}</version>
+      </dependency>
   </dependencies>
 </project>

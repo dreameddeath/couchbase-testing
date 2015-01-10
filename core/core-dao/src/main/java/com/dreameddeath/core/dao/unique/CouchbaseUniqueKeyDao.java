@@ -55,6 +55,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         public LocalBucketDocument(CouchbaseUniqueKey obj){super(obj);}
     }
 
+    @Override
     public Class<? extends BucketDocument<CouchbaseUniqueKey>> getBucketDocumentClass(){return LocalBucketDocument.class;}
 
 
