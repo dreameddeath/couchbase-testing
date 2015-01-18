@@ -49,11 +49,11 @@ TODOs
 ### Infrastructure Layer
 - Logging management (local + distributed & correlation) - LogStash
 - Security Layer (and Auditing)
-- Configuration (and configuration override/deploy)
+- Configuration (and configuration override/deploy) - have look at Netflix's archaius
 - Perfs/Stats Monitoring (using - dropwizard metrics)
 - Version Upgrades
 - Integration with Storm - DRPC, standard - , kafka (& ElasticSearch, Esper?)
-- Integration with Apache Curator
+- Integration with Apache Curator (zookeeper, service dispatch)
 
 ### Testing
 - Job Unit Tests (~ integration tests) with or without calc only, db simulator

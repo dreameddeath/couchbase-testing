@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+
+            http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="ignoreResourceNotFound" value="true"></property>
+        <property name="ignoreUnresolvablePlaceholders" value="true"></property>
+        <property name="systemPropertiesMode" value="2"></property>
+        <property name="locations">
+            <list>
+                <value>classpath:local.rest.application.properties</value>
+                <value>classpath:rest.application.properties</value>
+            </list>
+        </property>
+    </bean>
+
+
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+
+    <bean id="curatorFramework" class="org.apache.curator.framework.CuratorFrameworkFactory" factory-method="newClient" init-method="start">
+        <constructor-arg>
+            <value>${zookeeperAddress}</value>
+        </constructor-arg>
+        <constructor-arg>
+            <bean class="org.apache.curator.retry.ExponentialBackoffRetry">
+                <constructor-arg><value>1000</value></constructor-arg>
+                <constructor-arg><value>3</value></constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    <jaxrs:server id="apis" transportId="http://cxf.apache.org/transports/http" address="/api" >
+        <jaxrs:serviceBeans>
+            <bean id="serviceTest" class="com.dreameddeath.curator.server.ServiceTest" >
+                <property name="endPoint" ref="apis"/>
+            </bean>
+            <bean id="serviceTestV2" class="com.dreameddeath.curator.server.ServiceTestV2" >
+                <property name="endPoint" ref="apis"/>
+            </bean>
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
+                <constructor-arg>
+                    <bean class="com.dreameddeath.core.service.ServiceJacksonObjectMapper" />
+                </constructor-arg>
+            </bean>
+        </jaxrs:providers>
+    </jaxrs:server>
+    <jaxrs:server id="apisv2" transportId="http://cxf.apache.org/transports/http" address="/apiV2" >
+        <jaxrs:serviceBeans>
+            <bean id="v2serviceTestV2" class="com.dreameddeath.curator.server.ServiceTestV2" >
+                <property name="endPoint" ref="apisv2"/>
+            </bean>
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
+                <constructor-arg>
+                    <bean class="com.dreameddeath.core.service.ServiceJacksonObjectMapper" />
+                </constructor-arg>
+            </bean>
+        </jaxrs:providers>
+    </jaxrs:server>
+
+    <bean id="serviceDiscoverer" class="com.dreameddeath.core.service.ServiceDiscoverer" init-method="start">
+        <constructor-arg><ref bean="curatorFramework" /></constructor-arg>
+        <constructor-arg><value>${serviceBasePath}</value></constructor-arg>
+    </bean>
+
+    <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >
+        <jaxrs:serviceBeans>
+            <bean id="serviceDiscovery" class="com.dreameddeath.core.service.RestServiceDiscovery" >
+                <property name="serviceDiscoverer" ref="serviceDiscoverer"/>
+            </bean>
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
+                <constructor-arg>
+                    <bean class="com.dreameddeath.core.service.ServiceJacksonObjectMapper" />
+                </constructor-arg>
+            </bean>
+        </jaxrs:providers>
+    </jaxrs:server>
+</beans>

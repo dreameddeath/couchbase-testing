@@ -1,6 +1,5 @@
 package com.dreameddeath.core.upgrade;
 
-import com.couchbase.client.deps.com.fasterxml.jackson.databind.util.ClassUtil;
 import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.IVersionedDocument;
@@ -136,7 +135,7 @@ public class Utils {
             BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
             try {
                 String className = fileReader.readLine();
-                _versionClassMap.put(typeId, ClassUtil.findClass(className));
+                _versionClassMap.put(typeId, Utils.class.getClassLoader().loadClass(className));
             }
             catch(ClassNotFoundException|IOException e){
                 throw  new RuntimeException("Cannot find/read file <"+filename+"> for id <"+typeId+">",e);
@@ -163,7 +162,7 @@ public class Utils {
 
                     _versionUpgraderMap.put(typeId,
                                 new UpgradeMethodWrapper(
-                                        ClassUtil.findClass(parts[0]),
+                                        Utils.class.getClassLoader().loadClass(parts[0]),
                                         parts[1],
                                         getUpgraderReference(idTargetIdParts[0],idTargetIdParts[1],idTargetIdParts[2]),
                                         typeId,

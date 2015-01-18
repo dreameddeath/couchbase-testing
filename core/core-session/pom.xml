@@ -11,12 +11,9 @@
 
   <name>core-session</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
-  
   <dependencies>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>

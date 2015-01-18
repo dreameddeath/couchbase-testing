@@ -5,6 +5,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import org.junit.Test;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -14,16 +15,15 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.tools.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class CouchbaseDocumentReflectionTest {
 
@@ -78,21 +78,25 @@ public class CouchbaseDocumentReflectionTest {
 
     @Test
     public void testCouchbaseDocumentReflection() throws Exception{
-        System.out.println(TestAnnotation.class.getName());
-        CouchbaseDocumentReflection result = CouchbaseDocumentReflection.getReflectionFromClass(TestInherited.class);
+        CouchbaseDocumentReflection refectionResult = CouchbaseDocumentReflection.getReflectionFromClass(TestInherited.class);
 
-        assertEquals(2,result.getStructure().getDeclaredFields().size());
-        assertEquals(7,result.getStructure().getFields().size());
-        assertEquals(5,result.getSuperclassReflection().getStructure().getDeclaredFields().size());
+        assertEquals(2, refectionResult.getStructure().getDeclaredFields().size());
+        assertEquals(7, refectionResult.getStructure().getFields().size());
+        assertEquals(5,refectionResult.getSuperclassReflection().getStructure().getDeclaredFields().size());
 
-        assertEquals(TestElement.class,result.getStructure().getFieldByName("testComplexElement").getCollectionElementClass());
-        assertEquals(TestInherited.class.getDeclaredMethod("getDocProp"),result.getStructure().getFieldByName("docProp").getGetter());
-        assertEquals(TestInherited.class.getDeclaredMethod("setDocProp",Long.class),result.getStructure().getFieldByName("docProp").getSetter());
-        assertEquals(TestInherited.class.getDeclaredMethod("getModifiedAccessors2"),result.getStructure().getFieldByName("modifiedAccessors").getGetter());
-        assertEquals(TestInherited.class.getDeclaredMethod("setModifiedAccessors2",String.class),result.getStructure().getFieldByName("modifiedAccessors").getSetter());
+        assertEquals(TestElement.class, refectionResult.getStructure().getFieldByName("testComplexElement").getCollectionElementClass());
+        assertEquals(TestInherited.class.getDeclaredMethod("getDocProp"),refectionResult.getStructure().getFieldByName("docProp").getGetter());
+        assertEquals(TestInherited.class.getDeclaredMethod("setDocProp", Long.class), refectionResult.getStructure().getFieldByName("docProp").getSetter());
+        assertEquals(TestInherited.class.getDeclaredMethod("getModifiedAccessors2"),refectionResult.getStructure().getFieldByName("modifiedAccessors").getGetter());
+        assertEquals(TestInherited.class.getDeclaredMethod("setModifiedAccessors2", String.class), refectionResult.getStructure().getFieldByName("modifiedAccessors").getSetter());
 
 
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        AnnotationProcessorTestingWrapper wrapper = new AnnotationProcessorTestingWrapper();
+        wrapper
+                .withTempDirectoryPrefix("CouchbaseDocumentReflectionTest")
+                .withAnnotationProcessor(new TestAnnotationProcessor());
+
+        Map<String,String> sources = new HashMap<>();
 
         StringWriter writer = new StringWriter();
         PrintWriter out = new PrintWriter(writer);
@@ -114,36 +118,15 @@ public class CouchbaseDocumentReflectionTest {
         out.println("  }");
         out.println("}");
         out.close();
-        JavaFileObject file = new JavaSourceFromString("com.dreameddeath.core.util.TypeMirrorInherited", writer.toString());
+        sources.put("com.dreameddeath.core.util.TypeMirrorInherited", writer.toString());
 
-        Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file);
-
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-
-        JavaCompiler.CompilationTask task = compiler.getTask(null, null, diagnostics, null, null, compilationUnits);
-        task.setProcessors(Arrays.asList(new TestAnnotationProcessor()));
-
-        Boolean success = task.call();
-        System.out.println("Success: " + success);
-
-
-        /*Class compiledClass = Class.forName("com.dreameddeath.core.util.TypeMirrorInherited");
-        assertEquals("TypeMirrorInherited",compiledClass.getSimpleName());*/
+        AnnotationProcessorTestingWrapper.Result compilingResult = wrapper.run(sources);
+        assertTrue(compilingResult.getResult());
+        Class compiledClass = compilingResult.getClass("com.dreameddeath.core.util.TypeMirrorInherited");
+        assertEquals("TypeMirrorInherited",compiledClass.getSimpleName());
+        compilingResult.cleanUp();
     }
 
-    class JavaSourceFromString extends SimpleJavaFileObject {
-        final String code;
-
-        JavaSourceFromString(String name, String code) {
-            super(URI.create("string:///" + name.replace('.', '/') + Kind.SOURCE.extension),Kind.SOURCE);
-            this.code = code;
-        }
-
-        @Override
-        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-            return code;
-        }
-    }
 
 
     @SupportedAnnotationTypes(

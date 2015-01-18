@@ -5,6 +5,7 @@ import javax.tools.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,14 +19,12 @@ public class AnnotationProcessorTestingWrapper {
     private String _tempDirectoryPrefix;
     private List<Processor> _annotationProcessors=new ArrayList<>();
 
-    public Result run(String path) throws Exception {
+    public Result run(Iterable<JavaFileObject> files) throws Exception{
         Result result = new Result();
 
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
         result.setDiagnostics(diagnostics);
 
-        //String source = this.getClass().getClassLoader().getResource(path).getPath();
-        Iterable<JavaFileObject> files = getSourceFiles(path);
         result.setSourceFiles(files);
 
         Path tmpDir = Files.createTempDirectory(_tempDirectoryPrefix);
@@ -42,6 +41,20 @@ public class AnnotationProcessorTestingWrapper {
         result.setResult(task.call());
         return result;
     }
+
+    public Result run(String path) throws Exception {
+        Iterable<JavaFileObject> files = getSourceFiles(path);
+        return run(files);
+    }
+
+    public Result run(Map<String,String> sources) throws Exception {
+        List<JavaFileObject> files=new ArrayList<>();
+        for(Map.Entry<String,String> srcDef :sources.entrySet()){
+            files.add(new JavaSourceFromString(srcDef.getKey(),srcDef.getValue()));
+        }
+        return run(files);
+    }
+
 
     private Iterable<JavaFileObject> getSourceFiles(String p_path) throws Exception {
         StandardJavaFileManager files = _compiler.getStandardFileManager(null, null, null);
@@ -180,4 +193,17 @@ public class AnnotationProcessorTestingWrapper {
         }
     }
 
+    class JavaSourceFromString extends SimpleJavaFileObject {
+        final String code;
+
+        JavaSourceFromString(String name, String code) {
+            super(URI.create("string:///" + name.replace('.', '/') + Kind.SOURCE.extension),Kind.SOURCE);
+            this.code = code;
+        }
+
+        @Override
+        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
+            return code;
+        }
+    }
 }

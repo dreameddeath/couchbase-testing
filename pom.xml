@@ -52,39 +52,66 @@
   </build>
 
   <modules>
-    <module>core</module>
-    <module>business</module>
-    <module>infrastructure</module>
+      <module>core</module>
+      <module>business</module>
+      <module>infrastructure</module>
       <module>testing</module>
     <!--<module>minimal-rating-engine</module>-->
   </modules>
     
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <java.version>1.8</java.version>
 
-      <couchbase.version>2.0.0</couchbase.version>
-      <cglib.version>3.1</cglib.version>
-      <google.protobuf.version>2.5.0</google.protobuf.version>
       <logback.version>1.1.2</logback.version>
       <slf4j.version>1.7.6</slf4j.version>
       <junit.version>4.11</junit.version>
+
+      <couchbase.version>2.0.0</couchbase.version>
+
+      <!-- Code Generation library -->
+      <cglib.version>3.1</cglib.version>
+      <javassist.version>3.12.1.GA</javassist.version>
+      <reflectasm.version>1.10.0</reflectasm.version>
+      <aspectj.version>1.7.4</aspectj.version>
+      <aspectj-mvn.version>1.6</aspectj-mvn.version>
+
+      <!-- Data Mapper -->
+      <jackson.version>2.4.1</jackson.version>
+      <google.protobuf.version>2.5.0</google.protobuf.version>
+
+      <!-- utilities library -->
+      <google.guava.version>18.0</google.guava.version>
       <apache.common.version>2.6</apache.common.version>
       <apache.common.codec.version>1.9</apache.common.codec.version>
       <apache.common.lang3>3.3.1</apache.common.lang3>
-      <jackson.version>2.4.1</jackson.version>
       <joda-time.version>2.3</joda-time.version>
-      <aspectj.version>1.7.4</aspectj.version>
-      <aspectj-mvn.version>1.6</aspectj-mvn.version>
+
+      <!-- Rest -->
+      <apache.cxf.jaxrs.version>3.0.3</apache.cxf.jaxrs.version>
+      <apache.cxf.http.jetty.version>3.0.3</apache.cxf.http.jetty.version>
+      <jetty.version>9.2.6.v20141205</jetty.version>
+
       <rxjava.version>1.0.0-rc.3</rxjava.version>
-      <javassist.version>3.12.1.GA</javassist.version>
-      <google.guava.version>18.0</google.guava.version>
-      <reflectasm.version>1.10.0</reflectasm.version>
+
+      <!--Infrastructure - Storm -->
       <storm.version>0.9.3</storm.version>
       <clojure.version>1.5.1</clojure.version>
+
       <antlr.version>4.3</antlr.version>
       <velocity.version>1.7</velocity.version>
       <velocity.tootls.version>2.0</velocity.tootls.version>
+
+      <!-- spring lib -->
+      <spring.version>4.1.4.RELEASE</spring.version>
+      <spring.core.version>4.1.4.RELEASE</spring.core.version>
+      <spring.context.version>4.1.4.RELEASE</spring.context.version>
+      <spring.web.version>4.1.4.RELEASE</spring.web.version>
+
+      <!--netflix lib reuse -->
+      <curator.version>2.7.0</curator.version>
+      <archaius.version>0.6.5</archaius.version>
+
       <!-- maven versions-->
       <mojo.builder.helper.version>1.9.1</mojo.builder.helper.version>
       <coveralls.mvn.plugin.version>3.0.1</coveralls.mvn.plugin.version>
@@ -102,16 +129,6 @@
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
         <version>${google.protobuf.version}</version>
-    </dependency>
-   <!-- <dependency>
-      <groupId>com.couchbase.client</groupId>
-      <artifactId>couchbase-client</artifactId>
-      <version>${couchbase.version}</version>
-    </dependency>-->
-    <dependency>
-          <groupId>com.couchbase.client</groupId>
-          <artifactId>java-client</artifactId>
-          <version>${couchbase.version}</version>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
@@ -149,5 +166,11 @@
           <artifactId>javassist</artifactId>
           <version>${javassist.version}</version>
       </dependency>
+      <dependency>
+          <groupId>com.netflix.archaius</groupId>
+          <artifactId>archaius-core</artifactId>
+          <version>${archaius.version}</version>
+      </dependency>
+
   </dependencies>
 </project>
