@@ -1,4 +1,4 @@
-package com.dreameddeath.core.service;
+package com.dreameddeath.core.service.registrar;
 
 import com.dreameddeath.core.annotation.service.ServiceDef;
 import com.dreameddeath.core.model.ServiceDescription;

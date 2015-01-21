@@ -1,7 +1,7 @@
 package com.dreameddeath.curator.server;
 
 import com.dreameddeath.core.annotation.service.ServiceDef;
-import com.dreameddeath.core.service.AbstractExposableService;
+import com.dreameddeath.core.service.registrar.AbstractExposableService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;

@@ -1,6 +1,6 @@
 package com.dreameddeath.curator.server;
 
-import com.dreameddeath.core.service.ServiceRegistrar;
+import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;

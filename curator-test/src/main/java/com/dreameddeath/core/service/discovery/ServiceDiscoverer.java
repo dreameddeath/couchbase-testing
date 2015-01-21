@@ -1,4 +1,4 @@
-package com.dreameddeath.core.service;
+package com.dreameddeath.core.service.discovery;
 
 import com.dreameddeath.core.model.ServiceDescription;
 import com.dreameddeath.core.model.ServicesInstanceDescription;

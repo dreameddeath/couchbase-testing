@@ -14,7 +14,7 @@ Json Comments
 ```
 # [eol commment]
 // [eol comment]
-/* [multiline 
+/* [multiline
 comment]
 */
 xxx /* embedded comment */ yyy
@@ -36,7 +36,7 @@ Json XPath Syntax :
 
 ```
 .. : (parent node)
-field1.field2 : access to subfield field2. If field1 is an array, it corresponds to list of all field2 within the array 
+field1.field2 : access to subfield field2. If field1 is an array, it corresponds to list of all field2 within the array
 field1(0).field2 : field2 of first element. raise an empty list if field1 is not an array
 field1.*.field2 : access to subfield field2 with 1 intermediate field name (unknown name)
 field1.**.field2 : access to subfield field2 what ever intermediate fields existing
