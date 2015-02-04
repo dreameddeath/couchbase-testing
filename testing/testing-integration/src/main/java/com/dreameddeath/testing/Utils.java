@@ -1,4 +1,4 @@
-package com.dreameddeath.core.test;
+package com.dreameddeath.testing;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
@@ -10,9 +10,9 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.storage.ICouchbaseBucket;
-import com.dreameddeath.core.storage.impl.CouchbaseBucketSimulator;
 import com.dreameddeath.core.storage.impl.CouchbaseBucketWrapper;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +54,6 @@ public class Utils {
             Class<? extends CouchbaseDocument> clazz = dao.getClass().getAnnotation(DaoForClass.class).value();
             _sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(_client), new GenericJacksonTranscoder<>(clazz));
         }
-
 
         public Map<String,String> testingUtilsViews(){
             Map<String,String> listViews = new HashMap<>();
@@ -120,8 +119,5 @@ public class Utils {
             }
             _client.shutdown();
         }
-
     }
-
-
 }

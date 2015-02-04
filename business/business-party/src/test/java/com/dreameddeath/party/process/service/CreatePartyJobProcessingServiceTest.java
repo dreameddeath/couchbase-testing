@@ -8,16 +8,16 @@ import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.storage.impl.CouchbaseBucketSimulator;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.process.model.CreatePartyJob;
 import com.dreameddeath.party.process.model.CreatePartyRequest;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class CreatePartyJobProcessingServiceTest {
     private final static CouchbaseSessionFactory _sessionFactory ;

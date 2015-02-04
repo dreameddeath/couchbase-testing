@@ -7,7 +7,7 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
-import com.dreameddeath.core.date.DateTimeService;
+import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.dao.ReadOnlyException;
@@ -33,7 +33,7 @@ import java.util.Set;
 public class CouchbaseSession implements ICouchbaseSession {
     final private CouchbaseSessionFactory _sessionFactory;
     final private SessionType _sessionType;
-    final private DateTimeService _dateTimeService;
+    final private IDateTimeService _dateTimeService;
     final private IUser _user;
 
     private Set<CouchbaseDocument> _objectCache = new HashSet<CouchbaseDocument>();
@@ -296,7 +296,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         READ_WRITE
     }
 
-    public DateTimeService getDateTimeService(){ return _dateTimeService; }
+    public IDateTimeService getDateTimeService(){ return _dateTimeService; }
 
     @Override
     public <T extends CouchbaseDocument> IViewQuery initViewQuery(Class<T> forClass,String viewName) throws DaoException{

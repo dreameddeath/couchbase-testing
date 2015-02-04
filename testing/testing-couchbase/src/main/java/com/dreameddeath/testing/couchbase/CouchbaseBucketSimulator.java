@@ -1,4 +1,4 @@
-package com.dreameddeath.core.storage.impl;
+package com.dreameddeath.testing.couchbase;
 
 import com.couchbase.client.core.lang.Tuple2;
 import com.couchbase.client.core.message.ResponseStatus;
@@ -20,7 +20,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.storage.BucketDocument;
 import com.dreameddeath.core.storage.ICouchbaseBucket;
 import com.dreameddeath.core.storage.ICouchbaseTranscoder;
-import com.dreameddeath.core.storage.impl.simulator.DocumentSimulator;
+import com.dreameddeath.core.storage.impl.CouchbaseBucketWrapper;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -292,10 +292,10 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         Predicate<InternalRow> filterPredicate=decodeParams(query,additionnalCriteria);
         Stream<InternalRow> stream = result.getFullResult().stream();
         if(additionnalCriteria.containsKey("reverse") && additionnalCriteria.get("reverse").equals(1)){
-            stream = stream.sorted((vr1,vr2)->-EmitSimulator.compare(vr1.key(),vr2.key()));
+            stream = stream.sorted((vr1,vr2)->-EmitSimulator.compare(vr1.key(), vr2.key()));
         }
         else{
-            stream = stream.sorted((vr1, vr2) ->EmitSimulator.compare(vr1.key(), vr2.key()));
+            stream = stream.sorted((vr1, vr2) -> EmitSimulator.compare(vr1.key(), vr2.key()));
         }
 
         stream=stream.filter(filterPredicate);
@@ -361,7 +361,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 final Object keyPredicateCriteria = parseParamKey(params.get("startkey"));
                 resultPredicate = resultPredicate.and(
                         (InternalRow vr)->
-                                EmitSimulator.compare(vr.key(),keyPredicateCriteria)>=0
+                                EmitSimulator.compare(vr.key(), keyPredicateCriteria)>=0
                 );
             }
             if (params.containsKey("endkey")) {
@@ -376,7 +376,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             if(params.containsKey("keys")){
                 final Object keyPredicateCriteria = parseParamKey(params.get("keys"));
                 final List<Object> keyList = ((JsonArray)keyPredicateCriteria).toList();
-                resultPredicate = resultPredicate.and((InternalRow vr) -> keyList.stream().anyMatch(elem->EmitSimulator.compare(elem,vr.key())==0));
+                resultPredicate = resultPredicate.and((InternalRow vr) -> keyList.stream().anyMatch(elem-> EmitSimulator.compare(elem, vr.key())==0));
             }
         }
         catch(Exception e){

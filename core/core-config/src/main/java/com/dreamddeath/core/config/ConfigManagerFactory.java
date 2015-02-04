@@ -1,6 +1,10 @@
 package com.dreamddeath.core.config;
 
-import com.netflix.config.*;
+import com.netflix.config.ConcurrentCompositeConfiguration;
+import com.netflix.config.ConfigurationManager;
+import com.netflix.config.DynamicPropertyFactory;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 
 /**
  * Created by CEAJ8230 on 20/01/2015.
@@ -8,13 +12,23 @@ import com.netflix.config.*;
 public class ConfigManagerFactory {
     static public final String CONFIGURATION_PROPERTY_PREFIX="com.dreameddeath";
 
-    //static final private ConcurrentMapConfiguration _BASE_OVERRIDING_CONFIGURATION = new ConcurrentMapConfiguration();
     static{
         //*TODO manage configuration overloading
         ConcurrentCompositeConfiguration myConfiguration =
                 (ConcurrentCompositeConfiguration) DynamicPropertyFactory.getInstance().getBackingConfigurationSource();
         //myConfiguration.addConfiguration(_BASE_OVERRIDING_CONFIGURATION);
         //ConfigurationManager.getConfigInstance().setProperty("for","bar");
+
+        myConfiguration.addConfigurationListener(new ConfigurationListener() {
+            @Override
+            public void configurationChanged(ConfigurationEvent configurationEvent) {
+                if(configurationEvent.isBeforeUpdate()){
+                    String name=configurationEvent.getPropertyName();
+                    Object value=configurationEvent.getPropertyValue();
+                    AbstractProperty.fireCallback(name,value);
+                }
+            }
+        });
 
     }
 
@@ -23,7 +37,7 @@ public class ConfigManagerFactory {
 
     static void addConfigurationEntry(String entry,Object value){ConfigurationManager.getConfigInstance().setProperty(buildFullName(entry), value);}
     static void addRawConfigurationEntry(String entry,Object value){ConfigurationManager.getConfigInstance().setProperty(entry, value);}
-
+/*
     static DynamicBooleanProperty getRawBooleanProperty(String name,boolean defaultValue,Runnable callback) {  return DynamicPropertyFactory.getInstance().getBooleanProperty(name, defaultValue, callback);}
     static DynamicBooleanProperty getRawBooleanProperty(String name,boolean defaultValue) {  return getRawBooleanProperty(name, defaultValue, null);}
     static DynamicBooleanProperty getBooleanProperty(String name,boolean defaultValue,Runnable callback) {  return getRawBooleanProperty(buildFullName(name), defaultValue, callback);}
@@ -57,6 +71,6 @@ public class ConfigManagerFactory {
     static <T> DynamicContextualProperty<T> getRawContextualProperty(String name,T defaultValue,Runnable callback) {  return DynamicPropertyFactory.getInstance().getContextualProperty(name, defaultValue, callback);}
     static <T> DynamicContextualProperty<T> getRawContextualProperty(String name,T defaultValue) {  return getRawContextualProperty(name, defaultValue, null);}
     static <T> DynamicContextualProperty<T> getContextualProperty(String name,T defaultValue,Runnable callback) {  return getRawContextualProperty(buildFullName(name), defaultValue, callback);}
-    static <T> DynamicContextualProperty<T> getContextualProperty(String name,T defaultValue) {  return getContextualProperty(name, defaultValue, null);}
+    static <T> DynamicContextualProperty<T> getContextualProperty(String name,T defaultValue) {  return getContextualProperty(name, defaultValue, null);}*/
 
 }

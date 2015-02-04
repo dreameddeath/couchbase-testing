@@ -1,4 +1,4 @@
-package com.dreameddeath.core.storage.impl.simulator;
+package com.dreameddeath.testing.couchbase;
 
 
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;

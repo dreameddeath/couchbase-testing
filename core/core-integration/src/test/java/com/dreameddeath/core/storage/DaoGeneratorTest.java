@@ -2,8 +2,8 @@ package com.dreameddeath.core.storage;
 
 
 import com.dreameddeath.core.annotation.processor.DaoAnnotationProcessor;
-import com.dreameddeath.core.test.Utils;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
+import com.dreameddeath.testing.Utils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

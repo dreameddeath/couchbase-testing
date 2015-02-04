@@ -15,9 +15,9 @@ import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.storage.BucketDocument;
-import com.dreameddeath.core.storage.impl.CouchbaseBucketSimulator;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.core.upgrade.Utils;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import org.junit.Test;
 
 import java.util.ArrayList;

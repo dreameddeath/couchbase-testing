@@ -10,7 +10,7 @@ import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.view.*;
 import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.test.Utils;
+import com.dreameddeath.testing.Utils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

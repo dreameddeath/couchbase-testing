@@ -10,11 +10,11 @@ import com.dreameddeath.core.process.service.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
 import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.test.Utils;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.process.model.CreatePartyJob;
 import com.dreameddeath.party.process.model.CreatePartyRequest;
 import com.dreameddeath.party.process.service.CreatePartyJobProcessingService;
+import com.dreameddeath.testing.Utils;
 import org.junit.Before;
 import org.junit.Test;
 

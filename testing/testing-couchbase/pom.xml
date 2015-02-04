@@ -3,22 +3,22 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>couchbase-testing</artifactId>
+        <artifactId>testing</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>testing</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>testing-couchbase</artifactId>
+  <packaging>jar</packaging>
 
-  <name>testing</name>
+  <name>testing-couchbase</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
-    <modules>
-        <module>testing-annotation-processor</module>
-        <module>testing-json-dataset</module>
-        <module>testing-couchbase</module>
-        <module>testing-integration</module>
-    </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-    <dependencies></dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-couchbase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
