@@ -31,38 +31,38 @@ public class PropertyFactory {
 
     static String buildPropName(String name,boolean withPrefix){return withPrefix?ConfigManagerFactory.buildFullName(name):name;}
 
-    static BooleanProperty getBooleanProperty(String name,boolean defaultValue,PropertyChangedCallback<Boolean> callback) {  return new BooleanProperty(name, defaultValue,callback);}
-    static BooleanProperty getBooleanProperty(String name,boolean defaultValue) {  return new BooleanProperty(name, defaultValue);}
-    static BooleanProperty getBooleanProperty(String name,boolean defaultValue,boolean withPrefix) {  return new BooleanProperty(buildPropName(name,withPrefix), defaultValue);}
-    static BooleanProperty getBooleanProperty(String name,boolean defaultValue,PropertyChangedCallback<Boolean> callback,boolean withPrefix) {  return new BooleanProperty(buildPropName(name,withPrefix), defaultValue,callback);}
+    public static BooleanProperty getBooleanProperty(String name,boolean defaultValue,PropertyChangedCallback<Boolean> callback) {  return new BooleanProperty(name, defaultValue,callback);}
+    public static BooleanProperty getBooleanProperty(String name,boolean defaultValue) {  return new BooleanProperty(name, defaultValue);}
+    public static BooleanProperty getBooleanProperty(String name,boolean defaultValue,boolean withPrefix) {  return new BooleanProperty(buildPropName(name,withPrefix), defaultValue);}
+    public static BooleanProperty getBooleanProperty(String name,boolean defaultValue,PropertyChangedCallback<Boolean> callback,boolean withPrefix) {  return new BooleanProperty(buildPropName(name,withPrefix), defaultValue,callback);}
 
 
-    static IntProperty getIntProperty(String name,int defaultValue,PropertyChangedCallback<Integer> callback) {  return new IntProperty(name, defaultValue,callback);}
-    static IntProperty getIntProperty(String name,int defaultValue) {  return new IntProperty(name, defaultValue);}
-    static IntProperty getIntProperty(String name,int defaultValue,boolean withPrefix) {  return new IntProperty(buildPropName(name,withPrefix), defaultValue);}
-    static IntProperty getIntProperty(String name,int defaultValue,PropertyChangedCallback<Integer> callback,boolean withPrefix) {  return new IntProperty(buildPropName(name,withPrefix), defaultValue,callback);}
+    public static IntProperty getIntProperty(String name,int defaultValue,PropertyChangedCallback<Integer> callback) {  return new IntProperty(name, defaultValue,callback);}
+    public static IntProperty getIntProperty(String name,int defaultValue) {  return new IntProperty(name, defaultValue);}
+    public static IntProperty getIntProperty(String name,int defaultValue,boolean withPrefix) {  return new IntProperty(buildPropName(name,withPrefix), defaultValue);}
+    public static IntProperty getIntProperty(String name,int defaultValue,PropertyChangedCallback<Integer> callback,boolean withPrefix) {  return new IntProperty(buildPropName(name,withPrefix), defaultValue,callback);}
 
-    static LongProperty getLongProperty(String name,long defaultValue,PropertyChangedCallback<Long> callback) {  return new LongProperty(name, defaultValue,callback);}
-    static LongProperty getLongProperty(String name,long defaultValue) {  return new LongProperty(name, defaultValue);}
-    static LongProperty getLongProperty(String name,long defaultValue,boolean withPrefix) {  return new LongProperty(buildPropName(name,withPrefix), defaultValue);}
-    static LongProperty getLongProperty(String name,long defaultValue,PropertyChangedCallback<Long> callback,boolean withPrefix) {  return new LongProperty(buildPropName(name,withPrefix), defaultValue,callback);}
+    public static LongProperty getLongProperty(String name,long defaultValue,PropertyChangedCallback<Long> callback) {  return new LongProperty(name, defaultValue,callback);}
+    public static LongProperty getLongProperty(String name,long defaultValue) {  return new LongProperty(name, defaultValue);}
+    public static LongProperty getLongProperty(String name,long defaultValue,boolean withPrefix) {  return new LongProperty(buildPropName(name,withPrefix), defaultValue);}
+    public static LongProperty getLongProperty(String name,long defaultValue,PropertyChangedCallback<Long> callback,boolean withPrefix) {  return new LongProperty(buildPropName(name,withPrefix), defaultValue,callback);}
 
-    
-    static FloatProperty getFloatProperty(String name,float defaultValue,PropertyChangedCallback<Float> callback) {  return new FloatProperty(name, defaultValue,callback);}
-    static FloatProperty getFloatProperty(String name,float defaultValue) {  return new FloatProperty(name, defaultValue);}
-    static FloatProperty getFloatProperty(String name,float defaultValue,boolean withPrefix) {  return new FloatProperty(buildPropName(name,withPrefix), defaultValue);}
-    static FloatProperty getFloatProperty(String name,float defaultValue,PropertyChangedCallback<Float> callback,boolean withPrefix) {  return new FloatProperty(buildPropName(name,withPrefix), defaultValue,callback);}
 
-    
-    static DoubleProperty getDoubleProperty(String name,double defaultValue,PropertyChangedCallback<Double> callback) {  return new DoubleProperty(name, defaultValue,callback);}
-    static DoubleProperty getDoubleProperty(String name,double defaultValue) {  return new DoubleProperty(name, defaultValue);}
-    static DoubleProperty getDoubleProperty(String name,double defaultValue,boolean withPrefix) {  return new DoubleProperty(buildPropName(name,withPrefix), defaultValue);}
-    static DoubleProperty getDoubleProperty(String name,double defaultValue,PropertyChangedCallback<Double> callback,boolean withPrefix) {  return new DoubleProperty(buildPropName(name,withPrefix), defaultValue,callback);}
+    public static FloatProperty getFloatProperty(String name,float defaultValue,PropertyChangedCallback<Float> callback) {  return new FloatProperty(name, defaultValue,callback);}
+    public static FloatProperty getFloatProperty(String name,float defaultValue) {  return new FloatProperty(name, defaultValue);}
+    public static FloatProperty getFloatProperty(String name,float defaultValue,boolean withPrefix) {  return new FloatProperty(buildPropName(name,withPrefix), defaultValue);}
+    public static FloatProperty getFloatProperty(String name,float defaultValue,PropertyChangedCallback<Float> callback,boolean withPrefix) {  return new FloatProperty(buildPropName(name,withPrefix), defaultValue,callback);}
 
-    static StringProperty getStringProperty(String name,String defaultValue,PropertyChangedCallback<String> callback) {  return new StringProperty(name, defaultValue,callback);}
-    static StringProperty getStringProperty(String name,String defaultValue) {  return new StringProperty(name, defaultValue);}
-    static StringProperty getStringProperty(String name,String defaultValue,boolean withPrefix) {  return new StringProperty(buildPropName(name,withPrefix), defaultValue);}
-    static StringProperty getStringProperty(String name,String defaultValue,PropertyChangedCallback<String> callback,boolean withPrefix) {  return new StringProperty(buildPropName(name,withPrefix), defaultValue,callback);}
+
+    public static DoubleProperty getDoubleProperty(String name,double defaultValue,PropertyChangedCallback<Double> callback) {  return new DoubleProperty(name, defaultValue,callback);}
+    public static DoubleProperty getDoubleProperty(String name,double defaultValue) {  return new DoubleProperty(name, defaultValue);}
+    public static DoubleProperty getDoubleProperty(String name,double defaultValue,boolean withPrefix) {  return new DoubleProperty(buildPropName(name,withPrefix), defaultValue);}
+    public static DoubleProperty getDoubleProperty(String name,double defaultValue,PropertyChangedCallback<Double> callback,boolean withPrefix) {  return new DoubleProperty(buildPropName(name,withPrefix), defaultValue,callback);}
+
+    public static StringProperty getStringProperty(String name,String defaultValue,PropertyChangedCallback<String> callback) {  return new StringProperty(name, defaultValue,callback);}
+    public static StringProperty getStringProperty(String name,String defaultValue) {  return new StringProperty(name, defaultValue);}
+    public static StringProperty getStringProperty(String name,String defaultValue,boolean withPrefix) {  return new StringProperty(buildPropName(name,withPrefix), defaultValue);}
+    public static StringProperty getStringProperty(String name,String defaultValue,PropertyChangedCallback<String> callback,boolean withPrefix) {  return new StringProperty(buildPropName(name,withPrefix), defaultValue,callback);}
 
     //static BooleanProperty getBooleanProperty(String name,boolean defaultValue,PropertyChangedCallback<Boolean> callback) {  return DynamicPropertyFactory.getInstance().getBooleanProperty(name, defaultValue, callback);}
 

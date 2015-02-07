@@ -1,5 +1,6 @@
 package com.dreamddeath.core.config;
 
+import com.dreamddeath.core.exception.config.PropertyValueNotFound;
 import org.joda.time.DateTime;
 
 /**
@@ -7,6 +8,7 @@ import org.joda.time.DateTime;
  */
 public interface IProperty<T> {
     T getValue();
+    T getMandatoryValue(String errorMessage) throws PropertyValueNotFound;
     T getDefaultValue();
     String getName();
     DateTime getLastChangedDate();

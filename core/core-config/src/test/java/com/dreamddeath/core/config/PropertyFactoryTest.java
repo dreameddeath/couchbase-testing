@@ -1,6 +1,7 @@
 package com.dreamddeath.core.config;
 
 import com.dreamddeath.core.config.impl.*;
+import com.dreamddeath.core.exception.config.PropertyValueNotFound;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,7 +33,13 @@ public class PropertyFactoryTest {
         assertEquals(2, rawProp.get());
     }
 
-    @Test
+
+    @Test(expected = PropertyValueNotFound.class)
+    public void testNotFoundProperty() throws Exception {
+        PropertyFactory.getStringProperty("toto.not_found",null).getMandatoryValue("Normal error");
+    }
+
+        @Test
     public void testGetBooleanProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
         final AtomicBoolean callbackRawCalled=new AtomicBoolean(false);

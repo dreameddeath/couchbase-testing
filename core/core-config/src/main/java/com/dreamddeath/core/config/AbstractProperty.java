@@ -1,5 +1,6 @@
 package com.dreamddeath.core.config;
 
+import com.dreamddeath.core.exception.config.PropertyValueNotFound;
 import com.netflix.config.PropertyWrapper;
 import org.joda.time.DateTime;
 
@@ -22,7 +23,7 @@ public abstract class AbstractProperty<T> implements IProperty<T> {
         _mapCallbackPerProperty.get(prop.getName()).add(prop);
     }
 
-    private static void addPropertyFromGlobalMap(AbstractProperty prop){
+    private static void removePropertyFromGlobalMap(AbstractProperty prop){
         if(!_mapCallbackPerProperty.containsKey(prop.getName())){
             _mapCallbackPerProperty.putIfAbsent(prop.getName(),new CopyOnWriteArrayList<>());
         }
@@ -73,6 +74,15 @@ public abstract class AbstractProperty<T> implements IProperty<T> {
     @Override
     public T getValue() {
         return _wrapper.getValue();
+    }
+
+    @Override
+    public T getMandatoryValue(String errorMessage) throws PropertyValueNotFound{
+        T value = getValue();
+        if(value==null){
+            throw new PropertyValueNotFound(this,errorMessage);
+        }
+        return value;
     }
 
     @Override

@@ -13,6 +13,7 @@
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
         <module>infrastructure-storm</module>
+        <module>infrastructure-daemon</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
