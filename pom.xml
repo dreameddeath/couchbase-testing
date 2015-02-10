@@ -103,6 +103,7 @@
         <apache.common.version>2.6</apache.common.version>
         <apache.common.config.version>1.8</apache.common.config.version>
         <apache.common.codec.version>1.9</apache.common.codec.version>
+        <apache.common.io.version>2.4</apache.common.io.version>
         <apache.common.lang3>3.3.1</apache.common.lang3>
         <joda-time.version>2.3</joda-time.version>
 

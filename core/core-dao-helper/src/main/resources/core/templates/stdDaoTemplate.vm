@@ -1,9 +1,13 @@
 package ${daoDef.packageName};
 
 
+import org.apache.commons.io.IOUtils;
+
 import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import com.dreameddeath.core.model.view.IViewKeyTranscoder;
+import com.dreameddeath.core.model.view.IViewTranscoder;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.session.ICouchbaseSession;
@@ -80,32 +84,44 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
 #if($views.size() >0)
     @Override
     public List<CouchbaseViewDao> getViews(){
-        return Arrays.asList(
+        List<CouchbaseViewDao> list=new ArrayList<>();
 #foreach($view in $views)
-            new ${view.className}ViewDao(this)
+        list.add(new ${view.className}ViewDao(this));
 #end
-        );
+        return list;
     }
-""
+
 #foreach($view in $views)
     public static class ${view.className}ViewDao extends CouchbaseViewDao<${view.key.type},${view.value.type},${entity.simpleName}>{
-            public ${view.className}ViewDao(${entity.simpleName}Dao parentDao){
-                super("${entity.domain}","${view.name}",parentDao);
-            }
+        private static final IViewKeyTranscoder<${view.key.type}> KEY_TRANSCODER = new ${view.key.transcoder}();
+        private static final IViewTranscoder<${view.value.type}> VALUE_TRANSCODER = new ${view.value.transcoder}();
 
-            @Override
-            public String getContent() {
-                return
-                        ${view.content}
-            }
-
-            @Override public IViewTranscoder<${view.key.type}> getValueTranscoder(){
-                return ${view.key.transcoder};
-            }
-            @Override public IViewKeyTranscoder<${view.value.type}> getKeyTranscoder(){
-                return ${view.value.transcoder};
-            }
+        public ${view.className}ViewDao(${entity.simpleName}Dao parentDao){
+            super("${entity.domain}","${view.name}",parentDao);
         }
+
+        @Override
+        public String getContent() {
+#if($view.isContentSourceFile())
+            try{
+                return IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("$esc.java($view.contentFilename)"));
+            }
+            catch(Throwable e){
+                throw new RuntimeException("Unexpected content read for file <$esc.java($view.contentFilename)>",e);
+            }
+#else
+             return "$esc.java($view.content)";
+#end
+        }
+
+        @Override public IViewKeyTranscoder<${view.key.type}> getKeyTranscoder(){
+            return KEY_TRANSCODER;
+        }
+        @Override public IViewTranscoder<${view.value.type}> getValueTranscoder(){
+            return VALUE_TRANSCODER;
+        }
+    }
+
 #end
 #end
 
