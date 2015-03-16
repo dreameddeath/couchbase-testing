@@ -42,5 +42,10 @@
           <artifactId>reflectasm</artifactId>
           <version>${reflectasm.version}</version>
       </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>compiling-annotation-processor-tools</artifactId>
+          <version>${project.version}</version>
+      </dependency>
   </dependencies>
 </project>

@@ -63,7 +63,6 @@ public class CouchbaseDocumentReflection {
         if(!_TYPE_ElEMENT_REFLECTION_CACHE.containsKey(element)){
             ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(element);
             CouchbaseDocumentReflection reflection = new CouchbaseDocumentReflection(classInfo);
-            //Class rootClass = AnnotationProcessorUtils.getClass(element);
             if(classInfo.getCurrentClass()!=null){
                 _TYPE_ElEMENT_REFLECTION_CACHE.put(element,reflection );
             }
@@ -75,32 +74,11 @@ public class CouchbaseDocumentReflection {
 
     private ClassInfo _classInfo;
     private CouchbaseDocumentStructureReflection _structure;
-    //private CouchbaseDocumentReflection _superclassReflection;
 
     protected CouchbaseDocumentReflection(ClassInfo classInfo){
         _classInfo = classInfo;
         _structure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(_classInfo);
     }
-
-
-    /*protected CouchbaseDocumentReflection(Class<? extends CouchbaseDocument> document){
-        _classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(document);
-        _structure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(_classInfo);
-
-        if((document.getSuperclass()!=null) && isReflexible(document.getSuperclass())){
-            _superclassReflection = CouchbaseDocumentReflection.getReflectionFromClass((Class<? extends CouchbaseDocument>) (document.getSuperclass()));
-        }
-    }
-
-    protected CouchbaseDocumentReflection(TypeElement element){
-        _classInfo = new ClassInfo((DeclaredType)element.asType());
-        _structure = CouchbaseDocumentStructureReflection.getReflectionFromTypeElement(element);
-
-        TypeElement parent = AnnotationProcessorUtils.getSuperClass(element);
-        if((parent!=null) && isReflexible(parent)){
-            _superclassReflection = CouchbaseDocumentReflection.getReflectionFromTypeElement(parent);
-        }
-    }*/
 
     public CouchbaseDocumentStructureReflection getStructure() {
         return _structure;

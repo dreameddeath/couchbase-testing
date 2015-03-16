@@ -16,76 +16,10 @@ public class CouchbaseDocumentFieldReflection {
     private String _name;
     private FieldInfo _field;
     private ParameterizedTypeInfo _effectiveType;
-    //private Field _field;
 
     private MemberInfo _getter;
     private MemberInfo _setter;
-    /*private TypeInfo _effectiveType;
-    private AccessibleObject _getter;
-    private Method _setter;
 
-    private MemberInfo _getterElement;
-    private MemberInfo _setterElement;*/
-
-
-
-    /*public static class TypeInfo{
-        private ClassInfo _classInfo;
-        private ParameterizedInfo _collectionElementType;
-        private ParameterizedInfo _mapKeyType;
-        private ParameterizedInfo _mapValueType;
-
-        public TypeInfo(DeclaredType type){
-            _classInfo = new ClassInfo(type);
-            if(_classInfo.isCollection()){
-                _collectionElementType = ParameterizedInfo.getParameterizedArgumentClassInfo(type,0);
-            }
-            else if(_classInfo.isMap()){
-                _mapKeyType = ParameterizedInfo.getParameterizedArgumentClassInfo(type,0);
-                _mapValueType = ParameterizedInfo.getParameterizedArgumentClassInfo(type,1);
-            }
-        }
-
-        public TypeInfo(Type type){
-            if(type instanceof ParameterizedType) {
-                _classInfo = new ClassInfo((Class) ((ParameterizedType) type).getRawType());
-            }
-            else if(type instanceof Class){
-                _classInfo = new ClassInfo((Class)type);
-            }
-            else if(type instanceof TypeVariable){
-                if(((TypeVariable)type).getBounds()[0] instanceof Class){
-                    _classInfo = new ClassInfo((Class)((TypeVariable)type).getBounds()[0]);
-                }
-            }
-
-            if((_classInfo!=null) && _classInfo.isCollection() && (type instanceof ParameterizedType)){
-                _collectionElementType = ParameterizedInfo.getParameterizedArgumentClass((ParameterizedType)type,0);
-            }
-            else if((_classInfo!=null) && _classInfo.isMap() && (type instanceof ParameterizedType)) {
-                _mapKeyType= ParameterizedInfo.getParameterizedArgumentClass((ParameterizedType)type, 0);
-                _mapValueType= ParameterizedInfo.getParameterizedArgumentClass((ParameterizedType)type, 1);
-            }
-        }
-
-        public ClassInfo getMainClass(){
-            return _classInfo;
-        }
-
-        public ParameterizedInfo getCollectionElementType() {
-            return _collectionElementType;
-        }
-
-        public ParameterizedInfo getMapKeyType() {
-            return _mapKeyType;
-        }
-
-        public ParameterizedInfo getMapValueType() {
-            return _mapValueType;
-        }
-
-
-    }*/
 
     protected String nameBuilder(String name, String prefix){
         if(name.startsWith("_")){
@@ -117,45 +51,6 @@ public class CouchbaseDocumentFieldReflection {
         return result;
     }
 
-    /*public Method fieldGetterFinder(Field field) throws NoSuchMethodException{
-        if(field.getAnnotation(DocumentProperty.class)!=null){
-            DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
-            String getter = prop.getter();
-            if((getter!=null)&& !getter.equals("")){
-                return field.getDeclaringClass().getDeclaredMethod(getter);
-            }
-            else {
-                String name = nameBuilder(prop.value(),"get");
-                try {
-                    return field.getDeclaringClass().getDeclaredMethod(name);
-                }
-                catch(NoSuchMethodException e){
-                    //Do nothing
-                }
-            }
-        }
-
-        String name = nameBuilder(field.getName(),"get");
-        return field.getDeclaringClass().getDeclaredMethod(name);
-    }
-
-    public Element fieldGetterFinder(Element element){
-        if(element.getAnnotation(DocumentProperty.class)!=null) {
-            DocumentProperty prop = element.getAnnotation(DocumentProperty.class);
-            String getter = prop.getter();
-            if ((getter != null) && !getter.equals("")) {
-                return siblingElementFinder(element, getter,false);
-            } else {
-                Element result = siblingElementFinder(element, nameBuilder(prop.value(), "get"),false);
-                if (result != null) {
-                    return result;
-                }
-            }
-        }
-
-        return siblingElementFinder(element, nameBuilder(element.getSimpleName().toString(), "get"),false);
-    }*/
-
     public MethodInfo fieldSetterFinder(){
         MethodInfo result = null;
         if(_field.getAnnotation(DocumentProperty.class)!=null){
@@ -176,77 +71,6 @@ public class CouchbaseDocumentFieldReflection {
         }
         return result;
     }
-
-    /*public Method fieldSetterFinder(Field field) throws NoSuchMethodException{
-        if(field.getAnnotation(DocumentProperty.class)!=null){
-            DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
-            String setter = prop.setter();
-            if((setter!=null)&& !setter.equals("")){
-                return field.getDeclaringClass().getDeclaredMethod(setter,_effectiveType.getMainClass().getRealClass());
-            }
-            else {
-                String name = nameBuilder(prop.value(), "set");
-                try {
-                    return field.getDeclaringClass().getDeclaredMethod(name,_effectiveType.getMainClass().getRealClass());
-                }
-                catch(NoSuchMethodException e){
-                    //Do nothing
-                }
-            }
-        }
-
-        String name=nameBuilder(field.getName(), "set");
-        return field.getDeclaringClass().getDeclaredMethod(name,_effectiveType.getMainClass().getRealClass());
-    }
-
-
-
-    public Element fieldSetterFinder(Element element){
-        if(element.getAnnotation(DocumentProperty.class)!=null) {
-            DocumentProperty prop = element.getAnnotation(DocumentProperty.class);
-            String setter = prop.setter();
-            if((setter != null)&& !setter.equals("")) {
-                return siblingElementFinder(element, setter,true);
-            } else {
-                Element result = siblingElementFinder(element, nameBuilder(prop.value(), "set"),true);
-                if (result != null) {
-                    return result;
-                }
-            }
-        }
-
-        return siblingElementFinder(element,nameBuilder(element.getSimpleName().toString(),"set"),true);
-    }
-
-    public TypeMirror getType(Element element){
-        if(element instanceof ExecutableElement) {
-            return ((ExecutableElement) _getterElement).getReturnType();
-        }
-        else{
-            return element.asType();
-        }
-
-    }*/
-
-
-    /*public Element siblingElementFinder(Element element, String name,boolean isSetter){
-        for(Element sibling:element.getEnclosingElement().getEnclosedElements()){
-            if((sibling instanceof ExecutableElement) && sibling.getSimpleName().toString().equals(name)){
-                ExecutableElement methodElement = (ExecutableElement) sibling;
-                if(isSetter){
-                    if((methodElement.getParameters().size()==1) && AnnotationProcessorUtils.isAssignableFrom(methodElement.getParameters().get(0).asType(),getType(_getterElement))){
-                        return sibling;
-                    }
-                }
-                else{
-                    if(methodElement.getParameters().size()==0){
-                        return sibling;
-                    }
-                }
-            }
-        }
-        return null;
-    }*/
 
     public CouchbaseDocumentFieldReflection(FieldInfo fieldInfo) {
         _name = fieldInfo.getAnnotation(DocumentProperty.class).value();

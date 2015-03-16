@@ -1,6 +1,7 @@
 package com.dreameddeath.core.annotation.processor;
 
 import com.dreameddeath.core.annotation.DocumentDef;
+import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.upgrade.Utils;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -38,14 +39,15 @@ public class DocumentDefAnnotationProcessor extends AbstractProcessor {
                         "",
                         fileName,
                         classElem);
-                String packageName = elementUtils.getPackageOf(classElem).getQualifiedName().toString();
-                String fullClassName = ((TypeElement) classElem).getQualifiedName().toString();
-                String realClassName = new StringBuilder().append(packageName).append(".").append(fullClassName.substring(packageName.length() + 1).replace(".", "$")).toString();
+                AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)classElem);
+                //String packageName = elementUtils.getPackageOf(classElem).getQualifiedName().toString();
+                //String fullClassName = ((TypeElement) classElem).getQualifiedName().toString();
+                //String realClassName = new StringBuilder().append(packageName).append(".").append(fullClassName.substring(packageName.length() + 1).replace(".", "$")).toString();
                 BufferedWriter bw = new BufferedWriter(jfo.openWriter());
-                bw.write(realClassName);
+                bw.write(classInfo.getFullName());
                 bw.flush();
                 bw.close();
-                messager.printMessage(Diagnostic.Kind.NOTE,"Creating file "+fileName+" for class "+realClassName);
+                messager.printMessage(Diagnostic.Kind.NOTE,"Creating file "+fileName+" for class "+classInfo.getFullName());
             }
             catch(IOException e){
                 messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());

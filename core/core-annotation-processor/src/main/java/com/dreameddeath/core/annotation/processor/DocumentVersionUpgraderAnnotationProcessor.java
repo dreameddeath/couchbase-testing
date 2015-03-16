@@ -1,6 +1,7 @@
 package com.dreameddeath.core.annotation.processor;
 
 import com.dreameddeath.core.annotation.DocumentVersionUpgrader;
+import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.upgrade.Utils;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -44,14 +45,16 @@ public class DocumentVersionUpgraderAnnotationProcessor extends AbstractProcesso
                         "",
                         fileName,
                         baseElem);
-                String packageName = elementUtils.getPackageOf(baseElem).getQualifiedName().toString();
-                TypeElement classElem =(TypeElement) ((ExecutableElement)baseElem).getEnclosingElement();
 
-                String fullClassName = ((TypeElement) classElem).getQualifiedName().toString();
-                String realClassName = String.format("%s.%s", packageName, fullClassName.substring(packageName.length() + 1).replace(".", "$"));
+                AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement) ((ExecutableElement)baseElem).getEnclosingElement());
+                //String packageName = elementUtils.getPackageOf(baseElem).getQualifiedName().toString();
+                //TypeElement classElem =;
+
+                //String fullClassName = ((TypeElement) classElem).getQualifiedName().toString();
+                //String realClassName = String.format("%s.%s", packageName, fullClassName.substring(packageName.length() + 1).replace(".", "$"));
 
                 BufferedWriter bw = new BufferedWriter(jfo.openWriter());
-                bw.write(realClassName);
+                bw.write(classInfo.getName());
                 bw.write(";");
                 bw.write(baseElem.getSimpleName().toString());
                 bw.write(";");

@@ -4,6 +4,7 @@ package com.dreameddeath.core.annotation.processor;
 import com.dreameddeath.core.annotation.dao.*;
 import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.tools.annotation.processor.AnnotationProcessorVelocityEngine;
 import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.tools.annotation.processor.reflection.FieldInfo;
@@ -11,10 +12,7 @@ import com.dreameddeath.core.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +25,9 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -44,34 +38,13 @@ import java.util.*;
 )
 public class DaoAnnotationProcessor extends AbstractProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DaoAnnotationProcessor.class);
-    public static final  VelocityEngine VELOCITY_ENGINE;
-    static {
-        Properties props = new Properties();
-        URL url = DaoAnnotationProcessor.class.getClassLoader().getResource("core/templates/velocity.properties");
-        try {
-            props.load(url.openStream());
-        }catch (Exception e){
-            throw  new RuntimeException(e);
-        }
+    private static final String TEMPLATE_FILENAME = "core/templates/stdDaoTemplate.vm";
 
-        VELOCITY_ENGINE = new VelocityEngine(props);
-        VELOCITY_ENGINE.init();
-    }
-
-    public static Template DAO_BUILDER_TEMPLATE=null;
-
-    public DaoAnnotationProcessor(){
-        super();
-        if(DAO_BUILDER_TEMPLATE==null){
-            DAO_BUILDER_TEMPLATE = VELOCITY_ENGINE.getTemplate("core/templates/stdDaoTemplate.vm");
-        }
-    }
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
 
         try {
-            Elements elementUtils = processingEnv.getElementUtils();
             for (Element element : roundEnv.getElementsAnnotatedWith(DaoEntity.class)) {
                 if (!CouchbaseDocumentReflection.isReflexible(element)) continue;
 
@@ -80,10 +53,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                 LOG.debug("With DaoEntity to process {}", docReflection.getClassInfo().getAnnotationByType(DaoEntity.class).toString());
 
 
-                VelocityContext context = new VelocityContext();
-
-                context.put("esc", new JavaEscape());
-
+                VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG,messager);
 
                 EntityDef entity = new EntityDef(docReflection);
                 context.put("entity", entity);
@@ -109,7 +79,6 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
 
                 context.put("counters", counterDefList);
 
-
                 List<ViewDef> viewDefList = new ArrayList<>();
                 context.put("views", viewDefList);
                 List<View> viewsAnnotation = Arrays.asList(docReflection.getClassInfo().getAnnotationByType(View.class));
@@ -119,37 +88,18 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                     messager.printMessage(Diagnostic.Kind.NOTE,"Generating view "+ newView.toString());
                 }
 
-                try {
-                    JavaFileObject jfo = processingEnv.getFiler().createSourceFile(daoDef.getName());
-                    Writer writer = jfo.openWriter();
-                    DAO_BUILDER_TEMPLATE.merge(context, writer);
-                    writer.close();
-
-                    messager.printMessage(Diagnostic.Kind.NOTE, "Generating file " + jfo.getName());
-
-                    /*if (LOG.isDebugEnabled()) {
-                        StringWriter logWriter = new StringWriter();
-                        DAO_BUILDER_TEMPLATE.merge(context, logWriter);
-
-                        LOG.debug("Generated file content :\n" + logWriter.toString());
-                    }*/
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
+                AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_FILENAME, daoDef.getName(), element);
             }
         }
         catch(Throwable e){
             LOG.error("Error during processing",e);
-            //e.printStackTrace();
             StringBuffer buf = new StringBuffer();
             for(StackTraceElement elt:e.getStackTrace()){
                 buf.append(elt.toString());
                 buf.append("\n");
             }
             messager.printMessage(Diagnostic.Kind.ERROR,"Error during processing "+e.getMessage()+"\n"+buf.toString());
-            throw e;
+            throw new RuntimeException("Error during annotation processor",e);
         }
         return true;
     }
@@ -269,8 +219,6 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                                 currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)field.getEffectiveTypeInfo().getMainType());
                             }
                         }
-
-                        //CouchbaseDocumentReflection entityReflection=CouchbaseDocumentReflection.getReflectionFromTypeElement()
                     }
                     else{
                         //TODO throw error
@@ -284,8 +232,6 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                 _type = Type.BASE;
             }
 
-
-            //new StringBuilder().append(packageName).append(".").append(fullClassName.substring(packageName.length() + 1).replace(".", "$")).toString();
         }
 
         public String getSimpleName(){ return _simpleName;}
@@ -567,9 +513,4 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
         public String getPackageName(){return _docReflection.getClassInfo().getPackageInfo().getName();}
     }
 
-    public class JavaEscape{
-        public String java(String input){
-            return StringEscapeUtils.escapeJava(input);
-        }
-    }
 }

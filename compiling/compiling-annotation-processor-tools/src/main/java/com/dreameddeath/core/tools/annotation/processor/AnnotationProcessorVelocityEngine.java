@@ -63,6 +63,11 @@ public class AnnotationProcessorVelocityEngine {
         return context;
     }
 
+    public static VelocityContext newContext(Logger log,Messager messager){
+        return newContext(new VelocityLogger(log,messager));
+    }
+
+
     public static void createSource(ProcessingEnvironment env,VelocityContext context,String templateName,String className)throws IOException{
         createSource(env, context, templateName, className,null);
     }
@@ -72,6 +77,7 @@ public class AnnotationProcessorVelocityEngine {
         Writer writer = jfo.openWriter();
         getTemplate(templateName).merge(context, writer);
         writer.close();
+        ((VelocityLogger)context.get("message")).note("Generating source file " + jfo.getName());
     }
 
     public static void createResourceFile(ProcessingEnvironment env,VelocityContext context,String templateName,String filename)throws IOException{
@@ -85,6 +91,7 @@ public class AnnotationProcessorVelocityEngine {
         Writer writer = jfo.openWriter();
         getTemplate(templateName).merge(context, writer);
         writer.close();
+        ((VelocityLogger)context.get("message")).note("Generating resource file " + jfo.getName());
     }
 
     public static class VelocityLogger{
