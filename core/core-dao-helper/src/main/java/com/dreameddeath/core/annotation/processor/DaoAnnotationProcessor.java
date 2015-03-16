@@ -4,12 +4,12 @@ package com.dreameddeath.core.annotation.processor;
 import com.dreameddeath.core.annotation.dao.*;
 import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
-import com.dreameddeath.core.model.view.IViewKeyTranscoder;
-import com.dreameddeath.core.model.view.IViewTranscoder;
+import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.FieldInfo;
 import com.dreameddeath.core.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.velocity.Template;
@@ -218,7 +218,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
     }
 
     public static class DaoDef{
-        private AnnotationProcessorUtils.ClassInfo _baseDaoClassInfo;
+        private AbstractClassInfo _baseDaoClassInfo;
         private String _simpleName;
         private String _packageName;
         private Type _type;
@@ -230,14 +230,10 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
         public DaoDef(CouchbaseDocumentReflection docReflection){
 
             _simpleName = docReflection.getSimpleName().replaceAll("\\$", "")+"Dao";
-            _packageName = docReflection.getClassInfo().getPackageName().replace(".model",".dao");
-            try {
-                DaoEntity annot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
-                _baseDaoClassInfo= new AnnotationProcessorUtils.ClassInfo(annot.baseDao());
-            }
-            catch(MirroredTypeException e){
-                _baseDaoClassInfo= new AnnotationProcessorUtils.ClassInfo((DeclaredType) e.getTypeMirror());
-            }
+            _packageName = docReflection.getClassInfo().getPackageInfo().getName().replace(".model", ".dao");
+            DaoEntity daoEntityAnnot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
+            _baseDaoClassInfo = AbstractClassInfo.getClassInfoFromAnnot(daoEntityAnnot, DaoEntity::baseDao);
+
             if(_baseDaoClassInfo.isInstanceOf(CouchbaseDocumentWithKeyPatternDao.class)){
                 if(_baseDaoClassInfo.isInstanceOf(BusinessCouchbaseDocumentDaoWithUID.class)){
                     _type = Type.WITH_UID;
@@ -248,16 +244,11 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                         _uidSetterPattern="";
                         CouchbaseDocumentStructureReflection currStructure = docReflection.getStructure();
                         for(int partPos=0;partPos<fieldNameParts.length;++partPos){
-                            CouchbaseDocumentFieldReflection field = currStructure.getFieldByName(fieldNameParts[partPos]);
+                            CouchbaseDocumentFieldReflection field = currStructure.getFieldByPropertyName(fieldNameParts[partPos]);
                             //Last element
                             if(partPos+1==fieldNameParts.length){
-                                _isUidPureField = field.isPureField();
-                                if(_isUidPureField){
-                                    _uidSetterPattern += _uidGetterPattern + "." + field.getGetterName();
-                                }
-                                else {
-                                    _uidSetterPattern += _uidGetterPattern + "." + field.getSetterName();
-                                }
+                                _isUidPureField = field.getSetter() instanceof FieldInfo;
+                                _uidSetterPattern += _uidGetterPattern + "." + field.getSetterName();
 
                                 if(UUID.class.isAssignableFrom(field.getEffectiveTypeClass())){
                                     _uidType = UidType.UUID;
@@ -275,7 +266,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                             }
                             _uidGetterPattern+="."+field.buildGetterCode();
                             if(partPos+1<fieldNameParts.length){
-                                currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(field.getEffectiveTypeInfo().getMainClass());
+                                currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)field.getEffectiveTypeInfo().getMainType());
                             }
                         }
 
@@ -504,25 +495,8 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             private String _transcoder;
 
             public KeyDef(ViewKeyDef def){
-                try {
-                    Class clazz = def.type();
-                    _type = clazz.getName();
-
-                }
-                catch(MirroredTypeException e){
-                    AnnotationProcessorUtils.ClassInfo typeClassInfo= new AnnotationProcessorUtils.ClassInfo((DeclaredType) e.getTypeMirror());
-                    _type = typeClassInfo.getName();
-                }
-
-                try {
-                    Class<? extends IViewKeyTranscoder> clazz = def.transcoder();
-                    _transcoder = clazz.getName();
-
-                }
-                catch(MirroredTypeException e){
-                    AnnotationProcessorUtils.ClassInfo transcoderClassInfo= new AnnotationProcessorUtils.ClassInfo((DeclaredType) e.getTypeMirror());
-                    _transcoder = transcoderClassInfo.getName();
-                }
+                _type = AbstractClassInfo.getClassInfoFromAnnot(def,annot1->def.type()).getName();
+                _transcoder = AbstractClassInfo.getClassInfoFromAnnot(def,annot1->def.transcoder()).getName();
             }
 
             public String getType() {
@@ -539,25 +513,8 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             private String _transcoder;
 
             public ValueDef(ViewValueDef def){
-                try {
-                    Class clazz = def.type();
-                    _type = clazz.getName();
-
-                }
-                catch(MirroredTypeException e){
-                    AnnotationProcessorUtils.ClassInfo typeClassInfo= new AnnotationProcessorUtils.ClassInfo((DeclaredType) e.getTypeMirror());
-                    _type = typeClassInfo.getName();
-                }
-
-                try {
-                    Class<? extends IViewTranscoder> clazz = def.transcoder();
-                    _transcoder = clazz.getName();
-
-                }
-                catch(MirroredTypeException e){
-                    AnnotationProcessorUtils.ClassInfo transcoderClassInfo= new AnnotationProcessorUtils.ClassInfo((DeclaredType) e.getTypeMirror());
-                    _transcoder = transcoderClassInfo.getName();
-                }
+                _type = AbstractClassInfo.getClassInfoFromAnnot(def,ViewValueDef::type).getName();
+                _transcoder = AbstractClassInfo.getClassInfoFromAnnot(def,ViewValueDef::transcoder).getName();
             }
 
             public String getType() {
@@ -572,8 +529,8 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
 
     public static class EntityDef{
         private CouchbaseDocumentReflection _docReflection;
-
         private String _parentKeyAccessor;
+
         public EntityDef(CouchbaseDocumentReflection docReflection){
             _docReflection = docReflection;
             ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
@@ -582,10 +539,10 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
                 CouchbaseDocumentStructureReflection currStructure = docReflection.getStructure();
                 _parentKeyAccessor = "";
                 for(int partPos=0;partPos<fieldNameParts.length;++partPos){
-                    CouchbaseDocumentFieldReflection field = currStructure.getFieldByName(fieldNameParts[partPos]);
+                    CouchbaseDocumentFieldReflection field = currStructure.getFieldByPropertyName(fieldNameParts[partPos]);
                     _parentKeyAccessor += "."+field.buildGetterCode();
                     if(partPos+1<fieldNameParts.length){
-                        currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(field.getEffectiveTypeInfo().getMainClass());
+                        currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)field.getEffectiveTypeInfo().getMainType());
                     }
                 }
             }
@@ -607,7 +564,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             return _parentKeyAccessor;
         }
 
-        public String getPackageName(){return _docReflection.getClassInfo().getPackageName();}
+        public String getPackageName(){return _docReflection.getClassInfo().getPackageInfo().getName();}
     }
 
     public class JavaEscape{

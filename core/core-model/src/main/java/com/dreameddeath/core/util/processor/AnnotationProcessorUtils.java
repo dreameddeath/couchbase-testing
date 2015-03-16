@@ -1,23 +1,10 @@
 package com.dreameddeath.core.util.processor;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.NoType;
-import javax.lang.model.type.TypeMirror;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.Map;
-
 /**
  * Created by CEAJ8230 on 05/01/2015.
  */
 public class AnnotationProcessorUtils {
-    public static String getClassName(TypeElement element) {
+    /*public static String getClassName(TypeElement element) {
         Element currElement = element;
         String result = element.getSimpleName().toString();
         while (currElement.getEnclosingElement() != null) {
@@ -107,7 +94,7 @@ public class AnnotationProcessorUtils {
         return null;
     }
 
-    public static Class getClass(TypeElement element) {
+    public static Class getClassFrom(TypeElement element) {
         try {
             return Class.forName(getClassName(element));
         } catch (Exception e) {
@@ -116,10 +103,10 @@ public class AnnotationProcessorUtils {
         return null;
     }
 
-    public static Class getClass(TypeMirror type) {
+    public static Class getClassFrom(TypeMirror type) {
         if (type instanceof DeclaredType) {
             if (((DeclaredType) type).asElement() instanceof TypeElement) {
-                return getClass((TypeElement) ((DeclaredType) type).asElement());
+                return getClassFrom((TypeElement) ((DeclaredType) type).asElement());
             }
         }
         return null;
@@ -181,7 +168,7 @@ public class AnnotationProcessorUtils {
 
         public ClassInfo(DeclaredType type) {
             _modeType = type;
-            _class = AnnotationProcessorUtils.getClass(type);
+            _class = AnnotationProcessorUtils.getClassFrom(type);
             if ((type.asElement() instanceof TypeElement)) {
                 TypeElement typeElement = (TypeElement) type.asElement();
                 if (AnnotationProcessorUtils.isAssignableFrom(Collection.class, typeElement)) {
@@ -276,5 +263,5 @@ public class AnnotationProcessorUtils {
             }
             return null;
         }
-    }
+    }*/
 }

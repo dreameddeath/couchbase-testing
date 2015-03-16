@@ -1,13 +1,11 @@
 package com.dreameddeath.core.util;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
-import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ClassInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,15 +23,37 @@ public class CouchbaseDocumentReflection {
 
     public static boolean isReflexible(Element element){
         if(element instanceof TypeElement){
-            return AnnotationProcessorUtils.isAssignableFrom(CouchbaseDocument.class,(TypeElement)element) ;
+            return AbstractClassInfo.getClassInfo(CouchbaseDocument.class).isAssignableFrom((TypeElement)element);
+            //return AnnotationProcessorUtils.isAssignableFrom(CouchbaseDocument.class,) ;
         }
         return false;
     }
 
 
+    public static boolean isReflexible(ClassInfo classInfo){
+        return AbstractClassInfo.getClassInfo(CouchbaseDocument.class).isAssignableFrom(classInfo);
+
+    }
+
+
+    private static CouchbaseDocumentReflection getReflectionFromClassInfo(ClassInfo classInfo){
+        if(classInfo.getTypeElement()!=null){
+            return getReflectionFromTypeElement(classInfo.getTypeElement());
+        }
+        else{
+            return getReflectionFromClass(classInfo.getCurrentClass());
+        }
+    }
+
     public static CouchbaseDocumentReflection getReflectionFromClass(Class<? extends CouchbaseDocument> doc){
         if(!_REFLEXION_CACHE.containsKey(doc)){
-            _REFLEXION_CACHE.put(doc,new CouchbaseDocumentReflection(doc));
+            ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(doc);
+            if(classInfo.getTypeElement()!=null){
+                getReflectionFromTypeElement(classInfo.getTypeElement());
+            }
+            else{
+                _REFLEXION_CACHE.put(doc,new CouchbaseDocumentReflection(classInfo));
+            }
         }
         return _REFLEXION_CACHE.get(doc);
     }
@@ -41,24 +61,31 @@ public class CouchbaseDocumentReflection {
 
     public static CouchbaseDocumentReflection getReflectionFromTypeElement(TypeElement element){
         if(!_TYPE_ElEMENT_REFLECTION_CACHE.containsKey(element)){
-            Class rootClass = AnnotationProcessorUtils.getClass(element);
-            if(rootClass!=null){
-                _TYPE_ElEMENT_REFLECTION_CACHE.put(element, getReflectionFromClass(rootClass));
+            ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(element);
+            CouchbaseDocumentReflection reflection = new CouchbaseDocumentReflection(classInfo);
+            //Class rootClass = AnnotationProcessorUtils.getClass(element);
+            if(classInfo.getCurrentClass()!=null){
+                _TYPE_ElEMENT_REFLECTION_CACHE.put(element,reflection );
             }
-            else {
-                _TYPE_ElEMENT_REFLECTION_CACHE.put(element, new CouchbaseDocumentReflection(element));
-            }
+
+            _TYPE_ElEMENT_REFLECTION_CACHE.put(element, reflection);
         }
         return _TYPE_ElEMENT_REFLECTION_CACHE.get(element);
     }
 
     private ClassInfo _classInfo;
     private CouchbaseDocumentStructureReflection _structure;
-    private CouchbaseDocumentReflection _superclassReflection;
+    //private CouchbaseDocumentReflection _superclassReflection;
 
-    protected CouchbaseDocumentReflection(Class<? extends CouchbaseDocument> document){
-        _classInfo = new ClassInfo(document);
-        _structure = CouchbaseDocumentStructureReflection.getReflectionFromClass(document);
+    protected CouchbaseDocumentReflection(ClassInfo classInfo){
+        _classInfo = classInfo;
+        _structure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(_classInfo);
+    }
+
+
+    /*protected CouchbaseDocumentReflection(Class<? extends CouchbaseDocument> document){
+        _classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(document);
+        _structure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(_classInfo);
 
         if((document.getSuperclass()!=null) && isReflexible(document.getSuperclass())){
             _superclassReflection = CouchbaseDocumentReflection.getReflectionFromClass((Class<? extends CouchbaseDocument>) (document.getSuperclass()));
@@ -73,14 +100,17 @@ public class CouchbaseDocumentReflection {
         if((parent!=null) && isReflexible(parent)){
             _superclassReflection = CouchbaseDocumentReflection.getReflectionFromTypeElement(parent);
         }
-    }
+    }*/
 
     public CouchbaseDocumentStructureReflection getStructure() {
         return _structure;
     }
 
     public CouchbaseDocumentReflection getSuperclassReflection() {
-        return _superclassReflection;
+        if((_classInfo.getSuperClass()!=null) && isReflexible(_classInfo.getSuperClass())) {
+            return  CouchbaseDocumentReflection.getReflectionFromClassInfo(_classInfo.getSuperClass());
+        }
+        return null;
     }
 
     public String getSimpleName() {

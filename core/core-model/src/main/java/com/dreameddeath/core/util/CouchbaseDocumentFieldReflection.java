@@ -1,33 +1,35 @@
 package com.dreameddeath.core.util;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
-import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ClassInfo;
-import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ParameterizedInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.FieldInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.MemberInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.MethodInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
-import java.lang.reflect.*;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Created by CEAJ8230 on 04/01/2015.
  */
 public class CouchbaseDocumentFieldReflection {
     private String _name;
-    private Field _field;
+    private FieldInfo _field;
+    private ParameterizedTypeInfo _effectiveType;
+    //private Field _field;
 
-    private TypeInfo _effectiveType;
+    private MemberInfo _getter;
+    private MemberInfo _setter;
+    /*private TypeInfo _effectiveType;
     private AccessibleObject _getter;
     private Method _setter;
 
-    private Element _getterElement;
-    private Element _setterElement;
+    private MemberInfo _getterElement;
+    private MemberInfo _setterElement;*/
 
 
 
-    public static class TypeInfo{
+    /*public static class TypeInfo{
         private ClassInfo _classInfo;
         private ParameterizedInfo _collectionElementType;
         private ParameterizedInfo _mapKeyType;
@@ -83,7 +85,7 @@ public class CouchbaseDocumentFieldReflection {
         }
 
 
-    }
+    }*/
 
     protected String nameBuilder(String name, String prefix){
         if(name.startsWith("_")){
@@ -93,7 +95,29 @@ public class CouchbaseDocumentFieldReflection {
     }
 
 
-    public Method fieldGetterFinder(Field field) throws NoSuchMethodException{
+    public MethodInfo fieldGetterFinder(){
+        MethodInfo result = null;
+        if(_field.getAnnotation(DocumentProperty.class)!=null){
+            DocumentProperty prop = _field.getAnnotation(DocumentProperty.class);
+            String getter = prop.getter();
+            if((getter!=null)&& !getter.equals("")){
+                result=_field.getDeclaringClassInfo().getDeclaredMethod(getter);
+            }
+            else {
+                String name = nameBuilder(prop.value(),"get");
+                result= _field.getDeclaringClassInfo().getDeclaredMethod(name);
+            }
+        }
+
+        if(result==null){
+            String name = nameBuilder(_field.getName(),"get");
+            result = _field.getDeclaringClassInfo().getDeclaredMethod(name);
+        }
+
+        return result;
+    }
+
+    /*public Method fieldGetterFinder(Field field) throws NoSuchMethodException{
         if(field.getAnnotation(DocumentProperty.class)!=null){
             DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
             String getter = prop.getter();
@@ -130,10 +154,30 @@ public class CouchbaseDocumentFieldReflection {
         }
 
         return siblingElementFinder(element, nameBuilder(element.getSimpleName().toString(), "get"),false);
+    }*/
+
+    public MethodInfo fieldSetterFinder(){
+        MethodInfo result = null;
+        if(_field.getAnnotation(DocumentProperty.class)!=null){
+            DocumentProperty prop = _field.getAnnotation(DocumentProperty.class);
+            String setter = prop.setter();
+            if((setter!=null)&& !setter.equals("")){
+                result = _field.getDeclaringClassInfo().getDeclaredMethod(setter, _effectiveType);
+            }
+            else {
+                String name = nameBuilder(prop.value(), "set");
+                result= _field.getDeclaringClassInfo().getDeclaredMethod(name,_effectiveType);
+            }
+        }
+
+        if(result==null) {
+            String name = nameBuilder(_field.getName(), "set");
+            result = _field.getDeclaringClassInfo().getDeclaredMethod(name,_effectiveType);
+        }
+        return result;
     }
 
-
-    public Method fieldSetterFinder(Field field) throws NoSuchMethodException{
+    /*public Method fieldSetterFinder(Field field) throws NoSuchMethodException{
         if(field.getAnnotation(DocumentProperty.class)!=null){
             DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
             String setter = prop.setter();
@@ -182,10 +226,10 @@ public class CouchbaseDocumentFieldReflection {
             return element.asType();
         }
 
-    }
+    }*/
 
 
-    public Element siblingElementFinder(Element element, String name,boolean isSetter){
+    /*public Element siblingElementFinder(Element element, String name,boolean isSetter){
         for(Element sibling:element.getEnclosingElement().getEnclosedElements()){
             if((sibling instanceof ExecutableElement) && sibling.getSimpleName().toString().equals(name)){
                 ExecutableElement methodElement = (ExecutableElement) sibling;
@@ -202,89 +246,58 @@ public class CouchbaseDocumentFieldReflection {
             }
         }
         return null;
-    }
+    }*/
 
-
-    public CouchbaseDocumentFieldReflection(Element element) {
-        _name = element.getAnnotation(DocumentProperty.class).value();
-
-        _getterElement = fieldGetterFinder(element);
-        if(_getterElement==null){
-            if(element.getModifiers().contains(javax.lang.model.element.Modifier.PUBLIC)){
-                _getterElement = element;
+    public CouchbaseDocumentFieldReflection(FieldInfo fieldInfo) {
+        _name = fieldInfo.getAnnotation(DocumentProperty.class).value();
+        _field = fieldInfo;
+        _getter = fieldGetterFinder();
+        if(_getter==null){
+            if(fieldInfo.isPublic()){
+                _getter = fieldInfo;
+                _effectiveType = fieldInfo.getType();
             }
             else{
-                throw new RuntimeException("Cannot find getter of field "+_name+ " for entity "+element.getEnclosingElement().getSimpleName());
+                throw new RuntimeException("Cannot find getter of field "+_name+ " for entity "+fieldInfo.getDeclaringClassInfo().getFullName());
             }
         }
-        TypeMirror effectiveType = getType(_getterElement);
-        if(effectiveType instanceof DeclaredType){
-            _effectiveType = new TypeInfo((DeclaredType)effectiveType);
+        else{
+            _effectiveType = ((MethodInfo)_getter).getReturnType();
         }
 
-
-        _setterElement= fieldSetterFinder(element);
-        if((_setterElement==null) && !isPureField()){
-            throw new RuntimeException("Cannot find setter of field "+_name+ " for entity" + element.getEnclosingElement().getSimpleName());
-        }
-
-    }
-
-    public CouchbaseDocumentFieldReflection(Field field){
-        _name = field.getAnnotation(DocumentProperty.class).value();
-
-        try {
-            _getter = fieldGetterFinder(field);
-            _effectiveType = new TypeInfo(((Method)_getter).getGenericReturnType());
-        } catch (NoSuchMethodException e) {
-            if ((field.getModifiers() & java.lang.reflect.Modifier.PUBLIC)!=0) {
-                _getter = field;
-                _effectiveType = new TypeInfo(field.getGenericType());
-            } else {
-                //TODO throw an error
+        _setter= fieldSetterFinder();
+        if(_setter==null) {
+            if (fieldInfo.isPublic()) {
+                _setter = fieldInfo;
+            }
+            else {
+                throw new RuntimeException("Cannot find setter of field " + _name + " for entity" + fieldInfo.getDeclaringClassInfo().getFullName());
             }
         }
-
-        _field = field;
-        try {
-            _setter = fieldSetterFinder(field);
-        } catch (NoSuchMethodException e) {
-
-        }
-
-
-
     }
-
 
     public String getName() {
         return _name;
     }
 
-    public Field getField() {
+    public FieldInfo getField() {
         return _field;
     }
 
-    public boolean isPureField(){
-        if(_getterElement!=null){
-            return _getterElement.getKind().isField();
-        }
-        return _field.equals(_getter);
+    public Class<?> getEffectiveTypeClass() {
+        return getEffectiveTypeInfo().getMainType().getCurrentClass();
     }
 
-    public Class<?> getEffectiveTypeClass() {
-        return _effectiveType.getMainClass().getRealClass();
-    }
-    public TypeInfo getEffectiveTypeInfo() {
+    public ParameterizedTypeInfo getEffectiveTypeInfo() {
         return _effectiveType;
     }
 
-    public AccessibleObject getGetter() {
+    public MemberInfo getGetter() {
         return _getter;
     }
 
     public String buildGetterCode(){
-        if(isPureField()){
+        if(_getter instanceof FieldInfo){
             return getGetterName();
         }
         else{
@@ -293,57 +306,43 @@ public class CouchbaseDocumentFieldReflection {
     }
 
     public String getGetterName(){
-        if(_getterElement != null){
-            return _getterElement.getSimpleName().toString();
-        }
-        else if(_getter instanceof Field){
-            return ((Field)_getter).getName();
-        }
-        else{
-            return ((Method)_getter).getName();
-        }
+        return _getter.getName();
     }
 
-    public Method getSetter() {
+    public MemberInfo getSetter() {
         return _setter;
     }
 
     public String getSetterName(){
-        if(_setterElement!=null){
-            return _setterElement.getSimpleName().toString();
-        }
-        else if(_setter!=null){
-            return _setter.getName();
-        }
-        return null;
+        return _setter.getName();
     }
 
     public boolean isCollection() {
-        return _effectiveType.getMainClass().isCollection();
+        return _field.getType().isAssignableTo(Collection.class);
     }
 
     public Class<?> getCollectionElementClass() {
-        return _effectiveType.getCollectionElementType().getRealClass();
+        return getCollectionElementTypeInfo().getMainType().getCurrentClass();
     }
-    public ParameterizedInfo getCollectionElementTypeInfo() {
-        return _effectiveType.getCollectionElementType();
+    public ParameterizedTypeInfo getCollectionElementTypeInfo() {
+        return _field.getType().getMainTypeGeneric(0);
     }
 
     public boolean isMap() {
-        return _effectiveType.getMainClass().isMap();
+        return _field.getType().isAssignableTo(Map.class);
     }
 
     public Class<?> getMapKeyClass() {
-        return _effectiveType.getMapKeyType().getRealClass();
+        return getMapKeyTypeInfo().getMainType().getCurrentClass();
     }
-    public ParameterizedInfo getMapKeyTypeInfo() {
-        return _effectiveType.getMapKeyType();
+    public ParameterizedTypeInfo getMapKeyTypeInfo() {
+        return _field.getType().getMainTypeGeneric(0);
     }
 
     public Class<?> getMapValueClass() {
-        return _effectiveType.getMapValueType().getRealClass();
+        return getMapValueTypeInfo().getMainType().getCurrentClass();
     }
-    public ParameterizedInfo getMapValueTypeInfo() {
-        return _effectiveType.getMapValueType();
+    public ParameterizedTypeInfo getMapValueTypeInfo() {
+        return _field.getType().getMainTypeGeneric(1);
     }
 }

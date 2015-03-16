@@ -84,11 +84,11 @@ public class CouchbaseDocumentReflectionTest {
         assertEquals(7, refectionResult.getStructure().getFields().size());
         assertEquals(5,refectionResult.getSuperclassReflection().getStructure().getDeclaredFields().size());
 
-        assertEquals(TestElement.class, refectionResult.getStructure().getFieldByName("testComplexElement").getCollectionElementClass());
-        assertEquals(TestInherited.class.getDeclaredMethod("getDocProp"),refectionResult.getStructure().getFieldByName("docProp").getGetter());
-        assertEquals(TestInherited.class.getDeclaredMethod("setDocProp", Long.class), refectionResult.getStructure().getFieldByName("docProp").getSetter());
-        assertEquals(TestInherited.class.getDeclaredMethod("getModifiedAccessors2"),refectionResult.getStructure().getFieldByName("modifiedAccessors").getGetter());
-        assertEquals(TestInherited.class.getDeclaredMethod("setModifiedAccessors2", String.class), refectionResult.getStructure().getFieldByName("modifiedAccessors").getSetter());
+        assertEquals(TestElement.class, refectionResult.getStructure().getFieldByPropertyName("testComplexElement").getCollectionElementClass());
+        assertEquals(TestInherited.class.getDeclaredMethod("getDocProp"),refectionResult.getStructure().getFieldByPropertyName("docProp").getGetter().getMember());
+        assertEquals(TestInherited.class.getDeclaredMethod("setDocProp", Long.class), refectionResult.getStructure().getFieldByPropertyName("docProp").getSetter().getMember());
+        assertEquals(TestInherited.class.getDeclaredMethod("getModifiedAccessors2"),refectionResult.getStructure().getFieldByPropertyName("modifiedAccessors").getGetter().getMember());
+        assertEquals(TestInherited.class.getDeclaredMethod("setModifiedAccessors2", String.class), refectionResult.getStructure().getFieldByPropertyName("modifiedAccessors").getSetter().getMember());
 
 
         AnnotationProcessorTestingWrapper wrapper = new AnnotationProcessorTestingWrapper();

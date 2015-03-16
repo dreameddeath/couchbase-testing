@@ -119,14 +119,6 @@ public class UpgraderTest {
             return LocalBucketDocument.class;
         }
 
-
-        /*@Override
-        public List<CouchbaseCounterDao.Builder> getCountersBuilder() {
-            return Arrays.asList(
-                    new CouchbaseCounterDao.Builder().withKeyPattern(TEST_CNT_KEY_PATTERN).withDefaultValue(1L).withBaseDao(this)
-            );
-        }*/
-
         @Override
         public TestModelV2 buildKey(ICouchbaseSession session, TestModelV2 newObject) throws DaoException, StorageException {
             long result = session.incrCounter(TEST_CNT_KEY, 1);
@@ -222,15 +214,13 @@ public class UpgraderTest {
 
             Object result = session.get(v1.getMeta().getKey(),TestModelV2.class);
             assertEquals(TestModelV2.class,result.getClass());
-            if(result instanceof TestModelV2) {
-                TestModelV2 resultV2 = (TestModelV2)result;
-                assertEquals(refValue + " v1.1 v2", resultV2.value2);
-                assertEquals("test/test/2.0.0", resultV2.getDocumentFullVersionId());
-                assertEquals(2, resultV2.element2.size());
-                for(TestElementV2 elementMigrated:resultV2.element2) {
-                    assertEquals(refBaseElementValue + " to V1_1 to v2", elementMigrated.baseValue2);
-                    assertEquals(refElementValue + " to V1_1 to v2", elementMigrated.value2);
-                }
+            TestModelV2 resultV2 = (TestModelV2)result;
+            assertEquals(refValue + " v1.1 v2", resultV2.value2);
+            assertEquals("test/test/2.0.0", resultV2.getDocumentFullVersionId());
+            assertEquals(2, resultV2.element2.size());
+            for(TestElementV2 elementMigrated:resultV2.element2) {
+                assertEquals(refBaseElementValue + " to V1_1 to v2", elementMigrated.baseValue2);
+                assertEquals(refElementValue + " to V1_1 to v2", elementMigrated.value2);
             }
         }
         catch(Exception e){

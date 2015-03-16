@@ -1,0 +1,5 @@
+package ${packageName}
+
+class ${className}Generated{
+    private static String Class<?> SRC_CLASS = ${className}.class;
+}

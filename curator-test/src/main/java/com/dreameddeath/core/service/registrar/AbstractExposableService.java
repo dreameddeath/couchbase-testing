@@ -8,7 +8,6 @@ public abstract class AbstractExposableService {
         ServiceRegistrar.addService(this);
     }
 
-
     private Object endPoint;
     public void setEndPoint(Object obj){
         endPoint = obj;

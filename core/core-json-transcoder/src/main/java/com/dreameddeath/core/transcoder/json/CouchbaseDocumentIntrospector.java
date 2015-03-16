@@ -1,5 +1,9 @@
 package com.dreameddeath.core.transcoder.json;
 
+import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.FieldInfo;
+import com.dreameddeath.core.tools.annotation.processor.reflection.MethodInfo;
 import com.dreameddeath.core.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.core.Version;
@@ -39,9 +43,9 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(CouchbaseDocumentStructureReflection.isReflexible(am.getDeclaringClass())) {
                     if (am.getName().startsWith("get") && (am.getName().length() > 3)) {
-                        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(am.getDeclaringClass());
+                        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) AbstractClassInfo.getClassInfo(am.getDeclaringClass()));
                         CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldByGetterName(am.getName());
-                        if (fieldReflection != null) {
+                        if ((fieldReflection != null) &&(fieldReflection.getGetter() instanceof MethodInfo)) {
                             name = new PropertyName(fieldReflection.getName());
                         }
                     }
@@ -50,9 +54,9 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
             else if(a instanceof AnnotatedField){
                 AnnotatedField af = (AnnotatedField) a;
                 if(CouchbaseDocumentStructureReflection.isReflexible(af.getDeclaringClass())) {
-                    CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(af.getDeclaringClass());
-                    CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredField(af.getAnnotated());
-                    if (fieldReflection != null && fieldReflection.isPureField()) {
+                    CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) AbstractClassInfo.getClassInfo(af.getDeclaringClass()));
+                    CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldByName(af.getName());
+                    if (fieldReflection != null && (fieldReflection.getGetter() instanceof FieldInfo)) {
                         name = new PropertyName(fieldReflection.getName());
                     }
                 }
@@ -71,9 +75,9 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(CouchbaseDocumentStructureReflection.isReflexible(am.getDeclaringClass())) {
                     if (am.getName().startsWith("set")) {
-                        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(am.getDeclaringClass());
+                        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)AbstractClassInfo.getClassInfo(am.getDeclaringClass()));
                         CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldBySetterName(am.getName());
-                        if (fieldReflection != null) {
+                        if((fieldReflection != null) && (fieldReflection.getSetter() instanceof MethodInfo)) {
                             name = new PropertyName(fieldReflection.getName());
                         }
                     }
@@ -82,9 +86,9 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
             else if(a instanceof AnnotatedField){
                 AnnotatedField af = (AnnotatedField) a;
                 if(CouchbaseDocumentStructureReflection.isReflexible(af.getDeclaringClass())) {
-                    CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(af.getDeclaringClass());
-                    CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredField(af.getAnnotated());
-                    if (fieldReflection != null && fieldReflection.isPureField()) {
+                    CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) AbstractClassInfo.getClassInfo(af.getDeclaringClass()));
+                    CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldByName(af.getName());
+                    if (fieldReflection != null && (fieldReflection.getSetter() instanceof FieldInfo)) {
                         name = new PropertyName(fieldReflection.getName());
                     }
                 }

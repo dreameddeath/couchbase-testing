@@ -1,0 +1,18 @@
+<html>
+<head>
+    <title>list of matching classes</title>
+</head>
+<body>
+<table>
+    <thead>
+        <tr><td>Filename</td><td>Annotation Value</td></tr>
+    </thead>
+    <tbody>
+#foreach($class in $classes)
+        <tr><td>${class.name}</td><td>${class.annotValue}</td></tr>
+#end
+    </tbody>
+</table>
+</body>
+</html>
+
