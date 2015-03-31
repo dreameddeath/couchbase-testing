@@ -15,6 +15,7 @@
         <module>testing-annotation-processor</module>
         <module>testing-json-dataset</module>
         <module>testing-couchbase</module>
+        <module>testing-curator</module>
         <module>testing-integration</module>
     </modules>
   <properties>

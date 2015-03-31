@@ -3,6 +3,8 @@ package com.dreameddeath.core.service.registrar;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.model.ServiceDescription;
+import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
+import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.core.util.JsonSerializer;
 import com.wordnik.swagger.jaxrs.JaxrsApiReader;
@@ -39,19 +41,24 @@ public class ServiceRegistrar {
     public static void addService(AbstractExposableService service){_services.add(service);}
 
     private final CuratorFramework _client;
-    private final IRestEndPointDescription _restEndPointDescription;
+    private final String _basePath;
+    //private final IRestEndPointDescription _restEndPointDescription;
     private ServiceDiscovery<ServiceDescription> _serviceDiscovery;
 
-    public ServiceRegistrar(CuratorFramework client,IRestEndPointDescription restEndPointDescription){
+
+    public ServiceRegistrar(CuratorFramework client,String basePath){
         _client = client;
-        _restEndPointDescription = restEndPointDescription;
+        _basePath = basePath;
     }
 
     public void start() throws InterruptedException, UnknownHostException, Exception{
         _client.blockUntilConnected(10, TimeUnit.SECONDS);
+        ServiceNamingUtils.createBaseServiceName(_client, _basePath);
+
         _serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
+                .serializer(new ServiceInstanceSerializerImpl())
                 .client(_client)
-                .basePath(_restEndPointDescription.path()).build();
+                .basePath(_basePath).build();
 
         _serviceDiscovery.start();
 
@@ -59,10 +66,10 @@ public class ServiceRegistrar {
         for(AbstractExposableService foundService:_services) {
             ServiceDef annotDef = foundService.getClass().getAnnotation(ServiceDef.class);
             SwaggerConfig cfg = new SwaggerConfig();
-            cfg.setBasePath(_restEndPointDescription.host());
+            cfg.setBasePath(foundService.getEndPoint().path());
             cfg.setApiVersion(annotDef.version());
 
-            ApiListing parsedResult = reader.read(/*endPoint.getAddress()*/_restEndPointDescription.host(), foundService.getClass(),cfg).get();
+            ApiListing parsedResult = reader.read(foundService.getEndPoint().path(), foundService.getClass(),cfg).get();
 
             ServiceDescription serviceDescr = new ServiceDescription();
             serviceDescr.setState(annotDef.status());
@@ -70,10 +77,10 @@ public class ServiceRegistrar {
             serviceDescr.setSwagger(JsonSerializer.asJson(parsedResult).toString());
 
             UriSpec uriSpec = new UriSpec("{scheme}://{address}:{port}");
-            ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(annotDef.name())
+            ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()))
                     .uriSpec(uriSpec)
-                    .address(_restEndPointDescription.host())
-                    .port(_restEndPointDescription.port())
+                    .address(foundService.getEndPoint().host())
+                    .port(foundService.getEndPoint().port())
                     .payload(serviceDescr)
                     .build();
 

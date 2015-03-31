@@ -66,7 +66,7 @@ public class DocumentSimulator {
 
         public Meta(DocumentSimulator doc){
             id = doc.getKey();
-            rev = new Long(doc.getCas()).toString();
+            rev = Long.toString(doc.getCas());
             type = doc.getType();
             flags = doc.getFlags();
             expiration = doc.getExpiry();

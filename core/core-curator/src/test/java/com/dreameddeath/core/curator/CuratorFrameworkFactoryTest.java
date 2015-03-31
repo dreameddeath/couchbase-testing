@@ -17,7 +17,6 @@ public class CuratorFrameworkFactoryTest extends Assert{
 
     @Before
     public void prepare() throws Exception{
-
         System.setProperty("zookeeper.jmx.log4j.disable","true");
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<TestingCluster> future = executor.submit(new Callable<TestingCluster>() {

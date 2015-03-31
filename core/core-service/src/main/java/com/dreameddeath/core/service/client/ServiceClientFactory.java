@@ -2,6 +2,7 @@ package com.dreameddeath.core.service.client;
 
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
+import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -22,9 +23,9 @@ public class ServiceClientFactory {
         _serviceDiscoverer = serviceDiscoverer;
     }
 
-    public WebTarget getClient(String serviceName){
+    public WebTarget getClient(String serviceName,String serviceVersion){
         try{
-            String uri = _serviceDiscoverer.getInstance(serviceName).buildUriSpec();
+            String uri = _serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName,serviceVersion)).buildUriSpec();
             return _clientPerUri.computeIfAbsent(uri, new Function<String, WebTarget>() {
                 @Override
                 public WebTarget apply(String s) {

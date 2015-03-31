@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
             http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
 
+    <context:annotation-config />
+    <bean class="com.dreameddeath.core.service.TestSpringSelfConfig" name="__CONFIG_TEST_BEAN" />
     <bean id="propertyConfigurer"
           class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="ignoreResourceNotFound" value="true"></property>
@@ -23,7 +25,11 @@
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
-    <bean id="curatorFramework" class="com.dreameddeath.core.curator.CuratorFrameworkFactory" factory-method="newClient" init-method="start">
+    <!--
+    <context:annotationconfig />
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>-->
+
+    <!--<bean id="curatorFramework" class="com.dreameddeath.core.curator.CuratorFrameworkFactory" factory-method="newClient" init-method="start">
         <constructor-arg>
             <value>${zookeeperAddress}</value>
         </constructor-arg>
@@ -33,8 +39,8 @@
                 <constructor-arg><value>3</value></constructor-arg>
             </bean>
         </constructor-arg>
-    </bean>
-    <jaxrs:server id="apis" transportId="http://cxf.apache.org/transports/http" address="/api" >
+    </bean>-->
+    <!--<jaxrs:server id="apis" transportId="http://cxf.apache.org/transports/http" address="/api" >
         <jaxrs:serviceBeans>
             <bean id="serviceTest" class="com.dreameddeath.curator.server.ServiceTest" >
                 <property name="endPoint" ref="apis"/>
@@ -64,12 +70,12 @@
                 </constructor-arg>
             </bean>
         </jaxrs:providers>
-    </jaxrs:server>
+    </jaxrs:server>-->
 
-    <bean id="serviceDiscoverer" class="com.dreameddeath.core.service.discovery.ServiceDiscoverer" init-method="start">
-        <constructor-arg><ref bean="curatorFramework" /></constructor-arg>
+    <!--<bean id="serviceDiscoverer" class="com.dreameddeath.core.service.discovery.ServiceDiscoverer" init-method="start" depends-on="testingJaxRsServer">
+        <constructor-arg><ref bean="curatorClient" /></constructor-arg>
         <constructor-arg><value>${serviceBasePath}</value></constructor-arg>
-    </bean>
+    </bean>-->
 
     <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >
         <jaxrs:serviceBeans>
@@ -80,7 +86,7 @@
         <jaxrs:providers>
             <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
                 <constructor-arg>
-                    <bean class="com.dreameddeath.core.service.ServiceJacksonObjectMapper" />
+                    <bean class="com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper" />
                 </constructor-arg>
             </bean>
         </jaxrs:providers>

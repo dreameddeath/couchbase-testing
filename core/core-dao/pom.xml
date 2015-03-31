@@ -28,6 +28,10 @@
           <artifactId>core-couchbase</artifactId>
           <version>${project.version}</version>
       </dependency>
-
+      <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <version>${apache.common.codec.version}</version>
+      </dependency>
   </dependencies>
 </project>

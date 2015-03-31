@@ -247,8 +247,6 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             scriptContent = scriptContent.replaceAll("\\bemit\\(", "globalResultEmitter.emit(meta.id,");
 
             try{
-                //Object result = ;
-                //newDesignDocMap.put(viewDef.getKey(),compilator.compile(scriptContent));
                 newDesignDocMap.put(viewDef.getKey(),(ScriptObjectMirror)_engine.eval(scriptContent));
             }
             catch(ScriptException e){

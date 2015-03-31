@@ -7,12 +7,13 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.ensemble.EnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorTempFramework;
-import org.apache.curator.framework.api.ACLProvider;
-import org.apache.curator.framework.api.CompressionProvider;
+import org.apache.curator.framework.api.*;
 import org.apache.curator.utils.ZookeeperFactory;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadFactory;
@@ -108,13 +109,29 @@ public class CuratorFrameworkFactory{
         private final String _nameSpacePrefix;
         private String _connectionString=null;
 
+        private void addClosureListener(CuratorFramework framework){
+            framework.getCuratorListenable().addListener(new CuratorListener() {
+                @Override
+                public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
+                    if(event.getType().equals(CuratorEventType.CLOSING)){
+                        Iterator<Map.Entry<String,CuratorFramework>> iterator =_curatorFrameworkConcurrentMap.entrySet().iterator();
+                        while(iterator.hasNext()){
+                            Map.Entry<String,CuratorFramework> nextEntry = iterator.next();
+                            if(nextEntry.getValue().equals(client)){
+                                iterator.remove();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         public CuratorFramework build() throws DuplicateClusterClientException,BadConnectionStringException{
             if(_connectionString==null){
                 throw new BadConnectionStringException(_connectionString);
             }
             List<String> servers = new ArrayList();
             CuratorFramework oldFramework=null;
-            String newConnectionString="";
             synchronized (_curatorFrameworkConcurrentMap) {
                 for (String server : _connectionString.split(CONNECTION_STRING_SEPARATOR)) {
                     server = server.trim().toLowerCase();
@@ -132,6 +149,7 @@ public class CuratorFrameworkFactory{
                     for(String server:servers){
                         _curatorFrameworkConcurrentMap.putIfAbsent(server,newCuratorFramework);
                     }
+                    addClosureListener(newCuratorFramework);
                     return newCuratorFramework;
                 }
                 else{

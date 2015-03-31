@@ -89,7 +89,6 @@
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>jetty-security</artifactId>
         </exclusion>
-
       </exclusions>
     </dependency>
 

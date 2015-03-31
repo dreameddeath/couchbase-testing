@@ -6,7 +6,7 @@ import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 /**
  * Created by CEAJ8230 on 15/01/2015.
  */
-public abstract class AbstractExposableService<T> {
+public abstract class AbstractExposableService {
     public AbstractExposableService(){
         ServiceRegistrar.addService(this);
     }

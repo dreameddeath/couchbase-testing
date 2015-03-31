@@ -4,6 +4,8 @@ import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
 import com.dreameddeath.core.service.model.ServiceDescription;
 import com.dreameddeath.core.service.model.ServiceInstanceDescription;
 import com.dreameddeath.core.service.model.ServicesInstanceDescription;
+import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
+import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
@@ -14,6 +16,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+
+import static com.dreameddeath.core.service.utils.ServiceNamingUtils.createBaseServiceName;
 
 /**
  * Created by CEAJ8230 on 18/01/2015.
@@ -37,7 +41,10 @@ public class ServiceDiscoverer {
         catch(InterruptedException e){
             throw new ServiceDiscoveryException("Cannot connect to Zookeeper",e);
         }
+
+        ServiceNamingUtils.createBaseServiceName(_client,_basePath);
         _serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
+                .serializer(new ServiceInstanceSerializerImpl())
                 .client(_client)
                 .basePath(_basePath).build();
         try {
