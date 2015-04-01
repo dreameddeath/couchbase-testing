@@ -1,13 +1,15 @@
 package com.dreameddeath.core.service;
 
+import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.cxf.jaxrs.lifecycle.ResourceProvider;
 import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.jaxrs.lifecycle.ResourceProvider;
 import org.apache.cxf.jaxrs.spring.JAXRSServerFactoryBeanDefinitionParser.SpringJAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.spring.SpringResourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ public class TestSpringSelfConfig
     public static void setServiceDiscoverer(ServiceDiscoverer serviceDiscoverer){
         _serviceDiscoverer = serviceDiscoverer;
     }
+
     public static void setEndPointDescr(IRestEndPointDescription descr){
         _endPointDescr = descr;
     }
@@ -95,6 +98,19 @@ public class TestSpringSelfConfig
             });
             ctxt.getBeanFactory().registerSingleton(serviceDef.getKey(), serviceDef.getValue());
             SpringResourceFactory factoryResource = new SpringResourceFactory(serviceDef.getKey());
+            if(serviceDef.getValue() instanceof TestServiceRestService){
+                ((TestServiceRestService) serviceDef.getValue()).setGlobalContextTranscoder(new IGlobalContextTranscoder() {
+                    @Override
+                    public String encode(IGlobalContext ctxt) {
+                        return "";
+                    }
+
+                    @Override
+                    public IGlobalContext decode(String encodedContext) {
+                        return null;
+                    }
+                });
+            }
             factoryResource.setApplicationContext(ctxt);
             resourceProviders.add(factoryResource);
         }

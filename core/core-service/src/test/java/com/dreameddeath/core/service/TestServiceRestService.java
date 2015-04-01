@@ -19,8 +19,12 @@ import javax.ws.rs.core.MediaType;
 @ServiceDef(name="testService",version="1.0",status = "stable")
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractExposableService {
-    TestServiceImpl _testService=new TestServiceImpl();
-    IGlobalContextTranscoder _transcoder;
+    private TestServiceImpl _testService=new TestServiceImpl();
+    private IGlobalContextTranscoder _transcoder;
+
+    public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
+        _transcoder = transcoder;
+    }
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
@@ -34,11 +38,11 @@ public class TestServiceRestService extends AbstractExposableService {
             @ApiResponse(code = 400, message = "Invalid ID"),
             @ApiResponse(code = 404, message = "object not found")
     })
-    public ITestService.Result runWithRes(@HeaderParam("X-CONTEXT") String contextParam,@PathParam("rootId") String rootId,@PathParam("id") String id){
+    public ITestService.Result runWithRes(@HeaderParam("X-CONTEXT") String contextParam,@PathParam("rootId") String rootId,@PathParam("id") String id, ITestService.Input input){
         IGlobalContext context = _transcoder.decode(contextParam);
-        ITestService.Input input = new ITestService.Input();
+        /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
-        input.id = id;
+        input.id = id;*/
         return _testService.runWithRes(context,input).toBlocking().first();
     }
 }

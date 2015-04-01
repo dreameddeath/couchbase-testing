@@ -12,15 +12,15 @@ public interface ITestService {
     public Observable<Result> runWithRes(IGlobalContext ctxt,Input input);
 
     public static class Result{
-        String result;
-        String id;
-        String rootId;
-        DateTime plusOneMonth;
+        public String result;
+        public String id;
+        public String rootId;
+        public DateTime plusOneMonth;
     }
 
     public static class Input{
-        String id;
-        String rootId;
-        DateTime otherField;
+        public String id;
+        public String rootId;
+        public DateTime otherField;
     }
 }

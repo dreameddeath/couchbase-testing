@@ -1,5 +1,8 @@
 package com.dreameddeath.core.service;
 
+import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
@@ -10,6 +13,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.joda.time.DateTime;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -17,6 +21,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.ContextLoaderListener;
+import rx.Observable;
 
 import java.net.InetAddress;
 
@@ -32,7 +37,8 @@ public class TestServicesTest extends Assert{
     private final static String ENDPOINT_ADDRESS = String.format("http://%s:%d",ENDPOINT_HOSTNAME,ENDPOINT_PORT);
     public static final String BASE_PATH = "/services";
     private static Server _server;
-
+    private static ServiceDiscoverer _serviceDiscoverer;
+    private static ServerConnector _connector;
     @BeforeClass
     public static void initialise() throws Exception{
         CuratorTestUtils curatorUtils = new CuratorTestUtils();
@@ -40,8 +46,8 @@ public class TestServicesTest extends Assert{
         CuratorFramework curatorClient = curatorUtils.getClient("TestServicesTest");
         TestSpringSelfConfig.setCuratorClient(curatorClient);
         _server = new Server();
-        final ServerConnector connector = new ServerConnector(_server);
-        _server.addConnector(connector);
+        _connector = new ServerConnector(_server);
+        _server.addConnector(_connector);
         ServletContextHandler contextHandler = new ServletContextHandler();
         _server.setHandler(contextHandler);
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
@@ -50,12 +56,12 @@ public class TestServicesTest extends Assert{
         TestSpringSelfConfig.setEndPointDescr(new IRestEndPointDescription() {
             @Override
             public int port() {
-                return connector.getLocalPort();
+                return _connector.getLocalPort();
             }
 
             @Override
             public String path() {
-                return "services/";
+                return "";
             }
 
             @Override
@@ -68,55 +74,47 @@ public class TestServicesTest extends Assert{
                  }
             }
         });
-        ServiceDiscoverer serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
+         _serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
 
         _server.addLifeCycleListener(new LifeCycleListener(new ServiceRegistrar(curatorClient,
                 BASE_PATH
-                ),serviceDiscoverer ));
+                ),_serviceDiscoverer ));
 
 
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
         TestServiceRestService service = new TestServiceRestService();
-        //service.setEndPoint(endPointDescription);
         TestSpringSelfConfig.registerService("test",service);
         contextHandler.addEventListener(new ContextLoaderListener());
-        //contextHandler.addEventListener(new ServiceRegistrarListener(cxfHolder));
 
         _server.start();
-
-        //server.join();
-
-        /*JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
-        sf.setResourceClasses(TestServiceRestService.class);
-        List<Object> providers = new ArrayList<>();
-        sf.setProviders(providers);
-        TestServiceRestService service = new TestServiceRestService();
-        service.setEndPoint(new IRestEndPointDescription() {
-            @Override
-            public int port() {
-                return ENDPOINT_PORT;
-            }
-
-            @Override
-            public String path() {
-                return "";
-            }
-
-            @Override
-            public String host() {
-                return ENDPOINT_HOSTNAME;
-            }
-        });
-
-        sf.setResourceProvider(TestServiceRestService.class,new SingletonResourceProvider(service,true));
-        sf.setAddress(ENDPOINT_ADDRESS);
-        _server = sf.create();*/
 
     }
 
     @Test
     public void testService(){
-        LOG.debug("Entering");
+        TestServiceRestClientImpl service = new TestServiceRestClientImpl();
+        service.setContextTranscoder(new IGlobalContextTranscoder() {
+            @Override
+            public String encode(IGlobalContext ctxt) {
+                return "";
+            }
+
+            @Override
+            public IGlobalContext decode(String encodedContext) {
+                return null;
+            }
+        });
+
+        service.setServiceClientFactory(new ServiceClientFactory(_serviceDiscoverer));
+
+        ITestService.Input input = new ITestService.Input();
+        input.id = "10";
+        input.rootId = "20";
+        input.otherField = DateTime.now();
+        Observable<ITestService.Result> resultObservable= service.runWithRes(null, input);
+        ITestService.Result result = resultObservable.toBlocking().single();
+
+        LOG.debug("Entering",result.id);
     }
 
     @AfterClass

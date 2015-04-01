@@ -4,6 +4,8 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import rx.Observable;
 
 import javax.ws.rs.client.Entity;
@@ -15,13 +17,22 @@ import java.util.concurrent.Future;
  * Created by CEAJ8230 on 17/03/2015.
  */
 public class TestServiceRestClientImpl implements ITestService {
-    IGlobalContextTranscoder _transcoder;
-    ServiceClientFactory _serviceClientFactory;
+    private IGlobalContextTranscoder _transcoder;
+    private ServiceClientFactory _serviceClientFactory;
+
+    public void setContextTranscoder(IGlobalContextTranscoder transcoder){
+        _transcoder = transcoder;
+    }
+
+    public void setServiceClientFactory(ServiceClientFactory clientFactory){
+        _serviceClientFactory = clientFactory;
+    }
 
     @Override
     public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
         Future<Result> responseFuture=
-                _serviceClientFactory.getClient("testService", "v1.0")
+                _serviceClientFactory.getClient("testService", "1.0")
+                .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path(String.format("toto/%s/tuto/%s", input.rootId, input.id))
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .header("X-CONTEXT", _transcoder.encode(ctxt))

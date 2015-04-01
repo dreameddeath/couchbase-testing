@@ -83,7 +83,7 @@ public class ServiceRegistrar {
             serviceDescr.setVersion(annotDef.version());
             serviceDescr.setSwagger(JsonSerializer.asJson(parsedResult));
 
-            UriSpec uriSpec = new UriSpec("{scheme}://{address}:{port}");
+            UriSpec uriSpec = new UriSpec("{scheme}://{address}:{port}/"+endPoint.getAddress()+"/"+parsedResult.resourcePath());
 
             ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(annotDef.name())
                     .uriSpec(uriSpec)

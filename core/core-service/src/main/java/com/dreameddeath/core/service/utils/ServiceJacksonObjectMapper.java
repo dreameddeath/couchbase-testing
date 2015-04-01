@@ -1,6 +1,5 @@
 package com.dreameddeath.core.service.utils;
 
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
@@ -27,8 +26,9 @@ public class ServiceJacksonObjectMapper extends ObjectMapper {
         configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,false);
         configure(SerializationFeature.WRITE_NULL_MAP_VALUES,false);
+        //configure(SerializationFeature.EAGER_SERIALIZER_FETCH,true)
         setTimeZone(TimeZone.getDefault());
-        disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        //disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         registerModule(new JodaModule());
     }

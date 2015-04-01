@@ -76,7 +76,9 @@ public class ServiceRegistrar {
             serviceDescr.setVersion(annotDef.version());
             serviceDescr.setSwagger(JsonSerializer.asJson(parsedResult).toString());
 
-            UriSpec uriSpec = new UriSpec("{scheme}://{address}:{port}");
+            String uriStr = "{scheme}://{address}:{port}"+("/"+parsedResult.basePath()+parsedResult.resourcePath()).replaceAll("//","/");
+            UriSpec uriSpec = new UriSpec(uriStr);
+
             ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()))
                     .uriSpec(uriSpec)
                     .address(foundService.getEndPoint().host())
