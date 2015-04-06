@@ -1,3 +1,19 @@
+/*
+ * Copyright Christophe Jeunesse
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.service.client.ServiceClientFactory;
@@ -29,16 +45,15 @@ import java.net.InetAddress;
 /**
  * Created by CEAJ8230 on 20/03/2015.
  */
+
 public class TestServicesTest extends Assert{
     private static final Logger LOG = LoggerFactory.getLogger(TestServicesTest.class);
 
-    private final static int ENDPOINT_PORT = 0;
-    private final static String ENDPOINT_HOSTNAME = "localhost";
-    private final static String ENDPOINT_ADDRESS = String.format("http://%s:%d",ENDPOINT_HOSTNAME,ENDPOINT_PORT);
-    public static final String BASE_PATH = "/services";
+    private static final String BASE_PATH = "/services";
     private static Server _server;
     private static ServiceDiscoverer _serviceDiscoverer;
     private static ServerConnector _connector;
+
     @BeforeClass
     public static void initialise() throws Exception{
         CuratorTestUtils curatorUtils = new CuratorTestUtils();
@@ -76,9 +91,7 @@ public class TestServicesTest extends Assert{
         });
          _serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
 
-        _server.addLifeCycleListener(new LifeCycleListener(new ServiceRegistrar(curatorClient,
-                BASE_PATH
-                ),_serviceDiscoverer ));
+        _server.addLifeCycleListener(new LifeCycleListener(new ServiceRegistrar(curatorClient,BASE_PATH),_serviceDiscoverer ));
 
 
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
