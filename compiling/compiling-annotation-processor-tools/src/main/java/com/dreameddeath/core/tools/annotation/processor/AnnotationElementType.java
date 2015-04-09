@@ -20,6 +20,7 @@ import com.dreameddeath.core.tools.annotation.exception.AnnotationProcessorExcep
 import com.dreameddeath.core.tools.annotation.processor.reflection.*;
 
 import javax.lang.model.element.*;
+import javax.lang.model.util.Elements;
 
 public enum AnnotationElementType {
     PACKAGE,
@@ -29,6 +30,9 @@ public enum AnnotationElementType {
     FIELD,
     METHOD_PARAMETER,
     GENERIC_PARAMETER;
+
+
+    public static ThreadLocal<Elements> CURRENT_ELEMENT_UTILS=new ThreadLocal<>();
 
     public static AnnotationElementType getTypeOf(Element element) throws AnnotationProcessorException {
         if(element instanceof PackageElement){

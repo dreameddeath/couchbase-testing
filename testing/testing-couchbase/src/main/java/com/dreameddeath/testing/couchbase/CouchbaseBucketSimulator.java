@@ -550,13 +550,14 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
                 @Override public int totalRows() {return _internalResult.totalRows();}
                 @Override public boolean success() {return true;}
-                @Override public JsonObject error() {return null;}
+                @Override public Observable<JsonObject> error() {return null;}
                 @Override public JsonObject debug() {return null;}
             };
         }
 
         public static ViewResult toViewResult(final InternalViewResult result){
             return new ViewResult() {
+
                 private InternalViewResult _internalResult=result;
 
                 @Override
@@ -570,9 +571,12 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 @Override public int totalRows() {return _internalResult.totalRows();}
                 @Override public boolean success() {return true;}
                 @Override public JsonObject error() {return null;}
+                @Override public Iterator<ViewRow> iterator() { return allRows().iterator(); }
+                @Override public JsonObject error(long l, TimeUnit timeUnit) { return null; }
                 @Override public JsonObject debug() {return null;}
             };
         }
+
         public InternalViewResult(List<InternalRow> results,int totalRows){
             _totalRows = totalRows;
             _results = results;

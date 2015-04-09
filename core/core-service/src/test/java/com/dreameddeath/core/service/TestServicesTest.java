@@ -16,12 +16,15 @@
 
 package com.dreameddeath.core.service;
 
+import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotationProcessor;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
+import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.cxf.transport.servlet.CXFServlet;
@@ -53,9 +56,28 @@ public class TestServicesTest extends Assert{
     private static Server _server;
     private static ServiceDiscoverer _serviceDiscoverer;
     private static ServerConnector _connector;
+    private static AnnotationProcessorTestingWrapper.Result _generatorResult;
+
+    public static void compileTestServiceGen() throws Exception{
+        AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
+        annotTester.
+                withAnnotationProcessor(new ServiceExposeAnnotationProcessor()).
+                withTempDirectoryPrefix("ServiceGeneratorTest");
+        _generatorResult = annotTester.run(TestServicesTest.class.getClassLoader().getResource("testingServiceGen").getPath());
+        assertTrue(_generatorResult.getResult());
+        //result.cleanUp();
+    }
+
+    public static AbstractExposableService newGeneratedService() throws Exception{
+        AbstractExposableService genRestService = (AbstractExposableService)_generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestService").newInstance();
+        Class implClass = _generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImpl");
+        genRestService.getClass().getMethod("setServiceImplementation",implClass).invoke(genRestService,_generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImpl").newInstance());
+        return genRestService;
+    }
 
     @BeforeClass
     public static void initialise() throws Exception{
+        compileTestServiceGen();
         CuratorTestUtils curatorUtils = new CuratorTestUtils();
         curatorUtils.prepare(1);
         CuratorFramework curatorClient = curatorUtils.getClient("TestServicesTest");
@@ -91,12 +113,13 @@ public class TestServicesTest extends Assert{
         });
          _serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
 
-        _server.addLifeCycleListener(new LifeCycleListener(new ServiceRegistrar(curatorClient,BASE_PATH),_serviceDiscoverer ));
+        _server.addLifeCycleListener(new LifeCycleListener(new ServiceRegistrar(curatorClient, BASE_PATH), _serviceDiscoverer));
 
 
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
         TestServiceRestService service = new TestServiceRestService();
         TestSpringSelfConfig.registerService("test",service);
+        TestSpringSelfConfig.registerService("testGen",newGeneratedService());
         contextHandler.addEventListener(new ContextLoaderListener());
 
         _server.start();
@@ -104,9 +127,10 @@ public class TestServicesTest extends Assert{
     }
 
     @Test
-    public void testService(){
-        TestServiceRestClientImpl service = new TestServiceRestClientImpl();
-        service.setContextTranscoder(new IGlobalContextTranscoder() {
+    public void testService() throws Exception{
+        LOG.debug("Conector port {}", _connector.getLocalPort());
+        ServiceClientFactory clientFactory = new ServiceClientFactory(_serviceDiscoverer);
+        IGlobalContextTranscoder transcoder = new IGlobalContextTranscoder() {
             @Override
             public String encode(IGlobalContext ctxt) {
                 return "";
@@ -116,9 +140,12 @@ public class TestServicesTest extends Assert{
             public IGlobalContext decode(String encodedContext) {
                 return null;
             }
-        });
+        };
+        TestServiceRestClientImpl service = new TestServiceRestClientImpl();
+        service.setContextTranscoder(transcoder);
 
-        service.setServiceClientFactory(new ServiceClientFactory(_serviceDiscoverer));
+        service.setServiceClientFactory(clientFactory);
+
 
         ITestService.Input input = new ITestService.Input();
         input.id = "10";
@@ -127,7 +154,22 @@ public class TestServicesTest extends Assert{
         Observable<ITestService.Result> resultObservable= service.runWithRes(null, input);
         ITestService.Result result = resultObservable.toBlocking().single();
 
-        LOG.debug("Entering",result.id);
+        LOG.debug("Result {}", result.id);
+        assertEquals(input.id, result.id);
+        assertEquals(input.rootId,result.rootId);
+        Object serviceGen =_generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestClient").newInstance();
+        serviceGen.getClass().getMethod("setContextTranscoder",IGlobalContextTranscoder.class).invoke(serviceGen,transcoder);
+        serviceGen.getClass().getMethod("setServiceClientFactory",ServiceClientFactory.class).invoke(serviceGen,clientFactory);
+        Object resultGenObservable = serviceGen.getClass().getMethod("runWithRes", IGlobalContext.class,ITestService.Input.class).invoke(serviceGen,null,input);
+        try {
+            ITestService.Result resultGen = (ITestService.Result) ((Observable) resultGenObservable).toBlocking().first();
+            LOG.debug("Result {}",resultGen);
+            assertEquals(input.id+" gen",resultGen.id);
+            assertEquals(input.rootId + " gen", resultGen.rootId);
+        }
+        catch(Exception e){
+            throw e;
+        }
     }
 
     @AfterClass
@@ -135,6 +177,9 @@ public class TestServicesTest extends Assert{
         if(_server!=null) {
             if(!_server.isStopped()){_server.stop();}
             _server.destroy();
+        }
+        if(_generatorResult!=null){
+            _generatorResult.cleanUp();
         }
     }
 }

@@ -17,22 +17,15 @@
 package com.dreameddeath.core.service.annotation;
 
 /**
- * Created by CEAJ8230 on 04/04/2015.
+ * Created by CEAJ8230 on 09/04/2015.
  */
-public enum VersionStatus {
-    TESTING("testing"),
-    STABLE("stable"),
-    DEPRECATED("deprecated");
+public @interface BodyInfo {
+    BodyType bodyType() default BodyType.DEFAULT;
+    String paramName();
 
-    private String _name;
-
-    private VersionStatus(String name){
-        _name=name;
+    enum BodyType{
+        DEFAULT,
+        NONE,
+        GENERATED;
     }
-
-    @Override
-    public String toString(){
-        return _name;
-    }
-
 }

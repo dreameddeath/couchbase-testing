@@ -94,22 +94,21 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <integrationSourceDirectory>${project.basedir}/src/integration-test</integrationSourceDirectory>
         <integrationOutputDirectory>${project.build.directory}/integration-test-classes</integrationOutputDirectory>
-        <integrationGeneratedOutputDirectory>${project.build.directory}/generated-integration-test-sources
-        </integrationGeneratedOutputDirectory>
+        <integrationGeneratedOutputDirectory>${project.build.directory}/generated-integration-test-sources</integrationGeneratedOutputDirectory>
         <java.version>1.8</java.version>
 
         <logback.version>1.1.2</logback.version>
-        <slf4j.version>1.7.6</slf4j.version>
+        <slf4j.version>1.7.7</slf4j.version>
         <junit.version>4.11</junit.version>
 
-        <couchbase.version>2.0.0</couchbase.version>
+        <couchbase.version>2.1.2</couchbase.version>
 
         <!-- Code Generation library -->
         <cglib.version>3.1</cglib.version>
         <javassist.version>3.12.1.GA</javassist.version>
         <reflectasm.version>1.10.0</reflectasm.version>
-        <aspectj.version>1.7.4</aspectj.version>
-        <aspectj-mvn.version>1.6</aspectj-mvn.version>
+        <aspectj.version>1.8.2</aspectj.version>
+        <aspectj-mvn.version>1.7</aspectj-mvn.version>
 
         <!-- Data Mapper -->
         <jackson.version>2.5.1</jackson.version>
@@ -133,10 +132,10 @@
         <apache.cxf.http.jetty.version>3.0.3</apache.cxf.http.jetty.version>
         <jetty.version>9.2.6.v20141205</jetty.version>
 
-        <rxjava.version>1.0.0-rc.3</rxjava.version>
+        <rxjava.version>1.0.8</rxjava.version>
 
         <!--Infrastructure - Storm -->
-        <storm.version>0.9.3</storm.version>
+        <storm.version>0.9.4</storm.version>
         <clojure.version>1.5.1</clojure.version>
 
         <antlr.version>4.3</antlr.version>

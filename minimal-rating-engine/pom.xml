@@ -40,9 +40,9 @@
                         <goal>compile</goal>
                     </goals>
                     <configuration>
-                        <complianceLevel>1.7</complianceLevel>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <complianceLevel>1.8</complianceLevel>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <verbose>true</verbose>
                         <outxml>true</outxml>
                     </configuration>
@@ -67,7 +67,7 @@
         <plugin>
             <groupId>com.github.igor-petruk.protobuf</groupId>
             <artifactId>protobuf-maven-plugin</artifactId>
-            <version>0.6.3</version>
+            <version>0.6.5</version>
             <executions>
                 <execution>
                     <goals>
@@ -95,6 +95,17 @@
           <artifactId>core-model</artifactId>
           <version>${project.version}</version>
       </dependency>-->
+
+      <dependency>
+          <groupId>com.couchbase.client</groupId>
+          <artifactId>java-client</artifactId>
+          <version>${couchbase.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <version>${apache.common.codec.version}</version>
+      </dependency>
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
@@ -120,5 +131,10 @@
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
     </dependency>
+      <dependency>
+          <groupId>com.google.protobuf</groupId>
+          <artifactId>protobuf-java</artifactId>
+          <version>2.5.0</version>
+      </dependency>
   </dependencies>
 </project>

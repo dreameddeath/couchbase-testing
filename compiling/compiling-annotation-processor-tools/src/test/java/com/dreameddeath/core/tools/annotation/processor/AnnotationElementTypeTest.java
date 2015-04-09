@@ -32,5 +32,4 @@ public class AnnotationElementTypeTest extends Assert {
         assertTrue(result.getResult());
         result.cleanUp();
     }
-
 }

@@ -38,32 +38,31 @@ public class InstalledBase extends BusinessCouchbaseDocument {
      *  uid : The unique id of the installed base
      */
     @DocumentProperty("uid")
-    private Property<String> _uid = new StandardProperty<String>(InstalledBase.this);
-
-    // uid accessors
-    public String getUid() { return _uid.get(); }
-    public void setUid(String val) { _uid.set(val); }
-
+    private Property<String> _uid = new StandardProperty<>(InstalledBase.this);
     /**
      *  contract : The installed Contract for this installed base (if any)
      */
     @DocumentProperty("contract")
-    private Property<InstalledContract> _contract = new StandardProperty<InstalledContract>(InstalledBase.this);
+    private Property<InstalledContract> _contract = new StandardProperty<>(InstalledBase.this);
     /**
      *  offers : List of offers being installed
      */
     @DocumentProperty("offers")
-    private ListProperty<InstalledOffer> _offers = new ArrayListProperty<InstalledOffer>(InstalledBase.this);
+    private ListProperty<InstalledOffer> _offers = new ArrayListProperty<>(InstalledBase.this);
     /**
      *  partys : List of linked Partys
      */
     @DocumentProperty("partys")
-    private ListProperty<PartyLink> _partys = new ArrayListProperty<PartyLink>(InstalledBase.this);
+    private ListProperty<PartyLink> _partys = new ArrayListProperty<>(InstalledBase.this);
     /**
      *  billingAccount : Default Billing Account linked to this installed Base
      */
     @DocumentProperty("billingAccount")
-    private Property<BillingAccountLink> _billingAccount = new StandardProperty<BillingAccountLink>(InstalledBase.this);
+    private Property<BillingAccountLink> _billingAccount = new StandardProperty<>(InstalledBase.this);
+
+    // uid accessors
+    public String getUid() { return _uid.get(); }
+    public void setUid(String val) { _uid.set(val); }
 
     // contract accessors
     public InstalledContract getContract() { return _contract.get(); }

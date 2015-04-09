@@ -26,9 +26,9 @@ import rx.Observable;
 
 import javax.annotation.Generated;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
-import java.util.concurrent.Future;
 
 /**
  * Created by CEAJ8230 on 17/03/2015.
@@ -52,10 +52,23 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
-        Future<Result> responseFuture=
+        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
+        target = target.path(String.format("toto/%s/tuto/%s", input.rootId, input.id));
+
+        return Observable.from(
+                target.request(MediaType.APPLICATION_JSON_TYPE)
+                        .header("X-CONTEXT", _transcoder.encode(ctxt))
+                        .async().post(
+                        Entity.entity(input, MediaType.APPLICATION_JSON_TYPE),
+                        new GenericType<>(Result.class)
+                ));
+
+        /*Future<Result> responseFuture=
                 _serviceClientFactory.getClient("testService", "1.0")
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path(String.format("toto/%s/tuto/%s", input.rootId, input.id))
+                        //.queryParam("test",toto)
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .header("X-CONTEXT", _transcoder.encode(ctxt))
                 .async()
@@ -64,6 +77,6 @@ public class TestServiceRestClientImpl implements ITestService {
                         new GenericType<>(Result.class)
                 );
 
-        return Observable.from(responseFuture);
+        return Observable.from(responseFuture);*/
     }
 }

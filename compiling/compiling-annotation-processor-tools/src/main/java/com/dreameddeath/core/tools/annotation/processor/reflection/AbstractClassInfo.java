@@ -106,6 +106,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     }
 
     private PackageInfo _packageInfo;
+    private AbstractClassInfo _enclosingClass=null;
     private String _simpleName;
     private String _fullName;
     private Class<?> _class = null;
@@ -125,6 +126,9 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             _classToInfoMap.put(_class,this);
         }
         if(_typeElement!=null){
+            if(!(_typeElement.getEnclosingElement() instanceof PackageElement)){
+                _enclosingClass = AbstractClassInfo.getClassInfo((TypeElement)_typeElement.getEnclosingElement());
+            }
             _packageInfo = PackageInfo.getPackageInfo(_typeElement);
             _simpleName = _typeElement.getSimpleName().toString();
             //Manage $ for inner class
@@ -133,13 +137,19 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
                 _parameterizedTypeInfos.add(new ParameterizedTypeInfo(parameterElement));
             }
         }
-        else{
+        else if(_class!=null){
             _packageInfo = PackageInfo.getPackageInfo(_class.getPackage());
+            if(_class.getEnclosingClass()!=null){
+                _enclosingClass = AbstractClassInfo.getClassInfo(_class.getEnclosingClass());
+            }
             _simpleName = _class.getSimpleName();
             _fullName = _class.getName();
             for(TypeVariable param:_class.getTypeParameters()){
                 _parameterizedTypeInfos.add(new ParameterizedTypeInfo(param));
             }
+        }
+        else{
+            //TODO throw exception
         }
     }
 
@@ -227,12 +237,27 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
         return foundMethod;
     }
 
+    public MethodInfo getMethod(String name,ParameterizedTypeInfo ...infos){
+        MethodInfo foundMethod = getDeclaredMethod(name,infos);
+        if(foundMethod==null){
+            for(InterfaceInfo parentInterface:getParentInterfaces()){
+                foundMethod = parentInterface.getMethod(name,infos);
+                if(foundMethod!=null) break;
+            }
+        }
+        return foundMethod;
+    }
+
     public String getSimpleName(){
         return _simpleName;
     }
 
     public String getFullName(){
         return _fullName;
+    }
+
+    public String getImportName(){
+        return getFullName().replace("$",".");
     }
 
     public String getName(){
@@ -262,7 +287,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public boolean isAssignableFrom(AbstractClassInfo target){
         if((_class!=null) && (target._class!=null)){
-            return _class.isAssignableFrom(target._class);
+            return (_class==target._class) || _class.isAssignableFrom(target._class);
         }
         else {
             ClassInfo targetSuperClass=null;

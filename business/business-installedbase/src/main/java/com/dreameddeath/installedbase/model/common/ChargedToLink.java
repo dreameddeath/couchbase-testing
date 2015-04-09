@@ -35,17 +35,17 @@ public class ChargedToLink extends BillingAccountLink {
      *  startDate : date de debut d'application du lien
      */
     @DocumentProperty("startDate")
-    private Property<DateTime> _startDate = new StandardProperty<DateTime>(ChargedToLink.this);
+    private Property<DateTime> _startDate = new StandardProperty<>(ChargedToLink.this);
     /**
      *  endDate : date de fin de l'application du lien
      */
     @DocumentProperty("endDate")
-    private Property<DateTime> _endDate = new StandardProperty<DateTime>(ChargedToLink.this);
+    private Property<DateTime> _endDate = new StandardProperty<>(ChargedToLink.this);
     /**
      *  elements : List of applicable elements (empty list means all)
      */
     @DocumentProperty("elements")
-    private ListProperty<ChargeableElementFilter> _elements = new ArrayListProperty<ChargeableElementFilter>(ChargedToLink.this);
+    private ListProperty<ChargeableElementFilter> _elements = new ArrayListProperty<>(ChargedToLink.this);
 
 
     // startDate accessors

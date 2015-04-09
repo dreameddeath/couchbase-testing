@@ -14,12 +14,10 @@
  *    limitations under the License.
  */
 
-package ${service.packageName};
+package ${service.package};
 
 
 import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import rx.Observable;
@@ -27,68 +25,68 @@ import rx.Observable;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
-import java.util.concurrent.Future;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+
 import javax.annotation.Generated;
 
-#foreach($method in $methods)
-import $method.responseClass.package;
-#if($method.hasInput)
-import $method.inputClass.package;
-#end
-#foreach($pathParam in $method.pathParams)
-import $pathParam.classInfo.package;
-#end
+
+#foreach($import in $service.imports)
+import ${import};
 #end
 
 @Generated(
-    value = "${generator.name}"
-    date = "${generator.date}"
-    comments = "${generator.comments}"
+    value = "${generator.name}",
+    date = "${generator.date}",
+    comments = "${generator.comment}"
 )
-
-public class ${service.className} extends
-    #foreach($interface in $service.interfaces)#if($loopCount>0),#end $interface #end {
+public class ${service.clientSimpleClassName} implements #foreach($interface in $service.interfaces)#if($foreach.index>0),#end $interface#end {
+#if($service.hasGlobalContextTranscoder())
     private IGlobalContextTranscoder _transcoder;
+#end
     private ServiceClientFactory _serviceClientFactory;
 
+#if($service.hasGlobalContextTranscoder())
     public void setContextTranscoder(IGlobalContextTranscoder transcoder){
         _transcoder = transcoder;
     }
-
+#end
     public void setServiceClientFactory(ServiceClientFactory clientFactory){
         _serviceClientFactory = clientFactory;
     }
 
-#foreach($method in $methods)
+#foreach($method in $service.methods)
     @Override
-    public Observable<${method.responseClass.simpleName}> ${method.name}(
-        IGlobalContext ctxt,
-         #foreach($param in $method.inputParameters)
-         ,$param.classInfo.simpleName $param.name
-         #end
-        )
-        {
-        ///TODO map parameters
-        Future<Result> responseFuture=
-                _serviceClientFactory.getClient("${service.name}", "${service.version}")
-                .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
-                .path(String.format(
-                    $method.path.value
-                    #foreach($pathParam in $method.path.params)
-                    ,$pathParam.name
-                    #end
+    public Observable<${method.returnClassName}> ${method.name}(#foreach($param in $method.methodParamsDefinition)#if($foreach.index>0),#end $param.className $param.name #end){
+        WebTarget target = _serviceClientFactory.getClient("${service.name}", "${service.version}")
+                                                .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
+        target = target.path(
+                String.format(
+                    "$esc.java($method.pathInfo.jaxRsPattern).substring(1)"
+#foreach($pathParam in $method.pathInfo.urlParamsList)
+                    ,$pathParam.getterString
+#end
                     )
-                )
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .header("X-CONTEXT", _transcoder.encode(ctxt))
-                .async()
-                .${method.httpMethod}(
-                #if($method.hasBody)
-                        Entity.entity(${method.body.name}, MediaType.APPLICATION_JSON_TYPE),
-                        new GenericType<>(${method.body.classInfo.simpleName}.class)
-                #end
                 );
 
-        return Observable.from(responseFuture);
+#foreach($queryParam in $method.pathInfo.queryParamsList)
+        if($queryParam.getterString!=null){
+            target = target.queryParam("$esc.java($queryParam.name)",$queryParam.getterString);
+        }
+#end
+        return Observable.from(
+                    target.request(MediaType.APPLICATION_JSON_TYPE)
+#if($method.hasGlobalContextParam())
+                    .header("X-CONTEXT", _transcoder.encode($method.globalContextParamName))
+#end
+                    .async()
+                    .${method.httpMethod.toLowerCase()}(
+#if($method.hasBody())
+                        Entity.entity(${method.bodyInfo.getterString}, MediaType.APPLICATION_JSON_TYPE),
+#end
+                        new GenericType<>(${method.returnClassName}.class)
+                    )
+                );
     }
+#end
 }

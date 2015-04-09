@@ -30,9 +30,9 @@ import java.util.List;
  */
 public class BillingAccountPartyRole extends PartyRole {
     @DocumentProperty("roles")
-    private ListProperty<RoleType> _roles = new ArrayListProperty<RoleType>(BillingAccountPartyRole.this);
+    private ListProperty<RoleType> _roles = new ArrayListProperty<>(BillingAccountPartyRole.this);
     @DocumentProperty("ba")
-    private Property<BillingAccountLink> _ba=new ImmutableProperty<BillingAccountLink>(BillingAccountPartyRole.this);
+    private Property<BillingAccountLink> _ba=new ImmutableProperty<>(BillingAccountPartyRole.this);
 
 
     public List<RoleType> getRoles(){ return _roles.get();}

@@ -51,37 +51,37 @@ import java.util.List;
 @UidDef(fieldName = "uid")
 public class BillingAccount extends BusinessCouchbaseDocument {
     @DocumentProperty("uid") @NotNull
-    private ImmutableProperty<String> _uid=new ImmutableProperty<String>(BillingAccount.this);
+    private ImmutableProperty<String> _uid=new ImmutableProperty<>(BillingAccount.this);
 	@DocumentProperty("ledgerSegment")
-    private Property<String> _ledgerSegment = new StandardProperty<String>(BillingAccount.this);
+    private Property<String> _ledgerSegment = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("taxProfile")
-    private Property<String> _taxProfile = new StandardProperty<String>(BillingAccount.this);
+    private Property<String> _taxProfile = new StandardProperty<>(BillingAccount.this);
 	@DocumentProperty("type")
-    private Property<Type> _type= new StandardProperty<Type>(BillingAccount.this);
+    private Property<Type> _type= new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("creationDate")
-    private Property<DateTime> _creationDate= new ImmutableProperty<DateTime>(BillingAccount.this,DateTime.now());
+    private Property<DateTime> _creationDate= new ImmutableProperty<>(BillingAccount.this,DateTime.now());
 	@DocumentProperty("billDay") @NotNull
-    private Property<Integer> _billDay = new StandardProperty<Integer>(BillingAccount.this);
+    private Property<Integer> _billDay = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("billCycleLength") @NotNull
-    private Property<Integer> _billCycleLength = new StandardProperty<Integer>(BillingAccount.this);
+    private Property<Integer> _billCycleLength = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("currency")
-    private Property<String> _currency = new StandardProperty<String>(BillingAccount.this);
+    private Property<String> _currency = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("paymentMethod")
-    private Property<String> _paymentMethod = new StandardProperty<String>(BillingAccount.this);
+    private Property<String> _paymentMethod = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty(value="billCycles",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
-    private ListProperty<BillingCycleLink> _billingCycleLinks = new ArrayListProperty<BillingCycleLink>(BillingAccount.this);
+    private ListProperty<BillingCycleLink> _billingCycleLinks = new ArrayListProperty<>(BillingAccount.this);
     @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")
-    private ListProperty<PartyLink> _partyLinks = new ArrayListProperty<PartyLink>(BillingAccount.this);
+    private ListProperty<PartyLink> _partyLinks = new ArrayListProperty<>(BillingAccount.this);
     /**
      *  externalIds : List of external ids of the billing account
      */
     @DocumentProperty("externalIds")
-    private ListProperty<ExternalId> _externalIds = new ArrayListProperty<ExternalId>(BillingAccount.this);
+    private ListProperty<ExternalId> _externalIds = new ArrayListProperty<>(BillingAccount.this);
     /**
      *  contributors : List of contributors links to the billing Account
      */
     @DocumentProperty("contributors")
-    private ListProperty<BillingAccountContributorLink> _contributors = new ArrayListProperty<BillingAccountContributorLink>(BillingAccount.this);
+    private ListProperty<BillingAccountContributorLink> _contributors = new ArrayListProperty<>(BillingAccount.this);
 
     // uid Accessors
     public String getUid() { return _uid.get(); }

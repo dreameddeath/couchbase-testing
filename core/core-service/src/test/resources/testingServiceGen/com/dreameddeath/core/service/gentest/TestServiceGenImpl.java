@@ -14,28 +14,35 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.service;
+package com.dreameddeath.core.service.gentest;
 
+import com.dreameddeath.core.service.annotation.BodyInfo;
 import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.ExposeService;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import rx.Observable;
+import com.dreameddeath.core.service.*;
 
 import javax.ws.rs.HttpMethod;
 
 /**
  * Created by CEAJ8230 on 05/03/2015.
  */
-@ExposeService(path="/TestService",name = "testService",version = "1.0",status = VersionStatus.STABLE)
-public class TestServiceImpl implements ITestService {
-
-    @Override @ExposeMethod(method=HttpMethod.POST,path="/toto/:rootId=input.rootId/tuto/:id=input.id",status = VersionStatus.STABLE)
+@ExposeService(path="/TestServiceGen",name = "testServiceGen",version = "1.0",status = VersionStatus.STABLE)
+public class TestServiceGenImpl implements ITestService {
+    @Override
+    @ExposeMethod(
+            method=HttpMethod.POST,
+            path="/toto/:rootId=input.rootId/tuto/:id=input.id",
+            status = VersionStatus.STABLE
+    )
+    @BodyInfo(paramName = "input")
     public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
         Result res = new Result();
         res.result = "HTTP 200";
-        res.id = input.id;
-        res.rootId =  input.rootId;
+        res.id = input.id+" gen";
+        res.rootId =  input.rootId+" gen";
         res.plusOneMonth = input.otherField.plusMonths(1);
         return Observable.just(res);
     }

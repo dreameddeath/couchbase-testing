@@ -29,82 +29,82 @@ public class Address extends CouchbaseDocumentElement {
      *  apartmentNumber : the number of the apartement
      */
     @DocumentProperty("apartmentNumber")
-    private Property<String> _apartmentNumber = new StandardProperty<String>(Address.this);
+    private Property<String> _apartmentNumber = new StandardProperty<>(Address.this);
     /**
      *  buildingName :
      */
     @DocumentProperty("buildingName")
-    private Property<String> _buildingName = new StandardProperty<String>(Address.this);
+    private Property<String> _buildingName = new StandardProperty<>(Address.this);
     /**
      *  houseType :
      */
     @DocumentProperty("houseType")
-    private Property<String> _houseType = new StandardProperty<String>(Address.this);
+    private Property<String> _houseType = new StandardProperty<>(Address.this);
     /**
      *  floorNumber :
      */
     @DocumentProperty("floorNumber")
-    private Property<String> _floorNumber = new StandardProperty<String>(Address.this);
+    private Property<String> _floorNumber = new StandardProperty<>(Address.this);
     /**
      *  staircaseNumber :
      */
     @DocumentProperty("staircaseNumber")
-    private Property<String> _staircaseNumber = new StandardProperty<String>(Address.this);
+    private Property<String> _staircaseNumber = new StandardProperty<>(Address.this);
     /**
      *  geoCode :
      */
     @DocumentProperty("geoCode")
-    private Property<String> _geoCode = new StandardProperty<String>(Address.this);
+    private Property<String> _geoCode = new StandardProperty<>(Address.this);
     /**
      *  residenceName :
      */
     @DocumentProperty("residenceName")
-    private Property<String> _residenceName = new StandardProperty<String>(Address.this);
+    private Property<String> _residenceName = new StandardProperty<>(Address.this);
     /**
      *  roadNumber :
      */
     @DocumentProperty("roadNumber")
-    private Property<String> _roadNumber = new StandardProperty<String>(Address.this);
+    private Property<String> _roadNumber = new StandardProperty<>(Address.this);
     /**
      *  roadLetter :
      */
     @DocumentProperty("roadLetter")
-    private Property<String> _roadLetter = new StandardProperty<String>(Address.this);
+    private Property<String> _roadLetter = new StandardProperty<>(Address.this);
     /**
      *  roadType :
      */
     @DocumentProperty("roadType")
-    private Property<String> _roadType = new StandardProperty<String>(Address.this);
+    private Property<String> _roadType = new StandardProperty<>(Address.this);
     /**
      *  roadName :
      */
     @DocumentProperty("roadName")
-    private Property<String> _roadName = new StandardProperty<String>(Address.this);
+    private Property<String> _roadName = new StandardProperty<>(Address.this);
     /**
      *  locality :
      */
     @DocumentProperty("locality")
-    private Property<String> _locality = new StandardProperty<String>(Address.this);
+    private Property<String> _locality = new StandardProperty<>(Address.this);
     /**
      *  postalCode : Postal Code of the city
      */
     @DocumentProperty("postalCode")
-    private Property<String> _postalCode = new StandardProperty<String>(Address.this);
+    private Property<String> _postalCode = new StandardProperty<>(Address.this);
     /**
      *  cityName : Name of the city
      */
     @DocumentProperty("cityName")
-    private Property<String> _cityName = new StandardProperty<String>(Address.this);
+    private Property<String> _cityName = new StandardProperty<>(Address.this);
     /**
      *  state :
      */
     @DocumentProperty("state")
-    private Property<String> _state = new StandardProperty<String>(Address.this);
+    private Property<String> _state = new StandardProperty<>(Address.this);
     /**
      *  countryName :
      */
     @DocumentProperty("countryName")
-    private Property<String> _countryName = new StandardProperty<String>(Address.this);
+    private Property<String> _countryName = new StandardProperty<>(Address.this);
 
     // apartmentNumber accessors
     public String getApartmentNumber() { return _apartmentNumber.get(); }

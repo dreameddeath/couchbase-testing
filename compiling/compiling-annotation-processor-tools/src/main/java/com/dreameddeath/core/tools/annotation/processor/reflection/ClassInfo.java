@@ -64,6 +64,20 @@ public class ClassInfo extends AbstractClassInfo {
         init();
     }
 
+    @Override
+    public MethodInfo getMethod(String name,ParameterizedTypeInfo ...infos){
+        MethodInfo foundMethod = getDeclaredMethod(name,infos);
+        if((foundMethod==null)&&(_superClass!=null)){
+            foundMethod = _superClass.getMethod(name,infos);
+        }
+        if(foundMethod==null){
+            for(InterfaceInfo parentInterface:getParentInterfaces()){
+                foundMethod = parentInterface.getMethod(name,infos);
+                if(foundMethod!=null) break;
+            }
+        }
+        return foundMethod;
+    }
 
     public List<FieldInfo> getDeclaredFields(){
         if(_declaredFields ==null){
@@ -90,6 +104,17 @@ public class ClassInfo extends AbstractClassInfo {
         return Collections.unmodifiableList(_declaredFields);
     }
 
+    public FieldInfo getFieldByName(String name){
+        for(FieldInfo field:getDeclaredFields()){
+            if(name.equals(field.getName())){
+                return field;
+            }
+        }
+        if(_superClass!=null){
+            return _superClass.getFieldByName(name);
+        }
+        return null;
+    }
 
     public ClassInfo getSuperClass() {
         return _superClass;

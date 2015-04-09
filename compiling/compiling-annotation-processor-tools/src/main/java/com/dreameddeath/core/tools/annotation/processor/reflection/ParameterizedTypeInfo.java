@@ -31,6 +31,7 @@ import java.util.List;
  * Created by ceaj8230 on 07/03/2015.
  */
 public class ParameterizedTypeInfo{
+    private String _name;
     List<AbstractClassInfo> _parameterizedInfosList=new ArrayList<>();
     List<ParameterizedTypeInfo> _parametersGenericsInfo = new ArrayList<>();
 
@@ -113,6 +114,8 @@ public class ParameterizedTypeInfo{
         return _parameterizedInfosList.get(0);
     }
 
+
+
     public ParameterizedTypeInfo getMainTypeGeneric(int pos){
         return _parametersGenericsInfo.get(pos);
     }
@@ -120,5 +123,13 @@ public class ParameterizedTypeInfo{
 
     public boolean isAssignableTo(Class clazz){
         return AbstractClassInfo.getClassInfo(clazz).isAssignableFrom(getMainType());
+    }
+
+    public void setName(String name) {
+        _name = name;
+    }
+
+    public String getName() {
+        return _name;
     }
 }

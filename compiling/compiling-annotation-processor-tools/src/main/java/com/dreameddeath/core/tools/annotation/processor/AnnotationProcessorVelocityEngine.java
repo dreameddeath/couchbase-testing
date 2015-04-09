@@ -21,8 +21,10 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
+import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -36,7 +38,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 
 
 /**
@@ -76,11 +77,26 @@ public class AnnotationProcessorVelocityEngine {
         context.put("esc", new StdEscape());
         context.put("log",logger._logger);
         context.put("message",logger);
+
         return context;
     }
 
+
+    public static VelocityContext newContext(VelocityLogger logger,GeneratorInfo generatorInfo){
+        VelocityContext context = new VelocityContext();
+
+        context.put("esc", new StdEscape());
+        context.put("log",logger._logger);
+        context.put("message",logger);
+        context.put("generator",generatorInfo);
+        return context;
+    }
     public static VelocityContext newContext(Logger log,Messager messager){
         return newContext(new VelocityLogger(log,messager));
+    }
+
+    public static VelocityContext newContext(Logger log,Messager messager,AbstractProcessor generator,String comment){
+        return newContext(new VelocityLogger(log,messager),new GeneratorInfo(generator.getClass(),comment));
     }
 
 
@@ -144,6 +160,29 @@ public class AnnotationProcessorVelocityEngine {
         }
         public String javascript(String input){
             return StringEscapeUtils.escapeEcmaScript(input);
+        }
+    }
+
+    public static class GeneratorInfo{
+        private String _generatorName;
+        private DateTime _dateTime = DateTime.now();
+        private String _comment;
+
+        public GeneratorInfo(Class processorClass,String comment){
+            _generatorName = processorClass.getName();
+            _comment = comment;
+        }
+
+        public DateTime getDate() {
+            return _dateTime;
+        }
+
+        public String getName() {
+            return _generatorName;
+        }
+
+        public String getComment() {
+            return _comment;
         }
     }
 }

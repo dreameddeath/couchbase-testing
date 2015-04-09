@@ -30,7 +30,7 @@ public abstract class BillingAccountContributor extends BusinessCouchbaseDocumen
      *  contributorType : Type of contributor to the billing Account
      */
     @DocumentProperty("contributorType") @NotNull
-    private Property<ContributorType> _contributorType = new StandardProperty<ContributorType>(BillingAccountContributor.this);
+    private Property<ContributorType> _contributorType = new StandardProperty<>(BillingAccountContributor.this);
 
     // contributorType accessors
     public ContributorType getContributorType() { return _contributorType.get(); }

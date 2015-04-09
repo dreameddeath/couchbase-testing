@@ -34,12 +34,12 @@ public abstract class InstalledAttribute extends CouchbaseDocumentElement {
      *  code : The catalogue code of the attribute
      */
     @DocumentProperty("code")
-    private Property<String> _code = new StandardProperty<String>(InstalledAttribute.this);
+    private Property<String> _code = new StandardProperty<>(InstalledAttribute.this);
     /**
      *  values : List of values (and their history)
      */
     @DocumentProperty("values")
-    private ListProperty<InstalledValue> _values = new ArrayListProperty<InstalledValue>(InstalledAttribute.this);
+    private ListProperty<InstalledValue> _values = new ArrayListProperty<>(InstalledAttribute.this);
 
     // code accessors
     public String getCode() { return _code.get(); }

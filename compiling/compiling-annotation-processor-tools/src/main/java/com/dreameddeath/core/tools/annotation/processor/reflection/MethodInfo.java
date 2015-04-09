@@ -39,7 +39,10 @@ public class MethodInfo extends MemberInfo {
         if(_elementMethod!=null){
             _name = _elementMethod.getSimpleName().toString();
             for(VariableElement parameter:_elementMethod.getParameters()) {
-                _methodParameters.add(new ParameterizedTypeInfo(parameter.asType()));
+                ParameterizedTypeInfo paramInfo = new ParameterizedTypeInfo(parameter.asType());
+                paramInfo.setName(parameter.getSimpleName().toString());
+                _methodParameters.add(paramInfo);
+
             }
             TypeMirror returnType = _elementMethod.getReturnType();
             _returnType=new ParameterizedTypeInfo(returnType);
@@ -48,7 +51,9 @@ public class MethodInfo extends MemberInfo {
         else{
             _name = _method.getName();
             for(Type parameter:_method.getGenericParameterTypes()){
-                _methodParameters.add(new ParameterizedTypeInfo(parameter));
+                ParameterizedTypeInfo paramInfo = new ParameterizedTypeInfo(parameter);
+                paramInfo.setName(parameter.getTypeName());
+                _methodParameters.add(paramInfo);
             }
             Type returnType=_method.getGenericReturnType();
             _returnType = new ParameterizedTypeInfo(returnType);
@@ -86,5 +91,14 @@ public class MethodInfo extends MemberInfo {
 
     public List<ParameterizedTypeInfo> getMethodParameters(){
         return _methodParameters;
+    }
+
+    public ParameterizedTypeInfo getMethodParamByName(String name){
+        for(ParameterizedTypeInfo paramInfo:getMethodParameters()){
+            if(name.equals(paramInfo.getName())){
+                return paramInfo;
+            }
+        }
+        return null;
     }
 }

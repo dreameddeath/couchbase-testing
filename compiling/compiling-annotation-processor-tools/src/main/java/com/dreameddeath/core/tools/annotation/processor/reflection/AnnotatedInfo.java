@@ -16,6 +16,8 @@
 
 package com.dreameddeath.core.tools.annotation.processor.reflection;
 
+import com.dreameddeath.core.tools.annotation.processor.AnnotationElementType;
+
 import javax.lang.model.element.Element;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -26,7 +28,7 @@ import java.lang.reflect.AnnotatedElement;
 public class AnnotatedInfo {
     private AnnotatedElement _annotElt=null;
     private Element _element=null;
-
+    private String _javaDoc = null;
 
     public AnnotatedInfo(AnnotatedElement elt){
         _annotElt =elt;
@@ -34,6 +36,9 @@ public class AnnotatedInfo {
 
     public AnnotatedInfo(Element elt){
         _element= elt;
+        if(AnnotationElementType.CURRENT_ELEMENT_UTILS.get()!=null){
+            _javaDoc = AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getDocComment(elt);
+        }
     }
 
     public <A extends Annotation> A getAnnotation(Class<A> clazz){
@@ -52,5 +57,9 @@ public class AnnotatedInfo {
         else{
             return _element.getAnnotationsByType(clazz);
         }
+    }
+
+    public String getJavaDoc() {
+        return _javaDoc;
     }
 }

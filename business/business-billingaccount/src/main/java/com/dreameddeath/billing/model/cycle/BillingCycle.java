@@ -36,11 +36,11 @@ import org.joda.time.DateTime;
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 public class BillingCycle extends BusinessCouchbaseDocument {
     @DocumentProperty(value="ba",getter = "getBillingAccountLink",setter="setBillingAccountLink")
-    private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<BillingAccountLink>(BillingCycle.this);
+    private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<>(BillingCycle.this);
     @DocumentProperty("startDate")
-    private Property<DateTime> _startDate = new StandardProperty<DateTime>(BillingCycle.this);
+    private Property<DateTime> _startDate = new StandardProperty<>(BillingCycle.this);
     @DocumentProperty("endDate")
-    private Property<DateTime> _endDate= new StandardProperty<DateTime>(BillingCycle.this);
+    private Property<DateTime> _endDate= new StandardProperty<>(BillingCycle.this);
 
     public BillingAccountLink getBillingAccountLink() { return _baLink.get(); }
     public void setBillingAccountLink(BillingAccountLink baLink) { _baLink.set(baLink); }

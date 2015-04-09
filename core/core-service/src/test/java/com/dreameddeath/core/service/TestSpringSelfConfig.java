@@ -114,8 +114,9 @@ public class TestSpringSelfConfig
             });
             ctxt.getBeanFactory().registerSingleton(serviceDef.getKey(), serviceDef.getValue());
             SpringResourceFactory factoryResource = new SpringResourceFactory(serviceDef.getKey());
-            if(serviceDef.getValue() instanceof TestServiceRestService){
-                ((TestServiceRestService) serviceDef.getValue()).setGlobalContextTranscoder(new IGlobalContextTranscoder() {
+            try{
+                serviceDef.getValue().getClass().getMethod("setGlobalContextTranscoder",IGlobalContextTranscoder.class).invoke(serviceDef.getValue(),
+                new IGlobalContextTranscoder() {
                     @Override
                     public String encode(IGlobalContext ctxt) {
                         return "";
@@ -126,6 +127,9 @@ public class TestSpringSelfConfig
                         return null;
                     }
                 });
+            }
+            catch(Exception e){
+
             }
             factoryResource.setApplicationContext(ctxt);
             resourceProviders.add(factoryResource);

@@ -57,7 +57,19 @@
                     </jvmArgs>
                 </configuration>
             </plugin>
+
+                    <plugin>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${mvn.compiler.version}</version>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                            <!-- Disable annotation processing for ourselves. -->
+                            <compilerArgument>-proc:none</compilerArgument>
+                        </configuration>
+                    </plugin>
         </plugins>
+
     </build>
   
   <dependencies>

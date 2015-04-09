@@ -54,9 +54,9 @@ public class TestingAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
         Elements elementUtils = processingEnv.getElementUtils();
+        AnnotationElementType.CURRENT_ELEMENT_UTILS.set(elementUtils);
         VelocityLogger velocityLogger = new VelocityLogger(LOG,messager);
         for(Element baseElem:roundEnv.getElementsAnnotatedWith(TestingAnnotation.class)){
-            TestingAnnotation annotation = baseElem.getAnnotation(TestingAnnotation.class);
             try {
                 AnnotatedInfo elemInfo= AnnotationElementType.getInfoOf(baseElem);
                 if(elemInfo instanceof InterfaceInfo){

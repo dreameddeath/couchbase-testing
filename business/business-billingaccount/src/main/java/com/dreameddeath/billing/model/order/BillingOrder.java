@@ -47,12 +47,12 @@ public class BillingOrder extends BusinessCouchbaseDocument {
      *  billingAccount : Link to the parent billing Account
      */
     @DocumentProperty("billingAccount") @NotNull
-    private Property<BillingAccountLink> _billingAccount = new StandardProperty<BillingAccountLink>(BillingOrder.this);
+    private Property<BillingAccountLink> _billingAccount = new StandardProperty<>(BillingOrder.this);
     /**
      *  items : List of order items
      */
     @DocumentProperty("items")
-    private ListProperty<BillingOrderItem> _items = new ArrayListProperty<BillingOrderItem>(BillingOrder.this);
+    private ListProperty<BillingOrderItem> _items = new ArrayListProperty<>(BillingOrder.this);
 
     // Items Accessors
     public List<BillingOrderItem> getItems() { return _items.get();  }

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,7 +49,7 @@ public class CouchbaseDocument implements HasParent {
         private long   _cas;
         private Boolean _isLocked;
         private Integer _dbDocSize;
-        private Collection<DocumentFlag> _flags =new HashSet<DocumentFlag>();
+        private Set<DocumentFlag> _flags =EnumSet.noneOf(DocumentFlag.class);
         private int _expiry;
         private DocumentState _docState = DocumentState.NEW;
 

@@ -42,8 +42,9 @@ public class BinaryCouchbaseDocument extends CouchbaseDocument {
         super(null);
         BinaryMetaInfo binaryMetaInfo = this.new BinaryMetaInfo();
         binaryMetaInfo.setBinaryDocumentType(binaryDocumentType);
-        binaryMetaInfo.setEndingCheckSum(0);
+        binaryMetaInfo.setCheckSum(0);
         binaryMetaInfo.setLastWrittenSize(0);
+        setBaseMeta(binaryMetaInfo);
     }
 
     /**
@@ -65,13 +66,13 @@ public class BinaryCouchbaseDocument extends CouchbaseDocument {
         /// The document type is used during the Transcoder
         private BinaryDocumentType _binaryDocumentType;
         /// The check-sum of the last cdrs read to detect the error
-        private int _endingCheckSum;
+        private int _checkSum;
         /// The last append/written size
         private int _lastWrittenSize;
 
         /// Checksum Getter/Setter
-        public int getEndingCheckSum(){ return _endingCheckSum;}
-        public void setEndingCheckSum(int endingCheckSum){_endingCheckSum=endingCheckSum;}
+        public int getCheckSum(){ return _checkSum;}
+        public void setCheckSum(int checkSum){_checkSum = checkSum;}
 
         /// Last Written Size Getter/Setter
         public int getLastWrittenSize(){return _lastWrittenSize;}
@@ -86,7 +87,7 @@ public class BinaryCouchbaseDocument extends CouchbaseDocument {
     /**
      *  Binary Document Types
      */
-    public static enum BinaryDocumentType {
+    public enum BinaryDocumentType {
         BINARY_FULL("full"),
         BINARY_PARTIAL_WITH_CHECKSUM("partial_with_checksum"),
         BINARY_PARTIAL_WITHOUT_CHECKSUM("partiel_without_checksum");
