@@ -79,4 +79,35 @@ public class TestServiceRestClientImpl implements ITestService {
 
         return Observable.from(responseFuture);*/
     }
+
+    @Override
+    public Observable<Result> getWithRes(String rootId, String id) {
+        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
+        target = target.path(String.format("toto/%s/tuto/%s", rootId, id));
+
+        return Observable.from(
+                target.request(MediaType.APPLICATION_JSON_TYPE)
+                        //.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
+                        .async()
+                        .get(
+                                new GenericType<>(Result.class)
+                        ));
+    }
+
+    @Override
+    public Observable<Result> putWithQuery(String rootId, String id) {
+        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
+        target = target.path(String.format("toto/%s", rootId));
+        target = target.queryParam("id",id);
+        return Observable.from(
+                target.request(MediaType.APPLICATION_JSON_TYPE)
+                        //.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
+                        .async()
+                        .put(
+                                null,
+                                new GenericType<>(Result.class)
+                        ));
+    }
 }

@@ -16,13 +16,11 @@
 
 package com.dreameddeath.core.service;
 
-import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.ExposeService;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
+import org.joda.time.DateTime;
 import rx.Observable;
-
-import javax.ws.rs.HttpMethod;
 
 /**
  * Created by CEAJ8230 on 05/03/2015.
@@ -30,13 +28,34 @@ import javax.ws.rs.HttpMethod;
 @ExposeService(path="/TestService",name = "testService",version = "1.0",status = VersionStatus.STABLE)
 public class TestServiceImpl implements ITestService {
 
-    @Override @ExposeMethod(method=HttpMethod.POST,path="/toto/:rootId=input.rootId/tuto/:id=input.id",status = VersionStatus.STABLE)
+    @Override
     public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
         Result res = new Result();
         res.result = "HTTP 200";
         res.id = input.id;
         res.rootId =  input.rootId;
         res.plusOneMonth = input.otherField.plusMonths(1);
+        return Observable.just(res);
+    }
+
+
+    @Override
+    public Observable<Result> getWithRes(String rootId, String id) {
+        Result res = new Result();
+        res.result = "HTTP 200";
+        res.id = id;
+        res.rootId =  rootId;
+        res.plusOneMonth = DateTime.now().plusMonths(1);
+        return Observable.just(res);
+    }
+
+    @Override
+    public Observable<Result> putWithQuery(String rootId, String id) {
+        Result res = new Result();
+        res.result = "HTTP 200";
+        res.id = id+" put";
+        res.rootId =  rootId+" put";
+        res.plusOneMonth = DateTime.now().plusMonths(1);
         return Observable.just(res);
     }
 }

@@ -27,6 +27,12 @@ public interface ITestService {
 
     public Observable<Result> runWithRes(IGlobalContext ctxt,Input input);
 
+
+    public Observable<Result> getWithRes(String rootId, String id);
+
+    public Observable<Result> putWithQuery(String rootId, String id);
+
+
     public static class Result{
         public String result;
         public String id;

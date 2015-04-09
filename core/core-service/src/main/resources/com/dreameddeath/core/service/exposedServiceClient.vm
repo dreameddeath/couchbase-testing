@@ -83,6 +83,8 @@ public class ${service.clientSimpleClassName} implements #foreach($interface in 
                     .${method.httpMethod.toLowerCase()}(
 #if($method.hasBody())
                         Entity.entity(${method.bodyInfo.getterString}, MediaType.APPLICATION_JSON_TYPE),
+#elseif($method.needEmptyBody())
+                        null,
 #end
                         new GenericType<>(${method.returnClassName}.class)
                     )

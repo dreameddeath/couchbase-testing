@@ -132,7 +132,8 @@
       </dependency>
       <dependency>
           <groupId>org.apache.cxf</groupId>
-          <artifactId>cxf-rt-transports-http-netty-client</artifactId>
+          <!--<artifactId>cxf-rt-transports-http-netty-client</artifactId>-->
+          <artifactId>cxf-rt-transports-http-jetty</artifactId>
           <version>${apache.cxf.jaxrs.version}</version>
           <scope>test</scope>
       </dependency>

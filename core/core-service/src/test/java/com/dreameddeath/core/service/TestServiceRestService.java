@@ -62,4 +62,43 @@ public class TestServiceRestService extends AbstractExposableService {
         input.id = id;*/
         return _testService.runWithRes(context,input).toBlocking().first();
     }
+
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    //@Consumes({ MediaType.APPLICATION_OCTET_STREAM })
+    @Path("toto/{rootId}/tuto/{id}")
+    @ApiOperation(value = "testing label",
+            notes = "No details provided",
+            response = ITestService.Result.class,
+            position = 0)
+    @ApiResponses({
+            @ApiResponse(code = 400, message = "Invalid ID"),
+            @ApiResponse(code = 404, message = "object not found")
+    })
+    public ITestService.Result getWithRes(@PathParam("rootId") String rootId,@PathParam("id") String id){
+
+        /*ITestService.Input input = new ITestService.Input();
+        input.rootId = rootId;
+        input.id = id;*/
+        return _testService.getWithRes(rootId, id).toBlocking().first();
+    }
+
+    @PUT
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("toto/{rootId}")
+    @ApiOperation(value = "testing label",
+            notes = "No details provided",
+            response = ITestService.Result.class,
+            position = 0)
+    @ApiResponses({
+            @ApiResponse(code = 400, message = "Invalid ID"),
+            @ApiResponse(code = 404, message = "object not found")
+    })
+    public ITestService.Result putWithQuery(@PathParam("rootId") String rootId,@QueryParam("id") String id){
+
+        /*ITestService.Input input = new ITestService.Input();
+        input.rootId = rootId;
+        input.id = id;*/
+        return _testService.putWithQuery(rootId, id).toBlocking().first();
+    }
 }

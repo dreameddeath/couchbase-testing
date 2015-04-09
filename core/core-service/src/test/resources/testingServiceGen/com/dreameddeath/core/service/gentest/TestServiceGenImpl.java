@@ -21,6 +21,7 @@ import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.ExposeService;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
+import org.joda.time.DateTime;
 import rx.Observable;
 import com.dreameddeath.core.service.*;
 
@@ -46,4 +47,37 @@ public class TestServiceGenImpl implements ITestService {
         res.plusOneMonth = input.otherField.plusMonths(1);
         return Observable.just(res);
     }
+
+
+    @Override
+    @ExposeMethod(
+            method=HttpMethod.GET,
+            path="/toto/:rootId/tuto/:id=id",
+            status = VersionStatus.STABLE
+    )
+    public Observable<Result> getWithRes(String rootId, String id) {
+        Result res = new Result();
+        res.result = "HTTP 200";
+        res.id = id+" gen";
+        res.rootId =  rootId+" gen";
+        res.plusOneMonth = DateTime.now().plusMonths(1);
+        return Observable.just(res);
+    }
+
+    @Override
+    @ExposeMethod(
+            method=HttpMethod.GET,
+            path="/toto/:rootId?id=id",
+            status = VersionStatus.STABLE
+    )
+    public Observable<Result> putWithQuery(String rootId, String id) {
+        Result res = new Result();
+        res.result = "HTTP 200";
+        res.id = id+" putgen";
+        res.rootId =  rootId+" putgen";
+        res.plusOneMonth = DateTime.now().plusMonths(1);
+        return Observable.just(res);
+    }
+
+
 }

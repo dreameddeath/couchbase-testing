@@ -122,6 +122,9 @@ public class ServiceExpositionMethodDef {
         return _bodyInfo !=null;
     }
 
+    public boolean needEmptyBody(){
+        return (_httpMethod.equalsIgnoreCase("post")||_httpMethod.equalsIgnoreCase("put"));
+    }
     public ServiceExpositionMethodBodyDef getBodyInfo() {
         return _bodyInfo;
     }

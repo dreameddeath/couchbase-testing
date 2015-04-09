@@ -156,7 +156,24 @@ public class TestServicesTest extends Assert{
 
         LOG.debug("Result {}", result.id);
         assertEquals(input.id, result.id);
-        assertEquals(input.rootId,result.rootId);
+        assertEquals(input.rootId, result.rootId);
+
+        Observable<ITestService.Result> resultGetObservable=service.getWithRes("30", "15");
+        ITestService.Result resultGet = resultGetObservable.toBlocking().single();
+
+        LOG.debug("Result {}", resultGet.id);
+        assertEquals("30",resultGet.rootId);
+        assertEquals("15", resultGet.id);
+
+        Observable<ITestService.Result> resultPutObservable=service.putWithQuery("30", "15");
+        ITestService.Result resultPut = resultPutObservable.toBlocking().single();
+
+        LOG.debug("Result {}", resultPut.id);
+        assertEquals("30 put",resultPut.rootId);
+        assertEquals("15 put", resultPut.id);
+
+
+
         Object serviceGen =_generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestClient").newInstance();
         serviceGen.getClass().getMethod("setContextTranscoder",IGlobalContextTranscoder.class).invoke(serviceGen,transcoder);
         serviceGen.getClass().getMethod("setServiceClientFactory",ServiceClientFactory.class).invoke(serviceGen,clientFactory);
@@ -166,6 +183,28 @@ public class TestServicesTest extends Assert{
             LOG.debug("Result {}",resultGen);
             assertEquals(input.id+" gen",resultGen.id);
             assertEquals(input.rootId + " gen", resultGen.rootId);
+        }
+        catch(Exception e){
+            throw e;
+        }
+
+        Object resultPostGenObservable = serviceGen.getClass().getMethod("getWithRes", String.class,String.class).invoke(serviceGen,"30","15");
+        try {
+            ITestService.Result resultGen = (ITestService.Result) ((Observable) resultPostGenObservable).toBlocking().first();
+            LOG.debug("Result {}", resultGen);
+            assertEquals("30 gen", resultGen.rootId);
+            assertEquals("15 gen",resultGen.id);
+        }
+        catch(Exception e){
+            throw e;
+        }
+
+        Object resultPutGenObservable = serviceGen.getClass().getMethod("putWithQuery", String.class,String.class).invoke(serviceGen,"30","15");
+        try {
+            ITestService.Result resultGen = (ITestService.Result) ((Observable) resultPutGenObservable).toBlocking().first();
+            LOG.debug("Result {}", resultGen);
+            assertEquals("30 putgen", resultGen.rootId);
+            assertEquals("15 putgen",resultGen.id);
         }
         catch(Exception e){
             throw e;

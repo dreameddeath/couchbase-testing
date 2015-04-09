@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * Created by CEAJ8230 on 08/04/2015.
  */
 public class ServiceExpositionParamInfo {
-    private final static String MAIN_PATTERN_STR = "(\\w+)(?:\\s*(<?=>?)\\s*)((?:\\w+)(?:.\\w+(?:\\(\\))?)*)";
+    private final static String MAIN_PATTERN_STR = "(\\w+)(?:\\s*(<?=>?)\\s*(\\w+(?:.\\w+(?:\\(\\))?)*))?";
     private final static Pattern PATH_PATTERN = Pattern.compile(":" + MAIN_PATTERN_STR);
     private final static Pattern QUERY_PATTERN = Pattern.compile(MAIN_PATTERN_STR);
     private final boolean _isQuery;
@@ -61,7 +61,11 @@ public class ServiceExpositionParamInfo {
             for(String attributeElement : attributeElements){
                 nbProcessedElement++;
                 if(nbProcessedElement == 1){
-                    currentElement = methodInfo.getMethodParamByName(attributeElement).getMainType();
+                    ParameterizedTypeInfo foundMethod=methodInfo.getMethodParamByName(attributeElement);
+                    if(foundMethod==null){
+                        throw new RuntimeException("Cannot find method attribute <"+attributeElement+"> from method <"+methodInfo.getFullName()+">");
+                    }
+                    currentElement = foundMethod.getMainType();
                     _getterString = attributeElement;
                     _setterString = attributeElement;
                 }
@@ -130,8 +134,14 @@ public class ServiceExpositionParamInfo {
         }
 
         if (matcher.matches()) {
-            _mappingDirection = matcher.group(2).equals("<=")?Direction.TO_PATH_ONLY:Direction.BIDIRECTIONNAL;
-            initFromAttributePath(matcher.group(1),matcher.group(3),methodInfo);
+            if(matcher.group(2)!=null) {
+                _mappingDirection = matcher.group(2).equals("<=") ? Direction.TO_PATH_ONLY : Direction.BIDIRECTIONNAL;
+                initFromAttributePath(matcher.group(1), matcher.group(3), methodInfo);
+            }
+            else{
+                _mappingDirection = Direction.BIDIRECTIONNAL;
+                initFromAttributePath(matcher.group(1), matcher.group(1), methodInfo);
+            }
         }
         else{
             throw new RuntimeException("Cannot parse param definition <"+paramDef+">");
