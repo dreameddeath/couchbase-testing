@@ -63,21 +63,6 @@ public class TestServiceRestClientImpl implements ITestService {
                         Entity.entity(input, MediaType.APPLICATION_JSON_TYPE),
                         new GenericType<>(Result.class)
                 ));
-
-        /*Future<Result> responseFuture=
-                _serviceClientFactory.getClient("testService", "1.0")
-                .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
-                .path(String.format("toto/%s/tuto/%s", input.rootId, input.id))
-                        //.queryParam("test",toto)
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .header("X-CONTEXT", _transcoder.encode(ctxt))
-                .async()
-                .post(
-                        Entity.entity(input, MediaType.APPLICATION_JSON_TYPE),
-                        new GenericType<>(Result.class)
-                );
-
-        return Observable.from(responseFuture);*/
     }
 
     @Override
@@ -88,7 +73,6 @@ public class TestServiceRestClientImpl implements ITestService {
 
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)
-                        //.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
                         .async()
                         .get(
                                 new GenericType<>(Result.class)
@@ -103,7 +87,6 @@ public class TestServiceRestClientImpl implements ITestService {
         target = target.queryParam("id",id);
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)
-                        //.header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
                         .async()
                         .put(
                                 null,

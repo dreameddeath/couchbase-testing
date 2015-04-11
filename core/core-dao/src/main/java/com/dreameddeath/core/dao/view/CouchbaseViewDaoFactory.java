@@ -53,7 +53,7 @@ public class CouchbaseViewDaoFactory {
 
         for(CouchbaseViewDao existingDao:_daosMap.get(entityClazz)){
             if(existingDao.getViewName().equals(dao.getViewName())){
-                throw new DuplicateDaoException("The dao "+dao.getViewName()+" is already existing for class "+entityClazz.getName());
+                throw new DuplicateDaoException("The dao view <"+dao.getViewName()+"> is already existing for class "+entityClazz.getName());
             }
         }
         _daosMap.get(entityClazz).add(dao);

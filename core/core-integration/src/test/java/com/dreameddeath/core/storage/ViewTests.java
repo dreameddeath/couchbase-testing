@@ -109,7 +109,7 @@ public class ViewTests {
         }
 
         @Override
-        public List<CouchbaseViewDao> getViews(){
+        public List<CouchbaseViewDao> generateViewDaos(){
             return Arrays.asList(
                 new TestViewDao(this)
             );

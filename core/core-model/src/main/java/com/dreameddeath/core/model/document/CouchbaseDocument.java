@@ -16,7 +16,6 @@
 
 package com.dreameddeath.core.model.document;
 
-//import com.dreameddeath.core.CouchbaseSession;
 
 import com.dreameddeath.core.model.property.HasParent;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -122,7 +121,7 @@ public class CouchbaseDocument implements HasParent {
         DELETED
     }
 
-    public static enum DocumentFlag {
+    public enum DocumentFlag {
         Binary(0x01),
         Compressed(0x100),
         Deleted(0x200);

@@ -58,10 +58,10 @@ import java.util.stream.Stream;
  * Created by CEAJ8230 on 24/11/2014.
  */
 public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
-    private final static JsonTranscoder _couchbaseJsonTranscoder=new JsonTranscoder();
-    private final static ScriptEngineManager _enginefactory = new ScriptEngineManager();
+    private final JsonTranscoder _couchbaseJsonTranscoder=new JsonTranscoder();
+    private final ScriptEngineManager _enginefactory = new ScriptEngineManager();
     // create a JavaScript engine
-    private final static ScriptEngine _engine = _enginefactory.getEngineByName("JavaScript");
+    private final ScriptEngine _engine = _enginefactory.getEngineByName("JavaScript");
 
     private static Logger LOG = LoggerFactory.getLogger(CouchbaseBucketSimulator.class);
 
@@ -74,6 +74,10 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     private Map<String,DocumentSimulator> _dbContent = new ConcurrentHashMap<String,DocumentSimulator>();
+
+    public ScriptEngine getJavaScriptEngine(){
+        return _engine;
+    }
 
     public Map<Class,ICouchbaseTranscoder> _transcoderMap = new HashMap<Class,ICouchbaseTranscoder>();
     public Map<String,Map<String,ScriptObjectMirror>> _viewsMaps = new HashMap<>();
@@ -99,7 +103,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         DocumentSimulator foundDoc = _dbContent.get(key);
         if(foundDoc==null){
             if(defaultValue!=null){
-                foundDoc = new DocumentSimulator();
+                foundDoc = new DocumentSimulator(this);
                 foundDoc.setFlags(0);
                 foundDoc.setCas(0);
                 foundDoc.setExpiry(expiration);
@@ -153,7 +157,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             throw new DocumentAlreadyExistsException("Key <"+bucketDoc.id()+"> already existing in couchbase simulator");
         }
         if(foundDoc==null){
-            foundDoc = new DocumentSimulator();
+            foundDoc = new DocumentSimulator(this);
             foundDoc.setKey(bucketDoc.id());
             foundDoc.setCas(0L);
             _dbContent.put(foundDoc.getKey(),foundDoc);

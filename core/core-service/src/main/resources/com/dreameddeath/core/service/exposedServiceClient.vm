@@ -19,6 +19,7 @@ package ${service.package};
 
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.dreameddeath.core.service.model.HasServiceClientFactory;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import rx.Observable;
 
@@ -40,7 +41,7 @@ import ${import};
     date = "${generator.date}",
     comments = "${generator.comment}"
 )
-public class ${service.clientSimpleClassName} implements #foreach($interface in $service.interfaces)#if($foreach.index>0),#end $interface#end {
+public class ${service.clientSimpleClassName} implements HasServiceClientFactory#foreach($interface in $service.interfaces),$interface#end {
 #if($service.hasGlobalContextTranscoder())
     private IGlobalContextTranscoder _transcoder;
 #end
@@ -51,8 +52,13 @@ public class ${service.clientSimpleClassName} implements #foreach($interface in 
         _transcoder = transcoder;
     }
 #end
+    @Override
     public void setServiceClientFactory(ServiceClientFactory clientFactory){
         _serviceClientFactory = clientFactory;
+    }
+    @Override
+    public ServiceClientFactory getServiceClientFactory(){
+        return _serviceClientFactory;
     }
 
 #foreach($method in $service.methods)

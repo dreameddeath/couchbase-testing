@@ -20,7 +20,7 @@ import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
-import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.core.service.model.GeneratedRestImpl;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -42,16 +42,20 @@ import ${import};
 @Path("$esc.java($service.path)")
 @ServiceDef(name="${service.name}",version="${service.version}",status = VersionStatus.${service.status.name()})
 @Api(value = "$esc.java($service.path)", description = "$esc.java($service.description)")
-public class ${service.serverSimpleClassName} extends AbstractExposableService {
+public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${service.className}> {
     private ${service.className} _serviceImpl;
-#if($service.hasGlobalContextTranscoder())
-    private IGlobalContextTranscoder _transcoder;
-#end
+    @Override
     public void setServiceImplementation(${service.className} serviceImpl){
         _serviceImpl = serviceImpl;
     }
+    @Override
+    public ${service.className} getServiceImpl(){
+        return _serviceImpl;
+    }
 
 #if($service.hasGlobalContextTranscoder())
+    private IGlobalContextTranscoder _transcoder;
+
     public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
         _transcoder = transcoder;
     }
@@ -96,7 +100,7 @@ public class ${service.serverSimpleClassName} extends AbstractExposableService {
 #if($method.hasBody())
         $method.bodyInfo.className ${method.bodyInfo.setterString};
 #end
-        return _serviceImpl.${method.name}(#set($methodParamPrefix="")
+        return getServiceImpl().${method.name}(#set($methodParamPrefix="")
 #foreach($methodParam in $method.methodParamsDefinition)
                     ${methodParamPrefix} $methodParam.name #set($methodParamPrefix=",")
 #end

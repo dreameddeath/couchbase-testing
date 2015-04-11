@@ -85,7 +85,7 @@ public class CouchbaseDocumentAttachedTaskRef extends CouchbaseDocumentElement {
         return isOfJobType(jobClass) && isOfTaskType(taskClass);
     }
 
-    public static enum State{
+    public enum State{
         INITIALIZED,
         PROCESSED
     }

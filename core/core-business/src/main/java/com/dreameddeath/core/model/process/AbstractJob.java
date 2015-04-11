@@ -180,7 +180,7 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
         return null;
     }
 
-    public static enum State{
+    public enum State{
         UNKNOWN,
         NEW, //Just created
         INITIALIZED, //Init done

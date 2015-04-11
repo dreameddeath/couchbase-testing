@@ -21,6 +21,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingCluster;
 
+import java.io.IOException;
 import java.util.concurrent.*;
 
 /**
@@ -31,7 +32,7 @@ public class CuratorTestUtils {
     private TestingCluster _testingCluster=null;
     private Future<TestingCluster> _pendingCluster=null;
 
-    public void prepare(final int nbServers) throws Exception{
+    public CuratorTestUtils prepare(final int nbServers) throws Exception{
         System.setProperty("zookeeper.jmx.log4j.disable","true");
         ExecutorService executor = Executors.newSingleThreadExecutor();
         //TODO manage real cluster connection (depending on env Variables or configuration parameters)
@@ -50,6 +51,7 @@ public class CuratorTestUtils {
         });
         _testingCluster = future.get(1, TimeUnit.MINUTES);
         executor.shutdownNow();
+        return this;
     }
 
     public TestingCluster getCluster() throws Exception{
@@ -67,5 +69,10 @@ public class CuratorTestUtils {
         return client;
     }
 
-
+    public CuratorTestUtils stop() throws IOException{
+        if(_testingCluster!=null){
+            _testingCluster.stop();
+        }
+        return this;
+    }
 }

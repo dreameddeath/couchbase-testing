@@ -19,6 +19,9 @@ package com.dreameddeath.core.service.annotation.processor;
 import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.ExposeService;
 import com.dreameddeath.core.service.annotation.VersionStatus;
+import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.model.GeneratedRestImpl;
+import com.dreameddeath.core.service.model.HasServiceClientFactory;
 import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 
 import java.util.*;
@@ -30,6 +33,27 @@ import java.util.stream.Collectors;
 public class ServiceExpositionDef {
     public static final String REST_CLIENT_SUFFIX = "RestClient";
     public static final String REST_SERVICE_SUFFIX = "RestService";
+
+    public static<T> Class<GeneratedRestImpl<T>> getRestServerClass(Class<T> serviceClass) throws ClassNotFoundException{
+        return (Class<GeneratedRestImpl<T>>)ServiceExpositionDef.class.getClassLoader().loadClass(serviceClass.getName()+REST_SERVICE_SUFFIX);
+    }
+
+    public static <T> GeneratedRestImpl<T> newRestServerIntance(T serviceImpl) throws ClassNotFoundException,InstantiationException,IllegalAccessException{
+        GeneratedRestImpl<T> result = getRestServerClass((Class<T>)serviceImpl.getClass()).newInstance();
+        result.setServiceImplementation(serviceImpl);
+        return result;
+    }
+
+    public static <T> Class<T> getRestClientClass(Class serviceClass,Class<T> interfaceClass) throws ClassNotFoundException{
+        return (Class<T>) ServiceExpositionDef.class.getClassLoader().loadClass(serviceClass.getName()+REST_CLIENT_SUFFIX);
+    }
+
+    public static <T> T getRestClientIntance(Class serviceClass,Class<T> interfaceClass,ServiceClientFactory factory) throws ClassNotFoundException,InstantiationException,IllegalAccessException{
+        T result = getRestClientClass(serviceClass,interfaceClass).newInstance();
+        ((HasServiceClientFactory)result).setServiceClientFactory(factory);
+        return result;
+    }
+
     private String _package;
     private String _className;
     private List<String> _interfaces = new ArrayList<>();
@@ -46,6 +70,7 @@ public class ServiceExpositionDef {
         ExposeService serviceInfosAnnot = classInfo.getAnnotation(ExposeService.class);
         _package = classInfo.getPackageInfo().getName();
         _className = classInfo.getSimpleName();
+        _imports.add(classInfo.getImportName());
         classInfo.getParentInterfaces().forEach(it->{
             _imports.add(it.getImportName());
             _interfaces.add(it.getSimpleName());
@@ -88,7 +113,7 @@ public class ServiceExpositionDef {
     }
 
     public String getClassName() {
-        return _classInfo.getSimpleName();
+        return _className;
     }
 
     public String getClientSimpleClassName(){
@@ -123,4 +148,6 @@ public class ServiceExpositionDef {
     public Set<String> getImports() {
         return _imports;
     }
+
+
 }

@@ -42,13 +42,29 @@ import java.util.List;
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private ICouchbaseBucket _client;
     private ICouchbaseTranscoder<T> _transcoder;
-
+    private List<CouchbaseViewDao> _daoViews=null;
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
     public abstract T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException;
 
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
     public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder(){return Collections.emptyList();}
-    public List<CouchbaseViewDao> getViews(){ return Collections.emptyList();}
+    protected List<CouchbaseViewDao> generateViewDaos(){ return Collections.emptyList();}
+
+    synchronized public List<CouchbaseViewDao> getViewDaos(){
+        if(_daoViews==null){
+            _daoViews = generateViewDaos();
+        }
+        return Collections.unmodifiableList(_daoViews);
+    }
+
+    public CouchbaseViewDao getViewDao(String name){
+        for(CouchbaseViewDao viewDao:getViewDaos()){
+            if(viewDao.getViewName().equals(name)){
+                return viewDao;
+            }
+        }
+        return null;
+    }
 
     public CouchbaseDocumentDao<T> setClient(ICouchbaseBucket client){
         _client = client;

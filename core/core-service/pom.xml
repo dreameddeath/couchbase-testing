@@ -71,33 +71,8 @@
         </plugins>
 
     </build>
-  
+
   <dependencies>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-date</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-business</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-dao</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-model</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-validation</artifactId>
-          <version>${project.version}</version>
-      </dependency>
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-annotations</artifactId>
@@ -109,15 +84,40 @@
           <version>${project.version}</version>
       </dependency>
       <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-model</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
           <groupId>com.wordnik</groupId>
           <artifactId>swagger-jaxrs_2.10</artifactId>
           <version>${swagger.jaxrs.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+          <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+          <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.fasterxml.jackson.datatype</groupId>
+          <artifactId>jackson-datatype-joda</artifactId>
+          <version>${jackson.version}</version>
       </dependency>
       <dependency>
           <groupId>javax.ws.rs</groupId>
           <artifactId>javax.ws.rs-api</artifactId>
           <version>${jaxrs.api.version}</version>
       </dependency>
+      <!--
+      *
+      * Unit / Integration Testing
+      *
+      *-->
       <dependency>
           <groupId>org.apache.cxf</groupId>
           <artifactId>cxf-rt-frontend-jaxrs</artifactId>
@@ -132,7 +132,7 @@
       </dependency>
       <dependency>
           <groupId>org.apache.cxf</groupId>
-          <!--<artifactId>cxf-rt-transports-http-netty-client</artifactId>-->
+          <!--<artifactId>cxf-rt-transports-http-netty-curatorClient</artifactId> buggy for rest as async doesn't support GET/DELETE-->
           <artifactId>cxf-rt-transports-http-jetty</artifactId>
           <version>${apache.cxf.jaxrs.version}</version>
           <scope>test</scope>
@@ -189,7 +189,6 @@
           </exclusions>
           <scope>test</scope>
       </dependency>
-
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>testing-curator</artifactId>

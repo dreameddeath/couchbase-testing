@@ -109,6 +109,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     private AbstractClassInfo _enclosingClass=null;
     private String _simpleName;
     private String _fullName;
+    private String _compiledFileName;
     private Class<?> _class = null;
     private DeclaredType _declaredType = null;
     private TypeElement _typeElement = null;
@@ -132,6 +133,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             _packageInfo = PackageInfo.getPackageInfo(_typeElement);
             _simpleName = _typeElement.getSimpleName().toString();
             //Manage $ for inner class
+            _compiledFileName = _typeElement.getQualifiedName().toString();
             _fullName = _packageInfo.getName()+"."+_typeElement.getQualifiedName().toString().substring(_packageInfo.getName().length() + 1).replace(".","$");
             for(TypeParameterElement parameterElement:_typeElement.getTypeParameters()){
                 _parameterizedTypeInfos.add(new ParameterizedTypeInfo(parameterElement));
@@ -144,6 +146,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             }
             _simpleName = _class.getSimpleName();
             _fullName = _class.getName();
+            _compiledFileName = (_enclosingClass!=null)?_enclosingClass._compiledFileName+"$"+_class.getSimpleName():_class.getName();
             for(TypeVariable param:_class.getTypeParameters()){
                 _parameterizedTypeInfos.add(new ParameterizedTypeInfo(param));
             }
@@ -256,6 +259,10 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
         return _fullName;
     }
 
+    public String getCompiledFileName() {
+        return _compiledFileName;
+    }
+
     public String getImportName(){
         return getFullName().replace("$",".");
     }
@@ -317,5 +324,9 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public PackageInfo getPackageInfo() {
         return _packageInfo;
+    }
+
+    public AbstractClassInfo getEnclosingClass() {
+        return _enclosingClass;
     }
 }

@@ -49,6 +49,9 @@ public class ServiceExposeAnnotationProcessor extends AbstractProcessor {
         AnnotationElementType.CURRENT_ELEMENT_UTILS.set(processingEnv.getElementUtils());
         for(Element classElem : roundEnv.getElementsAnnotatedWith(ExposeService.class)){
             AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement) classElem);
+            if(classInfo.getEnclosingClass()!=null){
+                throw new RuntimeException("The service <"+classInfo.getFullName()+"> shouldn't be an inner class to allow Rest Services Annotation through annotation @ExposeService");
+            }
             VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager,this,String.format("Generator of Service Rest from %s",classInfo.getFullName()));
 
             ServiceExpositionDef serviceDef = new ServiceExpositionDef(classInfo);

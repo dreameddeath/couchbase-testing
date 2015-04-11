@@ -112,6 +112,4 @@ class CouchbaseDocumentModelConverter extends ModelConverter with BaseConverter 
             items
         )
     }
-
-
 }

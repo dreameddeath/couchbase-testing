@@ -41,9 +41,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
-/*import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.util.ConcurrentHashSet;*/
 
 
 /**
@@ -51,32 +48,29 @@ import org.eclipse.jetty.util.ConcurrentHashSet;*/
  */
 public class ServiceRegistrar {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRegistrar.class);
-    private static Set<AbstractExposableService> _services = new CopyOnWriteArraySet<>();
-
-    public static Set<AbstractExposableService> getServices(){ return Collections.unmodifiableSet(_services);}
-    public static void addService(AbstractExposableService service){_services.add(service);}
-
-    private final CuratorFramework _client;
+    private final CuratorFramework _curatorClient;
     private final String _basePath;
-    //private final IRestEndPointDescription _restEndPointDescription;
+    private Set<AbstractExposableService> _services = new CopyOnWriteArraySet<>();
     private ServiceDiscovery<ServiceDescription> _serviceDiscovery;
+    private ServiceRegistrar _serviceRegistrar;
 
 
-    public ServiceRegistrar(CuratorFramework client,String basePath){
-        _client = client;
+    public ServiceRegistrar(CuratorFramework curatorClient,String basePath){
+        _curatorClient = curatorClient;
         _basePath = basePath;
     }
 
     public void start() throws InterruptedException, UnknownHostException, Exception{
-        _client.blockUntilConnected(10, TimeUnit.SECONDS);
-        ServiceNamingUtils.createBaseServiceName(_client, _basePath);
+        _curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
+        ServiceNamingUtils.createBaseServiceName(_curatorClient, _basePath);
 
         _serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
                 .serializer(new ServiceInstanceSerializerImpl())
-                .client(_client)
+                .client(_curatorClient)
                 .basePath(_basePath).build();
 
         _serviceDiscovery.start();
+
 
         JaxrsApiReader reader =new DefaultJaxrsApiReader();
         for(AbstractExposableService foundService:_services) {
@@ -111,4 +105,9 @@ public class ServiceRegistrar {
     public void stop() throws IOException{
         _serviceDiscovery.close();
     }
+
+
+    public Set<AbstractExposableService> getServices(){ return Collections.unmodifiableSet(_services);}
+    public void addService(AbstractExposableService service){_services.add(service);}
+
 }

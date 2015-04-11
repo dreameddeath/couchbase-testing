@@ -43,6 +43,8 @@ import org.springframework.web.context.ContextLoaderListener;
 import rx.Observable;
 
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -81,7 +83,7 @@ public class TestServicesTest extends Assert{
         CuratorTestUtils curatorUtils = new CuratorTestUtils();
         curatorUtils.prepare(1);
         CuratorFramework curatorClient = curatorUtils.getClient("TestServicesTest");
-        TestSpringSelfConfig.setCuratorClient(curatorClient);
+        //TestSpringSelfConfig.setCuratorClient(curatorClient);
         _server = new Server();
         _connector = new ServerConnector(_server);
         _server.addConnector(_connector);
@@ -90,7 +92,14 @@ public class TestServicesTest extends Assert{
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
         cxfHolder.setInitOrder(1);
         contextHandler.addServlet(cxfHolder, "/*");
-        TestSpringSelfConfig.setEndPointDescr(new IRestEndPointDescription() {
+         _serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
+        ServiceRegistrar serviceRegistrar = new ServiceRegistrar(curatorClient, BASE_PATH);
+        _server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar , _serviceDiscoverer));
+
+        contextHandler.setAttribute("serviceRegistrar", serviceRegistrar);
+        contextHandler.setAttribute("serviceDiscoverer", _serviceDiscoverer);
+        contextHandler.setAttribute("curatorClient", curatorClient);
+        contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
             @Override
             public int port() {
                 return _connector.getLocalPort();
@@ -103,25 +112,22 @@ public class TestServicesTest extends Assert{
 
             @Override
             public String host() {
-                 try{
-                     return InetAddress.getLocalHost().getHostAddress();
-                 }
-                 catch(Exception e){
-                     return "localhost";
-                 }
+                try {
+                    return InetAddress.getLocalHost().getHostAddress();
+                } catch (Exception e) {
+                    return "localhost";
+                }
             }
         });
-         _serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
-
-        _server.addLifeCycleListener(new LifeCycleListener(new ServiceRegistrar(curatorClient, BASE_PATH), _serviceDiscoverer));
-
 
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
-        TestServiceRestService service = new TestServiceRestService();
-        TestSpringSelfConfig.registerService("test",service);
-        TestSpringSelfConfig.registerService("testGen",newGeneratedService());
-        contextHandler.addEventListener(new ContextLoaderListener());
+        Map<String,AbstractExposableService> servicesMap = new HashMap<>();
 
+        TestServiceRestService service = new TestServiceRestService();
+        servicesMap.put("test",service);
+        servicesMap.put("testGen",newGeneratedService());
+        contextHandler.setAttribute("servicesMap",servicesMap);
+        contextHandler.addEventListener(new ContextLoaderListener());
         _server.start();
 
     }

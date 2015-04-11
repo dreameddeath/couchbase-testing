@@ -83,7 +83,7 @@ public class CouchbaseDocumentDaoFactory {
         for(CouchbaseUniqueKeyDao.Builder daoUniqueKeyBuilder:dao.getUniqueKeysBuilder()){
             _uniqueKeyDaoFactory.addDaoFor(daoUniqueKeyBuilder.getNameSpace(),daoUniqueKeyBuilder.build());
         }
-        for(CouchbaseViewDao daoView:dao.getViews()){
+        for(CouchbaseViewDao daoView:dao.getViewDaos()){
             _viewDaoFactory.addDaoFor(entityClass,daoView);
         }
     }

@@ -19,8 +19,6 @@ package com.dreameddeath.testing.couchbase;
 
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Base64;
 
@@ -29,9 +27,15 @@ import java.util.Base64;
  * Created by CEAJ8230 on 24/11/2014.
  */
 public class DocumentSimulator {
-    private final static ScriptEngineManager _enginefactory = new ScriptEngineManager();
+    private CouchbaseBucketSimulator _parent;
+    //private final static ScriptEngineManager _enginefactory = new ScriptEngineManager();
     // create a JavaScript engine
-    private final static ScriptEngine _engine = _enginefactory.getEngineByName("JavaScript");
+    //private final static ScriptEngine _engine = _enginefactory.getEngineByName("JavaScript");
+
+
+    public DocumentSimulator(CouchbaseBucketSimulator parentSimulator){
+        _parent = parentSimulator;
+    }
 
     private String _key;
     private long _cas;
@@ -61,7 +65,7 @@ public class DocumentSimulator {
 
     protected void toJavaScriptDoc(){
         try {
-            _javascriptObject= _engine.eval("("+new String(_data.array())+")");
+            _javascriptObject= _parent.getJavaScriptEngine().eval("("+new String(_data.array())+")");
             _type = "json";
         }
         catch(ScriptException e){

@@ -15,10 +15,16 @@ import com.dreameddeath.core.storage.BucketDocument;
 
 import java.util.List;
 import java.util.ArrayList;
+import javax.annotation.Generated;
 
 import ${entity.name};
 import ${daoDef.baseName};
 
+@Generated(
+    value = "${generator.name}",
+    date = "${generator.date}",
+    comments = "${generator.comment}"
+)
 @DaoForClass(${entity.simpleName}.class)
 public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simpleName}> {
     public static final String FMT_KEY="$esc.java($dbPath.fullFormat)";
@@ -83,7 +89,7 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
 
 #if($views.size() >0)
     @Override
-    public List<CouchbaseViewDao> getViews(){
+    protected List<CouchbaseViewDao> generateViewDaos(){
         List<CouchbaseViewDao> list=new ArrayList<>();
 #foreach($view in $views)
         list.add(new ${view.className}ViewDao(this));
