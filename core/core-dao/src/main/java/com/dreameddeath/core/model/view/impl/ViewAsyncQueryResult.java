@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.model.view.impl;
 
+import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.view.AsyncViewResult;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.view.IViewAsyncQueryResult;
@@ -39,6 +40,20 @@ public class ViewAsyncQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> im
         return new ViewAsyncQueryResult<>(query,result);
     }
 
+    @Override
+    public int getTotalRows(){
+        return _result.totalRows();
+    }
+
+    @Override
+    public boolean getSuccess(){
+        return _result.success();
+    }
+
+    @Override
+    public Observable<JsonObject> getErrorInfo(){
+        return _result.error();
+    }
 
     @Override public Observable<IViewQueryRow<TKEY, TVALUE, TDOC>> getRows() {return _result.rows().map(asyncViewRow-> _query.getDao().map(asyncViewRow));}
     @Override public IViewQuery getQuery() {

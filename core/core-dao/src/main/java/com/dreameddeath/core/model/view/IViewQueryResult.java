@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.model.view;
 
+import com.couchbase.client.java.document.json.JsonObject;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 import java.util.Iterator;
@@ -27,6 +28,10 @@ import java.util.List;
 public interface IViewQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> {
     public List<IViewQueryRow<TKEY,TVALUE,TDOC>> getAllRows();
     public Iterator<IViewQueryRow<TKEY,TVALUE,TDOC>> getRows();
+
+    public int getTotalRows();
+    public boolean getSuccess();
+    public JsonObject getErrorInfo();
 
     public IViewQuery getQuery();
     public IViewQuery getQueryForNext(int nb);

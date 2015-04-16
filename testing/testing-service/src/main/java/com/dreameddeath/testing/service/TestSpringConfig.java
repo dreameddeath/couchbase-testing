@@ -23,6 +23,7 @@ import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.cxf.endpoint.Server;
@@ -80,7 +81,11 @@ public class TestSpringConfig implements ServletContextAware
         SpringJAXRSServerFactoryBean factory = new SpringJAXRSServerFactoryBean();
         factory.setTransportId("http://cxf.apache.org/transports/http");
         factory.setAddress("/apis");
-        factory.setProviders(Arrays.asList(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance())));
+        ObjectMapper mapper =(ObjectMapper)_servletContext.getAttribute("jacksonObjectMapper");
+        if(mapper==null){
+            mapper = ServiceJacksonObjectMapper.getInstance();
+        }
+        factory.setProviders(Arrays.asList(new JacksonJsonProvider(mapper)));
 
         List<ResourceProvider> resourceProviders = new LinkedList<>();
         Map<String,AbstractExposableService> servicesMap = (Map)_servletContext.getAttribute("servicesMap");

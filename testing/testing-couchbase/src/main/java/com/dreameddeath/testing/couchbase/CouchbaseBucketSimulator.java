@@ -315,7 +315,6 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         else{
             stream = stream.sorted((vr1, vr2) -> EmitSimulator.compare(vr1.key(), vr2.key()));
         }
-
         stream=stream.filter(filterPredicate);
         if(additionnalCriteria.containsKey("skip")){
             stream=stream.skip(additionnalCriteria.get("skip"));

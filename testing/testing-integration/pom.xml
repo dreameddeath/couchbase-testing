@@ -61,11 +61,11 @@
             <artifactId>core-dao</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-dao-helper</artifactId>
             <version>${project.version}</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-validation</artifactId>

@@ -14,20 +14,18 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.dao;
+package com.dreameddeath.core.dao.helper.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by CEAJ8230 on 08/01/2015.
+ * Created by CEAJ8230 on 03/01/2015.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(Counters.class)
-public @interface Counter {
-    String name();
-    String dbName();
-    boolean isKeyGen() default false;
-    int defaultValue() default 1;
-    long modulus() default 0;
+public @interface UidDef {
+    String fieldName();
 }

@@ -14,18 +14,12 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.dao;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.dreameddeath.core.user;
 
 /**
- * Created by CEAJ8230 on 08/01/2015.
+ * Created by CEAJ8230 on 14/04/2015.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Counters {
-    Counter[] value();
+public interface IUserFactory {
+    public IUser validateFromToken(String token);
+
 }

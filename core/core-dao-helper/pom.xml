@@ -88,20 +88,22 @@
           <version>${project.version}</version>
       </dependency>
       <dependency>
-          <groupId>org.apache.velocity</groupId>
-          <artifactId>velocity</artifactId>
-          <version>${velocity.version}</version>
-          <scope>compile</scope>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-service</artifactId>
+          <version>${project.version}</version>
       </dependency>
       <dependency>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-lang3</artifactId>
-          <version>${apache.common.lang3}</version>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-integration</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
       </dependency>
       <dependency>
-          <groupId>commons-io</groupId>
-          <artifactId>commons-io</artifactId>
-          <version>${apache.common.io.version}</version>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-service</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
       </dependency>
+
   </dependencies>
 </project>

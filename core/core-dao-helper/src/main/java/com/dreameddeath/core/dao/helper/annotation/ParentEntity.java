@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.dao;
+package com.dreameddeath.core.dao.helper.annotation;
 
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,13 +24,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by CEAJ8230 on 29/12/2014.
+ * Created by CEAJ8230 on 06/01/2015.
  */
+
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DaoEntity {
-    Class<? extends CouchbaseDocumentDao> baseDao();
-    String dbPath();
-    String idFormat();
-    String idPattern();
+public @interface ParentEntity {
+    Class<? extends CouchbaseDocument> c();
+    String keyPath();
+    String separator();
 }

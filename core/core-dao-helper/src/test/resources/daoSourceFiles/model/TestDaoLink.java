@@ -14,18 +14,12 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.dao;
+package model;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.dreameddeath.core.model.business.BusinessCouchbaseDocumentLink;
 
-/**
- * Created by CEAJ8230 on 03/01/2015.
- */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface UidDef {
-    String fieldName();
+public class TestDaoLink extends BusinessCouchbaseDocumentLink<TestDao> {
+    public TestDaoLink(){}
+    public TestDaoLink (TestDao src){super(src);}
+    public TestDaoLink(TestDaoLink srcLink){super(srcLink);}
 }

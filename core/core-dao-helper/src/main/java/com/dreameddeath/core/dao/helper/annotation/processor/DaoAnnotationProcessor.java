@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.processor;
+package com.dreameddeath.core.dao.helper.annotation.processor;
 
 
-import com.dreameddeath.core.annotation.dao.Counter;
-import com.dreameddeath.core.annotation.dao.DaoEntity;
-import com.dreameddeath.core.annotation.dao.View;
-import com.dreameddeath.core.annotation.processor.model.*;
+import com.dreameddeath.core.dao.helper.annotation.Counter;
+import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
+import com.dreameddeath.core.dao.helper.annotation.View;
+import com.dreameddeath.core.dao.helper.annotation.processor.model.*;
 import com.dreameddeath.core.tools.annotation.processor.AnnotationElementType;
 import com.dreameddeath.core.tools.annotation.processor.AnnotationProcessorVelocityEngine;
 import com.dreameddeath.core.util.CouchbaseDocumentReflection;
@@ -46,7 +46,7 @@ import java.util.Set;
  * Created by CEAJ8230 on 29/12/2014.
  */
 @SupportedAnnotationTypes(
-        {"com.dreameddeath.core.annotation.dao.DaoEntity"}
+        {"com.dreameddeath.core.dao.helper.annotation.DaoEntity"}
 )
 public class DaoAnnotationProcessor extends AbstractProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DaoAnnotationProcessor.class);

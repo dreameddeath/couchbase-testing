@@ -14,62 +14,40 @@
  *    limitations under the License.
  */
 
-package ${service.package};
+package com.dreameddeath.core.dao;
 
 import com.dreameddeath.core.dao.helper.service.DaoHelperServiceUtils;
+import com.dreameddeath.core.dao.helper.service.AbstractDaoRestService;
 import com.dreameddeath.core.dao.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.model.view.IViewAsyncQueryResult;
 import com.dreameddeath.core.model.view.IViewQuery;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.user.IUserFactory;
-
 import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
 
-import javax.annotation.Generated;
+import rx.Observable;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Collection;
 
-#foreach($import in $service.imports)
-import ${import};
-#end
-
-@Generated(
-    value = "${generator.name}",
-    date = "${generator.date}",
-    comments = "${generator.comment}"
-)
 /**
  * Created by CEAJ8230 on 14/04/2015.
  */
 @Path("testDomain/v1.0/test") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
 @ServiceDef(name="dao$testDomain$test",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "testDomain/v1.0/test", description = "Basic resource")
-public class TestDaoRestService extends AbstractExposableService {
-    private CouchbaseSessionFactory _sessionFactory;
-    public void setSessionFactory(CouchbaseSessionFactory sessionFactory){
-        _sessionFactory = sessionFactory;
-    }
-
-    private IUserFactory _userFactory;
-    public void setUserFactory(IUserFactory userFactory){
-        _userFactory = userFactory;
-    }
+public class TestDaoRestService extends AbstractDaoRestService {
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response create(@HeaderParam("USER_TOKEN") String userToken, @HeaderParam("DOC_FLAGS")Integer flags,TestDoc documentToCreate) throws Exception{
-        IUser user = _userFactory.validateFromToken(userToken);
-        ICouchbaseSession session = _sessionFactory.newReadWriteSession(user);
+        IUser user = getUserFactory().validateFromToken(userToken);
+        ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         session.attachEntity(documentToCreate);
         if(flags!=null){
             documentToCreate.getBaseMeta().setEncodedFlags(flags);
@@ -89,8 +67,8 @@ public class TestDaoRestService extends AbstractExposableService {
     @Path("{id}")
     public Response read(@HeaderParam("USER_TOKEN") String userToken,
                          @PathParam("id") String id) throws Exception{
-        IUser user = _userFactory.validateFromToken(userToken);
-        ICouchbaseSession session = _sessionFactory.newReadOnlySession(user);
+        IUser user = getUserFactory().validateFromToken(userToken);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
@@ -105,8 +83,8 @@ public class TestDaoRestService extends AbstractExposableService {
     @Path("{id}")
     public Response delete(@HeaderParam("USER_TOKEN") String userToken,
                          @PathParam("id") String id) throws Exception{
-        IUser user = _userFactory.validateFromToken(userToken);
-        ICouchbaseSession session = _sessionFactory.newReadOnlySession(user);
+        IUser user = getUserFactory().validateFromToken(userToken);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
         session.delete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
@@ -126,8 +104,8 @@ public class TestDaoRestService extends AbstractExposableService {
                            @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS) Integer flags,
                            @PathParam("id") String id,
                            TestDoc updatedDocument) throws Exception{
-        IUser user = _userFactory.validateFromToken(userToken);
-        ICouchbaseSession session = _sessionFactory.newReadWriteSession(user);
+        IUser user = getUserFactory().validateFromToken(userToken);
+        ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         updatedDocument.getBaseMeta().setKey(String.format("test/%s", id));
         updatedDocument.getBaseMeta().setCas(casData);
         if(flags!=null) {
@@ -164,8 +142,8 @@ public class TestDaoRestService extends AbstractExposableService {
                 @QueryParam("token") String token, @QueryParam("nb") Integer nbMore
         ) throws Exception
     {
-        IUser user = _userFactory.validateFromToken(userToken);
-        ICouchbaseSession session = _sessionFactory.newReadOnlySession(user);
+        IUser user = getUserFactory().validateFromToken(userToken);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDoc.class,"testView");
 
         if(key!=null){ query.withKey(key);}

@@ -42,6 +42,7 @@ public interface ICouchbaseSession {
     public <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException;
 
     public <T extends CouchbaseDocument> T newEntity(Class<T> clazz);
+    public <T extends CouchbaseDocument> T attachEntity(T entity);
     public <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException;
     public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException;
     public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException;
@@ -58,8 +59,8 @@ public interface ICouchbaseSession {
     public DateTime getCurrentDate();
 
     public <T extends CouchbaseDocument> IViewQuery initViewQuery(Class<T> forClass,String viewName) throws DaoException;
-    public IViewQueryResult executeQuery(IViewQuery query) throws DaoException,StorageException;
-    public Observable<IViewAsyncQueryResult> executeAsyncQuery(IViewQuery query) throws DaoException,StorageException;
+    public <TKEY,TVALUE,T extends CouchbaseDocument> IViewQueryResult<TKEY,TVALUE,T> executeQuery(IViewQuery<TKEY,TVALUE,T> query) throws DaoException,StorageException;
+    public <TKEY,TVALUE,T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY,TVALUE,T>> executeAsyncQuery(IViewQuery<TKEY,TVALUE,T> query) throws DaoException,StorageException;
 
     public void reset(); //Clean cache
 }

@@ -14,4 +14,4 @@
 #    limitations under the License.
 #
 
-com.dreameddeath.core.annotation.processor.DaoAnnotationProcessor
+com.dreameddeath.core.dao.helper.annotation.processor.DaoAnnotationProcessor

@@ -14,23 +14,21 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.model.view;
+package com.dreameddeath.core.dao.helper.annotation;
 
-import com.couchbase.client.java.document.json.JsonObject;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
-import rx.Observable;
+import java.lang.annotation.*;
 
 /**
- * Created by CEAJ8230 on 27/12/2014.
+ * Created by ceaj8230 on 10/02/2015.
  */
-public interface IViewAsyncQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> {
-    public Observable<IViewQueryRow<TKEY,TVALUE,TDOC>> getRows();
-
-    public int getTotalRows();
-    public boolean getSuccess();
-    public Observable<JsonObject> getErrorInfo();
-
-    public IViewQuery getQuery();
-    public IViewQuery getQueryForNext(int nb);
-
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Repeatable(Views.class)
+public @interface View {
+    String name();
+    String domain() default "";
+    String content() default "";
+    String contentFilename() default "";
+    ViewKeyDef keyDef();
+    ViewValueDef valueDef();
 }

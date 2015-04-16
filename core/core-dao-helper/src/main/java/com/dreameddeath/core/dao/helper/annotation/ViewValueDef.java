@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.dao;
+package com.dreameddeath.core.dao.helper.annotation;
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.view.IViewTranscoder;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,13 +24,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by CEAJ8230 on 06/01/2015.
+ * Created by ceaj8230 on 10/02/2015.
  */
-
-@Target(ElementType.TYPE)
+@Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ParentEntity {
-    Class<? extends CouchbaseDocument> c();
-    String keyPath();
-    String separator();
+public @interface ViewValueDef {
+    Class type();
+    Class<? extends IViewTranscoder> transcoder();
 }

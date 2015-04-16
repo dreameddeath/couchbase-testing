@@ -14,21 +14,23 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.dao;
+package com.dreameddeath.core.dao.helper.annotation;
 
-import java.lang.annotation.*;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by ceaj8230 on 10/02/2015.
+ * Created by CEAJ8230 on 29/12/2014.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(Views.class)
-public @interface View {
-    String name();
-    String domain() default "";
-    String content() default "";
-    String contentFilename() default "";
-    ViewKeyDef keyDef();
-    ViewValueDef valueDef();
+public @interface DaoEntity {
+    Class<? extends CouchbaseDocumentDao> baseDao();
+    String dbPath();
+    String idFormat();
+    String idPattern();
 }

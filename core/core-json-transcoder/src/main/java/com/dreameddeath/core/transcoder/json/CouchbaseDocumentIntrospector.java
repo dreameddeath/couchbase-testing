@@ -35,6 +35,17 @@ import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector implements
         Versioned {
 
+    public static enum Domain{
+        STORAGE,
+        PUBLIC_SERVICE,
+        INTERNAL_SERVICE
+    }
+
+    private Domain _domain = Domain.STORAGE;
+
+    public CouchbaseDocumentIntrospector(){}
+    public CouchbaseDocumentIntrospector(Domain domain){_domain = domain;}
+
     @Override
     public Version version() {
         return VersionUtil.versionFor(getClass());
@@ -54,6 +65,7 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
     public PropertyName findNameForSerialization(Annotated a)
     {
         PropertyName name = super.findNameForSerialization(a);
+
         if(name==null) {
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;

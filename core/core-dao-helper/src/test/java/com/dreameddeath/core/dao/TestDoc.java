@@ -14,23 +14,37 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.model.view;
+package com.dreameddeath.core.dao;
 
-import com.couchbase.client.java.document.json.JsonObject;
+import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import rx.Observable;
+
+import java.util.List;
 
 /**
- * Created by CEAJ8230 on 27/12/2014.
+ * Created by CEAJ8230 on 14/04/2015.
  */
-public interface IViewAsyncQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> {
-    public Observable<IViewQueryRow<TKEY,TVALUE,TDOC>> getRows();
+public class TestDoc extends CouchbaseDocument {
+    @DocumentProperty("strVal")
+    public String strVal;
 
-    public int getTotalRows();
-    public boolean getSuccess();
-    public Observable<JsonObject> getErrorInfo();
+    @DocumentProperty("intVal")
+    public Integer intVal;
 
-    public IViewQuery getQuery();
-    public IViewQuery getQueryForNext(int nb);
+    @DocumentProperty("longVal")
+    public Long longVal;
 
+    @DocumentProperty("doubleVal")
+    public Double doubleVal;
+
+    @DocumentProperty("boolVal")
+    public Boolean boolVal;
+
+    @DocumentProperty("arrayVal")
+    public List<SubElem> arrayVal;
+
+    public static class SubElem {
+        @DocumentProperty("longVal")
+        public Long longVal;
+    }
 }

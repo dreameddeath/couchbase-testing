@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.processor.model;
+package com.dreameddeath.core.dao.helper.annotation.processor.model;
 
-import com.dreameddeath.core.annotation.dao.DaoEntity;
-import com.dreameddeath.core.annotation.dao.UidDef;
+import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
+import com.dreameddeath.core.dao.helper.annotation.UidDef;
 import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;

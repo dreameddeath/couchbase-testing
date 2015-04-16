@@ -21,6 +21,8 @@ import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.eclipse.jetty.server.Server;
@@ -46,7 +48,7 @@ public class TestingRestServer {
     private ServerConnector _connector;
     private Map<String,AbstractExposableService> _servicesMap = new HashMap<>();
 
-    public TestingRestServer(String testName,CuratorFramework curatorClient) throws Exception{
+    public TestingRestServer(String testName,CuratorFramework curatorClient,ObjectMapper jacksonMapper) throws Exception{
         _curatorClient = curatorClient;
         _server = new Server();
         _connector = new ServerConnector(_server);
@@ -60,7 +62,7 @@ public class TestingRestServer {
         _serviceRegistrar = new ServiceRegistrar(_curatorClient, BASE_PATH);
         _server.addLifeCycleListener(new LifeCycleListener(_serviceRegistrar, _serviceDiscoverer));
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.test.applicationContext.xml");
-
+        contextHandler.setAttribute("jacksonObjectMapper", jacksonMapper);
         contextHandler.setAttribute("serviceRegistrar", _serviceRegistrar);
         contextHandler.setAttribute("serviceDiscoverer", _serviceDiscoverer);
         contextHandler.setAttribute("curatorClient", _curatorClient);
@@ -89,6 +91,12 @@ public class TestingRestServer {
         contextHandler.addEventListener(new ContextLoaderListener());
 
         _serviceClientFactory = new ServiceClientFactory(_serviceDiscoverer);
+    }
+
+
+
+    public TestingRestServer(String testName,CuratorFramework curatorClient) throws Exception{
+        this(testName,curatorClient,ServiceJacksonObjectMapper.getInstance());
     }
 
     public void registerService(String name,AbstractExposableService service){

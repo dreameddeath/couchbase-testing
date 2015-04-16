@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.model.view.impl;
 
+import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.view.ViewResult;
 import com.couchbase.client.java.view.ViewRow;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -58,6 +59,21 @@ public class ViewQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> impleme
     @Override
     public Iterator<IViewQueryRow<TKEY, TVALUE, TDOC>> getRows() {
         return buildStream().iterator();
+    }
+
+    @Override
+    public int getTotalRows(){
+        return _result.totalRows();
+    }
+
+    @Override
+    public boolean getSuccess(){
+        return _result.success();
+    }
+
+    @Override
+    public JsonObject getErrorInfo(){
+        return _result.error();
     }
 
 

@@ -148,7 +148,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
         else{
             CouchbaseCounterDao dao = _sessionFactory.getCounterDaoFactory().getDaoForKey(key);
-            return dao.decrCounter(key, byVal,isCalcOnly());
+            return dao.decrCounter(key, byVal, isCalcOnly());
         }
     }
 
@@ -163,15 +163,27 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public <T extends CouchbaseDocument> T newEntity(Class<T> clazz){
         try{
-            T obj=clazz.newInstance();
-            attachDocument(obj);
-            return obj;
+            return attachEntity(clazz.newInstance());
         }
         catch(Exception e){
             ///TODO log something
             return null;
         }
     }
+
+
+    @Override
+    public <T extends CouchbaseDocument> T attachEntity(T entity){
+        try{
+            attachDocument(entity);
+            return entity;
+        }
+        catch(Exception e){
+            ///TODO log something
+            return null;
+        }
+    }
+
 
 
     @Override

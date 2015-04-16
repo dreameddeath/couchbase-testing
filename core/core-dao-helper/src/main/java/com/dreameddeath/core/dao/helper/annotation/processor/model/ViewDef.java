@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.processor.model;
+package com.dreameddeath.core.dao.helper.annotation.processor.model;
 
-import com.dreameddeath.core.annotation.dao.View;
-import com.dreameddeath.core.annotation.dao.ViewKeyDef;
-import com.dreameddeath.core.annotation.dao.ViewValueDef;
+import com.dreameddeath.core.dao.helper.annotation.View;
+import com.dreameddeath.core.dao.helper.annotation.ViewKeyDef;
+import com.dreameddeath.core.dao.helper.annotation.ViewValueDef;
 import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.util.CouchbaseDocumentReflection;
 import org.apache.commons.io.IOUtils;

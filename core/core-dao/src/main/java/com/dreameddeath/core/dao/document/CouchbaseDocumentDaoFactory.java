@@ -44,6 +44,28 @@ public class CouchbaseDocumentDaoFactory {
     private CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory;
     private CouchbaseViewDaoFactory _viewDaoFactory;
 
+    public CouchbaseDocumentDaoFactory(){
+
+    }
+
+    public CouchbaseDocumentDaoFactory(Builder builder){
+
+    }
+
+
+    public static class Builder{
+        private CouchbaseCounterDaoFactory _counterDaoFactory;
+        private CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory;
+        private CouchbaseViewDaoFactory _viewDaoFactory;
+
+        public Builder(){
+            _counterDaoFactory = new CouchbaseCounterDaoFactory();
+            _uniqueKeyDaoFactory = new CouchbaseUniqueKeyDaoFactory();
+            _viewDaoFactory = new CouchbaseViewDaoFactory();
+        }
+    }
+
+
     public CouchbaseViewDaoFactory getViewDaoFactory() {return _viewDaoFactory;}
     public void setViewDaoFactory(CouchbaseViewDaoFactory viewDaoFactory) {_viewDaoFactory = viewDaoFactory;}
 
