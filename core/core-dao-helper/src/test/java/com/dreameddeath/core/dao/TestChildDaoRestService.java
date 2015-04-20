@@ -36,15 +36,15 @@ import java.util.Collection;
 /**
  * Created by CEAJ8230 on 14/04/2015.
  */
-@Path("testDomain/v1.0/test") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
-@ServiceDef(name="dao$testDomain$test",version="1.0",status = VersionStatus.STABLE)
-@Api(value = "testDomain/v1.0/test", description = "Basic resource")
-public class TestDaoRestService extends AbstractDaoRestService {
-
+@Path("testDomain/v1.0/test/{testDocId}/child") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
+@ServiceDef(name="dao$testDomain$testChild",version="1.0",status = VersionStatus.STABLE)
+@Api(value = "testDomain/v1.0/test/{testDocId}/child", description = "Basic Sub resource")
+public class TestChildDaoRestService extends AbstractDaoRestService {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getAll(
             @HeaderParam("USER_TOKEN") String userToken,
+            @PathParam("testDocId") String testDocId,
             @QueryParam("key") String key,
             @QueryParam("keys") Collection<String> keys,
             //start/end key case
@@ -61,7 +61,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
     {
         IUser user = getUserFactory().validateFromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDoc.class,"all_test");
+        IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDocChild.class,"all_testChild");
 
         if(key!=null){ query.withKey(key);}
         else if(keys!=null && (keys.size()>0)){ query.withKeys(keys); }
@@ -74,6 +74,9 @@ public class TestDaoRestService extends AbstractDaoRestService {
             }
             query.withStartKey(startKey);
             query.withEndKey(endKey,inclusiveEndKey);
+        }
+        else{
+            query.withKey(String.format("test/%s",testDocId));
         }
 
         if(descending!=null){
@@ -104,10 +107,14 @@ public class TestDaoRestService extends AbstractDaoRestService {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
-    public Response create(@HeaderParam("USER_TOKEN") String userToken, @HeaderParam("DOC_FLAGS")Integer flags,TestDoc documentToCreate) throws Exception{
+    public Response create(@HeaderParam("USER_TOKEN") String userToken,
+                           @HeaderParam("DOC_FLAGS")Integer flags,
+                           @PathParam("testDocId") String testDocId,
+                           TestDocChild documentToCreate) throws Exception{
         IUser user = getUserFactory().validateFromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         session.attachEntity(documentToCreate);
+        documentToCreate.parent.setKey(String.format("test/%s",testDocId));
         if(flags!=null){
             documentToCreate.getBaseMeta().setEncodedFlags(flags);
         }
@@ -125,10 +132,11 @@ public class TestDaoRestService extends AbstractDaoRestService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Path("{id}")
     public Response read(@HeaderParam("USER_TOKEN") String userToken,
+                         @PathParam("testDocId") String testDocId,
                          @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().validateFromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
+        TestDocChild doc = session.get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
                 .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(doc.getBaseMeta().getCas()))
@@ -141,10 +149,11 @@ public class TestDaoRestService extends AbstractDaoRestService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Path("{id}")
     public Response delete(@HeaderParam("USER_TOKEN") String userToken,
-                         @PathParam("id") String id) throws Exception{
+                           @PathParam("testDocId") String testDocId,
+                           @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().validateFromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
+        TestDocChild doc = session.get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         session.delete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
@@ -159,13 +168,14 @@ public class TestDaoRestService extends AbstractDaoRestService {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Path("{id}")
     public Response replace(@HeaderParam("USER_TOKEN") String userToken,
-                           @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV) Long casData,
-                           @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS) Integer flags,
-                           @PathParam("id") String id,
-                           TestDoc updatedDocument) throws Exception{
+                            @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV) Long casData,
+                            @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS) Integer flags,
+                            @PathParam("testDocId") String testDocId,
+                            @PathParam("id") String id,
+                            TestDocChild updatedDocument) throws Exception{
         IUser user = getUserFactory().validateFromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
-        updatedDocument.getBaseMeta().setKey(String.format("test/%s", id));
+        updatedDocument.getBaseMeta().setKey(String.format("test/%s/child/%s", testDocId,id));
         updatedDocument.getBaseMeta().setCas(casData);
         if(flags!=null) {
             updatedDocument.getBaseMeta().setEncodedFlags(flags);
@@ -182,65 +192,5 @@ public class TestDaoRestService extends AbstractDaoRestService {
     }
 
 
-    @GET
-    @Produces({ MediaType.APPLICATION_JSON })
-    @Path("_queries/testview")
-    public Response getFromViewTestView(
-                @HeaderParam("USER_TOKEN") String userToken,
-                @QueryParam("key") String key,
-                @QueryParam("keys") Collection<String> keys,
-                //start/end key case
-                @QueryParam("startKey") String startKey,
-                @QueryParam("endKey") String endKey,
-                @QueryParam("inclusiveEndKey") Boolean inclusiveEndKey,
-                //miscellaneous params
-                @QueryParam("descending") Boolean descending,
-                @QueryParam("offset") Integer offset,
-                @QueryParam("limit") Integer limit,
-                //Continuing Case
-                @QueryParam("token") String token, @QueryParam("nb") Integer nbMore
-        ) throws Exception
-    {
-        IUser user = getUserFactory().validateFromToken(userToken);
-        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDoc.class,"testView");
-
-        if(key!=null){ query.withKey(key);}
-        else if(keys!=null && (keys.size()>0)){ query.withKeys(keys); }
-        else if(startKey!=null){
-            if(endKey==null){
-                endKey = startKey;
-            }
-            if(inclusiveEndKey==null){
-                inclusiveEndKey = true;
-            }
-            query.withStartKey(startKey);
-            query.withEndKey(endKey,inclusiveEndKey);
-        }
-
-        if(descending!=null){
-            query.withDescending(descending);
-        }
-        if(offset!=null){
-            query.withOffset(offset);
-        }
-        if(limit!=null){
-            query.withLimit(limit);
-        }
-
-        Observable<IViewAsyncQueryResult<String,String,TestDoc>> resultObservable = session.executeAsyncQuery(query);
-        ///TODO replace by chuncked result
-        IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.toBlocking().first();
-        if(result.getSuccess()){
-
-            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
-                    //TODO build token
-                    .header(DaoHelperServiceUtils.HTTP_HEADER_QUERY_TOTAL_ROWS, result.getTotalRows())
-                    .build();
-        }
-        else{
-            return Response.serverError().entity(result.getErrorInfo().toBlocking().first()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
-        }
-    }
 
 }

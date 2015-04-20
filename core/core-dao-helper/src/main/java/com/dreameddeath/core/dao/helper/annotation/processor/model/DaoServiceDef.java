@@ -14,21 +14,18 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.dao.helper.annotation;
+package com.dreameddeath.core.dao.helper.annotation.processor.model;
 
-import java.lang.annotation.*;
+import com.dreameddeath.core.dao.helper.annotation.service.ExposeDao;
+import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
 
 /**
- * Created by ceaj8230 on 10/02/2015.
+ * Created by ceaj8230 on 19/04/2015.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Repeatable(Views.class)
-public @interface View {
-    String name();
-    //String domain() default "";
-    String content() default "";
-    String contentFilename() default "";
-    ViewKeyDef keyDef();
-    ViewValueDef valueDef();
+public class DaoServiceDef {
+
+    public DaoServiceDef(ClassInfo info){
+        ExposeDao daoInfo = info.getAnnotation(ExposeDao.class);
+        
+    }
 }

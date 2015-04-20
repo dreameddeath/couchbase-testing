@@ -28,13 +28,23 @@ import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
 public class EntityDef {
     private CouchbaseDocumentReflection _docReflection;
     private String _parentKeyAccessor;
+    private String _parentKeyPath;
 
     public EntityDef(CouchbaseDocumentReflection docReflection) {
         _docReflection = docReflection;
         ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
+
+        if((parentAnnot==null)||(parentAnnot.keyPath()==null) || parentAnnot.keyPath().equals("")){
+            _parentKeyPath = "null";
+        }
+        else{
+            _parentKeyPath = "doc."+parentAnnot.keyPath();
+        }
+
         if (parentAnnot != null) {
             String[] fieldNameParts = parentAnnot.keyPath().split("\\.");
             CouchbaseDocumentStructureReflection currStructure = docReflection.getStructure();
+
             _parentKeyAccessor = "";
             for (int partPos = 0; partPos < fieldNameParts.length; ++partPos) {
                 CouchbaseDocumentFieldReflection field = currStructure.getFieldByPropertyName(fieldNameParts[partPos]);
@@ -58,8 +68,14 @@ public class EntityDef {
         return _docReflection.getStructure().getStructDomain();
     }
 
+    public String getDbName(){return _docReflection.getStructure().getStructName();}
+
     public String getParentKeyAccessor() {
         return _parentKeyAccessor;
+    }
+
+    public String getParentKeyPath() {
+        return _parentKeyPath;
     }
 
     public String getPackageName() {

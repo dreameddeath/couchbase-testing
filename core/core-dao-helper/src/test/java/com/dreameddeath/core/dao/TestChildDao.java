@@ -35,64 +35,65 @@ import java.util.List;
 /**
  * Created by CEAJ8230 on 14/04/2015.
  */
-@DaoForClass(TestDoc.class)
-//@ExposeDao(prefix="test", idPattern = "{id:\\d+}")
-public class TestDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
-    public static final String TEST_CNT_KEY = "test/cnt";
-    public static final String TEST_CNT_KEY_PATTERN = "test/cnt";
-    public static final String TEST_KEY_FMT = "test/%010d";
-    public static final String TEST_KEY_PATTERN = "test/\\d{10}";
+@DaoForClass(TestDocChild.class)
+public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChild> {
+    public static final String TEST_CHILD_CNT_KEY = "%s/child/cnt";
+    public static final String TEST_CHILD_CNT_KEY_PATTERN = "test/\\d{10}/child/cnt";
+    public static final String TEST_CHILD_KEY_FMT = "%s/child/%05d";
+    public static final String TEST_CHILD_KEY_PATTERN = "test/\\d{10}/child/\\d{5}";
 
     @Override
     public String getKeyPattern() {
-        return TEST_KEY_PATTERN;
+        return TEST_CHILD_KEY_PATTERN;
     }
 
-    public static class LocalBucketDocument extends BucketDocument<TestDoc> {
-        public LocalBucketDocument(TestDoc obj) {
+    public static class LocalBucketDocument extends BucketDocument<TestDocChild> {
+        public LocalBucketDocument(TestDocChild obj) {
             super(obj);
         }
     }
 
     @Override
-    public Class<? extends BucketDocument<TestDoc>> getBucketDocumentClass() {
+    public Class<? extends BucketDocument<TestDocChild>> getBucketDocumentClass() {
         return LocalBucketDocument.class;
     }
 
-    @Override
-    public List<CouchbaseViewDao> generateViewDaos() {
-        return Arrays.asList(
-                new AllElementsViewDao(this),
-                new TestViewDao(this)
-        );
-    }
 
     @Override
     public List<CouchbaseCounterDao.Builder> getCountersBuilder() {
         return Arrays.asList(
-                new CouchbaseCounterDao.Builder().withKeyPattern(TEST_CNT_KEY_PATTERN).withDefaultValue(1L).withBaseDao(this)
+                new CouchbaseCounterDao.Builder().withKeyPattern(TEST_CHILD_CNT_KEY_PATTERN).withDefaultValue(1L).withBaseDao(this)
         );
     }
 
     @Override
-    public TestDoc buildKey(ICouchbaseSession session, TestDoc newObject) throws DaoException, StorageException {
-        long result = session.incrCounter(TEST_CNT_KEY, 1);
-        newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, result));
+    public TestDocChild buildKey(ICouchbaseSession session, TestDocChild newObject) throws DaoException, StorageException {
+        long result = session.incrCounter(String.format(TEST_CHILD_CNT_KEY,newObject.parent.getKey()),1);
+        newObject.getBaseMeta().setKey(String.format(TEST_CHILD_KEY_FMT,newObject.parent.getKey(), result));
 
         return newObject;
     }
 
-    public static class AllElementsViewDao extends CouchbaseViewDao<String,String,TestDoc>{
+
+
+    @Override
+    public List<CouchbaseViewDao> generateViewDaos() {
+        return Arrays.asList(
+                new AllElementsViewDao(this)
+        );
+    }
+
+    public static class AllElementsViewDao extends CouchbaseViewDao<String,String,TestDocChild>{
         private static final IViewKeyTranscoder<String> KEY_TRANSCODER = new ViewStringKeyTranscoder();
         private static final IViewTranscoder<String> VALUE_TRANSCODER = new ViewStringTranscoder();
 
-        public AllElementsViewDao(TestDao parentDao){
-            super("test","all_test",parentDao);
+        public AllElementsViewDao(TestChildDao parentDao){
+            super("test","all_testChild",parentDao);
         }
 
         @Override
         public String getContent() {
-            return "emit(null,null);";
+            return "emit(doc.parent.key,null);";
         }
 
         @Override public IViewKeyTranscoder<String> getKeyTranscoder(){

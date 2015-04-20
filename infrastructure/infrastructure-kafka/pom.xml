@@ -19,42 +19,22 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>couchbase-testing</artifactId>
+        <artifactId>infrastructure</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>infrastructure</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>infrastructure-kafka</artifactId>
+  <packaging>jar</packaging>
 
-  <name>infrastructure</name>
+  <name>infrastructure-kafka</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
-    <modules>
-        <module>infrastructure-storm</module>
-        <module>infrastructure-daemon</module>
-        <module>infrastructure-kafka</module>
-    </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
     <dependencies>
         <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-json-transcoder</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${apache.kafka.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-session</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-couchbase</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-business-process</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-</dependencies>
+    </dependencies>
 </project>

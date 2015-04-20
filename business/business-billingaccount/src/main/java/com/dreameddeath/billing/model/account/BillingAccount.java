@@ -21,10 +21,10 @@ import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.NotNull;
+import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.helper.annotation.Counter;
 import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
 import com.dreameddeath.core.dao.helper.annotation.UidDef;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -38,14 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@DocumentDef(domain = "billing",version="1.0.0",name="ba")
-//@Dao(type=withUid,path="ba/",idformat="%010d",pattern="\\d{10}")
-//@ParentDocument(BillingAccount.class)
-//@DaoUid(field='uid',type=Long.class)
-//@View(name=xxx,resource=xxx)
-//@Counter{name="cnt",...}
-//@RestApi(path='bas')
-//@Archive(ttl=20)
+@DocumentDef(domain = "billing",name="ba",version="1.0.0")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "ba/",idPattern = "\\d{10}",idFormat = "%010d")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")

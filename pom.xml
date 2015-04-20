@@ -138,6 +138,10 @@
         <storm.version>0.9.4</storm.version>
         <clojure.version>1.5.1</clojure.version>
 
+        <!-- Infrastructure - Kafka -->
+        <apache.kafka.version>0.8.2.1</apache.kafka.version>
+
+
         <antlr.version>4.3</antlr.version>
         <velocity.version>1.7</velocity.version>
         <velocity.tootls.version>2.0</velocity.tootls.version>

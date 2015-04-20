@@ -7,7 +7,9 @@ import com.dreameddeath.core.annotation.dao.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.model.view.IViewKeyTranscoder;
+import com.dreameddeath.core.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.model.view.IViewTranscoder;
+import com.dreameddeath.core.model.view.impl.ViewStringTranscoder;
 import com.dreameddeath.core.exception.dao.DaoException;
 import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.session.ICouchbaseSession;
@@ -87,15 +89,38 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
 #end
 
 
-#if($views.size() >0)
     @Override
     protected List<CouchbaseViewDao> generateViewDaos(){
         List<CouchbaseViewDao> list=new ArrayList<>();
+        list.add(new AllElementsViewDao(this));
 #foreach($view in $views)
         list.add(new ${view.className}ViewDao(this));
 #end
         return list;
     }
+
+
+    public static class AllElementsViewDao extends CouchbaseViewDao<String,String,${entity.simpleName}>{
+        private static final IViewKeyTranscoder<String> KEY_TRANSCODER = new ViewStringKeyTranscoder();
+        private static final IViewTranscoder<String> VALUE_TRANSCODER = new ViewStringTranscoder();
+
+        public AllElementsViewDao(${entity.simpleName}Dao parentDao){
+            super("${entity.domain}","all_${entity.dbName}",parentDao);
+        }
+
+        @Override
+        public String getContent() {
+            return "emit(${entity.parentKeyPath},null);";
+        }
+
+        @Override public IViewKeyTranscoder<String> getKeyTranscoder(){
+            return KEY_TRANSCODER;
+        }
+        @Override public IViewTranscoder<String> getValueTranscoder(){
+            return VALUE_TRANSCODER;
+        }
+    }
+
 
 #foreach($view in $views)
     public static class ${view.className}ViewDao extends CouchbaseViewDao<${view.key.type},${view.value.type},${entity.simpleName}>{
@@ -128,7 +153,6 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
         }
     }
 
-#end
 #end
 
 }

@@ -41,10 +41,11 @@ public class TestDoc extends CouchbaseDocument {
     public Boolean boolVal;
 
     @DocumentProperty("arrayVal")
-    public List<SubElem> arrayVal;
+    public List<TestDocSubElem> arrayVal;
 
-    public static class SubElem {
+    public static class TestDocSubElem {
         @DocumentProperty("longVal")
         public Long longVal;
     }
+
 }

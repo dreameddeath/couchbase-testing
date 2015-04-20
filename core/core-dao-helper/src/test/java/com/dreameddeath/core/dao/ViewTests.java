@@ -19,10 +19,9 @@ package com.dreameddeath.core.dao;
 import com.dreameddeath.core.dao.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.dao.helper.service.DaoServiceJacksonObjectMapper;
 import com.dreameddeath.core.dao.helper.service.SerializableViewQueryRow;
-import com.dreameddeath.core.model.view.*;
-import com.dreameddeath.core.service.annotation.processor.ServiceExpositionDef;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.dreameddeath.core.model.view.IViewQuery;
+import com.dreameddeath.core.model.view.IViewQueryResult;
+import com.dreameddeath.core.model.view.IViewQueryRow;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentIntrospector;
 import com.dreameddeath.core.user.IUser;
@@ -59,6 +58,7 @@ public class ViewTests {
     public void initTest() throws  Exception{
         _env = new Utils.TestEnvironment("ViewTests");
         _env.addDocumentDao(new TestDao(), TestDoc.class);
+        _env.addDocumentDao(new TestChildDao(),TestDocChild.class);
         _env.start();
 
         _testUtils = new CuratorTestUtils().prepare(1);
@@ -72,6 +72,19 @@ public class ViewTests {
             }
         });
         _server.registerService("TestDaoRestService", service);
+
+
+        TestChildDaoRestService childService = new TestChildDaoRestService();
+        childService.setSessionFactory(_env.getSessionFactory());
+        childService.setUserFactory(new IUserFactory() {
+            @Override
+            public IUser validateFromToken(String token) {
+                return null;
+            }
+        });
+        _server.registerService("TestChildDaoRestService", childService);
+
+
         _server.start();
 
     }
@@ -88,11 +101,17 @@ public class ViewTests {
             doc.boolVal=(i%2==0)?true:false;
             doc.arrayVal = new ArrayList<>(i);
             for(int j=0;j<i;++j){
-                TestDoc.SubElem elem=new TestDoc.SubElem();
+                TestDoc.TestDocSubElem elem=new TestDoc.TestDocSubElem();
                 elem.longVal=j+1L;
                 doc.arrayVal.add(elem);
             }
             session.save(doc);
+            for(int j=0;j<i;++j) {
+                TestDocChild child = session.newEntity(TestDocChild.class);
+                child.parent= new TestDocLink(doc);
+                child.value = String.format("Child:%d",j);
+                session.save(child);
+            }
         }
 
         IViewQuery<String,String,TestDoc> query = session.initViewQuery(TestDoc.class, "testView");
@@ -105,6 +124,10 @@ public class ViewTests {
         WebTarget target = _server.getClientFactory().getClient("dao$testDomain$test", "1.0")
                 .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
 
+        WebTarget childTarget = _server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
+                .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
+
+
         for(IViewQueryRow<String,String,TestDoc> row:rows){
             String id = row.getDocKey().split("/")[1];
             Response responseGet = target.path(id)
@@ -115,11 +138,25 @@ public class ViewTests {
             assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY),row.getDocKey());
             assertEquals(row.getKey(), rsGetReadResult.strVal);
 
+            Response childListResponseGet = target.path(id+"/child")
+                    .request(MediaType.APPLICATION_JSON_TYPE)
+                    .get();
+            List<SerializableViewQueryRow<String,String,TestDocChild>> responseList= childListResponseGet.readEntity(new GenericType<List<SerializableViewQueryRow<String, String, TestDocChild>>>(){});
+            assertEquals(Long.parseLong(id)-1,responseList.size());
+
+
+            Response childResponseGet = target.path(id+"/child/00001")
+                    .request(MediaType.APPLICATION_JSON_TYPE)
+                    .get();
+            TestDocChild rsGetChildReadResult = childResponseGet.readEntity(new GenericType<>(TestDocChild.class));
+            assertEquals("Child:0",rsGetChildReadResult.value);
+
             rsGetReadResult.strVal=origStrVal+" rest added";
             Response responsePost = target.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             responsePost.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY);
             TestDoc rsPostResult = responsePost.readEntity(new GenericType<>(TestDoc.class));
             assertEquals(rsGetReadResult.strVal,rsPostResult.strVal);
+
 
             rsGetReadResult.strVal=origStrVal+" updated";
             Response responsePut = target

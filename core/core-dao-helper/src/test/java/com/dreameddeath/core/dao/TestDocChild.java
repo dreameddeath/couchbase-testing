@@ -14,21 +14,17 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.dao.helper.annotation;
+package com.dreameddeath.core.dao;
 
-import java.lang.annotation.*;
+import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
- * Created by ceaj8230 on 10/02/2015.
+ * Created by ceaj8230 on 20/04/2015.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Repeatable(Views.class)
-public @interface View {
-    String name();
-    //String domain() default "";
-    String content() default "";
-    String contentFilename() default "";
-    ViewKeyDef keyDef();
-    ViewValueDef valueDef();
+public class TestDocChild extends CouchbaseDocument {
+    @DocumentProperty("value")
+    public String value;
+    @DocumentProperty("parent")
+    public TestDocLink parent;
 }

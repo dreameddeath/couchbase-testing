@@ -50,7 +50,8 @@ import java.util.Set;
 )
 public class DaoAnnotationProcessor extends AbstractProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DaoAnnotationProcessor.class);
-    private static final String TEMPLATE_FILENAME = "core/templates/stdDaoTemplate.vm";
+    private static final String TEMPLATE_DAO_FILENAME = "core/templates/stdDaoTemplate.vm";
+    private static final String TEMPLATE_REST_FILENAME = "core/templates/stdRestServiceTemplate.vm";
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -116,7 +117,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             messager.printMessage(Diagnostic.Kind.NOTE,"Generating view "+ newView.toString());
         }
 
-        AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_FILENAME, daoDef.getName(), element);
+        AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_DAO_FILENAME, daoDef.getName(), element);
     }
 
 
