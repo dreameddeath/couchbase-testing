@@ -21,11 +21,8 @@ import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.model.ServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
-import com.wordnik.swagger.config.SwaggerConfig;
-import com.wordnik.swagger.core.util.JsonSerializer;
-import com.wordnik.swagger.jaxrs.JaxrsApiReader;
-import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
-import com.wordnik.swagger.model.ApiListing;
+import com.wordnik.swagger.jaxrs.Reader;
+import com.wordnik.swagger.models.Swagger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
@@ -34,8 +31,8 @@ import org.apache.curator.x.discovery.UriSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.Path;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -52,7 +49,6 @@ public class ServiceRegistrar {
     private final String _basePath;
     private Set<AbstractExposableService> _services = new CopyOnWriteArraySet<>();
     private ServiceDiscovery<ServiceDescription> _serviceDiscovery;
-    private ServiceRegistrar _serviceRegistrar;
 
 
     public ServiceRegistrar(CuratorFramework curatorClient,String basePath){
@@ -60,7 +56,7 @@ public class ServiceRegistrar {
         _basePath = basePath;
     }
 
-    public void start() throws InterruptedException, UnknownHostException, Exception{
+    public void start() throws Exception{
         _curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
         ServiceNamingUtils.createBaseServiceName(_curatorClient, _basePath);
 
@@ -71,22 +67,23 @@ public class ServiceRegistrar {
 
         _serviceDiscovery.start();
 
-
-        JaxrsApiReader reader =new DefaultJaxrsApiReader();
         for(AbstractExposableService foundService:_services) {
             ServiceDef annotDef = foundService.getClass().getAnnotation(ServiceDef.class);
-            SwaggerConfig cfg = new SwaggerConfig();
-            cfg.setBasePath(foundService.getEndPoint().path());
-            cfg.setApiVersion(annotDef.version());
+            Swagger swagger = new Swagger();
+            Path pathAnnot = foundService.getClass().getAnnotation(Path.class);
+            swagger.setBasePath((foundService.getEndPoint().path()+"/"+pathAnnot.value()).replaceAll("//","/"));
+            swagger.setHost(foundService.getEndPoint().host());
 
-            ApiListing parsedResult = reader.read(foundService.getEndPoint().path(), foundService.getClass(),cfg).get();
+            Reader reader=new Reader(swagger);
+
+            reader.read(foundService.getClass());
 
             ServiceDescription serviceDescr = new ServiceDescription();
             serviceDescr.setState(annotDef.status().name());
             serviceDescr.setVersion(annotDef.version());
-            serviceDescr.setSwagger(JsonSerializer.asJson(parsedResult).toString());
+            serviceDescr.setSwagger(reader.getSwagger());
 
-            String uriStr = "{scheme}://{address}:{port}"+("/"+parsedResult.basePath()+parsedResult.resourcePath()).replaceAll("//","/");
+            String uriStr = "{scheme}://{address}:{port}"+("/"+swagger.getBasePath()).replaceAll("//","/");
             UriSpec uriSpec = new UriSpec(uriStr);
 
             ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()))
@@ -105,7 +102,6 @@ public class ServiceRegistrar {
     public void stop() throws IOException{
         _serviceDiscovery.close();
     }
-
 
     public Set<AbstractExposableService> getServices(){ return Collections.unmodifiableSet(_services);}
     public void addService(AbstractExposableService service){_services.add(service);}

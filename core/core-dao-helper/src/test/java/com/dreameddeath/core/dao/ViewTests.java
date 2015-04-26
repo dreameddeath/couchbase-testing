@@ -138,26 +138,46 @@ public class ViewTests {
             assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY),row.getDocKey());
             assertEquals(row.getKey(), rsGetReadResult.strVal);
 
-            Response childListResponseGet = target.path(id+"/child")
+            /*
+            *   Read child list
+             */
+            Response childListResponseGet = childTarget.resolveTemplate("testDocId",id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .get();
             List<SerializableViewQueryRow<String,String,TestDocChild>> responseList= childListResponseGet.readEntity(new GenericType<List<SerializableViewQueryRow<String, String, TestDocChild>>>(){});
             assertEquals(Long.parseLong(id)-1,responseList.size());
 
-
-            Response childResponseGet = target.path(id+"/child/00001")
+            /*
+            *   Read child item
+             */
+            Response childResponseGet = childTarget.resolveTemplate("testDocId",id).path("00001")
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .get();
             TestDocChild rsGetChildReadResult = childResponseGet.readEntity(new GenericType<>(TestDocChild.class));
             assertEquals("Child:0",rsGetChildReadResult.value);
 
+
+            /*
+            *  Create a new TestDoc
+             */
             rsGetReadResult.strVal=origStrVal+" rest added";
             Response responsePost = target.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
-            responsePost.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY);
+            String createdString = responsePost.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY);
             TestDoc rsPostResult = responsePost.readEntity(new GenericType<>(TestDoc.class));
             assertEquals(rsGetReadResult.strVal,rsPostResult.strVal);
 
+            //Create a new Child doc of the old one
+            TestDocChild childDoc = new TestDocChild();
+            childDoc.value = "Child of " + rsGetReadResult;
+            String createdId = createdString.split("/")[1];
 
+            Response responseCreateChildPost = childTarget.resolveTemplate("testDocId",createdId).request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(childDoc,MediaType.APPLICATION_JSON_TYPE));
+            TestDocChild createdChildDoc = responseCreateChildPost.readEntity(TestDocChild.class);
+            assertEquals(childDoc.value,createdChildDoc.value);
+
+            /*
+            *  Update the read TestDoc
+             */
             rsGetReadResult.strVal=origStrVal+" updated";
             Response responsePut = target
                     .path(id)

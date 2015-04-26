@@ -22,7 +22,7 @@ import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
-import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.curator.framework.CuratorFramework;
@@ -83,7 +83,7 @@ public class TestSpringConfig implements ServletContextAware
         factory.setAddress("/apis");
         ObjectMapper mapper =(ObjectMapper)_servletContext.getAttribute("jacksonObjectMapper");
         if(mapper==null){
-            mapper = ServiceJacksonObjectMapper.getInstance();
+            mapper = ServiceInstanceJacksonMapper.getInstance();
         }
         factory.setProviders(Arrays.asList(new JacksonJsonProvider(mapper)));
 

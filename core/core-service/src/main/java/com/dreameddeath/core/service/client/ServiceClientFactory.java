@@ -18,11 +18,15 @@ package com.dreameddeath.core.service.client;
 
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
+import com.dreameddeath.core.service.model.ServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
+import org.apache.curator.x.discovery.ServiceInstance;
+import org.apache.curator.x.discovery.UriSpec;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -34,6 +38,7 @@ import java.util.function.Function;
  * Created by CEAJ8230 on 04/03/2015.
  */
 public class ServiceClientFactory {
+    private final Set<String> VARIABLE_TO_IGNORE = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("scheme","port","address")));
     private final ServiceDiscoverer _serviceDiscoverer;
     private ConcurrentMap<String,WebTarget> _clientPerUri = new ConcurrentHashMap<>();
 
@@ -43,7 +48,14 @@ public class ServiceClientFactory {
 
     public WebTarget getClient(String serviceName,String serviceVersion){
         try{
-            String uri = _serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName,serviceVersion)).buildUriSpec();
+            ServiceInstance<ServiceDescription> serviceDescr = _serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion));
+            Map<String,Object> params = new TreeMap<>();
+            for(UriSpec.Part part:serviceDescr.getUriSpec().getParts()){
+                if(part.isVariable() && !VARIABLE_TO_IGNORE.contains(part.getValue())){
+                    params.put(part.getValue(),"{"+part.getValue()+"}");
+                }
+            }
+            String uri = serviceDescr.buildUriSpec(params);
             return _clientPerUri.computeIfAbsent(uri, new Function<String, WebTarget>() {
                 @Override
                 public WebTarget apply(String s) {
@@ -53,9 +65,10 @@ public class ServiceClientFactory {
             ;
         }
         catch(ServiceDiscoveryException e){
+            throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
             //Todo throw an error
         }
-        return null;
+
     }
 
 }

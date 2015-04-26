@@ -21,17 +21,20 @@ import com.dreameddeath.core.dao.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.dao.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.model.view.IViewAsyncQueryResult;
 import com.dreameddeath.core.model.view.IViewQuery;
+import com.dreameddeath.core.model.view.IViewQueryRow;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.user.IUser;
 import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import rx.Observable;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by CEAJ8230 on 14/04/2015.
@@ -40,19 +43,38 @@ import java.util.Collection;
 @ServiceDef(name="dao$testDomain$testChild",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "testDomain/v1.0/test/{testDocId}/child", description = "Basic Sub resource")
 public class TestChildDaoRestService extends AbstractDaoRestService {
+
+
+    public static class GetAllViewResult extends SerializableViewQueryRow<String,String,TestDocChild>{
+        public GetAllViewResult(){super();}
+        public GetAllViewResult(IViewQueryRow<String,String,TestDocChild> list){super(list);}
+    }
+    /*@ApiModel
+    public interface AllListResponse implements List<SerializableViewQueryRow<String,String,TestDocChild>> {}*/
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(
+            value = "Lookup for all elements",
+            response = GetAllViewResult.class,
+            responseContainer = "List",
+            position = 0)
+    /*
+    TODO Map API response
+    @ApiResponses({
+            @ApiResponse(code = 400, message = "Invalid ID"),
+            @ApiResponse(code = 404, message = "object not found")
+    })*/
     public Response getAll(
             @HeaderParam("USER_TOKEN") String userToken,
-            @PathParam("testDocId") String testDocId,
-            @QueryParam("key") String key,
-            @QueryParam("keys") Collection<String> keys,
+            @ApiParam("the parent test doc key") @PathParam("testDocId") String testDocId,
+            @ApiParam("[EXACT SEARCH]the exact key to look for") @QueryParam("key") String key,
+            @ApiParam("[LIST SEARCH]The list of key to search for") @QueryParam("keys") List<String> keys,
             //start/end key case
-            @QueryParam("startKey") String startKey,
-            @QueryParam("endKey") String endKey,
-            @QueryParam("inclusiveEndKey") Boolean inclusiveEndKey,
+            @ApiParam("[RANGE SEARCH]The start key to search for") @QueryParam("startKey") String startKey,
+            @ApiParam("[RANGE SEARCH]The end key to search for")  @QueryParam("endKey") String endKey,
+            @ApiParam(value = "[RANGE SEARCH]flag to tell if end key lookup is inclusive",defaultValue = "false")  @QueryParam("inclusiveEndKey") Boolean inclusiveEndKey,
             //miscellaneous params
-            @QueryParam("descending") Boolean descending,
+            @ApiParam(value = "Sort in descending keys",defaultValue = "false") @QueryParam("descending") Boolean descending,
             @QueryParam("offset") Integer offset,
             @QueryParam("limit") Integer limit,
             //Continuing Case
@@ -61,7 +83,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
     {
         IUser user = getUserFactory().validateFromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDocChild.class,"all_testChild");
+        IViewQuery<String,String,TestDocChild> query  = session.initViewQuery(TestDocChild.class,"all_testChild");
 
         if(key!=null){ query.withKey(key);}
         else if(keys!=null && (keys.size()>0)){ query.withKeys(keys); }
@@ -89,12 +111,12 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
             query.withLimit(limit);
         }
 
-        Observable<IViewAsyncQueryResult<String,String,TestDoc>> resultObservable = session.executeAsyncQuery(query);
+        Observable<IViewAsyncQueryResult<String,String,TestDocChild>> resultObservable = session.executeAsyncQuery(query);
         ///TODO replace by chuncked result
-        IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.toBlocking().first();
+        IViewAsyncQueryResult<String,String,TestDocChild> result=resultObservable.toBlocking().first();
         if(result.getSuccess()){
 
-            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
+            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDocChild>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
                     //TODO build token
                     .header(DaoHelperServiceUtils.HTTP_HEADER_QUERY_TOTAL_ROWS, result.getTotalRows())
                     .build();
@@ -107,6 +129,10 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
+    @ApiOperation(
+            value = "Creates a new Child elment",
+            response = TestDocChild.class,
+            position = 1)
     public Response create(@HeaderParam("USER_TOKEN") String userToken,
                            @HeaderParam("DOC_FLAGS")Integer flags,
                            @PathParam("testDocId") String testDocId,
@@ -114,6 +140,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
         IUser user = getUserFactory().validateFromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         session.attachEntity(documentToCreate);
+        documentToCreate.parent= new TestDocLink();
         documentToCreate.parent.setKey(String.format("test/%s",testDocId));
         if(flags!=null){
             documentToCreate.getBaseMeta().setEncodedFlags(flags);

@@ -35,39 +35,15 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>${scala.maven.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${mvn.compiler.version}</version>
                 <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                    <sourceDir>src/main/scala</sourceDir>
-                    <testSourceDir>src/test/scala</testSourceDir>
-                    <jvmArgs>
-                        <jvmArg>-Xms64m</jvmArg>
-                        <jvmArg>-Xmx1024m</jvmArg>
-                    </jvmArgs>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <!-- Disable annotation processing for ourselves. -->
+                    <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
-
-                    <plugin>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>${mvn.compiler.version}</version>
-                        <configuration>
-                            <source>${java.version}</source>
-                            <target>${java.version}</target>
-                            <!-- Disable annotation processing for ourselves. -->
-                            <compilerArgument>-proc:none</compilerArgument>
-                        </configuration>
-                    </plugin>
         </plugins>
 
     </build>
@@ -78,6 +54,22 @@
           <artifactId>jackson-annotations</artifactId>
           <version>${jackson.version}</version>
       </dependency>
+      <dependency>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-xml</artifactId>
+          <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-yaml</artifactId>
+          <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.fasterxml.jackson.jaxrs</groupId>
+          <artifactId>jackson-jaxrs-json-provider</artifactId>
+          <version>${jackson.version}</version>
+      </dependency>
+
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-curator</artifactId>
@@ -90,12 +82,24 @@
       </dependency>
       <dependency>
           <groupId>com.wordnik</groupId>
-          <artifactId>swagger-jaxrs_2.10</artifactId>
+          <artifactId>swagger-jaxrs</artifactId>
           <version>${swagger.jaxrs.version}</version>
           <exclusions>
               <exclusion>
                   <groupId>javax.ws.rs</groupId>
                   <artifactId>jsr311-api</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.dataformat</groupId>
+                  <artifactId>jackson-dataformat-xml</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.dataformat</groupId>
+                  <artifactId>jackson-dataformat-yaml</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                  <artifactId>jackson-jaxrs-json-provider</artifactId>
               </exclusion>
           </exclusions>
       </dependency>

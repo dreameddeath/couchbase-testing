@@ -48,7 +48,10 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public static AbstractClassInfo getClassInfo(Class clazz){
         if(!_classToInfoMap.containsKey(clazz)){
-            if(clazz.isInterface()){
+            if(clazz.isAnnotation()){
+                return new AnnotationInfo(clazz);
+            }
+            else if(clazz.isInterface()){
                 return new InterfaceInfo(clazz);
             }
             else{
@@ -60,7 +63,11 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public static AbstractClassInfo getClassInfo(TypeElement elt){
         if(!_typeElementToInfoMap.containsKey(elt)){
-            if(elt.getKind().isInterface()){
+            //if(elt.getKind().)
+            if(elt.getKind().equals(ElementKind.ANNOTATION_TYPE)){
+                return new AnnotationInfo(elt);
+            }
+            else if(elt.getKind().isInterface()){
                 return new InterfaceInfo(elt);
             }
             else{

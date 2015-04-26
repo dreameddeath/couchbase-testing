@@ -31,9 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//import com.dreameddeath.core.util.processor.AnnotationProcessorUtils;
-//import com.dreameddeath.core.util.processor.AnnotationProcessorUtils.ClassInfo;
-
 /**
  * Created by CEAJ8230 on 04/01/2015.
  */
@@ -61,6 +58,11 @@ public class CouchbaseDocumentStructureReflection {
                     AbstractClassInfo.getClassInfo(CouchbaseDocumentElement.class).isAssignableFrom((TypeElement)element);
         }
         return false;
+    }
+
+    public static CouchbaseDocumentStructureReflection getReflectionFromClassInfo(Class<? extends CouchbaseDocumentElement> docEltclass) {
+        ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(docEltclass);
+        return getReflectionFromClassInfo(classInfo);
     }
 
     public static CouchbaseDocumentStructureReflection getReflectionFromClassInfo(ClassInfo classInfo){

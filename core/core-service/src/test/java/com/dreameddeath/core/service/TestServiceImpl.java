@@ -19,6 +19,8 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.service.annotation.ExposeService;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.service.swagger.TestingDocument;
+import com.dreameddeath.core.service.swagger.TestingExternalElement;
 import org.joda.time.DateTime;
 import rx.Observable;
 
@@ -58,4 +60,17 @@ public class TestServiceImpl implements ITestService {
         res.plusOneMonth = DateTime.now().plusMonths(1);
         return Observable.just(res);
     }
+
+    @Override
+    public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
+        TestingDocument doc = new TestingDocument();
+        TestingExternalElement extElt = new TestingExternalElement();
+        extElt.addDate(new DateTime());
+        doc.addTestExternalEltList(extElt);
+        TestingDocument.TestingInnerElement innerElement = new TestingDocument.TestingInnerElement();
+        innerElement.addDate(new DateTime());
+        doc.addTestCplxList(innerElement);
+        return Observable.just(doc);
+    }
+
 }

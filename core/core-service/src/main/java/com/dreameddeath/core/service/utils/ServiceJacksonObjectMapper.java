@@ -40,12 +40,13 @@ public class ServiceJacksonObjectMapper extends ObjectMapper {
         super();
         registerModule(new JodaModule());
         configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,false);
-        configure(SerializationFeature.WRITE_NULL_MAP_VALUES,false);
-        //configure(SerializationFeature.EAGER_SERIALIZER_FETCH,true)
+        configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false);
+        configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         setTimeZone(TimeZone.getDefault());
-        //disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         registerModule(new JodaModule());
     }
+
+
+
 }

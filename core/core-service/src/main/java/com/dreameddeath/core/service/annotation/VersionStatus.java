@@ -26,7 +26,7 @@ public enum VersionStatus {
 
     private String _name;
 
-    private VersionStatus(String name){
+    VersionStatus(String name){
         _name=name;
     }
 

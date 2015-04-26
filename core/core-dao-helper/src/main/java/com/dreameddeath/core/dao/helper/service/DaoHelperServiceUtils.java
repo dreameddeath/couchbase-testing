@@ -16,6 +16,10 @@
 
 package com.dreameddeath.core.dao.helper.service;
 
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+
+import javax.ws.rs.core.Response;
+
 /**
  * Created by ceaj8230 on 15/04/2015.
  */
@@ -24,4 +28,15 @@ public class DaoHelperServiceUtils {
     public static final String HTTP_HEADER_DOC_REV = "X-DOCUMENT-REV";
     public static final String HTTP_HEADER_DOC_FLAGS = "X-DOCUMENT-FLAGS";
     public static final String HTTP_HEADER_QUERY_TOTAL_ROWS = "X-DOCUMENT-QUERY-TOTAL-ROWS";
+
+
+    public static <T extends CouchbaseDocument> T readFromResponse(Response response, Class<T> clazz){
+        T result = response.readEntity(clazz);
+        CouchbaseDocument.BaseMetaInfo info = result.getBaseMeta();
+        info.setEncodedFlags(Integer.parseInt(response.getHeaderString(HTTP_HEADER_DOC_FLAGS)));
+        info.setCas(Long.parseLong(response.getHeaderString(HTTP_HEADER_DOC_REV)));
+        info.setKey(response.getHeaderString(HTTP_HEADER_DOC_KEY));
+        info.setStateSync();
+        return result;
+    }
 }

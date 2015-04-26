@@ -41,58 +41,6 @@
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
-    <!--
-    <context:annotationconfig />
-    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>-->
-
-    <!--<bean id="curatorFramework" class="com.dreameddeath.core.curator.CuratorFrameworkFactory" factory-method="newClient" init-method="start">
-        <constructor-arg>
-            <value>${zookeeperAddress}</value>
-        </constructor-arg>
-        <constructor-arg>
-            <bean class="org.apache.curator.retry.ExponentialBackoffRetry">
-                <constructor-arg><value>1000</value></constructor-arg>
-                <constructor-arg><value>3</value></constructor-arg>
-            </bean>
-        </constructor-arg>
-    </bean>-->
-    <!--<jaxrs:server id="apis" transportId="http://cxf.apache.org/transports/http" address="/api" >
-        <jaxrs:serviceBeans>
-            <bean id="serviceTest" class="com.dreameddeath.curator.server.ServiceTest" >
-                <property name="endPoint" ref="apis"/>
-            </bean>
-            <bean id="serviceTestV2" class="com.dreameddeath.curator.server.ServiceTestV2" >
-                <property name="endPoint" ref="apis"/>
-            </bean>
-        </jaxrs:serviceBeans>
-        <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-                <constructor-arg>
-                    <bean class="com.dreameddeath.core.service.ServiceJacksonObjectMapper" />
-                </constructor-arg>
-            </bean>
-        </jaxrs:providers>
-    </jaxrs:server>
-    <jaxrs:server id="apisv2" transportId="http://cxf.apache.org/transports/http" address="/apiV2" >
-        <jaxrs:serviceBeans>
-            <bean id="v2serviceTestV2" class="com.dreameddeath.curator.server.ServiceTestV2" >
-                <property name="endPoint" ref="apisv2"/>
-            </bean>
-        </jaxrs:serviceBeans>
-        <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-                <constructor-arg>
-                    <bean class="com.dreameddeath.core.service.ServiceJacksonObjectMapper" />
-                </constructor-arg>
-            </bean>
-        </jaxrs:providers>
-    </jaxrs:server>-->
-
-    <!--<bean id="serviceDiscoverer" class="com.dreameddeath.core.service.discovery.ServiceDiscoverer" init-method="start" depends-on="testingJaxRsServer">
-        <constructor-arg><ref bean="curatorClient" /></constructor-arg>
-        <constructor-arg><value>${serviceBasePath}</value></constructor-arg>
-    </bean>-->
-
     <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >
         <jaxrs:serviceBeans>
             <bean id="serviceDiscovery" class="com.dreameddeath.core.service.discovery.RestServiceDiscovery" >
@@ -102,7 +50,7 @@
         <jaxrs:providers>
             <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
                 <constructor-arg>
-                    <bean class="com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper" />
+                    <bean class="com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper" factory-method="getInstance" />
                 </constructor-arg>
             </bean>
         </jaxrs:providers>

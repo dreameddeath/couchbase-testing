@@ -22,10 +22,14 @@ import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.core.service.model.ServicesInstanceDescription;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.wordnik.swagger.models.Model;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.eclipse.jetty.server.Server;
@@ -42,6 +46,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.context.ContextLoaderListener;
 import rx.Observable;
 
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -83,7 +90,6 @@ public class TestServicesTest extends Assert{
         CuratorTestUtils curatorUtils = new CuratorTestUtils();
         curatorUtils.prepare(1);
         CuratorFramework curatorClient = curatorUtils.getClient("TestServicesTest");
-        //TestSpringSelfConfig.setCuratorClient(curatorClient);
         _server = new Server();
         _connector = new ServerConnector(_server);
         _server.addConnector(_connector);
@@ -132,9 +138,32 @@ public class TestServicesTest extends Assert{
 
     }
 
+
+    @Test
+    public void testServiceRegister() throws Exception {
+        LOG.debug("Connector port {}", _connector.getLocalPort());
+        String connectionString = "http://localhost:"+_connector.getLocalPort();
+        /*ClientBuilder.newBuilder().build()
+                .target(connectionString)
+                .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
+                .path("/apis")
+                .request(MediaType.APPLICATION_JSON_TYPE).get();*/
+        Response response = ClientBuilder.newBuilder().build()
+                .target(connectionString)
+                .register(new JacksonJsonProvider(ServiceInstanceJacksonMapper.getInstance()))
+                .path("/listing/apis")
+                .request(MediaType.APPLICATION_JSON_TYPE).get();
+        LOG.debug("Response {}", response.getStatus());
+        ServicesInstanceDescription readDescription = response.readEntity(ServicesInstanceDescription.class);
+        assertEquals(2, readDescription.getServiceInstanceMap().keySet().size());
+        Map<String,Model> listModels = readDescription.getServiceInstanceMap().get("testService#1.0").get(0).getSwagger().getDefinitions();
+        assertEquals(4,listModels.size());
+        assertEquals(6,listModels.get("TestingDocument").getProperties().size());
+    }
+
     @Test
     public void testService() throws Exception{
-        LOG.debug("Conector port {}", _connector.getLocalPort());
+        LOG.debug("Connector port {}", _connector.getLocalPort());
         ServiceClientFactory clientFactory = new ServiceClientFactory(_serviceDiscoverer);
         IGlobalContextTranscoder transcoder = new IGlobalContextTranscoder() {
             @Override
@@ -147,11 +176,11 @@ public class TestServicesTest extends Assert{
                 return null;
             }
         };
+
         TestServiceRestClientImpl service = new TestServiceRestClientImpl();
         service.setContextTranscoder(transcoder);
 
         service.setServiceClientFactory(clientFactory);
-
 
         ITestService.Input input = new ITestService.Input();
         input.id = "10";
@@ -177,8 +206,6 @@ public class TestServicesTest extends Assert{
         LOG.debug("Result {}", resultPut.id);
         assertEquals("30 put",resultPut.rootId);
         assertEquals("15 put", resultPut.id);
-
-
 
         Object serviceGen =_generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestClient").newInstance();
         serviceGen.getClass().getMethod("setContextTranscoder",IGlobalContextTranscoder.class).invoke(serviceGen,transcoder);

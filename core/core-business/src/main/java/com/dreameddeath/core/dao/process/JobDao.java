@@ -29,7 +29,7 @@ import com.dreameddeath.core.storage.BucketDocument;
 @DaoForClass(AbstractJob.class)
 public class JobDao extends BusinessCouchbaseDocumentDaoWithUID<AbstractJob> {
     public static final String JOB_FMT_KEY="job/%s";
-    public static final String JOB_KEY_PATTERN="job/[^/]*";
+    public static final String JOB_KEY_PATTERN="job/[^/]+";
 
     public static class LocalBucketDocument extends BucketDocument<AbstractJob> {
         public LocalBucketDocument(AbstractJob obj){super(obj);}

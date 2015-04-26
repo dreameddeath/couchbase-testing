@@ -58,6 +58,7 @@ public class LifeCycleListener implements LifeCycle.Listener {
             }
         }catch(Throwable e){
             LOG.error("Error",e);
+            throw new RuntimeException(e);
         }
         try{
             if(_serviceDiscoverer!=null){
@@ -66,7 +67,7 @@ public class LifeCycleListener implements LifeCycle.Listener {
         }
         catch (Throwable e){
             LOG.error("Error",e);
-
+            throw new RuntimeException(e);
         }
     }
 

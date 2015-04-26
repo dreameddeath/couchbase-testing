@@ -48,30 +48,7 @@ import java.util.Map;
 @Configuration
 @ImportResource({"classpath:META-INF/cxf/cxf.xml"})
 public class TestSpringSelfConfig implements ServletContextAware
-    //implements BeanFactoryPostProcessor
 {
-    //private static Map<String,AbstractExposableService> _services = new HashMap<>();
-    //private static CuratorFramework _curatorClient=null;
-    //private static ServiceDiscoverer _serviceDiscoverer=null;
-    //private static IRestEndPointDescription _endPointDescr=null;
-
-
-    //public static void setServiceDiscoverer(ServiceDiscoverer serviceDiscoverer){
-    //    _serviceDiscoverer = serviceDiscoverer;
-    //}
-
-    /*public static void setEndPointDescr(IRestEndPointDescription descr){
-        _endPointDescr = descr;
-    }
-
-    public static void registerService(String name, AbstractExposableService service){
-        _services.put(name,service);
-    }
-
-    public static void setCuratorClient(CuratorFramework client){
-        _curatorClient = client;
-    }*/
-
     @Autowired
     private ConfigurableApplicationContext ctxt;
     private ServletContext _servletContext;
@@ -96,12 +73,6 @@ public class TestSpringSelfConfig implements ServletContextAware
     public ServiceDiscoverer getDiscoverer(){
         return (ServiceDiscoverer)_servletContext.getAttribute("serviceDiscoverer");
     }
-
-    //<bean id="serviceDiscoverer" class="com.dreameddeath.core.service.discovery.ServiceDiscoverer" init-method="start" depends-on="testingJaxRsServer">
-    //<constructor-arg><ref bean="curatorClient" /></constructor-arg>
-    //<constructor-arg><value>${serviceBasePath}</value></constructor-arg>
-    //</bean>
-
 
     @Bean(name="testingJaxRsServer")
     public Server buildJaxRsServer() {
@@ -158,9 +129,4 @@ public class TestSpringSelfConfig implements ServletContextAware
         factory.setApplicationContext(ctxt);
         return factory.create();
     }
-
-    /*@Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
-
-    }*/
 }

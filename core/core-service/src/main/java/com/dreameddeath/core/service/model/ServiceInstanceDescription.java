@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.model;
 
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.wordnik.swagger.models.Swagger;
 import org.apache.curator.x.discovery.ServiceInstance;
 
 /**
@@ -38,7 +38,7 @@ public class ServiceInstanceDescription{
     @JsonProperty("uid")
     private String _uid;
     @JsonProperty("swagger")
-    private JsonNode _swagger;
+    private Swagger _swagger;
     @JsonProperty("state")
     private String _state;
 
@@ -46,11 +46,8 @@ public class ServiceInstanceDescription{
         _name =instance.getName();
         _address = instance.getAddress();
         _uid = instance.getId();
-        try {
-            _swagger = _OBJECT_MAPPER.readTree(instance.getPayload().getSwagger());
-        }catch(Exception e){
-            //TODO throw an error
-        }
+        _swagger = instance.getPayload().getSwagger();
+
         _version = instance.getPayload().getVersion();
         _state = instance.getPayload().getState();
         _port=instance.getPort();
@@ -98,11 +95,11 @@ public class ServiceInstanceDescription{
         _uid = uid;
     }
 
-    public JsonNode getSwagger() {
+    public Swagger getSwagger() {
         return _swagger;
     }
 
-    public void setSwagger(JsonNode swagger) {
+    public void setSwagger(Swagger swagger) {
         _swagger = swagger;
     }
 

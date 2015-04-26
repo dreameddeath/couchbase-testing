@@ -16,9 +16,19 @@
 
 package com.dreameddeath.core.service.utils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.wordnik.swagger.models.Model;
+import com.wordnik.swagger.models.auth.SecuritySchemeDefinition;
+import com.wordnik.swagger.models.parameters.Parameter;
+import com.wordnik.swagger.models.properties.Property;
+import com.wordnik.swagger.util.ModelDeserializer;
+import com.wordnik.swagger.util.ParameterDeserializer;
+import com.wordnik.swagger.util.PropertyDeserializer;
+import com.wordnik.swagger.util.SecurityDefinitionDeserializer;
 
 import java.util.TimeZone;
 
@@ -41,10 +51,17 @@ public class ServiceInstanceJacksonMapper extends ObjectMapper {
         registerModule(new JodaModule());
         configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,false);
-        configure(SerializationFeature.WRITE_NULL_MAP_VALUES,false);
+        configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        setSerializationInclusion(JsonInclude.Include.NON_NULL);
         setTimeZone(TimeZone.getDefault());
         //disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         registerModule(new JodaModule());
+        SimpleModule swaggerModule = new SimpleModule();
+        swaggerModule.addDeserializer(Property.class, new PropertyDeserializer());
+        swaggerModule.addDeserializer(Model.class, new ModelDeserializer());
+        swaggerModule.addDeserializer(Parameter.class, new ParameterDeserializer());
+        swaggerModule.addDeserializer(SecuritySchemeDefinition.class, new SecurityDefinitionDeserializer());
+        registerModule(swaggerModule);
     }
 }

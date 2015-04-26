@@ -24,6 +24,7 @@ import javax.lang.model.util.Elements;
 
 public enum AnnotationElementType {
     PACKAGE,
+    ANNOTATION,
     CLASS,
     INTERFACE,
     METHOD,
@@ -42,6 +43,9 @@ public enum AnnotationElementType {
             return GENERIC_PARAMETER;
         }
         else if(element instanceof TypeElement){
+            if(element.getKind().equals(ElementKind.ANNOTATION_TYPE)){
+                return ANNOTATION;
+            }
             if(element.getKind().isInterface()){
                 return INTERFACE;
             }
@@ -75,6 +79,7 @@ public enum AnnotationElementType {
             case METHOD:
                 return new MethodInfo(getParentTypeInfo((ExecutableElement)element),(ExecutableElement)element);
             case INTERFACE:
+            case ANNOTATION:
             case CLASS:
                 return AbstractClassInfo.getClassInfo((TypeElement) element);
             case PACKAGE:

@@ -17,6 +17,7 @@
 package com.dreameddeath.core.service.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.wordnik.swagger.models.Swagger;
 
 /**
  * Created by CEAJ8230 on 17/01/2015.
@@ -27,7 +28,7 @@ public class ServiceDescription {
     @JsonProperty("state")
     private String _state;
     @JsonProperty("swagger")
-    private String _swagger;
+    private Swagger _swagger;
 
     public String getVersion() {
         return _version;
@@ -45,11 +46,11 @@ public class ServiceDescription {
         _state = state;
     }
 
-    public String getSwagger() {
+    public Swagger getSwagger() {
         return _swagger;
     }
 
-    public void setSwagger(String swagger) {
+    public void setSwagger(Swagger swagger) {
         _swagger = swagger;
     }
 }

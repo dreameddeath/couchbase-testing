@@ -14,20 +14,23 @@
  *    limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.service;
+package com.dreameddeath.core.tools.annotation.processor.reflection;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import javax.lang.model.element.TypeElement;
+import java.util.List;
 
 /**
- * Created by CEAJ8230 on 13/01/2015.
+ * Created by ceaj8230 on 24/04/2015.
  */
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ServiceDef {
-    String name();
-    String version();
-    String status() default "stable";
+public class AnnotationInfo extends InterfaceInfo {
+    private List<FieldInfo> _declaredFields = null;
+
+    public AnnotationInfo(Class elt) {
+        super(elt);
+    }
+
+    public AnnotationInfo(TypeElement elt) {
+        super(elt);
+    }
+
 }

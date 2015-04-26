@@ -20,6 +20,7 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import rx.Observable;
@@ -91,6 +92,20 @@ public class TestServiceRestClientImpl implements ITestService {
                         .put(
                                 null,
                                 new GenericType<>(Result.class)
+                        ));
+    }
+
+    @Override
+    public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
+        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
+        target = target.path(String.format("testingDocument"));
+        return Observable.from(
+                target.request(MediaType.APPLICATION_JSON_TYPE)
+                        .async()
+                        .post(
+                                null,
+                                new GenericType<>(TestingDocument.class)
                         ));
     }
 }

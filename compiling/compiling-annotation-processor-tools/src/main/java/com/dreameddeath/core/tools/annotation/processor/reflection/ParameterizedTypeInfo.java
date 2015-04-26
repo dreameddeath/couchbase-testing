@@ -32,6 +32,7 @@ import java.util.List;
  */
 public class ParameterizedTypeInfo{
     private String _name;
+    private Type _type;
     List<AbstractClassInfo> _parameterizedInfosList=new ArrayList<>();
     List<ParameterizedTypeInfo> _parametersGenericsInfo = new ArrayList<>();
 
@@ -56,7 +57,7 @@ public class ParameterizedTypeInfo{
             }
         }
         else if(type instanceof DeclaredType){
-            addType((DeclaredType)type);
+            addType((DeclaredType) type);
         }
     }
 
@@ -64,10 +65,16 @@ public class ParameterizedTypeInfo{
         for(TypeMirror subType:type.getBounds()){
             addType(subType);
         }
+        if(_parameterizedInfosList.size()>0) {
+            _type = getMainType().getCurrentClass();
+        }
     }
 
     public ParameterizedTypeInfo(TypeMirror type){
         addType(type);
+        if(_parameterizedInfosList.size()>0) {
+            _type = getMainType().getCurrentClass();
+        }
     }
 
     private void addType(Class clazz){
@@ -78,6 +85,7 @@ public class ParameterizedTypeInfo{
     }
 
     public ParameterizedTypeInfo(Type paramType){
+        _type = paramType;
         if(paramType instanceof Class){
             addType((Class)paramType);
         }
@@ -131,5 +139,10 @@ public class ParameterizedTypeInfo{
 
     public String getName() {
         return _name;
+    }
+
+
+    public Type getType() {
+        return _type;
     }
 }

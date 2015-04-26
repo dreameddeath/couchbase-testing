@@ -120,8 +120,6 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
         AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_DAO_FILENAME, daoDef.getName(), element);
     }
 
-
-
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();

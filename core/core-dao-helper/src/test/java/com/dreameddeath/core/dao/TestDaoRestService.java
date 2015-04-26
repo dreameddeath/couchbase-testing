@@ -111,7 +111,6 @@ public class TestDaoRestService extends AbstractDaoRestService {
         if(flags!=null){
             documentToCreate.getBaseMeta().setEncodedFlags(flags);
         }
-        //session.save(documentToCreate);
         session.create(documentToCreate);
         return Response.ok(documentToCreate, MediaType.APPLICATION_JSON_TYPE)
                 .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, documentToCreate.getBaseMeta().getKey())
@@ -232,7 +231,6 @@ public class TestDaoRestService extends AbstractDaoRestService {
         ///TODO replace by chuncked result
         IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.toBlocking().first();
         if(result.getSuccess()){
-
             return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
                     //TODO build token
                     .header(DaoHelperServiceUtils.HTTP_HEADER_QUERY_TOTAL_ROWS, result.getTotalRows())

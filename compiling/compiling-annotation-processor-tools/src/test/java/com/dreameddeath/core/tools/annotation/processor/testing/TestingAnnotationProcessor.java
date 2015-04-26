@@ -20,9 +20,11 @@ import com.dreameddeath.core.tools.annotation.exception.AnnotationProcessorExcep
 import com.dreameddeath.core.tools.annotation.processor.AnnotationElementType;
 import com.dreameddeath.core.tools.annotation.processor.AnnotationProcessorVelocityEngine;
 import com.dreameddeath.core.tools.annotation.processor.AnnotationProcessorVelocityEngine.VelocityLogger;
+import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.tools.annotation.processor.reflection.AnnotatedInfo;
 import com.dreameddeath.core.tools.annotation.processor.reflection.InterfaceInfo;
 import org.apache.velocity.VelocityContext;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
+import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 /**
@@ -59,6 +62,17 @@ public class TestingAnnotationProcessor extends AbstractProcessor {
         for(Element baseElem:roundEnv.getElementsAnnotatedWith(TestingAnnotation.class)){
             try {
                 AnnotatedInfo elemInfo= AnnotationElementType.getInfoOf(baseElem);
+                Annotation[] annotArray = elemInfo.getAnnotations();
+                Assert.assertEquals(1, annotArray.length);
+                for(Annotation annot : annotArray){
+                    AbstractClassInfo annotInfo = AbstractClassInfo.getClassInfo(annot.annotationType());
+                    if(annotInfo.getSimpleName().equals("TestingAnnotation")){
+                        Assert.assertEquals(1,annotInfo.getDeclaredMethods().size());
+                        Assert.assertEquals("String",annotInfo.getDeclaredMethod("value").getReturnType().getMainType().getSimpleName());
+                    }
+                }
+
+
                 if(elemInfo instanceof InterfaceInfo){
                     List<InterfaceInfo> parentInterfaces= ((InterfaceInfo) elemInfo).getParentInterfaces();
                     messager.printMessage(Diagnostic.Kind.NOTE,"Nb interfaces "+parentInterfaces.size());

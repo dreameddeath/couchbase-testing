@@ -68,15 +68,7 @@ public class ServiceDiscoverer {
             throw new ServiceDiscoveryException("Cannot start service discovery",e);
         }
 
-        try {
-            //Preload names
-            for (String name : _serviceDiscovery.queryForNames()) {
-                loadService(name);
-            }
-        }
-        catch(Exception e){
-            throw new ServiceDiscoveryException("Cannot request existing service names",e);
-        }
+        resyncAllServices();
     }
 
     synchronized public void loadService(String name) throws ServiceDiscoveryException {
@@ -87,6 +79,20 @@ public class ServiceDiscoverer {
         }
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot start service provider for service "+name,e);
+        }
+    }
+
+    public void resyncAllServices() throws ServiceDiscoveryException{
+        try {
+            for (String name : _serviceDiscovery.queryForNames()) {
+                loadService(name);
+            }
+        }
+        catch(ServiceDiscoveryException e){
+            throw e;
+        }
+        catch(Exception e){
+            throw new ServiceDiscoveryException("Cannot request existing service names",e);
         }
     }
 
@@ -103,6 +109,7 @@ public class ServiceDiscoverer {
     }
 
     public ServicesInstanceDescription getInstancesDescription() throws ServiceDiscoveryException{
+        resyncAllServices();
         ServicesInstanceDescription desc = new ServicesInstanceDescription();
         for(Map.Entry<String,ServiceProvider<ServiceDescription>> entry:_serviceProviderMap.entrySet()){
             try {
@@ -114,6 +121,7 @@ public class ServiceDiscoverer {
                 throw new ServiceDiscoveryException("Cannot find all service instances for service "+entry.getKey(),e);
             }
         }
+
         return desc;
     }
 

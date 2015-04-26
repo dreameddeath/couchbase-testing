@@ -17,6 +17,7 @@
 package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.service.swagger.TestingDocument;
 import org.joda.time.DateTime;
 import rx.Observable;
 
@@ -25,22 +26,21 @@ import rx.Observable;
  */
 public interface ITestService {
 
-    public Observable<Result> runWithRes(IGlobalContext ctxt,Input input);
+    Observable<Result> runWithRes(IGlobalContext ctxt, Input input);
+    Observable<Result> getWithRes(String rootId, String id);
+    Observable<Result> putWithQuery(String rootId, String id);
+
+    Observable<TestingDocument> initDocument(IGlobalContext ctxt);
 
 
-    public Observable<Result> getWithRes(String rootId, String id);
-
-    public Observable<Result> putWithQuery(String rootId, String id);
-
-
-    public static class Result{
+    class Result{
         public String result;
         public String id;
         public String rootId;
         public DateTime plusOneMonth;
     }
 
-    public static class Input{
+    class Input{
         public String id;
         public String rootId;
         public DateTime otherField;

@@ -16,12 +16,13 @@
 
 package ${service.package};
 
+import com.dreameddeath.core.dao.helper.service.AbstractDaoRestService;
 import com.dreameddeath.core.dao.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.dao.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.model.view.IViewAsyncQueryResult;
 import com.dreameddeath.core.model.view.IViewQuery;
 import com.dreameddeath.core.service.annotation.ServiceDef;
-import com.dreameddeath.core.service.annotation.VersionStatus;
+import com.dreameddeath.core.service.annotation.VersionStatus;;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
@@ -50,19 +51,87 @@ import ${import};
 /**
  * Created by CEAJ8230 on 14/04/2015.
  */
-@Path("testDomain/v1.0/test") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
-@ServiceDef(name="dao$testDomain$test",version="1.0",status = VersionStatus.STABLE)
-@Api(value = "testDomain/v1.0/test", description = "Basic resource")
-public class TestDaoRestService extends AbstractExposableService {
-    private CouchbaseSessionFactory _sessionFactory;
-    public void setSessionFactory(CouchbaseSessionFactory sessionFactory){
-        _sessionFactory = sessionFactory;
+@Path("${service.path}") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
+@ServiceDef(name="${service.registeringName}",version="${service.version",status = VersionStatus.${service.status})
+@Api(value = "${service.path}", description = "${service.descr}")
+public class TestDaoRestService extends AbstractDaoRestService {
+
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(
+                value = "GET",
+                notes = "Lookup for all elements",
+                response = SerializableViewQueryRow<String,String,TestDoc>,
+                position = 0)
+        /*
+        TODO Map API response
+        @ApiResponses({
+                @ApiResponse(code = 400, message = "Invalid ID"),
+                @ApiResponse(code = 404, message = "object not found")
+        })*/
+    public Response getAll(
+            @HeaderParam("USER_TOKEN") String userToken,
+            @PathParam("testDocId") String testDocId,
+            @QueryParam("key") String key,
+            @QueryParam("keys") Collection<String> keys,
+            //start/end key case
+            @QueryParam("startKey") String startKey,
+            @QueryParam("endKey") String endKey,
+            @QueryParam("inclusiveEndKey") Boolean inclusiveEndKey,
+            //miscellaneous params
+            @QueryParam("descending") Boolean descending,
+            @QueryParam("offset") Integer offset,
+            @QueryParam("limit") Integer limit,
+            //Continuing Case
+            @QueryParam("token") String token, @QueryParam("nb") Integer nbMore
+    ) throws Exception
+    {
+        IUser user = getUserFactory().validateFromToken(userToken);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
+        IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDocChild.class,"all_testChild");
+
+        if(key!=null){ query.withKey(key);}
+        else if(keys!=null && (keys.size()>0)){ query.withKeys(keys); }
+        else if(startKey!=null){
+            if(endKey==null){
+                endKey = startKey;
+            }
+            if(inclusiveEndKey==null){
+                inclusiveEndKey = true;
+            }
+            query.withStartKey(startKey);
+            query.withEndKey(endKey,inclusiveEndKey);
+        }
+        else{
+            query.withKey(String.format("test/%s",testDocId));
+        }
+
+        if(descending!=null){
+            query.withDescending(descending);
+        }
+        if(offset!=null){
+            query.withOffset(offset);
+        }
+        if(limit!=null){
+            query.withLimit(limit);
+        }
+
+        Observable<IViewAsyncQueryResult<String,String,TestDoc>> resultObservable = session.executeAsyncQuery(query);
+        ///TODO replace by chuncked result
+        IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.toBlocking().first();
+        if(result.getSuccess()){
+
+            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
+                    //TODO build token
+                    .header(DaoHelperServiceUtils.HTTP_HEADER_QUERY_TOTAL_ROWS, result.getTotalRows())
+                    .build();
+        }
+        else{
+            return Response.serverError().entity(result.getErrorInfo().toBlocking().first()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
+        }
     }
 
-    private IUserFactory _userFactory;
-    public void setUserFactory(IUserFactory userFactory){
-        _userFactory = userFactory;
-    }
+
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })

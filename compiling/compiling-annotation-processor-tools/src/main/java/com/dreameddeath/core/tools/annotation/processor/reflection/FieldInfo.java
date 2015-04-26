@@ -41,18 +41,29 @@ public class FieldInfo extends MemberInfo {
         }
     }
 
-    public FieldInfo(ClassInfo parent,VariableElement element){
+    private FieldInfo(AbstractClassInfo parent,VariableElement element){
         super(parent,element);
         _parent = parent;
         _variableElement=element;
         init();
     }
 
-    public FieldInfo(ClassInfo parent,Field field){
+
+    public FieldInfo(ClassInfo parent,VariableElement element){
+        this((AbstractClassInfo) parent, element);
+    }
+
+
+    private FieldInfo(AbstractClassInfo parent,Field field){
         super(parent,field);
         _parent = parent;
         _field = field;
         init();
+    }
+
+
+    public FieldInfo(ClassInfo parent,Field field){
+        this((AbstractClassInfo)parent,field);
     }
 
     public String getName(){

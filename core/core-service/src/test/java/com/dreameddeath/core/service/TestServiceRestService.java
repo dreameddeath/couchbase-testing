@@ -21,6 +21,7 @@ import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -100,5 +101,22 @@ public class TestServiceRestService extends AbstractExposableService {
         input.rootId = rootId;
         input.id = id;*/
         return _testService.putWithQuery(rootId, id).toBlocking().first();
+    }
+
+
+    @POST
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("testingDoc")
+    @ApiOperation(value = "testing label",
+            notes = "No details provided",
+            response = TestingDocument.class,
+            position = 0)
+    @ApiResponses({
+            @ApiResponse(code = 400, message = "Invalid ID"),
+            @ApiResponse(code = 404, message = "object not found")
+    })
+
+    public TestingDocument initDocument(){
+        return _testService.initDocument(null).toBlocking().first();
     }
 }
