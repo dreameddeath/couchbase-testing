@@ -64,6 +64,18 @@
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
                 <version>${coveralls.mvn.plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-core</artifactId>
+                        <version>${jackson.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-annotations</artifactId>
+                        <version>${jackson.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <!--<plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -244,13 +256,12 @@
             <groupId>javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>${javassist.version}</version>
-        </dependency>-->
-
+        </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
             <version>${aspectj.version}</version>
-        </dependency>
+        </dependency>-->
 
     </dependencies>
 </project>

@@ -35,6 +35,11 @@
   
   <dependencies>
       <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>${google.guava.version}</version>
+      </dependency>
+      <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-x-discovery</artifactId>
           <version>${curator.version}</version>
@@ -54,6 +59,10 @@
               <exclusion>
                   <groupId>org.codehaus.jackson</groupId>
                   <artifactId>jackson-mapper-asl</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>com.google.guava</groupId>
+                  <artifactId>guava</artifactId>
               </exclusion>
           </exclusions>
       </dependency>

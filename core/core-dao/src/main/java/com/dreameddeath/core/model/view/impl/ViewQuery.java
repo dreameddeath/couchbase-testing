@@ -71,8 +71,12 @@ public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IV
     public com.couchbase.client.java.view.ViewQuery toCouchbaseQuery(){
         String designDoc = ICouchbaseBucket.Utils.buildDesignDoc(_dao.getClient().getPrefix(), _dao.getDesignDoc());
         com.couchbase.client.java.view.ViewQuery result = com.couchbase.client.java.view.ViewQuery.from(designDoc,_dao.getViewName());
-        if(_key!=null) {_dao.getKeyTranscoder().key(result,_key);}
-        else if(_keys!=null){_dao.getKeyTranscoder().keys(result,_keys);}
+        if(_key!=null) {
+            _dao.getKeyTranscoder().key(result,_key);
+        }
+        else if(_keys!=null){
+            _dao.getKeyTranscoder().keys(result,_keys);
+        }
         else{
             _dao.getKeyTranscoder().startKey(result, _startKey);
             _dao.getKeyTranscoder().endKey(result,_endKey);
@@ -83,7 +87,9 @@ public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IV
                 skip(_start).
                 limit(_limit);
 
-        if(_syncWithDoc) result.stale(Stale.FALSE);
+        if(_syncWithDoc){
+            result.stale(Stale.FALSE);
+        }
         return result;
     }
 

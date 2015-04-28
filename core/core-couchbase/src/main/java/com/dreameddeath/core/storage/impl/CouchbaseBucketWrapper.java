@@ -55,7 +55,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     private final String _bucketName;
     private final String _bucketPassword;
     protected final String _keyPrefix;
-    private List<Transcoder<? extends Document, ?>> _transcoders = new ArrayList<Transcoder<? extends Document, ?>>();
+    private List<Transcoder<? extends Document, ?>> _transcoders = new ArrayList<>();
 
 
 
@@ -224,7 +224,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         if(params.getTimeOutUnit()!=null){
             obs = obs.timeout(params.getTimeOut(),params.getTimeOutUnit());
         }
-        return obs.map(new DocumentResync<T>(bucketDoc));
+        return obs.map(new DocumentResync<>(bucketDoc));
     }
 
     protected <T extends CouchbaseDocument> T syncObserverManage(final T doc,Observable<T> obj) throws StorageException{
@@ -263,7 +263,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().insert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
+        return _bucket.async().insert(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
@@ -289,7 +289,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().upsert(bucketDoc).map(new DocumentResync<T>(bucketDoc));
+        return _bucket.async().upsert(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
@@ -315,7 +315,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().replace(bucketDoc).map(new DocumentResync<T>(bucketDoc));
+        return _bucket.async().replace(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
@@ -347,7 +347,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().remove(bucketDoc).map(new DocumentResync<T>(bucketDoc));
+        return _bucket.async().remove(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
@@ -374,7 +374,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().append(bucketDoc).map(new DocumentResync<T>(bucketDoc));
+        return _bucket.async().append(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
@@ -383,7 +383,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return asyncWritePostProcess(_bucket.async().append(bucketDoc),
                 bucketDoc,
                 transcoder,
-                params);//.map(new DocumentResync<T>(bucketDoc));
+                params);
     }
 
     @Override
@@ -399,7 +399,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().prepend(bucketDoc).map(new DocumentResync<T>(bucketDoc));
+        return _bucket.async().prepend(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override

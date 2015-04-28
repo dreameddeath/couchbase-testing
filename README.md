@@ -11,7 +11,7 @@ TODOs
 - Metric Gathering
 - ~~Views/Queries~~
 - ~~Getting from Replicate Management (load-balancing)~~
-- Simulation (in-memory mode) for all verbs (~~get, update,~~ append,prepend, ...--) ~~for views~~ also and cas/expiration
+- Simulation (in-memory mode) for ~~ all verbs (get, update, append,prepend, ...--) for views also and cas ~~ /expiration
 - management of time to simulate data expiration
 - ~~Replicate/Timeout/Persistance Management (ReplicateTo/PersistTo)~~
 - ~~Unique Index (remain tests plus delete management)~~

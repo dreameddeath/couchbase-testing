@@ -22,4 +22,4 @@ TODO
 - helpers around spring service scans
 
 ###testing
-- test the swagger api exposure
+- ~~test the swagger api exposure~~
