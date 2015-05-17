@@ -16,9 +16,9 @@
 
 package com.dreameddeath.core.model.unique;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.impl.HashMapProperty;
 

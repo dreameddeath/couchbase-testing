@@ -21,6 +21,6 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 /**
  * Created by ceaj8230 on 12/10/2014.
  */
-public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocument> extends CouchbaseDocumentDao<T> {
+public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocument> extends CouchbaseDocumentDao<T> implements IDaoWithKeyPattern {
     public abstract String getKeyPattern();
 }

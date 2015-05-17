@@ -19,8 +19,8 @@ package com.dreameddeath.core.dao.document;
 
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
+import com.dreameddeath.core.dao.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.dao.validation.ValidatorFactory;
-import com.dreameddeath.core.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
 

@@ -17,13 +17,13 @@
 package com.dreameddeath.billing.model.cycle;
 
 
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocumentLink;
+import com.dreameddeath.core.business.model.BusinessDocumentLink;
+import com.dreameddeath.core.business.model.property.impl.SynchronizedLinkProperty;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.impl.SynchronizedLinkProperty;
 import org.joda.time.DateTime;
 
-public class BillingCycleLink extends BusinessCouchbaseDocumentLink<BillingCycle> {
+public class BillingCycleLink extends BusinessDocumentLink<BillingCycle> {
     @DocumentProperty("startDate")
     private Property<DateTime> _startDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
         @Override

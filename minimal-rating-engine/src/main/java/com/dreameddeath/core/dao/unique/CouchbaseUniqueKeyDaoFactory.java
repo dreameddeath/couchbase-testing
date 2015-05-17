@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.dao.unique;
 
-import com.dreameddeath.core.exception.dao.DaoNotFoundException;
+import com.dreameddeath.core.dao.exception.dao.DaoNotFoundException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
 
 import java.util.*;

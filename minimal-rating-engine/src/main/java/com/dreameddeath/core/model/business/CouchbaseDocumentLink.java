@@ -17,8 +17,8 @@
 package com.dreameddeath.core.model.business;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;

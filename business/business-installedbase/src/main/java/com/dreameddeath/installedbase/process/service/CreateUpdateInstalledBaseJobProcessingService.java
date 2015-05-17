@@ -16,19 +16,19 @@
 
 package com.dreameddeath.installedbase.process.service;
 
-import com.dreameddeath.core.annotation.process.JobProcessingForClass;
-import com.dreameddeath.core.annotation.process.TaskProcessingForClass;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.model.DuplicateTaskException;
-import com.dreameddeath.core.exception.process.JobExecutionException;
-import com.dreameddeath.core.exception.process.TaskExecutionException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.process.NoOpTask;
-import com.dreameddeath.core.process.business.service.DocumentCreateTaskProcessingService;
-import com.dreameddeath.core.process.business.service.DocumentUpdateTaskProcessingService;
-import com.dreameddeath.core.process.business.service.StandardJobProcessingService;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.process.annotation.JobProcessingForClass;
+import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
+import com.dreameddeath.core.process.exception.DuplicateTaskException;
+import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
+import com.dreameddeath.core.process.model.NoOpTask;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 import com.dreameddeath.installedbase.model.common.InstalledBase;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseResponse;

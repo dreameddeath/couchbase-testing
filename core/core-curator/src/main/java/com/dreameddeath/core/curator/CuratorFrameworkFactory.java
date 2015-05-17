@@ -16,9 +16,9 @@
 
 package com.dreameddeath.core.curator;
 
-import com.dreameddeath.core.exception.curator.BadConnectionStringException;
-import com.dreameddeath.core.exception.curator.DuplicateClusterClientException;
-import com.dreameddeath.core.exception.curator.InconsitentClientRequest;
+import com.dreameddeath.core.curator.exception.BadConnectionStringException;
+import com.dreameddeath.core.curator.exception.DuplicateClusterClientException;
+import com.dreameddeath.core.curator.exception.InconsitentClientRequest;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.ensemble.EnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;

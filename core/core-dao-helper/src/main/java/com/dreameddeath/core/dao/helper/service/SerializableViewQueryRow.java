@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.dao.helper.service;
 
+import com.dreameddeath.core.dao.model.view.IViewQueryRow;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.view.IViewQueryRow;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 

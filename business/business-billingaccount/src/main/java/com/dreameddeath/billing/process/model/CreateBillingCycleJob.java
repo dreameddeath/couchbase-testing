@@ -19,10 +19,10 @@ package com.dreameddeath.billing.process.model;
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.EmptyJobResult;
-import com.dreameddeath.core.process.business.model.DocumentCreateTask;
-import com.dreameddeath.core.process.business.model.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.DocumentCreateTask;
+import com.dreameddeath.core.process.model.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.EmptyJobResult;
 
 /**
  * Created by Christophe Jeunesse on 03/08/2014.

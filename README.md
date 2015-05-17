@@ -11,10 +11,11 @@ TODOs
 - Metric Gathering
 - ~~Views/Queries~~
 - ~~Getting from Replicate Management (load-balancing)~~
-- Simulation (in-memory mode) for ~~ all verbs (get, update, append,prepend, ...--) for views also and cas ~~ /expiration
+- ~~Simulation (in-memory mode) for all verbs (get, update, append,prepend, ...) for views also and cas~~
+- Simulation of expiration
 - management of time to simulate data expiration
 - ~~Replicate/Timeout/Persistance Management (ReplicateTo/PersistTo)~~
-- ~~Unique Index (remain tests plus delete management)~~
+- ~~Unique Index ~~
 - ~~Datamodel upgrade management~~
 - History :
     - Keep previous revision at document level
@@ -43,7 +44,7 @@ TODOs
 ### Framework Layer
 - event based notification
 - MDC integration
-- Unified SOAP & REST API (Use of jibx code gen)
+- Unified SOAP & REST API (Use of jibx mappings)
 - Configuration (properties + db config + overriding management) + AutoReload - timebase
 
 ### Infrastructure Layer

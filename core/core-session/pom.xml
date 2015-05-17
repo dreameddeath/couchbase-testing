@@ -38,11 +38,6 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-business</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-dao</artifactId>
           <version>${project.version}</version>
       </dependency>

@@ -18,9 +18,9 @@ package com.dreameddeath.core.transcoder.json;
 
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.transcoder.JacksonTransformers;
-import com.dreameddeath.core.exception.view.ViewDecodingException;
-import com.dreameddeath.core.exception.view.ViewEncodingException;
-import com.dreameddeath.core.model.view.IViewTranscoder;
+import com.dreameddeath.core.dao.exception.view.ViewDecodingException;
+import com.dreameddeath.core.dao.exception.view.ViewEncodingException;
+import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ public abstract class ViewJsonObjectTranscoder<T> implements IViewTranscoder<T> 
     public T decode(Object value) throws ViewDecodingException {
         byte[] couchbaseEncodingResult;
         try {
-            couchbaseEncodingResult = JacksonTransformers.MAPPER.writeValueAsBytes((JsonObject)value);
+            couchbaseEncodingResult = JacksonTransformers.MAPPER.writeValueAsBytes(value);
         }
         catch(com.couchbase.client.deps.com.fasterxml.jackson.core.JsonProcessingException e){
             throw new ViewDecodingException(value,"Error during encoding of data using Couchbase Transcoder<" + getBaseClass().getName() + "> :", e);

@@ -16,12 +16,12 @@
 
 package com.dreameddeath.billing.model.installedbase;
 
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocumentLink;
+import com.dreameddeath.core.business.model.BusinessDocumentLink;
 
 /**
  * Created by ceaj8230 on 13/08/2014.
  */
-public class BillingInstalledBaseLink extends BusinessCouchbaseDocumentLink<BillingInstalledBase> {
+public class BillingInstalledBaseLink extends BusinessDocumentLink<BillingInstalledBase> {
     public BillingInstalledBaseLink(){super();}
     public BillingInstalledBaseLink(BillingInstalledBase target){super(target);}
     public BillingInstalledBaseLink(BillingInstalledBaseLink link){super(link);}

@@ -17,15 +17,15 @@
 package com.dreameddeath.billing.model.account;
 
 import com.dreameddeath.billing.model.account.BillingAccountContributor.ContributorType;
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocumentLink;
+import com.dreameddeath.core.business.model.BusinessDocumentLink;
+import com.dreameddeath.core.business.model.property.impl.SynchronizedLinkProperty;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.impl.SynchronizedLinkProperty;
 
 /**
  * Created by CEAJ8230 on 25/11/2014.
  */
-public class BillingAccountContributorLink extends BusinessCouchbaseDocumentLink<BillingAccountContributor> {
+public class BillingAccountContributorLink extends BusinessDocumentLink<BillingAccountContributor> {
     /**
      *  type : Type of contributor
      */

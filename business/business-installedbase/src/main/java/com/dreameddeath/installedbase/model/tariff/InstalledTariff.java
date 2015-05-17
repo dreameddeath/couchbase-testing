@@ -16,7 +16,7 @@
 
 package com.dreameddeath.installedbase.model.tariff;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.installedbase.model.common.InstalledItem;

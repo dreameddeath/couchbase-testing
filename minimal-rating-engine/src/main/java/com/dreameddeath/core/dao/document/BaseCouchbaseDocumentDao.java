@@ -16,15 +16,14 @@
 
 package com.dreameddeath.core.dao.document;
 
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.CouchbaseConstants;
+import com.dreameddeath.core.couchbase.GenericTranscoder;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.dao.InconsistentStateException;
-import com.dreameddeath.core.exception.dao.ValidationException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
+import com.dreameddeath.core.dao.exception.dao.InconsistentStateException;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
-import com.dreameddeath.core.storage.CouchbaseConstants;
-import com.dreameddeath.core.storage.GenericTranscoder;
 
 import java.util.Collection;
 
@@ -99,7 +98,7 @@ public abstract class BaseCouchbaseDocumentDao<T extends BaseCouchbaseDocument>{
     }
 
 
-    public T create(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+    public T create(T obj,boolean isCalcOnly) throws DaoException,StorageException{
         checkCreatableState(obj);
 
         if(obj.getBaseMeta().getKey()==null){buildKey(obj); }
@@ -124,7 +123,7 @@ public abstract class BaseCouchbaseDocumentDao<T extends BaseCouchbaseDocument>{
         return result;
     }
 
-    public T update(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+    public T update(T obj,boolean isCalcOnly) throws DaoException,StorageException{
         checkUpdatableState(obj);
         if(!isCalcOnly) {
             getClient().replace(getTranscoder().newDocument(obj));

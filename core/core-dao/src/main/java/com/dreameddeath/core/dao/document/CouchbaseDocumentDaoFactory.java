@@ -17,18 +17,18 @@
 package com.dreameddeath.core.dao.document;
 
 
-import com.dreameddeath.core.annotation.dao.DaoForClass;
+import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
+import com.dreameddeath.core.dao.exception.DaoNotFoundException;
+import com.dreameddeath.core.dao.exception.DuplicateDaoException;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDaoFactory;
-import com.dreameddeath.core.exception.dao.DaoNotFoundException;
-import com.dreameddeath.core.exception.dao.DuplicateDaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.storage.impl.GenericCouchbaseTranscoder;
-import com.dreameddeath.core.transcoder.ITranscoder;
+import com.dreameddeath.core.model.transcoder.ITranscoder;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -41,7 +41,7 @@ public class ConfigManagerFactory {
                 if(configurationEvent.isBeforeUpdate()){
                     String name=configurationEvent.getPropertyName();
                     Object value=configurationEvent.getPropertyValue();
-                    AbstractProperty.fireCallback(name,value);
+                    AbstractConfigProperty.fireCallback(name, value);
                 }
             }
         });

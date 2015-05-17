@@ -16,13 +16,13 @@
 
 package com.dreameddeath.core.dao.archive;
 
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.storage.BucketDocument;
-import com.dreameddeath.core.storage.ICouchbaseTranscoder;
 
 /**
  * Created by CEAJ8230 on 17/09/2014.

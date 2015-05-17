@@ -16,21 +16,21 @@
 
 package com.dreameddeath.core.dao.unique;
 
-import com.dreameddeath.core.annotation.dao.DaoForClass;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.DocumentNotFoundException;
-import com.dreameddeath.core.exception.storage.DuplicateDocumentKeyException;
-import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyStorageException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.exception.validation.ValidationException;
-import com.dreameddeath.core.model.IHasUniqueKeysRef;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.DocumentNotFoundException;
+import com.dreameddeath.core.dao.exception.DuplicateDocumentKeyException;
+import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyStorageException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.storage.BucketDocument;
-import com.dreameddeath.core.storage.ICouchbaseBucket;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**

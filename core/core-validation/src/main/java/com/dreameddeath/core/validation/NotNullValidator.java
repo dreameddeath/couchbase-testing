@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.annotation.NotNull;
-import com.dreameddeath.core.exception.ValidationFailedException;
+import com.dreameddeath.core.validation.annotation.NotNull;
+import com.dreameddeath.core.validation.exception.ValidationFailedException;
 
 import java.lang.reflect.Field;
 

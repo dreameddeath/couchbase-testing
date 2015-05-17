@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.dao;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 import java.util.List;

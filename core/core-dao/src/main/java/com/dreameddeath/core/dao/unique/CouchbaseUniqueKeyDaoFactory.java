@@ -16,13 +16,13 @@
 
 package com.dreameddeath.core.dao.unique;
 
-import com.dreameddeath.core.exception.dao.DaoNotFoundException;
-import com.dreameddeath.core.model.IHasUniqueKeysRef;
+import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
+import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
+import com.dreameddeath.core.dao.exception.DaoNotFoundException;
+import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.storage.ICouchbaseTranscoder;
-import com.dreameddeath.core.storage.impl.GenericCouchbaseTranscoder;
-import com.dreameddeath.core.transcoder.ITranscoder;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

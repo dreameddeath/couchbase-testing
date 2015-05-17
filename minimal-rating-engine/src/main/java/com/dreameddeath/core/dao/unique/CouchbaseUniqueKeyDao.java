@@ -16,17 +16,17 @@
 
 package com.dreameddeath.core.dao.unique;
 
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.GenericJacksonTranscoder;
+import com.dreameddeath.core.couchbase.GenericTranscoder;
+import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
+import com.dreameddeath.core.couchbase.exception.DuplicateDocumentKeyException;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDao;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.DocumentNotFoundException;
-import com.dreameddeath.core.exception.storage.DuplicateDocumentKeyException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.document.BucketDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
-import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import com.dreameddeath.core.storage.GenericTranscoder;
 import org.apache.commons.codec.digest.DigestUtils;
 /**
  * Created by ceaj8230 on 06/08/2014.

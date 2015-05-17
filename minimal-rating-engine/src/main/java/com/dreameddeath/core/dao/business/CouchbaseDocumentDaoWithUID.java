@@ -16,11 +16,11 @@
 
 package com.dreameddeath.core.dao.business;
 
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 
 /**
  * Created by Christophe Jeunesse on 27/07/2014.

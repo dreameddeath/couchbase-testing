@@ -17,7 +17,7 @@
 package com.dreameddeath.core.dao.helper.annotation.processor.model;
 
 import com.dreameddeath.core.dao.helper.annotation.Counter;
-import com.dreameddeath.core.util.CouchbaseDocumentReflection;
+import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 
 /**
  * Created by CEAJ8230 on 10/04/2015.

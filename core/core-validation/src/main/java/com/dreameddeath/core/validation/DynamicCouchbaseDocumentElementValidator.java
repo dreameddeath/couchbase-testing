@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 
 import java.lang.reflect.Field;

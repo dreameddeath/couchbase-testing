@@ -17,9 +17,9 @@
 package com.dreameddeath.party.process.model;
 
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.EmptyJobResult;
-import com.dreameddeath.core.process.business.model.DocumentCreateTask;
+import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.DocumentCreateTask;
+import com.dreameddeath.core.process.model.EmptyJobResult;
 import com.dreameddeath.party.model.base.Party;
 
 /**

@@ -17,15 +17,15 @@
 package com.dreameddeath.billing.dao;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.GenericJacksonTranscoder;
+import com.dreameddeath.core.couchbase.GenericTranscoder;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.business.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
 import com.dreameddeath.core.model.document.BucketDocument;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
-import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import com.dreameddeath.core.storage.GenericTranscoder;
 
 public class BillingAccountDao extends CouchbaseDocumentDaoWithUID<BillingAccount> {
     public static final String BA_CNT_KEY="ba/cnt";

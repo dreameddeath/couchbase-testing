@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.dao.counter;
 
-import com.dreameddeath.core.exception.dao.DaoNotFoundException;
+import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

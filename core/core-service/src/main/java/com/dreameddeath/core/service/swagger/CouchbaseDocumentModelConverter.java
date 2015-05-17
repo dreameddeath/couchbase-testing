@@ -16,10 +16,10 @@
 
 package com.dreameddeath.core.service.swagger;
 
+import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
 import com.dreameddeath.core.tools.annotation.processor.reflection.ParameterizedTypeInfo;
-import com.dreameddeath.core.util.CouchbaseDocumentFieldReflection;
-import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.databind.JavaType;
 import com.wordnik.swagger.converter.ModelConverter;
 import com.wordnik.swagger.converter.ModelConverterContext;

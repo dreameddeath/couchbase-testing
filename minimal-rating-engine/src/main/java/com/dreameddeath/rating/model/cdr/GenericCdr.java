@@ -17,8 +17,8 @@
 package com.dreameddeath.rating.model.cdr;
 
 
+import com.dreameddeath.core.couchbase.BinarySerializer;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
-import com.dreameddeath.core.storage.BinarySerializer;
 
 import java.util.ArrayList;
 import java.util.Collection;

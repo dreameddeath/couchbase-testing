@@ -19,18 +19,18 @@ package com.dreameddeath.billing.model.account;
 import com.dreameddeath.billing.model.cycle.BillingCycleLink;
 import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.annotation.NotNull;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.helper.annotation.Counter;
 import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
 import com.dreameddeath.core.dao.helper.annotation.UidDef;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.party.model.base.PartyLink;
 import org.joda.time.DateTime;
 
@@ -42,7 +42,7 @@ import java.util.List;
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "ba/",idPattern = "\\d{10}",idFormat = "%010d")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")
-public class BillingAccount extends BusinessCouchbaseDocument {
+public class BillingAccount extends BusinessDocument {
     @DocumentProperty("uid") @NotNull
     private ImmutableProperty<String> _uid=new ImmutableProperty<>(BillingAccount.this);
 	@DocumentProperty("ledgerSegment")
@@ -148,7 +148,7 @@ public class BillingAccount extends BusinessCouchbaseDocument {
     /**
      * the types of billing account
      */
-    public static enum Type {
+    public enum Type {
         prepaid("prepaid"),
         postpaid("postpaid");
         private String _value;

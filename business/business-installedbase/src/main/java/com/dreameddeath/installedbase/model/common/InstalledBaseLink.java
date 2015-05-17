@@ -16,15 +16,15 @@
 
 package com.dreameddeath.installedbase.model.common;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocumentLink;
+import com.dreameddeath.core.business.model.BusinessDocumentLink;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 /**
  * Created by ceaj8230 on 10/08/2014.
  */
-public class InstalledBaseLink extends BusinessCouchbaseDocumentLink<InstalledBase> {
+public class InstalledBaseLink extends BusinessDocumentLink<InstalledBase> {
     /**
      *  offerId : The offer id linked (if only a subpart is pointed by the link)
      */

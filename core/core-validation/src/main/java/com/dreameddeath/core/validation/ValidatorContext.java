@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.validation;
 
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.property.HasParent;
-import com.dreameddeath.core.session.ICouchbaseSession;
 
 import java.util.LinkedList;
 import java.util.List;

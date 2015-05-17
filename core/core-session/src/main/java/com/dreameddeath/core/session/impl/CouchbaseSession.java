@@ -16,25 +16,25 @@
 
 package com.dreameddeath.core.session.impl;
 
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.document.IDaoForDocumentWithUID;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.ReadOnlyException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.model.view.IViewAsyncQueryResult;
+import com.dreameddeath.core.dao.model.view.IViewQuery;
+import com.dreameddeath.core.dao.model.view.IViewQueryResult;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.date.IDateTimeService;
-import com.dreameddeath.core.exception.DuplicateUniqueKeyException;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.dao.ReadOnlyException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.model.view.IViewAsyncQueryResult;
-import com.dreameddeath.core.model.view.IViewQuery;
-import com.dreameddeath.core.model.view.IViewQueryResult;
-import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.Validator;
 import com.dreameddeath.core.validation.ValidatorContext;
@@ -110,7 +110,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
 
     @Override
-    public long getCounter(String key) throws DaoException,StorageException{
+    public long getCounter(String key) throws DaoException,StorageException {
         CouchbaseCounterDao dao = _sessionFactory.getCounterDaoFactory().getDaoForKey(key);
         if(isCalcOnly() && _counters.containsKey(key)){
             return _counters.get(key);
@@ -123,7 +123,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public long incrCounter(String key, long byVal) throws DaoException,StorageException{
+    public long incrCounter(String key, long byVal) throws DaoException,StorageException {
         checkReadOnly(key);
         if(isCalcOnly()){
             Long result = getCounter(key);
@@ -138,7 +138,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public long decrCounter(String key, long byVal) throws DaoException,StorageException{
+    public long decrCounter(String key, long byVal) throws DaoException,StorageException {
         checkReadOnly(key);
         if(isCalcOnly()){
             Long result = getCounter(key);
@@ -187,7 +187,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
 
     @Override
-    public <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException{
+    public <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException {
         checkReadOnly(obj);
         CouchbaseDocumentDao<T> dao = (CouchbaseDocumentDao<T>) _sessionFactory.getDocumentDaoFactory().getDaoForClass(obj.getClass());
         dao.create(this,obj,isCalcOnly());
@@ -196,7 +196,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException{
+    public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException {
         if(obj.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
             ((CouchbaseDocumentDao<T>) _sessionFactory.getDocumentDaoFactory().getDaoForClass(obj.getClass())).buildKey(this,obj);
         }
@@ -204,7 +204,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public CouchbaseDocument get(String key) throws DaoException,StorageException{
+    public CouchbaseDocument get(String key) throws DaoException,StorageException {
         CouchbaseDocument result = _sessionCache.get(key);
         if(result==null){
             CouchbaseDocumentDao dao = _sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
@@ -215,7 +215,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException{
+    public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException {
         CouchbaseDocument cacheResult = _sessionCache.get(key);
         if(cacheResult !=null){
             return (T)cacheResult;
@@ -229,7 +229,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException{
+    public <T extends CouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException {
         checkReadOnly(obj);
         CouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
         dao.update(this,obj,isCalcOnly());
@@ -237,7 +237,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T delete(T obj)throws ValidationException,DaoException,StorageException{
+    public <T extends CouchbaseDocument> T delete(T obj)throws ValidationException,DaoException,StorageException {
         checkReadOnly(obj);
         CouchbaseDocumentDao<T> dao = _sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
         dao.delete(this,obj,isCalcOnly());
@@ -250,21 +250,21 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException{
-        BusinessCouchbaseDocumentDaoWithUID dao = (BusinessCouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+    public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException {
+        IDaoForDocumentWithUID dao = (IDaoForDocumentWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
         return get(dao.getKeyFromUID(uid),targetClass);
     }
 
 
     @Override
     public <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException{
-        BusinessCouchbaseDocumentDaoWithUID dao = (BusinessCouchbaseDocumentDaoWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+        IDaoForDocumentWithUID dao = (IDaoForDocumentWithUID) _sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
         return dao.getKeyFromUID(uid);
     }
 
 
     @Override
-    public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException{
+    public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException {
         if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
             return create(obj);
         }
@@ -291,7 +291,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
 
     @Override
-    public CouchbaseUniqueKey getUniqueKey(String internalKey)throws DaoException,StorageException{
+    public CouchbaseUniqueKey getUniqueKey(String internalKey)throws DaoException,StorageException {
         CouchbaseUniqueKey keyDoc =_keyCache.get(_sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey).buildKey(internalKey));
         if(keyDoc==null){
             CouchbaseUniqueKeyDao dao = _sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
@@ -338,7 +338,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public Observable<IViewAsyncQueryResult> executeAsyncQuery(IViewQuery query) throws DaoException,StorageException{
+    public Observable<IViewAsyncQueryResult> executeAsyncQuery(IViewQuery query) throws DaoException,StorageException {
         return query.getDao().asyncQuery(this,isCalcOnly(),query);
     }
 

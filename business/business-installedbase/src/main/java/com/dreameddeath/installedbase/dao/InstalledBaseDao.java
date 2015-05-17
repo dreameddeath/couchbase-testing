@@ -16,11 +16,11 @@
 
 package com.dreameddeath.installedbase.dao;
 
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.storage.BucketDocument;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.installedbase.model.common.InstalledBase;
 
 /**

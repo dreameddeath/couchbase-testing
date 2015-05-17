@@ -16,18 +16,18 @@
 
 package com.dreameddeath.core.dao;
 
-import com.dreameddeath.core.annotation.dao.DaoForClass;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.model.view.IViewKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.IViewTranscoder;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.view.IViewKeyTranscoder;
-import com.dreameddeath.core.model.view.IViewTranscoder;
-import com.dreameddeath.core.model.view.impl.ViewStringKeyTranscoder;
-import com.dreameddeath.core.model.view.impl.ViewStringTranscoder;
-import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.storage.BucketDocument;
 
 import java.util.Arrays;
 import java.util.List;

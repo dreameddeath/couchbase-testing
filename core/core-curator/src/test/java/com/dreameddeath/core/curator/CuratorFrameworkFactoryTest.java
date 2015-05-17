@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.curator;
 
-import com.dreameddeath.core.exception.curator.DuplicateClusterClientException;
+import com.dreameddeath.core.curator.exception.DuplicateClusterClientException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingCluster;

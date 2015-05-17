@@ -16,12 +16,12 @@
 
 package com.dreameddeath.core.dao;
 
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocumentLink;
+import com.dreameddeath.core.business.model.BusinessDocumentLink;
 
 /**
  * Created by ceaj8230 on 20/04/2015.
  */
-public class TestDocLink extends BusinessCouchbaseDocumentLink<TestDoc> {
+public class TestDocLink extends BusinessDocumentLink<TestDoc> {
     public TestDocLink(){}
     public TestDocLink (TestDoc src){super(src);}
     public TestDocLink(TestDocLink srcLink){super(srcLink);}

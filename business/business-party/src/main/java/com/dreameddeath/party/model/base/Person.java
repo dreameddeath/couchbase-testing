@@ -17,10 +17,10 @@
 package com.dreameddeath.party.model.base;
 
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.annotation.NotNull;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.validation.annotation.NotNull;
 import org.joda.time.DateTime;
 
 /**

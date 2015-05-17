@@ -17,7 +17,7 @@
 package com.dreameddeath.installedbase.model.common;
 
 import com.dreameddeath.billing.model.account.BillingAccountLink;
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;

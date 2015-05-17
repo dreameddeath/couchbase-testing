@@ -16,12 +16,12 @@
 
 package com.dreameddeath.core.dao.view;
 
-import com.dreameddeath.core.annotation.dao.DaoForClass;
-import com.dreameddeath.core.exception.dao.DaoNotFoundException;
-import com.dreameddeath.core.exception.dao.DuplicateDaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
+import com.dreameddeath.core.dao.exception.DaoNotFoundException;
+import com.dreameddeath.core.dao.exception.DuplicateDaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.storage.ICouchbaseBucket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public class CouchbaseViewDaoFactory {
         if(annotation==null){
             throw new NullPointerException("Annotation DaoForClass not defined for dao <"+dao.getParentDao().getClass().getName()+">");
         }
-        addDaoFor((Class<T>) annotation.value(), dao);
+        addDaoFor(annotation.value(), dao);
     }
 
     public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClazz,CouchbaseViewDao dao){

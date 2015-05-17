@@ -17,13 +17,13 @@
 package com.dreameddeath.core.dao.process;
 
 
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.GenericJacksonTranscoder;
+import com.dreameddeath.core.couchbase.GenericTranscoder;
 import com.dreameddeath.core.dao.business.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.model.document.BucketDocument;
 import com.dreameddeath.core.process.common.AbstractJob;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
-import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import com.dreameddeath.core.storage.GenericTranscoder;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.

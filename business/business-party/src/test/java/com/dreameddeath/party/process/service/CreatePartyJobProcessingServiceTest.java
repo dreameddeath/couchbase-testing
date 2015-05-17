@@ -16,13 +16,13 @@
 
 package com.dreameddeath.party.process.service;
 
-import com.dreameddeath.core.dao.process.JobDao;
-import com.dreameddeath.core.model.process.AbstractJob;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.process.dao.JobDao;
+import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.service.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
-import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.party.dao.PartyDao;

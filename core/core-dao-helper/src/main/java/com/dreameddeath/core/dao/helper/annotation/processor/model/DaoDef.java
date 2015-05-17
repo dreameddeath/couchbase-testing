@@ -16,16 +16,16 @@
 
 package com.dreameddeath.core.dao.helper.annotation.processor.model;
 
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
 import com.dreameddeath.core.dao.helper.annotation.UidDef;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
+import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.core.util.CouchbaseDocumentFieldReflection;
-import com.dreameddeath.core.util.CouchbaseDocumentReflection;
-import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
 
 import java.util.UUID;
 

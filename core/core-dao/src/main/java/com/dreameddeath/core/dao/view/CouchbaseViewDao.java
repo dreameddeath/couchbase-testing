@@ -18,17 +18,17 @@ package com.dreameddeath.core.dao.view;
 
 import com.couchbase.client.java.view.AsyncViewRow;
 import com.couchbase.client.java.view.ViewRow;
+import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.model.view.*;
+import com.dreameddeath.core.dao.model.view.impl.ViewAsyncQueryResult;
+import com.dreameddeath.core.dao.model.view.impl.ViewQuery;
+import com.dreameddeath.core.dao.model.view.impl.ViewQueryResult;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.view.*;
-import com.dreameddeath.core.model.view.impl.ViewAsyncQueryResult;
-import com.dreameddeath.core.model.view.impl.ViewQuery;
-import com.dreameddeath.core.model.view.impl.ViewQueryResult;
-import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.storage.ICouchbaseBucket;
 import rx.Observable;
 
 /**

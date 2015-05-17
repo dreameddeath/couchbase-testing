@@ -18,11 +18,11 @@ package com.dreameddeath.catalog.dao.installedbase;
 
 import com.dreameddeath.catalog.dao.CatalogElementDao;
 import com.dreameddeath.catalog.model.installedbase.Tariff;
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.GenericJacksonTranscoder;
+import com.dreameddeath.core.couchbase.GenericTranscoder;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.model.document.BucketDocument;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
-import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import com.dreameddeath.core.storage.GenericTranscoder;
 
 /**
  * Created by ceaj8230 on 07/09/2014.

@@ -16,16 +16,16 @@
 
 package com.dreameddeath.party.process.service;
 
-import com.dreameddeath.core.annotation.process.JobProcessingForClass;
-import com.dreameddeath.core.annotation.process.TaskProcessingForClass;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.model.DuplicateTaskException;
-import com.dreameddeath.core.exception.process.JobExecutionException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.process.business.service.DocumentCreateTaskProcessingService;
-import com.dreameddeath.core.process.business.service.StandardJobProcessingService;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.process.annotation.JobProcessingForClass;
+import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
+import com.dreameddeath.core.process.exception.DuplicateTaskException;
+import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 import com.dreameddeath.party.model.base.Organization;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;

@@ -19,14 +19,14 @@ package com.dreameddeath.testing;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.view.*;
-import com.dreameddeath.core.annotation.dao.DaoForClass;
+import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.impl.CouchbaseBucketWrapper;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.storage.ICouchbaseBucket;
-import com.dreameddeath.core.storage.impl.CouchbaseBucketWrapper;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 
@@ -84,7 +84,7 @@ public class Utils {
             return listViews;
         }
 
-        public void start() throws StorageException{
+        public void start() throws StorageException {
             _client.start();
             if(_client.getClass().equals(CouchbaseBucketWrapper.class)){
                 Bucket bucket=((CouchbaseBucketWrapper) _client).getBucket();

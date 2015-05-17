@@ -17,8 +17,8 @@
 package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.annotation.Unique;
-import com.dreameddeath.core.exception.dao.ValidationException;
-import com.dreameddeath.core.exception.storage.DuplicateUniqueKeyException;
+import com.dreameddeath.core.couchbase.exception.DuplicateUniqueKeyException;
+import com.dreameddeath.core.dao.exception.dao.ValidationException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 

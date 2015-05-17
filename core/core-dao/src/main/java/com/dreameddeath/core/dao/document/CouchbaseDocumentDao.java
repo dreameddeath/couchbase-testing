@@ -16,20 +16,20 @@
 
 package com.dreameddeath.core.dao.document;
 
-import com.dreameddeath.core.annotation.dao.DaoForClass;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.InconsistentStateException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.dao.InconsistentStateException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
-import com.dreameddeath.core.session.ICouchbaseSession;
-import com.dreameddeath.core.storage.BucketDocument;
-import com.dreameddeath.core.storage.ICouchbaseBucket;
-import com.dreameddeath.core.storage.ICouchbaseTranscoder;
 
 import java.util.Collection;
 import java.util.Collections;

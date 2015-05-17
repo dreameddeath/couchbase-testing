@@ -17,12 +17,12 @@
 package model;
 
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDao;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.dao.helper.annotation.*;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
-import com.dreameddeath.core.model.view.impl.ViewStringKeyTranscoder;
-import com.dreameddeath.core.model.view.impl.ViewStringTranscoder;
+import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 
 @DocumentDef(domain="test",name="daoProccessor",version = "1.0.0")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "test/",idFormat = "%010d",idPattern = "\\d{10}")
@@ -36,7 +36,7 @@ import com.dreameddeath.core.model.view.impl.ViewStringTranscoder;
         content = "emit(doc.value,doc.value);",
         keyDef = @ViewKeyDef(type=String.class,transcoder = ViewStringKeyTranscoder.class),
         valueDef = @ViewValueDef(type=String.class,transcoder = ViewStringTranscoder.class))
-public class TestDao extends BusinessCouchbaseDocument {
+public class TestDao extends BusinessDocument {
     @DocumentProperty("value")
     public String value;
 }

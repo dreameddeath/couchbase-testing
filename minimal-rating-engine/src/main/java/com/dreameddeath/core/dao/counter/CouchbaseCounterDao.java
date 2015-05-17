@@ -17,7 +17,7 @@
 package com.dreameddeath.core.dao.counter;
 
 
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
 
 /**
  * Created by ceaj8230 on 02/09/2014.

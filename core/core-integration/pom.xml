@@ -76,7 +76,7 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-business-process</artifactId>
+          <artifactId>core-process</artifactId>
           <version>${project.version}</version>
       </dependency>
       <dependency>

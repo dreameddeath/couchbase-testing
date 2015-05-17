@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.dao.helper.annotation;
 
-import com.dreameddeath.core.model.view.IViewKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.IViewKeyTranscoder;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

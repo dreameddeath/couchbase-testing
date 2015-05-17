@@ -16,13 +16,13 @@
 
 package com.dreameddeath.installedbase.process.model;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.process.AbstractJob;
-import com.dreameddeath.core.model.process.NoOpTask;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.core.process.business.model.DocumentCreateTask;
-import com.dreameddeath.core.process.business.model.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.DocumentCreateTask;
+import com.dreameddeath.core.process.model.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.NoOpTask;
 import com.dreameddeath.installedbase.model.common.InstalledBase;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseResponse;

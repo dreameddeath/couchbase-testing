@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.List;
 
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 
 import com.dreameddeath.core.dao.helper.annotation.Counter;
 import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
 import com.dreameddeath.core.dao.helper.annotation.UidDef;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDaoWithUID;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.business.model.BusinessDocument;
 
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -20,7 +20,7 @@ import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @Counter(name= "checks",dbName = "checks")
 @UidDef(fieldName = "uid")
-public class TestDaoUid extends BusinessCouchbaseDocument {
+public class TestDaoUid extends BusinessDocument {
     @DocumentProperty("uid")
     public String uid;
     @DocumentProperty("value")

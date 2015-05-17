@@ -16,13 +16,17 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.annotation.*;
-import com.dreameddeath.core.exception.ValidationFailedException;
-import com.dreameddeath.core.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.validation.annotation.NotNull;
+import com.dreameddeath.core.validation.annotation.Unique;
+import com.dreameddeath.core.validation.annotation.Validate;
+import com.dreameddeath.core.validation.annotation.ValidationConstraint;
+import com.dreameddeath.core.validation.exception.ValidationFailedException;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -212,7 +216,7 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
                 Class[] argTypes={Field.class,ValidationConstraint.class};
                 Object[] args={member,ann};
                 try {
-                    addValidator(member, (Validator) ann.validationClass().getConstructor(argTypes).newInstance(args));
+                    addValidator(member, ann.validationClass().getConstructor(argTypes).newInstance(args));
                 }
                 catch(NoSuchMethodException e) {
                     //TODO throw error

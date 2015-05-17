@@ -20,17 +20,17 @@ package com.dreameddeath.billing.model.order;
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.annotation.NotNull;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDao;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
+import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.helper.annotation.Counter;
 import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
 import com.dreameddeath.core.dao.helper.annotation.ParentEntity;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.validation.annotation.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +42,7 @@ import java.util.List;
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDao.class,dbPath = "order/",idPattern = "\\d{5}",idFormat = "%05d")
 @ParentEntity(c= BillingAccount.class,keyPath = "billingAccount.key",separator = "/")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
-public class BillingOrder extends BusinessCouchbaseDocument {
+public class BillingOrder extends BusinessDocument {
     /**
      *  billingAccount : Link to the parent billing Account
      */

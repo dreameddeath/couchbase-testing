@@ -16,18 +16,18 @@
 
 package com.dreameddeath.core;
 
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.business.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.business.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
+import com.dreameddeath.core.dao.exception.dao.DaoNotFoundException;
+import com.dreameddeath.core.dao.exception.dao.ReadOnlyException;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.date.DateTimeService;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.dao.DaoNotFoundException;
-import com.dreameddeath.core.exception.dao.ReadOnlyException;
-import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.business.CouchbaseDocumentLink;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocument;

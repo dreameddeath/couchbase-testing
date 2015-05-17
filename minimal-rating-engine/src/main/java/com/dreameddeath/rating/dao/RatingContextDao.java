@@ -18,14 +18,14 @@ package com.dreameddeath.rating.dao;
 
 
 import com.dreameddeath.billing.dao.BillingAccountDao;
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.GenericJacksonTranscoder;
+import com.dreameddeath.core.couchbase.GenericTranscoder;
 import com.dreameddeath.core.dao.business.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.exception.dao.DaoException;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
 import com.dreameddeath.core.model.document.BucketDocument;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
-import com.dreameddeath.core.storage.GenericJacksonTranscoder;
-import com.dreameddeath.core.storage.GenericTranscoder;
 import com.dreameddeath.rating.model.context.RatingContext;
 
 

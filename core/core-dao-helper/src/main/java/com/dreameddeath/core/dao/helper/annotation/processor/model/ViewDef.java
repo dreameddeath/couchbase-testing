@@ -19,8 +19,8 @@ package com.dreameddeath.core.dao.helper.annotation.processor.model;
 import com.dreameddeath.core.dao.helper.annotation.View;
 import com.dreameddeath.core.dao.helper.annotation.ViewKeyDef;
 import com.dreameddeath.core.dao.helper.annotation.ViewValueDef;
+import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
-import com.dreameddeath.core.util.CouchbaseDocumentReflection;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;

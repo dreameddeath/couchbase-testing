@@ -17,11 +17,11 @@
 package com.dreameddeath.core.transcoder.json;
 
 
-import com.dreameddeath.core.exception.transcoder.DocumentDecodingException;
-import com.dreameddeath.core.exception.transcoder.DocumentEncodingException;
 import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.transcoder.ITranscoder;
+import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingException;
+import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
+import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,13 +93,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
         _dummyClass = clazz;
         _rootClass = findRootClass(clazz);
 
-        /*try {
-            //MAPPER.getSerializerProvider().findTypedValueSerializer(clazz, true, null);
-        }
-        catch (Exception e){
-            logger.error("Error during transcoder init for class <{}>",clazz.getName(),e);
-            throw new RuntimeException("Error during transcoder init for class <"+clazz.getName()+">");
-        }*/
+
     }
 
     @Override

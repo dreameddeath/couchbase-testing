@@ -18,19 +18,19 @@ package com.dreameddeath.core.model;
 
 
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.annotation.dao.DaoForClass;
+import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.business.model.VersionedDocumentElement;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
-import com.dreameddeath.core.model.business.VersionedCouchbaseDocumentElement;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.session.ICouchbaseSession;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.storage.BucketDocument;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.core.upgrade.Utils;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -46,7 +46,7 @@ import static org.junit.Assert.assertEquals;
  * Created by ceaj8230 on 17/12/2014.
  */
 public class UpgraderTest {
-    public static abstract class TestElement extends VersionedCouchbaseDocumentElement{
+    public static abstract class TestElement extends VersionedDocumentElement {
         @DocumentProperty("baseValue")
         public String baseValue;
     }
@@ -64,7 +64,7 @@ public class UpgraderTest {
     }
 
     @DocumentDef(domain="test",name="elementUnified",version = "1.0.0")
-    public static class TestElementV2 extends VersionedCouchbaseDocumentElement{
+    public static class TestElementV2 extends VersionedDocumentElement {
         @DocumentProperty("baseValue2")
         public String baseValue2;
         @DocumentProperty("value2")
@@ -72,7 +72,7 @@ public class UpgraderTest {
     }
 
     @DocumentDef(domain="test",name="test",version = "1.0.0")
-    public static class TestModel extends BusinessCouchbaseDocument {
+    public static class TestModel extends BusinessDocument {
         @DocumentProperty("value")
         public String value;
 
@@ -81,7 +81,7 @@ public class UpgraderTest {
     }
 
     @DocumentDef(domain="test",name="test",version = "2.1.0")
-    public static class TestModelV2 extends BusinessCouchbaseDocument {
+    public static class TestModelV2 extends BusinessDocument {
         @DocumentProperty("value")
         public String value2;
 

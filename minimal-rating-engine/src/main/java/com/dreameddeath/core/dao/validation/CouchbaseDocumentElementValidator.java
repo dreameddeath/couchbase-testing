@@ -17,7 +17,7 @@
 package com.dreameddeath.core.dao.validation;
 
 import com.dreameddeath.core.annotation.*;
-import com.dreameddeath.core.exception.dao.ValidationException;
+import com.dreameddeath.core.dao.exception.dao.ValidationException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
@@ -210,7 +210,7 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
                 Class[] argTypes={Field.class,ValidationConstraint.class};
                 Object[] args={member,ann};
                 try {
-                    addValidator(member, (Validator)ann.validationClass().getConstructor(argTypes).newInstance(args));
+                    addValidator(member, ann.validationClass().getConstructor(argTypes).newInstance(args));
                 }
                 catch(NoSuchMethodException e) {
                     //TODO throw error

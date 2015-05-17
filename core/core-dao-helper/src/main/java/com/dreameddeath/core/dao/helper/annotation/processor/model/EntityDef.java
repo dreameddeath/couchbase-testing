@@ -17,10 +17,10 @@
 package com.dreameddeath.core.dao.helper.annotation.processor.model;
 
 import com.dreameddeath.core.dao.helper.annotation.ParentEntity;
+import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
+import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
-import com.dreameddeath.core.util.CouchbaseDocumentFieldReflection;
-import com.dreameddeath.core.util.CouchbaseDocumentReflection;
-import com.dreameddeath.core.util.CouchbaseDocumentStructureReflection;
 
 /**
  * Created by CEAJ8230 on 10/04/2015.

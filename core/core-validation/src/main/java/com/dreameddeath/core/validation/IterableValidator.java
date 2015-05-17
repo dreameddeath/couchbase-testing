@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.exception.ValidationFailedException;
-import com.dreameddeath.core.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.validation.exception.ValidationFailedException;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;

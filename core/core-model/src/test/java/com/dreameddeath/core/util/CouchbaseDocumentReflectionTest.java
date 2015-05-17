@@ -16,11 +16,12 @@
 
 package com.dreameddeath.core.util;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import org.junit.Test;
 
@@ -121,7 +122,7 @@ public class CouchbaseDocumentReflectionTest {
         out.println("import com.dreameddeath.core.util.CouchbaseDocumentReflectionTest.TestInherited;");
         out.println("import com.dreameddeath.core.model.document.CouchbaseDocumentElement;");
         out.println("import com.dreameddeath.core.util.*;");
-        out.println("import com.dreameddeath.core.annotation.DocumentProperty;");
+        out.println("import com.dreameddeath.core.model.annotation.DocumentProperty;");
         out.println("@TestAnnotation");
         out.println("public class TypeMirrorInherited extends TestInherited {");
         out.println("  @DocumentProperty(\"subValue1\") private String subValue1;");

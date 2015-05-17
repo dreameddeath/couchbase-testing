@@ -16,9 +16,9 @@
 
 package com.dreameddeath.core.dao;
 
+import com.dreameddeath.core.dao.model.view.IViewKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
-import com.dreameddeath.core.model.view.IViewKeyTranscoder;
-import com.dreameddeath.core.model.view.IViewTranscoder;
 
 /**
  * Created by CEAJ8230 on 15/04/2015.

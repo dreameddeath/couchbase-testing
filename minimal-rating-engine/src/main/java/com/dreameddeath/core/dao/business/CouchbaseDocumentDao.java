@@ -16,15 +16,15 @@
 
 package com.dreameddeath.core.dao.business;
 
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
+import com.dreameddeath.core.dao.exception.dao.ValidationException;
 import com.dreameddeath.core.dao.validation.Validator;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.exception.dao.ValidationException;
-import com.dreameddeath.core.exception.storage.StorageException;
 import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.business.CouchbaseDocumentLink;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
 
 import java.util.Set;
 
@@ -49,7 +49,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument> extends 
     }
 
 
-    public T create(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+    public T create(T obj,boolean isCalcOnly) throws DaoException,StorageException{
         validate(obj);
         return super.create(obj,isCalcOnly);
     }
@@ -60,7 +60,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument> extends 
         }
     }*/
 
-    public T update(T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+    public T update(T obj,boolean isCalcOnly) throws DaoException,StorageException{
         validate(obj);
         updateRevision(obj);
         Set<String> keysToRemove=obj.getRemovedUniqueKeys();

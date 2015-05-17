@@ -17,7 +17,7 @@
 package com.dreameddeath.core.model.document;
 
 import com.dreameddeath.core.CouchbaseSession;
-import com.dreameddeath.core.storage.CouchbaseConstants;
+import com.dreameddeath.core.couchbase.CouchbaseConstants;
 
 import java.util.Collection;
 import java.util.HashSet;

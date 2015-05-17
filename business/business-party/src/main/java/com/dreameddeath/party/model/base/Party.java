@@ -17,8 +17,8 @@
 package com.dreameddeath.party.model.base;
 
 import com.dreameddeath.common.model.ExternalId;
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
+import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
@@ -31,7 +31,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 27/07/2014.
  */
 //@JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
-public abstract class Party extends BusinessCouchbaseDocument {
+public abstract class Party extends BusinessDocument {
     @DocumentProperty("uid")
     private ImmutableProperty<String> _uid=new ImmutableProperty<String>(Party.this);
     @DocumentProperty(value="partyRoles")

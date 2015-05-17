@@ -19,12 +19,12 @@ package com.dreameddeath.billing.model.cycle;
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentProperty;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
+import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.helper.annotation.Counter;
 import com.dreameddeath.core.dao.helper.annotation.DaoEntity;
 import com.dreameddeath.core.dao.helper.annotation.ParentEntity;
-import com.dreameddeath.core.dao.business.BusinessCouchbaseDocumentDao;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -34,7 +34,7 @@ import org.joda.time.DateTime;
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDao.class,dbPath = "cycle/",idPattern = "\\d{5}",idFormat = "%05d")
 @ParentEntity(c= BillingAccount.class,keyPath = "ba.key",separator = "/")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
-public class BillingCycle extends BusinessCouchbaseDocument {
+public class BillingCycle extends BusinessDocument {
     @DocumentProperty(value="ba",getter = "getBillingAccountLink",setter="setBillingAccountLink")
     private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<>(BillingCycle.this);
     @DocumentProperty("startDate")

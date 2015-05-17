@@ -17,9 +17,9 @@
 package com.dreameddeath.core.dao.counter;
 
 
+import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.exception.storage.StorageException;
-import com.dreameddeath.core.storage.ICouchbaseBucket;
 
 /**
  * Created by ceaj8230 on 02/09/2014.

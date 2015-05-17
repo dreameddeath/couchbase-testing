@@ -18,11 +18,11 @@ package com.dreameddeath.catalog.dao;
 
 import com.dreameddeath.catalog.model.CatalogElement;
 import com.dreameddeath.catalog.model.CatalogItemVersion;
+import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
 import com.dreameddeath.core.dao.business.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.exception.dao.DaoException;
-import com.dreameddeath.core.storage.CouchbaseBucketWrapper;
+import com.dreameddeath.core.dao.exception.dao.DaoException;
 
 /**
  * Created by ceaj8230 on 06/09/2014.

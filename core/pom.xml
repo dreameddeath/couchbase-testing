@@ -34,7 +34,7 @@
         <module>core-validation</module>
         <module>core-model</module>
         <module>core-business</module>
-        <module>core-business-process</module>
+        <module>core-process</module>
         <module>core-couchbase</module>
         <module>core-dao</module>
         <module>core-session</module>

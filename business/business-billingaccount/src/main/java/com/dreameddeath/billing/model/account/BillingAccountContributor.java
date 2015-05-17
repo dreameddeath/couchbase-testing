@@ -16,16 +16,16 @@
 
 package com.dreameddeath.billing.model.account;
 
-import com.dreameddeath.core.annotation.DocumentProperty;
-import com.dreameddeath.core.annotation.NotNull;
-import com.dreameddeath.core.model.business.BusinessCouchbaseDocument;
+import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.validation.annotation.NotNull;
 
 /**
  * Created by CEAJ8230 on 25/11/2014.
  */
-public abstract class BillingAccountContributor extends BusinessCouchbaseDocument{
+public abstract class BillingAccountContributor extends BusinessDocument {
     /**
      *  contributorType : Type of contributor to the billing Account
      */
