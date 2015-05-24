@@ -18,6 +18,9 @@ package com.dreameddeath.core.config.impl;
 
 import com.dreameddeath.core.config.AbstractConfigProperty;
 import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
+import com.dreameddeath.core.config.IConfigProperty;
+import com.dreameddeath.core.config.internal.ExtendedPropertyWrapper;
+import com.dreameddeath.core.config.internal.ReferencePropertyWrapper;
 
 /**
  * Created by CEAJ8230 on 03/02/2015.
@@ -25,23 +28,41 @@ import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
 public class BooleanConfigProperty extends AbstractConfigProperty<Boolean> {
 
     public BooleanConfigProperty(String name, Boolean defaultValue) {
-        super(new BooleanExtendedProperty(name,defaultValue));
+        super(new ExtendedProperty(name,defaultValue));
     }
 
     public BooleanConfigProperty(String name, Boolean defaultValue, ConfigPropertyChangedCallback<Boolean> callback) {
-        super(new BooleanExtendedProperty(name,defaultValue),callback);
+        super(new ExtendedProperty(name,defaultValue),callback);
+    }
+
+    public BooleanConfigProperty(String name, IConfigProperty<Boolean> defaultValue) {
+        super(new ExtendedRefProperty(name,defaultValue));
+    }
+
+    public BooleanConfigProperty(String name, IConfigProperty<Boolean> defaultValue, ConfigPropertyChangedCallback<Boolean> callback) {
+        super(new ExtendedRefProperty(name,defaultValue),callback);
     }
 
 
     public boolean get(){return getValue();}
 
-    protected static class BooleanExtendedProperty extends ExtendedPropertyWrapper<Boolean>{
-        public BooleanExtendedProperty(String name,Boolean defaultValue){
+    protected static class ExtendedProperty extends ExtendedPropertyWrapper<Boolean> {
+        public ExtendedProperty(String name, Boolean defaultValue){
             super(name,defaultValue);
         }
         @Override
         public Boolean getValue() {
             return prop.getBoolean(defaultValue);
+        }
+    }
+
+    protected static class ExtendedRefProperty extends ReferencePropertyWrapper<Boolean> {
+        public ExtendedRefProperty(String name, IConfigProperty<Boolean> defaultValue){
+            super(name,defaultValue);
+        }
+        @Override
+        public Boolean getLocalValue() {
+            return prop.getBoolean();
         }
     }
 }

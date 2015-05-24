@@ -82,6 +82,10 @@
           <version>${curator.version}</version>
           <scope>test</scope>
       </dependency>
-
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-config</artifactId>
+          <version>${project.version}</version>
+      </dependency>
   </dependencies>
 </project>

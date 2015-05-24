@@ -36,7 +36,7 @@ TODOs
 
 ### Model layer
 - Be able to generate an model introspector (to extract XSD or Json-schema) - better at compile time
-- Generate classes base on XML Schema or JSon similar (include datamodel upgrade definition)
+- Generate classes base on XML Schema or Json similar (include datamodel upgrade definition)
 - Visitor Tool
 - Validator rewrite
 
@@ -44,7 +44,7 @@ TODOs
 ### Framework Layer
 - event based notification
 - MDC integration
-- Unified SOAP & REST API (Use of jibx mappings)
+- Unified SOAP & REST API (Use of jibx mappings - or use jackson xml)
 - Configuration (properties + db config + overriding management) + AutoReload - timebase
 
 ### Infrastructure Layer

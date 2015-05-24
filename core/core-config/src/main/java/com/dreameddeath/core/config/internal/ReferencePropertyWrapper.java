@@ -1,0 +1,46 @@
+package com.dreameddeath.core.config.internal;
+
+import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
+import com.dreameddeath.core.config.ConfigPropertyFactory;
+import com.dreameddeath.core.config.IConfigProperty;
+
+/**
+ * Created by CEAJ8230 on 22/05/2015.
+ */
+public abstract class ReferencePropertyWrapper<T> extends ExtendedPropertyWrapper<T> {
+    private IConfigProperty<T> _defaultRefProperty;
+
+    protected ReferencePropertyWrapper(String name, IConfigProperty<T> defaultRefProperty) {
+        super(name, defaultRefProperty.getDefaultValue());
+        _defaultRefProperty = defaultRefProperty;
+        _defaultRefProperty.addCallback(new RefChangeCallBack<>(this));
+    }
+
+    public abstract T getLocalValue();
+
+    public final T getValue() {
+        T res = getLocalValue();
+        return res != null ? res : getDefaultValue();
+    }
+
+    @Override
+    public T getDefaultValue() {
+        return _defaultRefProperty.getValue();
+    }
+
+    protected static class RefChangeCallBack<T> implements ConfigPropertyChangedCallback<T> {
+        private ReferencePropertyWrapper<T> _refProperty;
+
+        protected RefChangeCallBack(ReferencePropertyWrapper<T> ref) {
+            _refProperty = ref;
+        }
+
+        @Override
+        public void onChange(IConfigProperty<T> prop, T oldValue, T newValue) {
+            if (_refProperty.getLocalValue() == null) {
+                _refProperty.propertyChanged(newValue);
+                ConfigPropertyFactory.fireCallback(_refProperty.getName(), newValue);
+            }
+        }
+    }
+}

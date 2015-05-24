@@ -43,8 +43,8 @@ public class CuratorFrameworkFactory{
     public static String CONNECTION_STRING_SEPARATOR = ",";
     public static Pattern CONNECTION_STRING_PATTERN = Pattern.compile("^\\s*((\\w+)(\\.\\w+)*:\\d+)(\\s*,\\s*(\\w+)(\\.\\w+)*:\\d+)*\\s*$");
 
-    private static final int DEFAULT_SESSION_TIMEOUT_MS = Integer.getInteger("curator-default-session-timeout", '\uea60').intValue();
-    private static final int DEFAULT_CONNECTION_TIMEOUT_MS = Integer.getInteger("curator-default-connection-timeout", 15000).intValue();
+    //private static final int DEFAULT_SESSION_TIMEOUT_MS = Integer.getInteger("curator-default-session-timeout", '\uea60').intValue();
+    //private static final int DEFAULT_CONNECTION_TIMEOUT_MS = Integer.getInteger("curator-default-connection-timeout", 15000).intValue();
 
     private static final ConcurrentMap<String,CuratorFramework> _curatorFrameworkConcurrentMap = new ConcurrentHashMap<>();
 
@@ -59,7 +59,7 @@ public class CuratorFrameworkFactory{
 
 
     public static CuratorFramework newClientInstance(String connectString, RetryPolicy retryPolicy) throws DuplicateClusterClientException,BadConnectionStringException{
-        return newClientInstance(connectString, DEFAULT_SESSION_TIMEOUT_MS, DEFAULT_CONNECTION_TIMEOUT_MS, retryPolicy);
+        return newClientInstance(connectString, CuratorConfigProperties.CURATOR_SESSION_TIMEOUT.get(), CuratorConfigProperties.CURATOR_CONNECTION_TIMEOUT.get(), retryPolicy);
     }
 
     public static CuratorFramework newClientInstance(String connectString, int sessionTimeoutMs, int connectionTimeoutMs, RetryPolicy retryPolicy) throws DuplicateClusterClientException,BadConnectionStringException{
@@ -68,7 +68,7 @@ public class CuratorFrameworkFactory{
 
 
     public static CuratorFramework newClientInstance(String nameSpacePrefix,String connectString, RetryPolicy retryPolicy) throws DuplicateClusterClientException,BadConnectionStringException{
-        return newClientInstance(nameSpacePrefix, connectString, DEFAULT_SESSION_TIMEOUT_MS, DEFAULT_CONNECTION_TIMEOUT_MS, retryPolicy);
+        return newClientInstance(nameSpacePrefix, connectString, CuratorConfigProperties.CURATOR_SESSION_TIMEOUT.get(),CuratorConfigProperties.CURATOR_CONNECTION_TIMEOUT.get(), retryPolicy);
     }
 
     public static CuratorFramework newClientInstance(String nameSpacePrefix,String connectString, int sessionTimeoutMs, int connectionTimeoutMs, RetryPolicy retryPolicy) throws DuplicateClusterClientException,BadConnectionStringException{
@@ -107,12 +107,12 @@ public class CuratorFrameworkFactory{
     }
 
     public static CuratorFramework newClient(String connectString, RetryPolicy retryPolicy)throws InconsitentClientRequest,BadConnectionStringException{
-        return newClient(connectString,DEFAULT_SESSION_TIMEOUT_MS,DEFAULT_CONNECTION_TIMEOUT_MS,retryPolicy);
+        return newClient(connectString,CuratorConfigProperties.CURATOR_SESSION_TIMEOUT.get(),CuratorConfigProperties.CURATOR_CONNECTION_TIMEOUT.get(),retryPolicy);
     }
 
 
     public static CuratorFramework newClient(String nameSpacePrefix,String connectString, RetryPolicy retryPolicy)throws InconsitentClientRequest,BadConnectionStringException{
-        return newClient(nameSpacePrefix,connectString,DEFAULT_SESSION_TIMEOUT_MS,DEFAULT_CONNECTION_TIMEOUT_MS,retryPolicy);
+        return newClient(nameSpacePrefix,connectString,CuratorConfigProperties.CURATOR_SESSION_TIMEOUT.get(),CuratorConfigProperties.CURATOR_CONNECTION_TIMEOUT.get(),retryPolicy);
     }
 
     private static String normalizeNameSpacePrefix(String prefix){

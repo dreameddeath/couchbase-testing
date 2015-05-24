@@ -21,7 +21,10 @@ import com.dreameddeath.core.config.impl.*;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 
@@ -29,44 +32,74 @@ public class ConfigPropertyFactoryTest {
     private static double delta=0.0000001d;
 
     @Test
-    public void testBuildFullName() throws Exception {
-        String result = ConfigPropertyFactory.buildPropName("prop.int", true);
-        assertEquals(ConfigManagerFactory.CONFIGURATION_PROPERTY_PREFIX+"."+"prop.int",result);
-    }
-
-    @Test
     public void testAddConfigurationEntry() throws Exception {
-        IntConfigProperty prop = ConfigPropertyFactory.getIntProperty("prop.add", 10, true);
-        IntConfigProperty rawProp = ConfigPropertyFactory.getIntProperty("prop.add", 20);
+        IntConfigProperty prop = ConfigPropertyFactory.getIntProperty("prop.add", 10);
 
-        assertEquals(10,prop.get());
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("prop.add"), prop.getName());
-        assertEquals(20,rawProp.get());
-        Assert.assertEquals("prop.add", rawProp.getName());
+        assertEquals(10, prop.get());
+        Assert.assertEquals("prop.add", prop.getName());
 
         ConfigManagerFactory.addConfigurationEntry("prop.add", 1);
-        ConfigManagerFactory.addRawConfigurationEntry("prop.add", 2);
         assertEquals(1, prop.get());
-        assertEquals(2, rawProp.get());
+    }
+
+
+    @Test
+    public void testAddRefDefaultConfigurationEntry() throws Exception {
+        final AtomicInteger nbCallbackCalled=new AtomicInteger(0);
+
+        IntConfigProperty propRef = ConfigPropertyFactory.getIntProperty("prop.ref", 10);
+        IntConfigProperty prop = ConfigPropertyFactory.getIntProperty("prop.withRef", propRef);
+        IntConfigProperty propCallback = ConfigPropertyFactory.getIntProperty("prop.withRefAndCallback", propRef,(modifiedProp,oldValue,newValue)->{
+            nbCallbackCalled.incrementAndGet();
+            switch (nbCallbackCalled.get()){
+                case 1:
+                    assertEquals(10,oldValue.intValue());
+                    assertEquals(20,newValue.intValue());
+                    break;
+                case 2:
+                    assertEquals(20,oldValue.intValue());
+                    assertEquals(30,newValue.intValue());
+                    break;
+            }
+        });
+
+        assertEquals(10, prop.get());
+        assertEquals(10, propCallback.get());
+
+        //Set default Value of ref
+        ConfigManagerFactory.addConfigurationEntry("prop.ref", 20);
+        assertEquals(20, prop.get());
+        assertEquals(20, propCallback.get());
+        assertEquals(1,  nbCallbackCalled.get());
+
+
+        //Set default Value of ref
+        ConfigManagerFactory.addConfigurationEntry("prop.withRef", 30);
+        ConfigManagerFactory.addConfigurationEntry("prop.withRefAndCallback", 30);
+        assertEquals(30, prop.get());
+        assertEquals(30, propCallback.get());
+        assertEquals(2, nbCallbackCalled.get());
+
+        //Set default Value of ref but shouldn't change anything/call any callback
+        ConfigManagerFactory.addConfigurationEntry("prop.ref", 25);
+        assertEquals(30, prop.get());
+        assertEquals(30, propCallback.get());
+        assertEquals(2,  nbCallbackCalled.get());
     }
 
 
     @Test(expected = ConfigPropertyValueNotFound.class)
     public void testNotFoundProperty() throws Exception {
-        ConfigPropertyFactory.getStringProperty("toto.not_found", null).getMandatoryValue("Normal error");
+        ConfigPropertyFactory.getStringProperty("toto.not_found", (String)null).getMandatoryValue("Normal error");
     }
 
         @Test
     public void testGetBooleanProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
-        final AtomicBoolean callbackRawCalled=new AtomicBoolean(false);
         final boolean firstValue=true;
-        final boolean firstRawValue=false;
         final boolean secondValue=false;
-        final boolean secondRawValue=true;
 
-        BooleanConfigProperty prop = ConfigPropertyFactory.getBooleanProperty("prop.boolean", firstValue, true);
-        BooleanConfigProperty rawProp = ConfigPropertyFactory.getBooleanProperty("prop.boolean", firstRawValue);
+        BooleanConfigProperty prop = ConfigPropertyFactory.getBooleanProperty("prop.boolean", firstValue);
         BooleanConfigProperty callBackProp = ConfigPropertyFactory.getBooleanProperty("callback.prop.boolean", firstValue, new ConfigPropertyChangedCallback<Boolean>() {
             @Override
             public void onChange(IConfigProperty<Boolean> prop, Boolean oldValue, Boolean newValue) {
@@ -74,56 +107,29 @@ public class ConfigPropertyFactoryTest {
                 assertEquals(newValue, secondValue);
                 callbackCalled.set(true);
             }
-        }, true);
-        BooleanConfigProperty callBackRawProp = ConfigPropertyFactory.getBooleanProperty("callback.prop.boolean", firstRawValue, new ConfigPropertyChangedCallback<Boolean>() {
-            @Override
-            public void onChange(IConfigProperty<Boolean> prop, Boolean oldValue, Boolean newValue) {
-                assertEquals(oldValue, firstRawValue);
-                assertEquals(newValue, secondRawValue);
-                callbackRawCalled.set(true);
-            }
         });
-
 
         //Check default value
         assertEquals(firstValue,prop.get());
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("prop.boolean"), prop.getName());
-        assertEquals(firstRawValue,rawProp.get());
-        Assert.assertEquals("prop.boolean", rawProp.getName());
         //With callback
         assertEquals(firstValue, callBackProp.get());
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("callback.prop.boolean"), callBackProp.getName());
         assertFalse(callbackCalled.get());
-        assertEquals(firstRawValue, callBackRawProp.get());
-        Assert.assertEquals("callback.prop.boolean", callBackRawProp.getName());
-        assertFalse(callbackRawCalled.get());
-
-
         //Set and Check Overridden Property
         ConfigManagerFactory.addConfigurationEntry("prop.boolean", secondValue);
-        ConfigManagerFactory.addRawConfigurationEntry("prop.boolean", secondRawValue);
         assertEquals(secondValue, prop.get());
-        assertEquals(secondRawValue, rawProp.get());
-        //Set and Check Overridden Property with callbacks 
+        //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.boolean", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
-        ConfigManagerFactory.addRawConfigurationEntry("callback.prop.boolean", secondRawValue);
-        assertEquals(secondRawValue, callBackRawProp.get());
-        assertTrue(callbackRawCalled.get());
     }
 
     @Test
     public void testGetIntProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
-        final AtomicBoolean callbackRawCalled=new AtomicBoolean(false);
         final int firstValue=10;
-        final int firstRawValue=20;
         final int secondValue=1;
-        final int secondRawValue=2;
 
-        IntConfigProperty prop = ConfigPropertyFactory.getIntProperty("prop.int", firstValue, true);
-        IntConfigProperty rawProp = ConfigPropertyFactory.getIntProperty("prop.int", firstRawValue);
+        IntConfigProperty prop = ConfigPropertyFactory.getIntProperty("prop.int", firstValue);
         IntConfigProperty callBackProp = ConfigPropertyFactory.getIntProperty("callback.prop.int", firstValue, new ConfigPropertyChangedCallback<Integer>() {
             @Override
             public void onChange(IConfigProperty<Integer> prop, Integer oldValue, Integer newValue) {
@@ -131,59 +137,31 @@ public class ConfigPropertyFactoryTest {
                 assertEquals(newValue.intValue(), secondValue);
                 callbackCalled.set(true);
             }
-        }
-
-                , true);
-        IntConfigProperty callBackRawProp = ConfigPropertyFactory.getIntProperty("callback.prop.int", firstRawValue, new ConfigPropertyChangedCallback<Integer>() {
-                    @Override
-                    public void onChange(IConfigProperty<Integer> prop, Integer oldValue, Integer newValue) {
-                        assertEquals(oldValue.intValue(), firstRawValue);
-                        assertEquals(newValue.intValue(), secondRawValue);
-                        callbackRawCalled.set(true);
-                    }
-                }
-        );
-
+        });
 
         //Check default value
         assertEquals(firstValue,prop.get());
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("prop.int"), prop.getName());
-        assertEquals(firstRawValue,rawProp.get());
-        Assert.assertEquals("prop.int", rawProp.getName());
         //With callback
         assertEquals(firstValue, callBackProp.get());
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("callback.prop.int"), callBackProp.getName());
         assertFalse(callbackCalled.get());
-        assertEquals(firstRawValue,callBackRawProp.get());
-        Assert.assertEquals("callback.prop.int", callBackRawProp.getName());
-        assertFalse(callbackRawCalled.get());
 
 
         //Set and Check Overridden Property
         ConfigManagerFactory.addConfigurationEntry("prop.int", secondValue);
-        ConfigManagerFactory.addRawConfigurationEntry("prop.int", secondRawValue);
         assertEquals(secondValue, prop.get());
-        assertEquals(secondRawValue, rawProp.get());
-        //Set and Check Overridden Property with callbacks 
+        //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.int", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
-        ConfigManagerFactory.addRawConfigurationEntry("callback.prop.int", secondRawValue);
-        assertEquals(secondRawValue, callBackRawProp.get());
-        assertTrue(callbackRawCalled.get());
     }
 
     @Test
     public void testGetLongProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
-        final AtomicBoolean callbackRawCalled=new AtomicBoolean(false);
         final long firstValue=10L;
-        final long firstRawValue=20L;
         final long secondValue=1L;
-        final long secondRawValue=2L;
 
-        LongConfigProperty prop = ConfigPropertyFactory.getLongProperty("prop.long", firstValue, true);
-        LongConfigProperty rawProp = ConfigPropertyFactory.getLongProperty("prop.long", firstRawValue);
+        LongConfigProperty prop = ConfigPropertyFactory.getLongProperty("prop.long", firstValue);
         LongConfigProperty callBackProp = ConfigPropertyFactory.getLongProperty("callback.prop.long", firstValue, new ConfigPropertyChangedCallback<Long>() {
             @Override
             public void onChange(IConfigProperty<Long> prop, Long oldValue, Long newValue) {
@@ -191,57 +169,30 @@ public class ConfigPropertyFactoryTest {
                 assertEquals(newValue.longValue(), secondValue);
                 callbackCalled.set(true);
             }
-        }, true);
-        LongConfigProperty callBackRawProp = ConfigPropertyFactory.getLongProperty("callback.prop.long", firstRawValue, new ConfigPropertyChangedCallback<Long>() {
-                    @Override
-                    public void onChange(IConfigProperty<Long> prop, Long oldValue, Long newValue) {
-                        assertEquals(oldValue.longValue(), firstRawValue);
-                        assertEquals(newValue.longValue(), secondRawValue);
-                        callbackRawCalled.set(true);
-                    }
-                }
-        );
-
+        });
 
         //Check default value
         assertEquals(firstValue,prop.get());
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("prop.long"), prop.getName());
-        assertEquals(firstRawValue,rawProp.get());
-        Assert.assertEquals("prop.long", rawProp.getName());
         //With callback
         assertEquals(firstValue, callBackProp.get());
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("callback.prop.long"), callBackProp.getName());
         assertFalse(callbackCalled.get());
-        assertEquals(firstRawValue, callBackRawProp.get());
-        Assert.assertEquals("callback.prop.long", callBackRawProp.getName());
-        assertFalse(callbackRawCalled.get());
-
 
         //Set and Check Overridden Property
         ConfigManagerFactory.addConfigurationEntry("prop.long", secondValue);
-        ConfigManagerFactory.addRawConfigurationEntry("prop.long", secondRawValue);
         assertEquals(secondValue, prop.get());
-        assertEquals(secondRawValue, rawProp.get());
-        //Set and Check Overridden Property with callbacks 
+        //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.long", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
-        ConfigManagerFactory.addRawConfigurationEntry("callback.prop.long", secondRawValue);
-        assertEquals(secondRawValue, callBackRawProp.get());
-        assertTrue(callbackRawCalled.get());
     }
 
     @Test
     public void testGetStringProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
-        final AtomicBoolean callbackRawCalled=new AtomicBoolean(false);
         final String firstValue="1st Value";
-        final String firstRawValue="1st Raw Value";
         final String secondValue="2nd Value";
-        final String secondRawValue="2nd Raw Value";
 
-        StringConfigProperty prop = ConfigPropertyFactory.getStringProperty("prop.string", firstValue, true);
-        StringConfigProperty rawProp = ConfigPropertyFactory.getStringProperty("prop.string", firstRawValue);
+        StringConfigProperty prop = ConfigPropertyFactory.getStringProperty("prop.string", firstValue);
         StringConfigProperty callBackProp = ConfigPropertyFactory.getStringProperty("callback.prop.string", firstValue, new ConfigPropertyChangedCallback<String>() {
             @Override
             public void onChange(IConfigProperty<String> prop, String oldValue, String newValue) {
@@ -249,56 +200,63 @@ public class ConfigPropertyFactoryTest {
                 assertEquals(newValue, secondValue);
                 callbackCalled.set(true);
             }
-        }, true);
-        StringConfigProperty callBackRawProp = ConfigPropertyFactory.getStringProperty("callback.prop.string", firstRawValue, new ConfigPropertyChangedCallback<String>() {
-            @Override
-            public void onChange(IConfigProperty<String> prop, String oldValue, String newValue) {
-                assertEquals(oldValue, firstRawValue);
-                assertEquals(newValue, secondRawValue);
-                callbackRawCalled.set(true);
-            }
         });
 
 
         //Check default value
         assertEquals(firstValue,prop.get());
-        assertEquals(ConfigManagerFactory.buildFullName("prop.string"),prop.getName());
-        assertEquals(firstRawValue,rawProp.get());
-        assertEquals("prop.string", rawProp.getName());
         //With callback
         assertEquals(firstValue, callBackProp.get());
-        assertEquals(ConfigManagerFactory.buildFullName("callback.prop.string"), callBackProp.getName());
         assertFalse(callbackCalled.get());
-        assertEquals(firstRawValue, callBackRawProp.get());
-        assertEquals("callback.prop.string", callBackRawProp.getName());
-        assertFalse(callbackRawCalled.get());
 
 
         //Set and Check Overridden Property
         ConfigManagerFactory.addConfigurationEntry("prop.string", secondValue);
-        ConfigManagerFactory.addRawConfigurationEntry("prop.string", secondRawValue);
         assertEquals(secondValue, prop.get());
-        assertEquals(secondRawValue, rawProp.get());
-        //Set and Check Overridden Property with callbacks 
+        //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.string", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
-        ConfigManagerFactory.addRawConfigurationEntry("callback.prop.string", secondRawValue);
-        assertEquals(secondRawValue, callBackRawProp.get());
-        assertTrue(callbackRawCalled.get());
+    }
+
+
+    @Test
+    public void testGetStringListProperty() throws Exception {
+        final AtomicBoolean callbackCalled=new AtomicBoolean(false);
+        final String firstValueString= "1st Value,1st Value";
+        final List<String> firstValueList= Arrays.asList("1st Value","1st Value");
+        final String secondValueString="2nd Value,2nd Value";
+        final List<String> secondValue=Arrays.asList("2nd Value", "2nd Value");
+
+        StringListConfigProperty prop = ConfigPropertyFactory.getStringListProperty("prop.stringlist", firstValueString);
+        StringListConfigProperty callBackProp = ConfigPropertyFactory.getStringListProperty("callback.prop.stringlist", firstValueString, (prop1, oldValue, newValue) -> {
+            assertEquals(oldValue, firstValueList);
+            assertEquals(newValue, secondValue);
+            callbackCalled.set(true);
+        });
+
+
+        //Check default value
+        assertEquals(firstValueList,prop.get());
+        //With callback
+        assertEquals(firstValueList, callBackProp.get());
+        assertFalse(callbackCalled.get());
+        //Set and Check Overridden Property
+        ConfigManagerFactory.addConfigurationEntry("prop.stringlist", secondValueString);
+        assertEquals(secondValue, prop.get());
+        //Set and Check Overridden Property with callbacks
+        ConfigManagerFactory.addConfigurationEntry("callback.prop.stringlist", secondValueString);
+        assertEquals(secondValue, callBackProp.get());
+        assertTrue(callbackCalled.get());
     }
 
     @Test
     public void testGetFloatProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
-        final AtomicBoolean callbackRawCalled=new AtomicBoolean(false);
         final float firstValue=10.0f;
-        final float firstRawValue=20.0f;
         final float secondValue=1.0f;
-        final float secondRawValue=2.0f;
 
-        FloatConfigProperty prop = ConfigPropertyFactory.getFloatProperty("prop.float", firstValue, true);
-        FloatConfigProperty rawProp = ConfigPropertyFactory.getFloatProperty("prop.float", firstRawValue);
+        FloatConfigProperty prop = ConfigPropertyFactory.getFloatProperty("prop.float", firstValue);
         FloatConfigProperty callBackProp = ConfigPropertyFactory.getFloatProperty("callback.prop.float", firstValue, new ConfigPropertyChangedCallback<Float>() {
             @Override
             public void onChange(IConfigProperty<Float> prop, Float oldValue, Float newValue) {
@@ -306,56 +264,29 @@ public class ConfigPropertyFactoryTest {
                 assertEquals(newValue, secondValue, 0.0001);
                 callbackCalled.set(true);
             }
-        }, true);
-        FloatConfigProperty callBackRawProp = ConfigPropertyFactory.getFloatProperty("callback.prop.float", firstRawValue, new ConfigPropertyChangedCallback<Float>() {
-            @Override
-            public void onChange(IConfigProperty<Float> prop, Float oldValue, Float newValue) {
-                assertEquals(oldValue, firstRawValue, 0.0001);
-                assertEquals(newValue, secondRawValue, 0.0001);
-                callbackRawCalled.set(true);
-            }
         });
-
 
         //Check default value
         assertEquals(firstValue,prop.get(),delta);
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("prop.float"), prop.getName());
-        assertEquals(firstRawValue,rawProp.get(),delta);
-        Assert.assertEquals("prop.float", rawProp.getName());
         //With callback
         assertEquals(firstValue, callBackProp.get(),delta);
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("callback.prop.float"), callBackProp.getName());
         assertFalse(callbackCalled.get());
-        assertEquals(firstRawValue, callBackRawProp.get(),delta);
-        Assert.assertEquals("callback.prop.float", callBackRawProp.getName());
-        assertFalse(callbackRawCalled.get());
-
-
         //Set and Check Overridden Property
         ConfigManagerFactory.addConfigurationEntry("prop.float", secondValue);
-        ConfigManagerFactory.addRawConfigurationEntry("prop.float", secondRawValue);
-        assertEquals(secondValue, prop.get(),delta);
-        assertEquals(secondRawValue, rawProp.get(),delta);
-        //Set and Check Overridden Property with callbacks 
+        assertEquals(secondValue, prop.get(), delta);
+        //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.float", secondValue);
         assertEquals(secondValue, callBackProp.get(),delta);
         assertTrue(callbackCalled.get());
-        ConfigManagerFactory.addRawConfigurationEntry("callback.prop.float", secondRawValue);
-        assertEquals(secondRawValue, callBackRawProp.get(),delta);
-        assertTrue(callbackRawCalled.get());
     }
 
     @Test
     public void testGetDoubleProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
-        final AtomicBoolean callbackRawCalled=new AtomicBoolean(false);
         final double firstValue=10.0;
-        final double firstRawValue=20.0;
         final double secondValue=1.0;
-        final double secondRawValue=2.0;
 
-        DoubleConfigProperty prop = ConfigPropertyFactory.getDoubleProperty("prop.double", firstValue, true);
-        DoubleConfigProperty rawProp = ConfigPropertyFactory.getDoubleProperty("prop.double", firstRawValue);
+        DoubleConfigProperty prop = ConfigPropertyFactory.getDoubleProperty("prop.double", firstValue);
         DoubleConfigProperty callBackProp = ConfigPropertyFactory.getDoubleProperty("callback.prop.double", firstValue, new ConfigPropertyChangedCallback<Double>() {
             @Override
             public void onChange(IConfigProperty<Double> prop, Double oldValue, Double newValue) {
@@ -363,43 +294,21 @@ public class ConfigPropertyFactoryTest {
                 assertEquals(newValue, secondValue, 0.0001);
                 callbackCalled.set(true);
             }
-        }, true);
-        DoubleConfigProperty callBackRawProp = ConfigPropertyFactory.getDoubleProperty("callback.prop.double", firstRawValue, new ConfigPropertyChangedCallback<Double>() {
-            @Override
-            public void onChange(IConfigProperty<Double> prop, Double oldValue, Double newValue) {
-                assertEquals(oldValue, firstRawValue, 0.0001);
-                assertEquals(newValue, secondRawValue, 0.0001);
-                callbackRawCalled.set(true);
-            }
         });
-
 
         //Check default value
         assertEquals(firstValue, prop.get(), delta);
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("prop.double"), prop.getName());
-        assertEquals(firstRawValue,rawProp.get(),delta);
-        Assert.assertEquals("prop.double", rawProp.getName());
         //With callback
         assertEquals(firstValue, callBackProp.get(),delta);
-        Assert.assertEquals(ConfigManagerFactory.buildFullName("callback.prop.double"), callBackProp.getName());
         assertFalse(callbackCalled.get());
-        assertEquals(firstRawValue, callBackRawProp.get(),delta);
-        Assert.assertEquals("callback.prop.double", callBackRawProp.getName());
-        assertFalse(callbackRawCalled.get());
-
 
         //Set and Check Overridden Property
         ConfigManagerFactory.addConfigurationEntry("prop.double", secondValue);
-        ConfigManagerFactory.addRawConfigurationEntry("prop.double", secondRawValue);
-        assertEquals(secondValue, prop.get(),delta);
-        assertEquals(secondRawValue, rawProp.get(),delta);
-        //Set and Check Overridden Property with callbacks 
+        assertEquals(secondValue, prop.get(), delta);
+        //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.double", secondValue);
         assertEquals(secondValue, callBackProp.get(),delta);
         assertTrue(callbackCalled.get());
-        ConfigManagerFactory.addRawConfigurationEntry("callback.prop.double", secondRawValue);
-        assertEquals(secondRawValue, callBackRawProp.get(),delta);
-        assertTrue(callbackRawCalled.get());
     }
     
 
@@ -413,7 +322,7 @@ public class ConfigPropertyFactoryTest {
                 "   \"value\":\""+baseString+ DYNAMIC_FOR_PROD_SUFFIX_STRING +"\""+
                 " },"+
                 "{\n"+
-                "   \"if\":{\""+ConfigManagerFactory.buildFullName("@domain")+"\":[\"preprod\"]},\n"+
+                "   \"if\":{\"@domain\":[\"preprod\"]},\n"+
                 "   \"value\":\""+baseString+ DYNAMIC_FOR_PREPROD_SUFFIX_STRING +"\""+
                 " },"+
                 "{\n"+

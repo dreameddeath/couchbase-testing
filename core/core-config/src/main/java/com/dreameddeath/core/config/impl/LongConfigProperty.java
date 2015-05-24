@@ -18,6 +18,9 @@ package com.dreameddeath.core.config.impl;
 
 import com.dreameddeath.core.config.AbstractConfigProperty;
 import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
+import com.dreameddeath.core.config.IConfigProperty;
+import com.dreameddeath.core.config.internal.ExtendedPropertyWrapper;
+import com.dreameddeath.core.config.internal.ReferencePropertyWrapper;
 
 /**
  * Created by CEAJ8230 on 04/02/2015.
@@ -25,21 +28,39 @@ import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
 public class LongConfigProperty extends AbstractConfigProperty<Long> {
 
     public LongConfigProperty(String name, Long defaultValue) {
-        super(new LongExtendedProperty(name,defaultValue));
+        super(new ExtendedProperty(name,defaultValue));
     }
     public LongConfigProperty(String name, Long defaultValue, ConfigPropertyChangedCallback<Long> callback) {
-        super(new LongExtendedProperty(name,defaultValue),callback);
+        super(new ExtendedProperty(name,defaultValue),callback);
+    }
+
+    public LongConfigProperty(String name, IConfigProperty<Long> defaultValue) {
+        super(new ExtendedRefProperty(name,defaultValue));
+    }
+
+    public LongConfigProperty(String name, IConfigProperty<Long> defaultValue, ConfigPropertyChangedCallback<Long> callback) {
+        super(new ExtendedRefProperty(name,defaultValue),callback);
     }
 
     public long get(){return getValue();}
 
-    protected static class LongExtendedProperty extends AbstractConfigProperty.ExtendedPropertyWrapper<Long> {
-        public LongExtendedProperty(String name,Long defaultValue){
+    protected static class ExtendedProperty extends ExtendedPropertyWrapper<Long> {
+        public ExtendedProperty(String name, Long defaultValue){
             super(name,defaultValue);
         }
         @Override
         public Long getValue() {
             return prop.getLong(defaultValue);
+        }
+    }
+
+    protected static class ExtendedRefProperty extends ReferencePropertyWrapper<Long> {
+        public ExtendedRefProperty(String name,IConfigProperty<Long> defaultValue){
+            super(name,defaultValue);
+        }
+        @Override
+        public Long getLocalValue() {
+            return prop.getLong();
         }
     }
 }

@@ -19,6 +19,8 @@ package com.dreameddeath.core.config;
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFound;
 import org.joda.time.DateTime;
 
+import java.util.Collection;
+
 /**
  * Created by CEAJ8230 on 03/02/2015.
  */
@@ -30,4 +32,5 @@ public interface IConfigProperty<T> {
     DateTime getLastChangedDate();
     void addCallback(ConfigPropertyChangedCallback<T> callback);
     void removeAllCallbacks();
+    Collection<ConfigPropertyChangedCallback<T>> getCallbacks();
 }

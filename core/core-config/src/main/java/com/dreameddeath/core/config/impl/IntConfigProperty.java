@@ -18,6 +18,9 @@ package com.dreameddeath.core.config.impl;
 
 import com.dreameddeath.core.config.AbstractConfigProperty;
 import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
+import com.dreameddeath.core.config.IConfigProperty;
+import com.dreameddeath.core.config.internal.ExtendedPropertyWrapper;
+import com.dreameddeath.core.config.internal.ReferencePropertyWrapper;
 
 /**
  * Created by CEAJ8230 on 04/02/2015.
@@ -25,22 +28,41 @@ import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
 public class IntConfigProperty extends AbstractConfigProperty<Integer> {
 
     public IntConfigProperty(String name, Integer defaultValue) {
-        super(new IntegerExtendedProperty(name,defaultValue));
+        super(new ExtendedProperty(name,defaultValue));
     }
 
     public IntConfigProperty(String name, Integer defaultValue, ConfigPropertyChangedCallback<Integer> callback) {
-        super(new IntegerExtendedProperty(name,defaultValue),callback);
+        super(new ExtendedProperty(name,defaultValue),callback);
+    }
+
+    public IntConfigProperty(String name, IConfigProperty<Integer> defaultValue) {
+        super(new ExtendedRefProperty(name,defaultValue));
+    }
+
+    public IntConfigProperty(String name, IConfigProperty<Integer> defaultValue, ConfigPropertyChangedCallback<Integer> callback) {
+        super(new ExtendedRefProperty(name,defaultValue),callback);
     }
 
 
     public int get(){return getValue();}
 
-    protected static class IntegerExtendedProperty extends AbstractConfigProperty.ExtendedPropertyWrapper<Integer> {
-        public IntegerExtendedProperty(String name,Integer defaultValue){
+    protected static class ExtendedProperty extends ExtendedPropertyWrapper<Integer> {
+        public ExtendedProperty(String name, Integer defaultValue){
             super(name,defaultValue);
         }
         @Override
         public Integer getValue() {
             return prop.getInteger(defaultValue);
         }
-    }}
+    }
+
+    protected static class ExtendedRefProperty extends ReferencePropertyWrapper<Integer> {
+        public ExtendedRefProperty(String name,IConfigProperty<Integer> defaultValue){
+            super(name,defaultValue);
+        }
+        @Override
+        public Integer getLocalValue() {
+            return prop.getInteger();
+        }
+    }
+}
