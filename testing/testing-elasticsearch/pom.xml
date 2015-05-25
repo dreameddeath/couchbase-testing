@@ -19,26 +19,37 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>couchbase-testing</artifactId>
+        <artifactId>testing</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>testing</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>testing-elasticsearch</artifactId>
+  <packaging>jar</packaging>
 
-  <name>testing</name>
+  <name>testing-elasticsearch</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
-    <modules>
-        <module>testing-annotation-processor</module>
-        <module>testing-json-dataset</module>
-        <module>testing-couchbase</module>
-        <module>testing-curator</module>
-        <module>testing-kafka</module>
-        <module>testing-service</module>
-        <module>testing-integration</module>
-        <module>testing-elasticsearch</module>
-    </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-    <dependencies></dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.elasticsearch</groupId>
+      <artifactId>elasticsearch</artifactId>
+      <version>${elasticsearch.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${apache.common.io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <version>${groovy.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-expressions</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+  </dependencies>
 </project>

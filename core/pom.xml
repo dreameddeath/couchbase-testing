@@ -43,6 +43,7 @@
         <module>core-dao-helper</module>
         <module>core-integration</module>
         <module>core-service</module>
+        <module>core-elasticsearch</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

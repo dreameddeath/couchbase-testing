@@ -177,6 +177,7 @@
         <apache.cxf.http.jetty.version>3.0.3</apache.cxf.http.jetty.version>
         <jetty.version>9.2.6.v20141205</jetty.version>
 
+        <!-- Observable Libraries -->
         <rxjava.version>1.0.8</rxjava.version>
 
         <!--Infrastructure - Storm -->
@@ -202,12 +203,18 @@
         <curator.version>2.7.0</curator.version>
         <archaius.version>0.6.5</archaius.version>
 
+        <!--elasticsearch / kibana -->
+        <elasticsearch.version>1.5.2</elasticsearch.version>
         <!-- maven versions-->
         <mojo.builder.helper.version>1.9.1</mojo.builder.helper.version>
         <coveralls.mvn.plugin.version>3.0.1</coveralls.mvn.plugin.version>
         <mvn.compiler.version>3.2</mvn.compiler.version>
         <mvn.failsafe.version>2.18.1</mvn.failsafe.version>
         <mvn.surefire.version>2.18.1</mvn.surefire.version>
+
+        <!-- testing only -->
+        <groovy.version>2.3.2</groovy.version>
+        <lucene.version>4.10.4</lucene.version>
     </properties>
 
 
