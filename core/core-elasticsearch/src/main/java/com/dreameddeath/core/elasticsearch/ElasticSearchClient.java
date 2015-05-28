@@ -1,3 +1,19 @@
+/*
+ * Copyright Christophe Jeunesse
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dreameddeath.core.elasticsearch;
 
 
@@ -9,6 +25,8 @@ import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.VersionType;
@@ -16,7 +34,7 @@ import org.elasticsearch.node.NodeBuilder;
 import rx.Observable;
 
 /**
- * Created by CEAJ8230 on 25/05/2015.
+ * Created by Christophe Jeunesse on 25/05/2015.
  */
 public class ElasticSearchClient {
     private Client _client;
@@ -71,9 +89,9 @@ public class ElasticSearchClient {
     }
 
 
-    /*public Observable<SearchResponse> search(String[] indexes,String[] types,String query){
+    public Observable<SearchResponse> search(String[] indexes,String[] types,String query){
         ActionFuture<SearchResponse> asyncRes = _client.prepareSearch(indexes).setTypes(types).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).execute();
         return Observable.from(asyncRes);//TODO mange common errors
-    }*/
+    }
 
 }

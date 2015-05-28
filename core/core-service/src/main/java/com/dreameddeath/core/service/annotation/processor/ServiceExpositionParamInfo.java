@@ -1,17 +1,17 @@
 /*
  * Copyright Christophe Jeunesse
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.dreameddeath.core.service.annotation.processor;
@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by CEAJ8230 on 08/04/2015.
+ * Created by Christophe Jeunesse on 08/04/2015.
  */
 public class ServiceExpositionParamInfo {
     private final static String MAIN_PATTERN_STR = "(\\w+)(?:\\s*(<?=>?)\\s*(\\w+(?:.\\w+(?:\\(\\))?)*))?";
@@ -37,9 +37,9 @@ public class ServiceExpositionParamInfo {
     private String _setterString;
     private ParameterizedTypeInfo _typeInfo;
 
-    public static enum Direction {
+    public enum Direction {
         TO_PATH_ONLY,
-        BIDIRECTIONNAL;
+        BIDIRECTIONNAL
     }
 
     private void initFromAttributePath(String name,String attributePath,MethodInfo methodInfo){

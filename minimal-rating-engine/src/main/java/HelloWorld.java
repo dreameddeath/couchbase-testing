@@ -1,22 +1,22 @@
 /*
  * Copyright Christophe Jeunesse
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 public class HelloWorld{
-    public static interface IDeviceProperty<T>{
-        public Class<T> getType();
+    public interface IDeviceProperty<T>{
+        Class<T> getType();
 
     }
 
@@ -62,14 +62,14 @@ public class HelloWorld{
     }*/
 
 
-    public static interface IPredicatePropertyDef<T>{
-        public IDeviceProperty<T> getProperty();
-        public T value();
-        public T minValue();
-        public T maxValue();
+    public interface IPredicatePropertyDef<T>{
+        IDeviceProperty<T> getProperty();
+        T value();
+        T minValue();
+        T maxValue();
 
 
-        static class Internal<T> implements IPredicatePropertyDef<T>{
+        class Internal<T> implements IPredicatePropertyDef<T>{
             private IDeviceProperty<T> _prop;
             private T _value;
             private T _minValue;
@@ -89,7 +89,7 @@ public class HelloWorld{
         }
 
 
-        public static class Builder<T>{
+        class Builder<T>{
 
             public  static <T> Builder<T> builder(Class<? extends IDeviceProperty<T>> clazzProp){
                 return (Builder<T>)new Builder(clazzProp);

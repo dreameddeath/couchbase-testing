@@ -1,17 +1,17 @@
 /*
  * Copyright Christophe Jeunesse
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.dreameddeath.testing.couchbase;
@@ -41,6 +41,7 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.couchbase.exception.ViewCompileException;
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketWrapper;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Created by CEAJ8230 on 24/11/2014.
+ * Created by Christophe Jeunesse on 24/11/2014.
  */
 public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     private static Logger LOG = LoggerFactory.getLogger(CouchbaseBucketSimulator.class);
@@ -71,6 +72,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     private Map<String,DocumentSimulator> _dbContent = new ConcurrentHashMap<>();
     public Map<Class,Transcoder<? extends Document, ?>> _transcoderMap = new HashMap<>();
     public Map<String,Map<String,ScriptObjectMirror>> _viewsMaps = new HashMap<>();
+    public Set<CouchbaseDCPConnectorSimulator> _dcpSimulators= new HashSet<>();
 
     private void initTranscoders(){
         _transcoderMap.put(CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER);
@@ -86,7 +88,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         _transcoderMap.put(CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER.documentType(), CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER);
     }
     public CouchbaseBucketSimulator(String bucketName){
-        super(null,bucketName,null);
+        super(null, bucketName, null);
         initTranscoders();
     }
 
@@ -140,11 +142,28 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             Long result = Long.parseLong(new String(foundDoc.getData().array()));
             result+=by;
             foundDoc.setData(Unpooled.wrappedBuffer(result.toString().getBytes()));
+
             return result;
         }
         catch(NumberFormatException e){
             throw new DocumentAccessException(key,"Error during document access attempt of <"+key+">",e);
         }
+    }
+    public void notifyUpdate(ImpactMode mode,DocumentSimulator doc){
+        for(CouchbaseDCPConnectorSimulator simulator:_dcpSimulators){
+            simulator.notifyUpdate(mode,doc);
+        }
+    }
+
+    public void addCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
+        _dcpSimulators.add(simulator);
+        for(DocumentSimulator doc :_dbContent.values()){
+            simulator.notifyUpdate(ImpactMode.ADD,doc);
+        }
+    }
+
+    public void removeCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
+        _dcpSimulators.remove(simulator);
     }
 
     public Document getFromCache(String key,Class docType) throws StorageException{
@@ -215,6 +234,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 //Do nothing
                 break;
         }
+
+        notifyUpdate(mode,foundDoc);
 
         Document<T> result = getFromCache(bucketDoc.id(),docType);
         if(mode==ImpactMode.DELETE){
