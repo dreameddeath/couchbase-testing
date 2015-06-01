@@ -16,17 +16,14 @@
 
 package com.dreameddeath.core.couchbase.dcp;
 
-import com.couchbase.client.deps.com.lmax.disruptor.ExceptionHandler;
+import com.couchbase.client.core.env.CoreEnvironment;
+
 /**
  * Created by Christophe Jeunesse on 27/05/2015.
  */
-public interface DCPExceptionHandler extends ExceptionHandler {
-    @Override
-    void handleEventException(Throwable ex, long sequence, Object event);
-
-    @Override
-    void handleOnStartException(Throwable ex);
-
-    @Override
-    void handleOnShutdownException(Throwable ex);
+public interface ICouchbaseDCPEnvironment extends CoreEnvironment {
+    Integer threadPoolSize();
+    String threadPoolName();
+    Integer eventBufferSize();
+    String streamName();
 }

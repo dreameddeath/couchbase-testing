@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.couchbase.dcp;
+package com.dreameddeath.core.couchbase.dcp.impl;
 
 import com.couchbase.client.core.env.DefaultCoreEnvironment;
 import com.couchbase.client.java.CouchbaseCluster;
+import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ import java.util.Properties;
 /**
  * Created by Christophe Jeunesse on 27/05/2015.
  */
-public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment implements CouchbaseDCPEnvironment {
+public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment implements ICouchbaseDCPEnvironment {
     private static Logger LOG = LoggerFactory.getLogger(DefaultCouchbaseDCPEnvironment.class);
 
     public static String SDK_PACKAGE_NAME_AND_VERSION = "couchbase-dcp-connector";
@@ -108,7 +109,7 @@ public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment imple
         return new Builder();
     }
 
-    public static class Builder extends DefaultCoreEnvironment.Builder implements CouchbaseDCPEnvironment {
+    public static class Builder extends DefaultCoreEnvironment.Builder implements ICouchbaseDCPEnvironment {
         private Integer _threadPoolSize=DEFAULT_THREAD_POOL_SIZE;
         private String _threadPoolName=DEFAULT_THREAD_POOL_NAME;
         private Integer _eventBufferSize=DEFAULT_EVENT_BUFFER_SIZE;

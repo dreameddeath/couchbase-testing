@@ -89,7 +89,7 @@ public class CouchbaseDocumentDaoFactory {
         if(annotation==null){
             throw new NullPointerException("Annotation DaoForClass not defined for dao <"+dao.getClass().getName()+">");
         }
-        dao.setTranscoder(new GenericCouchbaseTranscoder<T>(transcoder,dao.getBucketDocumentClass()));
+        dao.setTranscoder(new GenericCouchbaseTranscoder<>(transcoder,dao.getBucketDocumentClass()));
         addDaoFor((Class<T>)annotation.value(),dao);
     }
 

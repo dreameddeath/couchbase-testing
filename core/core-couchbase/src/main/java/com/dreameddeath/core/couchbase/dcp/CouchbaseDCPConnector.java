@@ -30,6 +30,7 @@ import com.couchbase.client.deps.com.lmax.disruptor.RingBuffer;
 import com.couchbase.client.deps.com.lmax.disruptor.dsl.Disruptor;
 import com.couchbase.client.deps.io.netty.util.concurrent.DefaultThreadFactory;
 import com.couchbase.client.java.ConnectionString;
+import com.dreameddeath.core.couchbase.dcp.impl.AbstractDCPFlowHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -48,6 +49,7 @@ public class CouchbaseDCPConnector implements Runnable {
 
     private final ClusterFacade _core;
     private final RingBuffer<DCPEvent> _dcpRingBuffer;
+    private final Disruptor<DCPEvent> _disruptor;
     private final List<String> _nodes;
     private final String _bucket;
     private final String _streamName;
@@ -58,6 +60,7 @@ public class CouchbaseDCPConnector implements Runnable {
     protected RingBuffer<DCPEvent> getDcpRingBuffer(){
         return _dcpRingBuffer;
     }
+    protected Disruptor<DCPEvent> getDisruptor(){return _disruptor;}
 
     protected EventTranslatorOneArg<DCPEvent, CouchbaseMessage>  getTranslator(){
         return _translator;
@@ -68,11 +71,10 @@ public class CouchbaseDCPConnector implements Runnable {
     }
 
 
-    public CouchbaseDCPConnector(final CouchbaseDCPEnvironment environment,
+    public CouchbaseDCPConnector(final ICouchbaseDCPEnvironment environment,
                                   final List<String> couchbaseNodes,
                                   final String couchbaseBucket, final String couchbasePassword,
-                                  DCPEventHandler eventHandler,
-                                  DCPExceptionHandler exceptionHandler
+                                  final AbstractDCPFlowHandler flowHandler
     ) {
         _streamName = environment.streamName();
         _nodes = couchbaseNodes;
@@ -80,16 +82,16 @@ public class CouchbaseDCPConnector implements Runnable {
         _password = couchbasePassword;
         _core = new CouchbaseCore(environment);
         ExecutorService disruptorExecutor = Executors.newFixedThreadPool(environment.threadPoolSize(), new DefaultThreadFactory(environment.threadPoolName(), true));
-        Disruptor<DCPEvent> disruptor = new Disruptor<>(
+        _disruptor = new Disruptor<>(
                 DCP_EVENT_FACTORY,
                 environment.eventBufferSize(),
                 disruptorExecutor
         );
 
-        disruptor.handleEventsWith(eventHandler);
-        disruptor.handleExceptionsWith(exceptionHandler);
-        disruptor.start();
-        _dcpRingBuffer = disruptor.getRingBuffer();
+        _disruptor.handleEventsWith(flowHandler.getEventHandler());
+        _disruptor.handleExceptionsWith(flowHandler.getExceptionHandler());
+        _disruptor.start();
+        _dcpRingBuffer = _disruptor.getRingBuffer();
 
         _translator = (event, sequence, message) -> event.setMessage(message);
     }

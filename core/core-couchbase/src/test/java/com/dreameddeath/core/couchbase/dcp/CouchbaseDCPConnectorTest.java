@@ -26,29 +26,6 @@ import org.slf4j.LoggerFactory;
 public class CouchbaseDCPConnectorTest {
     private static Logger LOG = LoggerFactory.getLogger(CouchbaseDCPConnectorTest.class);
 
-    public static class TestEventHandler implements DCPEventHandler{
-        @Override
-        public void onEvent(DCPEvent event, long sequence, boolean endOfBatch) throws Exception {
-            LOG.debug("Event recieved {}",event.getType());
-        }
-    }
-    public static class TestExceptionHandler implements DCPExceptionHandler{
-        @Override
-        public void handleEventException(Throwable ex, long sequence, Object event) {
-            LOG.error("Event exception",ex);
-        }
-
-        @Override
-        public void handleOnStartException(Throwable ex) {
-            LOG.error("Start exception",ex);
-        }
-
-        @Override
-        public void handleOnShutdownException(Throwable ex) {
-            LOG.error("End exception",ex);
-        }
-    }
-
 
     @Test
     public void testDcpConnection(){

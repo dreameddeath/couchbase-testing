@@ -127,11 +127,12 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             if(defaultValue!=null){
                 foundDoc = new DocumentSimulator(this);
                 foundDoc.setFlags(0);
-                foundDoc.setCas(0);
+                foundDoc.setCas(1);
                 foundDoc.setExpiry(expiration);
                 foundDoc.setKey(key);
                 foundDoc.setData(Unpooled.wrappedBuffer(defaultValue.toString().getBytes()));
-                _dbContent.put(foundDoc.getKey(),foundDoc);
+                _dbContent.put(foundDoc.getKey(), foundDoc);
+                notifyUpdate(ImpactMode.ADD,foundDoc);
                 return defaultValue;
             }
             else{
@@ -140,9 +141,10 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
         try {
             Long result = Long.parseLong(new String(foundDoc.getData().array()));
+            foundDoc.setCas(foundDoc.getCas()+1);
             result+=by;
             foundDoc.setData(Unpooled.wrappedBuffer(result.toString().getBytes()));
-
+            notifyUpdate(ImpactMode.UPDATE,foundDoc);
             return result;
         }
         catch(NumberFormatException e){

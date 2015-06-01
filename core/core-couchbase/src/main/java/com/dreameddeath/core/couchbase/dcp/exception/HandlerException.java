@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.couchbase.dcp;
-
-import com.couchbase.client.core.env.CoreEnvironment;
+package com.dreameddeath.core.couchbase.dcp.exception;
 
 /**
- * Created by Christophe Jeunesse on 27/05/2015.
+ * Created by Christophe Jeunesse on 01/06/2015.
  */
-public interface CouchbaseDCPEnvironment extends CoreEnvironment {
-    Integer threadPoolSize();
-    String threadPoolName();
-    Integer eventBufferSize();
-    String streamName();
+public class HandlerException extends Exception {
+    private long _sequence;
+    private Object _event;
+
+    public HandlerException(Throwable ex){
+        this(ex,0,null);
+    }
+
+    public HandlerException(Throwable ex, long sequence, Object event){
+        super(ex);
+        _event = event;
+        _sequence = sequence;
+    }
 }

@@ -16,11 +16,12 @@
 
 package com.dreameddeath.testing.couchbase.dcp;
 
+import com.couchbase.client.core.message.CouchbaseMessage;
 import com.couchbase.client.core.message.dcp.MutationMessage;
+import com.couchbase.client.core.message.dcp.RemoveMessage;
 import com.dreameddeath.core.couchbase.dcp.CouchbaseDCPConnector;
-import com.dreameddeath.core.couchbase.dcp.CouchbaseDCPEnvironment;
-import com.dreameddeath.core.couchbase.dcp.DCPEventHandler;
-import com.dreameddeath.core.couchbase.dcp.DCPExceptionHandler;
+import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
+import com.dreameddeath.core.couchbase.dcp.impl.AbstractDCPFlowHandler;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.DocumentSimulator;
 
@@ -33,12 +34,12 @@ import java.util.concurrent.TimeUnit;
 public class CouchbaseDCPConnectorSimulator extends CouchbaseDCPConnector{
     private CouchbaseBucketSimulator _simulator;
 
-    public CouchbaseDCPConnectorSimulator(CouchbaseDCPEnvironment environment,
+    public CouchbaseDCPConnectorSimulator(ICouchbaseDCPEnvironment environment,
                                           List<String> couchbaseNodes,
                                           String couchbaseBucket, String couchbasePassword,
-                                          DCPEventHandler eventHandler, DCPExceptionHandler exceptionHandler,
+                                          AbstractDCPFlowHandler handler,
                                           CouchbaseBucketSimulator simulator) {
-        super(environment, couchbaseNodes, couchbaseBucket, couchbasePassword, eventHandler, exceptionHandler);
+        super(environment, couchbaseNodes, couchbaseBucket, couchbasePassword, handler);
         _simulator = simulator;
     }
 
@@ -54,14 +55,24 @@ public class CouchbaseDCPConnectorSimulator extends CouchbaseDCPConnector{
     @Override
     public Boolean stop(){
         _simulator.removeCouchbaseDcpSimulator(this);
+        getDisruptor().shutdown();
         return true;
     }
-/*public MutationMessage(short partition, String key, ByteBuf content, int expiration,
-                           int flags, int lockTime, long cas, String bucket) {
-        this(partition, key, content, expiration, flags, lockTime, cas, bucket, null);
-    */
+
     public void notifyUpdate(CouchbaseBucketSimulator.ImpactMode mode,DocumentSimulator doc){
-        MutationMessage msg = new MutationMessage((short)0,doc.getKey(),doc.getData(),doc.getExpiry(),doc.getFlags(),0,doc.getCas(),getBucket());
+        CouchbaseMessage msg=null;
+        switch (mode){
+            case DELETE:
+                msg = new RemoveMessage((short)0,doc.getKey(),doc.getCas(),getBucket());
+                break;
+            case ADD:
+            case APPEND:
+            case PREPEND:
+            case REPLACE:
+            case UPDATE:
+                msg = new MutationMessage((short)0,doc.getKey(),doc.getData(),doc.getExpiry(),doc.getFlags(),0,doc.getCas(),getBucket());
+                break;
+        }
         getDcpRingBuffer().tryPublishEvent(getTranslator(),msg);
     }
 }

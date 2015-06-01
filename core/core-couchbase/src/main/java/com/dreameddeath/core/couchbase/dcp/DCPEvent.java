@@ -68,6 +68,14 @@ public class DCPEvent {
         }
     }
 
+    public RemoveMessage asDeletionMessage(){
+        if (_message instanceof RemoveMessage) {
+            return (RemoveMessage) _message;
+        } else {
+            return null;
+        }
+    }
+
 
     public enum Type{
         SNAPSHOT,

@@ -18,6 +18,7 @@ package com.dreameddeath.testing.couchbase;
 
 
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
+import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 
 import javax.script.ScriptException;
 import java.util.Base64;
@@ -58,8 +59,16 @@ public class DocumentSimulator {
     public int getExpiry(){ return _expiry;}
 
     public void setData(ByteBuf data){ _data = data.copy(); toJavaScriptDoc();}
-    public void appendData(ByteBuf data){ _data= _data.writeBytes(data);}
-    public void prependData(ByteBuf data){_data= data.copy().writeBytes(_data); }
+    public void appendData(ByteBuf data){
+        _data = Unpooled.copiedBuffer(_data, data);
+        toJavaScriptDoc();
+    }
+
+    public void prependData(ByteBuf data){
+        _data = Unpooled.copiedBuffer(data,_data);
+        toJavaScriptDoc();
+    }
+
     public ByteBuf getData(){ return _data;}
 
     public String getType(){ return _type;}
