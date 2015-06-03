@@ -54,6 +54,11 @@ public class CouchbaseBucketSimulatorTest {
         }
 
         @Override
+        public LastSnapshotReceived getLastSnapshot(String bucketName, short partition) {
+            return null;
+        }
+
+        @Override
         public void manageSnapshotMessage(SnapshotMarkerMessage message) {
 
         }

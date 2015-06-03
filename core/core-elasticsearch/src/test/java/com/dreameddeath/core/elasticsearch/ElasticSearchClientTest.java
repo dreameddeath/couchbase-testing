@@ -16,10 +16,17 @@
 
 package com.dreameddeath.core.elasticsearch;
 
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
+import com.dreameddeath.core.couchbase.dcp.impl.DefaultCouchbaseDCPEnvironment;
+import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
+import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
+import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
 import com.dreameddeath.testing.elasticsearch.ElasticSearchServer;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -30,7 +37,9 @@ import org.junit.Test;
 import rx.Observable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
@@ -63,6 +72,43 @@ public class ElasticSearchClientTest {
     }
 
 
+    public static class ElasticSearchMapper implements IElasticSearchMapper{
+
+        @Override
+        public String documentIndexBuilder(String bucketName, String key) {
+            return bucketName;
+        }
+
+        @Override
+        public String documentIndexBuilder(String bucketName, Class<? extends CouchbaseDocument> clazz) {
+            return bucketName;
+        }
+
+        @Override
+        public String documentTypeBuilder(String bucketName, String key) {
+            String type="";
+            String[] keyParts = key.split("/");
+            for(int pos=(keyParts[0].equals("")?1:0);pos<keyParts.length;pos+=2){
+                if(!type.equals("")){
+                    type+="$";
+                }
+                type += keyParts[pos];
+            }
+            return type;
+        }
+
+        @Override
+        public String documentTypeBuilder(String bucketName, Class<? extends CouchbaseDocument> clazz) {
+            return clazz.getSimpleName();
+        }
+
+        @Override
+        public String documentMappingsBuilder(Class<? extends CouchbaseDocument> clazz) {
+            //TODO improve for index / type mapping
+            return null;
+        }
+    }
+
     public static class TestDoc extends CouchbaseDocument {
         @DocumentProperty("lastName")
         public String lastName;
@@ -72,9 +118,12 @@ public class ElasticSearchClientTest {
 
         @DocumentProperty("addresses")
         public List<TestAddress> addresses=new ArrayList<>();
-
-
     }
+
+    public static class LocalBucketDocument extends BucketDocument<TestDoc> {
+        public LocalBucketDocument(TestDoc obj){super(obj);}
+    }
+
 
 
     @Before
@@ -122,14 +171,61 @@ public class ElasticSearchClientTest {
         //Wait for indexing
         Thread.sleep(2000);
 
-        SearchResponse searchResponse = client.getClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("lastName", "lastName1")).execute().actionGet();
+        SearchResponse searchResponse = client.getInternalClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("lastName", "lastName1")).execute().actionGet();
         assertEquals(2, searchResponse.getHits().getTotalHits());
 
-        SearchResponse searchFirstNameResponse = client.getClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("firstName", "firstName2")).execute().actionGet();
+        SearchResponse searchFirstNameResponse = client.getInternalClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("firstName", "firstName2")).execute().actionGet();
         assertEquals(2,searchFirstNameResponse.getHits().getTotalHits());
 
-        SearchResponse searchAddressesResponse = client.getClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("addresses.postalCode", 67890)).execute().actionGet();
+        SearchResponse searchAddressesResponse = client.getInternalClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("addresses.postalCode", 67890)).execute().actionGet();
         assertEquals(2,searchAddressesResponse.getHits().getTotalHits());
+    }
+
+    @Test
+    public void testDcpFlow()throws Exception{
+        GenericCouchbaseTranscoder<TestDoc> transcoder =new GenericCouchbaseTranscoder<>(TestDoc.class,LocalBucketDocument.class);
+        transcoder.setTranscoder(new GenericJacksonTranscoder<>(TestDoc.class));
+        ElasticSearchClient client = new ElasticSearchClient(_server.getClient(),GenericJacksonTranscoder.MAPPER);
+        CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
+        cbSimulator.addTranscoder(transcoder);
+        ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
+        ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoder.getTranscoder(),true);
+        CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Arrays.asList("localhost:8091"),"test","",dcpFlowHandler,cbSimulator);
+
+
+        connector.run();
+
+        TestDoc doc = new TestDoc();
+        doc.firstName = "firstName1";
+        doc.lastName = "lastName1";
+        doc.addresses.add(TestAddress.newAddress("road 1", 12345, "City1"));
+        doc.addresses.add(TestAddress.newAddress("road 2", 67890, "City2"));
+        doc.getBaseMeta().setKey("/test/1");
+
+        cbSimulator.add(doc, transcoder);
+        doc.addresses.add(TestAddress.newAddress("road 2", 12345, "City3"));
+        cbSimulator.replace(doc, transcoder);
+        doc.firstName="firstName2";
+        doc.getBaseMeta().setKey("/test/2");
+        cbSimulator.add(doc, transcoder);
+        doc.firstName="firstName3 firstName2";
+        doc.lastName="lastName2";
+        doc.addresses.remove(1);
+        doc.getBaseMeta().setKey("/test/3");
+        cbSimulator.add(doc, transcoder);
+
+        //Wait for indexing
+        Thread.sleep(2000);
+        connector.stop();
+
+        SearchResponse searchResponse = client.getInternalClient().prepareSearch("test").setTypes("test").setQuery(QueryBuilders.matchQuery("lastName", "lastName1")).execute().actionGet();
+        assertEquals(2, searchResponse.getHits().getTotalHits());
+
+        SearchResponse searchFirstNameResponse = client.getInternalClient().prepareSearch("test").setTypes("test").setQuery(QueryBuilders.matchQuery("firstName", "firstName2")).execute().actionGet();
+        assertEquals(2, searchFirstNameResponse.getHits().getTotalHits());
+
+        SearchResponse searchAddressesResponse = client.getInternalClient().prepareSearch("test").setTypes("test").setQuery(QueryBuilders.matchQuery("addresses.postalCode", 67890)).execute().actionGet();
+        assertEquals(2, searchAddressesResponse.getHits().getTotalHits());
 
     }
 

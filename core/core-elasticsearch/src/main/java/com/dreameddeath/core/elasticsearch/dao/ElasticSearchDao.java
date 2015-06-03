@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.elasticsearch;
+package com.dreameddeath.core.elasticsearch.dao;
 
+import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
+import com.dreameddeath.core.elasticsearch.IElasticSearchMapper;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
@@ -23,6 +25,8 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  */
 public class ElasticSearchDao<T extends CouchbaseDocument> {
     private ElasticSearchClient _client;
+    private IElasticSearchMapper _mapper;
+
 
 
 }

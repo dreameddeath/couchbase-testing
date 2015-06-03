@@ -74,12 +74,6 @@
       </dependency>
 
       <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>testing-elasticsearch</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
           <groupId>io.reactivex</groupId>
           <artifactId>rxjava</artifactId>
           <version>${rxjava.version}</version>
@@ -93,6 +87,26 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
           <version>${jackson.version}</version>
+      </dependency>
+
+
+      <!--
+      *
+      * Testing dependancies
+      *
+      -->
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-couchbase</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-elasticsearch</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
       </dependency>
   </dependencies>
 </project>

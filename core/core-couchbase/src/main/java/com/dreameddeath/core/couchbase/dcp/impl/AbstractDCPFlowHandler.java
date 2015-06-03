@@ -53,9 +53,9 @@ public abstract class AbstractDCPFlowHandler {
         _handler = new Handler();
     }
 
-    public AbstractDCPFlowHandler(){
+    /*public AbstractDCPFlowHandler(){
         this((Map<String,ITranscoder>) null);
-    }
+    }*/
 
     public void addKeyPatternsMap(Map<String,ITranscoder> _keyPatternMap){
         for(Map.Entry<String,ITranscoder> entry:_keyPatternMap.entrySet()){
@@ -100,12 +100,31 @@ public abstract class AbstractDCPFlowHandler {
         return null;
     }
 
+    public abstract LastSnapshotReceived getLastSnapshot(String bucketName, short partition);
     public abstract void manageSnapshotMessage(SnapshotMarkerMessage message);
     public abstract void manageMutationMessage(MutationMessage message, CouchbaseDocument mappedObject);
     public abstract void manageDeletionMessage(RemoveMessage message);
 
     public abstract void manageException(HandlerException message);
 
+
+    public static class LastSnapshotReceived{
+        private final long _startSequenceNumber;
+        private final long _endSequenceNumber;
+
+        public LastSnapshotReceived(long startSequenceNumber,long endSequenceNumber){
+            _startSequenceNumber = startSequenceNumber;
+            _endSequenceNumber = endSequenceNumber;
+        }
+
+        public long getStartSequenceNumber() {
+            return _startSequenceNumber;
+        }
+
+        public long getEndSequenceNumber() {
+            return _endSequenceNumber;
+        }
+    }
 
     public enum MappingMode {
         KEY_PATTERN,

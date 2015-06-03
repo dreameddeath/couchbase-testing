@@ -16,18 +16,21 @@
 
 package com.dreameddeath.core.elasticsearch.search;
 
+import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Client;
 import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 26/05/2015.
  */
 public class ElasticSearchSearchQueryBuilder extends SearchRequestBuilder {
-    public ElasticSearchSearchQueryBuilder(Client client) {
-        super(client);
+    private final ElasticSearchClient _client;
+
+    public ElasticSearchSearchQueryBuilder(ElasticSearchClient client) {
+        super(client.getInternalClient());
+        _client = client;
     }
 
     @Override

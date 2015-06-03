@@ -46,8 +46,10 @@ import java.util.stream.Collectors;
 public class CouchbaseDCPConnector implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CouchbaseDCPConnector.class);
     private static final DCPEventFactory DCP_EVENT_FACTORY = new DCPEventFactory();
+    public static final int MAX_DCP_SEQUENCE = 0xffffffff;
 
     private final ClusterFacade _core;
+    private final AbstractDCPFlowHandler _flowHandler;
     private final RingBuffer<DCPEvent> _dcpRingBuffer;
     private final Disruptor<DCPEvent> _disruptor;
     private final List<String> _nodes;
@@ -76,6 +78,7 @@ public class CouchbaseDCPConnector implements Runnable {
                                   final String couchbaseBucket, final String couchbasePassword,
                                   final AbstractDCPFlowHandler flowHandler
     ) {
+        _flowHandler = flowHandler;
         _streamName = environment.streamName();
         _nodes = couchbaseNodes;
         _bucket = couchbaseBucket;
@@ -138,10 +141,19 @@ public class CouchbaseDCPConnector implements Runnable {
     private Observable<DCPRequest> requestStreams(final int numberOfPartitions) {
         return Observable.merge(
                 Observable.range(0, numberOfPartitions)
-                        .flatMap(partition -> _core.<StreamRequestResponse>send(new StreamRequestRequest(partition.shortValue(), _bucket)))
+                        .flatMap(partition -> _core.<StreamRequestResponse>send(buildStreamRequest(partition)))
                         .map(response -> response.stream())
         );
+    }
 
+    public StreamRequestRequest buildStreamRequest(Integer partition){
+        AbstractDCPFlowHandler.LastSnapshotReceived lastSnapshotReceived = _flowHandler.getLastSnapshot(_bucket, partition.shortValue());
+        if(lastSnapshotReceived!=null){
+            return new StreamRequestRequest(partition.shortValue(),0,0, MAX_DCP_SEQUENCE,lastSnapshotReceived.getStartSequenceNumber(),lastSnapshotReceived.getEndSequenceNumber(),_bucket);
+        }
+        else {
+            return new StreamRequestRequest(partition.shortValue(), _bucket);
+        }
     }
 
     public Boolean stop(){
