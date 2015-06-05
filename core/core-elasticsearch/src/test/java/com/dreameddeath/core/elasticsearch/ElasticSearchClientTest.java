@@ -20,6 +20,7 @@ import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.dcp.impl.DefaultCouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
+import com.dreameddeath.core.elasticsearch.dao.ElasticSearchDao;
 import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -99,7 +100,12 @@ public class ElasticSearchClientTest {
 
         @Override
         public String documentTypeBuilder(String bucketName, Class<? extends CouchbaseDocument> clazz) {
-            return clazz.getSimpleName();
+            if(TestDoc.class.isAssignableFrom(clazz)){
+                return "test";
+            }
+            else {
+                return clazz.getSimpleName();
+            }
         }
 
         @Override
@@ -226,6 +232,21 @@ public class ElasticSearchClientTest {
 
         SearchResponse searchAddressesResponse = client.getInternalClient().prepareSearch("test").setTypes("test").setQuery(QueryBuilders.matchQuery("addresses.postalCode", 67890)).execute().actionGet();
         assertEquals(2, searchAddressesResponse.getHits().getTotalHits());
+
+
+        //ElasticSearchDao testing
+        ElasticSearchDao<TestDoc> dao = new ElasticSearchDao<>("test",client,new ElasticSearchMapper(),transcoder.getTranscoder());
+        TestDoc esDocFound = dao.get("/test/1");
+        assertEquals("firstName1",esDocFound.firstName);
+        assertEquals("lastName1", esDocFound.lastName);
+
+        ElasticSearchDao<TestDoc>.ElasticSearchResult resultDaoSearch = dao.search(dao.newQuery().setQuery(QueryBuilders.matchQuery("firstName", "firstName2")));
+        assertEquals(2, resultDaoSearch.getTotalHitCount());
+        ElasticSearchDao<TestDoc>.ElasticSearchResultHit resultHit = resultDaoSearch.getList().get(0);
+        assertEquals("/test/2",resultHit.getKey());
+        assertEquals(0.3f,resultHit.getScore(),0.1f);
+        assertEquals("lastName1",resultHit.get().lastName);
+        assertEquals(3,resultHit.get().addresses.size());
 
     }
 

@@ -133,6 +133,10 @@ public class ElasticSearchClient {
         return new ElasticSearchSearchQueryBuilder(this);
     }
 
+    public Observable<SearchResponse> search(ElasticSearchSearchQueryBuilder builder){
+        return builder.executeAsObservable();
+    }
+
     public Observable<SearchResponse> search(String[] indexes,String[] types,String query){
         ActionFuture<SearchResponse> asyncRes = _client.prepareSearch(indexes).setTypes(types).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).execute();
         return Observable.from(asyncRes);//TODO mange common errors
