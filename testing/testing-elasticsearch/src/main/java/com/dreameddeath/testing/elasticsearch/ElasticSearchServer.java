@@ -80,4 +80,8 @@ public class ElasticSearchServer {
         getClient().admin().indices().prepareCreate(indexName).execute().actionGet();
         getClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
     }
+
+    public void syncIndexes(){
+        getClient().admin().indices().prepareRefresh().execute().actionGet();
+    }
 }
