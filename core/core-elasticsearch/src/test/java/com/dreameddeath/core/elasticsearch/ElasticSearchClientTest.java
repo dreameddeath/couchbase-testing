@@ -50,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 public class ElasticSearchClientTest {
     public static final String CLUSTER_NAME = "testEsClient";
     public static final String INDEX_NAME = "test";
+    public static final int DURATION_WAITING_FOR_UPDATE = 2000*(Runtime.getRuntime().availableProcessors()<4?3:1);
     ElasticSearchServer _server;
 
     public static class TestAddress extends CouchbaseDocumentElement {
@@ -175,7 +176,7 @@ public class ElasticSearchClientTest {
         }
 
         //Wait for indexing
-        Thread.sleep(2000);
+        Thread.sleep(DURATION_WAITING_FOR_UPDATE);
 
         SearchResponse searchResponse = client.getInternalClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("lastName", "lastName1")).execute().actionGet();
         assertEquals(2, searchResponse.getHits().getTotalHits());
@@ -221,7 +222,7 @@ public class ElasticSearchClientTest {
         cbSimulator.add(doc, transcoder);
 
         //Wait for indexing
-        Thread.sleep(2000);
+        Thread.sleep(DURATION_WAITING_FOR_UPDATE);
         connector.stop();
 
         SearchResponse searchResponse = client.getInternalClient().prepareSearch("test").setTypes("test").setQuery(QueryBuilders.matchQuery("lastName", "lastName1")).execute().actionGet();
