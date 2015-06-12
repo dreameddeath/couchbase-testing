@@ -24,7 +24,7 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 /**
  * Created by Christophe Jeunesse on 02/09/2014.
  */
-public class CouchbaseCounterDao {
+public class CouchbaseCounterDao{
     private ICouchbaseBucket _client;
     private CouchbaseDocumentDao _baseDao;
     private String _keyPattern;

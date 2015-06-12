@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.model.counter;
+package com.dreameddeath.core.couchbase.impl;
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.model.counter.CouchbaseCounter;
 
 /**
- * Created by Christophe Jeunesse on 21/11/2014.
+ * Created by Christophe Jeunesse on 12/06/2015.
  */
-public final class CouchbaseCounter extends CouchbaseDocument {
-    private long _current;
-
-
-    public CouchbaseCounter(long value){
-        _current = value;
+public final class CounterCouchbaseTranscoder extends GenericCouchbaseTranscoder<CouchbaseCounter> {
+    public static class CounterBucketDocument extends BucketDocument<CouchbaseCounter>{
+        public CounterBucketDocument(CouchbaseCounter doc) {
+            super(doc);
+        }
     }
-
-    public long getCurrent() {
-        return _current;
+    
+    public CounterCouchbaseTranscoder() {
+        super(CouchbaseCounter.class, CounterBucketDocument.class);
     }
 }

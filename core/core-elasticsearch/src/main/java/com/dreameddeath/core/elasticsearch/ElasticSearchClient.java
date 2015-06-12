@@ -58,7 +58,7 @@ public class ElasticSearchClient {
 
     public void createIndex(String indexName){
         CreateIndexResponse createResponse = getInternalClient().admin().indices().prepareCreate(indexName).execute().actionGet();
-        //TODO manade Error
+        //TODO manage Error
         ClusterHealthResponse statusCheckResponse = getInternalClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
     }
 
@@ -70,7 +70,7 @@ public class ElasticSearchClient {
 
     public Observable<GetResponse> get(String indexName,String type,String key){
         ActionFuture<GetResponse> asyncRes = _client.prepareGet(indexName, type, key).execute();
-        return Observable.from(asyncRes);//TODO mange common errors
+        return Observable.from(asyncRes);//TODO manage common errors
     }
 
 
@@ -81,7 +81,7 @@ public class ElasticSearchClient {
                     .setSource(encodedStr)
                     //.setVersion(doc.getBaseMeta().getCas()).setVersionType(VersionType.EXTERNAL)
                     .execute();
-            return Observable.from(asyncRes);//TODO mange common errors
+            return Observable.from(asyncRes);//TODO manage common errors
         }
         catch(JsonProcessingException e){
             throw new JsonEncodingException(e);
@@ -96,7 +96,7 @@ public class ElasticSearchClient {
                     .setDoc(encodedStr)
                     .setVersion(doc.getBaseMeta().getCas()).setVersionType(VersionType.EXTERNAL)
                     .execute();
-            return Observable.from(asyncRes);//TODO mange common errors
+            return Observable.from(asyncRes);//TODO manage common errors
         }
         catch(JsonProcessingException e){
             throw new JsonEncodingException(e);
@@ -115,7 +115,7 @@ public class ElasticSearchClient {
                             //.version(doc.getBaseMeta().getCas()).versionType(VersionType.EXTERNAL)
                     )
                     .execute();
-            return Observable.from(asyncRes);//TODO mange common errors
+            return Observable.from(asyncRes);//TODO manage common errors
         }
         catch(JsonProcessingException e){
             throw new JsonEncodingException(e);
@@ -125,7 +125,7 @@ public class ElasticSearchClient {
 
     public Observable<DeleteResponse> delete(String indexName,String type,String key){
         ActionFuture<DeleteResponse> asyncRes = _client.prepareDelete(indexName, type, key).execute();
-        return Observable.from(asyncRes);//TODO mange common errors
+        return Observable.from(asyncRes);//TODO manage common errors
     }
 
 
@@ -139,7 +139,7 @@ public class ElasticSearchClient {
 
     public Observable<SearchResponse> search(String[] indexes,String[] types,String query){
         ActionFuture<SearchResponse> asyncRes = _client.prepareSearch(indexes).setTypes(types).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).execute();
-        return Observable.from(asyncRes);//TODO mange common errors
+        return Observable.from(asyncRes);//TODO manage common errors
     }
 
     public ObjectMapper getObjectMapper(){

@@ -29,6 +29,7 @@ import com.dreameddeath.core.model.transcoder.ITranscoder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -47,12 +48,25 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
         this(client,mapper,transcoder,false);
     }
 
+    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,Map<String,ITranscoder> transcodersMap){
+        this(client,mapper,transcodersMap,false);
+    }
+
+
     public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder transcoder,boolean autoCreateIndexes){
         super(transcoder);
         _client = client;
         _mapper = mapper;
         _autoCreateIndexes = autoCreateIndexes;
     }
+
+    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,Map<String,ITranscoder> transcodersMap,boolean autoCreateIndexes){
+        super(transcodersMap);
+        _client = client;
+        _mapper = mapper;
+        _autoCreateIndexes = autoCreateIndexes;
+    }
+
 
     protected void createIndexIfNeeded(String indexName){
         if(_autoCreateIndexes && !_checkedIndexes.contains(indexName)){

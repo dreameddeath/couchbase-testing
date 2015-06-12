@@ -25,6 +25,8 @@ import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.transcoder.ITranscoder;
+import com.dreameddeath.core.model.transcoder.impl.CounterTranscoder;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
@@ -37,10 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -194,8 +193,11 @@ public class ElasticSearchClientTest {
         ElasticSearchClient client = new ElasticSearchClient(_server.getClient(),GenericJacksonTranscoder.MAPPER);
         CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.addTranscoder(transcoder);
+        Map<String,ITranscoder> transcoderMap = new HashMap<>();
+        transcoderMap.put("/test/\\d+",transcoder.getTranscoder());
+        transcoderMap.put("/test/cnt",new CounterTranscoder());
         ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
-        ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoder.getTranscoder(),true);
+        ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(), transcoderMap,true);
         CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Arrays.asList("localhost:8091"),"test","",dcpFlowHandler,cbSimulator);
 
 
@@ -220,6 +222,7 @@ public class ElasticSearchClientTest {
         doc.getBaseMeta().setKey("/test/3");
         cbSimulator.add(doc, transcoder);
 
+        cbSimulator.counter("/test/cnt",1L,1L);
         //Wait for indexing
         connector.stop();
         _server.syncIndexes();
