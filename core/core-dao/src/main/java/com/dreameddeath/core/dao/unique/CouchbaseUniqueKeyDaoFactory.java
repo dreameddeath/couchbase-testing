@@ -21,6 +21,8 @@ import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
+import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 
@@ -31,13 +33,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 11/09/2014.
  */
 public class CouchbaseUniqueKeyDaoFactory{
+    private IDocumentInfoMapper _documentInfoMapper;
     private Map<String, CouchbaseUniqueKeyDao> _daosMap  = new ConcurrentHashMap<String, CouchbaseUniqueKeyDao>();
 
     private ICouchbaseTranscoder<CouchbaseUniqueKey> _defaultTranscoder;
 
-    public void setDefaultTranscoder(ICouchbaseTranscoder<CouchbaseUniqueKey> trans){_defaultTranscoder=trans;}
-    public void setDefaultTranscoder(ITranscoder<CouchbaseUniqueKey> trans){
-        _defaultTranscoder=new GenericCouchbaseTranscoder<CouchbaseUniqueKey>(CouchbaseUniqueKey.class,CouchbaseUniqueKeyDao.LocalBucketDocument.class);
+
+    public CouchbaseUniqueKeyDaoFactory(Builder builder){
+        _documentInfoMapper = builder._documentInfoMapper;
+        try {
+            _documentInfoMapper.addDocument(CouchbaseUniqueKey.class, CouchbaseUniqueKeyDao.UNIQ_KEY_PATTERN);
+        }
+        catch(DuplicateMappedEntryInfoException e){
+            //ignore error
+        }
+        _defaultTranscoder = builder._defaultTranscoder;
     }
 
 
@@ -81,6 +91,37 @@ public class CouchbaseUniqueKeyDaoFactory{
 
         }
         return mapKeys;
+    }
+
+
+    public static Builder builder(){
+        return new Builder();
+    }
+    public static class Builder{
+        private IDocumentInfoMapper _documentInfoMapper;
+        private ICouchbaseTranscoder<CouchbaseUniqueKey> _defaultTranscoder;
+
+        public Builder withDocumentInfoMapper(IDocumentInfoMapper mapper){
+            _documentInfoMapper = mapper;
+            return this;
+        }
+
+        public Builder withDefaultTranscoder(ICouchbaseTranscoder<CouchbaseUniqueKey> trans){
+            _defaultTranscoder=trans;
+            return this;
+        }
+
+        public Builder withDefaultTranscoder(ITranscoder<CouchbaseUniqueKey> trans){
+            GenericCouchbaseTranscoder<CouchbaseUniqueKey> transcoder = new GenericCouchbaseTranscoder<>(CouchbaseUniqueKey.class,CouchbaseUniqueKeyDao.LocalBucketDocument.class);
+            transcoder.setTranscoder(trans);
+            _defaultTranscoder = transcoder;
+            return this;
+        }
+
+        public CouchbaseUniqueKeyDaoFactory build(){
+            return new CouchbaseUniqueKeyDaoFactory(this);
+        }
+
     }
 
 }

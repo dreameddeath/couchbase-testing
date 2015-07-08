@@ -84,9 +84,15 @@ public class PrefixKeyTests {
     private final static CouchbaseBucketSimulator _client ;
     static {
         _client = new CouchbaseBucketSimulator("test","user1");
-        _sessionFactory = (new CouchbaseSessionFactory.Builder()).build();
-        _sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
-        _sessionFactory.getDocumentDaoFactory().addDao(new TestPrefixKeyDao().setClient(_client), new GenericJacksonTranscoder<>(TestPrefixKey.class));
+        CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
+        sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+        _sessionFactory = sessionBuilder.build();
+        try {
+            _sessionFactory.getDocumentDaoFactory().addDao(new TestPrefixKeyDao().setClient(_client), new GenericJacksonTranscoder<>(TestPrefixKey.class));
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
 
         _client.start();
     }

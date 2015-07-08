@@ -40,8 +40,8 @@ public class DefaultDocumentMapperInfoTest {
     @Test
     public void test() throws Exception{
         DefaultDocumentMapperInfo mapperInfo = new DefaultDocumentMapperInfo();
-        mapperInfo.addDocumentInfo(TestRootDoc.class,"toto/\\d+");
-        mapperInfo.addDocumentInfo(TestIndepDoc.class, "indep");
+        mapperInfo.addDocument(TestRootDoc.class, "toto/\\d+");
+        mapperInfo.addDocument(TestIndepDoc.class, "indep");
 
         IDocumentClassMappingInfo perClassMappingInfo = mapperInfo.getMappingFromClass(TestRootDoc.class);
         IKeyMappingInfo keyMappingInfo = mapperInfo.getMappingFromKey("toto/10");
@@ -66,7 +66,7 @@ public class DefaultDocumentMapperInfoTest {
         assertEquals("testing",grandChildMappingInfo.getAttachedObject(String.class));
 
         try{
-            mapperInfo.addDocumentInfo(TestRootDoc.class,"toto/\\d+");
+            mapperInfo.addDocument(TestRootDoc.class,"toto/\\d+");
             fail("Should have generated a duplicate exception");
         }
         catch(DuplicateMappedEntryInfoException e){

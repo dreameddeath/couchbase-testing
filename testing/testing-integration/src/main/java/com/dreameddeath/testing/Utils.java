@@ -25,6 +25,7 @@ import com.dreameddeath.core.couchbase.impl.CouchbaseBucketWrapper;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
@@ -58,15 +59,17 @@ public class Utils {
             else{
                 _client = new CouchbaseBucketSimulator("test",prefix);
             }
-            _sessionFactory = (new CouchbaseSessionFactory.Builder()).build();
-            _sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+            CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
+            sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+            _sessionFactory = sessionBuilder.build();
+            //_sessionFactory.gtUniqueKeyDaoFactory().setDefaultTranscoder();
         }
 
-        public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao dao,Class<TOBJ> objClass){
+        public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao dao,Class<TOBJ> objClass) throws DuplicateMappedEntryInfoException{
             _sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(_client), new GenericJacksonTranscoder<>(objClass));
         }
 
-        public void addDocumentDao(CouchbaseDocumentDao dao){
+        public void addDocumentDao(CouchbaseDocumentDao dao) throws DuplicateMappedEntryInfoException{
             Class<? extends CouchbaseDocument> clazz = dao.getClass().getAnnotation(DaoForClass.class).value();
             _sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(_client), new GenericJacksonTranscoder<>(clazz));
         }

@@ -31,6 +31,8 @@ public interface IDocumentClassMappingInfo {
     void addChildClass(Class<? extends CouchbaseDocument> childDocClass);
 
     <T> T getAttachedObject(Class<T> clazz);
+    <T> T getAttachedObject(Class<T> clazz,String key);
     <T> void attachObject(Class<T> clazz,Object obj);
+    <T> void attachObject(Class<T> clazz,String pattern,Object obj);
 
 }

@@ -17,35 +17,42 @@
 package com.dreameddeath.party.process.service;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.service.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
-import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.process.model.CreatePartyJob;
 import com.dreameddeath.party.process.model.CreatePartyRequest;
-import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
+import com.dreameddeath.testing.Utils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class CreatePartyJobProcessingServiceTest {
-    private final static CouchbaseSessionFactory _sessionFactory ;
+    //private final static CouchbaseSessionFactory _sessionFactory ;
+    private final static Utils.TestEnvironment _testEnvironment;
     static {
-        CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
+        _testEnvironment = new Utils.TestEnvironment("PartyTest");
+        try {
+            _testEnvironment.addDocumentDao(new PartyDao());
+            _testEnvironment.addDocumentDao(new JobDao());
+            _testEnvironment.start();
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
+        //CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
 
-        _sessionFactory = (new CouchbaseSessionFactory.Builder()).build();
-        _sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
-        _sessionFactory.getDocumentDaoFactory().addDao(new PartyDao().setClient(client), new GenericJacksonTranscoder<>(Party.class));
-        _sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(client),new GenericJacksonTranscoder<>(AbstractJob.class));
+        //_sessionFactory = (new CouchbaseSessionFactory.Builder()).build();
+        //_sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+        //_sessionFactory.getDocumentDaoFactory().addDao(new PartyDao().setClient(client), new GenericJacksonTranscoder<>(Party.class));
+        //_sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(client),new GenericJacksonTranscoder<>(AbstractJob.class));
 
-        client.start();
+
     }
 
     private final static ExecutorServiceFactory _execFactory=new ExecutorServiceFactory();
@@ -57,7 +64,7 @@ public class CreatePartyJobProcessingServiceTest {
 
     @Test
     public void JobTest() throws Exception{
-        ICouchbaseSession session = _sessionFactory.newReadWriteSession(null);
+        ICouchbaseSession session = _testEnvironment.getSessionFactory().newReadWriteSession(null);
         CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
         createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
         createPartyJob.getRequest().person = new CreatePartyRequest.Person();
@@ -65,7 +72,7 @@ public class CreatePartyJobProcessingServiceTest {
         createPartyJob.getRequest().person.lastName = "jeunesse";
 
         _execFactory.execute(JobContext.newContext(session, _execFactory, _processFactory), createPartyJob);
-        ICouchbaseSession controlSession = _sessionFactory.newReadOnlySession(null);
+        ICouchbaseSession controlSession = _testEnvironment.getSessionFactory().newReadOnlySession(null);
         CreatePartyJob inDbJob = controlSession.get(createPartyJob.getBaseMeta().getKey(),CreatePartyJob.class);
         assertEquals(inDbJob.getJobState(), AbstractJob.State.DONE);
         Party inDbParty = controlSession.get(inDbJob.getTask(0, CreatePartyJob.CreatePartyTask.class).getDocKey(),Party.class);

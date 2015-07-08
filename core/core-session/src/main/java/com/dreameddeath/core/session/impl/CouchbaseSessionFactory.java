@@ -19,7 +19,6 @@ package com.dreameddeath.core.session.impl;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
-import com.dreameddeath.core.dao.view.CouchbaseViewDaoFactory;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.ValidatorFactory;
@@ -35,25 +34,20 @@ public class CouchbaseSessionFactory {
     private final DateTimeServiceFactory _dateTimeServiceFactory;
     private final ValidatorFactory _validatorFactory;
 
-    public CouchbaseSessionFactory(CouchbaseDocumentDaoFactory docDaoFactory, CouchbaseCounterDaoFactory counterDaoFactory, CouchbaseUniqueKeyDaoFactory uniqueDaoFactory, DateTimeServiceFactory dateTimeServiceFactory,ValidatorFactory validatorFactory){
+    /*public CouchbaseSessionFactory(CouchbaseDocumentDaoFactory docDaoFactory, CouchbaseCounterDaoFactory counterDaoFactory, CouchbaseUniqueKeyDaoFactory uniqueDaoFactory, DateTimeServiceFactory dateTimeServiceFactory,ValidatorFactory validatorFactory){
         _documentDaoFactory =  docDaoFactory;
         _counterDaoFactory = counterDaoFactory;
         _uniqueKeyDaoFactory = uniqueDaoFactory;
         _dateTimeServiceFactory = dateTimeServiceFactory;
         _validatorFactory = validatorFactory;
     }
-
+*/
     public CouchbaseSessionFactory(Builder builder){
-        _documentDaoFactory =  builder.getDocumentDaoFactory();
-
-        _counterDaoFactory = builder.getCounterDaoFactory();
-        _uniqueKeyDaoFactory = builder.getUniqueKeyDaoFactory();
+        _documentDaoFactory =  builder._daoDocFactoryBuilder.build();
+        _counterDaoFactory = _documentDaoFactory.getCounterDaoFactory();
+        _uniqueKeyDaoFactory = _documentDaoFactory.getUniqueKeyDaoFactory();
         _dateTimeServiceFactory = builder.getDateTimeServiceFactory();
         _validatorFactory = builder.getValidatorFactory();
-
-        _documentDaoFactory.setCounterDaoFactory(builder.getCounterDaoFactory());
-        _documentDaoFactory.setUniqueKeyDaoFactory(builder.getUniqueKeyDaoFactory());
-        _documentDaoFactory.setViewDaoFactory(builder.getViewDaoFactory());
 
     }
 
@@ -73,36 +67,23 @@ public class CouchbaseSessionFactory {
 
 
     public static class Builder{
-        private CouchbaseDocumentDaoFactory _documentDaoFactory;
-        private CouchbaseCounterDaoFactory _counterDaoFactory;
-        private CouchbaseViewDaoFactory _viewDaoFactory;
-        private CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory;
+        private CouchbaseDocumentDaoFactory.Builder _daoDocFactoryBuilder;
         private DateTimeServiceFactory _dateTimeServiceFactory;
         private ValidatorFactory _validatorFactory;
 
         public Builder(){
-            _documentDaoFactory = new CouchbaseDocumentDaoFactory();
-            _counterDaoFactory = new CouchbaseCounterDaoFactory();
-            _uniqueKeyDaoFactory = new CouchbaseUniqueKeyDaoFactory();
-            _viewDaoFactory = new CouchbaseViewDaoFactory();
+            _daoDocFactoryBuilder = CouchbaseDocumentDaoFactory.builder();
             _dateTimeServiceFactory = new DateTimeServiceFactory();
             _validatorFactory = new ValidatorFactory();
         }
 
-        public CouchbaseDocumentDaoFactory getDocumentDaoFactory(){ return _documentDaoFactory;}
-        public CouchbaseCounterDaoFactory getCounterDaoFactory(){ return _counterDaoFactory;}
-        public CouchbaseUniqueKeyDaoFactory getUniqueKeyDaoFactory(){ return _uniqueKeyDaoFactory;}
-        public CouchbaseViewDaoFactory getViewDaoFactory(){ return _viewDaoFactory;}
+        public CouchbaseDocumentDaoFactory.Builder getDocumentDaoFactoryBuilder(){ return _daoDocFactoryBuilder;}
         public DateTimeServiceFactory getDateTimeServiceFactory(){ return _dateTimeServiceFactory;}
         public ValidatorFactory getValidatorFactory(){ return _validatorFactory;}
 
-        public Builder setDocumentDaoFactory(CouchbaseDocumentDaoFactory docDaoFactory){ _documentDaoFactory=docDaoFactory;return this;}
-        public Builder setCounterDaoFactory(CouchbaseCounterDaoFactory daoFactory){  _counterDaoFactory=daoFactory;return this;}
-        public Builder setUniqueKeyDaoFactory(CouchbaseUniqueKeyDaoFactory daoFactory){ _uniqueKeyDaoFactory=daoFactory;return this;}
-        public Builder setViewDaoFactory(CouchbaseViewDaoFactory daoFactory){ _viewDaoFactory=daoFactory;return this;}
+        public Builder setDocumentDaoFactoryBuilder(CouchbaseDocumentDaoFactory.Builder daoDocFactoryBuilder){ _daoDocFactoryBuilder = daoDocFactoryBuilder;return this;}
         public Builder setDateTimeServiceFactory(DateTimeServiceFactory serviceFactory){ _dateTimeServiceFactory=serviceFactory;return this;}
         public Builder setValidatorFactory(ValidatorFactory validatorFactory){ _validatorFactory=validatorFactory;return this;}
-
 
         public CouchbaseSessionFactory build(){
             return new CouchbaseSessionFactory(this);

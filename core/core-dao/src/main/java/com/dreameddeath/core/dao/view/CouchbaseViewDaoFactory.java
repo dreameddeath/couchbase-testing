@@ -38,6 +38,11 @@ public class CouchbaseViewDaoFactory {
     private Map<String,CouchbaseViewDao> _perClassNameAndNameCacheMap=new ConcurrentHashMap<>();
 
 
+    public CouchbaseViewDaoFactory(Builder builder){
+
+    }
+
+
     public <T extends CouchbaseDocument> void addDao(CouchbaseViewDao dao){
         DaoForClass annotation = dao.getParentDao().getClass().getAnnotation(DaoForClass.class);
         if(annotation==null){
@@ -57,6 +62,7 @@ public class CouchbaseViewDaoFactory {
             }
         }
         _daosMap.get(entityClazz).add(dao);
+        //_perClassNameAndNameCacheMap.computeIfAbsent(entityClazz.getName()+dao.getViewName(),)
     }
 
     public <T extends CouchbaseDocument> List<CouchbaseViewDao> getViewListDaoFor(Class<T> entityClass){
@@ -76,11 +82,12 @@ public class CouchbaseViewDaoFactory {
     public <T extends CouchbaseDocument> CouchbaseViewDao getViewDaoFor(Class<T> entityClass,String viewName) throws DaoNotFoundException{
         CouchbaseViewDao result = _perClassNameAndNameCacheMap.get(entityClass.getName()+viewName);
         if(result==null) {
-            List<CouchbaseViewDao> list = (List) getViewListDaoFor(entityClass);
+            List<CouchbaseViewDao> list = getViewListDaoFor(entityClass);
             if(list != null){
-                for(CouchbaseViewDao view:list){
-                    if(view.getViewName().equals(viewName)){
-                        result=view;
+                for(CouchbaseViewDao viewDao:list){
+                    if(viewDao.getViewName().equals(viewName)){
+                        _perClassNameAndNameCacheMap.putIfAbsent(entityClass.getName()+viewName,viewDao);
+                        result=viewDao;
                         break;
                     }
                 }
@@ -117,6 +124,17 @@ public class CouchbaseViewDaoFactory {
                 bucketDesignDocEntry.getKey().createOrUpdateView(designDoc.getKey(),designDoc.getValue());
             }
 
+        }
+    }
+
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder{
+        public CouchbaseViewDaoFactory build(){
+            return new CouchbaseViewDaoFactory(this);
         }
     }
 }

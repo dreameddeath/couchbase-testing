@@ -17,6 +17,7 @@
 package com.dreameddeath.core.model.mapper;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 
 /**
@@ -24,6 +25,11 @@ import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
  */
 public interface IDocumentInfoMapper {
     IKeyMappingInfo getMappingFromKey(String key) throws MappingNotFoundException;
-    IDocumentClassMappingInfo getMappingFromClass(Class<? extends CouchbaseDocument> doc) throws MappingNotFoundException;
+    IDocumentClassMappingInfo getMappingFromClass(Class<? extends CouchbaseDocument> docClass) throws MappingNotFoundException;
 
+    boolean contains(Class<? extends CouchbaseDocument> docClass);
+    void addRawDocument(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException;
+    void addDocument(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException;
+    void addDocument(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws DuplicateMappedEntryInfoException;
+    void addKeyPattern(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws MappingNotFoundException;
 }

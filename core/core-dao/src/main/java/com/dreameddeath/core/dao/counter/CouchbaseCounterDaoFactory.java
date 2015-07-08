@@ -17,6 +17,10 @@
 package com.dreameddeath.core.dao.counter;
 
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
+import com.dreameddeath.core.model.counter.CouchbaseCounter;
+import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
+import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
+import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,17 +33,63 @@ public class CouchbaseCounterDaoFactory {
     private Map<Pattern,CouchbaseCounterDao> _patternsMap
             = new ConcurrentHashMap<Pattern,CouchbaseCounterDao>();
 
+    private final IDocumentInfoMapper _documentInfoMapper;
+
+    public CouchbaseCounterDaoFactory(Builder builder){
+        _documentInfoMapper = builder._documentInfoMapper;
+    }
+
+
     public void addDao(CouchbaseCounterDao dao){
-        _patternsMap.put(Pattern.compile("^"+dao.getKeyPattern()+"$"),dao);
+        synchronized (_documentInfoMapper){
+            try {
+                if (!_documentInfoMapper.contains(CouchbaseCounter.class)) {
+                    _documentInfoMapper.addRawDocument(CouchbaseCounter.class);
+                }
+                if(dao.getKeyPattern()!=null) {
+                    _documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(CouchbaseCounterDao.class, dao.getKeyPattern(), dao);
+                }
+                //else {
+                //    _documentInfoMapper.addKeyPattern(CouchbaseCounter.class, dao.getKeyPattern());
+                //}
+            }
+            catch(DuplicateMappedEntryInfoException|MappingNotFoundException e){
+                //Will never occur
+            }
+        }
+
+
+        //_patternsMap.put(Pattern.compile("^"+dao.getKeyPattern()+"$"),dao);
     }
 
     public CouchbaseCounterDao getDaoForKey(String key) throws DaoNotFoundException {
-        for(Pattern pattern:_patternsMap.keySet()){
-            if(pattern.matcher(key).matches()){
-                return _patternsMap.get(pattern);
+        try {
+            CouchbaseCounterDao res = _documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).getAttachedObject(CouchbaseCounterDao.class, key);
+            if(res!=null){
+                return res;
             }
         }
+        catch(MappingNotFoundException e){
+            throw new DaoNotFoundException(key,DaoNotFoundException.Type.COUNTER);
+        }
+
         throw new DaoNotFoundException(key, DaoNotFoundException.Type.COUNTER);
     }
 
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder{
+        private IDocumentInfoMapper _documentInfoMapper;
+
+        public Builder withDocumentInfoMapper(IDocumentInfoMapper mapper){
+            _documentInfoMapper = mapper;
+            return this;
+        }
+
+        public CouchbaseCounterDaoFactory build(){
+            return new CouchbaseCounterDaoFactory(this);
+        }
+    }
 }

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * Created by Christophe Jeunesse on 08/06/2015.
@@ -34,6 +35,40 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
     private final Set<Class<? extends CouchbaseDocument>> _childClasses =new HashSet<>();
     private final String _keyPattern;
     private final Map<Class,Object> _attachedInfo =new ConcurrentHashMap<>();
+    private final Map<KeyClassTuple,Object> _perKeyAttachedInfo =new ConcurrentHashMap<>();
+
+    private class KeyClassTuple{
+        private final String _patternStr;
+        private Pattern _pattern;
+        private final Class _class;
+        private KeyClassTuple(String pattern,Class clazz){
+            _patternStr = pattern;
+            _class = clazz;
+        }
+
+        public boolean matches(String key,Class clazz){
+            if(_pattern==null){
+                _pattern = Pattern.compile("^"+_patternStr+"$");
+            }
+            return _pattern.matcher(key).matches() && _class.equals(clazz);
+        }
+
+
+        @Override
+        public boolean equals(Object obj){
+            if(this==obj){
+                return true;
+            }
+            else if(obj == null){
+                return false;
+            }
+            else if (! (obj instanceof KeyClassTuple)){
+                return false;
+            }
+            KeyClassTuple target = (KeyClassTuple)obj;
+            return _class.equals(target._class) && _pattern.equals(target._pattern);
+        }
+    }
 
     public DefaultDocumentClassInfoMapping(Class<? extends CouchbaseDocument> clazz, IDocumentClassMappingInfo parent, String pattern){
         _clazz = clazz;
@@ -62,15 +97,38 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
         @SuppressWarnings("unchecked")
         T res = (T)_attachedInfo.get(clazz);
         if(res==null && _parent!=null){
-            return _parent.getAttachedObject(clazz);
+            T resParent = _parent.getAttachedObject(clazz);
+            _attachedInfo.putIfAbsent(clazz,resParent);
+            return resParent;
         }
         return res;
     }
+
+
+    @Override
+    public <T> T getAttachedObject(Class<T> clazz,String key) {
+        for(Map.Entry<KeyClassTuple,Object> element:_perKeyAttachedInfo.entrySet()){
+            if(element.getKey().matches(key, clazz)){
+                return (T)element.getValue();
+            }
+        }
+        if(_parent!=null){
+            return _parent.getAttachedObject(clazz,key);
+        }
+        return null;
+    }
+
 
     @Override
     public synchronized <T> void attachObject(Class<T> clazz, Object obj) {
         _attachedInfo.put(clazz,obj);
     }
+
+    @Override
+    public synchronized <T> void attachObject(Class<T> clazz,String pattern, Object obj) {
+        _perKeyAttachedInfo.put(new KeyClassTuple(pattern,clazz),obj);
+    }
+
 
 
     @Override

@@ -37,15 +37,38 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
             = new ConcurrentHashMap<>();
 
 
-    public synchronized void addDocumentInfo(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException {
-        addDocumentInfo(docClass, ".*");
+    @Override
+    public synchronized void addDocument(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException {
+        addDocument(docClass, ".*");
     }
 
-    public synchronized void addDocumentInfo(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws DuplicateMappedEntryInfoException {
+    @Override
+    public synchronized void addDocument(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws DuplicateMappedEntryInfoException {
         if (_perClassInfoMap.containsKey(docClass)) {
             throw new DuplicateMappedEntryInfoException("The class <"+docClass+"> is already mapped");
         }
 
+        _perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass, null, keyPattern));
+        try {
+            addKeyPattern(docClass, keyPattern);
+        }
+        catch(MappingNotFoundException e){
+            //Never occurs
+        }
+    }
+
+    @Override
+    public synchronized void addRawDocument(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException {
+        if (_perClassInfoMap.containsKey(docClass)) {
+            throw new DuplicateMappedEntryInfoException("The class <"+docClass+"> is already mapped");
+        }
+
+        _perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass, null, null));
+    }
+
+
+    @Override
+    public synchronized void addKeyPattern(Class<? extends CouchbaseDocument> docClass, String keyPattern) throws MappingNotFoundException {
         if (keyPattern == null) {
             keyPattern = ".*";
         }
@@ -58,8 +81,7 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
 
 
         Pattern pattern = Pattern.compile(keyPattern);
-        _perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass,null,keyPattern));
-        _keyInfoMap.put(pattern, _perClassInfoMap.get(docClass));
+        _keyInfoMap.put(pattern, getMappingFromClass(docClass));
     }
 
     protected synchronized IDocumentClassMappingInfo findUsingParent(Class<? extends CouchbaseDocument> docClass){
@@ -107,5 +129,10 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
         else{
             return info;
         }
+    }
+
+    @Override
+    public boolean contains(Class<? extends CouchbaseDocument> docClass) {
+        return _perClassInfoMap.containsKey(docClass);
     }
 }

@@ -195,10 +195,15 @@ public class UpgraderTest {
     static {
         CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
 
-        _sessionFactory = (new CouchbaseSessionFactory.Builder()).build();
-        _sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
-        _sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV1().setClient(client), new GenericJacksonTranscoder<>(TestModel.class));
-        _sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV2().setClient(client), new GenericJacksonTranscoder<>(TestModelV2.class));
+        CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
+        sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+        _sessionFactory = sessionBuilder.build();
+        try {
+            _sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV1().setClient(client), new GenericJacksonTranscoder<>(TestModel.class));
+            _sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV2().setClient(client), new GenericJacksonTranscoder<>(TestModelV2.class));
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
 
         client.start();
     }
