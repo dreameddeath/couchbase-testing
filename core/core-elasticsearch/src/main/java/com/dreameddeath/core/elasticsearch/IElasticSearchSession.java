@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.couchbase;
+package com.dreameddeath.core.elasticsearch;
 
-
-import com.couchbase.client.java.transcoder.Transcoder;
+import com.dreameddeath.core.elasticsearch.dao.ElasticSearchQuery;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.transcoder.ITranscoder;
+import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 
 /**
- * Created by Christophe Jeunesse on 21/11/2014.
+ * Created by Christophe Jeunesse on 08/07/2015.
  */
-public interface ICouchbaseTranscoder<T extends CouchbaseDocument> extends Transcoder<BucketDocument<T>,T> {
-    BucketDocument<T> newDocument(T baseDocument);
-    void setKeyPrefix(String prefix);
-
-    ITranscoder<T> getTranscoder();
+public interface IElasticSearchSession {
+    <T extends CouchbaseDocument> ElasticSearchQuery<T> newElasticSearchQuery(Class<T> targetClass) throws MappingNotFoundException;
 }

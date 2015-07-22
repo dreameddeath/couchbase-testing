@@ -32,7 +32,7 @@ public class BillingOrderTest extends Assert {
     Utils.TestEnvironment _env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("billingOrder");
+        _env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
         _env.addDocumentDao(new PartyDao());
         _env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
         _env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());

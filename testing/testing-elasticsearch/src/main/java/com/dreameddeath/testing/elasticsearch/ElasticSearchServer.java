@@ -55,7 +55,7 @@ public class ElasticSearchServer {
 
     public Client getClient(){
         if(_client==null){
-            _client = _node.client();
+            _client = getNode().client();
         }
         return _client;
     }
@@ -77,11 +77,15 @@ public class ElasticSearchServer {
     }
 
     public void createAndInitIndex(String indexName){
-        getClient().admin().indices().prepareCreate(indexName).execute().actionGet();
-        getClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
+        synchronized (this) {
+            getClient().admin().indices().prepareCreate(indexName).execute().actionGet();
+            getClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
+        }
     }
 
     public void syncIndexes(){
-        getClient().admin().indices().prepareRefresh().execute().actionGet();
+        synchronized (this) {
+            getClient().admin().indices().prepareRefresh().execute().actionGet();
+        }
     }
 }

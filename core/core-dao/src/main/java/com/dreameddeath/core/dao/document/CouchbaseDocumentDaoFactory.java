@@ -34,16 +34,7 @@ import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.mapper.impl.DefaultDocumentMapperInfo;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-
 public class CouchbaseDocumentDaoFactory {
-    private Map<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>> _daosMap
-            = new ConcurrentHashMap<Class<? extends CouchbaseDocument>, CouchbaseDocumentDao<?>>();
-    private Map<Pattern,CouchbaseDocumentWithKeyPatternDao<?>> _patternsMap
-            = new ConcurrentHashMap<Pattern,CouchbaseDocumentWithKeyPatternDao<?>>();
-
     private final CouchbaseCounterDaoFactory _counterDaoFactory;
     private final CouchbaseUniqueKeyDaoFactory _uniqueKeyDaoFactory;
     private final CouchbaseViewDaoFactory _viewDaoFactory;
@@ -138,17 +129,12 @@ public class CouchbaseDocumentDaoFactory {
         try {
             IDocumentClassMappingInfo info = _documentInfoMapper.getMappingFromClass(entityClass);
             info.attachObject(CouchbaseDocumentDao.class, dao);
+            info.attachObject(ITranscoder.class,dao.getTranscoder().getTranscoder());
         }
         catch(MappingNotFoundException e){
 
         }
-        /*if(_daosMap.containsKey(entityClass)) {
-            throw new DuplicateDaoException("The dao " + dao.getClass().getName() + " is already existing for class " + entityClass.getName());
-        }
-        _daosMap.put(entityClass,dao);
-        if(dao instanceof CouchbaseDocumentWithKeyPatternDao){
-            _patternsMap.put(Pattern.compile("^"+((CouchbaseDocumentWithKeyPatternDao) dao).getKeyPattern()+"$"),(CouchbaseDocumentWithKeyPatternDao)dao);
-        }*/
+
         for(CouchbaseCounterDao.Builder daoCounterBuilder:dao.getCountersBuilder()){
             registerCounter(daoCounterBuilder.build());
         }
@@ -158,6 +144,7 @@ public class CouchbaseDocumentDaoFactory {
         for(CouchbaseViewDao daoView:dao.getViewDaos()){
             _viewDaoFactory.addDaoFor(entityClass,daoView);
         }
+
     }
 
     public <T extends CouchbaseDocument> CouchbaseDocumentDao<T> getDaoForClass(Class<T> entityClass) throws DaoNotFoundException{
@@ -172,28 +159,14 @@ public class CouchbaseDocumentDaoFactory {
         catch(MappingNotFoundException e){
             throw new DaoNotFoundException(entityClass);
         }
-        /*CouchbaseDocumentDao<T> result = (CouchbaseDocumentDao<T>)_daosMap.get(entityClass);
-        if(result==null){
-            Class parentClass=entityClass.getSuperclass();
-            if(CouchbaseDocument.class.isAssignableFrom(parentClass)){
-                result = getDaoForClass(parentClass.asSubclass(CouchbaseDocument.class));
-                if(result!=null){
-                    _daosMap.put(entityClass,result);
-                }
-            }
-        }
-        if(result==null){
-            throw new DaoNotFoundException(entityClass);
-        }
-        return result;*/
     }
 
     public CouchbaseDocumentWithKeyPatternDao getDaoForKey(String key) throws DaoNotFoundException {
-        for(Pattern pattern:_patternsMap.keySet()){
-            if(pattern.matcher(key).matches()){
-                return _patternsMap.get(pattern);
-            }
+        try {
+            return _documentInfoMapper.getMappingFromKey(key).classMappingInfo().getAttachedObject(CouchbaseDocumentWithKeyPatternDao.class);
         }
-        throw new DaoNotFoundException(key, DaoNotFoundException.Type.DOC);
+        catch(MappingNotFoundException e){
+            throw new DaoNotFoundException(key, DaoNotFoundException.Type.DOC);
+        }
     }
 }

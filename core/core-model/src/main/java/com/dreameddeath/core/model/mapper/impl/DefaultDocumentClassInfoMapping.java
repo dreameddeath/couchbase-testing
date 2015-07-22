@@ -98,12 +98,11 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
         T res = (T)_attachedInfo.get(clazz);
         if(res==null && _parent!=null){
             T resParent = _parent.getAttachedObject(clazz);
-            _attachedInfo.putIfAbsent(clazz,resParent);
+            _attachedInfo.putIfAbsent(clazz, resParent);
             return resParent;
         }
         return res;
     }
-
 
     @Override
     public <T> T getAttachedObject(Class<T> clazz,String key) {
@@ -129,8 +128,6 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
         _perKeyAttachedInfo.put(new KeyClassTuple(pattern,clazz),obj);
     }
 
-
-
     @Override
     public Set<Class<? extends CouchbaseDocument>> getChildClasses(){
         return _childClasses;
@@ -150,7 +147,4 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
     public String keyPattern() {
         return _keyPattern;
     }
-
-
-
 }

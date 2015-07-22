@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.couchbase;
+package com.dreameddeath.core.elasticsearch;
 
+import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.model.view.*;
+import com.dreameddeath.core.dao.model.view.IViewKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.Utils;
-import org.junit.After;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,12 +39,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-/**
- * Created by Christophe Jeunesse on 18/12/2014.
- */
-public class ViewTests {
 
-    public static class TestDoc extends CouchbaseDocument{
+/**
+ * Created by Christophe Jeunesse on 22/07/2015.
+ */
+public class ElasticSearchIntegrationTest {
+
+    public static class TestDoc extends CouchbaseDocument {
         @DocumentProperty("strVal")
         public String strVal;
 
@@ -78,7 +82,7 @@ public class ViewTests {
             return TEST_KEY_PATTERN;
         }
 
-        public static class TestViewDao extends CouchbaseViewDao<String,String,TestDoc>{
+        public static class TestViewDao extends CouchbaseViewDao<String,String,TestDoc> {
             public TestViewDao(TestDao parentDao){
                 super("test/","testView",parentDao);
             }
@@ -87,12 +91,12 @@ public class ViewTests {
             public String getContent() {
                 return
                         "emit(meta.id,doc);\n"+
-                        "emit(doc.strVal,doc.strVal);\n"+
-                        "emit(doc.doubleVal,doc.doubleVal);\n"+
-                        "emit(doc.intVal,doc.intVal);\n"+
-                        "emit(doc.boolVal,doc.boolVal);\n"+
-                        "emit(doc.longVal,doc.longVal);\n"+
-                        "emit(doc.arrayVal,doc.arrayVal);\n";
+                                "emit(doc.strVal,doc.strVal);\n"+
+                                "emit(doc.doubleVal,doc.doubleVal);\n"+
+                                "emit(doc.intVal,doc.intVal);\n"+
+                                "emit(doc.boolVal,doc.boolVal);\n"+
+                                "emit(doc.longVal,doc.longVal);\n"+
+                                "emit(doc.arrayVal,doc.arrayVal);\n";
             }
 
             @Override public IViewTranscoder<String> getValueTranscoder() {return IViewTranscoder.Utils.stringTranscoder();}
@@ -111,7 +115,7 @@ public class ViewTests {
         @Override
         public List<CouchbaseViewDao> generateViewDaos(){
             return Arrays.asList(
-                new TestViewDao(this)
+                    new TestViewDao(this)
             );
         }
 
@@ -133,13 +137,15 @@ public class ViewTests {
     Utils.TestEnvironment _env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
-        _env.addDocumentDao(new TestDao(),TestDoc.class);
+        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
+        _env.addDocumentDao(new TestDao(), TestDoc.class);
         _env.start();
     }
 
+
+
     @Test
-    public void testView() throws Exception{
+    public void test() throws Exception{
         ICouchbaseSession session = _env.getSessionFactory().newReadWriteSession(null);
         for(int i=0;i<10;++i){
             TestDoc doc = session.newEntity(TestDoc.class);
@@ -147,7 +153,7 @@ public class ViewTests {
             doc.doubleVal=i*1.1;
             doc.longVal=i+1L;
             doc.intVal=i;
-            doc.boolVal=(i%2==0)?true:false;
+            doc.boolVal=((i%2)==0)?true:false;
             doc.arrayVal = new ArrayList<>(i);
             for(int j=0;j<i;++j){
                 TestDoc.SubElem elem=new TestDoc.SubElem();
@@ -157,16 +163,13 @@ public class ViewTests {
             session.save(doc);
         }
 
-        IViewQuery<String,String,TestDoc> query = session.initViewQuery(TestDoc.class, "testView");
-        query.withStartKey("test 3").withEndKey("test 5",true).withLimit(20).syncWithDoc();
-        IViewQueryResult<String,String,TestDoc> result = session.executeQuery(query);
-        List<IViewQueryRow<String,String,TestDoc>> rows = result.getAllRows();
+        //_env.getEsServer()
+        //Thread.sleep(10000);
+        IElasticSearchSession esSession = _env.getEsSessionFactory().newSession(null);
+        _env.fullEsSync();
 
-        assertEquals(3,rows.size());
-    }
-
-    @After
-    public void endTest(){
-        _env.shutdown(true);
+        ElasticSearchResult<TestDoc> result = esSession.newElasticSearchQuery(TestDoc.class).setQuery(QueryBuilders.matchAllQuery()).setSize(20).search();
+        //result.getTotalHitCount();
+        assertEquals(10,result.getTotalHitCount());
     }
 }

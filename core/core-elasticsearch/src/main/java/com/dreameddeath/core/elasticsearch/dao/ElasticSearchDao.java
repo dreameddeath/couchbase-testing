@@ -19,19 +19,10 @@ package com.dreameddeath.core.elasticsearch.dao;
 import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
 import com.dreameddeath.core.elasticsearch.IElasticSearchMapper;
 import com.dreameddeath.core.elasticsearch.exception.ElasticSearchDaoException;
-import com.dreameddeath.core.elasticsearch.search.ElasticSearchSearchQueryBuilder;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.SearchHit;
 import rx.Observable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -48,6 +39,10 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
         _mapper = mapper;
         _bucketName = bucketName;
         _transcoder = transcoder;
+    }
+
+    public static <T extends CouchbaseDocument> Builder<T> builder(){
+        return new Builder<>();
     }
 
     protected T decode(GetResponse response)throws ElasticSearchDaoException{
@@ -70,127 +65,64 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
         return responseObservable.map(this::decode);
     }
 
-    public ElasticSearchQuery newQuery(){
-        return new ElasticSearchQuery();
+    public ElasticSearchQuery<T> newQuery(){
+        return new ElasticSearchQuery<>(this);
     }
 
-    public ElasticSearchResult search(ElasticSearchQuery query){
-        return asyncSearch(query).toBlocking().single();
+    public ElasticSearchResult<T> search(ElasticSearchQuery<T> query){
+        return query.search();
     }
 
 
-    public Observable<ElasticSearchResult> asyncSearch(ElasticSearchQuery query){
-        return query._query.executeAsObservable().map(ElasticSearchResult::new);
+    public Observable<ElasticSearchResult<T>> asyncSearch(ElasticSearchQuery<T> query){
+        return query.asyncSearch();
     }
 
-    public class ElasticSearchResult{
-        private SearchResponse _esResult;
-        private List<ElasticSearchResultHit> _elasticSearchResultHitList =null;
-        public ElasticSearchResult(SearchResponse esResult){
-            _esResult = esResult;
+
+    public static class Builder<T extends CouchbaseDocument>{
+        private String _bucketName;
+        private ElasticSearchClient _client;
+        private IElasticSearchMapper _mapper;
+        private ITranscoder<T> _transcoder;
+
+        public Builder withBucketName(String name){
+            _bucketName = name;
+            return this;
         }
 
-        public long getTotalHitCount(){
-            return _esResult.getHits().getTotalHits();
+        public Builder withClient(ElasticSearchClient client){
+            _client = client;
+            return this;
         }
 
-        public List<ElasticSearchResultHit> getList(){
-            if(_elasticSearchResultHitList ==null){
-                synchronized (this){
-                    if(_elasticSearchResultHitList ==null) {
-                        _elasticSearchResultHitList = new ArrayList<>(_esResult.getHits().hits().length);
-                        for (SearchHit hit : _esResult.getHits().hits()) {
-                            _elasticSearchResultHitList.add(new ElasticSearchResultHit(hit));
-                        }
-                    }
-                }
-            }
-            return _elasticSearchResultHitList;
-        }
-    }
-
-    public class ElasticSearchResultHit {
-        private SearchHit _hit;
-        private boolean _mappingAttempted;
-        private T _obj;
-
-        public ElasticSearchResultHit(SearchHit hit){
-            _hit = hit;
-            _mappingAttempted = false;
+        public Builder withMapper(IElasticSearchMapper mapper){
+            _mapper = mapper;
+            return this;
         }
 
-        public float getScore(){
-            return _hit.score();
+        public Builder withTranscoder(ITranscoder<T> transcoder){
+            _transcoder = transcoder;
+            return this;
         }
 
-        public String getKey(){
-            return _hit.getId();
-        }
-
-        public T get(){
-            if(!_mappingAttempted){
-                synchronized (this){
-                    if(!_mappingAttempted) {
-                        if (!_hit.isSourceEmpty()){
-                            _obj = _transcoder.decode(_hit.source());
-                        }
-                        _mappingAttempted=true;
-                    }
-                }
-            }
-            return _obj;
+        public ElasticSearchDao<T> build(){
+            return new ElasticSearchDao<>(this._bucketName,this._client,this._mapper,this._transcoder);
         }
     }
 
-    public class ElasticSearchQuery{
-        private ElasticSearchSearchQueryBuilder _query;
+    protected IElasticSearchMapper getMapper() {
+        return _mapper;
+    }
 
-        public ElasticSearchQuery(){
-            _query = new ElasticSearchSearchQueryBuilder(_client);
-            _query.setIndices(_mapper.documentIndexBuilder(_bucketName, _transcoder.getBaseClass()));
-            _query.setTypes(_mapper.documentTypeBuilder(_bucketName, _transcoder.getBaseClass()));
-        }
+    protected ElasticSearchClient getClient() {
+        return _client;
+    }
 
-        public ElasticSearchQuery setSearchType(SearchType searchType) {
-            _query.setSearchType(searchType);
-            return this;
-        }
+    protected ITranscoder<T> getTranscoder() {
+        return _transcoder;
+    }
 
-        public ElasticSearchQuery setQuery(QueryBuilder builder) {
-            _query.setQuery(builder);
-            return this;
-        }
-
-        public ElasticSearchQuery setQuery(String queryStr) {
-            _query.setQuery(queryStr);
-            return this;
-        }
-
-        public ElasticSearchQuery addFields(String... fields) {
-            _query.addFields(fields);
-            return this;
-        }
-
-        public ElasticSearchQuery setSize(int size) {
-            _query.setSize(size);
-            return this;
-        }
-
-
-        public ElasticSearchQuery setPostFilter(FilterBuilder builder) {
-            _query.setPostFilter(builder);
-            return this;
-        }
-
-        public ElasticSearchQuery setPostFilter(String postFilterStr) {
-            _query.setPostFilter(postFilterStr);
-            return this;
-        }
-
-        public ElasticSearchQuery setFetchSource(boolean activate){
-            _query.setFetchSource(activate);
-            return this;
-        }
-
+    protected String getBucketName() {
+        return _bucketName;
     }
 }

@@ -32,7 +32,7 @@ public class DaoGeneratorTest extends Assert {
     Utils.TestEnvironment _env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("ViewTests");
+        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
        // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
         _env.start();
     }

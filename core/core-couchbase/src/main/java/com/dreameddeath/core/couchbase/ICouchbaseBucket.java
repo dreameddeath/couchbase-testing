@@ -106,6 +106,8 @@ public interface ICouchbaseBucket {
     boolean shutdown(long timeout, TimeUnit unit);
     void shutdown();
 
+    String getBucketName();
+
     class Utils{
         public static final Character KEY_SEP='$';
         public static final String KEY_WITH_PREFIX_FMT="%s"+KEY_SEP+"%s";

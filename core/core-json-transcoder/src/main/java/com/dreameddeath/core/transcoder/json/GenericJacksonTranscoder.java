@@ -89,6 +89,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
         }
         return currentClass;
     }
+
     public GenericJacksonTranscoder(Class<T> clazz){
         _dummyClass = clazz;
         _rootClass = findRootClass(clazz);

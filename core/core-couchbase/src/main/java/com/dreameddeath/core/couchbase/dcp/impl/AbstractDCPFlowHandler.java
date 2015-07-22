@@ -24,6 +24,8 @@ import com.couchbase.client.deps.com.lmax.disruptor.ExceptionHandler;
 import com.dreameddeath.core.couchbase.dcp.DCPEvent;
 import com.dreameddeath.core.couchbase.dcp.exception.HandlerException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
+import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 
 import java.util.Map;
@@ -38,10 +40,17 @@ public abstract class AbstractDCPFlowHandler {
     private final MappingMode _mappingMode;
     private Map<Pattern,ITranscoder<?>> _keyPatternsMap = new ConcurrentHashMap<>();
     private ITranscoder<?> _genericTranscoder=null;
+    private IDocumentInfoMapper _documentInfoMapper=null;
 
     public AbstractDCPFlowHandler(ITranscoder transcoder){
         _mappingMode = MappingMode.GENERIC_TRANSCODER;
         _genericTranscoder = transcoder;
+        _handler = new Handler();
+    }
+
+    public AbstractDCPFlowHandler(IDocumentInfoMapper mapper){
+        _mappingMode = MappingMode.DOCUMENT_MAPPER;
+        _documentInfoMapper = mapper;
         _handler = new Handler();
     }
 
@@ -97,6 +106,14 @@ public abstract class AbstractDCPFlowHandler {
         else if(_mappingMode==MappingMode.GENERIC_TRANSCODER){
             return _genericTranscoder;
         }
+        else if(_mappingMode==MappingMode.DOCUMENT_MAPPER){
+            try {
+                return _documentInfoMapper.getMappingFromKey(message.key()).classMappingInfo().getAttachedObject(ITranscoder.class);
+            }
+            catch(MappingNotFoundException e){
+                return null;
+            }
+        }
         return null;
     }
 
@@ -128,7 +145,8 @@ public abstract class AbstractDCPFlowHandler {
 
     public enum MappingMode {
         KEY_PATTERN,
-        GENERIC_TRANSCODER
+        GENERIC_TRANSCODER,
+        DOCUMENT_MAPPER
     }
 
     public class Handler implements EventHandler<DCPEvent>,ExceptionHandler{

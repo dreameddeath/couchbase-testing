@@ -21,6 +21,8 @@ import com.dreameddeath.core.model.counter.CouchbaseCounter;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
+import com.dreameddeath.core.model.transcoder.ITranscoder;
+import com.dreameddeath.core.model.transcoder.impl.CounterTranscoder;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,21 +47,17 @@ public class CouchbaseCounterDaoFactory {
             try {
                 if (!_documentInfoMapper.contains(CouchbaseCounter.class)) {
                     _documentInfoMapper.addRawDocument(CouchbaseCounter.class);
+                    _documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(ITranscoder.class, new CounterTranscoder());
                 }
                 if(dao.getKeyPattern()!=null) {
                     _documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(CouchbaseCounterDao.class, dao.getKeyPattern(), dao);
+                    _documentInfoMapper.addKeyPattern(CouchbaseCounter.class,dao.getKeyPattern());
                 }
-                //else {
-                //    _documentInfoMapper.addKeyPattern(CouchbaseCounter.class, dao.getKeyPattern());
-                //}
             }
             catch(DuplicateMappedEntryInfoException|MappingNotFoundException e){
                 //Will never occur
             }
         }
-
-
-        //_patternsMap.put(Pattern.compile("^"+dao.getKeyPattern()+"$"),dao);
     }
 
     public CouchbaseCounterDao getDaoForKey(String key) throws DaoNotFoundException {

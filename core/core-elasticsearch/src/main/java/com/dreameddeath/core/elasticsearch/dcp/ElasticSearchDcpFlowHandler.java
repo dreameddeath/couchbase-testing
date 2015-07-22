@@ -25,9 +25,11 @@ import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
 import com.dreameddeath.core.elasticsearch.IElasticSearchMapper;
 import com.dreameddeath.core.elasticsearch.exception.JsonEncodingException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +54,9 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
         this(client,mapper,transcodersMap,false);
     }
 
+    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,IDocumentInfoMapper docMapper){
+        this(client,mapper,docMapper,false);
+    }
 
     public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder transcoder,boolean autoCreateIndexes){
         super(transcoder);
@@ -67,6 +72,12 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
         _autoCreateIndexes = autoCreateIndexes;
     }
 
+    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,IDocumentInfoMapper docMapper,boolean autoCreateIndexes){
+        super(docMapper);
+        _client = client;
+        _mapper = mapper;
+        _autoCreateIndexes = autoCreateIndexes;
+    }
 
     protected void createIndexIfNeeded(String indexName){
         if(_autoCreateIndexes && !_checkedIndexes.contains(indexName)){
@@ -127,11 +138,12 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
         try {
             String indexName = documentIndexBuilder(message.bucket(), message.key());
             createIndexIfNeeded(indexName);
-            _client.upsert(
+            UpdateResponse responseUpdate = _client.upsert(
                     indexName,
                     documentTypeBuilder(message.bucket(), message.key()),
                     mappedObject
             ).toBlocking().single();
+            responseUpdate.isCreated();
         }
         catch(JsonEncodingException e){
             throw new RuntimeException(e);

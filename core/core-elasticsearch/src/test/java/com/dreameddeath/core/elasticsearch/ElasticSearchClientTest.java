@@ -21,6 +21,8 @@ import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.dcp.impl.DefaultCouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchDao;
+import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
+import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResultHit;
 import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -243,9 +245,9 @@ public class ElasticSearchClientTest {
         assertEquals("firstName1",esDocFound.firstName);
         assertEquals("lastName1", esDocFound.lastName);
 
-        ElasticSearchDao<TestDoc>.ElasticSearchResult resultDaoSearch = dao.search(dao.newQuery().setQuery(QueryBuilders.matchQuery("firstName", "firstName2")));
+        ElasticSearchResult<TestDoc> resultDaoSearch = dao.search(dao.newQuery().setQuery(QueryBuilders.matchQuery("firstName", "firstName2")));
         assertEquals(2, resultDaoSearch.getTotalHitCount());
-        ElasticSearchDao<TestDoc>.ElasticSearchResultHit resultHit = resultDaoSearch.getList().get(0);
+        ElasticSearchResultHit<TestDoc> resultHit = resultDaoSearch.getList().get(0);
         assertEquals("/test/2",resultHit.getKey());
         assertEquals(0.3f,resultHit.getScore(),0.1f);
         assertEquals("lastName1",resultHit.get().lastName);

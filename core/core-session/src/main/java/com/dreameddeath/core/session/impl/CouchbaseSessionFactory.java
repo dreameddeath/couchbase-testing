@@ -18,6 +18,7 @@ package com.dreameddeath.core.session.impl;
 
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
 import com.dreameddeath.core.user.IUser;
@@ -34,14 +35,6 @@ public class CouchbaseSessionFactory {
     private final DateTimeServiceFactory _dateTimeServiceFactory;
     private final ValidatorFactory _validatorFactory;
 
-    /*public CouchbaseSessionFactory(CouchbaseDocumentDaoFactory docDaoFactory, CouchbaseCounterDaoFactory counterDaoFactory, CouchbaseUniqueKeyDaoFactory uniqueDaoFactory, DateTimeServiceFactory dateTimeServiceFactory,ValidatorFactory validatorFactory){
-        _documentDaoFactory =  docDaoFactory;
-        _counterDaoFactory = counterDaoFactory;
-        _uniqueKeyDaoFactory = uniqueDaoFactory;
-        _dateTimeServiceFactory = dateTimeServiceFactory;
-        _validatorFactory = validatorFactory;
-    }
-*/
     public CouchbaseSessionFactory(Builder builder){
         _documentDaoFactory =  builder._daoDocFactoryBuilder.build();
         _counterDaoFactory = _documentDaoFactory.getCounterDaoFactory();
@@ -57,13 +50,13 @@ public class CouchbaseSessionFactory {
     public DateTimeServiceFactory getDateTimeServiceFactory(){ return _dateTimeServiceFactory;}
     public ValidatorFactory getValidatorFactory(){ return _validatorFactory;}
 
-    public CouchbaseSession newSession(CouchbaseSession.SessionType type, IUser user){
+    public ICouchbaseSession newSession(CouchbaseSession.SessionType type, IUser user){
         return new CouchbaseSession(this,type,user);
     }
 
-    public CouchbaseSession newReadOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.READ_ONLY,user);}
-    public CouchbaseSession newReadWriteSession(IUser user){return newSession(CouchbaseSession.SessionType.READ_WRITE,user);}
-    public CouchbaseSession newCalcOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.CALC_ONLY,user);}
+    public ICouchbaseSession newReadOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.READ_ONLY,user);}
+    public ICouchbaseSession newReadWriteSession(IUser user){return newSession(CouchbaseSession.SessionType.READ_WRITE,user);}
+    public ICouchbaseSession newCalcOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.CALC_ONLY,user);}
 
 
     public static class Builder{

@@ -52,6 +52,11 @@
           <version>${project.version}</version>
       </dependency>
       <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-elasticsearch</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-annotations</artifactId>
           <version>${jackson.version}</version>

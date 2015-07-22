@@ -25,6 +25,10 @@ import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
  */
 public interface IDocumentInfoMapper {
     IKeyMappingInfo getMappingFromKey(String key) throws MappingNotFoundException;
+    <T> T getAttachedClassFromKey(String key, Class<T> clazz) throws MappingNotFoundException;
+    <T> T getAttachedClassFromClass(Class<? extends CouchbaseDocument> clazz, Class<T> classToLookFor) throws MappingNotFoundException;
+    <T> T getAttachedClassFromClass(Class<? extends CouchbaseDocument> clazz, Class<T> classToLookFor,String key) throws MappingNotFoundException;
+
     IDocumentClassMappingInfo getMappingFromClass(Class<? extends CouchbaseDocument> docClass) throws MappingNotFoundException;
 
     boolean contains(Class<? extends CouchbaseDocument> docClass);

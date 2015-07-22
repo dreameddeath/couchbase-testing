@@ -36,8 +36,8 @@ public class CreatePartyJobProcessingServiceTest {
     //private final static CouchbaseSessionFactory _sessionFactory ;
     private final static Utils.TestEnvironment _testEnvironment;
     static {
-        _testEnvironment = new Utils.TestEnvironment("PartyTest");
         try {
+            _testEnvironment = new Utils.TestEnvironment("PartyTest", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
             _testEnvironment.addDocumentDao(new PartyDao());
             _testEnvironment.addDocumentDao(new JobDao());
             _testEnvironment.start();

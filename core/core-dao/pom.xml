@@ -44,6 +44,11 @@
           <artifactId>core-couchbase</artifactId>
           <version>${project.version}</version>
       </dependency>
+      <!--<dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-elasticsearch</artifactId>
+          <version>${project.version}</version>
+      </dependency>-->
       <dependency>
           <groupId>commons-codec</groupId>
           <artifactId>commons-codec</artifactId>

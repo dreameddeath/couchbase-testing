@@ -27,6 +27,7 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
+import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -57,9 +58,17 @@ public class ElasticSearchClient {
     }
 
     public void createIndex(String indexName){
-        CreateIndexResponse createResponse = getInternalClient().admin().indices().prepareCreate(indexName).execute().actionGet();
-        //TODO manage Error
-        ClusterHealthResponse statusCheckResponse = getInternalClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
+        synchronized (this) {
+            CreateIndexResponse createResponse = getInternalClient().admin().indices().prepareCreate(indexName).execute().actionGet();
+            //TODO manage Error
+            ClusterHealthResponse statusCheckResponse = getInternalClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
+        }
+    }
+
+    public void syncIndexes(){
+        synchronized (this) {
+            RefreshResponse refreshResponse = getInternalClient().admin().indices().prepareRefresh().execute().actionGet();
+        }
     }
 
 

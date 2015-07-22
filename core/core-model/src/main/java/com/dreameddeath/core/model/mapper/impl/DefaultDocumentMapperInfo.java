@@ -36,7 +36,6 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
     private Map<Pattern,IDocumentClassMappingInfo> _keyInfoMap
             = new ConcurrentHashMap<>();
 
-
     @Override
     public synchronized void addDocument(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException {
         addDocument(docClass, ".*");
@@ -115,6 +114,23 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
         }
         throw new MappingNotFoundException("The key <"+key+"> hasn't been found");
     }
+
+    @Override
+    public <T> T getAttachedClassFromKey(String key, Class<T> classToLookFor) throws MappingNotFoundException{
+        return getMappingFromKey(key).classMappingInfo().getAttachedObject(classToLookFor);
+    }
+
+
+    @Override
+    public <T> T getAttachedClassFromClass(Class<? extends CouchbaseDocument> clazz, Class<T> classToLookFor) throws MappingNotFoundException{
+        return getMappingFromClass(clazz).getAttachedObject(classToLookFor);
+    }
+
+    @Override
+    public <T> T getAttachedClassFromClass(Class<? extends CouchbaseDocument> clazz, Class<T> classToLookFor,String key) throws MappingNotFoundException{
+        return getMappingFromClass(clazz).getAttachedObject(classToLookFor,key);
+    }
+
 
     @Override
     public IDocumentClassMappingInfo getMappingFromClass(Class<? extends CouchbaseDocument> docClass) throws MappingNotFoundException {

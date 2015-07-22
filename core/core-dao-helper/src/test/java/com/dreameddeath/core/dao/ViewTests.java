@@ -56,7 +56,7 @@ public class ViewTests {
 
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("ViewTests");
+        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
         _env.addDocumentDao(new TestDao(), TestDoc.class);
         _env.addDocumentDao(new TestChildDao(),TestDocChild.class);
         _env.start();

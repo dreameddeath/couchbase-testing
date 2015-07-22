@@ -97,6 +97,11 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         _bucket.close();
     }
 
+    @Override
+    public String getBucketName(){
+        return _bucketName;
+    }
+
     public void initReplicatInfo(){
         _replicatCount = _bucket.bucketManager().info().replicaCount();
         switch (_replicatCount){

@@ -125,7 +125,7 @@ public class CouchbaseDCPConnector implements Runnable {
         _core.send(new OpenConnectionRequest(_streamName, _bucket))
                 .toList()
                 .flatMap(couchbaseResponses -> CouchbaseDCPConnector.this.partitionSize())
-                .flatMap(numberOfPartitions -> requestStreams(numberOfPartitions))
+                .flatMap(this::requestStreams)
                 .toBlocking()
                 .forEach(dcpRequest -> _dcpRingBuffer.tryPublishEvent(CouchbaseDCPConnector.this._translator, dcpRequest));
 
@@ -142,7 +142,7 @@ public class CouchbaseDCPConnector implements Runnable {
         return Observable.merge(
                 Observable.range(0, numberOfPartitions)
                         .flatMap(partition -> _core.<StreamRequestResponse>send(buildStreamRequest(partition)))
-                        .map(response -> response.stream())
+                        .map(StreamRequestResponse::stream)
         );
     }
 
