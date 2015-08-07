@@ -16,13 +16,13 @@
 
 package com.dreameddeath.core.service.annotation.processor;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.ExposeService;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.model.GeneratedRestImpl;
 import com.dreameddeath.core.service.model.HasServiceClientFactory;
-import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -61,7 +61,7 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-dao-helper</artifactId>
+          <artifactId>core-helper</artifactId>
           <version>${project.version}</version>
       </dependency>
       <dependency>

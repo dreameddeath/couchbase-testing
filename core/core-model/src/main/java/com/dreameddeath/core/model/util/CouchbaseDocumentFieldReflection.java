@@ -16,11 +16,11 @@
 
 package com.dreameddeath.core.model.util;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.MemberInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.core.tools.annotation.processor.reflection.MemberInfo;
-import com.dreameddeath.core.tools.annotation.processor.reflection.MethodInfo;
-import com.dreameddeath.core.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 
 import java.util.Collection;
 import java.util.Map;

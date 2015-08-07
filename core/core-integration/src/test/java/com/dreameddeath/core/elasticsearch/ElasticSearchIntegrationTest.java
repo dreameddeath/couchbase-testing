@@ -166,7 +166,7 @@ public class ElasticSearchIntegrationTest {
         //_env.getEsServer()
         //Thread.sleep(10000);
         IElasticSearchSession esSession = _env.getEsSessionFactory().newSession(null);
-        _env.fullEsSync();
+        _env.fullElasticSearchReSync();
 
         ElasticSearchResult<TestDoc> result = esSession.newElasticSearchQuery(TestDoc.class).setQuery(QueryBuilders.matchAllQuery()).setSize(20).search();
         //result.getTotalHitCount();

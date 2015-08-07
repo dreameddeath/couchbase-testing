@@ -36,6 +36,7 @@
         <module>testing-service</module>
         <module>testing-integration</module>
         <module>testing-elasticsearch</module>
+        <module>testing-doclet</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

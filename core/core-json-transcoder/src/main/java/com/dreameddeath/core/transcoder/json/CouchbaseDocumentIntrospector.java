@@ -16,12 +16,12 @@
 
 package com.dreameddeath.core.transcoder.json;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
 import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
-import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
-import com.dreameddeath.core.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.core.tools.annotation.processor.reflection.MethodInfo;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.Versioned;
 import com.fasterxml.jackson.core.util.VersionUtil;

@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.annotation.processor;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.upgrade.Utils;
 
 import javax.annotation.processing.AbstractProcessor;

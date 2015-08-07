@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.service.annotation.processor;
 
-import com.dreameddeath.core.tools.annotation.processor.reflection.MethodInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
 
 /**
  * Created by Christophe Jeunesse on 09/04/2015.

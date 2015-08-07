@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.service.annotation.processor;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 
 /**
  * Created by Christophe Jeunesse on 07/04/2015.

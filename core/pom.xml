@@ -40,7 +40,7 @@
         <module>core-session</module>
         <module>core-date</module>
         <module>core-json-transcoder</module>
-        <module>core-dao-helper</module>
+        <module>core-helper</module>
         <module>core-integration</module>
         <module>core-service</module>
         <module>core-elasticsearch</module>

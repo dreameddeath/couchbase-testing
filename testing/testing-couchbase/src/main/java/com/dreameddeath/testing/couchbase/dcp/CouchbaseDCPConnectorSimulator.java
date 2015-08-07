@@ -56,6 +56,13 @@ public class CouchbaseDCPConnectorSimulator extends CouchbaseDCPConnector{
     public Boolean stop(){
         _simulator.removeCouchbaseDcpSimulator(this);
         getDisruptor().shutdown();
+        try {
+            Thread.sleep(10);
+        }
+        catch(InterruptedException e){
+            //Ignore
+        }
+
         return true;
     }
 

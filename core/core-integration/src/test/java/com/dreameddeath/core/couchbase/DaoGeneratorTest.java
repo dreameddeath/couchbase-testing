@@ -17,7 +17,7 @@
 package com.dreameddeath.core.couchbase;
 
 
-import com.dreameddeath.core.dao.helper.annotation.processor.DaoAnnotationProcessor;
+import com.dreameddeath.core.helper.annotation.processor.DaoAnnotationProcessor;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
 import org.junit.Assert;

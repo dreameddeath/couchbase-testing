@@ -16,9 +16,9 @@
 
 package com.dreameddeath.core.model.util;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.tools.annotation.processor.reflection.AbstractClassInfo;
-import com.dreameddeath.core.tools.annotation.processor.reflection.ClassInfo;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;

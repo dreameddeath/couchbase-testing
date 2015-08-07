@@ -265,7 +265,7 @@ public class Utils {
             return _esSessionFactory;
         }
 
-        public void fullEsSync(){
+        public void fullElasticSearchReSync(){
             if(_connector!=null){
                 _connector.stop();
                 _esClient.syncIndexes();

@@ -30,6 +30,7 @@
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
         <module>compiling-annotation-processor-tools</module>
+        <module>compiling-doclet</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
