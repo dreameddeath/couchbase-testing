@@ -70,6 +70,8 @@ public class EntityDef {
 
     public String getDbName(){return _docReflection.getStructure().getStructName();}
 
+    public String getVersion(){return _docReflection.getStructure().getStructVersion();}
+
     public String getParentKeyAccessor() {
         return _parentKeyAccessor;
     }
@@ -81,4 +83,5 @@ public class EntityDef {
     public String getPackageName() {
         return _docReflection.getClassInfo().getPackageInfo().getName();
     }
+
 }

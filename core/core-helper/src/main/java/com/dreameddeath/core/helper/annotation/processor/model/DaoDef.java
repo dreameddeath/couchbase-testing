@@ -41,6 +41,7 @@ public class DaoDef {
     private boolean _isUidPureField;
     private String _uidSetterPattern;
     private String _uidGetterPattern;
+    private boolean _generateRestLayer;
 
     public DaoDef(CouchbaseDocumentReflection docReflection) {
 
@@ -48,6 +49,7 @@ public class DaoDef {
         _packageName = docReflection.getClassInfo().getPackageInfo().getName().replace(".model", ".dao");
         DaoEntity daoEntityAnnot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
         _baseDaoClassInfo = AbstractClassInfo.getClassInfoFromAnnot(daoEntityAnnot, DaoEntity::baseDao);
+        _generateRestLayer = daoEntityAnnot.rest();
 
         if (_baseDaoClassInfo.isInstanceOf(CouchbaseDocumentWithKeyPatternDao.class)) {
             if (_baseDaoClassInfo.isInstanceOf(BusinessCouchbaseDocumentDaoWithUID.class)) {
@@ -117,6 +119,10 @@ public class DaoDef {
         return _baseDaoClassInfo.getName();
     }
 
+    public String getBaseImportName() {
+        return _baseDaoClassInfo.getImportName();
+    }
+
     public Type getType() {
         return _type;
     }
@@ -159,6 +165,10 @@ public class DaoDef {
         public boolean hasUid() {
             return _hasUid;
         }
+    }
+
+    public boolean needGenerateRestLayer() {
+        return _generateRestLayer;
     }
 
     public enum UidType {

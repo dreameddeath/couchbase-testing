@@ -6,3 +6,4 @@ TODO
 * add a core error (to setup dictionary of errors)
 * add a core log ? (for MDC, ...)
 * add a metrics management
+* add even aware bus

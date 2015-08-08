@@ -38,7 +38,6 @@ public class DaoRestServiceDef {
     private String _descr;
     private String _restRootPath;
     private String _restUIdName;
-    private String _dbName;
     private VersionStatus _versionStatus;
     private DaoRestServiceDef _parentServiceDef=null;
     private AbstractClassInfo _rootClassInfo;
@@ -50,21 +49,18 @@ public class DaoRestServiceDef {
         _version = daoRestAnnot.version();
         _descr = daoRestAnnot.descr();
         _versionStatus = daoRestAnnot.status();
-        _dbName = daoRestAnnot.dbName();
         _restRootPath = daoRestAnnot.rootPath();
         _restUIdName = daoRestAnnot.uidName();
-        AbstractClassInfo daoClassInfo = AnnotationInfo.getClassInfoFromAnnot(daoRestAnnot, RestDao::baseDao);
-        //_imports.add(daoClassInfo.getImportName());  //Check if really needed
+
         AbstractClassInfo parentClassInfo = AnnotationInfo.getClassInfoFromAnnot(daoRestAnnot, RestDao::parentDao);
         if(parentClassInfo!=null){
             _parentServiceDef = new DaoRestServiceDef((ClassInfo) parentClassInfo);
         }
 
-        DaoForClass daoClassAnnot = daoClassInfo.getAnnotation(DaoForClass.class);
+        DaoForClass daoClassAnnot = daoInfo.getAnnotation(DaoForClass.class);
 
         _rootClassInfo = AnnotationInfo.getClassInfoFromAnnot(daoClassAnnot, DaoForClass::value);
         _imports.add(_rootClassInfo.getImportName());
-
     }
 
     public List<String> getImports() {
@@ -86,9 +82,6 @@ public class DaoRestServiceDef {
         return _name;
     }
 
-    public String getDbName() {
-        return _dbName;
-    }
 
     public String getClassSimpleName(){
         return _rootClassInfo.getSimpleName();

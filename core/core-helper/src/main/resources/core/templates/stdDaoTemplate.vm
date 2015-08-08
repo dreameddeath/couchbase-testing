@@ -17,6 +17,10 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 
+#if($daoDef.needGenerateRestLayer())
+import com.dreameddeath.core.helper.annotation.service.RestDao;
+#end
+
 import java.util.List;
 import java.util.ArrayList;
 import javax.annotation.Generated;
@@ -29,6 +33,16 @@ import ${daoDef.baseName};
     date = "${generator.date}",
     comments = "${generator.comment}"
 )
+#if($daoDef.needGenerateRestLayer())
+@RestDao(
+    domain="${entity.domain}",
+    name="${entity.dbName}",
+    version="${entity.version}",
+    rootPath="/${entity.dbName}",
+    uidName="${entity.dbName}Uid",
+    parentDao=${daoDef.baseImportName}.class
+)
+#end
 @DaoForClass(${entity.simpleName}.class)
 public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simpleName}> {
     public static final String FMT_KEY="$esc.java($dbPath.fullFormat)";

@@ -3,6 +3,12 @@ language: java
 jdk:
     - oraclejdk8
 
+sudo: false
+
+cache:
+  directories:
+  - $HOME/protobuf
+
 env:
  global:
     - PROTOBUF_VERSION=2.5.0
@@ -10,6 +16,7 @@ env:
 before_install:
   - chmod +x ./install-protobuf.sh
   - ./install-protobuf.sh
+  - export PATH=$PATH:${HOME}/protobuf/bin
 
 script: mvn -B clean test
 

@@ -29,9 +29,6 @@ public @interface RestDao {
     String descr() default "";
     String rootPath();//is a sub path in case of subDao
     String uidName();//name of the unique id
-    String dbName();
     VersionStatus status() default VersionStatus.STABLE;
-    Class<? extends CouchbaseDocumentDao> baseDao();
     Class<? extends CouchbaseDocumentDao> parentDao();
-
 }
