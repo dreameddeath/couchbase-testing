@@ -18,12 +18,12 @@ package com.dreameddeath.billing.model.cycle;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
-import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.ParentEntity;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;

@@ -16,7 +16,7 @@
 
 package test.model;
 
-import com.dreameddeath.core.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.Counter;

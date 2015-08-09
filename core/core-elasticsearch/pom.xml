@@ -39,12 +39,6 @@
           <artifactId>jackson-annotations</artifactId>
           <version>${jackson.version}</version>
       </dependency>
-
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-annotation-processor</artifactId>
-          <version>${project.version}</version>
-      </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>compiling-annotation-processor-tools</artifactId>

@@ -18,12 +18,12 @@ package com.dreameddeath.billing.model.account;
 
 import com.dreameddeath.billing.model.cycle.BillingCycleLink;
 import com.dreameddeath.common.model.ExternalId;
-import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.UidDef;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;

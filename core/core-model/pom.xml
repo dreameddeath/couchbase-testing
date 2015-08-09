@@ -32,18 +32,49 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  
-  <dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${mvn.compiler.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                            <!-- Disable annotation processing for ourselves. -->
+                            <compilerArgument>-proc:none</compilerArgument>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                            <!-- Disable annotation processing for ourselves. -->
+                            <!--<compilerArgument>-proc:none</compilerArgument>-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <dependencies>
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-annotations</artifactId>
           <version>${jackson.version}</version>
-      </dependency>
-
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-annotation-processor</artifactId>
-          <version>${project.version}</version>
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
@@ -55,6 +86,11 @@
           <artifactId>testing-annotation-processor</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.esotericsoftware</groupId>
+          <artifactId>reflectasm</artifactId>
+          <version>${reflectasm.version}</version>
       </dependency>
   </dependencies>
 </project>

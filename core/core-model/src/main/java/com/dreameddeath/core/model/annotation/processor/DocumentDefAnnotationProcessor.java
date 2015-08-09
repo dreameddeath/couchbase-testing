@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.annotation.processor;
+package com.dreameddeath.core.model.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
-import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.upgrade.Utils;
+import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.upgrade.Utils;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -39,7 +39,7 @@ import java.util.Set;
  * Created by Christophe Jeunesse on 26/11/2014.
  */
 @SupportedAnnotationTypes(
-        {"com.dreameddeath.core.annotation.DocumentDef"}
+        {"com.dreameddeath.core.model.annotation.DocumentDef"}
 )
 public class DocumentDefAnnotationProcessor extends AbstractProcessor {
     @Override

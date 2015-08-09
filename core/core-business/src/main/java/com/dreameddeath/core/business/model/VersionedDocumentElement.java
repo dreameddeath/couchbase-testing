@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.business.model;
 
-import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.IVersionedDocument;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

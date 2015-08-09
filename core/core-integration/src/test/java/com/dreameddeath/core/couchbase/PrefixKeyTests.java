@@ -16,7 +16,6 @@
 
 package com.dreameddeath.core.couchbase;
 
-import com.dreameddeath.core.annotation.DocumentDef;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
@@ -24,6 +23,7 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;

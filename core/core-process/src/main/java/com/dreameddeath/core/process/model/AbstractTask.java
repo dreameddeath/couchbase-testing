@@ -16,9 +16,9 @@
 
 package com.dreameddeath.core.process.model;
 
-import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.document.IVersionedDocument;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;

@@ -19,7 +19,7 @@ package test.model;
 import java.util.Collection;
 import java.util.List;
 
-import com.dreameddeath.core.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 
 import com.dreameddeath.core.helper.annotation.dao.Counter;

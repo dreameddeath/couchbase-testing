@@ -18,8 +18,8 @@ package com.dreameddeath.core.business.model;
 
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.IVersionedDocument;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.IVersionedDocument;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;

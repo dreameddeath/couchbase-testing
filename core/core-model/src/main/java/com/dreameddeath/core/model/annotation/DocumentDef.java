@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.annotation;
+package com.dreameddeath.core.model.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

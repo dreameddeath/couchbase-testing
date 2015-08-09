@@ -28,7 +28,6 @@
   <name>core</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
-        <module>core-annotation-processor</module>
         <module>core-curator</module>
         <module>core-config</module>
         <module>core-validation</module>

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.upgrade;
+package com.dreameddeath.core.model.upgrade;
 
-import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.model.IVersionedDocument;
+import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
+import com.dreameddeath.core.model.document.IVersionedDocument;
 import com.esotericsoftware.reflectasm.MethodAccess;
 
 import javax.lang.model.element.Element;

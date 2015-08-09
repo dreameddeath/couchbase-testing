@@ -19,7 +19,7 @@ package com.dreameddeath.core.model.util;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.core.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;

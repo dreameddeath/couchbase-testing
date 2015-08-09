@@ -2,7 +2,7 @@ couchbase-testing
 =================
 
 [![Build Status](https://travis-ci.org/dreameddeath/couchbase-testing.png?branch=master)](https://travis-ci.org/dreameddeath/couchbase-testing)
-[![Coverage Status](https://img.shields.io/coveralls/dreameddeath/couchbase-testing.svg)](https://coveralls.io/r/dreameddeath/couchbase-testing?branch=master)
+[![Coverage Status](https://coveralls.io/repos/dreameddeath/couchbase-testing/badge.svg?branch=master&service=github)](https://coveralls.io/github/dreameddeath/couchbase-testing?branch=master)
 
 TODOs
 -----

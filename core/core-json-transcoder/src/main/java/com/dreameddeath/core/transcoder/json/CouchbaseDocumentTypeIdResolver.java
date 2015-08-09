@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.transcoder.json;
 
-import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.upgrade.Utils;
+import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.upgrade.Utils;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;

@@ -43,11 +43,6 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-annotation-processor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-date</artifactId>
             <version>${project.version}</version>
         </dependency>

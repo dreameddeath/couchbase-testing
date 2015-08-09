@@ -16,9 +16,10 @@
 
 package com.dreameddeath.core.upgrade;
 
-import com.dreameddeath.core.annotation.DocumentDef;
-import com.dreameddeath.core.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.model.IVersionedDocument;
+import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
+import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.upgrade.Utils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

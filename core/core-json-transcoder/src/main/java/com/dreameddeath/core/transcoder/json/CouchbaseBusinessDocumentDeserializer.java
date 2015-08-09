@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.transcoder.json;
 
-import com.dreameddeath.core.model.IVersionedDocument;
-import com.dreameddeath.core.upgrade.Utils;
+import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.upgrade.Utils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationContext;
