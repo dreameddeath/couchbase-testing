@@ -35,7 +35,7 @@ public class ServiceExpositionDef {
     public static final String REST_SERVICE_SUFFIX = "RestService";
 
     public static<T> Class<GeneratedRestImpl<T>> getRestServerClass(Class<T> serviceClass) throws ClassNotFoundException{
-        return (Class<GeneratedRestImpl<T>>)ServiceExpositionDef.class.getClassLoader().loadClass(serviceClass.getName()+REST_SERVICE_SUFFIX);
+        return (Class<GeneratedRestImpl<T>>)Thread.currentThread().getContextClassLoader().loadClass(serviceClass.getName()+REST_SERVICE_SUFFIX);
     }
 
     public static <T> GeneratedRestImpl<T> newRestServerIntance(T serviceImpl) throws ClassNotFoundException,InstantiationException,IllegalAccessException{
@@ -45,7 +45,7 @@ public class ServiceExpositionDef {
     }
 
     public static <T> Class<T> getRestClientClass(Class serviceClass,Class<T> interfaceClass) throws ClassNotFoundException{
-        return (Class<T>) ServiceExpositionDef.class.getClassLoader().loadClass(serviceClass.getName()+REST_CLIENT_SUFFIX);
+        return (Class<T>) Thread.currentThread().getContextClassLoader().loadClass(serviceClass.getName()+REST_CLIENT_SUFFIX);
     }
 
     public static <T> T getRestClientIntance(Class serviceClass,Class<T> interfaceClass,ServiceClientFactory factory) throws ClassNotFoundException,InstantiationException,IllegalAccessException{

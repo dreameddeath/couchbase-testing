@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.helper.annotation.service;
-
-import com.dreameddeath.core.service.annotation.VersionStatus;
+package model;
 
 /**
- * Created by Christophe Jeunesse on 19/04/2015.
+ * Created by Christophe Jeunesse on 10/08/2015.
  */
-public @interface RestDao {
-    String domain();
-    String name();
-    String version();
-    String descr() default "";
-    String rootPath();//is a sub path in case of subDao
-    String dbPath();
-    String uidName();//name of the unique id
-    VersionStatus status() default VersionStatus.STABLE;
-    String parentClassName() default "";
+public interface ITestDaoChild {
+    String getValue();
+    void setValue(String value);
+    void setParentObjDao(ITestDao parent);
 }

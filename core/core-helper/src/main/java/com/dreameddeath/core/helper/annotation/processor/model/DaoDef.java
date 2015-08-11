@@ -46,7 +46,7 @@ public class DaoDef {
     public DaoDef(CouchbaseDocumentReflection docReflection) {
 
         _simpleName = docReflection.getSimpleName().replaceAll("\\$", "") + "Dao";
-        _packageName = docReflection.getClassInfo().getPackageInfo().getName().replace(".model", ".dao");
+        _packageName = docReflection.getClassInfo().getPackageInfo().getName().replaceAll("\\bmodel\\b", "dao");
         DaoEntity daoEntityAnnot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
         _baseDaoClassInfo = AbstractClassInfo.getClassInfoFromAnnot(daoEntityAnnot, DaoEntity::baseDao);
         _generateRestLayer = daoEntityAnnot.rest();

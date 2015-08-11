@@ -16,15 +16,14 @@
 
 package com.dreameddeath.core.model.annotation.processor;
 
+import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.upgrade.Utils;
 
-import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
@@ -41,11 +40,7 @@ import java.util.Set;
 @SupportedAnnotationTypes(
         {"com.dreameddeath.core.model.annotation.DocumentVersionUpgrader"}
 )
-public class DocumentVersionUpgraderAnnotationProcessor extends AbstractProcessor {
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
-    }
+public class DocumentVersionUpgraderAnnotationProcessor extends AbstractAnnotationProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -62,11 +57,6 @@ public class DocumentVersionUpgraderAnnotationProcessor extends AbstractProcesso
                         baseElem);
 
                 AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement) baseElem.getEnclosingElement());
-                //String packageName = elementUtils.getPackageOf(baseElem).getQualifiedName().toString();
-                //TypeElement classElem =;
-
-                //String fullClassName = ((TypeElement) classElem).getQualifiedName().toString();
-                //String realClassName = String.format("%s.%s", packageName, fullClassName.substring(packageName.length() + 1).replace(".", "$"));
 
                 BufferedWriter bw = new BufferedWriter(jfo.openWriter());
                 bw.write(classInfo.getName());

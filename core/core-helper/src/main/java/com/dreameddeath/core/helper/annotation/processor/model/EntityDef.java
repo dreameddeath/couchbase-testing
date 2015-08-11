@@ -29,6 +29,7 @@ public class EntityDef {
     private CouchbaseDocumentReflection _docReflection;
     private String _parentKeyAccessor;
     private String _parentKeyPath;
+    private String _parentEntityClassName ="";
 
     public EntityDef(CouchbaseDocumentReflection docReflection) {
         _docReflection = docReflection;
@@ -42,6 +43,11 @@ public class EntityDef {
         }
 
         if (parentAnnot != null) {
+
+            if(parentAnnot!=null) {
+                CouchbaseDocumentReflection classInfo = CouchbaseDocumentReflection.getClassInfoFromAnnot(parentAnnot, ParentEntity::c);
+                _parentEntityClassName = classInfo.getName();
+            }
             String[] fieldNameParts = parentAnnot.keyPath().split("\\.");
             CouchbaseDocumentStructureReflection currStructure = docReflection.getStructure();
 
@@ -84,4 +90,7 @@ public class EntityDef {
         return _docReflection.getClassInfo().getPackageInfo().getName();
     }
 
+    public String getParentEntityClassName() {
+        return _parentEntityClassName;
+    }
 }

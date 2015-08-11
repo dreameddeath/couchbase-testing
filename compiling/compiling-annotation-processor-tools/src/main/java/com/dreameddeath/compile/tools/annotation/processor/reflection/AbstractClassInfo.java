@@ -52,6 +52,15 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     }
 
 
+    public static AbstractClassInfo getClassInfo(String name) throws ClassNotFoundException{
+        if(AnnotationElementType.CURRENT_ELEMENT_UTILS.get()!=null){
+            TypeElement elt=AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getTypeElement(name);
+            if(elt!=null) {
+                return getClassInfo(elt);
+            }
+        }
+        return getClassInfo(Class.forName(name));
+    }
 
 
     public static AbstractClassInfo getClassInfo(Class clazz){
@@ -343,5 +352,24 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public AbstractClassInfo getEnclosingClass() {
         return _enclosingClass;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(this==o){
+            return true;
+        }
+        else if( ! (o instanceof AbstractClassInfo)){
+            return false;
+        }
+        else{
+            AbstractClassInfo target = (AbstractClassInfo)o;
+            return ((_class!=null) && _class.equals(target._class))||(this._typeElement.getQualifiedName().toString().equals(target._typeElement.getQualifiedName().toString()));
+        }
+    }
+
+    @Override
+    public int hashCode(){
+        return (this._class!=null)?_class.hashCode():_typeElement.getQualifiedName().toString().hashCode();
     }
 }

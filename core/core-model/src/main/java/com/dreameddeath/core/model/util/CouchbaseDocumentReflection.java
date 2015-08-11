@@ -17,11 +17,13 @@
 package com.dreameddeath.core.model.util;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AnnotGetter;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,7 +54,27 @@ public class CouchbaseDocumentReflection {
     }
 
 
-    private static CouchbaseDocumentReflection getReflectionFromClassInfo(ClassInfo classInfo){
+    public static <T extends Annotation> CouchbaseDocumentReflection getClassInfo(String name) throws ClassNotFoundException{
+        AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo(name);
+        if((classInfo instanceof ClassInfo) && isReflexible((ClassInfo)classInfo)){
+            return getReflectionFromClassInfo((ClassInfo)classInfo);
+        }
+        else{
+            return null;
+        }
+    }
+
+    public static <T extends Annotation> CouchbaseDocumentReflection getClassInfoFromAnnot(T annot,AnnotGetter<T> getter){
+        AbstractClassInfo classInfo = AbstractClassInfo.getClassInfoFromAnnot(annot, getter);
+        if((classInfo instanceof ClassInfo) && isReflexible((ClassInfo)classInfo)){
+            return getReflectionFromClassInfo((ClassInfo)classInfo);
+        }
+        else{
+            return null;
+        }
+    }
+
+    public static CouchbaseDocumentReflection getReflectionFromClassInfo(ClassInfo classInfo){
         if(classInfo.getTypeElement()!=null){
             return getReflectionFromTypeElement(classInfo.getTypeElement());
         }

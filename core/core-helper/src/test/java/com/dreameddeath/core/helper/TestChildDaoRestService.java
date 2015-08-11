@@ -218,6 +218,4 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                 .build();
     }
 
-
-
 }

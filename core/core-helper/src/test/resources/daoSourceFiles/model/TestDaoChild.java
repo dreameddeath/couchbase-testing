@@ -28,9 +28,32 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "child/",idFormat = "%010d",idPattern = "\\d{10}")
 @ParentEntity(c=TestDao.class,keyPath = "parent.key",separator = "/")
 @Counter(name="cnt",dbName = "cnt",isKeyGen = true)
-public class TestDaoChild extends BusinessDocument {
+public class TestDaoChild extends BusinessDocument implements ITestDaoChild{
     @DocumentProperty("value")
     public String value;
     @DocumentProperty("parent")
     public TestDaoLink parent;
+
+    @Override
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public TestDaoLink getParent() {
+        return parent;
+    }
+
+    public void setParent(TestDaoLink parent) {
+        this.parent = parent;
+    }
+
+    @Override
+    public void setParentObjDao(ITestDao parent){
+        this.parent = new model.TestDaoLink((TestDao)parent);
+    }
 }

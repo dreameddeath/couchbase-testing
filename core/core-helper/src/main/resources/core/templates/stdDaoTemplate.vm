@@ -40,7 +40,8 @@ import ${daoDef.baseName};
     version="${entity.version}",
     rootPath="/${entity.dbName}",
     uidName="${entity.dbName}Uid",
-    parentDao=${daoDef.baseImportName}.class
+    dbPath="${dbPath.basePath}",
+    parentClassName="${entity.parentEntityClassName}"
 )
 #end
 @DaoForClass(${entity.simpleName}.class)
@@ -151,7 +152,7 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
         public String getContent() {
 #if($view.isContentSourceFile())
             try{
-                return IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("$esc.java($view.contentFilename)"));
+                return IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("$esc.java($view.contentFilename)"));
             }
             catch(Throwable e){
                 throw new RuntimeException("Unexpected content read for file <$esc.java($view.contentFilename)>",e);

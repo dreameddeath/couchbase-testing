@@ -17,7 +17,7 @@
 package com.dreameddeath.core.couchbase;
 
 
-import com.dreameddeath.core.helper.annotation.processor.DaoAnnotationProcessor;
+import com.dreameddeath.core.helper.annotation.processor.DaoGeneratorAnnotationProcessor;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
 import org.junit.Assert;
@@ -41,7 +41,7 @@ public class DaoGeneratorTest extends Assert {
     public void runAnnotationProcessor() throws Exception {
         AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
         annotTester.
-                withAnnotationProcessor(new DaoAnnotationProcessor()).
+                withAnnotationProcessor(new DaoGeneratorAnnotationProcessor()).
                 withTempDirectoryPrefix("DaoAnnotationProcessorTest");
         AnnotationProcessorTestingWrapper.Result result = annotTester.run(this.getClass().getClassLoader().getResource("daoSourceFiles").getPath());
         assertTrue(result.getResult());

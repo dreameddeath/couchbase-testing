@@ -20,10 +20,6 @@ import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.ParentEntity;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.MirroredTypeException;
-
 /**
  * Created by Christophe Jeunesse on 10/04/2015.
  */
@@ -41,13 +37,11 @@ public class DbPathDef {
         _idPattern = annot.idPattern();
         DbPathDef parentDbPath = null;
         ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
-        try {
-            if (parentAnnot != null) {
-                parentDbPath = new DbPathDef(CouchbaseDocumentReflection.getReflectionFromClass(parentAnnot.c()));
-            }
-        } catch (MirroredTypeException e) {
-            parentDbPath = new DbPathDef(CouchbaseDocumentReflection.getReflectionFromTypeElement((TypeElement) ((DeclaredType) e.getTypeMirror()).asElement()));
+        if(parentAnnot!=null) {
+            CouchbaseDocumentReflection classInfo = CouchbaseDocumentReflection.getClassInfoFromAnnot(parentAnnot, ParentEntity::c);
+            parentDbPath = new DbPathDef(classInfo);
         }
+
         if (parentDbPath != null) {
             _formatPrefix = "%s" + parentAnnot.separator();
             _patternPrefix = parentDbPath.getFullPattern() + parentAnnot.separator();

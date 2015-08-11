@@ -1,4 +1,4 @@
-core-dao-helper module
+core-helper module
 =======================
 
 Series of classes to help the management of the dao layer :
@@ -8,5 +8,7 @@ Series of classes to help the management of the dao layer :
 TODO
 ------------------
 ###features
-- Management auto generation of the rest layer
-- Refactor of views exposure (and self discovery) 
+- ~~Management auto generation of the rest layer~~
+- Unit testing of generated rest layer
+- Refactor of views exposure (and self discovery)
+- Exposition of ElasticSearch

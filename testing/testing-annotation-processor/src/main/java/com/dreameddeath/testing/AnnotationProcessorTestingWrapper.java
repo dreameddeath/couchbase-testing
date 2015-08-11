@@ -20,7 +20,10 @@ import javax.annotation.processing.Processor;
 import javax.tools.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
@@ -116,6 +119,7 @@ public class AnnotationProcessorTestingWrapper {
         private Path _outputDir;
         private JavaFileManager _outputManager;
         private ClassLoader _outputClassLoader;
+        private ClassLoader _oldThreadClassLoader=null;
 
         public boolean hasClass(String name){
             try{
@@ -133,6 +137,25 @@ public class AnnotationProcessorTestingWrapper {
             return _outputClassLoader.loadClass(name);
         }
 
+        public Constructor getConstructor(String className,Class<?>... parameterTypes)  throws ClassNotFoundException,NoSuchMethodException{
+            Class<?>[] params = new Class<?>[parameterTypes.length];
+            for(int i=0;i<parameterTypes.length;++i){
+                params[i] = getClass(parameterTypes[i].getName());
+            }
+
+            return _outputClassLoader.loadClass(className).getConstructor(params);
+        }
+
+
+        public Method getMethod(String className,String methodName,Class<?>... parameterTypes) throws ClassNotFoundException,NoSuchMethodException{
+            Class<?>[] params = new Class<?>[parameterTypes.length];
+            for(int i=0;i<parameterTypes.length;++i){
+                params[i] = getClass(parameterTypes[i].getName());
+            }
+            return _outputClassLoader.loadClass(className).getDeclaredMethod(methodName,params);
+        }
+
+
         public boolean hasFile(String name){
             return getFile(name)!=null;
         }
@@ -149,6 +172,9 @@ public class AnnotationProcessorTestingWrapper {
 
         public void cleanUp(){
             try {
+                if(_oldThreadClassLoader!=null){
+                    Thread.currentThread().setContextClassLoader(_oldThreadClassLoader);
+                }
                 deleteRecursive(_outputDir.toFile());
             }
             catch(FileNotFoundException e){
@@ -206,6 +232,11 @@ public class AnnotationProcessorTestingWrapper {
         public void setOutputManager(JavaFileManager outputManager) {
             _outputManager = outputManager;
             _outputClassLoader = _outputManager.getClassLoader(StandardLocation.CLASS_OUTPUT);
+        }
+
+        public void updateSystemClassLoader() throws IOException{
+            _oldThreadClassLoader=Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(_outputClassLoader);
         }
     }
 

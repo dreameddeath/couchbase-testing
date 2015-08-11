@@ -16,22 +16,18 @@
 
 package com.dreameddeath.core.model.annotation.processor;
 
+import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
+import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.upgrade.Utils;
 
-import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Set;
 
@@ -41,29 +37,18 @@ import java.util.Set;
 @SupportedAnnotationTypes(
         {"com.dreameddeath.core.model.annotation.DocumentDef"}
 )
-public class DocumentDefAnnotationProcessor extends AbstractProcessor {
+public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
         for(Element classElem:roundEnv.getElementsAnnotatedWith(DocumentDef.class)){
             DocumentDef annot =classElem.getAnnotation(DocumentDef.class);
-            Elements elementUtils = processingEnv.getElementUtils();
             try {
                 String fileName= Utils.getFilename(annot, classElem);
-                FileObject jfo = processingEnv.getFiler().createResource(
-                        StandardLocation.CLASS_OUTPUT,
-                        "",
-                        fileName,
-                        classElem);
+                AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, classElem);
                 AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)classElem);
-                //String packageName = elementUtils.getPackageOf(classElem).getQualifiedName().toString();
-                //String fullClassName = ((TypeElement) classElem).getQualifiedName().toString();
-                //String realClassName = new StringBuilder().append(packageName).append(".").append(fullClassName.substring(packageName.length() + 1).replace(".", "$")).toString();
-                BufferedWriter bw = new BufferedWriter(jfo.openWriter());
-                bw.write(classInfo.getFullName());
-                bw.flush();
-                bw.close();
-                messager.printMessage(Diagnostic.Kind.NOTE,"Creating file "+fileName+" for class "+classInfo.getFullName());
+                file.getWriter().write(classInfo.getFullName());
+                file.close();
             }
             catch(IOException e){
                 messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());
@@ -72,8 +57,4 @@ public class DocumentDefAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
-    }
 }

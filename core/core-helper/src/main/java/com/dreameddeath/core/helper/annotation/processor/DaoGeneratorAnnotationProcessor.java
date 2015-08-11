@@ -17,41 +17,50 @@
 package com.dreameddeath.core.helper.annotation.processor;
 
 
+import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessorVelocityEngine;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.View;
 import com.dreameddeath.core.helper.annotation.processor.model.*;
+import com.dreameddeath.core.helper.annotation.service.RestDao;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import org.apache.velocity.VelocityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 29/12/2014.
  */
 @SupportedAnnotationTypes(
-        {"com.dreameddeath.core.helper.annotation.dao.DaoEntity"}
+        {"com.dreameddeath.core.helper.annotation.dao.DaoEntity",
+        "com.dreameddeath.core.helper.annotation.service.RestDao"}
 )
-public class DaoAnnotationProcessor extends AbstractProcessor {
-    private static final Logger LOG = LoggerFactory.getLogger(DaoAnnotationProcessor.class);
+public class DaoGeneratorAnnotationProcessor extends AbstractAnnotationProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(DaoGeneratorAnnotationProcessor.class);
     private static final String TEMPLATE_DAO_FILENAME = "core/templates/stdDaoTemplate.vm";
-    private static final String TEMPLATE_REST_FILENAME = "core/templates/stdRestServiceTemplate.vm";
+    private static final String TEMPLATE_READ_REST_FILENAME = "core/templates/stdReadRestServiceTemplate.vm";
+    private static final String TEMPLATE_WRITE_REST_FILENAME = "core/templates/stdWriteRestServiceTemplate.vm";
+
+
+    /**
+     *  Provide a hash map for just generated classes
+     */
+    private Map<ClassInfo,DaoDef> _daoClassMap=new HashMap<>();
+
+
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -61,6 +70,10 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             for (Element element : roundEnv.getElementsAnnotatedWith(DaoEntity.class)) {
                 if (!CouchbaseDocumentReflection.isReflexible(element)) continue;
                 manageDaoLayerGeneration(messager,element);
+            }
+
+            for (Element element : roundEnv.getElementsAnnotatedWith(RestDao.class)) {
+                manageRestLayerGeneration(messager, element);
             }
         }
         catch(Throwable e){
@@ -78,7 +91,15 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
 
 
     public void manageRestLayerGeneration(Messager messager,Element element) throws IOException{
+        //CouchbaseDocumentReflection docReflection = CouchbaseDocumentReflection.getReflectionFromTypeElement((TypeElement) element);
+        ClassInfo daoClassInfo = (ClassInfo)AbstractClassInfo.getClassInfo((TypeElement)element);
+        VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + daoClassInfo.getImportName());
 
+        DaoRestServiceDef restDef= new DaoRestServiceDef(daoClassInfo,_daoClassMap);
+        context.put("service",restDef);
+
+        AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_READ_REST_FILENAME, restDef.getReadFullName(), element);
+        AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_WRITE_REST_FILENAME, restDef.getWriteFullName(), element);
     }
 
     public void manageDaoLayerGeneration(Messager messager,Element element) throws IOException{
@@ -94,7 +115,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
 
         DaoDef daoDef = new DaoDef(docReflection);
         context.put("daoDef", daoDef);
-
+        _daoClassMap.put(docReflection.getClassInfo(),daoDef);
         DbPathDef dbPathDef = new DbPathDef(docReflection);
         context.put("dbPath", dbPathDef);
 
@@ -123,11 +144,6 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
         }
 
         AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_DAO_FILENAME, daoDef.getName(), element);
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
     }
 
 }

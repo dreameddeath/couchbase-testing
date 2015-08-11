@@ -39,4 +39,14 @@ public class DaoHelperServiceUtils {
         info.setStateSync();
         return result;
     }
+
+
+    public static void finalizeFromResponse(Response response, CouchbaseDocument doc){
+        CouchbaseDocument.BaseMetaInfo info = doc.getBaseMeta();
+        info.setEncodedFlags(Integer.parseInt(response.getHeaderString(HTTP_HEADER_DOC_FLAGS)));
+        info.setCas(Long.parseLong(response.getHeaderString(HTTP_HEADER_DOC_REV)));
+        info.setKey(response.getHeaderString(HTTP_HEADER_DOC_KEY));
+        info.setStateSync();
+    }
+
 }

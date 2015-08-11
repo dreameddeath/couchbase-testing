@@ -144,14 +144,14 @@ public class Utils {
             String[] parts = extractFromVersionTypeId(typeId);
             //it will naturally exclude patch from typeId
             String filename = Utils.getDocumentEntityFilename(parts[0], parts[1], parts[2]);
-            InputStream is = Utils.class.getClassLoader().getResourceAsStream(filename);
+            InputStream is =Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
             if(is==null){
                 throw  new RuntimeException("Cannot find/read file <"+filename+"> for id <"+typeId+">");
             }
             BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
             try {
                 String className = fileReader.readLine();
-                _versionClassMap.put(typeId, Utils.class.getClassLoader().loadClass(className));
+                _versionClassMap.put(typeId, Thread.currentThread().getContextClassLoader().loadClass(className));
             }
             catch(ClassNotFoundException|IOException e){
                 throw  new RuntimeException("Cannot find/read file <"+filename+"> for id <"+typeId+">",e);
@@ -165,11 +165,11 @@ public class Utils {
 
         if(! _versionUpgraderMap.containsKey(typeId)){
             String filename = Utils.getDocumentVersionUpgraderFilename(domain, name, version);
-            if(Utils.class.getClassLoader().getResource(filename)==null){
+            if(Thread.currentThread().getContextClassLoader().getResource(filename)==null){
                 _versionUpgraderMap.put(typeId,null);
             }
             else{
-                InputStream is = Utils.class.getClassLoader().getResourceAsStream(filename);
+                InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
                 BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
                 try {
                     String fullContent = fileReader.readLine();
@@ -178,7 +178,7 @@ public class Utils {
 
                     _versionUpgraderMap.put(typeId,
                                 new UpgradeMethodWrapper(
-                                        Utils.class.getClassLoader().loadClass(parts[0]),
+                                        Thread.currentThread().getContextClassLoader().loadClass(parts[0]),
                                         parts[1],
                                         getUpgraderReference(idTargetIdParts[0],idTargetIdParts[1],idTargetIdParts[2]),
                                         typeId,

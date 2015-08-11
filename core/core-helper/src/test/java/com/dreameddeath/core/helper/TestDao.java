@@ -36,7 +36,6 @@ import java.util.List;
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 @DaoForClass(TestDoc.class)
-//@ExposeDao(prefix="test", idPattern = "{id:\\d+}")
 public class TestDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
     public static final String TEST_CNT_KEY = "test/cnt";
     public static final String TEST_CNT_KEY_PATTERN = "test/cnt";
