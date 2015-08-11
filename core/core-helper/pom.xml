@@ -51,7 +51,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>test-compile</id>
+                        <id>default-testCompile</id>
                         <phase>test-compile</phase>
                         <goals>
                             <goal>testCompile</goal>
