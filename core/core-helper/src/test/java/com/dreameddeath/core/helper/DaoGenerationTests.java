@@ -204,6 +204,8 @@ public class DaoGenerationTests extends Assert {
             assertNotEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV), responsePut.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV));
             assertEquals(rsGetReadResult.getValue(), rsPutResult.getValue());
 
+            //TODO manage views
+            //TODO manage elastic search
         }
 
 
