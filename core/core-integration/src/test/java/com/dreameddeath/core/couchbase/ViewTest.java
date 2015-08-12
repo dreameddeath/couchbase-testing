@@ -39,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by Christophe Jeunesse on 18/12/2014.
  */
-public class ViewTests {
+public class ViewTest {
 
     public static class TestDoc extends CouchbaseDocument{
         @DocumentProperty("strVal")

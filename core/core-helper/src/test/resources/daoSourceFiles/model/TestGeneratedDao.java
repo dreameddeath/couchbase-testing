@@ -36,7 +36,7 @@ import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
         content = "emit(doc.value,doc.value);",
         keyDef = @ViewKeyDef(type=String.class,transcoder = ViewStringKeyTranscoder.class),
         valueDef = @ViewValueDef(type=String.class,transcoder = ViewStringTranscoder.class))
-public class TestDao extends BusinessDocument implements ITestDao {
+public class TestGeneratedDao extends BusinessDocument implements ITestDao {
     @DocumentProperty("value")
     public String value;
 

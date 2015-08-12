@@ -48,7 +48,7 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * Created by Christophe Jeunesse on 18/12/2014.
  */
-public class ViewTests {
+public class ViewTest {
 
     private Utils.TestEnvironment _env;
     private TestingRestServer _server;

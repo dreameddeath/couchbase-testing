@@ -40,7 +40,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Created by Christophe Jeunesse on 17/12/2014.
  */
-public class PrefixKeyTests {
+public class PrefixKeyTest {
 
     @DocumentDef(domain="test",name="prefixKey",version = "1.0.0")
     public static class TestPrefixKey extends BusinessDocument {

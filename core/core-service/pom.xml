@@ -109,11 +109,6 @@
           <version>${jackson.version}</version>
       </dependency>
       <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-          <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
           <groupId>com.fasterxml.jackson.datatype</groupId>
           <artifactId>jackson-datatype-joda</artifactId>
           <version>${jackson.version}</version>
@@ -138,19 +133,6 @@
           <groupId>org.apache.cxf</groupId>
           <artifactId>cxf-rt-rs-client</artifactId>
           <version>${apache.cxf.jaxrs.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.cxf</groupId>
-          <!--<artifactId>cxf-rt-transports-http-netty-curatorClient</artifactId> buggy for rest as async doesn't support GET/DELETE-->
-          <artifactId>cxf-rt-transports-http-jetty</artifactId>
-          <version>${apache.cxf.jaxrs.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.fasterxml.jackson.jaxrs</groupId>
-          <artifactId>jackson-jaxrs-json-provider</artifactId>
-          <version>${jackson.version}</version>
           <scope>test</scope>
       </dependency>
       <dependency>

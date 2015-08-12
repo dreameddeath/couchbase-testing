@@ -18,8 +18,8 @@ package model;
 
 import com.dreameddeath.core.business.model.BusinessDocumentLink;
 
-public class TestDaoLink extends BusinessDocumentLink<TestDao> {
-    public TestDaoLink(){}
-    public TestDaoLink (TestDao src){super(src);}
-    public TestDaoLink(TestDaoLink srcLink){super(srcLink);}
+public class TestGeneratedDaoLink extends BusinessDocumentLink<TestGeneratedDao> {
+    public TestGeneratedDaoLink(){}
+    public TestGeneratedDaoLink (TestGeneratedDao src){super(src);}
+    public TestGeneratedDaoLink(TestGeneratedDaoLink srcLink){super(srcLink);}
 }

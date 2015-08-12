@@ -30,7 +30,7 @@ import java.io.InputStreamReader;
  * Created by Christophe Jeunesse on 09/08/2015.
  */
 public class DaoUtils {
-    public static String ROOT_FILENAME_CLASS = "dao/perClassRegistering/";
+    public static String ROOT_FILENAME_CLASS = "META-INF/dao/perClassRegistering/";
 
     public static String getTargetDaoRegisteringFilename(DaoForClass annot){
         AbstractClassInfo classInfo = AbstractClassInfo.getClassInfoFromAnnot(annot,DaoForClass::value);

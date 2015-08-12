@@ -36,7 +36,7 @@ import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @Counter(name= "checks",dbName = "checks")
 @UidDef(fieldName = "uid")
-public class TestDaoUid extends BusinessDocument {
+public class TestGeneratedDaoUid extends BusinessDocument {
     @DocumentProperty("uid")
     public String uid;
     @DocumentProperty("value")
@@ -45,7 +45,7 @@ public class TestDaoUid extends BusinessDocument {
      *  testList : List of strings
      */
     @DocumentProperty("testList")
-    private ListProperty<String> _testList = new ArrayListProperty<String>(TestDaoUid.this);
+    private ListProperty<String> _testList = new ArrayListProperty<String>(TestGeneratedDaoUid.this);
 
     // TestList Accessors
     public List<String> getTestList() { return _testList.get(); }

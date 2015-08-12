@@ -55,7 +55,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 14/04/2015.
  */
-public class DaoGenerationTests extends Assert {
+public class DaoGenerationTest extends Assert {
     CouchbaseBucketSimulator _couchbaseClient;
     AnnotationProcessorTestingWrapper.Result _compiledEnv;
 
@@ -90,18 +90,18 @@ public class DaoGenerationTests extends Assert {
         Constructor method = _compiledEnv.getConstructor(Utils.TestEnvironment.class.getName(), String.class, Utils.TestEnvironment.TestEnvType.class);
         _env = (Utils.TestEnvironment)method.newInstance("GeneratedDaoAndViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
         //_env = new Utils.TestEnvironment("GeneratedDaoAndViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
-        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestDaoDao").newInstance());
-        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestDaoChildDao").newInstance());
-        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestDaoUidDao").newInstance());
+        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestGeneratedDaoDao").newInstance());
+        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestGeneratedDaoChildDao").newInstance());
+        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestGeneratedDaoUidDao").newInstance());
         _env.start();
 
         _testUtils = new CuratorTestUtils().prepare(1);
         _server = new TestingRestServer("serverTesting", _testUtils.getClient("serverTesting"), DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE));
 
-        initService("service.TestDaoReadRestService", "TestDaoReadRestService");
-        initService("service.TestDaoWriteRestService", "TestDaoWriteRestService");
-        initService("service.TestDaoChildReadRestService", "TestDaoChildReadRestService");
-        initService("service.TestDaoChildWriteRestService", "TestDaoChildWriteRestService");
+        initService("service.TestGeneratedDaoReadRestService", "TestGeneratedDaoReadRestService");
+        initService("service.TestGeneratedDaoWriteRestService", "TestGeneratedDaoWriteRestService");
+        initService("service.TestGeneratedDaoChildReadRestService", "TestGeneratedDaoChildReadRestService");
+        initService("service.TestGeneratedDaoChildWriteRestService", "TestGeneratedDaoChildWriteRestService");
 
         _server.start();
 
@@ -110,21 +110,21 @@ public class DaoGenerationTests extends Assert {
     @Test
     public void runAnnotationProcessor() throws Exception {
         ICouchbaseSession session = _env.getSessionFactory().newReadWriteSession(null);
-        Class<CouchbaseDocument> testDaoClass = _compiledEnv.getClass("model.TestDao");
-        Class<CouchbaseDocument> testDaoChildClass = _compiledEnv.getClass("model.TestDaoChild");
+        Class<CouchbaseDocument> testGeneratedDaoClass = _compiledEnv.getClass("model.TestGeneratedDao");
+        Class<CouchbaseDocument> testGeneratedDaoChildClass = _compiledEnv.getClass("model.TestGeneratedDaoChild");
         for(int i=0;i<10;++i){
-            ITestDao doc = (ITestDao)session.newEntity(testDaoClass);
+            ITestDao doc = (ITestDao)session.newEntity(testGeneratedDaoClass);
             doc.setValue("test "+i);
             session.save((CouchbaseDocument)doc);
             for(int j=0;j<i;++j) {
-                ITestDaoChild child = (ITestDaoChild)session.newEntity(testDaoChildClass);
+                ITestDaoChild child = (ITestDaoChild)session.newEntity(testGeneratedDaoChildClass);
                 child.setValue(String.format("Child:%d",j));
                 child.setParentObjDao(doc);
                 session.save((CouchbaseDocument)child);
             }
         }
 
-        IViewQuery<String,String,CouchbaseDocument> query = session.initViewQuery(testDaoClass, "valueView");
+        IViewQuery<String,String,CouchbaseDocument> query = session.initViewQuery(testGeneratedDaoClass, "valueView");
         query.withStartKey("test 3").withEndKey("test 6",false).withLimit(20).syncWithDoc();
         IViewQueryResult<String,String,CouchbaseDocument> result = session.executeQuery(query);
         List<IViewQueryRow<String,String,CouchbaseDocument>> rows = result.getAllRows();
@@ -146,7 +146,7 @@ public class DaoGenerationTests extends Assert {
             Response responseGet = readTarget.path(id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .get();
-            ITestDao rsGetReadResult = responseGet.readEntity(new GenericType<>(testDaoClass));
+            ITestDao rsGetReadResult = responseGet.readEntity(new GenericType<>(testGeneratedDaoClass));
             DaoHelperServiceUtils.finalizeFromResponse(responseGet,(CouchbaseDocument)rsGetReadResult);
             String origStrVal = rsGetReadResult.getValue();
             assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY), row.getDocKey());
@@ -167,27 +167,27 @@ public class DaoGenerationTests extends Assert {
             Response childResponseGet = childReadTarget.resolveTemplate("daoProccessorUid",id).path("0000000001")
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .get();
-            ITestDaoChild rsGetChildReadResult = childResponseGet.readEntity(new GenericType<>(testDaoChildClass));
+            ITestDaoChild rsGetChildReadResult = childResponseGet.readEntity(new GenericType<>(testGeneratedDaoChildClass));
             assertEquals("Child:0",rsGetChildReadResult.getValue());
 
 
             /*
-            *  Create a new TestDao
+            *  Create a new TestGeneratedDao
              */
             rsGetReadResult.setValue(origStrVal+" rest added");
             Response responsePost = writeTarget.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             String createdString = responsePost.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY);
-            ITestDao rsPostResult = responsePost.readEntity(new GenericType<>(testDaoClass));
+            ITestDao rsPostResult = responsePost.readEntity(new GenericType<>(testGeneratedDaoClass));
             assertEquals(rsGetReadResult.getValue(),rsPostResult.getValue());
 
             //Create a new Child doc of the old one
-            ITestDaoChild childDoc = (ITestDaoChild)testDaoChildClass.newInstance();
+            ITestDaoChild childDoc = (ITestDaoChild)testGeneratedDaoChildClass.newInstance();
             childDoc.setValue("Child of " + rsGetReadResult);
             childDoc.setParentObjDao(rsGetReadResult);
             String createdId = createdString.split("/")[1];
 
             Response responseCreateChildPost = childWriteTarget.resolveTemplate("daoProccessorUid",createdId).request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(childDoc,MediaType.APPLICATION_JSON_TYPE));
-            ITestDaoChild createdChildDoc = responseCreateChildPost.readEntity(new GenericType<>(testDaoChildClass));
+            ITestDaoChild createdChildDoc = responseCreateChildPost.readEntity(new GenericType<>(testGeneratedDaoChildClass));
             assertEquals(childDoc.getValue(),createdChildDoc.getValue());
 
             /*
@@ -199,7 +199,7 @@ public class DaoGenerationTests extends Assert {
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV))
                     .put(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
-            ITestDao rsPutResult = responsePut.readEntity(new GenericType<>(testDaoClass));
+            ITestDao rsPutResult = responsePut.readEntity(new GenericType<>(testGeneratedDaoClass));
             assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY), responsePut.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY));
             assertNotEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV), responsePut.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV));
             assertEquals(rsGetReadResult.getValue(), rsPutResult.getValue());

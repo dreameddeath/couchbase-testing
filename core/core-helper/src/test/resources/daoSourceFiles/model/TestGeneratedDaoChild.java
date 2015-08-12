@@ -26,13 +26,13 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 
 @DocumentDef(domain="test",name="daoProccessorChild",version = "1.0.0")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "child/",idFormat = "%010d",idPattern = "\\d{10}")
-@ParentEntity(c=TestDao.class,keyPath = "parent.key",separator = "/")
+@ParentEntity(c=TestGeneratedDao.class,keyPath = "parent.key",separator = "/")
 @Counter(name="cnt",dbName = "cnt",isKeyGen = true)
-public class TestDaoChild extends BusinessDocument implements ITestDaoChild{
+public class TestGeneratedDaoChild extends BusinessDocument implements ITestDaoChild{
     @DocumentProperty("value")
     public String value;
     @DocumentProperty("parent")
-    public TestDaoLink parent;
+    public TestGeneratedDaoLink parent;
 
     @Override
     public String getValue() {
@@ -44,16 +44,16 @@ public class TestDaoChild extends BusinessDocument implements ITestDaoChild{
         this.value = value;
     }
 
-    public TestDaoLink getParent() {
+    public TestGeneratedDaoLink getParent() {
         return parent;
     }
 
-    public void setParent(TestDaoLink parent) {
+    public void setParent(TestGeneratedDaoLink parent) {
         this.parent = parent;
     }
 
     @Override
     public void setParentObjDao(ITestDao parent){
-        this.parent = new model.TestDaoLink((TestDao)parent);
+        this.parent = new model.TestGeneratedDaoLink((TestGeneratedDao)parent);
     }
 }
