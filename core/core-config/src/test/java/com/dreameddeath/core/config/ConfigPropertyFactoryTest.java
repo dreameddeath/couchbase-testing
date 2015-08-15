@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.config;
 
-import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFound;
+import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.config.impl.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -88,7 +88,7 @@ public class ConfigPropertyFactoryTest {
     }
 
 
-    @Test(expected = ConfigPropertyValueNotFound.class)
+    @Test(expected = ConfigPropertyValueNotFoundException.class)
     public void testNotFoundProperty() throws Exception {
         ConfigPropertyFactory.getStringProperty("toto.not_found", (String)null).getMandatoryValue("Normal error");
     }

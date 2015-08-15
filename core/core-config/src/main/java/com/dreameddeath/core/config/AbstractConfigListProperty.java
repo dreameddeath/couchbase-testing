@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.config;
 
-import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFound;
+import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.config.impl.StringConfigProperty;
 import com.google.common.base.Splitter;
 import org.joda.time.DateTime;
@@ -140,10 +140,10 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
     }
 
     @Override
-    public List<T> getMandatoryValue(String errorMessage) throws ConfigPropertyValueNotFound {
+    public List<T> getMandatoryValue(String errorMessage) throws ConfigPropertyValueNotFoundException {
         List<T> res = getValue();
         if((res==null)||(res.size()==0)){
-            throw new ConfigPropertyValueNotFound(this,errorMessage);
+            throw new ConfigPropertyValueNotFoundException(this,errorMessage);
         }
         return res;
     }

@@ -55,7 +55,7 @@ public class ServiceClientFactory {
                     params.put(part.getValue(),"{"+part.getValue()+"}");
                 }
             }
-            String uri = serviceDescr.buildUriSpec(params);
+            final String uri = serviceDescr.buildUriSpec(params);
             return _clientPerUri.computeIfAbsent(uri, new Function<String, WebTarget>() {
                 @Override
                 public WebTarget apply(String s) {
@@ -68,7 +68,6 @@ public class ServiceClientFactory {
             throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
             //Todo throw an error
         }
-
     }
 
 }

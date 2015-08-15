@@ -53,6 +53,9 @@ public class ServiceRegistrar {
 
     public ServiceRegistrar(CuratorFramework curatorClient,String basePath){
         _curatorClient = curatorClient;
+        if(!basePath.startsWith("/")){
+            basePath="/"+basePath;
+        }
         _basePath = basePath;
     }
 
@@ -71,7 +74,7 @@ public class ServiceRegistrar {
             ServiceDef annotDef = foundService.getClass().getAnnotation(ServiceDef.class);
             Swagger swagger = new Swagger();
             Path pathAnnot = foundService.getClass().getAnnotation(Path.class);
-            swagger.setBasePath((foundService.getEndPoint().path()+"/"+pathAnnot.value()).replaceAll("//","/"));
+            swagger.setBasePath((foundService.getEndPoint().path()+"/"+foundService.getAddress()+"/"+pathAnnot.value()).replaceAll("//","/"));
             swagger.setHost(foundService.getEndPoint().host());
 
             Reader reader=new Reader(swagger);
@@ -103,7 +106,12 @@ public class ServiceRegistrar {
         _serviceDiscovery.close();
     }
 
-    public Set<AbstractExposableService> getServices(){ return Collections.unmodifiableSet(_services);}
-    public void addService(AbstractExposableService service){_services.add(service);}
+    public Set<AbstractExposableService> getServices(){
+        return Collections.unmodifiableSet(_services);
+    }
+
+    public void addService(AbstractExposableService service){
+        _services.add(service);
+    }
 
 }

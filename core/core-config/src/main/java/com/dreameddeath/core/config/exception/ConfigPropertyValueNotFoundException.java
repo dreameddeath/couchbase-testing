@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon;
+package com.dreameddeath.core.config.exception;
 
-import com.dreameddeath.core.config.annotation.ConfigPropertyPackage;
+import com.dreameddeath.core.config.IConfigProperty;
 
 /**
- * Created by Christophe Jeunesse on 21/05/2015.
+ * Created by Christophe Jeunesse on 05/02/2015.
  */
-@ConfigPropertyPackage(name="daemon",domain = "daemon",descr = "All common properties for daemon classes")
-public class DaemonConfigProperties {
+public class ConfigPropertyValueNotFoundException extends Exception {
+    IConfigProperty _property;
 
+    public ConfigPropertyValueNotFoundException(IConfigProperty prop, String message){
+        super(message);
+        _property = prop;
+    }
+
+    @Override
+    public String getMessage(){
+        return "The property <"+_property.getName()+"> value hasn't been found. The error message :\n"+super.getMessage();
+    }
 }

@@ -40,6 +40,6 @@ public class ConfigManagerFactory {
 
     }
 
-    static void addConfigurationEntry(String entry,Object value){ConfigurationManager.getConfigInstance().setProperty(entry, value);}
+    public static void addConfigurationEntry(String entry,Object value){ConfigurationManager.getConfigInstance().setProperty(entry, value);}
 
 }

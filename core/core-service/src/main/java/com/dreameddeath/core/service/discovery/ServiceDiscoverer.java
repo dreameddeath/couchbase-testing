@@ -45,6 +45,9 @@ public class ServiceDiscoverer {
 
     public ServiceDiscoverer(CuratorFramework client,String basePath){
         _client = client;
+        if(!basePath.startsWith("/")){
+            basePath="/"+basePath;
+        }
         _basePath = basePath;
     }
 

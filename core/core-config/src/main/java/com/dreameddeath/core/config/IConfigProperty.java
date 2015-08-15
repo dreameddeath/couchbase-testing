@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.config;
 
-import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFound;
+import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
@@ -26,7 +26,7 @@ import java.util.Collection;
  */
 public interface IConfigProperty<T> {
     T getValue();
-    T getMandatoryValue(String errorMessage) throws ConfigPropertyValueNotFound;
+    T getMandatoryValue(String errorMessage) throws ConfigPropertyValueNotFoundException;
     T getDefaultValue();
     String getName();
     DateTime getLastChangedDate();

@@ -34,6 +34,9 @@ public class ServiceNamingUtils {
 
     public static void createBaseServiceName(CuratorFramework client,String basePath){
         try {
+            if(!basePath.startsWith("/")){
+                basePath = "/"+basePath;
+            }
             client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(basePath);
         }
         catch (KeeperException.NodeExistsException e){

@@ -23,16 +23,23 @@ import com.dreameddeath.core.service.registrar.ServiceRegistrar;
  * Created by Christophe Jeunesse on 15/01/2015.
  */
 public abstract class AbstractExposableService {
-
+    private String address="";
     private IRestEndPointDescription endPoint;
+    private ServiceRegistrar _serviceRegistrar;
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
     public void setEndPoint(IRestEndPointDescription obj){
         endPoint = obj;
     }
     public IRestEndPointDescription getEndPoint() {
         return endPoint;
     }
-
-    private ServiceRegistrar _serviceRegistrar;
     public void setServiceRegistrar(ServiceRegistrar serviceRegistrar){
         _serviceRegistrar = serviceRegistrar;
         serviceRegistrar.addService(this);

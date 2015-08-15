@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.config;
 
-import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFound;
+import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.config.internal.ExtendedPropertyWrapper;
 import com.dreameddeath.core.config.internal.ReferencePropertyWrapper;
 import com.netflix.config.PropertyWrapper;
@@ -96,10 +96,10 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
     }
 
     @Override
-    public T getMandatoryValue(String errorMessage) throws ConfigPropertyValueNotFound {
+    public T getMandatoryValue(String errorMessage) throws ConfigPropertyValueNotFoundException {
         T value = getValue();
         if (value == null) {
-            throw new ConfigPropertyValueNotFound(this, errorMessage);
+            throw new ConfigPropertyValueNotFoundException(this, errorMessage);
         }
         return value;
     }
