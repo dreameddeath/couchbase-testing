@@ -165,7 +165,7 @@ public class DaoRestServiceDef {
     }
 
     private String normalizePath(String path){
-        return path.replaceAll("//","/");
+        return path.replaceAll("/{2,}","/");
     }
 
     public String getReadFullName(){
@@ -203,7 +203,7 @@ public class DaoRestServiceDef {
             result+="/";
         }
         result+=getDbPath()+"/%s";
-        return result.replaceAll("//","/");
+        return result.replaceAll("/{2,}","/");
     }
 
     public static class AttributInfo{

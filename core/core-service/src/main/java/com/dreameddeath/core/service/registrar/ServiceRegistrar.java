@@ -74,7 +74,7 @@ public class ServiceRegistrar {
             ServiceDef annotDef = foundService.getClass().getAnnotation(ServiceDef.class);
             Swagger swagger = new Swagger();
             Path pathAnnot = foundService.getClass().getAnnotation(Path.class);
-            swagger.setBasePath((foundService.getEndPoint().path()+"/"+foundService.getAddress()+"/"+pathAnnot.value()).replaceAll("//","/"));
+            swagger.setBasePath((foundService.getEndPoint().path()+"/"+foundService.getAddress()+"/"+pathAnnot.value()).replaceAll("/{2,}","/"));
             swagger.setHost(foundService.getEndPoint().host());
 
             Reader reader=new Reader(swagger);
@@ -86,7 +86,7 @@ public class ServiceRegistrar {
             serviceDescr.setVersion(annotDef.version());
             serviceDescr.setSwagger(reader.getSwagger());
 
-            String uriStr = "{scheme}://{address}:{port}"+("/"+swagger.getBasePath()).replaceAll("//","/");
+            String uriStr = "{scheme}://{address}:{port}"+("/"+swagger.getBasePath()).replaceAll("/{2,}","/");
             UriSpec uriSpec = new UriSpec(uriStr);
 
             ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()))
