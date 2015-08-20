@@ -22,6 +22,7 @@ import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusUpdateRequest;
+import com.dreameddeath.infrastructure.daemon.webserver.StandardWebServer;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.junit.Assert;
@@ -50,12 +51,27 @@ public class AbstractDaemonTest extends Assert {
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(),connectionString);
         //TODO start zookeeper
         final AbstractDaemon daemon=new AbstractDaemon();
+        daemon.addStandardWebServer("tests", "applicationContext.xml");
         Thread stopping_thread = new Thread(new Runnable() {
             @Override
             public void run() {
+
                 try {
-                    Thread.sleep(1000);
-                    StatusResponse response = daemon.getServiceDiscoveryManager().getClientFactory("admin/services")
+                    Integer response = daemon.getStandardWebServers().get(0).getServiceDiscoveryManager().getClientFactory("tests/services")
+                            .getClient("tests#tests#tests", "1.0")
+                            .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
+                            //.path("/status")
+                            .request(MediaType.APPLICATION_JSON)
+                            .get(Integer.class);
+                    assertEquals(12L,response.longValue());
+                }
+                catch(Exception e){
+                    LOG.error("Error during status read", e);
+                }
+
+
+                try {
+                    StatusResponse response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
                             .getClient("daemon#admin#status", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             .path("/status")
@@ -70,15 +86,34 @@ public class AbstractDaemonTest extends Assert {
                     LOG.info("Request stopping the web server");
                     Thread.sleep(1000);
                     StatusUpdateRequest request = new StatusUpdateRequest();
+                    request.setStatus(StatusUpdateRequest.Status.HALT);
+                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
+                            .getClient("daemon#admin#status", "1.0")
+                            .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
+                            .path("/status")
+                            .request(MediaType.APPLICATION_JSON)
+                            .put(Entity.json(request), StatusResponse.class);
+
+                    assertEquals(AbstractDaemon.Status.HALTED, response.getStatus());
+                    return;
+                }
+                catch(Exception e){
+                    LOG.error("Cannot call halt", e);
+                }
+
+                try {
+                    LOG.info("Request stopping the web server");
+                    Thread.sleep(1000);
+                    StatusUpdateRequest request = new StatusUpdateRequest();
                     request.setStatus(StatusUpdateRequest.Status.STOP);
-                    StatusResponse response= daemon.getServiceDiscoveryManager().getClientFactory("admin/services")
+                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
                             .getClient("daemon#admin#status", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             .path("/status")
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.json(request),StatusResponse.class);
 
-                    //assertEquals(AbstractDaemon.Status.STOPPED, response.getStatus());
+                    assertEquals(AbstractDaemon.Status.STOPPING, response.getStatus());
                     return;
                 }
                 catch(Exception e){
@@ -99,12 +134,20 @@ public class AbstractDaemonTest extends Assert {
             public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
                 LOG.info("The web server is starting");
                 assertEquals(AbstractDaemon.Status.STARTING, lifeCycle.getDaemon().getStatus());
+                for(StandardWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
+                    assertEquals(true,server.getLifeCycle().isStopped());
+                }
+                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
             }
 
             @Override
             public void lifeCycleStarted(final IDaemonLifeCycle lifeCycle) {
                 LOG.info("The web server is started");
                 assertEquals(AbstractDaemon.Status.STARTING, lifeCycle.getDaemon().getStatus());
+                for(StandardWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
+                    assertEquals(true,server.getLifeCycle().isStarted());
+                }
+                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
                 stopping_thread.start();
                 //TODO perform calls to rest API, ...
             }
@@ -120,12 +163,29 @@ public class AbstractDaemonTest extends Assert {
             }
 
             @Override
+            public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
+                for(StandardWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
+                    assertEquals(true,server.getLifeCycle().isStopped());
+                }
+                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
+                assertEquals(AbstractDaemon.Status.HALTED,lifeCycle.getDaemon().getStatus());
+            }
+
+            @Override
             public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
+                for(StandardWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
+                    assertEquals(true,server.getLifeCycle().isStopped());
+                }
+                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
                 assertEquals(AbstractDaemon.Status.STOPPING,lifeCycle.getDaemon().getStatus());
             }
 
             @Override
             public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
+                for(StandardWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
+                    assertEquals(true,server.getLifeCycle().isStopped());
+                }
+                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStopped());
                 assertEquals(AbstractDaemon.Status.STOPPING,lifeCycle.getDaemon().getStatus());
             }
         });

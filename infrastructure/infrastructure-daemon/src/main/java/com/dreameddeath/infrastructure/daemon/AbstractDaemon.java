@@ -16,24 +16,16 @@
 
 package com.dreameddeath.infrastructure.daemon;
 
-import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.curator.CuratorFrameworkFactory;
-import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
-import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
-import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryLifeCycleManager;
-import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
+import com.dreameddeath.infrastructure.daemon.webserver.StandardWebServer;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.cxf.transport.servlet.CXFServlet;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.springframework.web.context.ContextLoaderListener;
 
-import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 05/02/2015.
@@ -48,8 +40,8 @@ public class AbstractDaemon {
     private Status _status=Status.STOPPED;
     private final DaemonLifeCycle _daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework _curatorClient;
-    private final Server _webServer;
-    private ServiceDiscoveryManager _serviceDiscoveryManager;
+    private final StandardWebServer _adminWebServer;
+    private final List<StandardWebServer> _standardWebServers=new ArrayList<>();
 
     protected static CuratorFramework setupDefaultCuratorClient(){
         try {
@@ -65,77 +57,13 @@ public class AbstractDaemon {
         }
     }
 
-    protected Server setupDefaultWebServer() throws ConfigPropertyValueNotFoundException {
-        Server server = new Server();
-        final ServerConnector connector = new ServerConnector(server);
-        String addressProp = DaemonConfigProperties.DAEMON_WEBSERVER_ADDRESS.get();
-        if(addressProp!=null){
-            connector.setHost(addressProp);
-        }
-        int port = DaemonConfigProperties.DAEMON_WEBSERVER_PORT.get();
-        if(port!=0){
-            connector.setPort(port);
-        }
-
-        server.addConnector(connector);
-
-        //Create the contextHandler and at it to the server
-        ServletContextHandler contextHandler = new ServletContextHandler();
-        server.setHandler(contextHandler);
-        contextHandler.setInitParameter("contextConfigLocation", "classpath:applicationContext.xml");
-        contextHandler.addEventListener(new ContextLoaderListener());
-
-        //Init Cxf context handler
-        ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
-        cxfHolder.setInitOrder(1);
-        contextHandler.addServlet(cxfHolder, "/*");
-
-        contextHandler.setAttribute(GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME, _curatorClient);
-        contextHandler.setAttribute(GLOBAL_DAEMON_PARAM_NAME, this);
-        contextHandler.setAttribute(GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, _daemonLifeCycle);
-        contextHandler.setAttribute(SERVICE_DISCOVERER_MANAGER_PARAM_NAME, _serviceDiscoveryManager);
-        contextHandler.setAttribute(END_POINT_INFO_SERVLET_PARAM_NAME, new IRestEndPointDescription() {
-            @Override
-            public int port() {
-                return connector.getLocalPort();
-            }
-
-            @Override
-            public String path() {
-                return "";
-            }
-
-            @Override
-            public String host() {
-                try {
-                    if(connector.getHost()!=null) {
-                        return connector.getHost();
-                    }
-                    else{
-                        return InetAddress.getLocalHost().getHostAddress();
-                    }
-                } catch (Exception e) {
-                    return "localhost";
-                }
-            }
-        });
-        return server;
-    }
-
     public AbstractDaemon(){
         this(setupDefaultCuratorClient());
     }
 
     public AbstractDaemon(CuratorFramework curatorClient){
         _curatorClient = curatorClient;
-        _serviceDiscoveryManager = new ServiceDiscoveryManager(_curatorClient);
-        _daemonLifeCycle.addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(_serviceDiscoveryManager));
-        try {
-            _webServer = setupDefaultWebServer();
-        }
-        catch(ConfigPropertyValueNotFoundException e){
-            throw new RuntimeException(e);
-        }
+        _adminWebServer = new StandardWebServer(this,"admin","admin.applicationContext.xml",true);
     }
 
     public CuratorFramework getCuratorClient(){
@@ -143,13 +71,21 @@ public class AbstractDaemon {
     }
 
 
-    public Server getWebServer() {
-        return _webServer;
+    public StandardWebServer getAdminWebServer() {
+        return _adminWebServer;
     }
 
-    public ServiceDiscoveryManager getServiceDiscoveryManager() {
-        return _serviceDiscoveryManager;
+
+    public List<StandardWebServer> getStandardWebServers(){
+        return Collections.unmodifiableList(_standardWebServers);
     }
+
+    synchronized public StandardWebServer addStandardWebServer(String name,String applicationContextFile){
+        StandardWebServer newWebServer  = new StandardWebServer(this,name,applicationContextFile,false);
+        _standardWebServers.add(newWebServer);
+        return newWebServer;
+    }
+
 
     public DaemonLifeCycle getDaemonLifeCycle() {
         return _daemonLifeCycle;
@@ -167,12 +103,13 @@ public class AbstractDaemon {
         STOPPED,
         STARTING,
         STARTED,
+        HALTED,
         STOPPING
     }
 
     public void startAndJoin() throws Exception{
         //Starting using the status manager
         _daemonLifeCycle.start();
-        _webServer.join();
+        _adminWebServer.join();
     }
 }

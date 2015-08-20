@@ -41,7 +41,9 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
             for (Listener listener : _listeners) {
                 listener.lifeCycleStarting(this);
             }
-            _daemon.getWebServer().start();
+        }
+        if(_daemon.getStatus()== AbstractDaemon.Status.STARTING||
+                _daemon.getStatus()== AbstractDaemon.Status.HALTED) {
             for (Listener listener : _listeners) {
                 listener.lifeCycleStarted(this);
             }
@@ -49,16 +51,27 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
         }
     }
 
+    @Override
+    public void halt() throws Exception {
+        if(_daemon.getStatus()== AbstractDaemon.Status.STARTED) {
+            for (Listener listener : _listeners) {
+                listener.lifeCycleHalt(this);
+            }
+            _daemon.setStatus(AbstractDaemon.Status.HALTED);
+        }
+    }
+
 
     @Override
     public void stop() throws Exception {
-        if(_daemon.getStatus()== AbstractDaemon.Status.STOPPING||
-                _daemon.getStatus()== AbstractDaemon.Status.STARTED) {
+        if(_daemon.getStatus()== AbstractDaemon.Status.STARTED) {
             _daemon.setStatus(AbstractDaemon.Status.STOPPING);
             for (Listener listener : _listeners) {
                 listener.lifeCycleStopping(this);
             }
-            _daemon.getWebServer().stop();
+        }
+        if(_daemon.getStatus()== AbstractDaemon.Status.HALTED ||
+                _daemon.getStatus() == AbstractDaemon.Status.STOPPING){
             for (Listener listener : _listeners) {
                 listener.lifeCycleStopped(this);
             }
@@ -68,12 +81,21 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void reload() throws Exception {
-
+        if(_daemon.getStatus()== AbstractDaemon.Status.STARTED){
+            for (Listener listener : _listeners) {
+                listener.lifeCycleReload(this);
+            }
+        }
     }
 
     @Override
     public boolean isRunning() {
-        return _daemon.getStatus()== AbstractDaemon.Status.STARTED; //to distinguish from started
+        return _daemon.getStatus()== AbstractDaemon.Status.STARTED; //todo distinguish from started
+    }
+
+    @Override
+    public boolean isHalt() {
+        return _daemon.getStatus()== AbstractDaemon.Status.HALTED;
     }
 
     @Override

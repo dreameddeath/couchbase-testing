@@ -26,10 +26,12 @@ import java.util.EventListener;
 public interface IDaemonLifeCycle {
 
     void start() throws Exception;
+    void halt() throws Exception;
     void stop() throws Exception;
     void reload() throws Exception;
 
     boolean isRunning();
+    boolean isHalt();
     boolean isStarted();
     boolean isStarting();
     boolean isStopping();
@@ -49,6 +51,8 @@ public interface IDaemonLifeCycle {
         void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception);
 
         void lifeCycleReload(IDaemonLifeCycle lifeCycle);
+
+        void lifeCycleHalt(IDaemonLifeCycle lifeCycle);
 
         void lifeCycleStopping(IDaemonLifeCycle lifeCycle);
 

@@ -19,12 +19,12 @@ package com.dreameddeath.infrastructure.daemon.services;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusUpdateRequest;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
-import org.eclipse.jetty.server.ServerConnector;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -50,20 +50,7 @@ public class RestDaemonAdminServices extends AbstractExposableService {
             response = StatusResponse.class,
             position = 0)
     public StatusResponse getStatus(){
-        StatusResponse result = new StatusResponse();
-        result.setStatus(daemonLifeCycle.getDaemon().getStatus());
-        ServerConnector currConnector = (ServerConnector) daemonLifeCycle.getDaemon().getWebServer().getConnectors()[0];
-        String host;
-        int port = currConnector.getPort();
-        try{
-            host = currConnector.getHost();
-        }
-        catch(Exception e){
-            host = "localhost";
-        }
-        result.setHostname(host);
-        result.setPort(port);
-        return result;
+        return buildStatus(daemonLifeCycle.getDaemon().getStatus());
     }
 
 
@@ -75,27 +62,45 @@ public class RestDaemonAdminServices extends AbstractExposableService {
             response = StatusResponse.class,
             position = 0)
     public StatusResponse setStatus(StatusUpdateRequest statusUpdateRequest){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(10);
-                    if (statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.START) {
-                        daemonLifeCycle.start();
-                    }
-                    else if(statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.STOP) {
+
+        try{
+            if (statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.START) {
+                daemonLifeCycle.start();
+            }
+            else if(statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.STOP) {
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(100);
                         daemonLifeCycle.stop();
                     }
-                    else{
-                        //TODO halt management
+                    catch(Exception e){
+
                     }
-                }
-                catch(Exception e){
-                    throw new RuntimeException(e);
-                }
+                }).start();
+                return buildStatus(AbstractDaemon.Status.STOPPING);
             }
-        }).start();
+            else{
+                daemonLifeCycle.halt();
+                //TODO halt management
+            }
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
 
         return getStatus();
+    }
+
+    protected StatusResponse buildStatus(AbstractDaemon.Status status){
+        int port = getEndPoint().port();
+        String host = getEndPoint().host();
+
+        StatusResponse result = new StatusResponse();
+        result.setStatus(status);
+        //ServerConnector currConnector = (ServerConnector) daemonLifeCycle.getDaemon().getAdminWebServer().getWebServer().getConnectors()[0];
+
+        result.setHostname(host);
+        result.setPort(port);
+        return result;
     }
 }

@@ -16,20 +16,21 @@
 
 package com.dreameddeath.infrastructure.daemon.manager;
 
-import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 
 
 /**
  * Created by Christophe Jeunesse on 13/08/2015.
  */
-public class ServiceDiscoveryLifeCycleManager implements IDaemonLifeCycle.Listener {
+public class ServiceDiscoveryLifeCycleManager implements LifeCycle.Listener {
     private final ServiceDiscoveryManager _manager;
 
     public ServiceDiscoveryLifeCycleManager(ServiceDiscoveryManager manager){
         _manager =manager;
     }
+
     @Override
-    public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
+    public void lifeCycleStarting(LifeCycle lifeCycle) {
         try {
             _manager.setStatus(ServiceDiscoveryManager.Status.STARTING);
         }
@@ -39,7 +40,7 @@ public class ServiceDiscoveryLifeCycleManager implements IDaemonLifeCycle.Listen
     }
 
     @Override
-    public void lifeCycleStarted(IDaemonLifeCycle lifeCycle) {
+    public void lifeCycleStarted(LifeCycle lifeCycle) {
         try{
             _manager.setStatus(ServiceDiscoveryManager.Status.STARTED);
         }
@@ -49,17 +50,12 @@ public class ServiceDiscoveryLifeCycleManager implements IDaemonLifeCycle.Listen
     }
 
     @Override
-    public void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable throwable) {
+    public void lifeCycleFailure(LifeCycle lifeCycle, Throwable throwable) {
         ///TODO
     }
 
     @Override
-    public void lifeCycleReload(IDaemonLifeCycle lifeCycle) {
-        //TODO
-    }
-
-    @Override
-    public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
+    public void lifeCycleStopping(LifeCycle lifeCycle) {
         try{
             _manager.setStatus(ServiceDiscoveryManager.Status.STOPPING);
         }
@@ -70,7 +66,7 @@ public class ServiceDiscoveryLifeCycleManager implements IDaemonLifeCycle.Listen
     }
 
     @Override
-    public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
+    public void lifeCycleStopped(LifeCycle lifeCycle) {
         try{
             _manager.setStatus(ServiceDiscoveryManager.Status.STOPPED);
         }
