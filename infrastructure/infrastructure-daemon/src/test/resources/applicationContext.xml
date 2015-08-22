@@ -26,6 +26,7 @@
     <context:annotation-config />
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+
     <bean id="serviceDiscovererManager" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="serviceDiscovererManager" />
     </bean>

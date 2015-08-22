@@ -19,6 +19,8 @@ package com.dreameddeath.infrastructure.daemon;
 import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
+import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
+import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.StandardWebServer;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -41,7 +43,7 @@ public class AbstractDaemon {
     private final DaemonLifeCycle _daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework _curatorClient;
     private final StandardWebServer _adminWebServer;
-    private final List<StandardWebServer> _standardWebServers=new ArrayList<>();
+    private final List<AbstractWebServer> _additionnalWebServers=new ArrayList<>();
 
     protected static CuratorFramework setupDefaultCuratorClient(){
         try {
@@ -63,29 +65,32 @@ public class AbstractDaemon {
 
     public AbstractDaemon(CuratorFramework curatorClient){
         _curatorClient = curatorClient;
-        _adminWebServer = new StandardWebServer(this,"admin","admin.applicationContext.xml",true);
+        _adminWebServer = new StandardWebServer(StandardWebServer.builder().withDaemon(this).withName("admin").withApplicationContextConfig("admin.applicationContext.xml").withIsRoot(true));
     }
 
     public CuratorFramework getCuratorClient(){
         return _curatorClient;
     }
 
-
     public StandardWebServer getAdminWebServer() {
         return _adminWebServer;
     }
 
-
-    public List<StandardWebServer> getStandardWebServers(){
-        return Collections.unmodifiableList(_standardWebServers);
+    public List<AbstractWebServer> getStandardWebServers(){
+        return Collections.unmodifiableList(_additionnalWebServers);
     }
 
-    synchronized public StandardWebServer addStandardWebServer(String name,String applicationContextFile){
-        StandardWebServer newWebServer  = new StandardWebServer(this,name,applicationContextFile,false);
-        _standardWebServers.add(newWebServer);
+    synchronized public StandardWebServer addStandardWebServer(StandardWebServer.Builder builder){
+        StandardWebServer newWebServer  = new StandardWebServer(builder.withDaemon(this));
+        _additionnalWebServers.add(newWebServer);
         return newWebServer;
     }
 
+    synchronized public ProxyWebServer addProxyWebServer(ProxyWebServer.Builder builder){
+        ProxyWebServer newWebServer  = new ProxyWebServer(builder.withDaemon(this));
+        _additionnalWebServers.add(newWebServer);
+        return newWebServer;
+    }
 
     public DaemonLifeCycle getDaemonLifeCycle() {
         return _daemonLifeCycle;

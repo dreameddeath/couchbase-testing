@@ -29,7 +29,6 @@ import javax.ws.rs.core.UriBuilder;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 //import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
@@ -38,9 +37,19 @@ import java.util.function.Function;
  * Created by Christophe Jeunesse on 04/03/2015.
  */
 public class ServiceClientFactory {
-    private final Set<String> VARIABLE_TO_IGNORE = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("scheme","port","address")));
+    private static final Set<String> VARIABLE_TO_IGNORE = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("scheme","port","address")));
     private final ServiceDiscoverer _serviceDiscoverer;
     private ConcurrentMap<String,WebTarget> _clientPerUri = new ConcurrentHashMap<>();
+
+    public static String buildUri(ServiceInstance<ServiceDescription> serviceDescr){
+        Map<String,Object> params = new TreeMap<>();
+        for(UriSpec.Part part:serviceDescr.getUriSpec().getParts()){
+            if(part.isVariable() && !VARIABLE_TO_IGNORE.contains(part.getValue())){
+                params.put(part.getValue(),"{"+part.getValue()+"}");
+            }
+        }
+        return serviceDescr.buildUriSpec(params);
+    }
 
     public ServiceClientFactory(ServiceDiscoverer serviceDiscoverer){
         _serviceDiscoverer = serviceDiscoverer;
@@ -48,21 +57,8 @@ public class ServiceClientFactory {
 
     public WebTarget getClient(String serviceName,String serviceVersion){
         try{
-            ServiceInstance<ServiceDescription> serviceDescr = _serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion));
-            Map<String,Object> params = new TreeMap<>();
-            for(UriSpec.Part part:serviceDescr.getUriSpec().getParts()){
-                if(part.isVariable() && !VARIABLE_TO_IGNORE.contains(part.getValue())){
-                    params.put(part.getValue(),"{"+part.getValue()+"}");
-                }
-            }
-            final String uri = serviceDescr.buildUriSpec(params);
-            return _clientPerUri.computeIfAbsent(uri, new Function<String, WebTarget>() {
-                @Override
-                public WebTarget apply(String s) {
-                    return ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(uri));
-                }
-            })
-            ;
+            String uri = buildUri(_serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion)));
+            return _clientPerUri.computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
         }
         catch(ServiceDiscoveryException e){
             throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);

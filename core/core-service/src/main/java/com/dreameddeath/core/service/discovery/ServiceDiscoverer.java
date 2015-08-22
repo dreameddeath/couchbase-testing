@@ -74,6 +74,14 @@ public class ServiceDiscoverer {
         resyncAllServices();
     }
 
+
+    public  ServiceProvider<ServiceDescription> getServiceProvider(String name) throws ServiceDiscoveryException{
+        if(!_serviceProviderMap.containsKey(name)){
+            loadService(name);
+        }
+        return _serviceProviderMap.get(name);
+    }
+
     synchronized public void loadService(String name) throws ServiceDiscoveryException {
         try {
             ServiceProvider<ServiceDescription> provider = _serviceDiscovery.serviceProviderBuilder().serviceName(name).build();
@@ -127,5 +135,4 @@ public class ServiceDiscoverer {
 
         return desc;
     }
-
 }

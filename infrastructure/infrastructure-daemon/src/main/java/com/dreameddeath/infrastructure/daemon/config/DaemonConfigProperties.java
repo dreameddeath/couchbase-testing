@@ -30,10 +30,18 @@ public class DaemonConfigProperties {
 
     @ConfigPropertyDoc(
             name="deamon.webserver.address",
-            descr = "Defines the host of the webserver. If none given, it's the localhost",
+            descr = "Defines the host of the webserver. If none given, it's the interface with is used @see{daemon.webserver.interface}",
             examples = {"test.toto.com"}
     )
     public static final StringConfigProperty DAEMON_WEBSERVER_ADDRESS = ConfigPropertyFactory.getStringProperty("deamon.webserver.address", (String) null);
+
+
+    @ConfigPropertyDoc(
+            name="deamon.webserver.interface",
+            descr = "Defines the interface on which to listen to. If none given, it listens to anything",
+            examples = {"inet1"}
+    )
+    public static final StringConfigProperty DAEMON_WEBSERVER_INTERFACE = ConfigPropertyFactory.getStringProperty("deamon.webserver.interface", (String) null);
 
 
     @ConfigPropertyDoc(
@@ -44,5 +52,13 @@ public class DaemonConfigProperties {
     )
     public static final IntConfigProperty DAEMON_WEBSERVER_PORT = ConfigPropertyFactory.getIntProperty("deamon.webserver.port", 0);
 
+
+    @ConfigPropertyDoc(
+            name="deamon.webserver.proxy-api.path-prefix",
+            descr = "defines the api proxy default web servre",
+            defaultValue = "proxy-api",
+            examples = {"proxy-api","proxy"}
+    )
+    public static final StringConfigProperty DAEMON_WEBSERVER_PROXY_API_PATH_PREFIX = ConfigPropertyFactory.getStringProperty("deamon.webserver.proxy-api.path-prefix", "proxy-api");
 
 }

@@ -15,7 +15,9 @@ TODO
 -------------------
 Zookeeper daemon registering :
 - register a given daemon as itself somewhere in zookeeper
-- provide services to navigate within those information 
+- provide services to navigate within those information
+- provide a standard proxy to call load balanced services (see AsyncProxyServlet from jetty)
+- allow separation of public (proxy,webapps) and private domain (admin, internal services)
 
 Architecture :
 - separate the admin part and the business part

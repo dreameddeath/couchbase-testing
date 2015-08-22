@@ -22,10 +22,10 @@ import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
  * Created by Christophe Jeunesse on 18/08/2015.
  */
 public class WebServerDaemonLifeCycleListner implements IDaemonLifeCycle.Listener {
-    private final StandardWebServer _standardWebServer;
+    private final AbstractWebServer _standardWebServer;
     private final boolean _isRootWebServer;
 
-    public WebServerDaemonLifeCycleListner(StandardWebServer standardWebServer, boolean isRootWebServer) {
+    public WebServerDaemonLifeCycleListner(AbstractWebServer standardWebServer, boolean isRootWebServer) {
         _standardWebServer = standardWebServer;
         _isRootWebServer = isRootWebServer;
     }

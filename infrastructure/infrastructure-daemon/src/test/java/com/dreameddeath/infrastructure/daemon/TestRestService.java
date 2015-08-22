@@ -22,10 +22,7 @@ import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -37,12 +34,22 @@ import javax.ws.rs.core.MediaType;
 public class TestRestService extends AbstractExposableService {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    @Consumes({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "return 12",
             response = Integer.class,
             position = 0)
     public Integer get(){
         return 12;
+    }
+
+
+    @GET
+    @Path("/{nb}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "return 12 + nb + qbn",
+            response = Integer.class,
+            position = 0)
+    public Integer getWithParams(@PathParam("nb")int nb,@QueryParam("qnb") int qnb){
+        return 12+nb+qnb;
     }
 
 }
