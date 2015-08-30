@@ -24,7 +24,7 @@ import com.dreameddeath.infrastructure.daemon.services.model.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusUpdateRequest;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
-import com.dreameddeath.infrastructure.daemon.webserver.StandardWebServer;
+import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.junit.Assert;
@@ -58,7 +58,7 @@ public class AbstractDaemonTest extends Assert {
         //TODO start zookeeper
         final AbstractDaemon daemon=new AbstractDaemon();
 
-        daemon.addStandardWebServer(StandardWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));
+        daemon.addStandardWebServer(RestWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));
         daemon.addProxyWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverPath("tests/services"));
         Thread stopping_thread = new Thread(new Runnable() {
             @Override
@@ -67,7 +67,7 @@ public class AbstractDaemonTest extends Assert {
                     Integer response =ClientBuilder.newClient()
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             .target("http://127.0.0.1:8080")
-                            .path("/proxy-api/tests#tests#tests/1.0")
+                            .path("/proxy-apis/tests#tests#tests/1.0")
                             .request()
                             .get(Integer.class);
                     assertEquals(12L, response.longValue());
@@ -75,7 +75,7 @@ public class AbstractDaemonTest extends Assert {
                     Integer responseQuery =ClientBuilder.newClient()
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             .target("http://127.0.0.1:8080")
-                            .path("/proxy-api/tests#tests#tests/1.0/23")
+                            .path("/proxy-apis/tests#tests#tests/1.0/23")
                             .queryParam("qnb","3")
                             .request()
                             .get(Integer.class);
@@ -87,7 +87,7 @@ public class AbstractDaemonTest extends Assert {
                 }
                 try {
 
-                    Integer response = ((StandardWebServer)daemon.getStandardWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests/services")
+                    Integer response = ((RestWebServer)daemon.getStandardWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests/services")
                             .getClient("tests#tests#tests", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             //.path("/status")
@@ -160,6 +160,8 @@ public class AbstractDaemonTest extends Assert {
                 catch(Exception e){
                     LOG.error("Cannot stop", e);
                 }
+
+                nbErrors.incrementAndGet();
                 fail("Shoudn't have to call stop");
             }
         });

@@ -128,6 +128,7 @@
         <module>business</module>
         <module>infrastructure</module>
         <module>testing</module>
+        <module>apps</module>
         <!--<module>minimal-rating-engine</module>-->
     </modules>
 
@@ -205,6 +206,11 @@
 
         <!--elasticsearch / kibana -->
         <elasticsearch.version>1.5.2</elasticsearch.version>
+
+        <!-- webjars -->
+        <webjars.locator.version>0.19</webjars.locator.version>
+        <webjars.requirejs.version>2.1.20</webjars.requirejs.version>
+
         <!-- maven versions-->
         <mojo.builder.helper.version>1.9.1</mojo.builder.helper.version>
         <coveralls.mvn.plugin.version>3.0.1</coveralls.mvn.plugin.version>

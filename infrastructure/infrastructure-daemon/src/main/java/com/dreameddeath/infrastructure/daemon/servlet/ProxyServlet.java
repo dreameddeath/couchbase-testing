@@ -23,12 +23,17 @@ import com.dreameddeath.core.service.model.ServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceProvider;
 import org.eclipse.jetty.proxy.AsyncProxyServlet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -42,6 +47,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ProxyServlet extends AsyncProxyServlet {
     public static String SERVICE_DISCOVERER_PATHES_PARAM_NAME = "discoverer-base-pathes";
     public static String PROXY_PREFIX_PARAM_NAME = "proxy-url-prefix";
+    private static Logger LOG = LoggerFactory.getLogger(ProxyServlet.class);
 
     private String _prefix;
     private List<ServiceDiscoverer> _serviceDiscoverers=new ArrayList<>();
@@ -52,7 +58,8 @@ public class ProxyServlet extends AsyncProxyServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         CuratorFramework curatorClient = (CuratorFramework) config.getServletContext().getAttribute(AbstractDaemon.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME);
-        _prefix = (String)config.getServletContext().getAttribute(PROXY_PREFIX_PARAM_NAME);
+        _prefix = ServletUtils.normalizePath((String)config.getServletContext().getAttribute(PROXY_PREFIX_PARAM_NAME),false);
+
         List<String> basePathsList = (List<String>)config.getServletContext().getAttribute(SERVICE_DISCOVERER_PATHES_PARAM_NAME);
         for(String basePath:basePathsList){
             ServiceDiscoverer newService = new ServiceDiscoverer(curatorClient, basePath);
@@ -84,9 +91,7 @@ public class ProxyServlet extends AsyncProxyServlet {
 
     protected URI rewriteURI(HttpServletRequest request) {
         String effectivePath = request.getRequestURI();
-        if(effectivePath.startsWith("/")){
-            effectivePath=effectivePath.substring(1);
-        }
+
         effectivePath = effectivePath.substring(_prefix.length() + 1); //remove prefix
         String serviceId = effectivePath.substring(0, effectivePath.indexOf("/"));
         effectivePath = effectivePath.substring(serviceId.length()+1);
@@ -104,7 +109,11 @@ public class ProxyServlet extends AsyncProxyServlet {
         try {
             serviceId = URLDecoder.decode(serviceId, "UTF-8");
             ServiceProvider<ServiceDescription> provider = _serviceMap.computeIfAbsent(new ServiceUid(serviceId,version), suid -> findServiceProvider(suid));
-            String uriStr = ServiceClientFactory.buildUri(provider.getInstance());
+            ServiceInstance<ServiceDescription> instance=provider.getInstance();
+            if(instance==null){
+
+            }
+            String uriStr = ServiceClientFactory.buildUri(instance);
             if(!uriStr.endsWith("/")){
                 uriStr += "/";
             }
@@ -112,7 +121,7 @@ public class ProxyServlet extends AsyncProxyServlet {
             if(request.getQueryString()!=null){
                 uriStr+="?"+request.getQueryString();
             }
-            //uriStr = uriStr.replaceAll("/{2,}","/");
+            LOG.debug("Rewritten path {} to {}",request.getRequestURI(),uriStr);
             URI result =new URI(uriStr);
             return result;
         }
@@ -120,6 +129,12 @@ public class ProxyServlet extends AsyncProxyServlet {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    protected void onRewriteFailed(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.sendError(404);
+    }
+
 
     private static class ServiceUid{
         private String _serviceId;

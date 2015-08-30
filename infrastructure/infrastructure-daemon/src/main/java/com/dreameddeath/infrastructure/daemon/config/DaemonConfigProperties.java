@@ -55,10 +55,19 @@ public class DaemonConfigProperties {
 
     @ConfigPropertyDoc(
             name="deamon.webserver.proxy-api.path-prefix",
-            descr = "defines the api proxy default web servre",
-            defaultValue = "proxy-api",
+            descr = "defines the api proxy default web server",
+            defaultValue = "proxy-apis",
             examples = {"proxy-api","proxy"}
     )
-    public static final StringConfigProperty DAEMON_WEBSERVER_PROXY_API_PATH_PREFIX = ConfigPropertyFactory.getStringProperty("deamon.webserver.proxy-api.path-prefix", "proxy-api");
+    public static final StringConfigProperty DAEMON_WEBSERVER_PROXY_API_PATH_PREFIX = ConfigPropertyFactory.getStringProperty("deamon.webserver.proxy-api.path-prefix", "proxy-apis");
+
+
+    @ConfigPropertyDoc(
+            name="deamon.webserver.api.path-prefix",
+            descr = "defines the api default web server",
+            defaultValue = "apis",
+            examples = {"apis","apis/tests"}
+    )
+    public static final StringConfigProperty DAEMON_WEBSERVER_API_PATH_PREFIX = ConfigPropertyFactory.getStringProperty("deamon.webserver.proxy-api.path-prefix", "apis");
 
 }

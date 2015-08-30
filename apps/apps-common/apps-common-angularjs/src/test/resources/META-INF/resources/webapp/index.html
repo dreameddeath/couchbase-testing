@@ -1,0 +1,40 @@
+
+
+<!doctype html>
+<!--
+  ~ Copyright Christophe Jeunesse
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html ng-app="testApp">
+<head>
+    <script src="libs/require_config.js"></script>
+    <script src="libs/webjars/requirejs/2.1.20/require.min.js"></script>
+    <script src="libs/webjars/angularjs/1.4.3/angular.js"></script>
+    <script src="libs/webjars/angularjs/1.4.3/angular-resource.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/apps.js"></script>
+</head>
+<body>
+    <div>
+        <div ng-controller="testCtrl">
+            <label>New v2 Testing Name:</label>
+            <input type="text" ng-model="yourName" placeholder="Enter a name here" ng-change="changeName()">
+            <hr>
+            <h1>Hello {{yourName}}!</h1>
+            <h1>test resource : {{toto}}</h1>
+        </div>
+    </div>
+</body>
+</html>

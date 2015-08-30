@@ -16,10 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.webserver;
 
-import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
-import com.dreameddeath.infrastructure.daemon.servlet.ProxyServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import com.dreameddeath.infrastructure.daemon.servlet.ProxyServletContextHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,28 +27,8 @@ import java.util.List;
 public class ProxyWebServer extends AbstractWebServer {
     public ProxyWebServer(Builder builder){
         super(builder);
-
-        //Create the contextHandler and at it to the server
-        ServletContextHandler contextHandler = new ServletContextHandler();
-        getWebServer().setHandler(contextHandler);
-
-        String proxyPath = DaemonConfigProperties.DAEMON_WEBSERVER_PROXY_API_PATH_PREFIX.get();
-        proxyPath = proxyPath.replaceAll("^/+","");
-        proxyPath = proxyPath.replaceAll("/+$","");
-        //Init Cxf context handler
-        ServletHolder proxyHolder = new ServletHolder("proxy", ProxyServlet.class);
-        proxyHolder.setInitOrder(1);
-        contextHandler.addServlet(proxyHolder, "/"+proxyPath+"/*");
-
-        //Setup standardized elements
-        contextHandler.setAttribute(GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME, getParentDaemon().getCuratorClient());
-        contextHandler.setAttribute(GLOBAL_DAEMON_PARAM_NAME, this);
-        contextHandler.setAttribute(GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, getParentDaemon().getDaemonLifeCycle());
-        contextHandler.setAttribute(ProxyServlet.PROXY_PREFIX_PARAM_NAME, proxyPath);
-        contextHandler.setAttribute(ProxyServlet.SERVICE_DISCOVERER_PATHES_PARAM_NAME,builder._discoverPaths);
+        getWebServer().setHandler(new ProxyServletContextHandler(this,builder._discoverPaths));
     }
-
-
 
     public static Builder builder(){
         return new Builder();

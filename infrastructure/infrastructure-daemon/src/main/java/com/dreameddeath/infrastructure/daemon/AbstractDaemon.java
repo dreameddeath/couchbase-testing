@@ -21,7 +21,7 @@ import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
-import com.dreameddeath.infrastructure.daemon.webserver.StandardWebServer;
+import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
@@ -42,7 +42,7 @@ public class AbstractDaemon {
     private Status _status=Status.STOPPED;
     private final DaemonLifeCycle _daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework _curatorClient;
-    private final StandardWebServer _adminWebServer;
+    private final RestWebServer _adminWebServer;
     private final List<AbstractWebServer> _additionnalWebServers=new ArrayList<>();
 
     protected static CuratorFramework setupDefaultCuratorClient(){
@@ -65,14 +65,14 @@ public class AbstractDaemon {
 
     public AbstractDaemon(CuratorFramework curatorClient){
         _curatorClient = curatorClient;
-        _adminWebServer = new StandardWebServer(StandardWebServer.builder().withDaemon(this).withName("admin").withApplicationContextConfig("admin.applicationContext.xml").withIsRoot(true));
+        _adminWebServer = new RestWebServer(RestWebServer.builder().withDaemon(this).withName("admin").withApplicationContextConfig("admin.applicationContext.xml").withIsRoot(true));
     }
 
     public CuratorFramework getCuratorClient(){
         return _curatorClient;
     }
 
-    public StandardWebServer getAdminWebServer() {
+    public RestWebServer getAdminWebServer() {
         return _adminWebServer;
     }
 
@@ -80,8 +80,8 @@ public class AbstractDaemon {
         return Collections.unmodifiableList(_additionnalWebServers);
     }
 
-    synchronized public StandardWebServer addStandardWebServer(StandardWebServer.Builder builder){
-        StandardWebServer newWebServer  = new StandardWebServer(builder.withDaemon(this));
+    synchronized public RestWebServer addStandardWebServer(RestWebServer.Builder builder){
+        RestWebServer newWebServer  = new RestWebServer(builder.withDaemon(this));
         _additionnalWebServers.add(newWebServer);
         return newWebServer;
     }
