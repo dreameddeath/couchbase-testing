@@ -26,6 +26,8 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.web.context.ContextLoaderListener;
 import org.webjars.RequireJS;
@@ -48,34 +50,9 @@ import static org.junit.Assert.assertEquals;
  * Created by Christophe Jeunesse on 23/08/2015.
  */
 public class TestingServer {
+    private Server _server;
 
-    @Test
-    public void testJs()throws Exception{
-        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-        engine.eval("load('"+Thread.currentThread().getContextClassLoader().getResource("META-INF/resources/javascript/common-utils.js").getFile()+"');");
-        engine.eval("loadFromClassPath('META-INF/resources/javascript/console.js');");
-        engine.eval("loadFromClassPath('META-INF/resources/javascript/jvm-npm.js');");
-        engine.eval("require.NODE_PATH = '" + Thread.currentThread().getContextClassLoader().getResource("META-INF/resources/javascript/").getFile() + "';");
-        //new FileReader(
-        //engine.eval()
-        engine.eval("domino = require('domino');");
-        engine.eval("loadFromClassPath('META-INF/resources/javascript/test.js');");
-        //"META-INF/resources/webjars/angularjs/1.4.3/angular.js";
-        engine.eval("loadFromClassPath('META-INF/resources/webjars/angularjs/1.4.3/angular.js')");
-        engine.eval("angular = window.angular");
-        engine.eval("loadFromClassPath('META-INF/resources/webjars/angularjs/1.4.3/angular-resource.js')");
-        engine.eval("loadFromClassPath('META-INF/resources/webapp/js/services.js')");
-        engine.eval("loadFromClassPath('META-INF/resources/webapp/js/apps.js')");
-        engine.eval("document.close();");
-        assertEquals("Hello !", engine.eval("document.getElementsByTagName('h1')[0].innerHTML"));
-        assertEquals("test resource : default value", engine.eval("document.getElementsByTagName('h1')[1].innerHTML"));
-        engine.eval("var toto = document.getElementsByTagName('input')[0];" +
-                "toto.value='test of change';" +
-                "toto.dispatchEvent(new domino.impl.Event('change'));");
-        assertEquals("Hello test of change!", engine.eval("document.getElementsByTagName('h1')[0].innerHTML"));
-        assertEquals("test resource : default value:test of change",engine.eval("document.getElementsByTagName('h1')[1].innerHTML"));
-    }
-    //@Test
+    @Before
     public void runServer() throws Exception{
         Server server = new Server();
 
@@ -170,6 +147,46 @@ public class TestingServer {
         server.setHandler(contexts);
 
         server.start();
-        server.join();
+        _server = server;
+    }
+
+
+    @Test
+    public void testJs()throws Exception{
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+        engine.eval("load('"+Thread.currentThread().getContextClassLoader().getResource("META-INF/resources/javascript/common-utils.js").getFile()+"');");
+        engine.eval("loadFromClassPath('META-INF/resources/javascript/console.js');");
+        engine.eval("loadFromClassPath('META-INF/resources/javascript/jvm-npm.js');");
+        engine.eval("require.NODE_PATH = '" + Thread.currentThread().getContextClassLoader().getResource("META-INF/resources/javascript/").getFile() + "';");
+        //new FileReader(
+        //engine.eval()
+        engine.eval("domino = require('domino');");
+        engine.eval("loadFromClassPath('META-INF/resources/javascript/XmlHttpRequest.js');");
+        engine.eval("loadFromClassPath('META-INF/resources/javascript/test.js');");
+        //"META-INF/resources/webjars/angularjs/1.4.3/angular.js";
+        engine.eval("loadFromClassPath('META-INF/resources/webjars/angularjs/1.4.3/angular.js')");
+        engine.eval("angular = window.angular");
+        //"META-INF/resources/webjars/angularjs/1.4.3/angular-resource.js";
+        engine.eval("loadFromClassPath('META-INF/resources/webjars/angularjs/1.4.3/angular-resource.js')");
+        engine.eval("loadFromClassPath('META-INF/resources/webapp/js/services.js')");
+        engine.eval("loadFromClassPath('META-INF/resources/webapp/js/apps.js')");
+        engine.eval("document.close();");
+        assertEquals("Hello !", engine.eval("document.getElementsByTagName('h1')[0].innerHTML"));
+        assertEquals("test resource : default value", engine.eval("document.getElementsByTagName('h1')[1].innerHTML"));
+        engine.eval("var toto = document.getElementsByTagName('input')[0];" +
+                "toto.value='test of change';" +
+                "toto.dispatchEvent(new domino.impl.Event('change'));");
+        Thread.sleep(5000);
+        assertEquals("Hello test of change!", engine.eval("document.getElementsByTagName('h1')[0].innerHTML"));
+        assertEquals("test resource : Welcome to you : test of change", engine.eval("document.getElementsByTagName('h1')[1].innerHTML"));
+
+    }
+
+
+    @After
+    public void close() throws Exception{
+        _server.stop();
     }
 }
+
+

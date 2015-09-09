@@ -11,5 +11,8 @@ var window = domino.createWindow('<!doctype html>'+
 '<h1>test resource : {{toto}}</h1>'+
 '</div>'+
 '</body>'+
-'</html>','http://localhost/index.html');
+'</html>','http://localhost:8080/index.html');
 var document = window.document;
+window.XMLHttpRequest = XMLHttpRequest;
+defaultUrlRoot = 'http://localhost:8080/';
+window.setTimeout = setTimeout;

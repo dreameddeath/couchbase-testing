@@ -27,6 +27,8 @@ function Document(isHTML, address) {
   this.nodeType = Node.DOCUMENT_NODE;
   this.isHTML = isHTML;
   this._address = address || 'about:blank';
+  this._date = new Date();
+  this._cookie = "";
   this.readyState = 'loading';
   this.implementation = new DOMImplementation();
 
@@ -342,11 +344,20 @@ Document.prototype = Object.create(Node.prototype, {
   }},
 
   // The following attributes and methods are from the HTML spec
-  URL: { get: utils.nyi },
+  URL: { get: function(){
+      return this._address;
+   }},
   domain: { get: utils.nyi, set: utils.nyi },
   referrer: { get: utils.nyi },
-  cookie: { get: utils.nyi, set: utils.nyi },
-  lastModified: { get: utils.nyi },
+  cookie: {
+    get: function(){
+          return this._cookie;
+        },
+    set: function(str) {
+        this._cookie=str;
+    }
+  },
+  lastModified: { get:  utils.nyi},
   title: {
     get: function() {
       // Return the text of the first <title> child of the <head> element.
