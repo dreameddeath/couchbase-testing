@@ -311,8 +311,8 @@ var XMLHttpRequest = function() {
       // Request is being sent, set send flag
       sendFlag = true;
 
-      // As per spec, this is called here for historical reasons.
-      self.dispatchEvent("readystatechange");
+    // As per spec, this is called here for historical reasons.
+    self.dispatchEvent("readystatechange");
     var that = this;
     var callback = new FutureCallback({
         completed: function(response) {

@@ -16,6 +16,10 @@
 
 package com.dreameddeath.apps.common.angularjs;
 
+import com.gargoylesoftware.htmlunit.*;
+import com.gargoylesoftware.htmlunit.html.HtmlHeading1;
+import com.gargoylesoftware.htmlunit.html.HtmlInput;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Handler;
@@ -32,8 +36,6 @@ import org.junit.Test;
 import org.springframework.web.context.ContextLoaderListener;
 import org.webjars.RequireJS;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -41,8 +43,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -151,7 +155,7 @@ public class TestingServer {
     }
 
 
-    @Test
+    /*@Test
     public void testJs()throws Exception{
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
         engine.eval("load('"+Thread.currentThread().getContextClassLoader().getResource("META-INF/resources/javascript/common-utils.js").getFile()+"');");
@@ -179,6 +183,38 @@ public class TestingServer {
         Thread.sleep(5000);
         assertEquals("Hello test of change!", engine.eval("document.getElementsByTagName('h1')[0].innerHTML"));
         assertEquals("test resource : Welcome to you : test of change", engine.eval("document.getElementsByTagName('h1')[1].innerHTML"));
+
+    }*/
+
+
+
+    @Test
+    public void testHTMLUnit()throws Exception {
+        final WebClient webClient = new WebClient(BrowserVersion.FIREFOX_38);
+        webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+        webClient.setCssErrorHandler(new SilentCssErrorHandler());
+
+        webClient.getOptions().setCssEnabled(true);
+        webClient.getOptions().setRedirectEnabled(false);
+        webClient.getOptions().setAppletEnabled(false);
+        webClient.getOptions().setJavaScriptEnabled(true);
+        webClient.getOptions().setPopupBlockerEnabled(true);
+        webClient.getOptions().setTimeout(10000);
+
+        webClient.getOptions().setThrowExceptionOnFailingStatusCode(true);
+        webClient.getOptions().setThrowExceptionOnScriptError(true);
+        webClient.getOptions().setPrintContentOnFailingStatusCode(true);
+
+        HtmlPage page = webClient.getPage(new WebRequest(new URL("http://localhost:8080/webapp/"), HttpMethod.GET));
+        webClient.waitForBackgroundJavaScript(500);
+        List<HtmlHeading1> resultBefore = (List<HtmlHeading1>)page.getByXPath("//h1");
+        assertEquals("Hello !", resultBefore.get(0).asText());
+        assertEquals("test resource : default value", resultBefore.get(1).asText());
+        ((HtmlInput)page.getByXPath("//input").get(0)).type("test of change");
+        webClient.waitForBackgroundJavaScript(500);
+        List<HtmlHeading1> resultAfter = (List<HtmlHeading1>)page.getByXPath("//h1");
+        assertEquals("Hello test of change!", resultAfter.get(0).asText());
+        assertEquals("test resource : Welcome to you : test of change", resultAfter.get(1).asText());
 
     }
 
