@@ -22,42 +22,12 @@
         <artifactId>testing</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>testing-kafka</artifactId>
+  <artifactId>testing-common</artifactId>
   <packaging>jar</packaging>
 
-  <name>testing-kafka</name>
+  <name>testing-common</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>${apache.kafka.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>${apache.kafka.version}</version>
-            <classifier>test</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${apache.kafka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>testing-curator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>testing-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>

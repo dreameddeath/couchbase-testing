@@ -87,5 +87,10 @@
             <artifactId>testing-elasticsearch</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

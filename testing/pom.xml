@@ -28,6 +28,7 @@
   <name>testing</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
+        <module>testing-common</module>
         <module>testing-annotation-processor</module>
         <module>testing-json-dataset</module>
         <module>testing-couchbase</module>

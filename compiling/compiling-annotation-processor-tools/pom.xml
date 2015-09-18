@@ -53,6 +53,13 @@
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>testing-annotation-processor</artifactId>
           <version>${project.version}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-common</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
       </dependency>
   </dependencies>
 </project>
