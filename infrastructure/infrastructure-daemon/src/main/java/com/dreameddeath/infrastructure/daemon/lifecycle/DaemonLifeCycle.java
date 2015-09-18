@@ -93,14 +93,14 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void join() throws Exception{
-        if(_status.equals(Status.STOPPED)) {
+        while(!_status.equals(Status.STOPPED)) {
             this.wait();
         }
     }
 
     @Override
     synchronized public void join(long timeout) throws Exception{
-        if(_status.equals(Status.STOPPED)) {
+        while(!_status.equals(Status.STOPPED)) {
             this.wait(timeout);
         }
     }

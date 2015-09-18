@@ -128,7 +128,7 @@ public class AbstractDaemonTest extends Assert {
                 }
                 try {
                     LOG.info("Request halting the web server");
-                    Thread.sleep(1000);
+
                     StatusUpdateRequest request = new StatusUpdateRequest();
                     request.setStatus(StatusUpdateRequest.Status.HALT);
                     StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
@@ -147,7 +147,6 @@ public class AbstractDaemonTest extends Assert {
 
                 try {
                     LOG.info("Request stopping the web server");
-                    Thread.sleep(1000);
                     StatusUpdateRequest request = new StatusUpdateRequest();
                     request.setStatus(StatusUpdateRequest.Status.STOP);
                     StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
@@ -166,6 +165,7 @@ public class AbstractDaemonTest extends Assert {
                 }
 
                 try {
+                    nbErrors.incrementAndGet();
                     daemon.getDaemonLifeCycle().stop();
                 }
                 catch(Exception e){
@@ -267,7 +267,6 @@ public class AbstractDaemonTest extends Assert {
         stopping_thread.join();
         assertEquals(0L, nbErrors.get());
         {
-            Thread.sleep(1000);
             DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
             assertEquals(0L,daemonDiscovery.registeredDaemonInfoList().size());
         }

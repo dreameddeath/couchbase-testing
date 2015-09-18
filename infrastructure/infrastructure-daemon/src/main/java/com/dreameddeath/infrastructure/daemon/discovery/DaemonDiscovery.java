@@ -69,20 +69,20 @@ public class DaemonDiscovery implements IDaemonDiscovery {
     }
 
     @Override
-    public void register(AbstractDaemon daemon) throws Exception{
+    synchronized public void register(AbstractDaemon daemon) throws Exception{
         _currDaemonNode = setupNode(daemon);
     }
 
     @Override
-    public void unregister(AbstractDaemon daemon) throws Exception{
+    synchronized public void unregister(AbstractDaemon daemon) throws Exception{
         if(_currDaemonNode !=null){
             _currDaemonNode.close();
-
+            _currDaemonNode=null;
         }
     }
 
     @Override
-    public void update(AbstractDaemon daemon) throws Exception{
+    synchronized public void update(AbstractDaemon daemon) throws Exception{
         if(_currDaemonNode ==null){
             _currDaemonNode = setupNode(daemon);
         }
