@@ -29,6 +29,8 @@ public interface IDaemonLifeCycle {
     void halt() throws Exception;
     void stop() throws Exception;
     void reload() throws Exception;
+    void join() throws Exception;
+    void join(long timeout) throws Exception;
 
     boolean isRunning();
     boolean isHalt();
@@ -37,11 +39,19 @@ public interface IDaemonLifeCycle {
     boolean isStopping();
     boolean isStopped();
     boolean isFailed();
-
+    Status getStatus();
     void addLifeCycleListener(Listener listener);
     void removeLifeCycleListener(Listener listener);
 
     AbstractDaemon getDaemon();
+
+    enum Status{
+        STOPPED,
+        STARTING,
+        STARTED,
+        HALTED,
+        STOPPING
+    }
 
     interface Listener extends EventListener {
         void lifeCycleStarting(IDaemonLifeCycle lifeCycle);

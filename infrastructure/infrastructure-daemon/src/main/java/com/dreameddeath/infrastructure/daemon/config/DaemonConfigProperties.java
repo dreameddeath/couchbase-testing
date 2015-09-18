@@ -70,4 +70,20 @@ public class DaemonConfigProperties {
     )
     public static final StringConfigProperty DAEMON_WEBSERVER_API_PATH_PREFIX = ConfigPropertyFactory.getStringProperty("deamon.webserver.proxy-api.path-prefix", "apis");
 
+
+    @ConfigPropertyDoc(
+            name="deamon.zookeeper.register.path",
+            descr = "defines the path where launched daemon are registered",
+            defaultValue = "/daemons/instances",
+            examples = {"/daemons/list","/daemons/actual_list"}
+    )
+    public static final StringConfigProperty DAEMON_REGISTER_PATH = ConfigPropertyFactory.getStringProperty("deamon.zookeeper.register.path", "/daemons/instances");
+
+    @ConfigPropertyDoc(
+            name="deamon.name",
+            descr = "defines the daemon name",
+            examples = {"supervisor","billing"}
+    )
+    public static final StringConfigProperty DAEMON_NAME = ConfigPropertyFactory.getStringProperty("deamon.name",(String)null);
+
 }

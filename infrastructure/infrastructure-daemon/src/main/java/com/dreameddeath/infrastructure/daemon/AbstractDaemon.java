@@ -16,9 +16,13 @@
 
 package com.dreameddeath.infrastructure.daemon;
 
+import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.discovery.DaemonRegisterLifeCycleListener;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
+import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
@@ -28,6 +32,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 05/02/2015.
@@ -39,8 +44,9 @@ public class AbstractDaemon {
     public static final String GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME = "daemonLifeCycle";
     public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
 
-    private Status _status=Status.STOPPED;
-    private final DaemonLifeCycle _daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
+    private final String _name;
+    private final UUID _uuid = UUID.randomUUID();
+    private final IDaemonLifeCycle _daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework _curatorClient;
     private final RestWebServer _adminWebServer;
     private final List<AbstractWebServer> _additionnalWebServers=new ArrayList<>();
@@ -60,12 +66,42 @@ public class AbstractDaemon {
     }
 
     public AbstractDaemon(){
-        this(setupDefaultCuratorClient());
+        this(new Builder());
     }
 
     public AbstractDaemon(CuratorFramework curatorClient){
-        _curatorClient = curatorClient;
-        _adminWebServer = new RestWebServer(RestWebServer.builder().withDaemon(this).withName("admin").withApplicationContextConfig("admin.applicationContext.xml").withIsRoot(true));
+        this(new Builder().withCuratorFramework(curatorClient));
+    }
+
+    public AbstractDaemon(Builder builder){
+        if(builder.getCuratorFramework()==null){
+            builder.withCuratorFramework(setupDefaultCuratorClient());
+        }
+        if(builder.getName()==null){
+            try {
+                builder.withName(DaemonConfigProperties.DAEMON_NAME.getMandatoryValue("The name must be given"));
+            }
+            catch(ConfigPropertyValueNotFoundException e){
+                throw new RuntimeException(e);
+            }
+        }
+        _name = builder.getName();
+        _curatorClient = builder.getCuratorFramework();
+        _adminWebServer = new RestWebServer(
+                    RestWebServer.builder().withDaemon(this)
+                            .withName(builder.getAdminWebServerName())
+                            .withApplicationContextConfig(builder.getAdminApplicationContextName())
+                            .withIsRoot(true)
+                );
+
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stopForShutdownHook));
+        if(builder.getRegisterDaemon()){
+            _daemonLifeCycle.addLifeCycleListener(new DaemonRegisterLifeCycleListener(_curatorClient));
+        }
+    }
+
+    public String getName() {
+        return _name;
     }
 
     public CuratorFramework getCuratorClient(){
@@ -76,8 +112,12 @@ public class AbstractDaemon {
         return _adminWebServer;
     }
 
-    public List<AbstractWebServer> getStandardWebServers(){
+    public List<AbstractWebServer> getAdditionnalWebServers(){
         return Collections.unmodifiableList(_additionnalWebServers);
+    }
+
+    public UUID getUuid() {
+        return _uuid;
     }
 
     synchronized public RestWebServer addStandardWebServer(RestWebServer.Builder builder){
@@ -92,29 +132,89 @@ public class AbstractDaemon {
         return newWebServer;
     }
 
-    public DaemonLifeCycle getDaemonLifeCycle() {
+    public IDaemonLifeCycle getDaemonLifeCycle() {
         return _daemonLifeCycle;
     }
 
-    public void setStatus(Status status){
-        _status = status;
-    }
 
-    public Status getStatus() {
-        return _status;
-    }
-
-    public enum Status{
-        STOPPED,
-        STARTING,
-        STARTED,
-        HALTED,
-        STOPPING
+    public IDaemonLifeCycle.Status getStatus() {
+        return _daemonLifeCycle.getStatus();
     }
 
     public void startAndJoin() throws Exception{
         //Starting using the status manager
         _daemonLifeCycle.start();
-        _adminWebServer.join();
+        _daemonLifeCycle.join();
+    }
+
+    private void stopForShutdownHook(){
+        try{
+            getDaemonLifeCycle().stop();
+            getDaemonLifeCycle().join();
+        }
+        catch (Exception e){
+            //TODO log something
+        }
+    }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder{
+        private String _name=null;
+        private Boolean _registerDaemon=true;
+        private CuratorFramework _curatorFramework=null;
+        private String _adminApplicationContextName="admin.applicationContext.xml";
+        private String _adminWebServerName="admin";
+
+        public String getName() {
+            return _name;
+        }
+
+        public Builder withName(String name) {
+            _name = name;
+            return this;
+        }
+
+        public String getAdminApplicationContextName() {
+            return _adminApplicationContextName;
+        }
+
+        public Builder withAdminApplicationContextName(String adminApplicationContextName) {
+            _adminApplicationContextName = adminApplicationContextName;
+            return this;
+        }
+
+        public CuratorFramework getCuratorFramework() {
+            return _curatorFramework;
+        }
+
+        public Builder withCuratorFramework(CuratorFramework curatorFramework) {
+            _curatorFramework = curatorFramework;
+            return this;
+        }
+
+        public String getAdminWebServerName() {
+            return _adminWebServerName;
+        }
+
+        public Builder withAdminWebServerName(String adminWebServerName) {
+            _adminWebServerName = adminWebServerName;
+            return this;
+        }
+
+        public Boolean getRegisterDaemon() {
+            return _registerDaemon;
+        }
+
+        public Builder withRegisterDaemon(Boolean registerDaemon) {
+            _registerDaemon = registerDaemon;
+            return this;
+        }
+
+        public AbstractDaemon build(){
+            return new AbstractDaemon(this);
+        }
     }
 }

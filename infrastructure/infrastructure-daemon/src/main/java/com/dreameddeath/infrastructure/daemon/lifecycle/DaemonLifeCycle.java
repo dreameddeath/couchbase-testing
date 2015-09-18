@@ -28,60 +28,63 @@ import java.util.List;
 public class DaemonLifeCycle implements IDaemonLifeCycle {
     private final AbstractDaemon _daemon;
     private final List<Listener>  _listeners = new ArrayList<>();
-
+    private Status _status = Status.STOPPED;
+    
     public DaemonLifeCycle(AbstractDaemon daemon){
         _daemon = daemon;
     }
 
     @Override
     synchronized public void start() throws Exception {
-        if(_daemon.getStatus()== AbstractDaemon.Status.STOPPED||
-                _daemon.getStatus()== AbstractDaemon.Status.STARTING) {
-            _daemon.setStatus(AbstractDaemon.Status.STARTING);
+        if(_status== Status.STOPPED||
+                _status== Status.STARTING) {
+            _status = Status.STARTING;
             for (Listener listener : _listeners) {
                 listener.lifeCycleStarting(this);
             }
         }
-        if(_daemon.getStatus()== AbstractDaemon.Status.STARTING||
-                _daemon.getStatus()== AbstractDaemon.Status.HALTED) {
+        if(_status== Status.STARTING||
+                _status== Status.HALTED) {
             for (Listener listener : _listeners) {
                 listener.lifeCycleStarted(this);
             }
-            _daemon.setStatus(AbstractDaemon.Status.STARTED);
+            _status = Status.STARTED;
         }
     }
 
     @Override
-    public void halt() throws Exception {
-        if(_daemon.getStatus()== AbstractDaemon.Status.STARTED) {
+    synchronized public void halt() throws Exception {
+        if(_status== Status.STARTED) {
             for (Listener listener : _listeners) {
                 listener.lifeCycleHalt(this);
             }
-            _daemon.setStatus(AbstractDaemon.Status.HALTED);
+            _status = Status.HALTED;
         }
     }
 
 
     @Override
-    public void stop() throws Exception {
-        if(_daemon.getStatus()== AbstractDaemon.Status.STARTED) {
-            _daemon.setStatus(AbstractDaemon.Status.STOPPING);
+    synchronized public void stop() throws Exception {
+        if(_status== Status.STARTED) {
+            _status = Status.STOPPING;
             for (Listener listener : _listeners) {
                 listener.lifeCycleStopping(this);
             }
         }
-        if(_daemon.getStatus()== AbstractDaemon.Status.HALTED ||
-                _daemon.getStatus() == AbstractDaemon.Status.STOPPING){
+        if(_status== Status.HALTED ||
+                _status == Status.STOPPING){
             for (Listener listener : _listeners) {
                 listener.lifeCycleStopped(this);
             }
-            _daemon.setStatus(AbstractDaemon.Status.STOPPED);
+            _status = Status.STOPPED;
         }
+
+        this.notifyAll();
     }
 
     @Override
     synchronized public void reload() throws Exception {
-        if(_daemon.getStatus()== AbstractDaemon.Status.STARTED){
+        if(_status== Status.STARTED){
             for (Listener listener : _listeners) {
                 listener.lifeCycleReload(this);
             }
@@ -89,47 +92,67 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
     }
 
     @Override
-    public boolean isRunning() {
-        return _daemon.getStatus()== AbstractDaemon.Status.STARTED; //todo distinguish from started
+    synchronized public void join() throws Exception{
+        if(_status.equals(Status.STOPPED)) {
+            this.wait();
+        }
     }
 
     @Override
-    public boolean isHalt() {
-        return _daemon.getStatus()== AbstractDaemon.Status.HALTED;
+    synchronized public void join(long timeout) throws Exception{
+        if(_status.equals(Status.STOPPED)) {
+            this.wait(timeout);
+        }
+    }
+
+
+    @Override
+    synchronized public boolean isRunning() {
+        return _status== Status.STARTED; //todo distinguish from started
     }
 
     @Override
-    public boolean isStarted() {
-        return _daemon.getStatus()== AbstractDaemon.Status.STARTED;
+    synchronized public boolean isHalt() {
+        return _status== Status.HALTED;
     }
 
     @Override
-    public boolean isStarting() {
-        return _daemon.getStatus()== AbstractDaemon.Status.STARTING;
+    synchronized public boolean isStarted() {
+        return _status== Status.STARTED;
     }
 
     @Override
-    public boolean isStopping() {
-        return _daemon.getStatus()== AbstractDaemon.Status.STOPPING;
+    synchronized public boolean isStarting() {
+        return _status== Status.STARTING;
     }
 
     @Override
-    public boolean isStopped() {
-        return _daemon.getStatus()== AbstractDaemon.Status.STOPPED;
+    synchronized public boolean isStopping() {
+        return _status== Status.STOPPING;
     }
 
     @Override
-    public boolean isFailed() {
+    synchronized public boolean isStopped() {
+        return _status== Status.STOPPED;
+    }
+
+    @Override
+    synchronized public boolean isFailed() {
         return false;  //TODO
     }
 
     @Override
-    public void addLifeCycleListener(DaemonLifeCycle.Listener listener) {
+    synchronized public Status getStatus() {
+        return _status;
+    }
+
+    @Override
+    synchronized public void addLifeCycleListener(DaemonLifeCycle.Listener listener) {
         _listeners.add(listener);
     }
 
     @Override
-    public void removeLifeCycleListener(DaemonLifeCycle.Listener listener) {
+    synchronized public void removeLifeCycleListener(DaemonLifeCycle.Listener listener) {
         _listeners.remove(listener);
     }
 

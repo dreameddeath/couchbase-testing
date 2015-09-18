@@ -1,0 +1,106 @@
+/*
+ * Copyright Christophe Jeunesse
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.dreameddeath.infrastructure.daemon.discovery;
+
+import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.model.DaemonStatusInfo;
+import com.dreameddeath.infrastructure.daemon.utils.DaemonJacksonMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.nodes.PersistentEphemeralNode;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Created by Christophe Jeunesse on 17/09/2015.
+ */
+public class DaemonDiscovery implements IDaemonDiscovery {
+    private final CuratorFramework _curatorFramework;
+    private PersistentEphemeralNode _currDaemonNode = null;
+    public DaemonDiscovery(CuratorFramework curatorFramework){
+        _curatorFramework = curatorFramework;
+    }
+
+    private String getAndCreateRootPath() throws Exception{
+        String path = DaemonConfigProperties.DAEMON_REGISTER_PATH.getMandatoryValue("The sleep time is not set");
+        if(!path.startsWith("/")){
+            path="/"+path;
+        }
+        if(_curatorFramework.checkExists().forPath(path)==null) {
+            _curatorFramework.create().creatingParentsIfNeeded().forPath(path);
+        }
+        return path;
+    }
+
+
+    private String getAndDaemonPath(AbstractDaemon daemon) throws Exception{
+        return getAndCreateRootPath()+"/"+daemon.getUuid().toString();
+    }
+
+    private PersistentEphemeralNode setupNode(AbstractDaemon daemon) throws Exception{
+        String rootPath = getAndCreateRootPath();
+        PersistentEphemeralNode node= new PersistentEphemeralNode(_curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL,getAndDaemonPath(daemon),serializeDaemonInfo(daemon));
+        node.start();
+        node.waitForInitialCreate(1, TimeUnit.SECONDS);
+        return node;
+    }
+
+
+    private byte[] serializeDaemonInfo(AbstractDaemon daemon) throws JsonProcessingException {
+        DaemonStatusInfo info = new DaemonStatusInfo(daemon);
+        return DaemonJacksonMapper.getInstance().writeValueAsBytes(info);
+    }
+
+    @Override
+    public void register(AbstractDaemon daemon) throws Exception{
+        _currDaemonNode = setupNode(daemon);
+    }
+
+    @Override
+    public void unregister(AbstractDaemon daemon) throws Exception{
+        if(_currDaemonNode !=null){
+            _currDaemonNode.close();
+
+        }
+    }
+
+    @Override
+    public void update(AbstractDaemon daemon) throws Exception{
+        if(_currDaemonNode ==null){
+            _currDaemonNode = setupNode(daemon);
+        }
+        else{
+            _currDaemonNode.setData(serializeDaemonInfo(daemon));
+        }
+    }
+
+    @Override
+    public List<DaemonStatusInfo> registeredDaemonInfoList() throws Exception {
+        String rootPath = getAndCreateRootPath();
+        List<String> childrenPathList =_curatorFramework.getChildren().forPath(rootPath);
+        List<DaemonStatusInfo> result = new ArrayList<>(childrenPathList.size());
+        for(String childrenPath:childrenPathList){
+            byte[] childrenData = _curatorFramework.getData().forPath(rootPath+"/"+childrenPath);
+            DaemonStatusInfo info = DaemonJacksonMapper.getInstance().readValue(childrenData,DaemonStatusInfo.class);
+            result.add(info);
+        }
+        return result;
+    }
+}

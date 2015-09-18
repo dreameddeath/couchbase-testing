@@ -19,7 +19,9 @@ package com.dreameddeath.infrastructure.daemon;
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
+import com.dreameddeath.infrastructure.daemon.model.DaemonStatusInfo;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusUpdateRequest;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -55,14 +58,23 @@ public class AbstractDaemonTest extends Assert {
         final AtomicInteger nbErrors=new AtomicInteger(0);
         String connectionString = _testUtils.getCluster().getConnectString();
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
-        //TODO start zookeeper
-        final AbstractDaemon daemon=new AbstractDaemon();
+        final AbstractDaemon daemon=AbstractDaemon.builder().withName("testing Daemon").build();
 
         daemon.addStandardWebServer(RestWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));
         daemon.addProxyWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverPath("tests/services"));
         Thread stopping_thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
+                try {
+                    List<DaemonStatusInfo> daemonInfoList = daemonDiscovery.registeredDaemonInfoList();
+                    assertEquals(1, daemonInfoList.size());
+                    assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
+                }
+                catch(Exception e){
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during daemon registered info read", e);
+                }
                 try{
                     Integer response =ClientBuilder.newClient()
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
@@ -83,11 +95,11 @@ public class AbstractDaemonTest extends Assert {
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();
-                    LOG.error("Error during status read", e);
+                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
                 try {
 
-                    Integer response = ((RestWebServer)daemon.getStandardWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests/services")
+                    Integer response = ((RestWebServer)daemon.getAdditionnalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests/services")
                             .getClient("tests#tests#tests", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             //.path("/status")
@@ -97,7 +109,7 @@ public class AbstractDaemonTest extends Assert {
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();
-                    LOG.error("Error during status read", e);
+                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
 
 
@@ -108,11 +120,11 @@ public class AbstractDaemonTest extends Assert {
                             .path("/status")
                             .request(MediaType.APPLICATION_JSON)
                             .get(StatusResponse.class);
-                    assertEquals(AbstractDaemon.Status.STARTED,response.getStatus());
+                    assertEquals(IDaemonLifeCycle.Status.STARTED,response.getStatus());
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();
-                    LOG.error("Error during status read", e);
+                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
                 try {
                     LOG.info("Request halting the web server");
@@ -126,11 +138,11 @@ public class AbstractDaemonTest extends Assert {
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.json(request), StatusResponse.class);
 
-                    assertEquals(AbstractDaemon.Status.HALTED, response.getStatus());
+                    assertEquals(IDaemonLifeCycle.Status.HALTED, response.getStatus());
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();
-                    LOG.error("Cannot call halt", e);
+                    LOG.error("!!!!! ERROR !!!!!Cannot call halt", e);
                 }
 
                 try {
@@ -145,20 +157,20 @@ public class AbstractDaemonTest extends Assert {
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.json(request),StatusResponse.class);
 
-                    assertEquals(AbstractDaemon.Status.STOPPING, response.getStatus());
+                    assertEquals(IDaemonLifeCycle.Status.STOPPING, response.getStatus());
                     return;
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();
-                    LOG.error("Cannot call stop", e);
+                    LOG.error("!!!!! ERROR !!!!!Cannot call stop", e);
                 }
 
                 try {
-                    nbErrors.incrementAndGet();
                     daemon.getDaemonLifeCycle().stop();
                 }
                 catch(Exception e){
-                    LOG.error("Cannot stop", e);
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Cannot stop", e);
                 }
 
                 nbErrors.incrementAndGet();
@@ -168,29 +180,40 @@ public class AbstractDaemonTest extends Assert {
         daemon.getDaemonLifeCycle().addLifeCycleListener(new IDaemonLifeCycle.Listener() {
             @Override
             public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
-                LOG.info("The web server is starting");
-                assertEquals(AbstractDaemon.Status.STARTING, lifeCycle.getDaemon().getStatus());
-                for(AbstractWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
-                    assertEquals(true,server.getLifeCycle().isStopped());
+                try {
+                    LOG.info("The web server is starting");
+                    assertEquals(IDaemonLifeCycle.Status.STARTING, lifeCycle.getDaemon().getStatus());
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                        assertEquals(true, server.getLifeCycle().isStopped());
+                    }
+                    assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
+                } catch (Exception e) {
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during starting", e);
                 }
-                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
             }
 
             @Override
             public void lifeCycleStarted(final IDaemonLifeCycle lifeCycle) {
-                LOG.info("The web server is started");
-                assertEquals(AbstractDaemon.Status.STARTING, lifeCycle.getDaemon().getStatus());
-                for(AbstractWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
-                    assertEquals(true,server.getLifeCycle().isStarted());
+                try {
+                    LOG.info("The web server is started");
+                    assertEquals(IDaemonLifeCycle.Status.STARTING, lifeCycle.getDaemon().getStatus());
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                        assertEquals(true, server.getLifeCycle().isStarted());
+                    }
+                    assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
+                    stopping_thread.start();
+                } catch (Exception e) {
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during starting", e);
                 }
-                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
-                stopping_thread.start();
                 //TODO perform calls to rest API, ...
             }
 
             @Override
             public void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception) {
-
+                nbErrors.getAndIncrement();
+                LOG.error("!!!!! ERROR !!!!!Error with failure", exception);
             }
 
             @Override
@@ -200,34 +223,54 @@ public class AbstractDaemonTest extends Assert {
 
             @Override
             public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
-                for(AbstractWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
-                    assertEquals(true,server.getLifeCycle().isStopped());
+                try {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                        assertEquals(true, server.getLifeCycle().isStopped());
+                    }
+                    assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
+                    assertEquals(IDaemonLifeCycle.Status.STARTED, lifeCycle.getDaemon().getStatus());
+                } catch (Exception e) {
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during Halting", e);
                 }
-                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
-                assertEquals(AbstractDaemon.Status.STARTED,lifeCycle.getDaemon().getStatus());
             }
 
             @Override
             public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
-                for(AbstractWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
-                    assertEquals(true,server.getLifeCycle().isStopped());
+                try {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                        assertEquals(true, server.getLifeCycle().isStopped());
+                    }
+                    assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
+                    assertEquals(IDaemonLifeCycle.Status.STOPPING, lifeCycle.getDaemon().getStatus());
+                } catch (Exception e) {
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during stopping", e);
                 }
-                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStarted());
-                assertEquals(AbstractDaemon.Status.STOPPING,lifeCycle.getDaemon().getStatus());
             }
 
             @Override
             public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
-                for(AbstractWebServer server:lifeCycle.getDaemon().getStandardWebServers()){
-                    assertEquals(true,server.getLifeCycle().isStopped());
+                try {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                        assertEquals(true, server.getLifeCycle().isStopped());
+                    }
+                    assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStopped());
+                    assertEquals(IDaemonLifeCycle.Status.HALTED, lifeCycle.getDaemon().getStatus());
+                } catch (Exception e) {
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during stopped", e);
                 }
-                assertEquals(true,daemon.getAdminWebServer().getLifeCycle().isStopped());
-                assertEquals(AbstractDaemon.Status.STOPPING,lifeCycle.getDaemon().getStatus());
             }
         });
         daemon.startAndJoin();
         stopping_thread.join();
+        assertEquals(0L, nbErrors.get());
+        {
+            Thread.sleep(1000);
+            DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
+            assertEquals(0L,daemonDiscovery.registeredDaemonInfoList().size());
+        }
 
-        assertEquals(0L,nbErrors.get());
     }
 }

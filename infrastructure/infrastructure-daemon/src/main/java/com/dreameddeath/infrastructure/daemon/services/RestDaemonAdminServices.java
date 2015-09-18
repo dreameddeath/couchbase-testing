@@ -19,7 +19,6 @@ package com.dreameddeath.infrastructure.daemon.services;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.model.AbstractExposableService;
-import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.StatusUpdateRequest;
@@ -77,7 +76,7 @@ public class RestDaemonAdminServices extends AbstractExposableService {
 
                     }
                 }).start();
-                return buildStatus(AbstractDaemon.Status.STOPPING);
+                return buildStatus(IDaemonLifeCycle.Status.STOPPING);
             }
             else{
                 daemonLifeCycle.halt();
@@ -91,7 +90,7 @@ public class RestDaemonAdminServices extends AbstractExposableService {
         return getStatus();
     }
 
-    protected StatusResponse buildStatus(AbstractDaemon.Status status){
+    protected StatusResponse buildStatus(IDaemonLifeCycle.Status status){
         int port = getEndPoint().port();
         String host = getEndPoint().host();
 

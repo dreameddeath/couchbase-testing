@@ -16,7 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.services.model;
 
-import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import org.joda.time.DateTime;
 
 /**
@@ -24,7 +24,7 @@ import org.joda.time.DateTime;
  */
 public class StatusResponse {
     private String id;
-    private AbstractDaemon.Status status;
+    private IDaemonLifeCycle.Status status;
     private DateTime startDateTime;
     private String hostname;
     private int port;
@@ -37,11 +37,11 @@ public class StatusResponse {
         this.id = id;
     }
 
-    public AbstractDaemon.Status getStatus() {
+    public IDaemonLifeCycle.Status getStatus() {
         return status;
     }
 
-    public void setStatus(AbstractDaemon.Status status) {
+    public void setStatus(IDaemonLifeCycle.Status status) {
         this.status = status;
     }
 
