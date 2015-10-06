@@ -38,7 +38,7 @@ public class WebJarsServlet extends DefaultServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        _prefix = config.getServletContext().getInitParameter(PREFIX_WEBJARS_PARAM_NAME);
+        _prefix = config.getInitParameter(PREFIX_WEBJARS_PARAM_NAME);
         _prefix=ServletUtils.normalizePath(_prefix,true);
 
         config.getServletContext().setInitParameter("dirAllowed", "false");

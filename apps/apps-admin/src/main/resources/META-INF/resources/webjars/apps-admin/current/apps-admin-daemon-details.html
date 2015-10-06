@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright Christophe Jeunesse
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="modal-header">
+    <h3 class="modal-title">Details of daemon</h3>
+</div>
+<div class="modal-body">
+  <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{daemonInfo.uuid}}</div></div>
+  <div class="row"><div class="col-md-3">Name</div><div class="col-md-9">{{daemonInfo.name}}</div></div>
+  <div class="row"><div class="col-md-3">class</div><div class="col-md-9">{{daemonInfo.className}}</div></div>
+  <div class="row"><div class="col-md-3">Address</div><div class="col-md-9">{{daemonInfo.address}}</div></div>
+  <div class="row"><div class="col-md-3">Port</div><div class="col-md-9">{{daemonInfo.port}}</div></div>
+  <div class="row"><div class="col-md-3">Status</div><div class="col-md-9">{{daemonInfo.status}}</div></div>
+  <div class="row"><div class="col-md-12">
+    <div class="h3">WebServers</div>
+    <div class="row" ng-repeat="webServerName in daemonInfo.webServerList">
+      <div class="col-xs-3">Name</div><div class="col-xs-12">{{webServerName}}</div>
+    </div>
+  </div></div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" type="button" ng-click="ok()">OK</button>
+</div>

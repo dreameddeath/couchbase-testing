@@ -19,9 +19,11 @@ package com.dreameddeath.infrastructure.daemon.services;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
-import com.dreameddeath.infrastructure.daemon.services.model.StatusResponse;
-import com.dreameddeath.infrastructure.daemon.services.model.StatusUpdateRequest;
+import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
+import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusResponse;
+import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -31,25 +33,43 @@ import javax.ws.rs.core.MediaType;
 /**
  * Created by Christophe Jeunesse on 14/08/2015.
  */
-@Path("/")
-@ServiceDef(name="daemon#admin#status",version="1.0",status = VersionStatus.STABLE)
-@Api(value = "/", description = "Daemon Administration service")
-public class RestDaemonAdminServices extends AbstractExposableService {
-    private IDaemonLifeCycle daemonLifeCycle;
+@Path("/daemon")
+@ServiceDef(name= RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,status = VersionStatus.STABLE)
+@Api(value = "/daemon", description = "Daemon Administration service")
+public class RestLocalDaemonAdminService extends AbstractExposableService {
+    public static final String DAEMON_SERVICE_NAME ="daemon#admin#status";
+    public static final String DAEMON_SERVICE_VERSION ="1.0";
 
-    public void setDaemonLifeCycle(IDaemonLifeCycle daemonLifeCycle){
-        this.daemonLifeCycle = daemonLifeCycle;
+    private final RestLocalWebServerAdminService webServerAdminResource=new RestLocalWebServerAdminService();
+    private AbstractDaemon daemon;
+
+    public void setDaemon(AbstractDaemon daemon){
+        this.daemon = daemon;
+        webServerAdminResource.setDaemon(daemon);
+    }
+
+    @Override
+    public String getId(){
+        return daemon.getUuid().toString();
     }
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "give the status of the daemon",
+            response = DaemonInfo.class,
+            position = 0)
+    public DaemonInfo getInfo(){
+        return new DaemonInfo(daemon);
+    }
+
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
     @Path("status")
     @ApiOperation(value = "give the status of the daemon",
             response = StatusResponse.class,
             position = 0)
     public StatusResponse getStatus(){
-        return buildStatus(daemonLifeCycle.getDaemon().getStatus());
+        return buildStatus(daemon.getStatus());
     }
 
 
@@ -59,18 +79,17 @@ public class RestDaemonAdminServices extends AbstractExposableService {
     @Path("status")
     @ApiOperation(value = "set the status of the daemon",
             response = StatusResponse.class,
-            position = 0)
+            position = 1)
     public StatusResponse setStatus(StatusUpdateRequest statusUpdateRequest){
-
         try{
             if (statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.START) {
-                daemonLifeCycle.start();
+                daemon.getDaemonLifeCycle().start();
             }
             else if(statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.STOP) {
                 new Thread(() -> {
                     try {
                         Thread.sleep(100);
-                        daemonLifeCycle.stop();
+                        daemon.getDaemonLifeCycle().stop();
                     }
                     catch(Exception e){
 
@@ -79,8 +98,7 @@ public class RestDaemonAdminServices extends AbstractExposableService {
                 return buildStatus(IDaemonLifeCycle.Status.STOPPING);
             }
             else{
-                daemonLifeCycle.halt();
-                //TODO halt management
+                daemon.getDaemonLifeCycle().halt();
             }
         }
         catch(Exception e){
@@ -91,15 +109,13 @@ public class RestDaemonAdminServices extends AbstractExposableService {
     }
 
     protected StatusResponse buildStatus(IDaemonLifeCycle.Status status){
-        int port = getEndPoint().port();
-        String host = getEndPoint().host();
-
         StatusResponse result = new StatusResponse();
         result.setStatus(status);
-        //ServerConnector currConnector = (ServerConnector) daemonLifeCycle.getDaemon().getAdminWebServer().getWebServer().getConnectors()[0];
-
-        result.setHostname(host);
-        result.setPort(port);
         return result;
+    }
+
+    @Path("webservers")
+    public RestLocalWebServerAdminService getWebServerItemResource(){
+        return webServerAdminResource;
     }
 }

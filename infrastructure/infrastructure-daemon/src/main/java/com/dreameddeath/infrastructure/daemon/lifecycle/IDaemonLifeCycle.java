@@ -17,6 +17,7 @@
 package com.dreameddeath.infrastructure.daemon.lifecycle;
 
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import org.joda.time.DateTime;
 
 import java.util.EventListener;
 
@@ -39,11 +40,15 @@ public interface IDaemonLifeCycle {
     boolean isStopping();
     boolean isStopped();
     boolean isFailed();
-    Status getStatus();
     void addLifeCycleListener(Listener listener);
     void removeLifeCycleListener(Listener listener);
-
     AbstractDaemon getDaemon();
+
+    Status getStatus();
+    DateTime getCreationDate();
+    DateTime getLastHaltStartDate();
+    DateTime getLastStartDate();
+
 
     enum Status{
         STOPPED,

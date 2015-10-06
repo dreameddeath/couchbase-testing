@@ -18,6 +18,7 @@ package com.dreameddeath.infrastructure.daemon.model;
 
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
+import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -28,7 +29,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 16/09/2015.
  */
-public class DaemonStatusInfo {
+public class DaemonInfo {
     @JsonProperty("uuid")
     private UUID uuid;
     @JsonProperty("name")
@@ -49,19 +50,19 @@ public class DaemonStatusInfo {
     private List<String> webServerList =new ArrayList<>();
 
 
-    public DaemonStatusInfo(AbstractDaemon daemon){
+    public DaemonInfo(AbstractDaemon daemon){
         uuid = daemon.getUuid();
         name = daemon.getName();
         className = daemon.getClass().getName();
         status = daemon.getStatus();
-        address = daemon.getAdminWebServer().getServerConnector().getHost();
-        port = String.valueOf(daemon.getAdminWebServer().getServerConnector().getPort());
+        address = ServerConnectorUtils.getConnectorHost(daemon.getAdminWebServer().getServerConnector());
+        port = ServerConnectorUtils.getConnectorPortString(daemon.getAdminWebServer().getServerConnector());
         for(AbstractWebServer server : daemon.getAdditionnalWebServers()){
             webServerList.add(server.getName());
         }
     }
 
-    public DaemonStatusInfo(){}
+    public DaemonInfo(){}
 
     public List<String> getWebServerList() {
         return webServerList;

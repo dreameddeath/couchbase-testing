@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.services.model;
+package com.dreameddeath.infrastructure.daemon.services.model.daemon;
 
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import org.joda.time.DateTime;
@@ -23,19 +23,8 @@ import org.joda.time.DateTime;
  * Created by Christophe Jeunesse on 14/08/2015.
  */
 public class StatusResponse {
-    private String id;
     private IDaemonLifeCycle.Status status;
     private DateTime startDateTime;
-    private String hostname;
-    private int port;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public IDaemonLifeCycle.Status getStatus() {
         return status;
@@ -52,22 +41,5 @@ public class StatusResponse {
     public void setStartDateTime(DateTime startDateTime) {
         this.startDateTime = startDateTime;
     }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
 
 }

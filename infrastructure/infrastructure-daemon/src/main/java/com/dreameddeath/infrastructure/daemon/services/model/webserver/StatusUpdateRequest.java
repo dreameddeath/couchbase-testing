@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.services.model;
+package com.dreameddeath.infrastructure.daemon.services.model.webserver;
 
 /**
  * Created by Christophe Jeunesse on 14/08/2015.
@@ -32,7 +32,7 @@ public class StatusUpdateRequest {
 
     public enum Status{
         START("start"),
-        HALT("halt"),
+        RESTART("restart"),
         STOP("stop");
 
         private String name;

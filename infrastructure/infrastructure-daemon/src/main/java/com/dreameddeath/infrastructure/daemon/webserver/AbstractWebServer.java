@@ -110,6 +110,32 @@ public abstract class AbstractWebServer {
         _webServer.join();
     }
 
+    public Status getStatus(){
+        return Status.fromStateString(_webServer.getState());
+    }
+
+    public enum Status{
+        UNKNOWN,
+        FAILED,
+        STOPPED,
+        STARTING,
+        STARTED,
+        RUNNING,
+        STOPPING;
+
+        public static Status fromStateString(String stateStr){
+            switch (stateStr){
+                case "RUNNING":return RUNNING;
+                case "STOPPED":return STOPPED;
+                case "FAILED":return FAILED;
+                case "STARTING":return STARTING;
+                case "STARTED":return STARTED;
+                case "STOPPING":return STOPPING;
+                default:return UNKNOWN;
+            }
+        }
+    }
+
     public LifeCycle getLifeCycle(){
         return _webServer;
     }

@@ -27,10 +27,20 @@ import org.slf4j.LoggerFactory;
  */
 public class ServiceNamingUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceNamingUtils.class);
+    private final static String FULLNAME_SEPARATOR_CHAR ="#";
 
     public static String buildServiceFullName(String name,String version){
-        return name+"#"+version;
+        return name+ FULLNAME_SEPARATOR_CHAR +version;
     }
+
+    public static String getNameFromServiceFullName(String fullName){
+        return fullName.substring(0,fullName.lastIndexOf(FULLNAME_SEPARATOR_CHAR));
+    }
+
+    public static String getVersionFromServiceFullName(String fullName){
+        return fullName.substring(fullName.lastIndexOf(FULLNAME_SEPARATOR_CHAR));
+    }
+
 
     public static void createBaseServiceName(CuratorFramework client,String basePath){
         try {

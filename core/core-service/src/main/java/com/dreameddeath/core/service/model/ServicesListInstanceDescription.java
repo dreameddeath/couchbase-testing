@@ -20,30 +20,43 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Created by Christophe Jeunesse on 18/01/2015.
+ * Created by Christophe Jeunesse on 02/10/2015.
  */
-public class ServicesInstanceDescription {
+public class ServicesListInstanceDescription {
+    @JsonProperty("name")
+    private String _name;
     @JsonProperty("services")
-    private Map<String,List<ServiceInstanceDescription>> _serviceInstanceMap =new HashMap<>();
+    List<ServiceInstanceDescription> _instanceDescriptions =new ArrayList<>();
 
     @JsonSetter("services")
-    public void setServiceInstanceMap(Map<String,List<ServiceInstanceDescription>> map){
-        _serviceInstanceMap.clear();
-        _serviceInstanceMap.putAll(map);
+    public void setServiceInstanceList(List<ServiceInstanceDescription> list){
+        _instanceDescriptions.clear();
+        _instanceDescriptions.addAll(list);
     }
 
     @JsonGetter("services")
-    public Map<String,List<ServiceInstanceDescription>> getServiceInstanceMap(){
-        return Collections.unmodifiableMap(_serviceInstanceMap);
+    public List<ServiceInstanceDescription> setServiceInstanceList(){
+        return Collections.unmodifiableList(_instanceDescriptions);
     }
 
-    public void addServiceInstance(ServiceInstanceDescription serviceDescr){
-        if(!_serviceInstanceMap.containsKey(serviceDescr.getName())){
-            _serviceInstanceMap.put(serviceDescr.getName(),new ArrayList<>());
-        }
-        _serviceInstanceMap.get(serviceDescr.getName()).add(serviceDescr);
+    @JsonGetter("name")
+    public String getName() {
+        return _name;
     }
+
+    @JsonSetter("name")
+    public void setName(String name) {
+        _name = name;
+    }
+
+
+    public void addServiceInstance(ServiceInstanceDescription serviceDescr){
+        _instanceDescriptions.add(serviceDescr);
+    }
+
 }

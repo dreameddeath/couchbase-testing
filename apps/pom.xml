@@ -29,6 +29,7 @@
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
         <module>apps-common</module>
+        <module>apps-admin</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

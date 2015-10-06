@@ -26,6 +26,7 @@ import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
+import com.dreameddeath.infrastructure.daemon.webserver.WebAppWebServer;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
@@ -132,6 +133,13 @@ public class AbstractDaemon {
         return newWebServer;
     }
 
+    synchronized public WebAppWebServer addStandardWebServer(WebAppWebServer.Builder builder){
+        WebAppWebServer newWebServer  = new WebAppWebServer(builder.withDaemon(this));
+        _additionnalWebServers.add(newWebServer);
+        return newWebServer;
+    }
+
+
     public IDaemonLifeCycle getDaemonLifeCycle() {
         return _daemonLifeCycle;
     }
@@ -165,7 +173,7 @@ public class AbstractDaemon {
         private String _name=null;
         private Boolean _registerDaemon=true;
         private CuratorFramework _curatorFramework=null;
-        private String _adminApplicationContextName="admin.applicationContext.xml";
+        private String _adminApplicationContextName="daemon.admin.applicationContext.xml";
         private String _adminWebServerName="admin";
 
         public String getName() {

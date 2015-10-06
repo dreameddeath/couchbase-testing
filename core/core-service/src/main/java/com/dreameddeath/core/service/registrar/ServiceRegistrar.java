@@ -90,6 +90,7 @@ public class ServiceRegistrar {
             UriSpec uriSpec = new UriSpec(uriStr);
 
             ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()))
+                    .id(foundService.getId())
                     .uriSpec(uriSpec)
                     .address(foundService.getEndPoint().host())
                     .port(foundService.getEndPoint().port())

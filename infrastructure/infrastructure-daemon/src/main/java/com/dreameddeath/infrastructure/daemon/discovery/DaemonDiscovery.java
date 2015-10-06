@@ -18,7 +18,7 @@ package com.dreameddeath.infrastructure.daemon.discovery;
 
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
-import com.dreameddeath.infrastructure.daemon.model.DaemonStatusInfo;
+import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
 import com.dreameddeath.infrastructure.daemon.utils.DaemonJacksonMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.curator.framework.CuratorFramework;
@@ -34,29 +34,30 @@ import java.util.concurrent.TimeUnit;
 public class DaemonDiscovery implements IDaemonDiscovery {
     private final CuratorFramework _curatorFramework;
     private PersistentEphemeralNode _currDaemonNode = null;
-    public DaemonDiscovery(CuratorFramework curatorFramework){
+
+    public DaemonDiscovery(CuratorFramework curatorFramework) {
         _curatorFramework = curatorFramework;
     }
 
-    private String getAndCreateRootPath() throws Exception{
+    private String getAndCreateRootPath() throws Exception {
         String path = DaemonConfigProperties.DAEMON_REGISTER_PATH.getMandatoryValue("The sleep time is not set");
-        if(!path.startsWith("/")){
-            path="/"+path;
+        if (!path.startsWith("/")) {
+            path = "/" + path;
         }
-        if(_curatorFramework.checkExists().forPath(path)==null) {
+        if (_curatorFramework.checkExists().forPath(path) == null) {
             _curatorFramework.create().creatingParentsIfNeeded().forPath(path);
         }
         return path;
     }
 
 
-    private String getAndDaemonPath(AbstractDaemon daemon) throws Exception{
-        return getAndCreateRootPath()+"/"+daemon.getUuid().toString();
+    private String getAndDaemonPath(AbstractDaemon daemon) throws Exception {
+        return getAndCreateRootPath() + "/" + daemon.getUuid().toString();
     }
 
-    private PersistentEphemeralNode setupNode(AbstractDaemon daemon) throws Exception{
+    private PersistentEphemeralNode setupNode(AbstractDaemon daemon) throws Exception {
         String rootPath = getAndCreateRootPath();
-        PersistentEphemeralNode node= new PersistentEphemeralNode(_curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL,getAndDaemonPath(daemon),serializeDaemonInfo(daemon));
+        PersistentEphemeralNode node = new PersistentEphemeralNode(_curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL, getAndDaemonPath(daemon), serializeDaemonInfo(daemon));
         node.start();
         node.waitForInitialCreate(1, TimeUnit.SECONDS);
         return node;
@@ -64,43 +65,50 @@ public class DaemonDiscovery implements IDaemonDiscovery {
 
 
     private byte[] serializeDaemonInfo(AbstractDaemon daemon) throws JsonProcessingException {
-        DaemonStatusInfo info = new DaemonStatusInfo(daemon);
+        DaemonInfo info = new DaemonInfo(daemon);
         return DaemonJacksonMapper.getInstance().writeValueAsBytes(info);
     }
 
     @Override
-    synchronized public void register(AbstractDaemon daemon) throws Exception{
+    synchronized public void register(AbstractDaemon daemon) throws Exception {
         _currDaemonNode = setupNode(daemon);
     }
 
     @Override
-    synchronized public void unregister(AbstractDaemon daemon) throws Exception{
-        if(_currDaemonNode !=null){
+    synchronized public void unregister(AbstractDaemon daemon) throws Exception {
+        if (_currDaemonNode != null) {
             _currDaemonNode.close();
-            _currDaemonNode=null;
+            _currDaemonNode = null;
         }
     }
 
     @Override
-    synchronized public void update(AbstractDaemon daemon) throws Exception{
-        if(_currDaemonNode ==null){
+    synchronized public void update(AbstractDaemon daemon) throws Exception {
+        if (_currDaemonNode == null) {
             _currDaemonNode = setupNode(daemon);
         }
-        else{
+        else {
             _currDaemonNode.setData(serializeDaemonInfo(daemon));
         }
     }
 
     @Override
-    public List<DaemonStatusInfo> registeredDaemonInfoList() throws Exception {
+    public List<DaemonInfo> registeredDaemonInfoList() throws Exception {
         String rootPath = getAndCreateRootPath();
-        List<String> childrenPathList =_curatorFramework.getChildren().forPath(rootPath);
-        List<DaemonStatusInfo> result = new ArrayList<>(childrenPathList.size());
-        for(String childrenPath:childrenPathList){
-            byte[] childrenData = _curatorFramework.getData().forPath(rootPath+"/"+childrenPath);
-            DaemonStatusInfo info = DaemonJacksonMapper.getInstance().readValue(childrenData,DaemonStatusInfo.class);
+        List<String> childrenPathList = _curatorFramework.getChildren().forPath(rootPath);
+        List<DaemonInfo> result = new ArrayList<>(childrenPathList.size());
+        for (String childrenPath : childrenPathList) {
+            byte[] childrenData = _curatorFramework.getData().forPath(rootPath + "/" + childrenPath);
+            DaemonInfo info = DaemonJacksonMapper.getInstance().readValue(childrenData, DaemonInfo.class);
             result.add(info);
         }
         return result;
+    }
+
+    @Override
+    public DaemonInfo registeredDaemonInfo(String id) throws Exception {
+        String rootPath = getAndCreateRootPath();
+        byte[] childrenData = _curatorFramework.getData().forPath(rootPath + "/" + id);
+        return DaemonJacksonMapper.getInstance().readValue(childrenData, DaemonInfo.class);
     }
 }

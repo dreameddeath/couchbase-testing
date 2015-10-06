@@ -56,7 +56,11 @@ public class WebAppWebServer extends AbstractWebServer {
         }
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
-        contexts.setHandlers((ServletContextHandler[])handlersList.toArray());
+        ServletContextHandler[] handlersArray =  new ServletContextHandler[handlersList.size()];
+        for(int handlerPos=0;handlerPos<handlersArray.length;++handlerPos){
+            handlersArray[handlerPos] = handlersList.get(handlerPos);
+        }
+        contexts.setHandlers(handlersArray);
 
         getWebServer().setHandler(contexts);
     }
@@ -69,7 +73,7 @@ public class WebAppWebServer extends AbstractWebServer {
         private String _path="webapp";
         private String _libSubPath = "libs";
         private String _webJarsSubPath = "webjars";
-        private String _resourcePath="classpath:WEB-INF/resources/webapp";
+        private String _resourcePath="classpath:META-INF/resources/webapp";
         private boolean _withProxy = false;
         private List<String> _discoverPaths=new ArrayList<>();
         private boolean _withApis=false;
@@ -106,13 +110,8 @@ public class WebAppWebServer extends AbstractWebServer {
             return ServletUtils.normalizePath(new String[]{_path,_libSubPath},false);
         }
 
-
-        public Builder withApis(boolean withApis) {
-            _withApis = withApis;
-            return this;
-        }
-
         public Builder withApiPath(String apiPath) {
+            _withApis = (apiPath!=null);
             _apiPath = apiPath;
             return this;
         }
@@ -121,5 +120,6 @@ public class WebAppWebServer extends AbstractWebServer {
             _applicationContextConfig = applicationContextConfig;
             return this;
         }
+
     }
 }

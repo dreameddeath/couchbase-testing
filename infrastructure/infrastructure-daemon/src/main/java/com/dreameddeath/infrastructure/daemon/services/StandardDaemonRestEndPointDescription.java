@@ -17,9 +17,8 @@
 package com.dreameddeath.infrastructure.daemon.services;
 
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
+import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import org.eclipse.jetty.server.ServerConnector;
-
-import java.net.InetAddress;
 
 /**
  * Created by Christophe Jeunesse on 18/08/2015.
@@ -39,7 +38,7 @@ public class StandardDaemonRestEndPointDescription implements IRestEndPointDescr
 
     @Override
     public int port() {
-        return _connector.getLocalPort();
+        return ServerConnectorUtils.getConnectorPort(_connector);
     }
 
     @Override
@@ -49,15 +48,6 @@ public class StandardDaemonRestEndPointDescription implements IRestEndPointDescr
 
     @Override
     public String host() {
-        try {
-            if(_connector.getHost()!=null) {
-                return _connector.getHost();
-            }
-            else{
-                return InetAddress.getLocalHost().getHostAddress();
-            }
-        } catch (Exception e) {
-            return "localhost";
-        }
+        return ServerConnectorUtils.getConnectorHost(_connector);
     }
 }

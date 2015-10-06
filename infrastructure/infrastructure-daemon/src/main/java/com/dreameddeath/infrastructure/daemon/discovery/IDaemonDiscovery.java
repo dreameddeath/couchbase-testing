@@ -17,7 +17,7 @@
 package com.dreameddeath.infrastructure.daemon.discovery;
 
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
-import com.dreameddeath.infrastructure.daemon.model.DaemonStatusInfo;
+import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
 
 import java.util.List;
 
@@ -29,5 +29,6 @@ public interface IDaemonDiscovery {
     void unregister(AbstractDaemon daemon)throws Exception;
     void update(AbstractDaemon daemon)throws Exception;
 
-    List<DaemonStatusInfo> registeredDaemonInfoList()throws Exception;
+    List<DaemonInfo> registeredDaemonInfoList()throws Exception;
+    DaemonInfo registeredDaemonInfo(String id) throws Exception;
 }

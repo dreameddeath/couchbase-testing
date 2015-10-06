@@ -66,4 +66,16 @@ public class ServiceClientFactory {
         }
     }
 
+
+    public WebTarget getClient(String serviceName,String serviceVersion,String uid){
+        try{
+            String uri = buildUri(_serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion),uid));
+            return _clientPerUri.computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
+        }
+        catch(ServiceDiscoveryException e){
+            throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
+            //Todo throw an error
+        }
+    }
+
 }

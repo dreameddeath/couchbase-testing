@@ -49,8 +49,8 @@
         <property name="attributeName" value="endPointInfo" />
     </bean>
 
-    <bean id="daemonLifeCycle" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="daemonLifeCycle" />
+    <bean id="daemon" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="daemon" />
     </bean>
 
 
@@ -62,10 +62,10 @@
 
     <jaxrs:server id="admin" transportId="http://cxf.apache.org/transports/http" address="/admin" >
         <jaxrs:serviceBeans>
-            <bean id="statusManagerApi" class="com.dreameddeath.infrastructure.daemon.services.RestDaemonAdminServices" >
+            <bean id="statusManagerApi" class="com.dreameddeath.infrastructure.daemon.services.RestLocalDaemonAdminService" >
                 <property name="address" value="/admin"/>
                 <property name="endPoint" ref="endPoint"/>
-                <property name="daemonLifeCycle" ref="daemonLifeCycle" />
+                <property name="daemon" ref="daemon" />
                 <property name="serviceRegistrar" ref="adminServiceRegistrar" />
             </bean>
         </jaxrs:serviceBeans>

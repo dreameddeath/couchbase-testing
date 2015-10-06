@@ -40,7 +40,7 @@ public class WebAppServlet extends DefaultServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        String path = config.getServletContext().getInitParameter(RESOURCE_PATH_PARAM_NAME);
+        String path = config.getInitParameter(RESOURCE_PATH_PARAM_NAME);
         if(!path.endsWith("/")){
             path +="/";
         }

@@ -20,6 +20,9 @@ package com.dreameddeath.core.service.exception;
  * Created by Christophe Jeunesse on 04/03/2015.
  */
 public class ServiceDiscoveryException extends Exception {
+    public ServiceDiscoveryException(String message){
+        super(message);
+    }
     public ServiceDiscoveryException(String message, Throwable e){
         super(message,e);
     }

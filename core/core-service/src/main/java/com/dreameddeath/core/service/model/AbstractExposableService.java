@@ -19,6 +19,8 @@ package com.dreameddeath.core.service.model;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 
+import java.util.UUID;
+
 /**
  * Created by Christophe Jeunesse on 15/01/2015.
  */
@@ -26,6 +28,9 @@ public abstract class AbstractExposableService {
     private String address="";
     private IRestEndPointDescription endPoint;
     private ServiceRegistrar _serviceRegistrar;
+
+
+    public String getId(){return UUID.randomUUID().toString();}
 
     public String getAddress() {
         return address;

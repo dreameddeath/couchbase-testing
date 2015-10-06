@@ -24,12 +24,12 @@ import org.eclipse.jetty.servlet.ServletHolder;
  */
 public class WebAppServletContextHandler extends ServletContextHandler {
     public WebAppServletContextHandler(String path,String resourcesPath){
-        this.setContextPath(ServletUtils.normalizePath(path,false));
+        this.setContextPath(ServletUtils.normalizePath(path, false));
         this.setDisplayName("Web App Context Handler");
         ServletHolder servletHolder = new ServletHolder(new WebAppServlet());
         servletHolder.setInitOrder(1);
         servletHolder.setName("Web App Holder");
-        servletHolder.setInitParameter(WebAppServlet.RESOURCE_PATH_PARAM_NAME,resourcesPath);
+        servletHolder.setInitParameter(WebAppServlet.RESOURCE_PATH_PARAM_NAME, resourcesPath);
         this.addServlet(servletHolder, "/");
     }
 }

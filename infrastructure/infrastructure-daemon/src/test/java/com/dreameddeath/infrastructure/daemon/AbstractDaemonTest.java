@@ -21,9 +21,10 @@ import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
-import com.dreameddeath.infrastructure.daemon.model.DaemonStatusInfo;
-import com.dreameddeath.infrastructure.daemon.services.model.StatusResponse;
-import com.dreameddeath.infrastructure.daemon.services.model.StatusUpdateRequest;
+import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
+import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
+import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusResponse;
+import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
@@ -59,7 +60,6 @@ public class AbstractDaemonTest extends Assert {
         String connectionString = _testUtils.getCluster().getConnectString();
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         final AbstractDaemon daemon=AbstractDaemon.builder().withName("testing Daemon").build();
-
         daemon.addStandardWebServer(RestWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));
         daemon.addProxyWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverPath("tests/services"));
         Thread stopping_thread = new Thread(new Runnable() {
@@ -67,9 +67,10 @@ public class AbstractDaemonTest extends Assert {
             public void run() {
                 DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
                 try {
-                    List<DaemonStatusInfo> daemonInfoList = daemonDiscovery.registeredDaemonInfoList();
+                    List<DaemonInfo> daemonInfoList = daemonDiscovery.registeredDaemonInfoList();
                     assertEquals(1, daemonInfoList.size());
                     assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
+                    assertEquals(daemon.getAdditionnalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();
@@ -106,6 +107,21 @@ public class AbstractDaemonTest extends Assert {
                             .request(MediaType.APPLICATION_JSON)
                             .get(Integer.class);
                     assertEquals(12L,response.longValue());
+                }
+                catch(Exception e){
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+                }
+
+
+                try {
+                    WebServerInfo response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
+                            .getClient("daemon#admin#status", "1.0")
+                            .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
+                            .path("/webservers/tests")
+                            .request(MediaType.APPLICATION_JSON)
+                            .get(WebServerInfo.class);
+                    assertEquals(AbstractWebServer.Status.STARTED,response.getStatus());
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();

@@ -22,7 +22,7 @@ import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
-import com.dreameddeath.core.service.model.ServicesInstanceDescription;
+import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
@@ -143,18 +143,13 @@ public class TestServicesTest extends Assert{
     public void testServiceRegister() throws Exception {
         LOG.debug("Connector port {}", _connector.getLocalPort());
         String connectionString = "http://localhost:"+_connector.getLocalPort();
-        /*ClientBuilder.newBuilder().build()
-                .target(connectionString)
-                .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
-                .path("/apis")
-                .request(MediaType.APPLICATION_JSON_TYPE).get();*/
         Response response = ClientBuilder.newBuilder().build()
                 .target(connectionString)
                 .register(new JacksonJsonProvider(ServiceInstanceJacksonMapper.getInstance()))
-                .path("/listing/apis")
+                .path("/listing/services/instances")
                 .request(MediaType.APPLICATION_JSON_TYPE).get();
         LOG.debug("Response {}", response.getStatus());
-        ServicesInstanceDescription readDescription = response.readEntity(ServicesInstanceDescription.class);
+        ServicesByNameInstanceDescription readDescription = response.readEntity(ServicesByNameInstanceDescription.class);
         assertEquals(2, readDescription.getServiceInstanceMap().keySet().size());
         Map<String,Model> listModels = readDescription.getServiceInstanceMap().get("testService#1.0").get(0).getSwagger().getDefinitions();
         assertEquals(4,listModels.size());

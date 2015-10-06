@@ -18,6 +18,7 @@ package com.dreameddeath.infrastructure.daemon.lifecycle;
 
 
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +30,14 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
     private final AbstractDaemon _daemon;
     private final List<Listener>  _listeners = new ArrayList<>();
     private Status _status = Status.STOPPED;
-    
+    private DateTime _creationDate;
+    private DateTime _lastStartDate;
+    private DateTime _lastHaltStartDate;
+
+
     public DaemonLifeCycle(AbstractDaemon daemon){
         _daemon = daemon;
+        _creationDate = new DateTime();
     }
 
     @Override
@@ -50,6 +56,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
             }
             _status = Status.STARTED;
         }
+        _lastStartDate = new DateTime();
     }
 
     @Override
@@ -59,6 +66,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
                 listener.lifeCycleHalt(this);
             }
             _status = Status.HALTED;
+            _lastHaltStartDate = new DateTime();
         }
     }
 
@@ -142,11 +150,6 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
     }
 
     @Override
-    synchronized public Status getStatus() {
-        return _status;
-    }
-
-    @Override
     synchronized public void addLifeCycleListener(DaemonLifeCycle.Listener listener) {
         _listeners.add(listener);
     }
@@ -159,5 +162,25 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
     @Override
     public AbstractDaemon getDaemon() {
         return _daemon;
+    }
+
+    @Override
+    synchronized public Status getStatus() {
+        return _status;
+    }
+
+    @Override
+    public DateTime getCreationDate() {
+        return _creationDate;
+    }
+
+    @Override
+    public DateTime getLastStartDate() {
+        return _lastStartDate;
+    }
+
+    @Override
+    public DateTime getLastHaltStartDate() {
+        return _lastHaltStartDate;
     }
 }
