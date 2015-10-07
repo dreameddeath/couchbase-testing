@@ -34,7 +34,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 29/09/2015.
  */
 public class AppsAdminsTest {
-    public final static boolean USE_SOURCE_DIRECTORY=false;
+    public final static boolean USE_SOURCE_DIRECTORY=false                                                                                           ;
     private List<AbstractDaemon> _daemons=new ArrayList<>();
 
     private CuratorTestUtils _testUtils;
@@ -53,7 +53,6 @@ public class AppsAdminsTest {
         final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client).build();
         _daemons.add(daemon2);
         daemon2.getDaemonLifeCycle().start();
-
     }
 
     @Test @Ignore

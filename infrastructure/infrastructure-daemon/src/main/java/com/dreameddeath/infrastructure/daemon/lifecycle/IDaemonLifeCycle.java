@@ -51,11 +51,22 @@ public interface IDaemonLifeCycle {
 
 
     enum Status{
-        STOPPED,
-        STARTING,
-        STARTED,
-        HALTED,
-        STOPPING
+        STOPPED("stopped"),
+        STARTING("starting"),
+        STARTED("started"),
+        HALTED("halted"),
+        STOPPING("stopping");
+
+        private final String _name;
+
+        Status(String name){
+            _name = name;
+        }
+
+        @Override
+        public String toString(){
+            return _name;
+        }
     }
 
     interface Listener extends EventListener {

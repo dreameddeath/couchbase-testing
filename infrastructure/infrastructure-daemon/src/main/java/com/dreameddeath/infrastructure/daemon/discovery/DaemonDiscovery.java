@@ -40,7 +40,7 @@ public class DaemonDiscovery implements IDaemonDiscovery {
     }
 
     private String getAndCreateRootPath() throws Exception {
-        String path = DaemonConfigProperties.DAEMON_REGISTER_PATH.getMandatoryValue("The sleep time is not set");
+        String path = DaemonConfigProperties.DAEMON_REGISTER_PATH.getMandatoryValue("The daemon registering path isn't set");
         if (!path.startsWith("/")) {
             path = "/" + path;
         }

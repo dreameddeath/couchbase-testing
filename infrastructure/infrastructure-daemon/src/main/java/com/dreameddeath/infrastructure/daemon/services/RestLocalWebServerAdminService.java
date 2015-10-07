@@ -23,6 +23,8 @@ import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusUpd
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -35,6 +37,7 @@ import java.util.List;
 @Api(value = "/", description = "Daemon Webservers Administration service")
 @Path("/")
 public class RestLocalWebServerAdminService {
+    private static final Logger LOG = LoggerFactory.getLogger(RestLocalWebServerAdminService.class);
     private AbstractDaemon _daemon;
 
     public void setDaemon(AbstractDaemon daemon){
@@ -87,14 +90,17 @@ public class RestLocalWebServerAdminService {
     public StatusResponse putStatus(@PathParam("name") String name, StatusUpdateRequest statusUpdateRequest){
         AbstractWebServer webServer = findByName(name);
         try{
-            switch (statusUpdateRequest.getStatus()){
+            switch (statusUpdateRequest.getAction()){
                 case START:
+                    LOG.info("Starting webServer {}",webServer.getName());
                     webServer.start();
                     break;
                 case STOP:
+                    LOG.info("Stopping webServer {}",webServer.getName());
                     webServer.stop();
                     break;
                 case RESTART:
+                    LOG.info("Restarting webServer {}",webServer.getName());
                     webServer.stop();
                     webServer.start();
                     break;

@@ -146,7 +146,7 @@ public class AbstractDaemonTest extends Assert {
                     LOG.info("Request halting the web server");
 
                     StatusUpdateRequest request = new StatusUpdateRequest();
-                    request.setStatus(StatusUpdateRequest.Status.HALT);
+                    request.setAction(StatusUpdateRequest.Action.HALT);
                     StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
                             .getClient("daemon#admin#status", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
@@ -164,7 +164,7 @@ public class AbstractDaemonTest extends Assert {
                 try {
                     LOG.info("Request stopping the web server");
                     StatusUpdateRequest request = new StatusUpdateRequest();
-                    request.setStatus(StatusUpdateRequest.Status.STOP);
+                    request.setAction(StatusUpdateRequest.Action.STOP);
                     StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
                             .getClient("daemon#admin#status", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))

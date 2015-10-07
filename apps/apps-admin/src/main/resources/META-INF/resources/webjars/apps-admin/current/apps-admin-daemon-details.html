@@ -25,10 +25,32 @@
   <div class="row"><div class="col-md-3">Port</div><div class="col-md-9">{{daemonInfo.port}}</div></div>
   <div class="row"><div class="col-md-3">Status</div><div class="col-md-9">{{daemonInfo.status}}</div></div>
   <div class="row"><div class="col-md-12">
-    <div class="h4">WebServers</div>
-    <div class="row" ng-repeat="webServerName in daemonInfo.webServerList">
-      <div class="col-xs-3">Name</div><div class="col-xs-9">{{webServerName}}</div>
-    </div>
+    <tbody ng-if="daemonInfo.webServers.length<>0">
+      <div class="h4">WebServers</div>
+      <table class="table table-striped">
+        <thead>
+        <tr>
+          <th>name</th>
+          <th>address</th>
+          <th>status</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+      <tr ng-repeat="webserver in daemonInfo.webServers | orderBy:'name'">
+        <td>{{webserver.name}}</td>
+        <td>{{webserver.name}}</td>
+        <td>{{webserver.address}}:{{webserver.port}}</td>
+        <td><span ng-class="{'label label-success':webserver.isStarted(),'label label-danger':webserver.isStopped(),'label label-warning':webserver.isOtherStatus()}">{{webserver.status}}</span></td>
+        <td>
+          <div class="btn-group btn-group-xs">
+            <button type="button" class="btn btn-success" ng-click="webserver.start()" ng-class="{'active disabled':webserver.isStarted()}" aria-label="start weberserver"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
+            <button type="button" class="btn btn-danger" ng-click="webserver.stop()" ng-class="{'active disabled':webserver.isStopped()}" aria-label="stop weberserver"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>
+            <button type="button" class="btn btn-info" ng-click="webserver.restart()" ng-class="{'active disabled':webserver.isStopped()}" aria-label="stop weberserver"><span class="glyphicon glyphicon-retweet" aria-hidden="true"></span></button>
+          </div>
+        </td>
+      </tr>
+    </tbody></table>
   </div></div>
 </div>
 <div class="modal-footer">

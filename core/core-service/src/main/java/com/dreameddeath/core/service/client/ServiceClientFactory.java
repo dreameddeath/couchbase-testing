@@ -27,8 +27,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 //import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
@@ -39,7 +37,11 @@ import java.util.concurrent.ConcurrentMap;
 public class ServiceClientFactory {
     private static final Set<String> VARIABLE_TO_IGNORE = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("scheme","port","address")));
     private final ServiceDiscoverer _serviceDiscoverer;
-    private ConcurrentMap<String,WebTarget> _clientPerUri = new ConcurrentHashMap<>();
+    private final ThreadLocal<Map<String,WebTarget>> _clientPerUri = new ThreadLocal<Map<String,WebTarget>>() {
+        protected Map<String,WebTarget> initialValue() {
+            return new HashMap<>();
+        }
+    };
 
     public static String buildUri(ServiceInstance<ServiceDescription> serviceDescr){
         Map<String,Object> params = new TreeMap<>();
@@ -58,7 +60,7 @@ public class ServiceClientFactory {
     public WebTarget getClient(String serviceName,String serviceVersion){
         try{
             String uri = buildUri(_serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion)));
-            return _clientPerUri.computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
+            return _clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
         }
         catch(ServiceDiscoveryException e){
             throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
@@ -70,7 +72,7 @@ public class ServiceClientFactory {
     public WebTarget getClient(String serviceName,String serviceVersion,String uid){
         try{
             String uri = buildUri(_serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion),uid));
-            return _clientPerUri.computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
+            return _clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
         }
         catch(ServiceDiscoveryException e){
             throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);

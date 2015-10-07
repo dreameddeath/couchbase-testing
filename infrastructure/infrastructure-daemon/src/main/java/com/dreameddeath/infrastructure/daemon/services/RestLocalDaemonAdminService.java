@@ -26,6 +26,8 @@ import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusRespon
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -37,6 +39,7 @@ import javax.ws.rs.core.MediaType;
 @ServiceDef(name= RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,status = VersionStatus.STABLE)
 @Api(value = "/daemon", description = "Daemon Administration service")
 public class RestLocalDaemonAdminService extends AbstractExposableService {
+    private static final Logger LOG = LoggerFactory.getLogger(RestLocalDaemonAdminService.class);
     public static final String DAEMON_SERVICE_NAME ="daemon#admin#status";
     public static final String DAEMON_SERVICE_VERSION ="1.0";
 
@@ -82,13 +85,15 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
             position = 1)
     public StatusResponse setStatus(StatusUpdateRequest statusUpdateRequest){
         try{
-            if (statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.START) {
+            if (statusUpdateRequest.getAction() == StatusUpdateRequest.Action.START) {
+                LOG.info("Starting {}/{}",daemon.getName(),daemon.getUuid());
                 daemon.getDaemonLifeCycle().start();
             }
-            else if(statusUpdateRequest.getStatus() == StatusUpdateRequest.Status.STOP) {
+            else if(statusUpdateRequest.getAction() == StatusUpdateRequest.Action.STOP) {
                 new Thread(() -> {
                     try {
                         Thread.sleep(100);
+                        LOG.info("Stopping {}/{}", daemon.getName(), daemon.getUuid());
                         daemon.getDaemonLifeCycle().stop();
                     }
                     catch(Exception e){
@@ -98,6 +103,7 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
                 return buildStatus(IDaemonLifeCycle.Status.STOPPING);
             }
             else{
+                LOG.info("Halting {}/{}",daemon.getName(),daemon.getUuid());
                 daemon.getDaemonLifeCycle().halt();
             }
         }

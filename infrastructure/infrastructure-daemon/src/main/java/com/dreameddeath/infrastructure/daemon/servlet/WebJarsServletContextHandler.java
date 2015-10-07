@@ -41,6 +41,9 @@ public class WebJarsServletContextHandler extends ServletContextHandler {
         ServletHolder webJarsServletHandler = new ServletHolder(new WebJarsServlet());
         webJarsServletHandler.setName("WebJars Servlet Holder");
         webJarsServletHandler.setInitParameter(WebJarsServlet.PREFIX_WEBJARS_PARAM_NAME, ServletUtils.normalizePath(new String[]{path, libsSubPath}, true));
+        if(forTesting){
+            webJarsServletHandler.setInitParameter("cacheControl","max-age=0,public");
+        }
         webJarsServletHandler.setInitOrder(2);
         this.addServlet(webJarsServletHandler, ServletUtils.normalizePath(libsSubPath, true) + "*");
     }
