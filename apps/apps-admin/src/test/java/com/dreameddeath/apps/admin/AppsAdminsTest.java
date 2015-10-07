@@ -24,6 +24,7 @@ import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -33,22 +34,20 @@ import java.util.List;
  * Created by Christophe Jeunesse on 29/09/2015.
  */
 public class AppsAdminsTest {
+    public final static boolean USE_SOURCE_DIRECTORY=false;
     private List<AbstractDaemon> _daemons=new ArrayList<>();
 
     private CuratorTestUtils _testUtils;
-    @Before
-    public void setup() throws Exception{
-        _testUtils = new CuratorTestUtils();
-        _testUtils.prepare(1);
-    }
 
     @Before
     public void runServer() throws Exception{
+        _testUtils = new CuratorTestUtils();
+        _testUtils.prepare(1);
         String connectionString = _testUtils.getCluster().getConnectString();
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         CuratorFramework client = _testUtils.getClient("testingDaemons");
         AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client).build();
-        daemon.addStandardWebServer(WebAppWebServer.builder().withName("apps-admin-tests").withApplicationContextConfig("testadmin.applicationContext.xml").withApiPath("/apis"));
+        daemon.addStandardWebServer(WebAppWebServer.builder().withName("apps-admin-tests").withApplicationContextConfig("testadmin.applicationContext.xml").withApiPath("/apis").withForTesting(USE_SOURCE_DIRECTORY));
         _daemons.add(daemon);
         daemon.getDaemonLifeCycle().start();
         final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client).build();
@@ -57,9 +56,9 @@ public class AppsAdminsTest {
 
     }
 
-    @Test
+    @Test @Ignore
     public void runTest(){
-        /*try {
+        try {
             System.out.println(">>> STARTING webserver : http://localhost:"+_daemons.get(0).getAdditionnalWebServers().get(0).getServerConnector().getLocalPort()+"/webapp/");
             System.out.println(">>> STARTING EMBEDDED JETTY SERVER, PRESS ANY KEY TO STOP");
             while (System.in.available() == 0) {
@@ -68,7 +67,7 @@ public class AppsAdminsTest {
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(100);
-        }*/
+        }
     }
 
 

@@ -20,6 +20,9 @@ package com.dreameddeath.infrastructure.daemon.servlet;
  * Created by Christophe Jeunesse on 28/08/2015.
  */
 public abstract class ServletUtils {
+    public static final String LOCAL_WEBAPP_SRC="src/main/resources";
+
+
     public static String normalizePath(String path, boolean withEndingSlash){
         path = path.replaceAll("^/+","");
         path = path.replaceAll("/+$","");
@@ -35,4 +38,6 @@ public abstract class ServletUtils {
         }
         return normalizePath(fullPath,withEndingSlash);
     }
+
+
 }

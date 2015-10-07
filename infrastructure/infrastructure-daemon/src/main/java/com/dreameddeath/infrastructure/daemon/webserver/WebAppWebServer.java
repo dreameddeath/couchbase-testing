@@ -38,7 +38,7 @@ public class WebAppWebServer extends AbstractWebServer {
 
         WebAppServletContextHandler webAppHandler = new WebAppServletContextHandler(builder._path,builder._resourcePath);
         handlersList.add(webAppHandler);
-        WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(builder.getLibsPath(),builder._webJarsSubPath);
+        WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(builder.getLibsPath(),builder._webJarsSubPath,builder._forTesting);
         handlersList.add(webJarHandler);
         if(builder._withProxy){
             handlersList.add(new ProxyServletContextHandler(this,builder._discoverPaths));
@@ -74,6 +74,7 @@ public class WebAppWebServer extends AbstractWebServer {
         private String _libSubPath = "libs";
         private String _webJarsSubPath = "webjars";
         private String _resourcePath="classpath:META-INF/resources/webapp";
+        private boolean _forTesting = false;
         private boolean _withProxy = false;
         private List<String> _discoverPaths=new ArrayList<>();
         private boolean _withApis=false;
@@ -103,6 +104,11 @@ public class WebAppWebServer extends AbstractWebServer {
 
         public Builder withDiscoverPaths(List<String> discoverPaths) {
             _discoverPaths = discoverPaths;
+            return this;
+        }
+
+        public Builder withForTesting(boolean forTesting) {
+            _forTesting = forTesting;
             return this;
         }
 

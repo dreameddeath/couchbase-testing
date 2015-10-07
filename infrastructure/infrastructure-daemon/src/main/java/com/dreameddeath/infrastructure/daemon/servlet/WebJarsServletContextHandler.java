@@ -23,20 +23,25 @@ import org.eclipse.jetty.servlet.ServletHolder;
  * Created by Christophe Jeunesse on 28/08/2015.
  */
 public class WebJarsServletContextHandler extends ServletContextHandler {
-    public WebJarsServletContextHandler(String path,String libsSubPath){
+    public static String APPS_WEBJARS_LIBS_FOR_TESTING="manual_testing";
+
+    public WebJarsServletContextHandler(String path,String libsSubPath,boolean forTesting){
         this.setContextPath(ServletUtils.normalizePath(path, false));
         this.setDisplayName("WebJars deliveries");
-        this.setInitParameter(RequireJsServlet.APPS_WEBJARS_LIBS_FULL_PATH,ServletUtils.normalizePath(new String[]{path,libsSubPath}, true));
+        if(forTesting) {
+            this.setInitParameter(APPS_WEBJARS_LIBS_FOR_TESTING, "true");
+        }
 
         ServletHolder requireJsServletHolder = new ServletHolder(new RequireJsServlet());
         requireJsServletHolder.setName("WebJars RequireJs Holder");
+        requireJsServletHolder.setInitParameter(RequireJsServlet.APPS_WEBJARS_LIBS_FULL_PATH, ServletUtils.normalizePath(new String[]{path, libsSubPath}, true));
         requireJsServletHolder.setInitOrder(1);
         this.addServlet(requireJsServletHolder,"/requirejs_cfg.js");
 
         ServletHolder webJarsServletHandler = new ServletHolder(new WebJarsServlet());
         webJarsServletHandler.setName("WebJars Servlet Holder");
-        webJarsServletHandler.setInitParameter(WebJarsServlet.PREFIX_WEBJARS_PARAM_NAME,ServletUtils.normalizePath(new String[]{path,libsSubPath}, true));
+        webJarsServletHandler.setInitParameter(WebJarsServlet.PREFIX_WEBJARS_PARAM_NAME, ServletUtils.normalizePath(new String[]{path, libsSubPath}, true));
         webJarsServletHandler.setInitOrder(2);
-        this.addServlet(webJarsServletHandler,ServletUtils.normalizePath(libsSubPath,true)+"*");
+        this.addServlet(webJarsServletHandler, ServletUtils.normalizePath(libsSubPath, true) + "*");
     }
 }
