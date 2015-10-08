@@ -36,9 +36,9 @@ public class WebAppWebServer extends AbstractWebServer {
         super(builder);
         List<ServletContextHandler> handlersList = new ArrayList<>();
 
-        WebAppServletContextHandler webAppHandler = new WebAppServletContextHandler(builder._path,builder._resourcePath);
+        WebAppServletContextHandler webAppHandler = new WebAppServletContextHandler(this,builder._path,builder._resourcePath);
         handlersList.add(webAppHandler);
-        WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(builder.getLibsPath(),builder._webJarsSubPath,builder._forTesting);
+        WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(this,builder.getLibsPath(),builder._webJarsSubPath,builder._forTesting);
         handlersList.add(webJarHandler);
         if(builder._withProxy){
             handlersList.add(new ProxyServletContextHandler(this,builder._discoverPaths));

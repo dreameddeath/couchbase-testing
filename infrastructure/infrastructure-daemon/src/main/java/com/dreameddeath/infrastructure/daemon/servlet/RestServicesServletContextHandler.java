@@ -22,7 +22,6 @@ import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.springframework.web.context.ContextLoaderListener;
 
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
@@ -31,27 +30,25 @@ public class RestServicesServletContextHandler extends ServletContextHandler {
     public static final String SERVICE_DISCOVERER_MANAGER_PARAM_NAME = "serviceDiscovererManager";
     public static final String END_POINT_INFO_SERVLET_PARAM_NAME = "endPointInfo";
 
-    private final AbstractWebServer _parentServer;
 
     public RestServicesServletContextHandler(AbstractWebServer parentServer,String applicationContextConfig,String path,ServiceDiscoveryManager serviceDiscoveryManager){
-        _parentServer = parentServer;
+        super(parentServer.getWebServer(),null);
         path = ServletUtils.normalizePath(path,false);
         this.setContextPath(path);
         this.setDisplayName("Self registered Web Services");
-        this.setInitParameter("contextConfigLocation", "classpath:" + applicationContextConfig);
-        this.addEventListener(new ContextLoaderListener());
 
         //Init Cxf context handler
         ServletHolder cxfHolder = new ServletHolder("rest-service-servlet",CXFServlet.class);
         cxfHolder.setName("Self registered Web Services Cxf Holder");
         cxfHolder.setInitOrder(1);
+        cxfHolder.setInitParameter("config-location",applicationContextConfig);
         this.addServlet(cxfHolder, "/*");
 
         //Setup standardized elements
-        this.setAttribute(AbstractWebServer.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME, _parentServer.getParentDaemon().getCuratorClient());
-        this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PARAM_NAME, _parentServer.getParentDaemon());
-        this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, _parentServer.getParentDaemon().getDaemonLifeCycle());
+        this.setAttribute(AbstractWebServer.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME, parentServer.getParentDaemon().getCuratorClient());
+        this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PARAM_NAME, parentServer.getParentDaemon());
+        this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, parentServer.getParentDaemon().getDaemonLifeCycle());
         this.setAttribute(SERVICE_DISCOVERER_MANAGER_PARAM_NAME, serviceDiscoveryManager);
-        this.setAttribute(END_POINT_INFO_SERVLET_PARAM_NAME, new StandardDaemonRestEndPointDescription(_parentServer.getServerConnector(),path));
+        this.setAttribute(END_POINT_INFO_SERVLET_PARAM_NAME, new StandardDaemonRestEndPointDescription(parentServer.getServerConnector(),path));
     }
 }

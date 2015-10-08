@@ -45,6 +45,7 @@
                             <button type="button" class="btn btn-success" ng-click="daemon.start()" ng-class="{'active disabled':daemon.isStarted()}" aria-label="start daemon"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
                             <button type="button" class="btn btn-warning" ng-click="daemon.halt()" ng-class="{'active disabled':daemon.isOtherStatus()}" aria-label="pause daemon"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>
                             <button type="button" class="btn btn-danger" ng-click="daemon.stop()" ng-class="{'active disabled':daemon.isStopped()}" aria-label="stop daemon"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-primary" ng-click="daemon.refreshStatus()" ng-class="{'active disabled':daemon.isStopped()}" aria-label="refresh daemon status"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
                         </div>
                     </td>
                 </tr>

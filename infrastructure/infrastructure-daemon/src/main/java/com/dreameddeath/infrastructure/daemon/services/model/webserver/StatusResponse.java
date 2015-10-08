@@ -24,6 +24,25 @@ import org.joda.time.DateTime;
  */
 public class StatusResponse {
     private AbstractWebServer.Status status;
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
+    }
+
+    private String address;
+    private String port;
     private DateTime startDateTime;
 
     public AbstractWebServer.Status getStatus() {

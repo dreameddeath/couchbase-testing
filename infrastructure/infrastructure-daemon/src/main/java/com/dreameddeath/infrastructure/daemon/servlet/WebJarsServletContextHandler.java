@@ -16,6 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.servlet;
 
+import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
@@ -25,7 +26,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 public class WebJarsServletContextHandler extends ServletContextHandler {
     public static String APPS_WEBJARS_LIBS_FOR_TESTING="manual_testing";
 
-    public WebJarsServletContextHandler(String path,String libsSubPath,boolean forTesting){
+    public WebJarsServletContextHandler(AbstractWebServer parent,String path,String libsSubPath,boolean forTesting){
+        super(parent.getWebServer(),null);
         this.setContextPath(ServletUtils.normalizePath(path, false));
         this.setDisplayName("WebJars deliveries");
         if(forTesting) {
@@ -36,7 +38,7 @@ public class WebJarsServletContextHandler extends ServletContextHandler {
         requireJsServletHolder.setName("WebJars RequireJs Holder");
         requireJsServletHolder.setInitParameter(RequireJsServlet.APPS_WEBJARS_LIBS_FULL_PATH, ServletUtils.normalizePath(new String[]{path, libsSubPath}, true));
         requireJsServletHolder.setInitOrder(1);
-        this.addServlet(requireJsServletHolder,"/requirejs_cfg.js");
+        this.addServlet(requireJsServletHolder, "/requirejs_cfg.js");
 
         ServletHolder webJarsServletHandler = new ServletHolder(new WebJarsServlet());
         webJarsServletHandler.setName("WebJars Servlet Holder");

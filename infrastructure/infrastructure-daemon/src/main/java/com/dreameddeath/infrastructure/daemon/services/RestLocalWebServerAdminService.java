@@ -20,6 +20,7 @@ import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
 import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusUpdateRequest;
+import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -77,7 +78,7 @@ public class RestLocalWebServerAdminService {
             response = StatusResponse.class,
             position = 2)
     public StatusResponse getStatus(@PathParam("name") String name){
-        return buildStatus(findByName(name).getStatus());
+        return buildStatus(findByName(name));
     }
 
     @PUT
@@ -111,13 +112,15 @@ public class RestLocalWebServerAdminService {
         }
 
 
-        return buildStatus(webServer.getStatus());
+        return buildStatus(webServer);
     }
 
 
-    protected StatusResponse buildStatus(AbstractWebServer.Status status){
+    protected StatusResponse buildStatus(AbstractWebServer webServer){
         StatusResponse result = new StatusResponse();
-        result.setStatus(status);
+        result.setAddress(ServerConnectorUtils.getConnectorHost(webServer.getServerConnector()));
+        result.setPort(ServerConnectorUtils.getConnectorPortString(webServer.getServerConnector()));
+        result.setStatus(webServer.getStatus());
         return result;
     }
 

@@ -56,6 +56,11 @@ public abstract class AbstractWebServer {
         return null;
     }
 
+
+    public void initWebserver(Builder builder){
+
+    }
+
     public AbstractWebServer(Builder builder) {
         _parentDaemon = builder._daemon;
         _name = builder._name;

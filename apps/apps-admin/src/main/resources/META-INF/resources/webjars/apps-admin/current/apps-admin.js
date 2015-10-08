@@ -15,24 +15,34 @@ define(['angular','angular-route','angular-animate','apps-admin-resource','ui-bo
                     for(var attr in serverInfo){
                         this[attr] = serverInfo[attr];
                     }
+                    this.type = this['className'].substring(this['className'].lastIndexOf('.')+1);
                     this.isStarted=function(){return this.status.toLowerCase()=="started" || this.status.toLowerCase()=="running" ;};
                     this.isStopped=function(){return this.status.toLowerCase()=="stopped";};
+                    this.updateFromStatusResponse=function(statusResponse){
+                        this.address = statusResponse.address;
+                        this.status = statusResponse.status;
+                        this.port = statusResponse.port;
+                    };
                     this.start=function(){
                         DaemonWebServerStatusService.put({uid:daemonUid,wid:this.name},{action:"START"},function(statusResult){
-                            self.status=statusResult.status;
+                            self.updateFromStatusResponse(statusResult);
                         });
                     };
                     this.stop=function(){
                         DaemonWebServerStatusService.put({uid:daemonUid,wid:this.name},{action:"STOP"},function(statusResult){
-                            self.status=statusResult.status;
+                            self.updateFromStatusResponse(statusResult);
                         });
                     };
                     this.restart=function(){
                         DaemonWebServerStatusService.put({uid:daemonUid,wid:this.name},{action:"RESTART"},function(statusResult){
-                            self.status=statusResult.status;
+                            self.updateFromStatusResponse(statusResult);
                         });
                     };
-
+                    this.refreshStatus=function(){
+                        DaemonWebServerStatusService.get({uid:daemonUid,wid:this.name},function(statusResult){
+                            self.updateFromStatusResponse(statusResult);
+                        });
+                    }
                     return this;
                 };
 
@@ -48,6 +58,7 @@ define(['angular','angular-route','angular-animate','apps-admin-resource','ui-bo
                         if(attr=="webServerList") continue;
                         this[attr] = daemonInfo[attr];
                     }
+                    this.type = this['className'].substring(this['className'].lastIndexOf('.')+1);
 
                     this.isStarted=function(){return self.status.toLowerCase()=="started";};
                     this.isStopped=function(){return self.status.toLowerCase()=="stopped";};
@@ -64,19 +75,33 @@ define(['angular','angular-route','angular-animate','apps-admin-resource','ui-bo
                                    }
                                  }
                                })};
+                    this.refreshWebServers=function(){
+                        for(var serverId=0;serverId<this.webServers.length;++serverId){
+                            this.webServers[serverId].refreshStatus();
+                        }
+                    }
+                    this.refreshStatusFromResponse=function(statusResponse){
+                        this.status=statusResponse.status;
+                        this.refreshWebServers()
+                    };
                     this.start=function(){
                         DaemonStatusService.put({uid:this.uuid},{action:"START"},function(statusResult){
-                            self.status=statusResult.status;
+                            self.refreshStatusFromResponse(statusResult);
                         });
                     }
                     this.halt=function(){
                         DaemonStatusService.put({uid:this.uuid},{action:"HALT"},function(statusResult){
-                            self.status=statusResult.status;
+                            self.refreshStatusFromResponse(statusResult);
                         });
                     }
                     this.stop=function(){
                         DaemonStatusService.put({uid:this.uuid},{action:"STOP"},function(statusResult){
-                            self.status=statusResult.status;
+                            self.refreshStatusFromResponse(statusResult);
+                        });
+                    }
+                    this.refreshStatus=function(){
+                        DaemonStatusService.get({uid:this.uuid},function(statusResult){
+                            self.refreshStatusFromResponse(statusResult);
                         });
                     }
                     return this;

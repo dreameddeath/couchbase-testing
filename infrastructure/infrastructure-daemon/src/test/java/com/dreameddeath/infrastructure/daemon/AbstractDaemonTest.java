@@ -60,8 +60,8 @@ public class AbstractDaemonTest extends Assert {
         String connectionString = _testUtils.getCluster().getConnectString();
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         final AbstractDaemon daemon=AbstractDaemon.builder().withName("testing Daemon").build();
-        daemon.addStandardWebServer(RestWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));
-        daemon.addProxyWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverPath("tests/services"));
+        daemon.addWebServer(RestWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));
+        daemon.addWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverPath("tests/services"));
         Thread stopping_thread = new Thread(new Runnable() {
             @Override
             public void run() {

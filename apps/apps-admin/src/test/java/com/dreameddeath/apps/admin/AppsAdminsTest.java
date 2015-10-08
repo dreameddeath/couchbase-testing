@@ -19,6 +19,7 @@ package com.dreameddeath.apps.admin;
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.WebAppWebServer;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -34,9 +35,8 @@ import java.util.List;
  * Created by Christophe Jeunesse on 29/09/2015.
  */
 public class AppsAdminsTest {
-    public final static boolean USE_SOURCE_DIRECTORY=false                                                                                           ;
+    public final static boolean MANUAL_TEST_MODE =true;
     private List<AbstractDaemon> _daemons=new ArrayList<>();
-
     private CuratorTestUtils _testUtils;
 
     @Before
@@ -47,10 +47,11 @@ public class AppsAdminsTest {
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         CuratorFramework client = _testUtils.getClient("testingDaemons");
         AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client).build();
-        daemon.addStandardWebServer(WebAppWebServer.builder().withName("apps-admin-tests").withApplicationContextConfig("testadmin.applicationContext.xml").withApiPath("/apis").withForTesting(USE_SOURCE_DIRECTORY));
+        daemon.addWebServer(WebAppWebServer.builder().withName("apps-admin-tests").withApplicationContextConfig("testadmin.applicationContext.xml").withApiPath("/apis").withForTesting(MANUAL_TEST_MODE));
         _daemons.add(daemon);
         daemon.getDaemonLifeCycle().start();
         final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client).build();
+        daemon2.addWebServer(RestWebServer.builder().withName("testing-rest").withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
         _daemons.add(daemon2);
         daemon2.getDaemonLifeCycle().start();
     }

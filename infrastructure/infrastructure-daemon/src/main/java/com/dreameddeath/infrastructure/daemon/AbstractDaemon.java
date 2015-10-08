@@ -121,19 +121,19 @@ public class AbstractDaemon {
         return _uuid;
     }
 
-    synchronized public RestWebServer addStandardWebServer(RestWebServer.Builder builder){
+    synchronized public RestWebServer addWebServer(RestWebServer.Builder builder){
         RestWebServer newWebServer  = new RestWebServer(builder.withDaemon(this));
         _additionnalWebServers.add(newWebServer);
         return newWebServer;
     }
 
-    synchronized public ProxyWebServer addProxyWebServer(ProxyWebServer.Builder builder){
+    synchronized public ProxyWebServer addWebServer(ProxyWebServer.Builder builder){
         ProxyWebServer newWebServer  = new ProxyWebServer(builder.withDaemon(this));
         _additionnalWebServers.add(newWebServer);
         return newWebServer;
     }
 
-    synchronized public WebAppWebServer addStandardWebServer(WebAppWebServer.Builder builder){
+    synchronized public WebAppWebServer addWebServer(WebAppWebServer.Builder builder){
         WebAppWebServer newWebServer  = new WebAppWebServer(builder.withDaemon(this));
         _additionnalWebServers.add(newWebServer);
         return newWebServer;
