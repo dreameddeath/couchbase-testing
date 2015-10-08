@@ -35,7 +35,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 29/09/2015.
  */
 public class AppsAdminsTest {
-    public final static boolean MANUAL_TEST_MODE =true;
+    public final static boolean MANUAL_TEST_MODE =false;
     private List<AbstractDaemon> _daemons=new ArrayList<>();
     private CuratorTestUtils _testUtils;
 

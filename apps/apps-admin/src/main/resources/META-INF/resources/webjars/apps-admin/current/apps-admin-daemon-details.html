@@ -15,46 +15,49 @@
   -->
 
 <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="ok()"><span aria-hidden="true">&times;</span></button>
     <h3 class="modal-title">Details of daemon</h3>
 </div>
 <div class="modal-body">
-  <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{daemonInfo.uuid}}</div></div>
-  <div class="row"><div class="col-md-3">Name</div><div class="col-md-9">{{daemonInfo.name}}</div></div>
-  <div class="row"><div class="col-md-3">Type</div><div class="col-md-9">{{daemonInfo.type}}</div></div>
-  <div class="row"><div class="col-md-3">Class</div><div class="col-md-9">{{daemonInfo.className}}</div></div>
-  <div class="row"><div class="col-md-3">Address</div><div class="col-md-9">{{daemonInfo.address}}</div></div>
-  <div class="row"><div class="col-md-3">Port</div><div class="col-md-9">{{daemonInfo.port}}</div></div>
-  <div class="row"><div class="col-md-3">Status</div><div class="col-md-9">{{daemonInfo.status}}</div></div>
-  <div class="row"><div class="col-md-12">
-    <tbody ng-if="daemonInfo.webServers.length<>0">
-      <div class="h4">WebServers</div>
-      <table class="table table-striped">
-        <thead>
-        <tr>
-          <th>name</th>
-          <th>type</th>
-          <th>address</th>
-          <th>status</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-      <tr ng-repeat="webserver in daemonInfo.webServers | orderBy:'name'">
-        <td>{{webserver.name}}</td>
-        <td>{{webserver.type}}</td>
-        <td>{{webserver.address}}:{{webserver.port}}</td>
-        <td><span ng-class="{'label label-success':webserver.isStarted(),'label label-danger':webserver.isStopped(),'label label-warning':webserver.isOtherStatus()}">{{webserver.status}}</span></td>
-        <td>
-          <div class="btn-group btn-group-xs">
-            <button type="button" class="btn btn-success" ng-click="webserver.start()" ng-class="{'active disabled':webserver.isStarted()}" aria-label="start weberserver"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
-            <button type="button" class="btn btn-danger" ng-click="webserver.stop()" ng-class="{'active disabled':webserver.isStopped()}" aria-label="stop weberserver"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>
-            <button type="button" class="btn btn-info" ng-click="webserver.restart()" ng-class="{'active disabled':webserver.isStopped()}" aria-label="stop weberserver"><span class="glyphicon glyphicon-retweet" aria-hidden="true"></span></button>
-            <button type="button" class="btn btn-primary" ng-click="webserver.refreshStatus()" aria-label="refresh weberserver status"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
-          </div>
-        </td>
-      </tr>
-    </tbody></table>
-  </div></div>
+    <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{daemonInfo.uuid}}</div></div>
+    <div class="row"><div class="col-md-3">Name</div><div class="col-md-9">{{daemonInfo.name}}</div></div>
+    <div class="row"><div class="col-md-3">Type</div><div class="col-md-9">{{daemonInfo.type}}</div></div>
+    <div class="row"><div class="col-md-3">Class</div><div class="col-md-9">{{daemonInfo.className}}</div></div>
+    <div class="row"><div class="col-md-3">Address</div><div class="col-md-9">{{daemonInfo.address}}</div></div>
+    <div class="row"><div class="col-md-3">Port</div><div class="col-md-9">{{daemonInfo.port}}</div></div>
+    <div class="row"><div class="col-md-3">Status</div><div class="col-md-9">{{daemonInfo.status}}</div></div>
+    <div class="row"><div class="col-md-12">
+        <div class="panel panel-default" ng-if="daemonInfo.webServers.length!=0">
+            <div class="panel-heading">WebServers</div>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>name</th>
+                    <th>type</th>
+                    <th>address</th>
+                    <th>status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="webserver in daemonInfo.webServers | orderBy:'name'">
+                    <td>{{webserver.name}}</td>
+                    <td>{{webserver.type}}</td>
+                    <td>{{webserver.address}}:{{webserver.port}}</td>
+                    <td><span ng-class="{'label label-success':webserver.isStarted(),'label label-danger':webserver.isStopped(),'label label-warning':webserver.isOtherStatus()}">{{webserver.status}}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-xs">
+                            <button type="button" class="btn btn-success" ng-click="webserver.start()" ng-class="{'active disabled':webserver.isStarted()}" aria-label="start weberserver"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-danger" ng-click="webserver.stop()" ng-class="{'active disabled':webserver.isStopped()}" aria-label="stop weberserver"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-info" ng-click="webserver.restart()" ng-class="{'active disabled':webserver.isStopped()}" aria-label="stop weberserver"><span class="glyphicon glyphicon-retweet" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-primary" ng-click="webserver.refreshStatus()" aria-label="refresh weberserver status"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div></div>
 </div>
 <div class="modal-footer">
     <button class="btn btn-primary" type="button" ng-click="ok()">OK</button>
