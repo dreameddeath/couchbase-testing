@@ -83,6 +83,9 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
     public AbstractConfigProperty(PropertyWrapper<T> wrapper) {
         _wrapper = wrapper;
         ConfigPropertyFactory.addPropertyToGlobalMap(this);
+        if(!(wrapper instanceof ReferencePropertyWrapper)&& (wrapper.getDefaultValue()!=null)) {
+            ConfigManagerFactory.addDefaultConfigurationEntry(wrapper.getName(), wrapper.getDefaultValue());
+        }
     }
 
     public AbstractConfigProperty(PropertyWrapper<T> wrapper, ConfigPropertyChangedCallback<T> callback) {

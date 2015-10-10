@@ -18,8 +18,10 @@ package com.dreameddeath.core.config;
 
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.config.impl.*;
+import com.dreameddeath.core.config.spring.ConfigPropertySource;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.core.env.PropertySource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +32,18 @@ import static org.junit.Assert.*;
 
 public class ConfigPropertyFactoryTest {
     private static double delta=0.0000001d;
+
+    private static StringConfigProperty propertyWithDefault=ConfigPropertyFactory.getStringProperty("test.default.for.property.source","defaultValue for Property Source");
+
+
+    @Test
+    public void testConfigPropertySource(){
+        PropertySource source = new ConfigPropertySource("core-config");
+        assertTrue(source.containsProperty("test.default.for.property.source"));
+        assertEquals("defaultValue for Property Source", source.getProperty("test.default.for.property.source"));
+        ConfigManagerFactory.addConfigurationEntry("test.default.for.property.source", "overriden property");
+        assertEquals("overriden property", source.getProperty("test.default.for.property.source"));
+    }
 
     @Test
     public void testAddConfigurationEntry() throws Exception {
@@ -222,7 +236,7 @@ public class ConfigPropertyFactoryTest {
 
     @Test
     public void testGetStringListProperty() throws Exception {
-        final AtomicBoolean callbackCalled=new AtomicBoolean(false);
+        final AtomicInteger callbackCalled=new AtomicInteger(0);
         final String firstValueString= "1st Value,1st Value";
         final List<String> firstValueList= Arrays.asList("1st Value","1st Value");
         final String secondValueString="2nd Value,2nd Value";
@@ -232,7 +246,7 @@ public class ConfigPropertyFactoryTest {
         StringListConfigProperty callBackProp = ConfigPropertyFactory.getStringListProperty("callback.prop.stringlist", firstValueString, (prop1, oldValue, newValue) -> {
             assertEquals(oldValue, firstValueList);
             assertEquals(newValue, secondValue);
-            callbackCalled.set(true);
+            callbackCalled.incrementAndGet();
         });
 
 
@@ -240,14 +254,14 @@ public class ConfigPropertyFactoryTest {
         assertEquals(firstValueList,prop.get());
         //With callback
         assertEquals(firstValueList, callBackProp.get());
-        assertFalse(callbackCalled.get());
+        assertEquals(0,callbackCalled.get());
         //Set and Check Overridden Property
         ConfigManagerFactory.addConfigurationEntry("prop.stringlist", secondValueString);
         assertEquals(secondValue, prop.get());
         //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.stringlist", secondValueString);
         assertEquals(secondValue, callBackProp.get());
-        assertTrue(callbackCalled.get());
+        assertEquals(1,callbackCalled.get());
     }
 
     @Test

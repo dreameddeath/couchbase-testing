@@ -19,17 +19,24 @@ package com.dreameddeath.core.config;
 import com.netflix.config.ConcurrentCompositeConfiguration;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
+import org.apache.commons.configuration.BaseConfiguration;
 
 /**
  * Created by Christophe Jeunesse on 20/01/2015.
  */
 public class ConfigManagerFactory {
-
+    private final static BaseConfiguration _defaultValueConfig;
     static{
         //*TODO manage configuration overloading
+        _defaultValueConfig = new BaseConfiguration();
+
         ConcurrentCompositeConfiguration myConfiguration =
                 (ConcurrentCompositeConfiguration) DynamicPropertyFactory.getInstance().getBackingConfigurationSource();
 
+        if(ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration){
+            ConcurrentCompositeConfiguration config = (ConcurrentCompositeConfiguration) ConfigurationManager.getConfigInstance();
+            config.addConfiguration(_defaultValueConfig);
+        }
         myConfiguration.addConfigurationListener(configurationEvent -> {
             if(configurationEvent.isBeforeUpdate()){
                 String name=configurationEvent.getPropertyName();
@@ -41,5 +48,5 @@ public class ConfigManagerFactory {
     }
 
     public static void addConfigurationEntry(String entry,Object value){ConfigurationManager.getConfigInstance().setProperty(entry, value);}
-
+    public static void addDefaultConfigurationEntry(String entry,Object value){_defaultValueConfig.setProperty(entry, value);}
 }

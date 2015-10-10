@@ -17,15 +17,14 @@
 package com.dreameddeath.infrastructure.daemon.servlet;
 
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
  */
-public class WebAppServletContextHandler extends ServletContextHandler {
+public class WebAppServletContextHandler extends AbstractServletContextHandler {
     public WebAppServletContextHandler(AbstractWebServer parent,String path,String resourcesPath){
-        super(parent.getWebServer(),null);
+        super(parent);
         this.setContextPath(ServletUtils.normalizePath(path, false));
         this.setDisplayName("Web App Context Handler");
         ServletHolder servletHolder = new ServletHolder(new WebAppServlet());

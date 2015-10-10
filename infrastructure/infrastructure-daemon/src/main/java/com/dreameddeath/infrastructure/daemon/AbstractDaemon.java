@@ -40,10 +40,6 @@ import java.util.UUID;
  */
 public class AbstractDaemon {
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
-    public static final String SERVICE_DISCOVERER_MANAGER_PARAM_NAME = "serviceDiscovererManager";
-    public static final String END_POINT_INFO_SERVLET_PARAM_NAME = "endPointInfo";
-    public static final String GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME = "daemonLifeCycle";
-    public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
 
     private final String _name;
     private final UUID _uuid = UUID.randomUUID();

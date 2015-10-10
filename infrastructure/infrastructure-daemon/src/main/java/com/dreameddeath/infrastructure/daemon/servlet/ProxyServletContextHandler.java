@@ -18,7 +18,6 @@ package com.dreameddeath.infrastructure.daemon.servlet;
 
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import java.util.List;
@@ -26,9 +25,9 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
  */
-public class ProxyServletContextHandler extends ServletContextHandler {
+public class ProxyServletContextHandler extends AbstractServletContextHandler {
     public ProxyServletContextHandler(AbstractWebServer parentServer,List<String> pathsToSelfDiscover){
-        super(parentServer.getWebServer(),null);
+        super(parentServer);
 
         String proxyPath = DaemonConfigProperties.DAEMON_WEBSERVER_PROXY_API_PATH_PREFIX.get();
         proxyPath = ServletUtils.normalizePath(proxyPath,false);
@@ -42,9 +41,6 @@ public class ProxyServletContextHandler extends ServletContextHandler {
         this.addServlet(proxyHolder, "/*");
 
         //Setup standardized elements
-        this.setAttribute(AbstractWebServer.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME, parentServer.getParentDaemon().getCuratorClient());
-        this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PARAM_NAME, parentServer.getParentDaemon());
-        this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, parentServer.getParentDaemon().getDaemonLifeCycle());
         this.setAttribute(ProxyServlet.PROXY_PREFIX_PARAM_NAME, proxyPath);
         this.setAttribute(ProxyServlet.SERVICE_DISCOVERER_PATHES_PARAM_NAME, pathsToSelfDiscover);
     }

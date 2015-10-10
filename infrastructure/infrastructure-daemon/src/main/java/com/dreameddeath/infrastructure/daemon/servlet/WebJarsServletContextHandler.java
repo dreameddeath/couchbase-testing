@@ -17,17 +17,16 @@
 package com.dreameddeath.infrastructure.daemon.servlet;
 
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
  */
-public class WebJarsServletContextHandler extends ServletContextHandler {
+public class WebJarsServletContextHandler extends AbstractServletContextHandler {
     public static String APPS_WEBJARS_LIBS_FOR_TESTING="manual_testing";
 
     public WebJarsServletContextHandler(AbstractWebServer parent,String path,String libsSubPath,boolean forTesting){
-        super(parent.getWebServer(),null);
+        super(parent);
         this.setContextPath(ServletUtils.normalizePath(path, false));
         this.setDisplayName("WebJars deliveries");
         if(forTesting) {

@@ -16,11 +16,13 @@
 
 package com.dreameddeath.infrastructure.daemon.webserver;
 
+import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.component.LifeCycle;
+import org.springframework.core.env.PropertySources;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -32,10 +34,12 @@ public abstract class AbstractWebServer {
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
     public static final String GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME = "daemonLifeCycle";
     public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
+    public static final String GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME = "propertySources";
     private final AbstractDaemon _parentDaemon;
     private final String _name;
     private final Server _webServer;
     private final ServerConnector _serverConnector;
+    private final PropertySources _propertySources;
 
     private String getAddress(String address,String networkInterfaceName){
         if(address!=null){
@@ -54,11 +58,6 @@ public abstract class AbstractWebServer {
             }
         }
         return null;
-    }
-
-
-    public void initWebserver(Builder builder){
-
     }
 
     public AbstractWebServer(Builder builder) {
@@ -85,6 +84,11 @@ public abstract class AbstractWebServer {
         }
 
         _webServer.addConnector(_serverConnector);
+        PropertySources propertySources = builder._propertySources;
+        if(propertySources==null){
+            propertySources = new ConfigMutablePropertySources();
+        }
+        _propertySources = propertySources;
     }
 
     public AbstractDaemon getParentDaemon() {
@@ -117,6 +121,10 @@ public abstract class AbstractWebServer {
 
     public Status getStatus(){
         return Status.fromStateString(_webServer.getState());
+    }
+
+    public PropertySources getPropertySources() {
+        return _propertySources;
     }
 
     public enum Status{
@@ -152,6 +160,7 @@ public abstract class AbstractWebServer {
 
     public static class Builder<T extends AbstractWebServer.Builder> {
         private AbstractDaemon _daemon;
+        private PropertySources _propertySources=null;
         private String _name;
         private String _address=null;
         private String _interfaceName=null;
@@ -187,6 +196,11 @@ public abstract class AbstractWebServer {
         public T withPort(int port) {
             _port = port;
             return (T)this;
+        }
+
+        public Builder withPropertySources(PropertySources propertySources) {
+            _propertySources = propertySources;
+            return this;
         }
     }
 }

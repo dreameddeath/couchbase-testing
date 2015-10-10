@@ -73,7 +73,6 @@ public class RestServiceDiscovery {
         return filteredList.iterator().next();
     }
 
-
     @GET
     @Path("/infos")
     @Produces(MediaType.APPLICATION_JSON)
@@ -83,6 +82,4 @@ public class RestServiceDiscovery {
         result.addAll(services);
         return result;
     }
-
-
 }

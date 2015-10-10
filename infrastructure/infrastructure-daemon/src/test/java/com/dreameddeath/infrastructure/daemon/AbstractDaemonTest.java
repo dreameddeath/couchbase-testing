@@ -19,6 +19,7 @@ package com.dreameddeath.infrastructure.daemon;
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
@@ -130,7 +131,7 @@ public class AbstractDaemonTest extends Assert {
 
 
                 try {
-                    StatusResponse response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
+                    StatusResponse response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
                             .getClient("daemon#admin#status", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             .path("/status")
@@ -147,7 +148,7 @@ public class AbstractDaemonTest extends Assert {
 
                     StatusUpdateRequest request = new StatusUpdateRequest();
                     request.setAction(StatusUpdateRequest.Action.HALT);
-                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
+                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
                             .getClient("daemon#admin#status", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             .path("/status")
@@ -165,7 +166,7 @@ public class AbstractDaemonTest extends Assert {
                     LOG.info("Request stopping the web server");
                     StatusUpdateRequest request = new StatusUpdateRequest();
                     request.setAction(StatusUpdateRequest.Action.STOP);
-                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
+                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
                             .getClient("daemon#admin#status", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             .path("/status")

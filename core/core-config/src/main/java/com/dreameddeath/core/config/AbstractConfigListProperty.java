@@ -69,9 +69,13 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
                 }
             }
         });
+        if(defaultValue!=null) {
+            ConfigManagerFactory.addDefaultConfigurationEntry(name, defaultValue);
+        }
         if(callback!=null) {
             addCallback(callback);
         }
+
     }
 
     private AbstractConfigListProperty(String name,Splitter splitter,AbstractConfigListProperty<T> defaultValueRef,ConfigPropertyChangedCallback<List<T>> callback) {
