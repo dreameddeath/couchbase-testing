@@ -84,6 +84,11 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-common</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-config</artifactId>
           <version>${project.version}</version>
       </dependency>
