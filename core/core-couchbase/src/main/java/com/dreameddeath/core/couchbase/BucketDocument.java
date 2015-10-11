@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.couchbase;
 
+import com.couchbase.client.core.message.kv.MutationToken;
 import com.couchbase.client.java.document.Document;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
@@ -51,10 +52,25 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
         _doc.getBaseMeta().setCas(ref._doc.getBaseMeta().getCas());
         _doc.getBaseMeta().setExpiry(ref._doc.getBaseMeta().getExpiry());
         _doc.getBaseMeta().setDbSize(ref._doc.getBaseMeta().getDbSize());
+        if(ref.mutationToken()!=null){
+            _doc.getBaseMeta().setVbucketID(ref.mutationToken().vbucketID());
+            _doc.getBaseMeta().setVbucketUUID(ref.mutationToken().vbucketUUID());
+            _doc.getBaseMeta().setSequenceNumber(ref.mutationToken().sequenceNumber());
+        }
     }
 
+    
     public T getDocument(){
         return _doc;
+    }
+
+    public MutationToken mutationToken(){
+        if(_doc.getBaseMeta().getVbucketID()!=0){
+            return new MutationToken(_doc.getBaseMeta().getVbucketID(),_doc.getBaseMeta().getVbucketUUID(),_doc.getBaseMeta().getSequenceNumber());
+        }
+        else{
+            return null;
+        }
     }
 
     public String getKeyPrefix() {

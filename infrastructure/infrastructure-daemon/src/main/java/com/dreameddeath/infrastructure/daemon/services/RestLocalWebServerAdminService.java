@@ -22,8 +22,8 @@ import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusRes
 import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusUpdateRequest;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +52,8 @@ public class RestLocalWebServerAdminService {
             responseContainer = "List",
             position = 0)
     public List<WebServerInfo> getInfo(){
-        List<WebServerInfo> result = new ArrayList<>(_daemon.getAdditionnalWebServers().size());
-        for(AbstractWebServer webServer:_daemon.getAdditionnalWebServers()){
+        List<WebServerInfo> result = new ArrayList<>(_daemon.getAdditionalWebServers().size());
+        for(AbstractWebServer webServer:_daemon.getAdditionalWebServers()){
             result.add(new WebServerInfo(webServer));
         }
         return result;
@@ -126,7 +126,7 @@ public class RestLocalWebServerAdminService {
 
 
     private AbstractWebServer findByName(String name) throws NotFoundException{
-        for(AbstractWebServer webServer:_daemon.getAdditionnalWebServers()){
+        for(AbstractWebServer webServer:_daemon.getAdditionalWebServers()){
             if(webServer.getName().equals(name)){
                 return webServer;
             }

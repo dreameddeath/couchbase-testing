@@ -59,7 +59,7 @@ public class AppsAdminsTest {
     @Test @Ignore
     public void runTest(){
         try {
-            System.out.println(">>> STARTING webserver : http://localhost:"+_daemons.get(0).getAdditionnalWebServers().get(0).getServerConnector().getLocalPort()+"/webapp/");
+            System.out.println(">>> STARTING webserver : http://localhost:"+_daemons.get(0).getAdditionalWebServers().get(0).getServerConnector().getLocalPort()+"/webapp/");
             System.out.println(">>> STARTING EMBEDDED JETTY SERVER, PRESS ANY KEY TO STOP");
             while (System.in.available() == 0) {
                 Thread.sleep(5000);

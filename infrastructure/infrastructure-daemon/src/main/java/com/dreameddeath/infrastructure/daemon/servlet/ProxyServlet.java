@@ -33,8 +33,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,8 +87,12 @@ public class ProxyServlet extends AsyncProxyServlet {
         throw new RuntimeException("Cannot find service {"+name+"}");
     }
 
-    protected URI rewriteURI(HttpServletRequest request) {
-        String effectivePath = request.getRequestURI();
+    @Override
+    protected String rewriteTarget(HttpServletRequest clientRequest) {
+        if (!validateDestination(clientRequest.getServerName(), clientRequest.getServerPort()))
+            return null;
+
+        String effectivePath = clientRequest.getRequestURI();
 
         effectivePath = effectivePath.substring(_prefix.length() + 1); //remove prefix
         String serviceId = effectivePath.substring(0, effectivePath.indexOf("/"));
@@ -118,12 +120,11 @@ public class ProxyServlet extends AsyncProxyServlet {
                 uriStr += "/";
             }
             uriStr+=effectivePath;
-            if(request.getQueryString()!=null){
-                uriStr+="?"+request.getQueryString();
+            if(clientRequest.getQueryString()!=null){
+                uriStr+="?"+clientRequest.getQueryString();
             }
-            LOG.debug("Rewritten path {} to {}",request.getRequestURI(),uriStr);
-            URI result =new URI(uriStr);
-            return result;
+            LOG.debug("Rewritten path {} to {}",clientRequest.getRequestURI(),uriStr);
+            return uriStr;
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -131,8 +132,8 @@ public class ProxyServlet extends AsyncProxyServlet {
     }
 
     @Override
-    protected void onRewriteFailed(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendError(404);
+    protected void onProxyRewriteFailed(HttpServletRequest request, HttpServletResponse response) {
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
     }
 
 

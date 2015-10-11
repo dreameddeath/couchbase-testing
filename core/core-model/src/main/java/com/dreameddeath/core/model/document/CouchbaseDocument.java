@@ -48,6 +48,10 @@ public class CouchbaseDocument implements HasParent {
         private long   _cas;
         private Boolean _isLocked;
         private Integer _dbDocSize;
+        private long _vbucketID=0;
+        private long _vbucketUUID=0;
+        private long _sequenceNumber=0;
+
         private Set<DocumentFlag> _flags =EnumSet.noneOf(DocumentFlag.class);
         private int _expiry;
         private DocumentState _docState = DocumentState.NEW;
@@ -92,13 +96,36 @@ public class CouchbaseDocument implements HasParent {
         public void setStateSync(){ _docState = DocumentState.SYNC; }
         public DocumentState getState(){ return _docState; }
 
+        public long getVbucketID() {
+            return _vbucketID;
+        }
 
+        public void setVbucketID(long vbucketID) {
+            _vbucketID = vbucketID;
+        }
+
+        public long getVbucketUUID() {
+            return _vbucketUUID;
+        }
+
+        public void setVbucketUUID(long vbucketUUID) {
+            _vbucketUUID = vbucketUUID;
+        }
+
+        public long getSequenceNumber() {
+            return _sequenceNumber;
+        }
+
+        public void setSequenceNumber(long sequenceNumber) {
+            _sequenceNumber = sequenceNumber;
+        }
 
         @Override
         public String toString(){
             return
                     "key   : "+_key+",\n"+
                     "cas   : "+_cas+",\n"+
+                    "mut   : "+_vbucketID+"#"+_vbucketUUID+"#"+_sequenceNumber+",\n"+
                     "lock  : "+_isLocked+",\n"+
                     "size  : "+_dbDocSize+",\n"+
                     "state : "+_docState +",\n"+

@@ -57,7 +57,7 @@ public class DaemonInfo {
         status = daemon.getStatus();
         address = ServerConnectorUtils.getConnectorHost(daemon.getAdminWebServer().getServerConnector());
         port = ServerConnectorUtils.getConnectorPortString(daemon.getAdminWebServer().getServerConnector());
-        for(AbstractWebServer server : daemon.getAdditionnalWebServers()){
+        for(AbstractWebServer server : daemon.getAdditionalWebServers()){
             webServerList.add(server.getName());
         }
     }

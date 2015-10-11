@@ -20,11 +20,14 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.view.*;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.ICouchbaseBucketFactory;
 import com.dreameddeath.core.couchbase.dcp.CouchbaseDCPConnector;
 import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.dcp.impl.DefaultCouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
@@ -40,6 +43,7 @@ import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.session.impl.ElasticSearchSessionFactory;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
 import com.dreameddeath.testing.elasticsearch.ElasticSearchServer;
@@ -58,6 +62,7 @@ public class Utils {
     public static final String VIEW_PER_PREFIX = "perPrefixView";
 
     public static class TestEnvironment{
+        private ICouchbaseBucketFactory _bucketFactory;
         private CouchbaseSessionFactory _sessionFactory;
         private ICouchbaseBucket _client;
 
@@ -131,20 +136,22 @@ public class Utils {
                             (System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR) != null) &&
                             (System.getenv(COUCHBASE_DB_URL_ENV_VAR) != null)
                     ) {
+                _bucketFactory = new CouchbaseBucketFactory(new CouchbaseClusterFactory());
                 _client = new CouchbaseBucketWrapper(CouchbaseCluster.create(System.getenv(COUCHBASE_DB_URL_ENV_VAR)), System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR), System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR), prefix);
                 couchbaseConnectionList = Arrays.asList(System.getenv(COUCHBASE_DB_URL_ENV_VAR).split(","));
                 bucketName = System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR);
                 bucketPassword = System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR);
             }
             else {
+                _bucketFactory = new CouchbaseBucketFactorySimulator();
                 _client = new CouchbaseBucketSimulator(prefix+"test", prefix);
                 couchbaseConnectionList = Arrays.asList("localhost:8091");
                 bucketName = _client.getBucketName();
                 bucketPassword = "dummy";
-
             }
+
             CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
-            sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+            sessionBuilder.getDocumentDaoFactoryBuilder().withBucketFactory(_bucketFactory).getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
             _sessionFactory = sessionBuilder.build();
 
             if(type.hasElasticSearch()){

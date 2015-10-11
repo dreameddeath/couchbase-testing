@@ -25,7 +25,7 @@ import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.user.IUser;
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.annotations.Api;
 import rx.Observable;
 
 import javax.ws.rs.*;

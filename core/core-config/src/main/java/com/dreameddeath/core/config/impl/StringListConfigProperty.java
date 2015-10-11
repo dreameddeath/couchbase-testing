@@ -20,6 +20,7 @@ import com.dreameddeath.core.config.AbstractConfigListProperty;
 import com.dreameddeath.core.config.ConfigPropertyChangedCallback;
 import com.google.common.base.Splitter;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -65,6 +66,11 @@ public class StringListConfigProperty extends AbstractConfigListProperty<String>
 
     @Override
     protected List<String> splitValue(Splitter splitter, String value) {
-        return splitter.splitToList(value);
+        if(value!=null) {
+            return splitter.splitToList(value);
+        }
+        else{
+            return Collections.emptyList();
+        }
     }
 }

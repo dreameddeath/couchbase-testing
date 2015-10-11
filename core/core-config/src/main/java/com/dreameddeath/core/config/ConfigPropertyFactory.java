@@ -83,18 +83,26 @@ public class ConfigPropertyFactory {
     
     public static StringConfigProperty getStringProperty(String name,String defaultValue,ConfigPropertyChangedCallback<String> callback) {  return new StringConfigProperty(name, defaultValue,callback);}
     public static StringConfigProperty getStringProperty(String name,String defaultValue) {  return new StringConfigProperty(name, defaultValue);}
+    public static StringConfigProperty getStringProperty(String name) {  return new StringConfigProperty(name, (String)null);}
     public static StringConfigProperty getStringProperty(String name,IConfigProperty<String> defaultValueRef,ConfigPropertyChangedCallback<String> callback) {  return new StringConfigProperty(name, defaultValueRef,callback);}
     public static StringConfigProperty getStringProperty(String name,IConfigProperty<String> defaultValueRef) {  return new StringConfigProperty(name, defaultValueRef);}
 
     
     public static StringListConfigProperty getStringListProperty(String name,String defaultValue,ConfigPropertyChangedCallback<List<String>> callback) {  return new StringListConfigProperty(name, defaultValue,callback);}
     public static StringListConfigProperty getStringListProperty(String name,String defaultValue) {  return new StringListConfigProperty(name, defaultValue);}
+    public static StringListConfigProperty getStringListProperty(String name) {  return new StringListConfigProperty(name, "");}
     public static StringListConfigProperty getStringListProperty(String name,AbstractConfigListProperty<String> defaultValueRef,ConfigPropertyChangedCallback<List<String>> callback) {  return new StringListConfigProperty(name, defaultValueRef,callback);}
     public static StringListConfigProperty getStringListProperty(String name,AbstractConfigListProperty<String> defaultValueRef) {  return new StringListConfigProperty(name, defaultValueRef);}
 
 
+    public static <T,PTYPE extends IConfigProperty> ConfigPropertyWithTemplateName<T,PTYPE> getTemplateNameConfigProperty(Class<PTYPE> clazz,String templateName,T defaultValue){ return new ConfigPropertyWithTemplateName<>(clazz,templateName,defaultValue);}
+    public static <T,PTYPE extends IConfigProperty> ConfigPropertyWithTemplateName<T,PTYPE> getTemplateNameConfigProperty(Class<PTYPE> clazz,String templateName,T defaultValue,ConfigPropertyChangedCallback<T> callback){ return new ConfigPropertyWithTemplateName<>(clazz,templateName,defaultValue,callback);}
+    public static <T,PTYPE extends IConfigProperty> ConfigPropertyWithTemplateName<T,PTYPE> getTemplateNameConfigProperty(Class<PTYPE> clazz,String templateName,IConfigProperty<T> defaultValue){ return new ConfigPropertyWithTemplateName<>(clazz,templateName,defaultValue);}
+    public static <T,PTYPE extends IConfigProperty> ConfigPropertyWithTemplateName<T,PTYPE> getTemplateNameConfigProperty(Class<PTYPE> clazz,String templateName,IConfigProperty<T> defaultValue,ConfigPropertyChangedCallback<T> callback){ return new ConfigPropertyWithTemplateName<>(clazz,templateName,defaultValue,callback);}
+    public static <T,PTYPE extends IConfigProperty> ConfigPropertyWithTemplateName<T,PTYPE> getTemplateNameConfigProperty(Class<PTYPE> clazz,String templateName,ConfigPropertyWithTemplateName<T,PTYPE> defaultValueRefTemplate){ return new ConfigPropertyWithTemplateName<>(clazz,templateName,defaultValueRefTemplate);}
+    public static <T,PTYPE extends IConfigProperty> ConfigPropertyWithTemplateName<T,PTYPE> getTemplateNameConfigProperty(Class<PTYPE> clazz,String templateName,ConfigPropertyWithTemplateName<T,PTYPE> defaultValueRefTemplate,ConfigPropertyChangedCallback<T> callback){ return new ConfigPropertyWithTemplateName<>(clazz,templateName,defaultValueRefTemplate,callback);}
 
-    
+
 
     protected static void addPropertyToGlobalMap(IConfigProperty prop) {
         if (!ConfigPropertyFactory._mapCallbackPerProperty.containsKey(prop.getName())) {

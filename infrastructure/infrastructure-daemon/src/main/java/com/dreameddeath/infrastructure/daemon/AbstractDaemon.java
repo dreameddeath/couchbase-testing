@@ -46,7 +46,7 @@ public class AbstractDaemon {
     private final IDaemonLifeCycle _daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework _curatorClient;
     private final RestWebServer _adminWebServer;
-    private final List<AbstractWebServer> _additionnalWebServers=new ArrayList<>();
+    private final List<AbstractWebServer> _additionalWebServers = new ArrayList<>();
 
     protected static CuratorFramework setupDefaultCuratorClient(){
         try {
@@ -109,8 +109,8 @@ public class AbstractDaemon {
         return _adminWebServer;
     }
 
-    public List<AbstractWebServer> getAdditionnalWebServers(){
-        return Collections.unmodifiableList(_additionnalWebServers);
+    public List<AbstractWebServer> getAdditionalWebServers(){
+        return Collections.unmodifiableList(_additionalWebServers);
     }
 
     public UUID getUuid() {
@@ -119,19 +119,19 @@ public class AbstractDaemon {
 
     synchronized public RestWebServer addWebServer(RestWebServer.Builder builder){
         RestWebServer newWebServer  = new RestWebServer(builder.withDaemon(this));
-        _additionnalWebServers.add(newWebServer);
+        _additionalWebServers.add(newWebServer);
         return newWebServer;
     }
 
     synchronized public ProxyWebServer addWebServer(ProxyWebServer.Builder builder){
         ProxyWebServer newWebServer  = new ProxyWebServer(builder.withDaemon(this));
-        _additionnalWebServers.add(newWebServer);
+        _additionalWebServers.add(newWebServer);
         return newWebServer;
     }
 
     synchronized public WebAppWebServer addWebServer(WebAppWebServer.Builder builder){
         WebAppWebServer newWebServer  = new WebAppWebServer(builder.withDaemon(this));
-        _additionnalWebServers.add(newWebServer);
+        _additionalWebServers.add(newWebServer);
         return newWebServer;
     }
 

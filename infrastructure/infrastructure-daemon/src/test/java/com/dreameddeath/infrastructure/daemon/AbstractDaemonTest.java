@@ -71,7 +71,7 @@ public class AbstractDaemonTest extends Assert {
                     List<DaemonInfo> daemonInfoList = daemonDiscovery.registeredDaemonInfoList();
                     assertEquals(1, daemonInfoList.size());
                     assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
-                    assertEquals(daemon.getAdditionnalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());
+                    assertEquals(daemon.getAdditionalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());
                 }
                 catch(Exception e){
                     nbErrors.incrementAndGet();
@@ -101,7 +101,7 @@ public class AbstractDaemonTest extends Assert {
                 }
                 try {
 
-                    Integer response = ((RestWebServer)daemon.getAdditionnalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests/services")
+                    Integer response = ((RestWebServer)daemon.getAdditionalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests/services")
                             .getClient("tests#tests#tests", "1.0")
                             .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                             //.path("/status")
@@ -200,7 +200,7 @@ public class AbstractDaemonTest extends Assert {
                 try {
                     LOG.info("The web server is starting");
                     assertEquals(IDaemonLifeCycle.Status.STARTING, lifeCycle.getDaemon().getStatus());
-                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionalWebServers()) {
                         assertEquals(true, server.getLifeCycle().isStopped());
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
@@ -215,7 +215,7 @@ public class AbstractDaemonTest extends Assert {
                 try {
                     LOG.info("The web server is started");
                     assertEquals(IDaemonLifeCycle.Status.STARTING, lifeCycle.getDaemon().getStatus());
-                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionalWebServers()) {
                         assertEquals(true, server.getLifeCycle().isStarted());
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
@@ -241,7 +241,7 @@ public class AbstractDaemonTest extends Assert {
             @Override
             public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
                 try {
-                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionalWebServers()) {
                         assertEquals(true, server.getLifeCycle().isStopped());
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
@@ -255,7 +255,7 @@ public class AbstractDaemonTest extends Assert {
             @Override
             public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
                 try {
-                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionalWebServers()) {
                         assertEquals(true, server.getLifeCycle().isStopped());
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
@@ -269,7 +269,7 @@ public class AbstractDaemonTest extends Assert {
             @Override
             public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
                 try {
-                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionnalWebServers()) {
+                    for (AbstractWebServer server : lifeCycle.getDaemon().getAdditionalWebServers()) {
                         assertEquals(true, server.getLifeCycle().isStopped());
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStopped());

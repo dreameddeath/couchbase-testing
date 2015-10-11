@@ -40,6 +40,11 @@
           <version>${project.version}</version>
       </dependency>
       <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-config</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
           <groupId>com.couchbase.client</groupId>
           <artifactId>java-client</artifactId>
           <version>${couchbase.version}</version>

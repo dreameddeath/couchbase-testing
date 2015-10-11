@@ -24,7 +24,7 @@ import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.wordnik.swagger.annotations.Api;
+import io.swagger.annotations.Api;
 
 import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;

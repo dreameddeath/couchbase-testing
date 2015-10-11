@@ -77,7 +77,7 @@ public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment imple
     private final Integer _eventBufferSize;
     private final String _streamName;
 
-    private DefaultCouchbaseDCPEnvironment(Builder builder){
+    protected DefaultCouchbaseDCPEnvironment(Builder builder){
         super(builder);
         _threadPoolName = builder.threadPoolName();
         _threadPoolSize = builder.threadPoolSize();
@@ -105,11 +105,11 @@ public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment imple
         return _streamName;
     }
 
-    public static Builder builder(){
-        return new Builder();
+    public static DefaultCouchbaseDCPEnvironment.Builder builder(){
+        return new DefaultCouchbaseDCPEnvironment.Builder();
     }
 
-    public static class Builder extends DefaultCoreEnvironment.Builder implements ICouchbaseDCPEnvironment {
+    public static class Builder extends DefaultCoreEnvironment.Builder{
         private Integer _threadPoolSize=DEFAULT_THREAD_POOL_SIZE;
         private String _threadPoolName=DEFAULT_THREAD_POOL_NAME;
         private Integer _eventBufferSize=DEFAULT_EVENT_BUFFER_SIZE;
@@ -139,22 +139,19 @@ public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment imple
             return this;
         }
 
-        @Override
         public Integer threadPoolSize() {
             return _threadPoolSize;
         }
 
-        @Override
         public String threadPoolName() {
             return _threadPoolName;
         }
 
-        @Override
         public Integer eventBufferSize() {
             return _eventBufferSize;
         }
 
-        @Override
+
         public String streamName() {
             return _streamName;
         }

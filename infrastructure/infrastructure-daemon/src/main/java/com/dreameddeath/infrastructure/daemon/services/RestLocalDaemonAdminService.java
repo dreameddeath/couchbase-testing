@@ -24,8 +24,8 @@ import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

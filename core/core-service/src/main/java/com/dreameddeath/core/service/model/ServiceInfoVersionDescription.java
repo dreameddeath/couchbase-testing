@@ -17,7 +17,7 @@
 package com.dreameddeath.core.service.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wordnik.swagger.models.Swagger;
+import io.swagger.models.Swagger;
 
 import java.util.ArrayList;
 import java.util.Collections;

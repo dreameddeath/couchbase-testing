@@ -21,14 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.wordnik.swagger.models.Model;
-import com.wordnik.swagger.models.auth.SecuritySchemeDefinition;
-import com.wordnik.swagger.models.parameters.Parameter;
-import com.wordnik.swagger.models.properties.Property;
-import com.wordnik.swagger.util.ModelDeserializer;
-import com.wordnik.swagger.util.ParameterDeserializer;
-import com.wordnik.swagger.util.PropertyDeserializer;
-import com.wordnik.swagger.util.SecurityDefinitionDeserializer;
+import io.swagger.models.Model;
+import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.models.parameters.Parameter;
+import io.swagger.models.properties.Property;
+import io.swagger.util.ModelDeserializer;
+import io.swagger.util.ParameterDeserializer;
+import io.swagger.util.PropertyDeserializer;
+import io.swagger.util.SecurityDefinitionDeserializer;
 
 import java.util.TimeZone;
 

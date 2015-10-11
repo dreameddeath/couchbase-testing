@@ -45,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 *  Class used to perform storage 
 */
 public class CouchbaseBucketWrapper implements ICouchbaseBucket {
-
     private Bucket _bucket;
     private int _replicatCount;
     private Random _replicateRandom = new Random();

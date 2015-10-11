@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.model;
 
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wordnik.swagger.models.Swagger;
+import io.swagger.models.Swagger;
 import org.apache.curator.x.discovery.ServiceInstance;
 
 /**

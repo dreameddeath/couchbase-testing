@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2015.
@@ -143,14 +145,24 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
         return _cachedList;
     }
 
+
     @Override
-    public List<T> getMandatoryValue(String errorMessage) throws ConfigPropertyValueNotFoundException {
+    public List<T> getMandatoryValue(String errorMessage,Object ...params) throws ConfigPropertyValueNotFoundException {
         List<T> res = getValue();
         if((res==null)||(res.size()==0)){
-            throw new ConfigPropertyValueNotFoundException(this,errorMessage);
+            Pattern pattern = Pattern.compile("(\\{\\})");
+            Matcher matcher =pattern.matcher(errorMessage);
+            StringBuffer resultMessage = new StringBuffer();
+            int pos=0;
+            while(matcher.find()) {
+                matcher.appendReplacement(resultMessage, params[pos++].toString());
+            }
+            matcher.appendTail(resultMessage);
+            throw new ConfigPropertyValueNotFoundException(this,resultMessage.toString());
         }
         return res;
     }
+
 
     @Override
     public List<T> getDefaultValue() {

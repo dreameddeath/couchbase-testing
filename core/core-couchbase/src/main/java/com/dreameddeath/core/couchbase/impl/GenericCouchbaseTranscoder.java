@@ -19,6 +19,7 @@ package com.dreameddeath.core.couchbase.impl;
 import com.couchbase.client.core.lang.Tuple;
 import com.couchbase.client.core.lang.Tuple2;
 import com.couchbase.client.core.message.ResponseStatus;
+import com.couchbase.client.core.message.kv.MutationToken;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 import com.dreameddeath.core.couchbase.BucketDocument;
@@ -71,10 +72,20 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
 
     @Override
     public BucketDocument<T> newDocument(String id, int expiry, T content, long cas) {
+        return newDocument(id,expiry,content,cas,null);
+    }
+
+    @Override
+    public BucketDocument<T> newDocument(String id, int expiry, T content, long cas, MutationToken mutationToken) {
         id = ICouchbaseBucket.Utils.extractKey(_keyPrefix,id);
         content.getBaseMeta().setKey(id);
         content.getBaseMeta().setCas(cas);
         content.getBaseMeta().setExpiry(expiry);
+        if(mutationToken!=null){
+            content.getBaseMeta().setVbucketID(mutationToken.vbucketID());
+            content.getBaseMeta().setVbucketUUID(mutationToken.vbucketUUID());
+            content.getBaseMeta().setSequenceNumber(mutationToken.sequenceNumber());
+        }
         try {
             return _baseDocumentContructor.newInstance(content);
         }

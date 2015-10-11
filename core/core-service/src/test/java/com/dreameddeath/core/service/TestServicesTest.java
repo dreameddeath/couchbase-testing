@@ -29,7 +29,7 @@ import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.wordnik.swagger.models.Model;
+import io.swagger.models.Model;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.eclipse.jetty.server.Server;
@@ -152,7 +152,7 @@ public class TestServicesTest extends Assert{
         ServicesByNameInstanceDescription readDescription = response.readEntity(ServicesByNameInstanceDescription.class);
         assertEquals(2, readDescription.getServiceInstanceMap().keySet().size());
         Map<String,Model> listModels = readDescription.getServiceInstanceMap().get("testService#1.0").get(0).getSwagger().getDefinitions();
-        assertEquals(4,listModels.size());
+        assertEquals(5,listModels.size());
         assertEquals(6,listModels.get("TestingDocument").getProperties().size());
     }
 

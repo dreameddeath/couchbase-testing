@@ -24,7 +24,9 @@ import org.junit.Test;
 import org.springframework.core.env.PropertySource;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,11 +35,12 @@ import static org.junit.Assert.*;
 public class ConfigPropertyFactoryTest {
     private static double delta=0.0000001d;
 
-    private static StringConfigProperty propertyWithDefault=ConfigPropertyFactory.getStringProperty("test.default.for.property.source","defaultValue for Property Source");
 
 
     @Test
     public void testConfigPropertySource(){
+        StringConfigProperty propertyWithDefault=ConfigPropertyFactory.getStringProperty("test.default.for.property.source","defaultValue for Property Source");
+
         PropertySource source = new ConfigPropertySource("core-config");
         assertTrue(source.containsProperty("test.default.for.property.source"));
         assertEquals("defaultValue for Property Source", source.getProperty("test.default.for.property.source"));
@@ -55,6 +58,35 @@ public class ConfigPropertyFactoryTest {
         ConfigManagerFactory.addConfigurationEntry("prop.add", 1);
         assertEquals(1, prop.get());
     }
+
+
+    @Test
+    public void testTemplateNameConfigurationEntry() throws Exception {
+        ConfigPropertyWithTemplateName<Integer,IntConfigProperty> propTemplate = ConfigPropertyFactory.getTemplateNameConfigProperty(IntConfigProperty.class,"prop.template.int.base.{coreName}.value", 10);
+        ConfigPropertyWithTemplateName<Integer,IntConfigProperty> propTemplateWithRef = ConfigPropertyFactory.getTemplateNameConfigProperty(IntConfigProperty.class,"prop.template.int.{coreName}.value", propTemplate);
+
+        Map<String,String> paramHash = new HashMap<String,String>(){{
+            put("coreName","hashParamName");
+        }};
+        ConfigManagerFactory.addConfigurationEntry("prop.template.int.base.core-default.value", 1);
+        ConfigManagerFactory.addConfigurationEntry("prop.template.int.base.core-overriden.value", 2);
+
+        assertEquals("prop.template.int.base.simple.value", propTemplate.getProperty("simple").getName());
+        assertEquals("prop.template.int.simple.value", propTemplateWithRef.getProperty("simple").getName());
+        assertEquals("prop.template.int.base.hashParamName.value", propTemplate.getProperty(paramHash).getName());
+        assertEquals("prop.template.int.hashParamName.value", propTemplateWithRef.getProperty(paramHash).getName());
+
+        assertEquals(10, propTemplate.getProperty("simple").get());
+        assertEquals(10, propTemplateWithRef.getProperty("simple").get());
+        assertEquals(1, propTemplate.getProperty("core-default").get());
+        assertEquals(1, propTemplateWithRef.getProperty("core-default").get());
+        IntConfigProperty overridenProp = propTemplateWithRef.getProperty("core-overriden");
+        assertEquals(2, overridenProp.get());
+        ConfigManagerFactory.addConfigurationEntry("prop.template.int.core-overriden.value", 3);
+        assertEquals(3, overridenProp.get());
+
+    }
+
 
 
     @Test
@@ -104,6 +136,15 @@ public class ConfigPropertyFactoryTest {
 
     @Test(expected = ConfigPropertyValueNotFoundException.class)
     public void testNotFoundProperty() throws Exception {
+        try {
+            ConfigPropertyFactory.getStringProperty("toto.not_found", (String) null).getMandatoryValue("Normal error <{}>", "toto.not_found");
+            fail("Should have raised exception");
+        }
+        catch(ConfigPropertyValueNotFoundException e){
+            assertEquals("The property <toto.not_found> value hasn't been found. The error message :\n" +
+                    "Normal error <toto.not_found>",e.getMessage());
+        }
+
         ConfigPropertyFactory.getStringProperty("toto.not_found", (String)null).getMandatoryValue("Normal error");
     }
 
@@ -251,7 +292,7 @@ public class ConfigPropertyFactoryTest {
 
 
         //Check default value
-        assertEquals(firstValueList,prop.get());
+        assertEquals(firstValueList, prop.get());
         //With callback
         assertEquals(firstValueList, callBackProp.get());
         assertEquals(0,callbackCalled.get());
@@ -261,7 +302,7 @@ public class ConfigPropertyFactoryTest {
         //Set and Check Overridden Property with callbacks
         ConfigManagerFactory.addConfigurationEntry("callback.prop.stringlist", secondValueString);
         assertEquals(secondValue, callBackProp.get());
-        assertEquals(1,callbackCalled.get());
+        assertEquals(1, callbackCalled.get());
     }
 
     @Test

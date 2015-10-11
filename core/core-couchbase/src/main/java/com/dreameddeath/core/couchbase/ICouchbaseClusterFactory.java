@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.config;
+package com.dreameddeath.core.couchbase;
 
+import com.couchbase.client.java.CouchbaseCluster;
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
-import org.joda.time.DateTime;
-
-import java.util.Collection;
 
 /**
- * Created by Christophe Jeunesse on 03/02/2015.
+ * Created by Christophe Jeunesse on 11/10/2015.
  */
-public interface IConfigProperty<T> {
-    T getValue();
-    T getMandatoryValue(String errorMessage,Object ...params) throws ConfigPropertyValueNotFoundException;
-    T getDefaultValue();
-    String getName();
-    DateTime getLastChangedDate();
-    void addCallback(ConfigPropertyChangedCallback<T> callback);
-    void removeAllCallbacks();
-    Collection<ConfigPropertyChangedCallback<T>> getCallbacks();
+public interface ICouchbaseClusterFactory {
+    CouchbaseCluster getCluster(final String name)throws ConfigPropertyValueNotFoundException;
 }
