@@ -33,6 +33,11 @@
     <dependencies>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-curator</artifactId>
             <version>${project.version}</version>
         </dependency>
