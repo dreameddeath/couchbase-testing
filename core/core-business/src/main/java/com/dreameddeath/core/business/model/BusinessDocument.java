@@ -19,7 +19,8 @@ package com.dreameddeath.core.business.model;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.entity.EntityModelId;
+import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -42,9 +43,19 @@ import java.util.Set;
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 public abstract class BusinessDocument extends com.dreameddeath.core.model.document.CouchbaseDocument implements IHasUniqueKeysRef,IVersionedDocument ,IDocumentWithLinkedTasks{
-    @JsonSetter("@t")
-    public void setDocumentFullVersionId(String typeId){getMeta().setTypeId(typeId);}
-    public String getDocumentFullVersionId(){return getMeta().getTypeId();}
+    private EntityModelId _fullEntityId;
+    @JsonSetter("@t") @Override
+    public final void setDocumentFullVersionId(String typeId){
+        _fullEntityId = EntityModelId.build(typeId);
+    }
+    @Override
+    public final String getDocumentFullVersionId(){
+        return _fullEntityId!=null?_fullEntityId.toString():null;
+    }
+    @Override
+    public final EntityModelId getModelId(){
+        return _fullEntityId;
+    }
 
     @DocumentProperty("attachedTasks")
     private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(BusinessDocument.this);

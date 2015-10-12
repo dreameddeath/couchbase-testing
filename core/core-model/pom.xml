@@ -92,5 +92,10 @@
           <artifactId>reflectasm</artifactId>
           <version>${reflectasm.version}</version>
       </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-java-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
   </dependencies>
 </project>

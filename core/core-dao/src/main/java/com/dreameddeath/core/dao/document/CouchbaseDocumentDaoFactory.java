@@ -31,6 +31,7 @@ import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDaoFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.entity.EntityModelId;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentClassMappingInfo;
@@ -39,6 +40,8 @@ import com.dreameddeath.core.model.mapper.impl.DefaultDocumentMapperInfo;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CouchbaseDocumentDaoFactory {
     private final ICouchbaseBucketFactory _bucketFactory;
@@ -160,6 +163,15 @@ public class CouchbaseDocumentDaoFactory {
         }
     }
 
+
+    public List<CouchbaseDocumentDao> addDaoFor(List<String> entityPartialIds) throws DuplicateMappedEntryInfoException,ConfigPropertyValueNotFoundException{
+        List<CouchbaseDocumentDao> result=new ArrayList<>(entityPartialIds.size());
+        for(String entityPartialId:entityPartialIds){
+            EntityModelId partialModelId = EntityModelId.buildPartial(entityPartialId);
+            result.add(addDaoFor(partialModelId.getDomain(), partialModelId.getName()));
+        }
+        return result;
+    }
 
     public CouchbaseDocumentDao addDaoFor(String domain,String name) throws DuplicateMappedEntryInfoException,ConfigPropertyValueNotFoundException{
         String bucketName = CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty(domain, name).getMandatoryValue("Cannot find entity class for domain {} / name {}", domain, name);

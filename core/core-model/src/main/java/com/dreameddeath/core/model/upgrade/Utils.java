@@ -16,12 +16,12 @@
 
 package com.dreameddeath.core.model.upgrade;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.entity.EntityModelId;
+import com.dreameddeath.core.model.entity.EntityVersion;
+import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.esotericsoftware.reflectasm.MethodAccess;
 
-import javax.lang.model.element.Element;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,11 +44,11 @@ public class Utils {
     private static Map<String,UpgradeMethodWrapper> _versionUpgraderMap = new HashMap<String,UpgradeMethodWrapper>();
 
     public static void addVersionToDiscard(String domain,String name,String version){
-        _discardUpgrades.add(buildVersionnedTypeId(domain,name,version));
+        _discardUpgrades.add(EntityModelId.build(domain, name, version).toString());
     }
 
     public static void removeVersionToDiscard(String domain,String name,String version){
-        _discardUpgrades.remove(buildVersionnedTypeId(domain, name, version));
+        _discardUpgrades.remove(EntityModelId.build(domain, name, version).toString());
     }
 
     public static class UpgradeMethodWrapper {
@@ -84,66 +84,38 @@ public class Utils {
         public String getSourceTypeId(){return _sourceTypeId;}
     }
 
-    public static String getDocumentVersionUpgraderFilename(String domain,String name, String version){
-        String[] versionParts = version.split("\\.");
-        return String.format("%s/%s/%s.%s/v%s.%s", ROOT_PATH, DOCUMENT_UPGRADE_PATH, domain, name, versionParts[0], versionParts[1]);
+    public static String getDocumentVersionUpgraderFilename(EntityModelId modelId){
+        return String.format("%s/%s/%s.%s/v%s.%s",
+                ROOT_PATH, DOCUMENT_UPGRADE_PATH,
+                modelId.getDomain(),
+                modelId.getName(),
+                modelId.getEntityVersion().getMajor(),
+                modelId.getEntityVersion().getMinor());
     }
 
 
-    public static String getDocumentEntityFilename(String domain,String name, String version){
-        return String.format("%s/%s/%s.%s/v%s", ROOT_PATH,DOCUMENT_DEF_PATH,domain,name,version.split("\\.")[0]);
-    }
-
-    public static String getFilename(DocumentDef annotation,Element elt){
-        String name = annotation.name();
-        if("".equals(annotation.name())){
-            name = elt.getSimpleName().toString();
-        }
-        return getDocumentEntityFilename(annotation.domain(),name,annotation.version());
-    }
-
-    public static String getFilename(DocumentDef annotation,Class<?> clazz){
-        String name = annotation.name();
-        if("".equals(annotation.name())){
-            name = clazz.getSimpleName();
-        }
-        return getDocumentEntityFilename(annotation.domain(),name,annotation.version());
+    public static String getDocumentEntityFilename(EntityModelId modelId){
+        return String.format("%s/%s/%s.%s/v%s", ROOT_PATH, DOCUMENT_DEF_PATH,
+                modelId.getDomain(),
+                modelId.getName(),
+                modelId.getEntityVersion().getMajor());
     }
 
     public static String getFilename(DocumentVersionUpgrader annotation){
-        return getDocumentVersionUpgraderFilename(annotation.domain(),annotation.name(),annotation.from());
+        return getDocumentVersionUpgraderFilename(EntityModelId.build(annotation.domain(), annotation.name(), annotation.from()));
     }
 
     public static String buildTargetVersion(DocumentVersionUpgrader annotation){
-        String[] versionParts=annotation.to().split("\\.");
-        return String.format("%s/%s/%s.%s.%s",annotation.domain(),annotation.name(),versionParts[0],versionParts[1],versionParts[2]);
-    }
-
-    public static String buildVersionnedTypeId(String domain,String name, String version){
-        return String.format("%s/%s/%s",domain,name,version);
-    }
-
-    public static String buildVersionnedTypeId(DocumentDef annotation,Class clazz){
-        String name = annotation.name();
-        if("".equals(annotation.name())){
-            name = clazz.getSimpleName();
-        }
-        return buildVersionnedTypeId(annotation.domain(),name,annotation.version());
-    }
-
-    public static String[] extractFromVersionTypeId(String typeId){
-        return typeId.split("/");
-    }
-
-    public static Class findClassFromVersion(String domain,String name,String version){
-        return findClassFromVersionnedTypeId(buildVersionnedTypeId(domain, name, version));
+        EntityVersion targetVersion = EntityVersion.version(annotation.to());
+        return String.format("%s/%s/%s.%s.%s", annotation.domain(), annotation.name(), targetVersion.getMajor(), targetVersion.getMinor(), targetVersion.getPatch());
     }
 
     public static Class findClassFromVersionnedTypeId(String typeId){
         if(!_versionClassMap.containsKey(typeId)){
-            String[] parts = extractFromVersionTypeId(typeId);
+            EntityModelId modelId = EntityModelId.build(typeId);
+
             //it will naturally exclude patch from typeId
-            String filename = Utils.getDocumentEntityFilename(parts[0], parts[1], parts[2]);
+            String filename = Utils.getDocumentEntityFilename(modelId);
             InputStream is =Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
             if(is==null){
                 throw  new RuntimeException("Cannot find/read file <"+filename+"> for id <"+typeId+">");
@@ -160,11 +132,11 @@ public class Utils {
         return _versionClassMap.get(typeId);
     }
 
-    public static UpgradeMethodWrapper getUpgraderReference(String domain,String name,String version){
-        String typeId = buildVersionnedTypeId(domain,name,version);
+    public static UpgradeMethodWrapper getUpgraderReference(EntityModelId modelId){
+        String typeId = modelId.toString();
 
         if(! _versionUpgraderMap.containsKey(typeId)){
-            String filename = Utils.getDocumentVersionUpgraderFilename(domain, name, version);
+            String filename = Utils.getDocumentVersionUpgraderFilename(modelId);
             if(Thread.currentThread().getContextClassLoader().getResource(filename)==null){
                 _versionUpgraderMap.put(typeId,null);
             }
@@ -174,13 +146,13 @@ public class Utils {
                 try {
                     String fullContent = fileReader.readLine();
                     String[] parts=fullContent.split(";");
-                    String[] idTargetIdParts=extractFromVersionTypeId(parts[2]);
+                    EntityModelId targetModelId=EntityModelId.build(parts[2]);
 
                     _versionUpgraderMap.put(typeId,
                                 new UpgradeMethodWrapper(
                                         Thread.currentThread().getContextClassLoader().loadClass(parts[0]),
                                         parts[1],
-                                        getUpgraderReference(idTargetIdParts[0],idTargetIdParts[1],idTargetIdParts[2]),
+                                        getUpgraderReference(targetModelId),
                                         typeId,
                                         parts[2]
                                 )
@@ -194,15 +166,8 @@ public class Utils {
         return _versionUpgraderMap.get(typeId);
     }
 
-
-    public static Object performUpgrade(Object obj,String typeId){
-        String[] typeIdParts = extractFromVersionTypeId(typeId);
-        return performUpgrade(obj,typeIdParts[0],typeIdParts[1],typeIdParts[2]);
-    }
-
-
-    public static Object performUpgrade(Object obj,String domain,String name,String version){
-        UpgradeMethodWrapper updateMethod = getUpgraderReference(domain,name,version);
+    public static Object performUpgrade(Object obj,EntityModelId modelId){
+        UpgradeMethodWrapper updateMethod = getUpgraderReference(modelId);
         Object res = obj;
         while(updateMethod!=null){
             if (_discardUpgrades.contains(updateMethod.getTargetTypeId()))break;
@@ -211,9 +176,7 @@ public class Utils {
                 ((IVersionedDocument)res).setDocumentFullVersionId(updateMethod.getTargetTypeId());
             }
             updateMethod = updateMethod.getNextWrapper();
-
         }
-
         return res;
     }
 }

@@ -17,7 +17,8 @@
 package com.dreameddeath.core.business.model;
 
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.entity.EntityModelId;
+import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -29,10 +30,18 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 public class VersionedDocumentElement extends CouchbaseDocumentElement implements IVersionedDocument {
-    private String _documentFullVersionId;
-
-    @JsonSetter("@t")
-    public void setDocumentFullVersionId(String typeId){_documentFullVersionId = typeId;}
-    public String getDocumentFullVersionId(){return _documentFullVersionId;}
+    private EntityModelId _fullEntityId;
+    @JsonSetter("@t") @Override
+    public final void setDocumentFullVersionId(String typeId){
+        _fullEntityId = EntityModelId.build(typeId);
+    }
+    @Override
+    public final String getDocumentFullVersionId(){
+        return _fullEntityId!=null?_fullEntityId.toString():null;
+    }
+    @Override
+    public final EntityModelId getModelId(){
+        return _fullEntityId;
+    }
 
 }

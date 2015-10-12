@@ -17,6 +17,7 @@
 package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.entity.EntityModelId;
 import com.dreameddeath.core.model.upgrade.Utils;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
@@ -58,7 +59,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     public String idFromValue(Object value){
         DocumentDef annot=value.getClass().getAnnotation(DocumentDef.class);
         if(annot!=null){
-            return Utils.buildVersionnedTypeId(annot, value.getClass());
+            return EntityModelId.build(annot, value.getClass()).toString();
         }
         else{
             throw new RuntimeException("Need the DocumentRef annotation on class "+ value.getClass().getName());
@@ -74,14 +75,14 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     public String idFromBaseType() {
         DocumentDef annot = _baseType.getRawClass().getAnnotation(DocumentDef.class);
         if(annot!=null){
-            return Utils.buildVersionnedTypeId(annot, _baseType.getRawClass());
+            return EntityModelId.build(annot, _baseType.getRawClass()).toString();
         }
         else{
             throw new RuntimeException("Need the DocumentRef annotation on class "+ _baseType.getRawClass().getName());
         }
     }
 
-    @Override
+    @Override @Deprecated @SuppressWarnings("deprecation")
     public JavaType typeFromId(String id) {
         return null;
     }

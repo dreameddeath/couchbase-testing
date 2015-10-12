@@ -18,7 +18,7 @@ package com.dreameddeath.core.transcoder.json;
 
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingException;
 import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
 import com.dreameddeath.core.model.transcoder.ITranscoder;

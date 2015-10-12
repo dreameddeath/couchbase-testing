@@ -20,6 +20,7 @@ import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationPro
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.entity.EntityModelId;
 import com.dreameddeath.core.model.upgrade.Utils;
 
 import javax.annotation.processing.Messager;
@@ -44,7 +45,7 @@ public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor 
         for(Element classElem:roundEnv.getElementsAnnotatedWith(DocumentDef.class)){
             DocumentDef annot =classElem.getAnnotation(DocumentDef.class);
             try {
-                String fileName= Utils.getFilename(annot, classElem);
+                String fileName= Utils.getDocumentEntityFilename(EntityModelId.build(annot, classElem));
                 AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, classElem);
                 AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)classElem);
                 file.getWriter().write(classInfo.getFullName());

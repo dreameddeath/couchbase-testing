@@ -18,7 +18,8 @@ package com.dreameddeath.core.process.model;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.entity.EntityModelId;
+import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -39,10 +40,19 @@ import java.util.List;
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 public abstract class AbstractTask extends CouchbaseDocumentElement implements IVersionedDocument{
-    private String _classTypeId;
-    @JsonSetter("@t")
-    public void setDocumentFullVersionId(String typeId){_classTypeId=typeId;}
-    public String getDocumentFullVersionId(){return _classTypeId;}
+    private EntityModelId _fullEntityId;
+    @JsonSetter("@t") @Override
+    public final void setDocumentFullVersionId(String typeId){
+        _fullEntityId = EntityModelId.build(typeId);
+    }
+    @Override
+    public final String getDocumentFullVersionId(){
+        return _fullEntityId!=null?_fullEntityId.toString():null;
+    }
+    @Override
+    public final EntityModelId getModelId(){
+        return _fullEntityId;
+    }
 
     @DocumentProperty("uid") @NotNull
     private Property<String> _uid=new ImmutableProperty<String>(AbstractTask.this);

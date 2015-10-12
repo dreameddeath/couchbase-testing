@@ -19,7 +19,8 @@ package com.dreameddeath.core.process.model;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.entity.EntityModelId;
+import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -41,10 +42,19 @@ import java.util.*;
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES extends CouchbaseDocumentElement> extends CouchbaseDocument implements IVersionedDocument {
-    private String _classTypeId;
-    @JsonSetter("@t")
-    public final void setDocumentFullVersionId(String typeId){_classTypeId=typeId;}
-    public final String getDocumentFullVersionId(){return _classTypeId;}
+    private EntityModelId _fullEntityId;
+    @JsonSetter("@t") @Override
+    public final void setDocumentFullVersionId(String typeId){
+        _fullEntityId = EntityModelId.build(typeId);
+    }
+    @Override
+    public final String getDocumentFullVersionId(){
+        return _fullEntityId!=null?_fullEntityId.toString():null;
+    }
+    @Override
+    public final EntityModelId getModelId(){
+        return _fullEntityId;
+    }
 
     @DocumentProperty("uid")
     private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());

@@ -18,7 +18,8 @@ package com.dreameddeath.core.upgrade;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.model.document.IVersionedDocument;
+import com.dreameddeath.core.model.entity.EntityModelId;
+import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.dreameddeath.core.model.upgrade.Utils;
 import org.junit.Test;
 
@@ -30,15 +31,20 @@ import static org.junit.Assert.assertEquals;
 public class UpgraderTest {
     @DocumentDef(domain="test",name="test",version = "1.0.0")
     public static class TestModel implements IVersionedDocument {
-        private String _versionnedDocument;
+        private EntityModelId _entityModelId;
         @Override
         public void setDocumentFullVersionId(String versionId) {
-            _versionnedDocument=versionId;
+            _entityModelId=EntityModelId.build(versionId);
         }
 
         @Override
         public String getDocumentFullVersionId() {
-            return _versionnedDocument;
+            return _entityModelId.toString();
+        }
+
+        @Override
+        public EntityModelId getModelId() {
+            return _entityModelId;
         }
 
         public String value;
@@ -69,7 +75,7 @@ public class UpgraderTest {
         TestModel v1 = new TestModel();
         String refValue = "A first Value";
         v1.value = refValue;
-        Object result = Utils.performUpgrade(v1, "test", "test", "1.0.0");
+        Object result = Utils.performUpgrade(v1, EntityModelId.build("test", "test", "1.0.0"));
         assertEquals(result.getClass(),TestModelV2.class);
         assertEquals(refValue+" v1.1 v2",((TestModelV2)result).value);
         assertEquals("test/test/2.0.0",((TestModelV2)result).getDocumentFullVersionId());

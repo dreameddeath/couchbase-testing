@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.model.document;
+package com.dreameddeath.core.model.entity;
 
 /**
  * Created by Christophe Jeunesse on 28/11/2014.
@@ -22,4 +22,5 @@ package com.dreameddeath.core.model.document;
 public interface IVersionedDocument {
     void setDocumentFullVersionId(String typeId);
     String getDocumentFullVersionId();
+    EntityModelId getModelId();
 }

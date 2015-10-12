@@ -28,6 +28,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DocumentDef {
     String domain();
-    String name() default "";
+    String name() default "";//Default is class
     String version() default "1.0.0";
 }
