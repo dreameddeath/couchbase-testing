@@ -48,7 +48,6 @@ public class ServiceInstanceJacksonMapper extends ObjectMapper {
 
     private ServiceInstanceJacksonMapper(){
         super();
-        registerModule(new JodaModule());
         configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,false);
         configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);

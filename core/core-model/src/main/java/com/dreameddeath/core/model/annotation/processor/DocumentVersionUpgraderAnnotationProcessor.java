@@ -19,14 +19,13 @@ package com.dreameddeath.core.model.annotation.processor;
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.model.upgrade.Utils;
+import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
@@ -44,12 +43,12 @@ public class DocumentVersionUpgraderAnnotationProcessor extends AbstractAnnotati
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        VersionUpgradeManager versionUpgradeManager = new VersionUpgradeManager();
         Messager messager = processingEnv.getMessager();
         for(Element baseElem:roundEnv.getElementsAnnotatedWith(DocumentVersionUpgrader.class)){
             DocumentVersionUpgrader annot =baseElem.getAnnotation(DocumentVersionUpgrader.class);
-            Elements elementUtils = processingEnv.getElementUtils();
             try {
-                String fileName= Utils.getFilename(annot);
+                String fileName= versionUpgradeManager.getFilename(annot);
                 FileObject jfo = processingEnv.getFiler().createResource(
                         StandardLocation.CLASS_OUTPUT,
                         "",
@@ -63,10 +62,10 @@ public class DocumentVersionUpgraderAnnotationProcessor extends AbstractAnnotati
                 bw.write(";");
                 bw.write(baseElem.getSimpleName().toString());
                 bw.write(";");
-                bw.write(Utils.buildTargetVersion(annot));
+                bw.write(versionUpgradeManager.buildTargetVersion(annot));
                 bw.flush();
                 bw.close();
-                messager.printMessage(Diagnostic.Kind.NOTE,"Creating file Upgrader "+fileName+" to upgrade to  "+ Utils.buildTargetVersion(annot));
+                messager.printMessage(Diagnostic.Kind.NOTE, "Creating file Upgrader " + fileName + " to upgrade to  " + versionUpgradeManager.buildTargetVersion(annot));
             }
             catch(IOException e){
                 messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());

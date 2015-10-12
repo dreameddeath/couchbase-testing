@@ -22,6 +22,7 @@ import com.dreameddeath.core.model.entity.IVersionedDocument;
 import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingException;
 import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
+import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     public static final ObjectMapper MAPPER;
     static {
         MAPPER = new ObjectMapper();
+        MAPPER.setConfig(MAPPER.getDeserializationConfig().withAttribute(VersionUpgradeManager.class,new VersionUpgradeManager()));
         MAPPER.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         MAPPER.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());

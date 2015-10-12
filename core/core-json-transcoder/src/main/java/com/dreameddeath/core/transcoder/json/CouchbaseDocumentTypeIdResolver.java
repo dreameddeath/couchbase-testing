@@ -18,7 +18,7 @@ package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.upgrade.Utils;
+import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
@@ -26,21 +26,13 @@ import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 /**
  * Created by Christophe Jeunesse on 07/11/2014.
  */
 public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
-    private static final String VERSION="\\d+\\.\\d+\\.\\d+";
-    private static final String ID="(\\w+)/(\\w+)/("+VERSION+")";
-    private static final String FORMAT="%s/%s/%s";
-    private static final Pattern VERSION_PATTERN = Pattern.compile(VERSION);
-    private static final Pattern ID_PATTERN = Pattern.compile(ID);
-
     private JavaType _baseType;
-    private String _domain;
     private Map<String,JavaType> _mapClass = new HashMap<>();
-
+    private VersionUpgradeManager _versionUpgradeManager;
 
     public  CouchbaseDocumentTypeIdResolver() {
         super(null, null);
@@ -49,10 +41,6 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     @Override
     public void init(JavaType baseType){
         _baseType =baseType;
-        DocumentDef annot =_baseType.getRawClass().getAnnotation(DocumentDef.class);
-        if(annot!=null){
-            _domain = annot.domain();
-        }
     }
 
     @Override
@@ -71,7 +59,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
         return idFromValue(value);
     }
 
-    @Override @Deprecated
+    @Override
     public String idFromBaseType() {
         DocumentDef annot = _baseType.getRawClass().getAnnotation(DocumentDef.class);
         if(annot!=null){
@@ -88,8 +76,14 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     }
 
     public JavaType typeFromId(DatabindContext context, String id) {
-        if(!_mapClass.containsKey(id)){
-            _mapClass.put(id, context.getTypeFactory().constructType(Utils.findClassFromVersionnedTypeId(id)));
+        if(!_mapClass.containsKey(id)) {
+            if (_versionUpgradeManager == null){
+                _versionUpgradeManager = (VersionUpgradeManager)context.getConfig().getAttributes().getAttribute(VersionUpgradeManager.class);
+                if(_versionUpgradeManager==null){
+                    _versionUpgradeManager=new VersionUpgradeManager();
+                }
+            }
+            _mapClass.put(id, context.getTypeFactory().constructType(_versionUpgradeManager.findClassFromVersionnedTypeId(id)));
         }
         return _mapClass.get(id);
     }

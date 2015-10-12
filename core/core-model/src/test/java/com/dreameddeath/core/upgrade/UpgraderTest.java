@@ -20,7 +20,7 @@ import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.EntityModelId;
 import com.dreameddeath.core.model.entity.IVersionedDocument;
-import com.dreameddeath.core.model.upgrade.Utils;
+import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -72,10 +72,11 @@ public class UpgraderTest {
 
     @Test
     public void upgradeUnitTests(){
+        VersionUpgradeManager upgradeManager = new VersionUpgradeManager();
         TestModel v1 = new TestModel();
         String refValue = "A first Value";
         v1.value = refValue;
-        Object result = Utils.performUpgrade(v1, EntityModelId.build("test", "test", "1.0.0"));
+        Object result = upgradeManager.performUpgrade(v1, EntityModelId.build("test", "test", "1.0.0"));
         assertEquals(result.getClass(),TestModelV2.class);
         assertEquals(refValue+" v1.1 v2",((TestModelV2)result).value);
         assertEquals("test/test/2.0.0",((TestModelV2)result).getDocumentFullVersionId());

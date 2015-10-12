@@ -34,57 +34,24 @@ import java.util.Set;
 /**
  * Created by Christophe Jeunesse on 27/11/2014.
  */
-public class Utils {
-    private static String ROOT_PATH="META-INF/core-annotation";
-    private static String DOCUMENT_DEF_PATH="DocumentDef";
-    private static String DOCUMENT_UPGRADE_PATH="DocumentUpgrade";
+public class VersionUpgradeManager {
+    public static final String ROOT_PATH="META-INF/core-annotation";
+    public static final String DOCUMENT_DEF_PATH="DocumentDef";
+    public static final String DOCUMENT_UPGRADE_PATH="DocumentUpgrade";
 
-    private static Set<String> _discardUpgrades=new HashSet<>();
-    private static Map<String,Class> _versionClassMap=new HashMap<String,Class>();
-    private static Map<String,UpgradeMethodWrapper> _versionUpgraderMap = new HashMap<String,UpgradeMethodWrapper>();
+    private Set<String> _discardUpgrades=new HashSet<>();
+    private Map<String,Class> _versionClassMap=new HashMap<>();
+    private Map<String,UpgradeMethodWrapper> _versionUpgraderMap = new HashMap<>();
 
-    public static void addVersionToDiscard(String domain,String name,String version){
+    public void addVersionToDiscard(String domain,String name,String version){
         _discardUpgrades.add(EntityModelId.build(domain, name, version).toString());
     }
 
-    public static void removeVersionToDiscard(String domain,String name,String version){
+    public void removeVersionToDiscard(String domain,String name,String version){
         _discardUpgrades.remove(EntityModelId.build(domain, name, version).toString());
     }
 
-    public static class UpgradeMethodWrapper {
-        private final Object _upgraderObject;
-        private final MethodAccess _access;
-        private final int _index;
-        private final UpgradeMethodWrapper _nextWrapper;
-        private final String _targetTypeId;
-        private final String _sourceTypeId;
-        public UpgradeMethodWrapper(Class clazz, String method, UpgradeMethodWrapper nextWapper,String sourceTypeId,String targetTypeId){
-            try{
-                _upgraderObject = clazz.newInstance();
-            }
-            catch(Throwable e){
-                throw new RuntimeException("Cannot instantiate class "+clazz.getName());
-            }
-            _sourceTypeId = sourceTypeId;
-            _access = MethodAccess.get(clazz);
-            Class foundClass = findClassFromVersionnedTypeId(_sourceTypeId);
-            _index = _access.getIndex(method,foundClass);
-            _nextWrapper = nextWapper;
-            _targetTypeId = targetTypeId;
-        }
-
-        public Object invoke(Object... var2){
-            return _access.invoke(_upgraderObject,_index,var2);
-        }
-
-        public UpgradeMethodWrapper getNextWrapper(){
-            return _nextWrapper;
-        }
-        public String getTargetTypeId(){return _targetTypeId;}
-        public String getSourceTypeId(){return _sourceTypeId;}
-    }
-
-    public static String getDocumentVersionUpgraderFilename(EntityModelId modelId){
+    public String getDocumentVersionUpgraderFilename(EntityModelId modelId){
         return String.format("%s/%s/%s.%s/v%s.%s",
                 ROOT_PATH, DOCUMENT_UPGRADE_PATH,
                 modelId.getDomain(),
@@ -93,29 +60,28 @@ public class Utils {
                 modelId.getEntityVersion().getMinor());
     }
 
-
-    public static String getDocumentEntityFilename(EntityModelId modelId){
+    public String getDocumentEntityFilename(EntityModelId modelId){
         return String.format("%s/%s/%s.%s/v%s", ROOT_PATH, DOCUMENT_DEF_PATH,
                 modelId.getDomain(),
                 modelId.getName(),
                 modelId.getEntityVersion().getMajor());
     }
 
-    public static String getFilename(DocumentVersionUpgrader annotation){
+    public String getFilename(DocumentVersionUpgrader annotation){
         return getDocumentVersionUpgraderFilename(EntityModelId.build(annotation.domain(), annotation.name(), annotation.from()));
     }
 
-    public static String buildTargetVersion(DocumentVersionUpgrader annotation){
+    public String buildTargetVersion(DocumentVersionUpgrader annotation){
         EntityVersion targetVersion = EntityVersion.version(annotation.to());
         return String.format("%s/%s/%s.%s.%s", annotation.domain(), annotation.name(), targetVersion.getMajor(), targetVersion.getMinor(), targetVersion.getPatch());
     }
 
-    public static Class findClassFromVersionnedTypeId(String typeId){
+    public Class findClassFromVersionnedTypeId(String typeId){
         if(!_versionClassMap.containsKey(typeId)){
             EntityModelId modelId = EntityModelId.build(typeId);
 
             //it will naturally exclude patch from typeId
-            String filename = Utils.getDocumentEntityFilename(modelId);
+            String filename = getDocumentEntityFilename(modelId);
             InputStream is =Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
             if(is==null){
                 throw  new RuntimeException("Cannot find/read file <"+filename+"> for id <"+typeId+">");
@@ -132,11 +98,11 @@ public class Utils {
         return _versionClassMap.get(typeId);
     }
 
-    public static UpgradeMethodWrapper getUpgraderReference(EntityModelId modelId){
+    public UpgradeMethodWrapper getUpgraderReference(EntityModelId modelId){
         String typeId = modelId.toString();
 
         if(! _versionUpgraderMap.containsKey(typeId)){
-            String filename = Utils.getDocumentVersionUpgraderFilename(modelId);
+            String filename = getDocumentVersionUpgraderFilename(modelId);
             if(Thread.currentThread().getContextClassLoader().getResource(filename)==null){
                 _versionUpgraderMap.put(typeId,null);
             }
@@ -166,11 +132,11 @@ public class Utils {
         return _versionUpgraderMap.get(typeId);
     }
 
-    public static Object performUpgrade(Object obj,EntityModelId modelId){
+    public Object performUpgrade(Object obj,EntityModelId modelId){
         UpgradeMethodWrapper updateMethod = getUpgraderReference(modelId);
         Object res = obj;
         while(updateMethod!=null){
-            if (_discardUpgrades.contains(updateMethod.getTargetTypeId()))break;
+            if(_discardUpgrades.contains(updateMethod.getTargetTypeId())) break;
             res = updateMethod.invoke(obj);
             if(res instanceof IVersionedDocument){
                 ((IVersionedDocument)res).setDocumentFullVersionId(updateMethod.getTargetTypeId());
@@ -179,4 +145,39 @@ public class Utils {
         }
         return res;
     }
+
+    public class UpgradeMethodWrapper {
+        private final Object _upgraderObject;
+        private final MethodAccess _access;
+        private final int _index;
+        private final UpgradeMethodWrapper _nextWrapper;
+        private final String _targetTypeId;
+        private final String _sourceTypeId;
+
+        public UpgradeMethodWrapper(Class clazz, String method, UpgradeMethodWrapper nextWapper,String sourceTypeId,String targetTypeId){
+            try{
+                _upgraderObject = clazz.newInstance();
+            }
+            catch(Throwable e){
+                throw new RuntimeException("Cannot instantiate class "+clazz.getName());
+            }
+            _sourceTypeId = sourceTypeId;
+            _access = MethodAccess.get(clazz);
+            Class foundClass = findClassFromVersionnedTypeId(_sourceTypeId);
+            _index = _access.getIndex(method,foundClass);
+            _nextWrapper = nextWapper;
+            _targetTypeId = targetTypeId;
+        }
+
+        public Object invoke(Object... var2){
+            return _access.invoke(_upgraderObject,_index,var2);
+        }
+
+        public UpgradeMethodWrapper getNextWrapper(){
+            return _nextWrapper;
+        }
+        public String getTargetTypeId(){return _targetTypeId;}
+        public String getSourceTypeId(){return _sourceTypeId;}
+    }
+
 }

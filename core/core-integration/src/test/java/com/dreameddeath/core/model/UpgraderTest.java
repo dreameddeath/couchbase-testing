@@ -30,7 +30,7 @@ import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.model.upgrade.Utils;
+import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -210,6 +210,7 @@ public class UpgraderTest {
 
     @Test
     public void upgradeUnitTests() throws Exception{
+        VersionUpgradeManager upgradeManager = (VersionUpgradeManager)GenericJacksonTranscoder.MAPPER.getDeserializationConfig().getAttributes().getAttribute(VersionUpgradeManager.class);
         ICouchbaseSession session = _sessionFactory.newReadWriteSession(null);
         TestModel v1 =session.newEntity(TestModel.class);
         String refValue = "A first Value";
@@ -227,9 +228,9 @@ public class UpgraderTest {
         v1.element.add(element2);
 
         try {
-            Utils.addVersionToDiscard("test","test","2.0.0");
+            upgradeManager.addVersionToDiscard("test", "test", "2.0.0");
             session.save(v1);
-            Utils.removeVersionToDiscard("test", "test", "2.0.0");
+            upgradeManager.removeVersionToDiscard("test", "test", "2.0.0");
 
             session.reset();
 

@@ -21,7 +21,7 @@ import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFile
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.upgrade.Utils;
+import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -39,13 +39,15 @@ import java.util.Set;
         {"com.dreameddeath.core.model.annotation.DocumentDef"}
 )
 public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor {
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        VersionUpgradeManager versionUpgradeManager = new VersionUpgradeManager();
         Messager messager = processingEnv.getMessager();
         for(Element classElem:roundEnv.getElementsAnnotatedWith(DocumentDef.class)){
             DocumentDef annot =classElem.getAnnotation(DocumentDef.class);
             try {
-                String fileName= Utils.getDocumentEntityFilename(EntityModelId.build(annot, classElem));
+                String fileName= versionUpgradeManager.getDocumentEntityFilename(EntityModelId.build(annot, classElem));
                 AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, classElem);
                 AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)classElem);
                 file.getWriter().write(classInfo.getFullName());

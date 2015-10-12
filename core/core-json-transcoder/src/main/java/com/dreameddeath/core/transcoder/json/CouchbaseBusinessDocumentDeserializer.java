@@ -18,7 +18,7 @@ package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.model.entity.EntityModelId;
 import com.dreameddeath.core.model.entity.IVersionedDocument;
-import com.dreameddeath.core.model.upgrade.Utils;
+import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -39,6 +39,7 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 28/11/2014.
  */
 public class CouchbaseBusinessDocumentDeserializer extends BeanDeserializer {
+    private VersionUpgradeManager _versionUpgradeManager=null;
     /**
      * Constructor used by {@link com.fasterxml.jackson.databind.deser.BeanDeserializerBuilder}.
      */
@@ -81,7 +82,13 @@ public class CouchbaseBusinessDocumentDeserializer extends BeanDeserializer {
         Object res = super.deserialize(jp, ctxt);
         if(res instanceof  IVersionedDocument){
             String versionTypeId = ((IVersionedDocument) res).getDocumentFullVersionId();
-            res = Utils.performUpgrade(res, EntityModelId.build(versionTypeId));
+            if(_versionUpgradeManager==null){
+                _versionUpgradeManager=(VersionUpgradeManager)ctxt.getConfig().getAttributes().getAttribute(VersionUpgradeManager.class);
+                if(_versionUpgradeManager==null){
+                    _versionUpgradeManager=new VersionUpgradeManager();
+                }
+            }
+            res = _versionUpgradeManager.performUpgrade(res, EntityModelId.build(versionTypeId));
         }
         return res;
     }
