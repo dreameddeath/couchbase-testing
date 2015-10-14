@@ -23,6 +23,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.party.dao.PartyDao;
 import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.testing.Utils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,5 +61,12 @@ public class BillingOrderTest extends Assert {
         BillingOrder result = session.get(bo.getMeta().getKey(),BillingOrder.class);
         assertEquals(result.getClass(),BillingOrder.class);
         assertEquals("ba/0000000001/order/00001",result.getMeta().getKey());
+    }
+
+    @After
+    public void end() throws Exception{
+        if(env!=null){
+            env.shutdown(true);
+        }
     }
 }

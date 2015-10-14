@@ -103,7 +103,7 @@ public class Utils {
             public String documentTypeBuilder(String bucketName, Class<? extends CouchbaseDocument> clazz) {
                 DocumentDef annot = clazz.getAnnotation(DocumentDef.class);
                 if(annot!=null){
-                    return annot.domain()+"#"+annot.name()+"#"+annot.version().toLowerCase();
+                    return annot.domain()+"_-_"+annot.name()+"_-_"+annot.version().toLowerCase();
                 }
                 else{
                     return clazz.getSimpleName().toLowerCase();

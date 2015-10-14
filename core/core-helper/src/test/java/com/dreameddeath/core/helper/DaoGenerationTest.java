@@ -213,13 +213,6 @@ public class DaoGenerationTest extends Assert {
 
     @After
     public void cleanupTest()throws Exception{
-        if(couchbaseClient!=null) {
-            couchbaseClient.shutdown();
-        }
-        if(compiledEnv!=null) {
-            compiledEnv.cleanUp();
-        }
-
         if(server!=null){
             try {
                 server.stop();
@@ -230,6 +223,15 @@ public class DaoGenerationTest extends Assert {
         }
         if(env!=null){
             env.shutdown(true);
+        }
+        if(compiledEnv!=null) {
+            compiledEnv.cleanUp();
+        }
+        if(couchbaseClient!=null) {
+            couchbaseClient.shutdown();
+        }
+        if(testUtils!=null){
+            testUtils.stop();
         }
     }
 

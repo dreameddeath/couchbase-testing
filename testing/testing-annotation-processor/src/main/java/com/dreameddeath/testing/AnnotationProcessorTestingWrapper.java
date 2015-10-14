@@ -16,6 +16,9 @@
 
 package com.dreameddeath.testing;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.processing.Processor;
 import javax.tools.*;
 import java.io.File;
@@ -34,6 +37,7 @@ import java.util.*;
  * Created by Christophe Jeunesse on 10/01/2015.
  */
 public class AnnotationProcessorTestingWrapper {
+    private final static Logger LOG = LoggerFactory.getLogger(AnnotationProcessorTestingWrapper.class);
     private JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     private String tempDirectoryPrefix;
     private List<Processor> annotationProcessors=new ArrayList<>();
@@ -178,7 +182,7 @@ public class AnnotationProcessorTestingWrapper {
                 deleteRecursive(outputDir.toFile());
             }
             catch(FileNotFoundException e){
-                //Ignore error
+                LOG.warn("Error during clean-up",e);
             }
         }
 
@@ -222,7 +226,13 @@ public class AnnotationProcessorTestingWrapper {
                     ret = ret && deleteRecursive(f);
                 }
             }
-            return ret && path.delete();
+            if(ret){
+                ret = path.delete();
+                if(!ret){
+                    LOG.warn("Fail to delete {}",path);
+                }
+            }
+            return ret;
         }
 
         public JavaFileManager getOutputManager() {

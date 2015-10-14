@@ -66,6 +66,7 @@ public class TestServicesTest extends Assert{
     private static ServiceDiscoverer serviceDiscoverer;
     private static ServerConnector connector;
     private static AnnotationProcessorTestingWrapper.Result generatorResult;
+    private static CuratorTestUtils curatorUtils;
 
     public static void compileTestServiceGen() throws Exception{
         AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
@@ -87,7 +88,7 @@ public class TestServicesTest extends Assert{
     @BeforeClass
     public static void initialise() throws Exception{
         compileTestServiceGen();
-        CuratorTestUtils curatorUtils = new CuratorTestUtils();
+        curatorUtils = new CuratorTestUtils();
         curatorUtils.prepare(1);
         CuratorFramework curatorClient = curatorUtils.getClient("TestServicesTest");
         server = new Server();
@@ -98,7 +99,7 @@ public class TestServicesTest extends Assert{
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
         cxfHolder.setInitOrder(1);
         contextHandler.addServlet(cxfHolder, "/*");
-         serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
+        serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
         ServiceRegistrar serviceRegistrar = new ServiceRegistrar(curatorClient, BASE_PATH);
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar , serviceDiscoverer));
 
@@ -135,7 +136,6 @@ public class TestServicesTest extends Assert{
         contextHandler.setAttribute("servicesMap",servicesMap);
         contextHandler.addEventListener(new ContextLoaderListener());
         server.start();
-
     }
 
 
@@ -242,8 +242,23 @@ public class TestServicesTest extends Assert{
     @AfterClass
     public static void stopServer()throws Exception{
         if(server!=null) {
-            if(!server.isStopped()){server.stop();}
-            server.destroy();
+            try {
+                if (!server.isStopped()) {
+                    server.stop();
+                }
+                server.destroy();
+            }
+            catch (Throwable e){
+                LOG.warn("failed to stop",e);
+            }
+        }
+        if(curatorUtils!=null){
+            try {
+                curatorUtils.stop();
+            }
+            catch(Throwable e){
+                LOG.warn("failed to cleanup",e);
+            }
         }
         if(generatorResult!=null){
             generatorResult.cleanUp();

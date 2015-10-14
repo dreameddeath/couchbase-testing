@@ -23,6 +23,8 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +34,7 @@ import java.nio.file.Files;
  * Created by Christophe Jeunesse on 25/05/2015.
  */
 public class ElasticSearchServer {
-
+    private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchServer.class);
     private final File dataDir;
     private final Settings settings;
     private Node node=null;
@@ -67,11 +69,13 @@ public class ElasticSearchServer {
     public void stop(){
         if(node!=null) {
             node.close();
+            node=null;
         }
         try{
             FileUtils.forceDelete(dataDir);
         }
         catch(IOException e){
+            LOG.warn("Cannot cleanup",e);
             //Ignore error
         }
     }

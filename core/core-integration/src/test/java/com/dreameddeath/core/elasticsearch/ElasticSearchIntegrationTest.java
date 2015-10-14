@@ -31,6 +31,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.Utils;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -172,4 +173,10 @@ public class ElasticSearchIntegrationTest {
         //result.getTotalHitCount();
         assertEquals(10,result.getTotalHitCount());
     }
+
+    @After
+    public void after(){
+        env.shutdown(true);
+    }
+
 }

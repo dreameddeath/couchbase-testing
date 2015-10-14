@@ -21,11 +21,14 @@ import backtype.storm.LocalCluster;
 import backtype.storm.LocalDRPC;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
+import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,16 +111,26 @@ public class DRPCFunctionTest {
         }
     }
 
+
+    CuratorTestUtils  curatorTestUtils;
+    @Before
+    public void init() throws Exception{
+        curatorTestUtils = new CuratorTestUtils();
+        curatorTestUtils.prepare(2);
+    }
+
     @Test
-    public void testDRPC(){
+    public void testDRPC() throws Exception{
+        //Config.STORM_ZOOKEEPER_SERVERS;
         LocalDRPC drpc = new LocalDRPC();
-        LocalCluster cluster = new LocalCluster();
+        String[] parts = curatorTestUtils.getCluster().getServers().get(0).getInstanceSpec().getConnectString().split(":");
+        LocalCluster cluster = new LocalCluster(parts[0],Long.parseLong(parts[1]));
 
         Config conf = new Config();
         conf.setDebug(true);
-        conf.put(DRPCFunction.builderServerConfigEntry("test", DRPCFunction.EntryType.SERVER_NAME),"toto.tutu.com");
-        conf.put(DRPCFunction.builderServerConfigEntry("test", DRPCFunction.EntryType.SERVER_PORT),"1023");
-        conf.put(DRPCFunction.builderServerConfigEntry("test", DRPCFunction.EntryType.LOCAL_SERVICE_ID),drpc.getServiceId());
+        conf.put(DRPCFunction.builderServerConfigEntry("test", DRPCFunction.EntryType.SERVER_NAME), "toto.tutu.com");
+        conf.put(DRPCFunction.builderServerConfigEntry("test", DRPCFunction.EntryType.SERVER_PORT), "1023");
+        conf.put(DRPCFunction.builderServerConfigEntry("test", DRPCFunction.EntryType.LOCAL_SERVICE_ID), drpc.getServiceId());
         TridentTopology topology = new TridentTopology();
         topology.newDRPCStream("testSimpleFunction",drpc).parallelismHint(3).each(new Fields("args"), new TestStdFunction(), new Fields("result")).project(new Fields("result"));
         cluster.submitTopology("testSimpleFunction", conf, topology.build());
@@ -154,6 +167,15 @@ public class DRPCFunctionTest {
         catch(IOException e){
             fail("error during parsing :"+e.getMessage());
         }
+
+        cluster.shutdown();
+        drpc.shutdown();
     }
 
+    @After
+    public void end()throws Exception{
+        if(curatorTestUtils!=null){
+            curatorTestUtils.stop();
+        }
+    }
 }

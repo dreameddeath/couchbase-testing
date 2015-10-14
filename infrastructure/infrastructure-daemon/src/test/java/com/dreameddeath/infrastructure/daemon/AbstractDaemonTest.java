@@ -31,6 +31,7 @@ import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -288,5 +289,10 @@ public class AbstractDaemonTest extends Assert {
             assertEquals(0L,daemonDiscovery.registeredDaemonInfoList().size());
         }
 
+    }
+
+    @After
+    public void close() throws Exception{
+        if(testUtils!=null) testUtils.stop();
     }
 }

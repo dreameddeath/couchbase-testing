@@ -28,38 +28,25 @@ import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.process.model.CreatePartyJob;
 import com.dreameddeath.party.process.model.CreatePartyRequest;
 import com.dreameddeath.testing.Utils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class CreatePartyJobProcessingServiceTest {
     //private final static CouchbaseSessionFactory _sessionFactory ;
-    private final static Utils.TestEnvironment testEnvironment;
-    static {
-        try {
-            testEnvironment = new Utils.TestEnvironment("PartyTest", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
-            testEnvironment.addDocumentDao(new PartyDao());
-            testEnvironment.addDocumentDao(new JobDao());
-            testEnvironment.start();
-        }
-        catch(Exception e){
-            throw new RuntimeException(e);
-        }
-        //CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
+    private Utils.TestEnvironment testEnvironment;
+    private ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
+    private ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
 
-        //_sessionFactory = (new CouchbaseSessionFactory.Builder()).build();
-        //_sessionFactory.getUniqueKeyDaoFactory().setDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
-        //_sessionFactory.getDocumentDaoFactory().addDao(new PartyDao().setClient(client), new GenericJacksonTranscoder<>(Party.class));
-        //_sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(client),new GenericJacksonTranscoder<>(AbstractJob.class));
-
-
-    }
-
-    private final static ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
-    private final static ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
-    static {
+    @Before
+    public void setup() throws Exception{
+        testEnvironment = new Utils.TestEnvironment("PartyTest", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
+        testEnvironment.addDocumentDao(new PartyDao());
+        testEnvironment.addDocumentDao(new JobDao());
+        testEnvironment.start();
         processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
-
     }
 
     @Test
@@ -85,4 +72,8 @@ public class CreatePartyJobProcessingServiceTest {
         }
     }
 
+    @After
+    public void close(){
+        testEnvironment.shutdown(true);
+    }
 }

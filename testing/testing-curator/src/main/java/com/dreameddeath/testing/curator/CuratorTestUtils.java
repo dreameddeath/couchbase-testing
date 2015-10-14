@@ -72,6 +72,7 @@ public class CuratorTestUtils {
     public CuratorTestUtils stop() throws IOException{
         if(testingCluster!=null){
             testingCluster.stop();
+            testingCluster.close();
         }
         return this;
     }

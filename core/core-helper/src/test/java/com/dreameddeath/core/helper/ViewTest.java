@@ -209,7 +209,15 @@ public class ViewTest {
     }
 
     @After
-    public void endTest(){
-        env.shutdown(true);
+    public void endTest() throws Exception{
+        if(server!=null){
+            server.stop();
+        }
+        if(env!=null) {
+            env.shutdown(true);
+        }
+        if(testUtils!=null){
+            testUtils.stop();
+        }
     }
 }

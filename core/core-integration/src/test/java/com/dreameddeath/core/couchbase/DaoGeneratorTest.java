@@ -20,6 +20,7 @@ package com.dreameddeath.core.couchbase;
 import com.dreameddeath.core.helper.annotation.processor.DaoGeneratorAnnotationProcessor;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,5 +48,10 @@ public class DaoGeneratorTest extends Assert {
         assertTrue(result.getResult());
         assertTrue(result.hasClass("test.dao.TestDaoDao"));
         result.cleanUp();
+    }
+
+    @After
+    public void end(){
+        env.shutdown(true);
     }
 }
