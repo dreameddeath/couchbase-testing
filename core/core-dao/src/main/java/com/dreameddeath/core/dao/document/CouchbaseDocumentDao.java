@@ -40,9 +40,9 @@ import java.util.List;
  */
 @DaoForClass(CouchbaseDocument.class)
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
-    private ICouchbaseBucket _client;
-    private ICouchbaseTranscoder<T> _transcoder;
-    private List<CouchbaseViewDao> _daoViews=null;
+    private ICouchbaseBucket client;
+    private ICouchbaseTranscoder<T> transcoder;
+    private List<CouchbaseViewDao> daoViews=null;
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
     public abstract T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException;
 
@@ -51,10 +51,10 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     protected List<CouchbaseViewDao> generateViewDaos(){ return Collections.emptyList();}
 
     synchronized public List<CouchbaseViewDao> getViewDaos(){
-        if(_daoViews==null){
-            _daoViews = generateViewDaos();
+        if(daoViews==null){
+            daoViews = generateViewDaos();
         }
-        return Collections.unmodifiableList(_daoViews);
+        return Collections.unmodifiableList(daoViews);
     }
 
     public CouchbaseViewDao getViewDao(String name){
@@ -67,20 +67,20 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
 
     public CouchbaseDocumentDao<T> setClient(ICouchbaseBucket client){
-        _client = client;
+        this.client = client;
         if(getTranscoder()!=null){
-            _client.addTranscoder(getTranscoder());
+            client.addTranscoder(getTranscoder());
         }
         return this;
     }
-    public ICouchbaseBucket getClient(){ return _client; }
+    public ICouchbaseBucket getClient(){ return client; }
 
-    public ICouchbaseTranscoder<T> getTranscoder(){return _transcoder;}
+    public ICouchbaseTranscoder<T> getTranscoder(){return transcoder;}
 
     public CouchbaseDocumentDao<T> setTranscoder(ICouchbaseTranscoder<T> transcoder){
-        _transcoder=transcoder;
+        this.transcoder=transcoder;
         if(getClient()!=null){
-            getClient().addTranscoder(_transcoder);
+            getClient().addTranscoder(transcoder);
         }
         return this;
     }

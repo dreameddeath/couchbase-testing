@@ -23,32 +23,32 @@ import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
  * Created by Christophe Jeunesse on 02/09/2014.
  */
 public class CouchbaseCounterDao {
-    private CouchbaseBucketWrapper _client;
-    private String _keyPattern;
-    private Long _defaultValue;
-    private Long _modulus;
-    private Integer _expiration;
+    private CouchbaseBucketWrapper client;
+    private String keyPattern;
+    private Long defaultValue;
+    private Long modulus;
+    private Integer expiration;
 
-    private CallingMode _mode;
+    private CallingMode mode;
 
     protected CouchbaseBucketWrapper getClientWrapper(){
-        return _client;
+        return client;
     }
 
     public CouchbaseCounterDao(CouchbaseBucketWrapper client,String key, Long defaultValue, Long modulus, Integer expiration){
-        _client = client;
-        _keyPattern = key;
-        _defaultValue = defaultValue;
-        _modulus = modulus;
-        _expiration = expiration;
+        this.client = client;
+        keyPattern = key;
+        this.defaultValue = defaultValue;
+        this.modulus = modulus;
+        this.expiration = expiration;
         if((expiration==null) &&(defaultValue==null)){
-            _mode = CallingMode.BASE;
+            mode = CallingMode.BASE;
         }
         else if(expiration==null){
-            _mode = CallingMode.WITH_DEFAULT;
+            mode = CallingMode.WITH_DEFAULT;
         }
         else{
-            _mode = CallingMode.WITH_DEFAULT_AND_EXPIRATION;
+            mode = CallingMode.WITH_DEFAULT_AND_EXPIRATION;
         }
     }
 
@@ -57,7 +57,7 @@ public class CouchbaseCounterDao {
     }
 
     public String getKeyPattern(){
-        return _keyPattern;
+        return keyPattern;
     }
 
     public long getCounter(String key,boolean isCalcOnly) {
@@ -68,26 +68,26 @@ public class CouchbaseCounterDao {
         long result;
 
         if(isCalcOny){
-                result = _client.getBucket().counter(key, 0).content();
+                result = client.getBucket().counter(key, 0).content();
                 if(result<0){
-                    result=_defaultValue;
+                    result=defaultValue;
                 }
                 result+=by;
         }
         else{
-            switch (_mode) {
+            switch (mode) {
                 case WITH_DEFAULT:
-                    result = _client.getBucket().counter(key, by, _defaultValue).content();
+                    result = client.getBucket().counter(key, by, defaultValue).content();
                     break;
                 case WITH_DEFAULT_AND_EXPIRATION:
-                    result = _client.getBucket().counter(key, by, _defaultValue, _expiration).content();
+                    result = client.getBucket().counter(key, by, defaultValue, expiration).content();
                     break;
                 default:
-                    result = _client.getBucket().counter(key, by).content();
+                    result = client.getBucket().counter(key, by).content();
             }
         }
-        if (_modulus != null) {
-            return result % _modulus;
+        if (modulus != null) {
+            return result % modulus;
         } else {
             return result;
         }
@@ -96,22 +96,22 @@ public class CouchbaseCounterDao {
     public long decrCounter(String key, long by,boolean isCalcOny) {
         if(isCalcOny){
             long result;
-            result = _client.getBucket().counter(key, 0).content();
+            result = client.getBucket().counter(key, 0).content();
             if(result<0){
-                result=_defaultValue;
+                result=defaultValue;
             }
             result-=by;
 
             return result;
         }
         else {
-            switch (_mode) {
+            switch (mode) {
                 case WITH_DEFAULT:
-                    return _client.getBucket().counter(key,-by, _defaultValue).content();
+                    return client.getBucket().counter(key,-by, defaultValue).content();
                 case WITH_DEFAULT_AND_EXPIRATION:
-                    return _client.getBucket().counter(key, -by, _defaultValue, _expiration).content();
+                    return client.getBucket().counter(key, -by, defaultValue, expiration).content();
                 default:
-                    return _client.getBucket().counter(key,-by).content();
+                    return client.getBucket().counter(key,-by).content();
             }
         }
     }
@@ -123,41 +123,41 @@ public class CouchbaseCounterDao {
     }
 
     public static class Builder{
-        private String _keyPattern;
-        private Long _defaultValue;
-        private Long _expiration=0L;
-        private Long _modulus;
-        private CouchbaseBucketWrapper _client;
+        private String keyPattern;
+        private Long defaultValue;
+        private Long expiration=0L;
+        private Long modulus;
+        private CouchbaseBucketWrapper client;
 
         public Builder withKeyPattern(String key){
-            _keyPattern = key;
+            keyPattern = key;
             return this;
         }
 
         public Builder withDefaultValue(Long defaultVal){
-            _defaultValue = defaultVal;
+            defaultValue = defaultVal;
             return this;
         }
 
         public Builder withExpiration(Long expiration){
-            _expiration = expiration;
+            this.expiration = expiration;
             return this;
         }
 
         public Builder withModulus(Long modulus){
-            _modulus = modulus;
+            this.modulus = modulus;
             return this;
         }
 
         public Builder withClient(CouchbaseBucketWrapper client){
-            _client = client;
+            this.client = client;
             return this;
         }
 
-        public String getKeyPattern(){return _keyPattern;}
-        public Long getDefaultValue(){return _defaultValue;}
-        public Long getExpiration(){return _expiration;}
-        public Long getModulus(){return _modulus;}
-        public CouchbaseBucketWrapper getClient(){return _client;}
+        public String getKeyPattern(){return keyPattern;}
+        public Long getDefaultValue(){return defaultValue;}
+        public Long getExpiration(){return expiration;}
+        public Long getModulus(){return modulus;}
+        public CouchbaseBucketWrapper getClient(){return client;}
     }
 }

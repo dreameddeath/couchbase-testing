@@ -130,17 +130,17 @@ public class ViewTest {
         }
     }
 
-    Utils.TestEnvironment _env;
+    Utils.TestEnvironment env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
-        _env.addDocumentDao(new TestDao(),TestDoc.class);
-        _env.start();
+        env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
+        env.addDocumentDao(new TestDao(),TestDoc.class);
+        env.start();
     }
 
     @Test
     public void testView() throws Exception{
-        ICouchbaseSession session = _env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession(null);
         for(int i=0;i<10;++i){
             TestDoc doc = session.newEntity(TestDoc.class);
             doc.strVal="test "+i;
@@ -167,6 +167,6 @@ public class ViewTest {
 
     @After
     public void endTest(){
-        _env.shutdown(true);
+        env.shutdown(true);
     }
 }

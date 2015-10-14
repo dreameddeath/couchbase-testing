@@ -51,7 +51,7 @@ import static org.junit.Assert.assertEquals;
 public class ElasticSearchClientTest {
     public static final String CLUSTER_NAME = "testEsClient";
     public static final String INDEX_NAME = "test";
-    ElasticSearchServer _server;
+    ElasticSearchServer server;
 
     public static class TestAddress extends CouchbaseDocumentElement {
         @DocumentProperty("road")
@@ -135,9 +135,9 @@ public class ElasticSearchClientTest {
 
     @Before
     public void initServer()throws Exception{
-        _server = new ElasticSearchServer(CLUSTER_NAME);
-        _server.start();
-        _server.createAndInitIndex(INDEX_NAME);
+        server = new ElasticSearchServer(CLUSTER_NAME);
+        server.start();
+        server.createAndInitIndex(INDEX_NAME);
     }
 
 
@@ -145,7 +145,7 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testIndexingDocument() throws Exception{
-        ElasticSearchClient client = new ElasticSearchClient(_server.getClient(), GenericJacksonTranscoder.MAPPER);
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(), GenericJacksonTranscoder.MAPPER);
         TestDoc doc = new TestDoc();
         doc.firstName = "firstName1";
         doc.lastName = "lastName1";
@@ -176,7 +176,7 @@ public class ElasticSearchClientTest {
         }
 
         //Wait for indexing
-        _server.syncIndexes();
+        server.syncIndexes();
 
         SearchResponse searchResponse = client.getInternalClient().prepareSearch(INDEX_NAME).setTypes("testDoc").setQuery(QueryBuilders.matchQuery("lastName", "lastName1")).execute().actionGet();
         assertEquals(2, searchResponse.getHits().getTotalHits());
@@ -192,7 +192,7 @@ public class ElasticSearchClientTest {
     public void testDcpFlow()throws Exception{
         GenericCouchbaseTranscoder<TestDoc> transcoder =new GenericCouchbaseTranscoder<>(TestDoc.class,LocalBucketDocument.class);
         transcoder.setTranscoder(new GenericJacksonTranscoder<>(TestDoc.class));
-        ElasticSearchClient client = new ElasticSearchClient(_server.getClient(),GenericJacksonTranscoder.MAPPER);
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(),GenericJacksonTranscoder.MAPPER);
         CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.addTranscoder(transcoder);
         Map<String,ITranscoder> transcoderMap = new HashMap<>();
@@ -227,7 +227,7 @@ public class ElasticSearchClientTest {
         cbSimulator.counter("/test/cnt",1L,1L);
         //Wait for indexing
         connector.stop();
-        _server.syncIndexes();
+        server.syncIndexes();
 
         SearchResponse searchResponse = client.getInternalClient().prepareSearch("test").setTypes("test").setQuery(QueryBuilders.matchQuery("lastName", "lastName1")).execute().actionGet();
         assertEquals(2, searchResponse.getHits().getTotalHits());
@@ -257,6 +257,6 @@ public class ElasticSearchClientTest {
 
     @After
     public void closeServer(){
-        _server.stop();
+        server.stop();
     }
 }

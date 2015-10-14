@@ -30,21 +30,21 @@ import java.util.List;
  */
 public class BillingAccountPartyRole extends PartyRole {
     @DocumentProperty("roles")
-    private ListProperty<RoleType> _roles = new ArrayListProperty<>(BillingAccountPartyRole.this);
+    private ListProperty<RoleType> roles = new ArrayListProperty<>(BillingAccountPartyRole.this);
     @DocumentProperty("ba")
-    private Property<BillingAccountLink> _ba=new ImmutableProperty<>(BillingAccountPartyRole.this);
+    private Property<BillingAccountLink> ba=new ImmutableProperty<>(BillingAccountPartyRole.this);
 
 
-    public List<RoleType> getRoles(){ return _roles.get();}
-    public void setRoles(List<RoleType> roles){_roles.set(roles);}
+    public List<RoleType> getRoles(){ return roles.get();}
+    public void setRoles(List<RoleType> roles){this.roles.set(roles);}
     public void addRole(RoleType role){
-        if(_roles.indexOf(role)<0){
-            _roles.add(role);
+        if(roles.indexOf(role)<0){
+            roles.add(role);
         }
     }
 
-    public void setBa(BillingAccountLink baLink){_ba.set(baLink);}
-    public BillingAccountLink getBa(){return _ba.get();}
+    public void setBa(BillingAccountLink baLink){ba.set(baLink);}
+    public BillingAccountLink getBa(){return ba.get();}
 
     public enum RoleType{
         HOLDER,

@@ -34,13 +34,13 @@ import static org.junit.Assert.assertEquals;
 
 public class CreatePartyJobProcessingServiceTest {
     //private final static CouchbaseSessionFactory _sessionFactory ;
-    private final static Utils.TestEnvironment _testEnvironment;
+    private final static Utils.TestEnvironment testEnvironment;
     static {
         try {
-            _testEnvironment = new Utils.TestEnvironment("PartyTest", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
-            _testEnvironment.addDocumentDao(new PartyDao());
-            _testEnvironment.addDocumentDao(new JobDao());
-            _testEnvironment.start();
+            testEnvironment = new Utils.TestEnvironment("PartyTest", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
+            testEnvironment.addDocumentDao(new PartyDao());
+            testEnvironment.addDocumentDao(new JobDao());
+            testEnvironment.start();
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -55,24 +55,24 @@ public class CreatePartyJobProcessingServiceTest {
 
     }
 
-    private final static ExecutorServiceFactory _execFactory=new ExecutorServiceFactory();
-    private final static ProcessingServiceFactory _processFactory=new ProcessingServiceFactory();
+    private final static ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
+    private final static ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
     static {
-        _processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
+        processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
 
     }
 
     @Test
     public void JobTest() throws Exception{
-        ICouchbaseSession session = _testEnvironment.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session = testEnvironment.getSessionFactory().newReadWriteSession(null);
         CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
         createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
         createPartyJob.getRequest().person = new CreatePartyRequest.Person();
         createPartyJob.getRequest().person.firstName = "christophe";
         createPartyJob.getRequest().person.lastName = "jeunesse";
 
-        _execFactory.execute(JobContext.newContext(session, _execFactory, _processFactory), createPartyJob);
-        ICouchbaseSession controlSession = _testEnvironment.getSessionFactory().newReadOnlySession(null);
+        execFactory.execute(JobContext.newContext(session, execFactory, processFactory), createPartyJob);
+        ICouchbaseSession controlSession = testEnvironment.getSessionFactory().newReadOnlySession(null);
         CreatePartyJob inDbJob = controlSession.get(createPartyJob.getBaseMeta().getKey(),CreatePartyJob.class);
         assertEquals(inDbJob.getJobState(), AbstractJob.State.DONE);
         Party inDbParty = controlSession.get(inDbJob.getTask(0, CreatePartyJob.CreatePartyTask.class).getDocKey(),Party.class);

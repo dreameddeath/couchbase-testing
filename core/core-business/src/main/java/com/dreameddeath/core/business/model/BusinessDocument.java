@@ -19,8 +19,8 @@ package com.dreameddeath.core.business.model;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.entity.IVersionedDocument;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -42,75 +42,75 @@ import java.util.Set;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
-public abstract class BusinessDocument extends com.dreameddeath.core.model.document.CouchbaseDocument implements IHasUniqueKeysRef,IVersionedDocument ,IDocumentWithLinkedTasks{
-    private EntityModelId _fullEntityId;
+public abstract class BusinessDocument extends com.dreameddeath.core.model.document.CouchbaseDocument implements IHasUniqueKeysRef,IVersionedEntity,IDocumentWithLinkedTasks{
+    private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
-        _fullEntityId = EntityModelId.build(typeId);
+        fullEntityId = EntityModelId.build(typeId);
     }
     @Override
     public final String getDocumentFullVersionId(){
-        return _fullEntityId!=null?_fullEntityId.toString():null;
+        return fullEntityId!=null?fullEntityId.toString():null;
     }
     @Override
     public final EntityModelId getModelId(){
-        return _fullEntityId;
+        return fullEntityId;
     }
 
     @DocumentProperty("attachedTasks")
-    private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(BusinessDocument.this);
+    private ListProperty<CouchbaseDocumentAttachedTaskRef> attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(BusinessDocument.this);
     @DocumentProperty("docRevision")
-    private Long _revision = 0L;
+    private Long revision = 0L;
     @DocumentProperty("docLastModDate")
-    private DateTime _lastModificationDate;
+    private DateTime lastModificationDate;
     /**
      *  docUniqKeys : List of uniqueness Keys attached to this document
      */
     @DocumentProperty("docUniqKeys")
-    private SetProperty<String> _docUniqKeys = new HashSetProperty<String>(BusinessDocument.this);
-    private Set<String> _inDbUniqKeys = new HashSet<String>();
+    private SetProperty<String> docUniqKeys = new HashSetProperty<String>(BusinessDocument.this);
+    private Set<String> inDbUniqKeys = new HashSet<String>();
 
 
-    public final Long getDocRevision(){ return _revision; }
-    public final void setDocRevision(Long rev){ _revision=rev; }
-    public final Long incDocRevision(ICouchbaseSession session){ return (++_revision); }
+    public final Long getDocRevision(){ return revision; }
+    public final void setDocRevision(Long rev){ revision=rev; }
+    public final Long incDocRevision(ICouchbaseSession session){ return (++revision); }
 
-    public final DateTime getDocLastModDate(){ return _lastModificationDate; }
-    public final void setDocLastModDate(DateTime date){ _lastModificationDate=date; }
-    public final void updateDocLastModDate(ICouchbaseSession session){ _lastModificationDate=session.getCurrentDate(); }
+    public final DateTime getDocLastModDate(){ return lastModificationDate; }
+    public final void setDocLastModDate(DateTime date){ lastModificationDate=date; }
+    public final void updateDocLastModDate(ICouchbaseSession session){ lastModificationDate=session.getCurrentDate(); }
 
     // DocUniqKeys Accessors
-    public final Set<String> getDocUniqKeys() { return _docUniqKeys.get(); }
-    public final void setDocUniqKeys(Set<String> vals) { _docUniqKeys.set(vals); }
-    public final boolean addDocUniqKeys(String key){ return _docUniqKeys.add(key); }
-    public final boolean removeDocUniqKeys(String key){ return _docUniqKeys.remove(key); }
+    public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
+    public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
+    public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
+    public final boolean removeDocUniqKeys(String key){ return docUniqKeys.remove(key); }
 
 
     protected void syncKeyWithDb(){
-        _inDbUniqKeys.clear();
-        _inDbUniqKeys.addAll(_docUniqKeys.get());
-        _docUniqKeys.clear();
+        inDbUniqKeys.clear();
+        inDbUniqKeys.addAll(docUniqKeys.get());
+        docUniqKeys.clear();
     }
 
     public Set<String> getToBeDeletedUniqueKeys(){
-        Set<String> toRemoveKeyList=new HashSet<String>(_inDbUniqKeys);
-        toRemoveKeyList.addAll(_docUniqKeys.get());
+        Set<String> toRemoveKeyList=new HashSet<String>(inDbUniqKeys);
+        toRemoveKeyList.addAll(docUniqKeys.get());
         return toRemoveKeyList;
     }
 
     public Set<String> getRemovedUniqueKeys(){
-        Set<String> removed=new HashSet<String>(_inDbUniqKeys);
-        removed.removeAll(_docUniqKeys.get());
+        Set<String> removed=new HashSet<String>(inDbUniqKeys);
+        removed.removeAll(docUniqKeys.get());
         return removed;
     }
 
-    public List<CouchbaseDocumentAttachedTaskRef> getAttachedTasks(){return _attachedTasks.get();}
+    public List<CouchbaseDocumentAttachedTaskRef> getAttachedTasks(){return attachedTasks.get();}
     public void setAttachedTasks(Collection<CouchbaseDocumentAttachedTaskRef> tasks){
-        _attachedTasks.set(tasks);
+        attachedTasks.set(tasks);
     }
 
     public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(String jobKey,String taskId){
-        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks) {
+        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks) {
             if (jobKey.equals(taskRef.getJobKey()) && (taskId.equals(taskRef.getTaskId()))) {
                 return taskRef;
             }
@@ -122,11 +122,11 @@ public abstract class BusinessDocument extends com.dreameddeath.core.model.docum
         if(getAttachedTaskRef(task.getJobKey(), task.getTaskId())!=null){
             throw new DuplicateAttachedTaskException(this,task.getJobKey(),task.getTaskId());
         }
-        _attachedTasks.add(task);
+        attachedTasks.add(task);
     }
 
     public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(AbstractTask task){
-        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks){
+        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks){
             if(taskRef.isForTask(task)){
                 return taskRef;
             }
@@ -141,14 +141,14 @@ public abstract class BusinessDocument extends com.dreameddeath.core.model.docum
      */
     public void cleanupAttachedTaskRef(AbstractTask task){
         CouchbaseDocumentAttachedTaskRef result=null;
-        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks){
+        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks){
             if(taskRef.isForTask(task)) {
                 result = taskRef;
                 break;
             }
         }
         if(result!=null){
-            _attachedTasks.remove(result);
+            attachedTasks.remove(result);
         }
     }
 
@@ -163,21 +163,21 @@ public abstract class BusinessDocument extends com.dreameddeath.core.model.docum
     }
 
     public class MetaInfo extends BaseMetaInfo {
-        private String _typeId;
+        private String typeId;
 
-        public void setTypeId(String typeId){_typeId = typeId;}
-        public String getTypeId(){return _typeId;}
+        public void setTypeId(String typeId){this.typeId = typeId;}
+        public String getTypeId(){return typeId;}
 
-        private Collection<BusinessDocumentLink> _reverseLinks=new HashSet<BusinessDocumentLink>();
+        private Collection<BusinessDocumentLink> reverseLinks=new HashSet<>();
 
-        public void addReverseLink(BusinessDocumentLink lnk){ _reverseLinks.add(lnk); }
-        public void removeReverseLink(BusinessDocumentLink lnk){ _reverseLinks.remove(lnk); }
+        public void addReverseLink(BusinessDocumentLink lnk){ reverseLinks.add(lnk); }
+        public void removeReverseLink(BusinessDocumentLink lnk){ reverseLinks.remove(lnk); }
 
 
         @Override
         public void setStateDirty(){
             super.setStateDirty();
-            for(BusinessDocumentLink link: _reverseLinks){
+            for(BusinessDocumentLink link: reverseLinks){
                 link.syncFields();
             }
         }

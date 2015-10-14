@@ -33,9 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 18/12/2014.
  */
 public class CouchbaseViewDaoFactory {
-    private Map<Class<? extends CouchbaseDocument>, List<CouchbaseViewDao<?,? extends CouchbaseDocument,?>>> _daosMap
+    private Map<Class<? extends CouchbaseDocument>, List<CouchbaseViewDao<?,? extends CouchbaseDocument,?>>> daosMap
             = new ConcurrentHashMap<>();
-    private Map<String,CouchbaseViewDao> _perClassNameAndNameCacheMap=new ConcurrentHashMap<>();
+    private Map<String,CouchbaseViewDao> perClassNameAndNameCacheMap=new ConcurrentHashMap<>();
 
 
     public CouchbaseViewDaoFactory(Builder builder){
@@ -52,27 +52,27 @@ public class CouchbaseViewDaoFactory {
     }
 
     public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClazz,CouchbaseViewDao dao){
-        if(!_daosMap.containsKey(entityClazz)){
-            _daosMap.put(entityClazz,new ArrayList<>());
+        if(!daosMap.containsKey(entityClazz)){
+            daosMap.put(entityClazz,new ArrayList<>());
         }
 
-        for(CouchbaseViewDao existingDao:_daosMap.get(entityClazz)){
+        for(CouchbaseViewDao existingDao:daosMap.get(entityClazz)){
             if(existingDao.getViewName().equals(dao.getViewName())){
                 throw new DuplicateDaoException("The dao view <"+dao.getViewName()+"> is already existing for class "+entityClazz.getName());
             }
         }
-        _daosMap.get(entityClazz).add(dao);
+        daosMap.get(entityClazz).add(dao);
         //_perClassNameAndNameCacheMap.computeIfAbsent(entityClazz.getName()+dao.getViewName(),)
     }
 
     public <T extends CouchbaseDocument> List<CouchbaseViewDao> getViewListDaoFor(Class<T> entityClass){
-        List<CouchbaseViewDao> result = (List)_daosMap.get(entityClass);
+        List<CouchbaseViewDao> result = (List)daosMap.get(entityClass);
         if(result==null){
             Class parentClass=entityClass.getSuperclass();
             if(CouchbaseDocument.class.isAssignableFrom(parentClass)){
                 result = getViewListDaoFor(parentClass.asSubclass(CouchbaseDocument.class));
                 if(result!=null){
-                    _daosMap.put(entityClass,(List)result);
+                    daosMap.put(entityClass,(List)result);
                 }
             }
         }
@@ -80,13 +80,13 @@ public class CouchbaseViewDaoFactory {
     }
 
     public <T extends CouchbaseDocument> CouchbaseViewDao getViewDaoFor(Class<T> entityClass,String viewName) throws DaoNotFoundException{
-        CouchbaseViewDao result = _perClassNameAndNameCacheMap.get(entityClass.getName()+viewName);
+        CouchbaseViewDao result = perClassNameAndNameCacheMap.get(entityClass.getName()+viewName);
         if(result==null) {
             List<CouchbaseViewDao> list = getViewListDaoFor(entityClass);
             if(list != null){
                 for(CouchbaseViewDao viewDao:list){
                     if(viewDao.getViewName().equals(viewName)){
-                        _perClassNameAndNameCacheMap.putIfAbsent(entityClass.getName()+viewName,viewDao);
+                        perClassNameAndNameCacheMap.putIfAbsent(entityClass.getName()+viewName,viewDao);
                         result=viewDao;
                         break;
                     }
@@ -103,7 +103,7 @@ public class CouchbaseViewDaoFactory {
     public void initAllViews() throws StorageException{
         Map<ICouchbaseBucket,Map<String,Map<String,String>>> bucketDesignDocMap=new HashMap<>();
 
-        for(List list:_daosMap.values()){
+        for(List list:daosMap.values()){
             List<CouchbaseViewDao> views=list;
 
             for(CouchbaseViewDao view:views){

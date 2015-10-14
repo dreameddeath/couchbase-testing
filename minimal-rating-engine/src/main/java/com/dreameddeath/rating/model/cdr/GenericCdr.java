@@ -35,24 +35,24 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     ///abstract method which should return the Serializer of the Cdr Rating Result Part
     protected abstract BinarySerializer<T_CDRRATING> getCdrRatingSerializer();
     
-    private String _uid;
-    private T_CDRDATA _cdrData;
-    private List<T_CDRRATING> _ratingResults;
-    private boolean _isDuplicated;
-    private boolean _isDiscarded;
-    private int _overheadCounter;//Maintain a counter of overhead to check if compaction is required
+    private String uid;
+    private T_CDRDATA cdrData;
+    private List<T_CDRRATING> ratingResults;
+    private boolean isDuplicated;
+    private boolean isDiscarded;
+    private int overheadCounter;//Maintain a counter of overhead to check if compaction is required
     
     /**
     * The constructor requires a uid
     * @param uid the cdr unique id
     */
     public GenericCdr(String uid){
-        this._uid = uid;
-        this._isDuplicated = false;
-        this._isDiscarded = false;
-        this._overheadCounter=0;
-        this._cdrData = null;
-        this._ratingResults=new ArrayList<T_CDRRATING>();
+        this.uid = uid;
+        this.isDuplicated = false;
+        this.isDiscarded = false;
+        this.overheadCounter=0;
+        this.cdrData = null;
+        this.ratingResults=new ArrayList<T_CDRRATING>();
     }
 
     /**
@@ -60,7 +60,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @return the duplicated flag
     */
     public boolean isDuplicated(){
-        return this._isDuplicated;
+        return this.isDuplicated;
     }
 
     /**
@@ -68,7 +68,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param isDuplicated the new duplicated flag
     */
     public void setDuplicated(boolean isDuplicated){
-        this._isDuplicated=isDuplicated;
+        this.isDuplicated=isDuplicated;
     }
 
 /**
@@ -76,7 +76,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @return the discarded flag
     */
     public boolean isDiscarded(){
-        return this._isDiscarded;
+        return this.isDiscarded;
     }
 
     /**
@@ -84,7 +84,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param isDiscarded the new discarded flag
     */
     public void setDiscarded(boolean isDiscarded){
-        this._isDiscarded=isDiscarded;
+        this.isDiscarded=isDiscarded;
     }
 
     
@@ -93,7 +93,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @return unique id
     */
     public String getUid(){
-        return this._uid;
+        return this.uid;
     }
 
     /**
@@ -101,7 +101,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @return array of bytes of representing the raw data of the cdr
     */
     public byte[] getCdrDataSerialized(){
-        return getCdrDataSerializer().serialize(this._cdrData);
+        return getCdrDataSerializer().serialize(this.cdrData);
         //return this._cdrData;
     }
     
@@ -110,7 +110,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @return array of bytes of representing the data of the cdr
     */
     public T_CDRDATA getCdrData(){
-        return this._cdrData;
+        return this.cdrData;
     }
     
     
@@ -119,7 +119,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param data the data of the cdr
     */
     public void setCdrData(T_CDRDATA data){
-        this._cdrData=data;
+        this.cdrData=data;
     }
     
     /**
@@ -127,7 +127,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param data array of bytes of representing the raw data of the cdr
     */
     public void setCdrDataSerialized(byte[] data){
-        this._cdrData=getCdrDataSerializer().deserialize(data);
+        this.cdrData=getCdrDataSerializer().deserialize(data);
     }
     
     /**
@@ -137,8 +137,8 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     public Collection<byte[]> getRatingResultsSerialized(){
         Collection<byte[]> result = new ArrayList<byte[]>();
         
-        if(this._ratingResults!=null){
-            for(T_CDRRATING ratingResult:_ratingResults){
+        if(this.ratingResults!=null){
+            for(T_CDRRATING ratingResult:ratingResults){
                 result.add(getCdrRatingSerializer().serialize(ratingResult));
             }
         }
@@ -150,7 +150,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @return a List of rating Results
     */
     public Collection<T_CDRRATING> getRatingResults(){
-        return _ratingResults;
+        return ratingResults;
     }
     
     /**
@@ -158,9 +158,9 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param ratingResults the list of serialized rating result 
     */
     public void setRatingResultsSerialized(Collection<byte[]> ratingResults){
-        this._ratingResults.clear();
+        this.ratingResults.clear();
         for(byte[] ratingResult:ratingResults){
-            this._ratingResults.add(getCdrRatingSerializer().deserialize(ratingResult));
+            this.ratingResults.add(getCdrRatingSerializer().deserialize(ratingResult));
         }
     }
     
@@ -169,9 +169,9 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param ratingResults the list of serialized rating result 
     */
     public void setRatingResults(Collection<T_CDRRATING> ratingResults){
-        this._ratingResults.clear();
+        this.ratingResults.clear();
         for(T_CDRRATING ratingResult:ratingResults){
-            this._ratingResults.add(ratingResult);
+            this.ratingResults.add(ratingResult);
         }
     }
     
@@ -180,7 +180,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param ratingResult a serialized rating result to be appended
     */
     public void addRatingResultSerialized(byte[] ratingResult){
-        this._ratingResults.add(getCdrRatingSerializer().deserialize(ratingResult));
+        this.ratingResults.add(getCdrRatingSerializer().deserialize(ratingResult));
     }
     
     /**
@@ -188,14 +188,14 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @param ratingResult a rating result to be appended
     */
     public void addRatingResult(T_CDRRATING ratingResult){
-        this._ratingResults.add(ratingResult);
+        this.ratingResults.add(ratingResult);
     }
     
     /**
     *  Increment overhead (when detecting uncompacted raw + rated Cdr separately)
     */
     public void incOverheadCounter(){
-        this._overheadCounter++;
+        this.overheadCounter++;
     }
     
     /**
@@ -203,7 +203,7 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     *  @return the current overhead counter for given cdr
     */
     public int getOverheadCounter(){
-        return this._overheadCounter;
+        return this.overheadCounter;
     }
     
     /**
@@ -212,10 +212,10 @@ public abstract class GenericCdr<T_CDRDATA,T_CDRRATING> extends BaseCouchbaseDoc
     @Override
     public String toString(){
         String result = "{\n\tCdr : <"+getUid()+">\n";
-        if(_cdrData!=null){
-            result += "\t Cdr Data : <"+_cdrData.toString()+">\n";
+        if(cdrData!=null){
+            result += "\t Cdr Data : <"+cdrData.toString()+">\n";
         }
-        for(T_CDRRATING rating:_ratingResults){
+        for(T_CDRRATING rating:ratingResults){
             result += "\t Rating Result : <"+rating.toString()+">\n";
         }
         result+="}";

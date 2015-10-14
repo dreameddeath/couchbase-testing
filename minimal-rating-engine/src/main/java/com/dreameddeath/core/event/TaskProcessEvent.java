@@ -23,18 +23,18 @@ import com.dreameddeath.core.process.common.AbstractTask;
  * Created by Christophe Jeunesse on 27/07/2014.
  */
 public class TaskProcessEvent {
-    private AbstractTask _task;
+    private AbstractTask task;
 
     public TaskProcessEvent(AbstractTask task){
-        _task = task;
+        this.task = task;
     }
 
     public AbstractTask getTask(){
-        return _task;
+        return task;
     }
 
     public AbstractJob getJob(){
-        return _task.getParentJob();
+        return task.getParentJob();
     }
 
 }

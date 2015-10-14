@@ -32,8 +32,8 @@ import java.util.*;
  * Created by Christophe Jeunesse on 15/03/2015.
  */
 public abstract class AbstractClassInfo extends AnnotatedInfo {
-    private static Map<TypeElement,AbstractClassInfo> _typeElementToInfoMap = new HashMap<>();
-    private static Map<Class,AbstractClassInfo> _classToInfoMap = new HashMap<>();
+    private static Map<TypeElement,AbstractClassInfo> typeElementToInfoMap = new HashMap<>();
+    private static Map<Class,AbstractClassInfo> classToInfoMap = new HashMap<>();
 
 
     public static <T extends Annotation> AbstractClassInfo getClassInfoFromAnnot(T annot,AnnotGetter<T> getter){
@@ -64,7 +64,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
 
     public static AbstractClassInfo getClassInfo(Class clazz){
-        if(!_classToInfoMap.containsKey(clazz)){
+        if(!classToInfoMap.containsKey(clazz)){
             if(clazz.isAnnotation()){
                 return new AnnotationInfo(clazz);
             }
@@ -75,11 +75,11 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
                 return new ClassInfo(clazz);
             }
         }
-        return _classToInfoMap.get(clazz);
+        return classToInfoMap.get(clazz);
     }
 
     public static AbstractClassInfo getClassInfo(TypeElement elt){
-        if(!_typeElementToInfoMap.containsKey(elt)){
+        if(!typeElementToInfoMap.containsKey(elt)){
             //if(elt.getKind().)
             if(elt.getKind().equals(ElementKind.ANNOTATION_TYPE)){
                 return new AnnotationInfo(elt);
@@ -91,7 +91,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
                 return new ClassInfo(elt);
             }
         }
-        return _typeElementToInfoMap.get(elt);
+        return typeElementToInfoMap.get(elt);
     }
 
 
@@ -129,50 +129,50 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
         return null;
     }
 
-    private PackageInfo _packageInfo;
-    private AbstractClassInfo _enclosingClass=null;
-    private String _simpleName;
-    private String _fullName;
-    private String _compiledFileName;
-    private Class<?> _class = null;
-    private DeclaredType _declaredType = null;
-    private TypeElement _typeElement = null;
-    private List<InterfaceInfo> _parentInterfaces = null;
-    private List<MethodInfo> _declaredMethods = null;
-    private List<ParameterizedTypeInfo> _parameterizedTypeInfos=new ArrayList<>();
+    private PackageInfo packageInfo;
+    private AbstractClassInfo enclosingClass=null;
+    private String simpleName;
+    private String fullName;
+    private String compiledFileName;
+    private Class<?> clazz = null;
+    private DeclaredType declaredType = null;
+    private TypeElement typeElement = null;
+    private List<InterfaceInfo> parentInterfaces = null;
+    private List<MethodInfo> declaredMethods = null;
+    private List<ParameterizedTypeInfo> parameterizedTypeInfos=new ArrayList<>();
 
     public abstract boolean isInterface();
 
     private void init(){
-        if(_typeElement!=null){
-            _typeElementToInfoMap.put(_typeElement,this);
+        if(typeElement!=null){
+            typeElementToInfoMap.put(typeElement,this);
         }
-        if(_class!=null){
-            _classToInfoMap.put(_class,this);
+        if(clazz!=null){
+            classToInfoMap.put(clazz,this);
         }
-        if(_typeElement!=null){
-            if(!(_typeElement.getEnclosingElement() instanceof PackageElement)){
-                _enclosingClass = AbstractClassInfo.getClassInfo((TypeElement)_typeElement.getEnclosingElement());
+        if(typeElement!=null){
+            if(!(typeElement.getEnclosingElement() instanceof PackageElement)){
+                enclosingClass = AbstractClassInfo.getClassInfo((TypeElement)typeElement.getEnclosingElement());
             }
-            _packageInfo = PackageInfo.getPackageInfo(_typeElement);
-            _simpleName = _typeElement.getSimpleName().toString();
-            //Manage $ for inner class
-            _compiledFileName = _typeElement.getQualifiedName().toString();
-            _fullName = _packageInfo.getName()+"."+_typeElement.getQualifiedName().toString().substring(_packageInfo.getName().length() + 1).replace(".","$");
-            for(TypeParameterElement parameterElement:_typeElement.getTypeParameters()){
-                _parameterizedTypeInfos.add(new ParameterizedTypeInfo(parameterElement));
+            packageInfo = PackageInfo.getPackageInfo(typeElement);
+            simpleName = typeElement.getSimpleName().toString();
+            //Manage $ for inner clazz
+            compiledFileName = typeElement.getQualifiedName().toString();
+            fullName = packageInfo.getName()+"."+typeElement.getQualifiedName().toString().substring(packageInfo.getName().length() + 1).replace(".","$");
+            for(TypeParameterElement parameterElement:typeElement.getTypeParameters()){
+                parameterizedTypeInfos.add(new ParameterizedTypeInfo(parameterElement));
             }
         }
-        else if(_class!=null){
-            _packageInfo = PackageInfo.getPackageInfo(_class.getPackage());
-            if(_class.getEnclosingClass()!=null){
-                _enclosingClass = AbstractClassInfo.getClassInfo(_class.getEnclosingClass());
+        else if(clazz!=null){
+            packageInfo = PackageInfo.getPackageInfo(clazz.getPackage());
+            if(clazz.getEnclosingClass()!=null){
+                enclosingClass = AbstractClassInfo.getClassInfo(clazz.getEnclosingClass());
             }
-            _simpleName = _class.getSimpleName();
-            _fullName = _class.getName();
-            _compiledFileName = (_enclosingClass!=null)?_enclosingClass._compiledFileName+"$"+_class.getSimpleName():_class.getName();
-            for(TypeVariable param:_class.getTypeParameters()){
-                _parameterizedTypeInfos.add(new ParameterizedTypeInfo(param));
+            simpleName = clazz.getSimpleName();
+            fullName = clazz.getName();
+            compiledFileName = (enclosingClass!=null)?enclosingClass.compiledFileName+"$"+clazz.getSimpleName():clazz.getName();
+            for(TypeVariable param:clazz.getTypeParameters()){
+                parameterizedTypeInfos.add(new ParameterizedTypeInfo(param));
             }
         }
         else{
@@ -182,50 +182,50 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public AbstractClassInfo(TypeElement element){
         super(element);
-        _typeElement = element;
-        _declaredType = (DeclaredType)element.asType();
-        _class = getClassFrom(_declaredType);
+        typeElement = element;
+        declaredType = (DeclaredType)element.asType();
+        clazz = getClassFrom(declaredType);
         init();
     }
 
     public AbstractClassInfo(Class<?> clazz){
         super(clazz);
-        _class = clazz;
+        this.clazz = clazz;
         init();
     }
 
     public List<InterfaceInfo> getParentInterfaces(){
-        if(_parentInterfaces==null) {
-            _parentInterfaces = new ArrayList<>();
-            if (_class != null) {
-                for (Class<?> interfaceClass : _class.getInterfaces()) {
-                    _parentInterfaces.add((InterfaceInfo)AbstractClassInfo.getClassInfo(interfaceClass));
+        if(parentInterfaces==null) {
+            parentInterfaces = new ArrayList<>();
+            if (clazz != null) {
+                for (Class<?> interfaceClass : clazz.getInterfaces()) {
+                    parentInterfaces.add((InterfaceInfo)AbstractClassInfo.getClassInfo(interfaceClass));
                 }
             }
             else {
-                for (TypeMirror interfaceType : _typeElement.getInterfaces()) {
+                for (TypeMirror interfaceType : typeElement.getInterfaces()) {
                     TypeElement interfaceElement = (TypeElement) ((DeclaredType) interfaceType).asElement();
-                    _parentInterfaces.add(new InterfaceInfo(interfaceElement));
+                    parentInterfaces.add(new InterfaceInfo(interfaceElement));
                 }
             }
         }
-        return _parentInterfaces;
+        return parentInterfaces;
     }
 
     public List<MethodInfo> getDeclaredMethods(){
-        if(_declaredMethods==null){
-            _declaredMethods=new ArrayList<>();
-            if(_class!=null){
-                for(Method declaredMethod : _class.getDeclaredMethods()){
-                    _declaredMethods.add(new MethodInfo(this,declaredMethod));
+        if(declaredMethods==null){
+            declaredMethods=new ArrayList<>();
+            if(clazz!=null){
+                for(Method declaredMethod : clazz.getDeclaredMethods()){
+                    declaredMethods.add(new MethodInfo(this,declaredMethod));
                 }
             }
             else{
-                for(Element elt:_typeElement.getEnclosedElements()){
+                for(Element elt:typeElement.getEnclosedElements()){
                     try {
                         AnnotationElementType eltType = AnnotationElementType.getTypeOf(elt);
                         if(eltType.equals(AnnotationElementType.METHOD)){
-                            _declaredMethods.add(new MethodInfo(this,(ExecutableElement) elt));
+                            declaredMethods.add(new MethodInfo(this,(ExecutableElement) elt));
                         }
                     }
                     catch(AnnotationProcessorException e){
@@ -234,7 +234,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
                 }
             }
         }
-        return Collections.unmodifiableList(_declaredMethods);
+        return Collections.unmodifiableList(declaredMethods);
     }
 
     public MethodInfo getDeclaredMethod(String name,ParameterizedTypeInfo ... infos){
@@ -276,15 +276,15 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     }
 
     public String getSimpleName(){
-        return _simpleName;
+        return simpleName;
     }
 
     public String getFullName(){
-        return _fullName;
+        return fullName;
     }
 
     public String getCompiledFileName() {
-        return _compiledFileName;
+        return compiledFileName;
     }
 
     public String getImportName(){
@@ -292,15 +292,15 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     }
 
     public String getName(){
-        return _fullName;
+        return fullName;
     }
 
     public TypeElement getTypeElement(){
-        return _typeElement;
+        return typeElement;
     }
 
     public Class getCurrentClass(){
-        return _class;
+        return clazz;
     }
 
     public boolean isInstanceOf(Class clazz){
@@ -317,8 +317,8 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     }
 
     public boolean isAssignableFrom(AbstractClassInfo target){
-        if((_class!=null) && (target._class!=null)){
-            return (_class==target._class) || _class.isAssignableFrom(target._class);
+        if((clazz!=null) && (target.clazz!=null)){
+            return (clazz==target.clazz) || clazz.isAssignableFrom(target.clazz);
         }
         else {
             ClassInfo targetSuperClass=null;
@@ -347,11 +347,11 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     }
 
     public PackageInfo getPackageInfo() {
-        return _packageInfo;
+        return packageInfo;
     }
 
     public AbstractClassInfo getEnclosingClass() {
-        return _enclosingClass;
+        return enclosingClass;
     }
 
     @Override
@@ -364,12 +364,12 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
         }
         else{
             AbstractClassInfo target = (AbstractClassInfo)o;
-            return ((_class!=null) && _class.equals(target._class))||(this._typeElement.getQualifiedName().toString().equals(target._typeElement.getQualifiedName().toString()));
+            return ((clazz!=null) && clazz.equals(target.clazz))||(this.typeElement.getQualifiedName().toString().equals(target.typeElement.getQualifiedName().toString()));
         }
     }
 
     @Override
     public int hashCode(){
-        return (this._class!=null)?_class.hashCode():_typeElement.getQualifiedName().toString().hashCode();
+        return (this.clazz!=null)?clazz.hashCode():typeElement.getQualifiedName().toString().hashCode();
     }
 }

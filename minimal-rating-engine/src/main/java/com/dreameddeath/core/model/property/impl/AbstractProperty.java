@@ -24,36 +24,36 @@ import com.dreameddeath.core.model.property.Property;
  * Created by Christophe Jeunesse on 09/05/2014.
  */
 public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement {
-    BaseCouchbaseDocumentElement _parentElt;
-    protected T _value;
-    protected T _defaultValue;
+    BaseCouchbaseDocumentElement parentElt;
+    protected T value;
+    protected T defaultValue;
 
     public AbstractProperty(BaseCouchbaseDocumentElement parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
 
     public AbstractProperty(BaseCouchbaseDocumentElement parentElement,T defaultValue){
-        _parentElt=parentElement;
-        _defaultValue=defaultValue;
-        if((_defaultValue!=null) && (_defaultValue instanceof HasParentDocumentElement)){
-            ((HasParentDocumentElement) _defaultValue).setParentDocumentElement(_parentElt);
+        parentElt=parentElement;
+        this.defaultValue=defaultValue;
+        if((defaultValue!=null) && (defaultValue instanceof HasParentDocumentElement)){
+            ((HasParentDocumentElement) defaultValue).setParentDocumentElement(parentElt);
         }
     }
 
-    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
-    public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ parentElt=parentElement;}
+    public BaseCouchbaseDocumentElement getParentDocumentElement(){return parentElt;}
 
-    protected T getRawValue(){return _value;}
+    protected T getRawValue(){return value;}
 
-    public T get(){ if(_value==null){_value =_defaultValue; _defaultValue=null;} return _value; }
+    public T get(){ if(value==null){value =defaultValue; defaultValue=null;} return value; }
     public boolean set(T value) {
         if(!equalsValue(value)){
-            _value = value;
-            if(_parentElt!=null) {
+            this.value = value;
+            if(parentElt!=null) {
                 if (value instanceof HasParentDocumentElement) {
-                    ((HasParentDocumentElement) value).setParentDocumentElement(_parentElt);
+                    ((HasParentDocumentElement) value).setParentDocumentElement(parentElt);
                 }
-                _parentElt.dirtyDocument();
+                parentElt.dirtyDocument();
             }
             return true;
         }
@@ -71,7 +71,7 @@ public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement
             return true;
         }
         else if(ref instanceof AbstractProperty){
-            return equalsValue(((AbstractProperty)ref)._value);
+            return equalsValue(((AbstractProperty)ref).value);
         }
         else{
             return false;
@@ -79,11 +79,11 @@ public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement
     }
 
     public boolean equalsValue(Object value){
-        if(_value == value){
+        if(value == value){
             return true;
         }
-        else if(_value !=null){
-            return _value.equals(value);
+        else if(value !=null){
+            return value.equals(value);
         }
         else{
             return false;
@@ -91,8 +91,8 @@ public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement
     }
 
     public int hashCode(){
-        if(_value!=null){
-            return _value.hashCode();
+        if(value!=null){
+            return value.hashCode();
         }
         else{
             return 0;
@@ -100,8 +100,8 @@ public class AbstractProperty<T> implements Property<T>,HasParentDocumentElement
     }
 
     public String toString(){
-        if(_value!=null){
-            return _value.toString();
+        if(value!=null){
+            return value.toString();
         }
         else{
             return "[null]";

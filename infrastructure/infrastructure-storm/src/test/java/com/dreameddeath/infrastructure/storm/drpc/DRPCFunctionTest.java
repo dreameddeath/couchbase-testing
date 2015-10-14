@@ -64,7 +64,7 @@ public class DRPCFunctionTest {
         public void execute(TridentTuple tridentTuple, TridentCollector tridentCollector) {
             String input = tridentTuple.getString(0);
             try {
-                TestingClass result = new ObjectMapper().readValue(tridentTuple.getString(0), TestingClass.class);
+                TestingClass result = new ObjectMapper().readValue(input, TestingClass.class);
                 result.out+=" from DRPC";
                 Values emitValue = new Values(result);
                 tridentCollector.emit(emitValue);

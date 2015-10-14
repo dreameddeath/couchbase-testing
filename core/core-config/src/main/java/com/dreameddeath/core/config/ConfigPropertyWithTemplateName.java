@@ -27,30 +27,30 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 10/10/2015.
  */
 public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
-    private String _template;
-    private String[] _templateParts;
-    private IConfigPropertyBuilder<PTYPE> _builder;
+    private String template;
+    private String[] templateParts;
+    private IConfigPropertyBuilder<PTYPE> builder;
 
     private void compileTemplate(String template){
-        _templateParts=template.split("(?<=\\{\\w{1,255}\\})|(?=\\{\\w+\\})");
+        templateParts=template.split("(?<=\\{\\w{1,255}\\})|(?=\\{\\w+\\})");
         StringBuilder sb =new StringBuilder();
-        for(int partPos=0;partPos<_templateParts.length;++partPos){
+        for(int partPos=0;partPos<templateParts.length;++partPos){
             if(partPos%2==0){
-                sb.append(_templateParts[partPos]);
+                sb.append(templateParts[partPos]);
             }
             else{
-                _templateParts[partPos] = _templateParts[partPos].substring(1,_templateParts[partPos].length()-1);
+                templateParts[partPos] = templateParts[partPos].substring(1,templateParts[partPos].length()-1);
                 sb.append("%s");
             }
         }
-        _template = sb.toString();
+        this.template = sb.toString();
     }
 
     public ConfigPropertyWithTemplateName(Class<PTYPE> clazz, String nameTemplate, final T defaultValue){
         compileTemplate(nameTemplate);
         try {
             final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, defaultValue.getClass());
-            _builder = new IConfigPropertyBuilder<PTYPE>(){
+            builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {
                     return constructor.newInstance(name, defaultValue);
@@ -71,7 +71,7 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
         compileTemplate(nameTemplate);
         try {
             final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, defaultValue.getClass());
-            _builder = new IConfigPropertyBuilder<PTYPE>(){
+            builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {
                     return constructor.newInstance(name, defaultValue);
@@ -92,7 +92,7 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
         compileTemplate(nameTemplate);
         try {
             final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, defaultValue.getClass(),callback.getClass());
-            _builder = new IConfigPropertyBuilder<PTYPE>(){
+            builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {
                     return constructor.newInstance(name, defaultValue,callback);
@@ -113,7 +113,7 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
         compileTemplate(nameTemplate);
         try {
             final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, defaultValue.getClass(),callback.getClass());
-            _builder = new IConfigPropertyBuilder<PTYPE>(){
+            builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {
                     return constructor.newInstance(name, defaultValue,callback);
@@ -134,7 +134,7 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
         compileTemplate(nameTemplate);
         try {
             final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, IConfigProperty.class);
-            _builder = new IConfigPropertyBuilder<PTYPE>(){
+            builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {
                     return constructor.newInstance(name, defaultValueRefTemplate.getProperty(params));
@@ -156,7 +156,7 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
         compileTemplate(nameTemplate);
         try {
             final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, IConfigProperty.class,callback.getClass());
-            _builder = new IConfigPropertyBuilder<PTYPE>(){
+            builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {
                     return constructor.newInstance(name, defaultValueRefTemplate.getProperty(params), callback);
@@ -175,20 +175,20 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
 
 
     private String buildName(String ...values){
-        return String.format(_template,values);
+        return String.format(template,values);
     }
 
     private String buildName(Map<String,String> values){
         StringBuilder sb = new StringBuilder();
-        for(int paramPos=0;paramPos<_templateParts.length;++paramPos){
-            sb.append((paramPos%2==0)?_templateParts[paramPos]:values.get(_templateParts[paramPos]));
+        for(int paramPos=0;paramPos<templateParts.length;++paramPos){
+            sb.append((paramPos%2==0)?templateParts[paramPos]:values.get(templateParts[paramPos]));
         }
         return sb.toString();
     }
 
     public PTYPE getProperty(String ...values){
         try{
-            return _builder.build(buildName(values),values);
+            return builder.build(buildName(values),values);
         }
         catch (IllegalAccessException|InvocationTargetException|InstantiationException e){
             throw new ConfigPropertyTemplateBuildException(e);
@@ -197,7 +197,7 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
 
     public PTYPE getProperty(Map<String,String> values){
         try{
-            return _builder.build(buildName(values),values);
+            return builder.build(buildName(values),values);
         }
         catch (IllegalAccessException|InvocationTargetException|InstantiationException e){
             throw new ConfigPropertyTemplateBuildException(e);

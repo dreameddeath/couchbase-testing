@@ -30,16 +30,16 @@ import java.util.Set;
  * Created by Christophe Jeunesse on 08/08/2014.
  */
 public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,HasParentDocumentElement {
-    BaseCouchbaseDocumentElement _parentElt;
+    BaseCouchbaseDocumentElement parentElt;
 
     public HashSetProperty(BaseCouchbaseDocumentElement parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
-    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
-    public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ parentElt=parentElement;}
+    public BaseCouchbaseDocumentElement getParentDocumentElement(){return parentElt;}
 
     protected boolean dirtyParent(){
-        BaseCouchbaseDocument rootDoc = _parentElt.getParentDocument();
+        BaseCouchbaseDocument rootDoc = parentElt.getParentDocument();
         if(rootDoc!=null){ rootDoc.getBaseMeta().setStateDirty();}
         return true;
     }
@@ -76,7 +76,7 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,Has
     public boolean add(T elt){
         dirtyParent();
         if((elt!=null) && (elt instanceof HasParentDocumentElement)){
-            ((HasParentDocumentElement) elt).setParentDocumentElement(_parentElt);
+            ((HasParentDocumentElement) elt).setParentDocumentElement(parentElt);
         }
         return super.add(elt);
     }
@@ -86,7 +86,7 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,Has
         dirtyParent();
         for(T elt:elts) {
             if ((elt != null) && (elt instanceof HasParentDocumentElement)) {
-                ((HasParentDocumentElement) elt).setParentDocumentElement(_parentElt);
+                ((HasParentDocumentElement) elt).setParentDocumentElement(parentElt);
             }
         }
         return super.addAll(elts);

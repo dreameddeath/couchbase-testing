@@ -30,38 +30,37 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 27/07/2014.
  */
-//@JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public abstract class Party extends BusinessDocument {
     @DocumentProperty("uid")
-    private ImmutableProperty<String> _uid=new ImmutableProperty<String>(Party.this);
+    private ImmutableProperty<String> uid=new ImmutableProperty<String>(Party.this);
     @DocumentProperty(value="partyRoles")
-    private List<PartyRole> _partyRoles = new ArrayListProperty<PartyRole>(Party.this);
+    private List<PartyRole> partyRoles = new ArrayListProperty<PartyRole>(Party.this);
     /**
      *  externalIds : List of Party external ids
      */
     @DocumentProperty("externalIds")
-    private ListProperty<ExternalId> _externalIds = new ArrayListProperty<ExternalId>(Party.this);
+    private ListProperty<ExternalId> externalIds = new ArrayListProperty<ExternalId>(Party.this);
 
 
 
-    public String getUid() { return _uid.get(); }
-    public void setUid(String uid) { _uid.set(uid); }
+    public String getUid() { return uid.get(); }
+    public void setUid(String uid) { this.uid.set(uid); }
 
-    public List<PartyRole> getPartyRoles() { return Collections.unmodifiableList(_partyRoles); }
+    public List<PartyRole> getPartyRoles() { return Collections.unmodifiableList(partyRoles); }
     public void setPartyRoles(Collection<PartyRole> partyRoles){
-        _partyRoles.clear();
-        _partyRoles.addAll(partyRoles);
+        partyRoles.clear();
+        partyRoles.addAll(partyRoles);
     }
     public void addPartyRole(PartyRole partyRole){
-        _partyRoles.add(partyRole);
+        partyRoles.add(partyRole);
     }
 
 
     // ExternalIds Accessors
-    public List<ExternalId> getExternalIds() { return _externalIds.get(); }
-    public void setExternalIds(Collection<ExternalId> vals) { _externalIds.set(vals); }
-    public boolean addExternalIds(ExternalId val){ return _externalIds.add(val); }
-    public boolean removeExternalIds(ExternalId val){ return _externalIds.remove(val); }
+    public List<ExternalId> getExternalIds() { return externalIds.get(); }
+    public void setExternalIds(Collection<ExternalId> vals) { externalIds.set(vals); }
+    public boolean addExternalIds(ExternalId val){ return externalIds.add(val); }
+    public boolean removeExternalIds(ExternalId val){ return externalIds.remove(val); }
 
     public PartyLink newLink(){
         return new PartyLink(this);

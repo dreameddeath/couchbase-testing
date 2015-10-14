@@ -34,12 +34,12 @@ import java.util.stream.StreamSupport;
  * Created by Christophe Jeunesse on 27/12/2014.
  */
 public class ViewQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IViewQueryResult<TKEY,TVALUE,TDOC> {
-    IViewQuery<TKEY,TVALUE,TDOC> _query;
-    ViewResult _result;
+    IViewQuery<TKEY,TVALUE,TDOC> query;
+    ViewResult result;
 
     public ViewQueryResult(IViewQuery<TKEY,TVALUE,TDOC> query,ViewResult result){
-        _query =query;
-        _result = result;
+        this.query =query;
+        this.result = result;
     }
 
     public static <TKEY,TVALUE,TDOC extends CouchbaseDocument> IViewQueryResult<TKEY,TVALUE,TDOC> from(IViewQuery<TKEY,TVALUE,TDOC> query,ViewResult result){
@@ -47,8 +47,8 @@ public class ViewQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> impleme
     }
 
     protected Stream<IViewQueryRow<TKEY, TVALUE, TDOC>> buildStream(){
-        Iterable<ViewRow> it = ()->_result.rows();
-        return StreamSupport.stream(it.spliterator(),false).map(vr -> _query.getDao().map(vr));
+        Iterable<ViewRow> it = ()->result.rows();
+        return StreamSupport.stream(it.spliterator(),false).map(vr -> query.getDao().map(vr));
     }
 
     @Override
@@ -63,24 +63,24 @@ public class ViewQueryResult<TKEY,TVALUE,TDOC extends CouchbaseDocument> impleme
 
     @Override
     public int getTotalRows(){
-        return _result.totalRows();
+        return result.totalRows();
     }
 
     @Override
     public boolean getSuccess(){
-        return _result.success();
+        return result.success();
     }
 
     @Override
     public JsonObject getErrorInfo(){
-        return _result.error();
+        return result.error();
     }
 
 
     @Override public IViewQuery getQuery() {
-        return _query;
+        return query;
     }
     @Override public IViewQuery getQueryForNext(int nb) {
-        return _query.next(nb);
+        return query.next(nb);
     }
 }

@@ -30,29 +30,29 @@ import java.util.List;
  * Created by Christophe Jeunesse on 28/08/2015.
  */
 public class WebAppWebServer extends AbstractWebServer {
-    private ServiceDiscoveryManager _serviceDiscoveryManager;
+    private ServiceDiscoveryManager serviceDiscoveryManager;
 
     public WebAppWebServer(Builder builder){
         super(builder);
         List<ServletContextHandler> handlersList = new ArrayList<>();
 
-        WebAppServletContextHandler webAppHandler = new WebAppServletContextHandler(this,builder._path,builder._resourcePath);
+        WebAppServletContextHandler webAppHandler = new WebAppServletContextHandler(this,builder.path,builder.resourcePath);
         handlersList.add(webAppHandler);
-        WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(this,builder.getLibsPath(),builder._webJarsSubPath,builder._forTesting);
+        WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(this,builder.getLibsPath(),builder.webJarsSubPath,builder.forTesting);
         handlersList.add(webJarHandler);
-        if(builder._withProxy){
-            handlersList.add(new ProxyServletContextHandler(this,builder._discoverPaths));
+        if(builder.withProxy){
+            handlersList.add(new ProxyServletContextHandler(this,builder.discoverPaths));
         }
 
-        if(builder._withApis){
-            String path = builder._apiPath;
-            _serviceDiscoveryManager = new ServiceDiscoveryManager(getParentDaemon().getCuratorClient());
-            getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(_serviceDiscoveryManager));
+        if(builder.withApis){
+            String path = builder.apiPath;
+            serviceDiscoveryManager = new ServiceDiscoveryManager(getParentDaemon().getCuratorClient());
+            getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(serviceDiscoveryManager));
 
             if(path ==null){
                 path = DaemonConfigProperties.DAEMON_WEBSERVER_API_PATH_PREFIX.get();
             }
-            handlersList.add(new RestServicesServletContextHandler(this,builder._applicationContextConfig,path,_serviceDiscoveryManager));
+            handlersList.add(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,serviceDiscoveryManager));
         }
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
@@ -70,60 +70,60 @@ public class WebAppWebServer extends AbstractWebServer {
     }
 
     public static class Builder extends AbstractWebServer.Builder<Builder>{
-        private String _path="webapp";
-        private String _libSubPath = "libs";
-        private String _webJarsSubPath = "webjars";
-        private String _resourcePath="classpath:META-INF/resources/webapp";
-        private boolean _forTesting = false;
-        private boolean _withProxy = false;
-        private List<String> _discoverPaths=new ArrayList<>();
-        private boolean _withApis=false;
-        private String _apiPath=null;
-        private String _applicationContextConfig;
+        private String path="webapp";
+        private String libSubPath = "libs";
+        private String webJarsSubPath = "webjars";
+        private String resourcePath="classpath:META-INF/resources/webapp";
+        private boolean forTesting = false;
+        private boolean withProxy = false;
+        private List<String> discoverPaths=new ArrayList<>();
+        private boolean withApis=false;
+        private String apiPath=null;
+        private String applicationContextConfig;
 
 
         public Builder withPath(String path){
-            _path = path;
+            this.path = path;
             return this;
         }
 
         public Builder withResourcePath(String resourcePath) {
-            _resourcePath = resourcePath;
+            this.resourcePath = resourcePath;
             return this;
         }
 
         public Builder withLibSubPath(String libSubPath) {
-            _libSubPath = libSubPath;
+            this.libSubPath = libSubPath;
             return this;
         }
 
         public Builder withWebJarsSubPath(String webJarsSubPath) {
-            _webJarsSubPath = webJarsSubPath;
+            this.webJarsSubPath = webJarsSubPath;
             return this;
         }
 
         public Builder withDiscoverPaths(List<String> discoverPaths) {
-            _discoverPaths = discoverPaths;
+            this.discoverPaths = discoverPaths;
             return this;
         }
 
         public Builder withForTesting(boolean forTesting) {
-            _forTesting = forTesting;
+            this.forTesting = forTesting;
             return this;
         }
 
         public String getLibsPath(){
-            return ServletUtils.normalizePath(new String[]{_path,_libSubPath},false);
+            return ServletUtils.normalizePath(new String[]{path,libSubPath},false);
         }
 
         public Builder withApiPath(String apiPath) {
-            _withApis = (apiPath!=null);
-            _apiPath = apiPath;
+            withApis = (apiPath!=null);
+            this.apiPath = apiPath;
             return this;
         }
 
         public Builder withApplicationContextConfig(String applicationContextConfig) {
-            _applicationContextConfig = applicationContextConfig;
+            this.applicationContextConfig = applicationContextConfig;
             return this;
         }
 

@@ -30,11 +30,11 @@ public abstract class BillingAccountContributor extends BusinessDocument {
      *  contributorType : Type of contributor to the billing Account
      */
     @DocumentProperty("contributorType") @NotNull
-    private Property<ContributorType> _contributorType = new StandardProperty<>(BillingAccountContributor.this);
+    private Property<ContributorType> contributorType = new StandardProperty<>(BillingAccountContributor.this);
 
     // contributorType accessors
-    public ContributorType getContributorType() { return _contributorType.get(); }
-    public void setContributorType(ContributorType val) { _contributorType.set(val); }
+    public ContributorType getContributorType() { return contributorType.get(); }
+    public void setContributorType(ContributorType val) { contributorType.set(val); }
 
     public enum ContributorType{
         RECURRING,

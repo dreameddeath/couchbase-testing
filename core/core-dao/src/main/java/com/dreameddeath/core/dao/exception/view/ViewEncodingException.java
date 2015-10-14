@@ -20,11 +20,11 @@ package com.dreameddeath.core.dao.exception.view;
  * Created by Christophe Jeunesse on 22/12/2014.
  */
 public class ViewEncodingException extends Exception {
-    Object _sourceObj;
+    Object sourceObj;
 
     public ViewEncodingException(Object sourceObj, String message, Throwable e){
         super(message,e);
-        _sourceObj = sourceObj;
+        this.sourceObj = sourceObj;
     }
 
 

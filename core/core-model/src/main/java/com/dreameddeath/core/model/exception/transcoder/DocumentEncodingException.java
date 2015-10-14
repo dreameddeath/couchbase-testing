@@ -22,7 +22,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  * Created by Christophe Jeunesse on 16/09/2014.
  */
 public class DocumentEncodingException extends RuntimeException {
-    private CouchbaseDocument _doc;
+    private CouchbaseDocument doc;
     public DocumentEncodingException(CouchbaseDocument doc,String message,Throwable e){
         super(message,e);
     }

@@ -35,8 +35,8 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 04/01/2015.
  */
 public class CouchbaseDocumentStructureReflection {
-    private static Map<Class,CouchbaseDocumentStructureReflection> _REFLECTION_CACHE=new HashMap<>();
-    private static Map<TypeElement,CouchbaseDocumentStructureReflection> _TYPE_ElEMENT_REFLECTION_CACHE=new HashMap<>();
+    private static Map<Class,CouchbaseDocumentStructureReflection> REFLECTION_CACHE=new HashMap<>();
+    private static Map<TypeElement,CouchbaseDocumentStructureReflection> TYPE_ElEMENT_REFLECTION_CACHE=new HashMap<>();
 
 
     public static boolean isReflexible(ClassInfo classInfo){
@@ -67,67 +67,67 @@ public class CouchbaseDocumentStructureReflection {
 
     public static CouchbaseDocumentStructureReflection getReflectionFromClassInfo(ClassInfo classInfo){
         if(classInfo.getTypeElement()!=null){
-            if(!_TYPE_ElEMENT_REFLECTION_CACHE.containsKey(classInfo.getTypeElement())) {
+            if(!TYPE_ElEMENT_REFLECTION_CACHE.containsKey(classInfo.getTypeElement())) {
                 CouchbaseDocumentStructureReflection reflection = new CouchbaseDocumentStructureReflection(classInfo);
                 if(classInfo.getCurrentClass()!=null){
-                    _REFLECTION_CACHE.put(classInfo.getCurrentClass(),reflection);
+                    REFLECTION_CACHE.put(classInfo.getCurrentClass(),reflection);
                 }
-                _TYPE_ElEMENT_REFLECTION_CACHE.put(classInfo.getTypeElement(),reflection);
+                TYPE_ElEMENT_REFLECTION_CACHE.put(classInfo.getTypeElement(),reflection);
             }
-            return _TYPE_ElEMENT_REFLECTION_CACHE.get(classInfo.getTypeElement());
+            return TYPE_ElEMENT_REFLECTION_CACHE.get(classInfo.getTypeElement());
         }
         else{
-            if(!_REFLECTION_CACHE.containsKey(classInfo.getCurrentClass())){
-                _REFLECTION_CACHE.put(classInfo.getCurrentClass(),new CouchbaseDocumentStructureReflection(classInfo));
+            if(!REFLECTION_CACHE.containsKey(classInfo.getCurrentClass())){
+                REFLECTION_CACHE.put(classInfo.getCurrentClass(),new CouchbaseDocumentStructureReflection(classInfo));
             }
-            return _REFLECTION_CACHE.get(classInfo.getCurrentClass());
+            return REFLECTION_CACHE.get(classInfo.getCurrentClass());
         }
     }
 
-    private ClassInfo _classInfo;
-    private String _structDomain;
-    private String _structName;
-    private String _structVersion;
-    private String _structId;
-    private CouchbaseDocumentStructureReflection _parentClassReflexion;
-    private List<CouchbaseDocumentFieldReflection> _fields=new ArrayList<>();
-    private Map<String,CouchbaseDocumentFieldReflection> _propertyNameMap =new HashMap<>();
-    private Map<String,CouchbaseDocumentFieldReflection> _getterMap=new HashMap<>();
-    private Map<String,CouchbaseDocumentFieldReflection> _setterMap=new HashMap<>();
-    private Map<String,CouchbaseDocumentFieldReflection> _fieldNameMap=new HashMap<>();
+    private ClassInfo classInfo;
+    private String structDomain;
+    private String structName;
+    private String structVersion;
+    private String structId;
+    private CouchbaseDocumentStructureReflection parentClassReflexion;
+    private List<CouchbaseDocumentFieldReflection> fields=new ArrayList<>();
+    private Map<String,CouchbaseDocumentFieldReflection> propertyNameMap =new HashMap<>();
+    private Map<String,CouchbaseDocumentFieldReflection> getterMap=new HashMap<>();
+    private Map<String,CouchbaseDocumentFieldReflection> setterMap=new HashMap<>();
+    private Map<String,CouchbaseDocumentFieldReflection> fieldNameMap=new HashMap<>();
 
-    private List<CouchbaseDocumentFieldReflection> _allFields=new ArrayList<>();
-    private Map<String,CouchbaseDocumentFieldReflection> _allNameMap=new HashMap<>();
+    private List<CouchbaseDocumentFieldReflection> allFields=new ArrayList<>();
+    private Map<String,CouchbaseDocumentFieldReflection> allNameMap=new HashMap<>();
 
     protected void addField(CouchbaseDocumentFieldReflection newField){
-        _fields.add(newField);
-        _propertyNameMap.put(newField.getName(), newField);
-        _fieldNameMap.put(newField.getField().getName(),newField);
-        _getterMap.put(newField.getGetterName(),newField);
+        fields.add(newField);
+        propertyNameMap.put(newField.getName(), newField);
+        fieldNameMap.put(newField.getField().getName(),newField);
+        getterMap.put(newField.getGetterName(),newField);
         if(newField.getSetterName()!=null){
-            _setterMap.put(newField.getSetterName(),newField);
+            setterMap.put(newField.getSetterName(),newField);
         }
     }
 
     protected void finalizeStructure() {
-        DocumentDef docDefAnnot = _classInfo.getAnnotation(DocumentDef.class);
+        DocumentDef docDefAnnot = classInfo.getAnnotation(DocumentDef.class);
         if(docDefAnnot!=null){
-            _structDomain = docDefAnnot.domain();
-            _structName = docDefAnnot.name();
-            _structVersion = docDefAnnot.version();
-            _structId = _structDomain+"/"+_structName+"/"+_structVersion;
+            structDomain = docDefAnnot.domain();
+            structName = docDefAnnot.name();
+            structVersion = docDefAnnot.version();
+            structId = structDomain+"/"+structName+"/"+structVersion;
         }
 
-        if(_parentClassReflexion!=null) {
-            _allFields.addAll(_parentClassReflexion._allFields);
-            _allNameMap.putAll(_parentClassReflexion._allNameMap);
+        if(parentClassReflexion!=null) {
+            allFields.addAll(parentClassReflexion.allFields);
+            allNameMap.putAll(parentClassReflexion.allNameMap);
         }
-        _allFields.addAll(_fields);
-        _allNameMap.putAll(_propertyNameMap);
+        allFields.addAll(fields);
+        allNameMap.putAll(propertyNameMap);
     }
 
     protected CouchbaseDocumentStructureReflection(ClassInfo classInfo){
-        _classInfo = classInfo;
+        this.classInfo = classInfo;
         for(FieldInfo field:classInfo.getDeclaredFields()){
             DocumentProperty annot = field.getAnnotation(DocumentProperty.class);
             if (annot == null) continue;
@@ -135,64 +135,64 @@ public class CouchbaseDocumentStructureReflection {
         }
 
         if(CouchbaseDocumentStructureReflection.isReflexible(classInfo.getSuperClass())){
-            _parentClassReflexion = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(classInfo.getSuperClass());
+            parentClassReflexion = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(classInfo.getSuperClass());
         }
         finalizeStructure();
     }
 
     public List<CouchbaseDocumentFieldReflection> getDeclaredFields(){
-        return _fields;
+        return fields;
     }
 
     public CouchbaseDocumentFieldReflection getDeclaredFieldByName(String name){
-        return _fieldNameMap.get(name);
+        return fieldNameMap.get(name);
     }
 
     public List<CouchbaseDocumentFieldReflection> getFields(){
-        return _allFields;
+        return allFields;
     }
 
     public CouchbaseDocumentFieldReflection getFieldByPropertyName(String name) {
-        return _allNameMap.get(name);
+        return allNameMap.get(name);
     }
 
     public CouchbaseDocumentFieldReflection getDeclaredFieldByGetterName(String name){
-        return _getterMap.get(name);
+        return getterMap.get(name);
     }
 
     public CouchbaseDocumentFieldReflection getDeclaredFieldBySetterName(String name){
-        return _setterMap.get(name);
+        return setterMap.get(name);
     }
 
     public String getSimpleName() {
-        return _classInfo.getSimpleName();
+        return classInfo.getSimpleName();
     }
 
     public String getName() {
-        return _classInfo.getName();
+        return classInfo.getName();
     }
 
     public Class getRootClass() {
-        return _classInfo.getCurrentClass();
+        return classInfo.getCurrentClass();
     }
 
     public ClassInfo getClassInfo(){
-        return _classInfo;
+        return classInfo;
     }
 
     public String getStructDomain() {
-        return _structDomain;
+        return structDomain;
     }
 
     public String getStructName() {
-        return _structName;
+        return structName;
     }
 
     public String getStructVersion() {
-        return _structVersion;
+        return structVersion;
     }
 
     public String getId(){
-        return _structId;
+        return structId;
     }
 }

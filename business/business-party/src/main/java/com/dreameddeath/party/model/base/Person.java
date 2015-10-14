@@ -29,19 +29,19 @@ import org.joda.time.DateTime;
 @DocumentDef(domain = "party",version="1.0.0")
 public class Person extends Party {
     @DocumentProperty("firstName") @NotNull
-    private Property<String> _firstName=new StandardProperty<String>(Person.this);
+    private Property<String> firstName=new StandardProperty<String>(Person.this);
     @DocumentProperty("lastName") @NotNull
-    private Property<String> _lastName=new StandardProperty<String>(Person.this);
+    private Property<String> lastName=new StandardProperty<String>(Person.this);
     @DocumentProperty("birthDate")
-    private Property<DateTime> _birthDate = new StandardProperty<DateTime>(Person.this);
+    private Property<DateTime> birthDate = new StandardProperty<DateTime>(Person.this);
 
-    public String getFirstName(){return _firstName.get();}
-    public void setFirstName(String firstName){_firstName.set(firstName);}
+    public String getFirstName(){return firstName.get();}
+    public void setFirstName(String firstName){this.firstName.set(firstName);}
 
-    public String getLastName(){return _lastName.get();}
-    public void setLastName(String lastName){_lastName.set(lastName);}
+    public String getLastName(){return lastName.get();}
+    public void setLastName(String lastName){this.lastName.set(lastName);}
 
-    public DateTime getBirthDate() { return _birthDate.get(); }
-    public void setBirthDate(DateTime val) { _birthDate.set(val); }
+    public DateTime getBirthDate() { return birthDate.get(); }
+    public void setBirthDate(DateTime val) { birthDate.set(val); }
 
 }

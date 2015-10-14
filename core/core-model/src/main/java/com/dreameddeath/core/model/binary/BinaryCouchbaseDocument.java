@@ -64,23 +64,23 @@ public class BinaryCouchbaseDocument extends CouchbaseDocument {
 
     public class BinaryMetaInfo extends BaseMetaInfo {
         /// The document type is used during the Transcoder
-        private BinaryDocumentType _binaryDocumentType;
+        private BinaryDocumentType binaryDocumentType;
         /// The check-sum of the last cdrs read to detect the error
-        private int _checkSum;
+        private int checkSum;
         /// The last append/written size
-        private int _lastWrittenSize;
+        private int lastWrittenSize;
 
         /// Checksum Getter/Setter
-        public int getCheckSum(){ return _checkSum;}
-        public void setCheckSum(int checkSum){_checkSum = checkSum;}
+        public int getCheckSum(){ return checkSum;}
+        public void setCheckSum(int checkSum){this.checkSum = checkSum;}
 
         /// Last Written Size Getter/Setter
-        public int getLastWrittenSize(){return _lastWrittenSize;}
-        public void setLastWrittenSize(int appendedSize){_lastWrittenSize=appendedSize;}
+        public int getLastWrittenSize(){return lastWrittenSize;}
+        public void setLastWrittenSize(int appendedSize){lastWrittenSize=appendedSize;}
 
         /// Getter of document Type
-        public BinaryDocumentType getBinaryDocumentType(){return _binaryDocumentType; }
-        public void setBinaryDocumentType(BinaryDocumentType binaryDocumentType){_binaryDocumentType=binaryDocumentType; }
+        public BinaryDocumentType getBinaryDocumentType(){return binaryDocumentType; }
+        public void setBinaryDocumentType(BinaryDocumentType binaryDocumentType){this.binaryDocumentType=binaryDocumentType; }
     }
 
 
@@ -93,15 +93,15 @@ public class BinaryCouchbaseDocument extends CouchbaseDocument {
         BINARY_PARTIAL_WITHOUT_CHECKSUM("partiel_without_checksum");
 
 
-        private String _value;
+        private String value;
 
         BinaryDocumentType(String value){
-            this._value = value;
+            this.value = value;
         }
 
         @Override
         public String toString(){
-            return _value;
+            return value;
         }
     }
 

@@ -33,21 +33,21 @@ public class BillingOrderItemFee extends BillingOrderItem {
      *  tariffId : The tariff id being billed
      */
     @DocumentProperty("tariffId")
-    private Property<String> _tariffId = new StandardProperty<String>(BillingOrderItemFee.this);
+    private Property<String> tariffId = new StandardProperty<String>(BillingOrderItemFee.this);
     /**
      *  discountIds : The list of applicable billing item ids
      */
     @DocumentProperty("discountIds")
-    private ListProperty<Long> _discountIds = new ArrayListProperty<Long>(BillingOrderItemFee.this);
+    private ListProperty<Long> discountIds = new ArrayListProperty<Long>(BillingOrderItemFee.this);
 
     // tariffId accessors
-    public String getTariffId() { return _tariffId.get(); }
-    public void setTariffId(String val) { _tariffId.set(val); }
+    public String getTariffId() { return tariffId.get(); }
+    public void setTariffId(String val) { tariffId.set(val); }
     // DiscountIds Accessors
-    public List<Long> getDiscountIds() { return _discountIds.get(); }
-    public void setDiscountIds(Collection<Long> vals) { _discountIds.set(vals); }
-    public boolean addDiscountIds(Long val){ return _discountIds.add(val); }
-    public boolean removeDiscountIds(Long val){ return _discountIds.remove(val); }
+    public List<Long> getDiscountIds() { return discountIds.get(); }
+    public void setDiscountIds(Collection<Long> vals) { discountIds.set(vals); }
+    public boolean addDiscountIds(Long val){ return discountIds.add(val); }
+    public boolean removeDiscountIds(Long val){ return discountIds.remove(val); }
 
 
 }

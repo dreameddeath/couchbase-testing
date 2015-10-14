@@ -30,10 +30,10 @@ import java.util.UUID;
  */
 public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractTask {
     @DocumentProperty("jobId")
-    private Property<UUID> _jobId =new StandardProperty<UUID>(SubJobProcessTask.this);
+    private Property<UUID> jobId =new StandardProperty<UUID>(SubJobProcessTask.this);
 
-    public UUID getJobId(){ return _jobId.get(); }
-    public void setJobId(UUID jobId){_jobId.set(jobId);}
+    public UUID getJobId(){ return jobId.get(); }
+    public void setJobId(UUID jobId){this.jobId.set(jobId);}
 
     public T getJob(ICouchbaseSession session) throws DaoException,StorageException{return (T)session.getFromUID(getJobId().toString(),AbstractJob.class);}
 }

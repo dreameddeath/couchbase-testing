@@ -28,10 +28,10 @@ public class BillingInstalledBaseItemDiscount extends BillingInstalledBaseItem {
      *  discountId : The installed base discount id being billed
      */
     @DocumentProperty("discountId")
-    private Property<String> _discountId = new StandardProperty<String>(BillingInstalledBaseItemDiscount.this);
+    private Property<String> discountId = new StandardProperty<String>(BillingInstalledBaseItemDiscount.this);
 
     // discountId accessors
-    public String getDiscountId() { return _discountId.get(); }
-    public void setDiscountId(String val) { _discountId.set(val); }
+    public String getDiscountId() { return discountId.get(); }
+    public void setDiscountId(String val) { discountId.set(val); }
 
 }

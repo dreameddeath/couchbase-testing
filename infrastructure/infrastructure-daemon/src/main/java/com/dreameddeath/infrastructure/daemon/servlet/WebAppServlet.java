@@ -30,7 +30,7 @@ public class WebAppServlet extends DefaultServlet {
     public static final String RESOURCE_PATH_PARAM_NAME="pathParam";
     public static final String DEFAULT_CACHE_SIZE =  Integer.toString(5 * 1024 * 1024);
 
-    private Resource _baseResource;
+    private Resource baseResource;
 
     private void assignDefault(ServletConfig config,String name,String value){
         if(config.getServletContext().getInitParameter(name)==null){
@@ -46,11 +46,11 @@ public class WebAppServlet extends DefaultServlet {
         }
 
         if(path.startsWith("classpath:")){
-            _baseResource = Resource.newClassPathResource(path.substring("classpath:".length()));
+            baseResource = Resource.newClassPathResource(path.substring("classpath:".length()));
         }
         else{
             try {
-                _baseResource = Resource.newResource(path);
+                baseResource = Resource.newResource(path);
             }
             catch(MalformedURLException e){
                 throw new ServletException("Wrong path "+ path,e);
@@ -67,6 +67,6 @@ public class WebAppServlet extends DefaultServlet {
     @Override
     public Resource getResource(String pathInContext) {
         //pathInContext = pathInContext.replace(_prefix,"/webjars/");
-        return _baseResource.getResource(pathInContext);
+        return baseResource.getResource(pathInContext);
     }
 }

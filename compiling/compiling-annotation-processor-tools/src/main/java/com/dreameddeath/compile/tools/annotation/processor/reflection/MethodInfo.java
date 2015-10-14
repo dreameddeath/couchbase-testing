@@ -28,36 +28,34 @@ import java.util.List;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class MethodInfo extends MemberInfo {
-    private String _name;
-    private AbstractClassInfo _parent;
-    private Method _method=null;
-    private ExecutableElement _elementMethod=null;
-    private ParameterizedTypeInfo _returnType=null;
-    private List<ParameterizedTypeInfo> _methodParameters=new ArrayList<>();
+    private String name;
+    private AbstractClassInfo parent;
+    private Method method=null;
+    private ExecutableElement elementMethod=null;
+    private ParameterizedTypeInfo returnType=null;
+    private List<ParameterizedTypeInfo> methodParameters=new ArrayList<>();
 
     private void init(){
-        if(_elementMethod!=null){
-            _name = _elementMethod.getSimpleName().toString();
-            for(VariableElement parameter:_elementMethod.getParameters()) {
+        if(elementMethod!=null){
+            name = elementMethod.getSimpleName().toString();
+            for(VariableElement parameter:elementMethod.getParameters()) {
                 ParameterizedTypeInfo paramInfo = new ParameterizedTypeInfo(parameter.asType());
                 paramInfo.setName(parameter.getSimpleName().toString());
-                _methodParameters.add(paramInfo);
+                methodParameters.add(paramInfo);
 
             }
-            TypeMirror returnType = _elementMethod.getReturnType();
-            _returnType=new ParameterizedTypeInfo(returnType);
-            returnType.getKind();
+            TypeMirror methodReturnType = elementMethod.getReturnType();
+            returnType=new ParameterizedTypeInfo(methodReturnType);
         }
         else{
-            _name = _method.getName();
-            for(Type parameter:_method.getGenericParameterTypes()){
+            name = method.getName();
+            for(Type parameter:method.getGenericParameterTypes()){
                 ParameterizedTypeInfo paramInfo = new ParameterizedTypeInfo(parameter);
                 paramInfo.setName(parameter.getTypeName());
-                _methodParameters.add(paramInfo);
+                methodParameters.add(paramInfo);
             }
-            Type returnType=_method.getGenericReturnType();
-            _returnType = new ParameterizedTypeInfo(returnType);
-            returnType.getTypeName();
+            Type methodGenericReturnType=method.getGenericReturnType();
+            returnType = new ParameterizedTypeInfo(methodGenericReturnType);
         }
 
 
@@ -65,32 +63,32 @@ public class MethodInfo extends MemberInfo {
 
     public MethodInfo(AbstractClassInfo parent,ExecutableElement element){
         super(parent,element);
-        _parent = parent;
-        _elementMethod = element;
+        this.parent = parent;
+        elementMethod = element;
         init();
     }
 
     public MethodInfo(AbstractClassInfo parent,Method method){
         super(parent,method);
-        _parent = parent;
-        _method = method;
+        this.parent = parent;
+        this.method = method;
         init();
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public String getFullName(){
-        return _parent.getFullName()+"."+_name;
+        return parent.getFullName()+"."+name;
     }
 
     public ParameterizedTypeInfo getReturnType(){
-        return _returnType;
+        return returnType;
     }
 
     public List<ParameterizedTypeInfo> getMethodParameters(){
-        return _methodParameters;
+        return methodParameters;
     }
 
     public ParameterizedTypeInfo getMethodParamByName(String name){

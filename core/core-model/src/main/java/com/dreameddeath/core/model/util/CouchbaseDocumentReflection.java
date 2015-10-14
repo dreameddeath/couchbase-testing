@@ -31,8 +31,8 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 04/01/2015.
  */
 public class CouchbaseDocumentReflection {
-    private static Map<Class<? extends CouchbaseDocument>,CouchbaseDocumentReflection> _REFLEXION_CACHE=new HashMap<>();
-    private static Map<TypeElement,CouchbaseDocumentReflection> _TYPE_ElEMENT_REFLECTION_CACHE =new HashMap<>();
+    private static Map<Class<? extends CouchbaseDocument>,CouchbaseDocumentReflection> REFLEXION_CACHE=new HashMap<>();
+    private static Map<TypeElement,CouchbaseDocumentReflection> TYPE_ElEMENT_REFLECTION_CACHE =new HashMap<>();
 
 
     public static boolean isReflexible(Class clazz){
@@ -84,60 +84,60 @@ public class CouchbaseDocumentReflection {
     }
 
     public static CouchbaseDocumentReflection getReflectionFromClass(Class<? extends CouchbaseDocument> doc){
-        if(!_REFLEXION_CACHE.containsKey(doc)){
+        if(!REFLEXION_CACHE.containsKey(doc)){
             ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(doc);
             if(classInfo.getTypeElement()!=null){
                 getReflectionFromTypeElement(classInfo.getTypeElement());
             }
             else{
-                _REFLEXION_CACHE.put(doc,new CouchbaseDocumentReflection(classInfo));
+                REFLEXION_CACHE.put(doc,new CouchbaseDocumentReflection(classInfo));
             }
         }
-        return _REFLEXION_CACHE.get(doc);
+        return REFLEXION_CACHE.get(doc);
     }
 
 
     public static CouchbaseDocumentReflection getReflectionFromTypeElement(TypeElement element){
-        if(!_TYPE_ElEMENT_REFLECTION_CACHE.containsKey(element)){
+        if(!TYPE_ElEMENT_REFLECTION_CACHE.containsKey(element)){
             ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(element);
             CouchbaseDocumentReflection reflection = new CouchbaseDocumentReflection(classInfo);
             if(classInfo.getCurrentClass()!=null){
-                _TYPE_ElEMENT_REFLECTION_CACHE.put(element,reflection );
+                TYPE_ElEMENT_REFLECTION_CACHE.put(element,reflection );
             }
 
-            _TYPE_ElEMENT_REFLECTION_CACHE.put(element, reflection);
+            TYPE_ElEMENT_REFLECTION_CACHE.put(element, reflection);
         }
-        return _TYPE_ElEMENT_REFLECTION_CACHE.get(element);
+        return TYPE_ElEMENT_REFLECTION_CACHE.get(element);
     }
 
-    private ClassInfo _classInfo;
-    private CouchbaseDocumentStructureReflection _structure;
+    private ClassInfo classInfo;
+    private CouchbaseDocumentStructureReflection structure;
 
     protected CouchbaseDocumentReflection(ClassInfo classInfo){
-        _classInfo = classInfo;
-        _structure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(_classInfo);
+        this.classInfo = classInfo;
+        structure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(classInfo);
     }
 
     public CouchbaseDocumentStructureReflection getStructure() {
-        return _structure;
+        return structure;
     }
 
     public CouchbaseDocumentReflection getSuperclassReflection() {
-        if((_classInfo.getSuperClass()!=null) && isReflexible(_classInfo.getSuperClass())) {
-            return  CouchbaseDocumentReflection.getReflectionFromClassInfo(_classInfo.getSuperClass());
+        if((classInfo.getSuperClass()!=null) && isReflexible(classInfo.getSuperClass())) {
+            return  CouchbaseDocumentReflection.getReflectionFromClassInfo(classInfo.getSuperClass());
         }
         return null;
     }
 
     public String getSimpleName() {
-        return _classInfo.getSimpleName();
+        return classInfo.getSimpleName();
     }
 
     public String getName() {
-        return _classInfo.getName();
+        return classInfo.getName();
     }
 
     public ClassInfo getClassInfo() {
-        return _classInfo;
+        return classInfo;
     }
 }

@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 28/05/2015.
  */
 public class CouchbaseDCPConnectorSimulator extends CouchbaseDCPConnector{
-    private CouchbaseBucketSimulator _simulator;
+    private CouchbaseBucketSimulator simulator;
 
     public CouchbaseDCPConnectorSimulator(ICouchbaseDCPEnvironment environment,
                                           List<String> couchbaseNodes,
@@ -40,7 +40,7 @@ public class CouchbaseDCPConnectorSimulator extends CouchbaseDCPConnector{
                                           AbstractDCPFlowHandler handler,
                                           CouchbaseBucketSimulator simulator) {
         super(environment, couchbaseNodes, couchbaseBucket, couchbasePassword, handler);
-        _simulator = simulator;
+        this.simulator = simulator;
     }
 
     @Override
@@ -49,12 +49,12 @@ public class CouchbaseDCPConnectorSimulator extends CouchbaseDCPConnector{
     }
 
     public void run() {
-        _simulator.addCouchbaseDcpSimulator(this);
+        simulator.addCouchbaseDcpSimulator(this);
     }
 
     @Override
     public Boolean stop(){
-        _simulator.removeCouchbaseDcpSimulator(this);
+        simulator.removeCouchbaseDcpSimulator(this);
         getDisruptor().shutdown();
         try {
             Thread.sleep(10);

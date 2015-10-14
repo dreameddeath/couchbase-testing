@@ -89,7 +89,7 @@ public class TestingAnnotationProcessor extends AbstractProcessor {
             }
 
             VelocityContext velocityContext = AnnotationProcessorVelocityEngine.newContext(velocityLogger);
-
+            velocityContext.internalGetKeys();
 
         }
 
@@ -98,13 +98,13 @@ public class TestingAnnotationProcessor extends AbstractProcessor {
 
     public static class ClassInfo {
         //private final String _className;
-        private final String _packageName;
-        private final String _annotationValue;
+        private final String packageName;
+        private final String annotationValue;
 
         public ClassInfo(Elements elementUtils,Element element){
             TestingAnnotation annotation = element.getAnnotation(TestingAnnotation.class);
-            _annotationValue = annotation.value();
-            _packageName = elementUtils.getPackageOf(element).getQualifiedName().toString();
+            annotationValue = annotation.value();
+            packageName = elementUtils.getPackageOf(element).getQualifiedName().toString();
             //element.
             //element.getAnnotation(TestingAnnotation.class);
         }

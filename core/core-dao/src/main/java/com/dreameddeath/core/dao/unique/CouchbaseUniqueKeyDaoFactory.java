@@ -33,41 +33,41 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 11/09/2014.
  */
 public class CouchbaseUniqueKeyDaoFactory{
-    private IDocumentInfoMapper _documentInfoMapper;
-    private Map<String, CouchbaseUniqueKeyDao> _daosMap  = new ConcurrentHashMap<String, CouchbaseUniqueKeyDao>();
+    private IDocumentInfoMapper documentInfoMapper;
+    private Map<String, CouchbaseUniqueKeyDao> daosMap  = new ConcurrentHashMap<String, CouchbaseUniqueKeyDao>();
 
-    private ICouchbaseTranscoder<CouchbaseUniqueKey> _defaultTranscoder;
+    private ICouchbaseTranscoder<CouchbaseUniqueKey> defaultTranscoder;
 
 
     public CouchbaseUniqueKeyDaoFactory(Builder builder){
-        _documentInfoMapper = builder._documentInfoMapper;
+        documentInfoMapper = builder.documentInfoMapper;
         try {
-            _documentInfoMapper.addDocument(CouchbaseUniqueKey.class, CouchbaseUniqueKeyDao.UNIQ_KEY_PATTERN);
+            documentInfoMapper.addDocument(CouchbaseUniqueKey.class, CouchbaseUniqueKeyDao.UNIQ_KEY_PATTERN);
         }
         catch(DuplicateMappedEntryInfoException e){
             //ignore error
         }
-        _defaultTranscoder = builder._defaultTranscoder;
+        defaultTranscoder = builder.defaultTranscoder;
     }
 
 
     public void addDaoFor(String nameSpace,CouchbaseUniqueKeyDao dao){
         if(dao.getTranscoder()==null){
-            dao.setTranscoder(_defaultTranscoder);
+            dao.setTranscoder(defaultTranscoder);
         }
-        _daosMap.put(nameSpace,dao);
+        daosMap.put(nameSpace,dao);
     }
 
     public CouchbaseUniqueKeyDao getDaoFor(String nameSpace) throws DaoNotFoundException{
-        CouchbaseUniqueKeyDao result =_daosMap.get(nameSpace);
+        CouchbaseUniqueKeyDao result =daosMap.get(nameSpace);
         if(result==null){
             throw new DaoNotFoundException(nameSpace, DaoNotFoundException.Type.KEY);
         }
-        return _daosMap.get(nameSpace);
+        return daosMap.get(nameSpace);
     }
 
     public CouchbaseUniqueKeyDao getDaoForInternalKey(String key) throws DaoNotFoundException{
-        for(Map.Entry<String,CouchbaseUniqueKeyDao> entry:_daosMap.entrySet()){
+        for(Map.Entry<String,CouchbaseUniqueKeyDao> entry:daosMap.entrySet()){
             String nameSpace = entry.getValue().extractNameSpace(key);
             if(entry.getKey().equals(nameSpace)){
                 return entry.getValue();
@@ -98,23 +98,23 @@ public class CouchbaseUniqueKeyDaoFactory{
         return new Builder();
     }
     public static class Builder{
-        private IDocumentInfoMapper _documentInfoMapper;
-        private ICouchbaseTranscoder<CouchbaseUniqueKey> _defaultTranscoder;
+        private IDocumentInfoMapper documentInfoMapper;
+        private ICouchbaseTranscoder<CouchbaseUniqueKey> defaultTranscoder;
 
         public Builder withDocumentInfoMapper(IDocumentInfoMapper mapper){
-            _documentInfoMapper = mapper;
+            documentInfoMapper = mapper;
             return this;
         }
 
         public Builder withDefaultTranscoder(ICouchbaseTranscoder<CouchbaseUniqueKey> trans){
-            _defaultTranscoder=trans;
+            defaultTranscoder=trans;
             return this;
         }
 
         public Builder withDefaultTranscoder(ITranscoder<CouchbaseUniqueKey> trans){
             GenericCouchbaseTranscoder<CouchbaseUniqueKey> transcoder = new GenericCouchbaseTranscoder<>(CouchbaseUniqueKey.class,CouchbaseUniqueKeyDao.LocalBucketDocument.class);
             transcoder.setTranscoder(trans);
-            _defaultTranscoder = transcoder;
+            defaultTranscoder = transcoder;
             return this;
         }
 

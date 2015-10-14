@@ -29,28 +29,28 @@ public class ExternalId extends CouchbaseDocumentElement {
      *  id : The external id
      */
     @DocumentProperty("id")
-    private Property<String> _id = new StandardProperty<String>(ExternalId.this);
+    private Property<String> id = new StandardProperty<String>(ExternalId.this);
     /**
      *  refCode : Id of the referential for this code
      */
     @DocumentProperty("referentialCode")
-    private Property<String> _refCode = new StandardProperty<String>(ExternalId.this);
+    private Property<String> refCode = new StandardProperty<String>(ExternalId.this);
     /**
      *  referentialInstance : the instance id of the referential
      */
     @DocumentProperty("referentialInstance")
-    private Property<String> _referentialInstance = new StandardProperty<String>(ExternalId.this);
+    private Property<String> referentialInstance = new StandardProperty<String>(ExternalId.this);
 
     // id accessors
-    public String getId() { return _id.get(); }
-    public void setId(String val) { _id.set(val); }
+    public String getId() { return id.get(); }
+    public void setId(String val) { id.set(val); }
 
     // refCode accessors
-    public String getRefCode() { return _refCode.get(); }
-    public void setRefCode(String val) { _refCode.set(val); }
+    public String getRefCode() { return refCode.get(); }
+    public void setRefCode(String val) { refCode.set(val); }
 
     // referentialInstance accessors
-    public String getReferentialInstance() { return _referentialInstance.get(); }
-    public void setReferentialInstance(String val) { _referentialInstance.set(val); }
+    public String getReferentialInstance() { return referentialInstance.get(); }
+    public void setReferentialInstance(String val) { referentialInstance.set(val); }
 
 }

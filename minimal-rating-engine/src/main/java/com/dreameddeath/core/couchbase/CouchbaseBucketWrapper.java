@@ -38,25 +38,25 @@ import java.util.List;
 *  Class used to perform storage 
 */
 public class CouchbaseBucketWrapper {
-    private Bucket _bucket;
-    private final Cluster _cluster;
-    private final String _bucketName;
-    private final String _bucketPassword;
-    private List<Transcoder<? extends Document, ?>> _transcoders = new ArrayList<Transcoder<? extends Document, ?>>();
+    private Bucket bucket;
+    private final Cluster cluster;
+    private final String bucketName;
+    private final String bucketPassword;
+    private List<Transcoder<? extends Document, ?>> transcoders = new ArrayList<Transcoder<? extends Document, ?>>();
 
     public CouchbaseBucketWrapper(CouchbaseCluster cluster,String bucketName,String bucketPassword){
-        _cluster = cluster;
-        _bucketName = bucketName;
-        _bucketPassword = bucketPassword;
+        this.cluster = cluster;
+        this.bucketName = bucketName;
+        this.bucketPassword = bucketPassword;
     }
 
     public CouchbaseBucketWrapper addTranscoder(GenericTranscoder transcoder){
-        _transcoders.add(transcoder);
+        transcoders.add(transcoder);
         return this;
     }
 
     public Bucket getBucket(){
-        return _bucket;
+        return bucket;
     }
 
     public <T extends BaseCouchbaseDocument> T get(final String key,final Class<BucketDocument<T>> bucketDocClazz) throws StorageException {
@@ -71,7 +71,7 @@ public class CouchbaseBucketWrapper {
     }
 
     public <T extends BaseCouchbaseDocument> Observable<T> asyncGet(final String id,final Class<BucketDocument<T>> bucketDocClazz){
-        return _bucket.async().get(id,bucketDocClazz).map(new Func1<BucketDocument<T>, T>() {
+        return bucket.async().get(id,bucketDocClazz).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 return tBucketDocument.content();
@@ -91,7 +91,7 @@ public class CouchbaseBucketWrapper {
     }
 
     public <T extends BaseCouchbaseDocument> Observable<T> asyncAdd(final BucketDocument<T> bucketDoc) throws StorageException{
-        return _bucket.async().insert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
+        return bucket.async().insert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 bucketDoc.syncCas(tBucketDocument);
@@ -111,7 +111,7 @@ public class CouchbaseBucketWrapper {
     }
 
     public <T extends BaseCouchbaseDocument> Observable<T> asyncSet(final BucketDocument<T> bucketDoc) throws StorageException{
-        return _bucket.async().upsert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
+        return bucket.async().upsert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 bucketDoc.syncCas(tBucketDocument);
@@ -131,7 +131,7 @@ public class CouchbaseBucketWrapper {
     }
 
     public <T extends BaseCouchbaseDocument> Observable<T> asyncReplace(final BucketDocument<T> bucketDoc) throws StorageException{
-        return _bucket.async().upsert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
+        return bucket.async().upsert(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 bucketDoc.syncCas(tBucketDocument);
@@ -151,7 +151,7 @@ public class CouchbaseBucketWrapper {
     }
 
     public <T extends BaseCouchbaseDocument> Observable<T> asyncDelete(final BucketDocument<T> bucketDoc) throws StorageException{
-        return _bucket.async().remove(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
+        return bucket.async().remove(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 bucketDoc.syncCas(tBucketDocument);
@@ -172,7 +172,7 @@ public class CouchbaseBucketWrapper {
     }
 
     public <T extends BaseCouchbaseDocument> Observable<T> asyncAppend(final BucketDocument<T> bucketDoc) throws StorageException{
-        return _bucket.async().append(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
+        return bucket.async().append(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 bucketDoc.syncCas(tBucketDocument);
@@ -192,7 +192,7 @@ public class CouchbaseBucketWrapper {
     }
 
     public <T extends BaseCouchbaseDocument> Observable<T> asyncPrepend(final BucketDocument<T> bucketDoc) throws StorageException{
-        return _bucket.async().prepend(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
+        return bucket.async().prepend(bucketDoc).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 bucketDoc.syncCas(tBucketDocument);
@@ -202,17 +202,17 @@ public class CouchbaseBucketWrapper {
     }
 
     public void start(long timeout,java.util.concurrent.TimeUnit unit){
-        _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders,timeout,unit);
+        bucket = cluster.openBucket(bucketName,bucketPassword,transcoders,timeout,unit);
     }
 
     public void start(){
-        _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders);
+        bucket = cluster.openBucket(bucketName,bucketPassword,transcoders);
     }
 
     public boolean shutdown(long timeout,java.util.concurrent.TimeUnit unit){
-        return _bucket.close(timeout,unit);
+        return bucket.close(timeout,unit);
     }
     public void shutdown(){
-        _bucket.close();
+        bucket.close();
     }
 }

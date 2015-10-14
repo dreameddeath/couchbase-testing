@@ -26,14 +26,14 @@ import com.dreameddeath.core.process.common.AbstractTask;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 public class BasicJobProcessingServiceImpl implements JobProcessingService<AbstractJob> {
-    private ProcessingServiceFactory _factory;
+    private ProcessingServiceFactory factory;
 
     public BasicJobProcessingServiceImpl(ProcessingServiceFactory factory){
-        _factory = factory;
+        this.factory = factory;
     }
 
     public ProcessingServiceFactory getFactory(){
-        return _factory;
+        return factory;
     }
 
     public void onSave(AbstractJob job,State state){}

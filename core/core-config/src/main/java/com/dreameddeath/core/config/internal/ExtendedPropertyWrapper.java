@@ -22,7 +22,7 @@ import com.netflix.config.PropertyWrapper;
  * Created by Christophe Jeunesse on 22/05/2015.
  */
 public abstract class ExtendedPropertyWrapper<T> extends PropertyWrapper<T> {
-    private T _oldValue = null;
+    private T oldValue = null;
 
     public ExtendedPropertyWrapper(String name, T defaultValue) {
         super(name, defaultValue);
@@ -30,10 +30,10 @@ public abstract class ExtendedPropertyWrapper<T> extends PropertyWrapper<T> {
 
     @Override
     protected void propertyChanged(T newValue) {
-        _oldValue = getValue();
+        oldValue = getValue();
     }
 
     public T getOldValue() {
-        return _oldValue;
+        return oldValue;
     }
 }

@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
  */
 public class LifeCycleListener implements LifeCycle.Listener {
     private static Logger LOG = LoggerFactory.getLogger(LifeCycleListener.class);
-    private final ServiceRegistrar _serviceRegistrar;
-    private final ServiceDiscoverer _serviceDiscoverer;
+    private final ServiceRegistrar serviceRegistrar;
+    private final ServiceDiscoverer serviceDiscoverer;
 
     public LifeCycleListener(ServiceRegistrar serviceRegistrar){
         this(serviceRegistrar,null);
@@ -40,8 +40,8 @@ public class LifeCycleListener implements LifeCycle.Listener {
     }
 
     public LifeCycleListener(ServiceRegistrar serviceRegistrar, ServiceDiscoverer serviceDiscoverer){
-        _serviceRegistrar=serviceRegistrar;
-        _serviceDiscoverer=serviceDiscoverer;
+        this.serviceRegistrar=serviceRegistrar;
+        this.serviceDiscoverer=serviceDiscoverer;
     }
 
 
@@ -53,15 +53,15 @@ public class LifeCycleListener implements LifeCycle.Listener {
     @Override
     public void lifeCycleStarted(LifeCycle lifeCycle) {
         try {
-            if(_serviceRegistrar!=null) {
-                _serviceRegistrar.start();
+            if(serviceRegistrar!=null) {
+                serviceRegistrar.start();
             }
         }catch(Throwable e){
             LOG.error("Error",e);
         }
         try{
-            if(_serviceDiscoverer!=null){
-                _serviceDiscoverer.start();
+            if(serviceDiscoverer!=null){
+                serviceDiscoverer.start();
             }
         }
         catch (Throwable e){
@@ -78,7 +78,7 @@ public class LifeCycleListener implements LifeCycle.Listener {
     @Override
     public void lifeCycleStopping(LifeCycle lifeCycle) {
         try{
-            _serviceRegistrar.stop();
+            serviceRegistrar.stop();
         }
         catch (Throwable e){
             LOG.error("Error",e);

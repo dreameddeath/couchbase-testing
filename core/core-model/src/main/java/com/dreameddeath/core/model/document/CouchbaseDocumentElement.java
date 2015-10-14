@@ -28,10 +28,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE,isGetterVisibility = Visibility.NONE,setterVisibility = Visibility.NONE,creatorVisibility = Visibility.NONE)
 public abstract class CouchbaseDocumentElement implements HasParent {
-    HasParent _parentElt;
+    HasParent parentElt;
 
     @Override
-    public HasParent getParentElement() { return _parentElt;}
+    public HasParent getParentElement() { return parentElt;}
     @Override
-    public void setParentElement(HasParent parentElt) {_parentElt=parentElt;}
+    public void setParentElement(HasParent parentElt) {this.parentElt=parentElt;}
 }

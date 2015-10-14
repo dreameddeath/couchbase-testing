@@ -30,10 +30,10 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 10/10/2015.
  */
 public class CouchbaseBucketFactory implements ICouchbaseBucketFactory {
-    private final ICouchbaseClusterFactory _clusterFactory;
-    private final Map<String,ICouchbaseBucket> _couchbaseBucketMap = new HashMap<>();
+    private final ICouchbaseClusterFactory clusterFactory;
+    private final Map<String,ICouchbaseBucket> couchbaseBucketMap = new HashMap<>();
     public CouchbaseBucketFactory(ICouchbaseClusterFactory clusterFactory){
-        _clusterFactory=clusterFactory;
+        this.clusterFactory=clusterFactory;
     }
 
     @Override
@@ -44,11 +44,11 @@ public class CouchbaseBucketFactory implements ICouchbaseBucketFactory {
     @Override
     synchronized public ICouchbaseBucket getBucket(final String name,final String prefix) throws ConfigPropertyValueNotFoundException{
         try {
-            return _couchbaseBucketMap.computeIfAbsent(name + ((prefix != null) ? "#" + prefix : ""), name1 -> {
+            return couchbaseBucketMap.computeIfAbsent(name + ((prefix != null) ? "#" + prefix : ""), name1 -> {
                 try {
                     String clusterName = CouchbaseConfigProperties.COUCHBASE_BUCKET_CLUSTER_NAME.getProperty(name).getMandatoryValue("Cannot find cluster name for bucket <{}>", name);
                     String password = CouchbaseConfigProperties.COUCHBASE_BUCKET_PASSWORD_NAME.getProperty(name).getMandatoryValue("Cannot find password for bucket <{}>", name);
-                    CouchbaseCluster cluster = _clusterFactory.getCluster(clusterName);
+                    CouchbaseCluster cluster = clusterFactory.getCluster(clusterName);
                     return new CouchbaseBucketWrapper(cluster, name, password, prefix);
                 } catch (ConfigPropertyValueNotFoundException e) {
                     throw new RuntimeException("Cannot init bucket", e);

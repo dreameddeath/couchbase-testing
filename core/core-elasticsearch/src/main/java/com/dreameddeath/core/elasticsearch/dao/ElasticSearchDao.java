@@ -29,16 +29,16 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 26/05/2015.
  */
 public class ElasticSearchDao<T extends CouchbaseDocument> {
-    private String  _bucketName;
-    private ElasticSearchClient _client;
-    private IElasticSearchMapper _mapper;
-    private ITranscoder<T> _transcoder;
+    private String  bucketName;
+    private ElasticSearchClient client;
+    private IElasticSearchMapper mapper;
+    private ITranscoder<T> transcoder;
 
     public ElasticSearchDao(String bucketName,ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder<T> transcoder){
-        _client = client;
-        _mapper = mapper;
-        _bucketName = bucketName;
-        _transcoder = transcoder;
+        this.client = client;
+        this.mapper = mapper;
+        this.bucketName = bucketName;
+        this.transcoder = transcoder;
     }
 
     public static <T extends CouchbaseDocument> Builder<T> builder(){
@@ -47,7 +47,7 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
 
     protected T decode(GetResponse response)throws ElasticSearchDaoException{
         if(response.isExists()){
-            T foundDoc = _transcoder.decode(response.getSourceAsBytes());
+            T foundDoc = transcoder.decode(response.getSourceAsBytes());
             foundDoc.getBaseMeta().setKey(response.getId());
             return foundDoc;
         }
@@ -61,7 +61,7 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
     }
 
     public Observable<T> asyncGet(String key){
-        Observable<GetResponse> responseObservable = _client.get(_mapper.documentIndexBuilder(_bucketName, key), _mapper.documentTypeBuilder(_bucketName, key), key);
+        Observable<GetResponse> responseObservable = client.get(mapper.documentIndexBuilder(bucketName, key), mapper.documentTypeBuilder(bucketName, key), key);
         return responseObservable.map(this::decode);
     }
 
@@ -80,49 +80,49 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
 
 
     public static class Builder<T extends CouchbaseDocument>{
-        private String _bucketName;
-        private ElasticSearchClient _client;
-        private IElasticSearchMapper _mapper;
-        private ITranscoder<T> _transcoder;
+        private String bucketName;
+        private ElasticSearchClient client;
+        private IElasticSearchMapper mapper;
+        private ITranscoder<T> transcoder;
 
         public Builder withBucketName(String name){
-            _bucketName = name;
+            bucketName = name;
             return this;
         }
 
         public Builder withClient(ElasticSearchClient client){
-            _client = client;
+            this.client = client;
             return this;
         }
 
         public Builder withMapper(IElasticSearchMapper mapper){
-            _mapper = mapper;
+            this.mapper = mapper;
             return this;
         }
 
         public Builder withTranscoder(ITranscoder<T> transcoder){
-            _transcoder = transcoder;
+            this.transcoder = transcoder;
             return this;
         }
 
         public ElasticSearchDao<T> build(){
-            return new ElasticSearchDao<>(this._bucketName,this._client,this._mapper,this._transcoder);
+            return new ElasticSearchDao<>(this.bucketName,this.client,this.mapper,this.transcoder);
         }
     }
 
     protected IElasticSearchMapper getMapper() {
-        return _mapper;
+        return mapper;
     }
 
     protected ElasticSearchClient getClient() {
-        return _client;
+        return client;
     }
 
     protected ITranscoder<T> getTranscoder() {
-        return _transcoder;
+        return transcoder;
     }
 
     protected String getBucketName() {
-        return _bucketName;
+        return bucketName;
     }
 }

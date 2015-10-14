@@ -25,21 +25,21 @@ import com.dreameddeath.core.user.IUser;
  * Created by Christophe Jeunesse on 09/07/2015.
  */
 public class ElasticSearchSessionFactory {
-    private final ElasticSearchDaoFactory _elasticSearchDaoFactory;
-    private final DateTimeServiceFactory _dateTimeServiceFactory;
+    private final ElasticSearchDaoFactory elasticSearchDaoFactory;
+    private final DateTimeServiceFactory dateTimeServiceFactory;
 
 
     public ElasticSearchSessionFactory(Builder builder){
-        _elasticSearchDaoFactory = builder._daoFactoryBuilder.build();
-        _dateTimeServiceFactory = builder._dateTimeServiceFactory;
+        elasticSearchDaoFactory = builder.daoFactoryBuilder.build();
+        dateTimeServiceFactory = builder.dateTimeServiceFactory;
     }
 
     public DateTimeServiceFactory getDateTimeServiceFactory() {
-        return _dateTimeServiceFactory;
+        return dateTimeServiceFactory;
     }
 
     public ElasticSearchDaoFactory getElasticSearchDaoFactory() {
-        return _elasticSearchDaoFactory;
+        return elasticSearchDaoFactory;
     }
 
     public ElasticSearchSession newSession(IUser user){
@@ -51,17 +51,17 @@ public class ElasticSearchSessionFactory {
     }
 
     public static class Builder{
-        private ElasticSearchDaoFactory.Builder _daoFactoryBuilder;
-        private DateTimeServiceFactory _dateTimeServiceFactory;
+        private ElasticSearchDaoFactory.Builder daoFactoryBuilder;
+        private DateTimeServiceFactory dateTimeServiceFactory;
 
         public Builder(){
-            _daoFactoryBuilder=ElasticSearchDaoFactory.builder();
-            _dateTimeServiceFactory = new DateTimeServiceFactory();
+            daoFactoryBuilder=ElasticSearchDaoFactory.builder();
+            dateTimeServiceFactory = new DateTimeServiceFactory();
         }
 
 
         public Builder withDocumentInfoMappper(IDocumentInfoMapper mapper){
-            _daoFactoryBuilder.withDocumentInfoMappper(mapper);
+            daoFactoryBuilder.withDocumentInfoMappper(mapper);
             return this;
         }
 

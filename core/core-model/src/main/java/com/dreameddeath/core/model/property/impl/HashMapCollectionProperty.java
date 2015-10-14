@@ -25,16 +25,16 @@ import java.util.Collection;
  * Created by Christophe Jeunesse on 07/09/2014.
  */
 public class HashMapCollectionProperty<K,V extends Collection> extends HashMapProperty<K,V> {
-    MapDefaultValueBuilder<V> _defaultValueBuilder;
+    MapDefaultValueBuilder<V> defaultValueBuilder;
 
     public HashMapCollectionProperty(HasParent parentElement,MapDefaultValueBuilder<V> builder){
         super(parentElement);
-        _defaultValueBuilder=builder;
+        defaultValueBuilder=builder;
     }
 
     @Override
     public V put(K key,V value){
-        V newValue=_defaultValueBuilder.build(this);
+        V newValue=defaultValueBuilder.build(this);
         newValue.addAll(value);
         return super.put(key,value);
     }

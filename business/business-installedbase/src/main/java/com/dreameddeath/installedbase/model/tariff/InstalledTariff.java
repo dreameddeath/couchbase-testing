@@ -32,12 +32,12 @@ public class InstalledTariff extends InstalledItem<InstalledTariffRevision> {
      *  discounts : list of discounts attached to the tariff
      */
     @DocumentProperty("discounts")
-    private ListProperty<InstalledDiscount> _discounts = new ArrayListProperty<InstalledDiscount>(InstalledTariff.this);
+    private ListProperty<InstalledDiscount> discounts = new ArrayListProperty<InstalledDiscount>(InstalledTariff.this);
 
     // Discounts Accessors
-    public List<InstalledDiscount> getDiscounts() { return _discounts.get(); }
-    public void setDiscounts(Collection<InstalledDiscount> vals) { _discounts.set(vals); }
-    public boolean addDiscounts(InstalledDiscount val){ return _discounts.add(val); }
-    public boolean removeDiscounts(InstalledDiscount val){ return _discounts.remove(val); }
+    public List<InstalledDiscount> getDiscounts() { return discounts.get(); }
+    public void setDiscounts(Collection<InstalledDiscount> vals) { discounts.set(vals); }
+    public boolean addDiscounts(InstalledDiscount val){ return discounts.add(val); }
+    public boolean removeDiscounts(InstalledDiscount val){ return discounts.remove(val); }
 
 }

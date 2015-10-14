@@ -38,50 +38,50 @@ public class InstalledBase extends BusinessDocument {
      *  uid : The unique id of the installed base
      */
     @DocumentProperty("uid")
-    private Property<String> _uid = new StandardProperty<>(InstalledBase.this);
+    private Property<String> uid = new StandardProperty<>(InstalledBase.this);
     /**
      *  contract : The installed Contract for this installed base (if any)
      */
     @DocumentProperty("contract")
-    private Property<InstalledContract> _contract = new StandardProperty<>(InstalledBase.this);
+    private Property<InstalledContract> contract = new StandardProperty<>(InstalledBase.this);
     /**
      *  offers : List of offers being installed
      */
     @DocumentProperty("offers")
-    private ListProperty<InstalledOffer> _offers = new ArrayListProperty<>(InstalledBase.this);
+    private ListProperty<InstalledOffer> offers = new ArrayListProperty<>(InstalledBase.this);
     /**
      *  partys : List of linked Partys
      */
     @DocumentProperty("partys")
-    private ListProperty<PartyLink> _partys = new ArrayListProperty<>(InstalledBase.this);
+    private ListProperty<PartyLink> partys = new ArrayListProperty<>(InstalledBase.this);
     /**
      *  billingAccount : Default Billing Account linked to this installed Base
      */
     @DocumentProperty("billingAccount")
-    private Property<BillingAccountLink> _billingAccount = new StandardProperty<>(InstalledBase.this);
+    private Property<BillingAccountLink> billingAccount = new StandardProperty<>(InstalledBase.this);
 
     // uid accessors
-    public String getUid() { return _uid.get(); }
-    public void setUid(String val) { _uid.set(val); }
+    public String getUid() { return uid.get(); }
+    public void setUid(String val) { uid.set(val); }
 
     // contract accessors
-    public InstalledContract getContract() { return _contract.get(); }
-    public void setContract(InstalledContract val) { _contract.set(val); }
+    public InstalledContract getContract() { return contract.get(); }
+    public void setContract(InstalledContract val) { contract.set(val); }
 
     // Offers Accessors
-    public List<InstalledOffer> getOffers() { return _offers.get(); }
-    public void setOffers(Collection<InstalledOffer> vals) { _offers.set(vals); }
-    public boolean addOffers(InstalledOffer val){ return _offers.add(val); }
-    public boolean removeOffers(InstalledOffer val){ return _offers.remove(val); }
+    public List<InstalledOffer> getOffers() { return offers.get(); }
+    public void setOffers(Collection<InstalledOffer> vals) { offers.set(vals); }
+    public boolean addOffers(InstalledOffer val){ return offers.add(val); }
+    public boolean removeOffers(InstalledOffer val){ return offers.remove(val); }
 
     // Partys Accessors
-    public List<PartyLink> getPartys() { return _partys.get(); }
-    public void setPartys(Collection<PartyLink> vals) { _partys.set(vals); }
-    public boolean addPartys(PartyLink val){ return _partys.add(val); }
-    public boolean removePartys(PartyLink val){ return _partys.remove(val); }
+    public List<PartyLink> getPartys() { return partys.get(); }
+    public void setPartys(Collection<PartyLink> vals) { partys.set(vals); }
+    public boolean addPartys(PartyLink val){ return partys.add(val); }
+    public boolean removePartys(PartyLink val){ return partys.remove(val); }
 
     // billingAccount accessors
-    public BillingAccountLink getBillingAccount() { return _billingAccount.get(); }
-    public void setBillingAccount(BillingAccountLink val) { _billingAccount.set(val); }
+    public BillingAccountLink getBillingAccount() { return billingAccount.get(); }
+    public void setBillingAccount(BillingAccountLink val) { billingAccount.set(val); }
 
 }

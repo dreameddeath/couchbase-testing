@@ -30,10 +30,10 @@ import com.dreameddeath.core.validation.annotation.NotNull;
  */
 public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends AbstractTask {
     @DocumentProperty("docKey") @NotNull
-    private Property<String> _docKey=new ImmutableProperty<String>(DocumentUpdateTask.this);
+    private Property<String> docKey=new ImmutableProperty<String>(DocumentUpdateTask.this);
 
-    public String getDocKey(){return _docKey.get(); }
-    public DocumentUpdateTask<T> setDocKey(String docKey){_docKey.set(docKey); return this;}
+    public String getDocKey(){return docKey.get(); }
+    public DocumentUpdateTask<T> setDocKey(String docKey){this.docKey.set(docKey); return this;}
 
     public T getDocument(ICouchbaseSession session)throws DaoException, StorageException {return (T)session.get(getDocKey());}
 }

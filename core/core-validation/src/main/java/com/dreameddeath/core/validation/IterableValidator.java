@@ -29,15 +29,15 @@ import java.util.List;
  * Created by Christophe Jeunesse on 29/08/2014.
  */
 public class IterableValidator implements Validator<Iterable<?>> {
-    private Member _field;
-    private List<Validator<Object>> _validationRules = new ArrayList<Validator<Object>>();
+    private Member field;
+    private List<Validator<Object>> validationRules = new ArrayList<Validator<Object>>();
 
     public IterableValidator(Member field){
-        _field = field;
+        this.field = field;
     }
 
     public void addRule(Validator<Object> validator){
-        _validationRules.add(validator);
+        validationRules.add(validator);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class IterableValidator implements Validator<Iterable<?>> {
         while(iter.hasNext()){
             Object obj = iter.next();
             List<ValidationException> eltErrors=null;
-            for(Validator<Object> validator:_validationRules){
+            for(Validator<Object> validator:validationRules){
                 try {
                     validator.validate(ctxt,obj);
                 }
@@ -70,7 +70,7 @@ public class IterableValidator implements Validator<Iterable<?>> {
             ++pos;
         }
         if(iterableExceptions!=null){
-            throw new ValidationFailedException(ctxt.head(),(AccessibleObject)_field,"Errors in iterable",iterableExceptions);
+            throw new ValidationFailedException(ctxt.head(),(AccessibleObject)field,"Errors in iterable",iterableExceptions);
         }
     }
 

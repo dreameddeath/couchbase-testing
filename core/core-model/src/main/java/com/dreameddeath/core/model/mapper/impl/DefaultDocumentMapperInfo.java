@@ -31,9 +31,9 @@ import java.util.regex.Pattern;
  * Created by Christophe Jeunesse on 08/06/2015.
  */
 public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
-    private Map<Class<? extends CouchbaseDocument>, IDocumentClassMappingInfo> _perClassInfoMap
+    private Map<Class<? extends CouchbaseDocument>, IDocumentClassMappingInfo> perClassInfoMap
             = new ConcurrentHashMap<>();
-    private Map<Pattern,IDocumentClassMappingInfo> _keyInfoMap
+    private Map<Pattern,IDocumentClassMappingInfo> keyInfoMap
             = new ConcurrentHashMap<>();
 
     @Override
@@ -43,11 +43,11 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
 
     @Override
     public synchronized void addDocument(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws DuplicateMappedEntryInfoException {
-        if (_perClassInfoMap.containsKey(docClass)) {
+        if (perClassInfoMap.containsKey(docClass)) {
             throw new DuplicateMappedEntryInfoException("The class <"+docClass+"> is already mapped");
         }
 
-        _perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass, null, keyPattern));
+        perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass, null, keyPattern));
         try {
             addKeyPattern(docClass, keyPattern);
         }
@@ -58,11 +58,11 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
 
     @Override
     public synchronized void addRawDocument(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException {
-        if (_perClassInfoMap.containsKey(docClass)) {
+        if (perClassInfoMap.containsKey(docClass)) {
             throw new DuplicateMappedEntryInfoException("The class <"+docClass+"> is already mapped");
         }
 
-        _perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass, null, null));
+        perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass, null, null));
     }
 
 
@@ -80,22 +80,22 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
 
 
         Pattern pattern = Pattern.compile(keyPattern);
-        _keyInfoMap.put(pattern, getMappingFromClass(docClass));
+        keyInfoMap.put(pattern, getMappingFromClass(docClass));
     }
 
     protected synchronized IDocumentClassMappingInfo findUsingParent(Class<? extends CouchbaseDocument> docClass){
-        if(!_perClassInfoMap.containsKey(docClass)) {
+        if(!perClassInfoMap.containsKey(docClass)) {
             Class superClass = docClass.getSuperclass();
             if(CouchbaseDocument.class.isAssignableFrom(superClass)){
                 @SuppressWarnings("unchecked")
                 IDocumentClassMappingInfo parentMapping = findUsingParent(superClass);
                 if(parentMapping!=null) {
                     DefaultDocumentClassInfoMapping mapper = new DefaultDocumentClassInfoMapping(docClass, parentMapping, parentMapping.keyPattern());
-                    _perClassInfoMap.put(docClass, mapper);
+                    perClassInfoMap.put(docClass, mapper);
                 }
             }
         }
-        return _perClassInfoMap.get(docClass);
+        return perClassInfoMap.get(docClass);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
             prefix = key.substring(0,pos);
             effectiveKey = key.substring(pos+1);
         }
-        for(Map.Entry<Pattern,IDocumentClassMappingInfo> entry:_keyInfoMap.entrySet()){
+        for(Map.Entry<Pattern,IDocumentClassMappingInfo> entry:keyInfoMap.entrySet()){
             if(entry.getKey().matcher(effectiveKey).matches()){
                 return new KeyMappingInfo(prefix,effectiveKey,key,entry.getValue());
             }
@@ -134,7 +134,7 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
 
     @Override
     public IDocumentClassMappingInfo getMappingFromClass(Class<? extends CouchbaseDocument> docClass) throws MappingNotFoundException {
-        IDocumentClassMappingInfo info = _perClassInfoMap.get(docClass);
+        IDocumentClassMappingInfo info = perClassInfoMap.get(docClass);
         if(info==null){
             IDocumentClassMappingInfo infoFromParent = findUsingParent(docClass);
             if(infoFromParent==null){
@@ -149,6 +149,6 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
 
     @Override
     public boolean contains(Class<? extends CouchbaseDocument> docClass) {
-        return _perClassInfoMap.containsKey(docClass);
+        return perClassInfoMap.containsKey(docClass);
     }
 }

@@ -57,15 +57,15 @@ public interface IDaemonLifeCycle {
         HALTED("halted"),
         STOPPING("stopping");
 
-        private final String _name;
+        private final String name;
 
         Status(String name){
-            _name = name;
+            this.name = name;
         }
 
         @Override
         public String toString(){
-            return _name;
+            return name;
         }
     }
 

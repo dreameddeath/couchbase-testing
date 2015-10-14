@@ -28,60 +28,60 @@ import java.util.Base64;
  * Created by Christophe Jeunesse on 24/11/2014.
  */
 public class DocumentSimulator {
-    private CouchbaseBucketSimulator _parent;
+    private CouchbaseBucketSimulator parent;
     //private final static ScriptEngineManager _enginefactory = new ScriptEngineManager();
     // create a JavaScript engine
     //private final static ScriptEngine _engine = _enginefactory.getEngineByName("JavaScript");
 
 
     public DocumentSimulator(CouchbaseBucketSimulator parentSimulator){
-        _parent = parentSimulator;
+        parent = parentSimulator;
     }
 
-    private String _key;
-    private long _cas;
-    private int _flags;
-    private int _expiry;
-    private ByteBuf _data;
-    private Object _javascriptObject;
-    private String _type;
+    private String key;
+    private long cas;
+    private int flags;
+    private int expiry;
+    private ByteBuf data;
+    private Object javascriptObject;
+    private String type;
 
-    public void setKey(String key){ _key = key;}
-    public String getKey(){ return _key;}
+    public void setKey(String key){ this.key = key;}
+    public String getKey(){ return key;}
 
-    public void setCas(long cas){ _cas = cas;}
-    public long getCas(){ return _cas;}
+    public void setCas(long cas){ this.cas = cas;}
+    public long getCas(){ return cas;}
 
-    public void setFlags(int flags){ _flags = flags;}
-    public int getFlags(){ return _flags;}
+    public void setFlags(int flags){ this.flags = flags;}
+    public int getFlags(){ return flags;}
 
-    public void setExpiry(int expiry){ _expiry = expiry;}
-    public int getExpiry(){ return _expiry;}
+    public void setExpiry(int expiry){ this.expiry = expiry;}
+    public int getExpiry(){ return expiry;}
 
-    public void setData(ByteBuf data){ _data = data.copy(); toJavaScriptDoc();}
+    public void setData(ByteBuf data){ this.data = data.copy(); toJavaScriptDoc();}
     public void appendData(ByteBuf data){
-        _data = Unpooled.copiedBuffer(_data, data);
+        this.data = Unpooled.copiedBuffer(this.data, data);
         toJavaScriptDoc();
     }
 
     public void prependData(ByteBuf data){
-        _data = Unpooled.copiedBuffer(data,_data);
+        this.data = Unpooled.copiedBuffer(data,this.data);
         toJavaScriptDoc();
     }
 
-    public ByteBuf getData(){ return _data;}
+    public ByteBuf getData(){ return data;}
 
-    public String getType(){ return _type;}
-    public Object getJavascriptObject(){ return _javascriptObject;}
+    public String getType(){ return type;}
+    public Object getJavascriptObject(){ return javascriptObject;}
 
     protected void toJavaScriptDoc(){
         try {
-            _javascriptObject= _parent.getJavaScriptEngine().eval("("+new String(_data.array())+")");
-            _type = "json";
+            javascriptObject= parent.getJavaScriptEngine().eval("("+new String(data.array())+")");
+            type = "json";
         }
         catch(ScriptException e){
-            _javascriptObject = Base64.getEncoder().encode(_data.array());
-            _type = "base64";
+            javascriptObject = Base64.getEncoder().encode(data.array());
+            type = "base64";
         }
     }
 

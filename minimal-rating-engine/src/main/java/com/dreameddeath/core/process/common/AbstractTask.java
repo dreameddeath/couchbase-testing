@@ -38,44 +38,44 @@ import java.util.List;
 @JsonTypeInfo(use=Id.MINIMAL_CLASS, include=As.PROPERTY, property="@c")
 public abstract class AbstractTask extends BaseCouchbaseDocumentElement {
     @DocumentProperty("uid") @NotNull
-    private Property<String> _uid=new ImmutableProperty<String>(AbstractTask.this);
+    private Property<String> uid=new ImmutableProperty<String>(AbstractTask.this);
     @DocumentProperty("label")
-    private Property<String> _label=new StandardProperty<String>(AbstractTask.this);
+    private Property<String> label=new StandardProperty<String>(AbstractTask.this);
     @DocumentProperty(value = "state") @NotNull
-    private Property<State> _state=new StandardProperty<State>(AbstractTask.this,State.NEW);
+    private Property<State> state=new StandardProperty<State>(AbstractTask.this,State.NEW);
     @DocumentProperty("effectiveDate")
-    private Property<DateTime> _effectiveDate=new StandardProperty<DateTime>(AbstractTask.this);
+    private Property<DateTime> effectiveDate=new StandardProperty<DateTime>(AbstractTask.this);
     @DocumentProperty("lastRunError")
-    private Property<String> _errorName=new StandardProperty<String>(AbstractTask.this);
+    private Property<String> errorName=new StandardProperty<String>(AbstractTask.this);
     /**
      *  dependency : List of task Id being a pre-requisite
      */
     @DocumentProperty("dependency")
-    private ListProperty<String> _dependency = new ArrayListProperty<String>(AbstractTask.this);
+    private ListProperty<String> dependency = new ArrayListProperty<String>(AbstractTask.this);
 
     // uid accessors
-    public String getUid() { return _uid.get(); }
-    public void setUid(String uid) { _uid.set(uid); }
+    public String getUid() { return uid.get(); }
+    public void setUid(String uid) { uid.set(uid); }
     // label accessors
-    public String getLabel(){ return _label.get(); }
-    public void setLabel(String label){ _label.set(label); }
+    public String getLabel(){ return label.get(); }
+    public void setLabel(String label){ label.set(label); }
     // lastRunError Accessors
-    public String getLastRunError(){return _errorName.get();}
-    public void setLastRunError(String errorName){_errorName.set(errorName);}
+    public String getLastRunError(){return errorName.get();}
+    public void setLastRunError(String errorName){errorName.set(errorName);}
     // Dependency Accessors
-    public List<String> getDependency() { return _dependency.get(); }
-    public void setDependency(Collection<String> taskKeys) { _dependency.set(taskKeys); }
-    public boolean addDependency(String taskKey){ return _dependency.add(taskKey); }
-    public boolean removeDependency(String taskKey){ return _dependency.remove(taskKey); }
+    public List<String> getDependency() { return dependency.get(); }
+    public void setDependency(Collection<String> taskKeys) { dependency.set(taskKeys); }
+    public boolean addDependency(String taskKey){ return dependency.add(taskKey); }
+    public boolean removeDependency(String taskKey){ return dependency.remove(taskKey); }
     public <T extends AbstractTask> T getDependentTask(Class<T> clazz){
-        for(String key:_dependency){
+        for(String key:dependency){
             AbstractTask task=getParentJob().getTask(key);
             if((task!=null) && (clazz.isAssignableFrom(task.getClass()))){
                 return (T) task;
             }
         }
         //Manage Recursive lookup
-        for(String key:_dependency){
+        for(String key:dependency){
             AbstractTask task=getParentJob().getTask(key);
             if(task!=null){
                 T result = task.getDependentTask(clazz);
@@ -87,13 +87,13 @@ public abstract class AbstractTask extends BaseCouchbaseDocumentElement {
         return null;
     }
 
-    public State getState() { return _state.get(); }
-    public void setState(State state) { _state.set(state); }
-    public boolean isInitialized(){ return _state.get().compareTo(State.INITIALIZED)>=0; }
-    public boolean isPrepared(){ return _state.get().compareTo(State.PREPROCESSED)>=0; }
-    public boolean isProcessed(){ return _state.get().compareTo(State.PROCESSED)>=0; }
-    public boolean isFinalized(){ return _state.get().compareTo(State.POSTPROCESSED)>=0; }
-    public boolean isDone(){ return _state.get().compareTo(State.DONE)>=0; }
+    public State getState() { return state.get(); }
+    public void setState(State state) { state.set(state); }
+    public boolean isInitialized(){ return state.get().compareTo(State.INITIALIZED)>=0; }
+    public boolean isPrepared(){ return state.get().compareTo(State.PREPROCESSED)>=0; }
+    public boolean isProcessed(){ return state.get().compareTo(State.PROCESSED)>=0; }
+    public boolean isFinalized(){ return state.get().compareTo(State.POSTPROCESSED)>=0; }
+    public boolean isDone(){ return state.get().compareTo(State.DONE)>=0; }
 
 
 

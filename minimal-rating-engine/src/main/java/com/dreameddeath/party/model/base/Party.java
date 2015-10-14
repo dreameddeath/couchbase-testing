@@ -32,22 +32,22 @@ import java.util.List;
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public abstract class Party extends CouchbaseDocument {
     @DocumentProperty("uid")
-    private ImmutableProperty<String> _uid=new ImmutableProperty<String>(Party.this);
+    private ImmutableProperty<String> uid=new ImmutableProperty<String>(Party.this);
     @DocumentProperty(value="partyRoles")
-    private List<PartyRole> _partyRoles = new ArrayListProperty<PartyRole>(Party.this);
+    private List<PartyRole> partyRoles = new ArrayListProperty<PartyRole>(Party.this);
 
 
-    public String getUid() { return _uid.get(); }
-    public void setUid(String uid) { _uid.set(uid); }
+    public String getUid() { return uid.get(); }
+    public void setUid(String uid) { uid.set(uid); }
 
-    public List<PartyRole> getPartyRoles() { return Collections.unmodifiableList(_partyRoles); }
+    public List<PartyRole> getPartyRoles() { return Collections.unmodifiableList(partyRoles); }
     public void setPartyRoleLinks(Collection<PartyRole> partyRoles){
-        _partyRoles.clear();
-        _partyRoles.addAll(partyRoles);
+        partyRoles.clear();
+        partyRoles.addAll(partyRoles);
     }
 
     public void addPartyRole(PartyRole partyRole){
-        _partyRoles.add(partyRole);
+        partyRoles.add(partyRole);
     }
 
     public PartyLink newLink(){

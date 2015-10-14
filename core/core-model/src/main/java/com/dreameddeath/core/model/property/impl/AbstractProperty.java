@@ -23,31 +23,31 @@ import com.dreameddeath.core.model.property.Property;
  * Created by Christophe Jeunesse on 09/05/2014.
  */
 public class AbstractProperty<T> implements Property<T>,HasParent {
-    HasParent _parentElt;
-    protected T _value;
-    protected T _defaultValue;
+    HasParent parentElt;
+    protected T value;
+    protected T defaultValue;
 
     public AbstractProperty(HasParent parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
 
     public AbstractProperty(HasParent parentElement,T defaultValue){
-        _parentElt=parentElement;
-        _defaultValue=defaultValue;
+        parentElt=parentElement;
+        this.defaultValue=defaultValue;
     }
 
-    public void setParentElement(HasParent parentElement){ _parentElt=parentElement;}
-    public HasParent getParentElement(){return _parentElt;}
+    public void setParentElement(HasParent parentElement){ parentElt=parentElement;}
+    public HasParent getParentElement(){return parentElt;}
 
-    protected T getRawValue(){return _value;}
+    protected T getRawValue(){return value;}
 
-    public T get(){ if(_value==null){set(_defaultValue);} return _value; }
+    public T get(){ if(value==null){set(defaultValue);} return value; }
     public boolean set(T value) {
         if(!equalsValue(value)){
-            _value = value;
-            if(_parentElt!=null) {
+            this.value = value;
+            if(parentElt!=null) {
                 if (value instanceof HasParent) {
-                    ((HasParent) value).setParentElement(_parentElt);
+                    ((HasParent) value).setParentElement(parentElt);
                 }
                 HasParent.Helper.dirtyParentDocument(this);
             }
@@ -67,7 +67,7 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
             return true;
         }
         else if(ref instanceof AbstractProperty){
-            return equalsValue(((AbstractProperty)ref)._value);
+            return equalsValue(((AbstractProperty)ref).value);
         }
         else{
             return false;
@@ -75,11 +75,11 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
     }
 
     public boolean equalsValue(Object value){
-        if(_value == value){
+        if(this.value == value){
             return true;
         }
-        else if(_value !=null){
-            return _value.equals(value);
+        else if(this.value !=null){
+            return this.value.equals(value);
         }
         else{
             return false;
@@ -87,8 +87,8 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
     }
 
     public int hashCode(){
-        if(_value!=null){
-            return _value.hashCode();
+        if(value!=null){
+            return value.hashCode();
         }
         else{
             return 0;
@@ -96,8 +96,8 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
     }
 
     public String toString(){
-        if(_value!=null){
-            return _value.toString();
+        if(value!=null){
+            return value.toString();
         }
         else{
             return "[null]";

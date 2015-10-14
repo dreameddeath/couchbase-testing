@@ -44,69 +44,69 @@ import java.util.List;
 @UidDef(fieldName = "uid")
 public class BillingAccount extends BusinessDocument {
     @DocumentProperty("uid") @NotNull
-    private ImmutableProperty<String> _uid=new ImmutableProperty<>(BillingAccount.this);
+    private ImmutableProperty<String> uid=new ImmutableProperty<>(BillingAccount.this);
 	@DocumentProperty("ledgerSegment")
-    private Property<String> _ledgerSegment = new StandardProperty<>(BillingAccount.this);
+    private Property<String> ledgerSegment = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("taxProfile")
-    private Property<String> _taxProfile = new StandardProperty<>(BillingAccount.this);
+    private Property<String> taxProfile = new StandardProperty<>(BillingAccount.this);
 	@DocumentProperty("type")
-    private Property<Type> _type= new StandardProperty<>(BillingAccount.this);
+    private Property<Type> type= new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("creationDate")
-    private Property<DateTime> _creationDate= new ImmutableProperty<>(BillingAccount.this,DateTime.now());
+    private Property<DateTime> creationDate= new ImmutableProperty<>(BillingAccount.this,DateTime.now());
 	@DocumentProperty("billDay") @NotNull
-    private Property<Integer> _billDay = new StandardProperty<>(BillingAccount.this);
+    private Property<Integer> billDay = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("billCycleLength") @NotNull
-    private Property<Integer> _billCycleLength = new StandardProperty<>(BillingAccount.this);
+    private Property<Integer> billCycleLength = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("currency")
-    private Property<String> _currency = new StandardProperty<>(BillingAccount.this);
+    private Property<String> currency = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty("paymentMethod")
-    private Property<String> _paymentMethod = new StandardProperty<>(BillingAccount.this);
+    private Property<String> paymentMethod = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty(value="billCycles",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
-    private ListProperty<BillingCycleLink> _billingCycleLinks = new ArrayListProperty<>(BillingAccount.this);
+    private ListProperty<BillingCycleLink> billingCycleLinks = new ArrayListProperty<>(BillingAccount.this);
     @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")
-    private ListProperty<PartyLink> _partyLinks = new ArrayListProperty<>(BillingAccount.this);
+    private ListProperty<PartyLink> partyLinks = new ArrayListProperty<>(BillingAccount.this);
     /**
      *  externalIds : List of external ids of the billing account
      */
     @DocumentProperty("externalIds")
-    private ListProperty<ExternalId> _externalIds = new ArrayListProperty<>(BillingAccount.this);
+    private ListProperty<ExternalId> externalIds = new ArrayListProperty<>(BillingAccount.this);
     /**
      *  contributors : List of contributors links to the billing Account
      */
     @DocumentProperty("contributors")
-    private ListProperty<BillingAccountContributorLink> _contributors = new ArrayListProperty<>(BillingAccount.this);
+    private ListProperty<BillingAccountContributorLink> contributors = new ArrayListProperty<>(BillingAccount.this);
 
     // uid Accessors
-    public String getUid() { return _uid.get(); }
-    public void setUid(String uid) { _uid.set(uid); }
+    public String getUid() { return uid.get(); }
+    public void setUid(String uid) { this.uid.set(uid); }
     //
-    public String getLedgerSegment() { return _ledgerSegment.get(); }
-    public void setLedgerSegment(String ledgerSegment) { _ledgerSegment.set(ledgerSegment); }
+    public String getLedgerSegment() { return ledgerSegment.get(); }
+    public void setLedgerSegment(String ledgerSegment) { this.ledgerSegment.set(ledgerSegment); }
     
-    public String getTaxProfile() { return _taxProfile.get(); }
-    public void setTaxProfile(String taxProfile) { _taxProfile.set(taxProfile); }
+    public String getTaxProfile() { return taxProfile.get(); }
+    public void setTaxProfile(String taxProfile) { this.taxProfile.set(taxProfile); }
     
-    public Type getType() { return _type.get(); }
-    public void setType(Type type) { _type.set(type); }
+    public Type getType() { return type.get(); }
+    public void setType(Type type) { this.type.set(type); }
     
-    public DateTime getCreationDate() { return _creationDate.get(); }
-    public void setCreationDate(DateTime creationDate) { _creationDate.set(creationDate); }
+    public DateTime getCreationDate() { return creationDate.get(); }
+    public void setCreationDate(DateTime creationDate) { this.creationDate.set(creationDate); }
     
-    public Integer getBillDay() { return _billDay.get(); }
-    public void setBillDay(Integer billDay) { _billDay.set(billDay); }
+    public Integer getBillDay() { return billDay.get(); }
+    public void setBillDay(Integer billDay) { this.billDay.set(billDay); }
     
-    public Integer getBillCycleLength() { return _billCycleLength.get(); }
-    public void setBillCycleLength(Integer billingCycleLength) { _billCycleLength.set(billingCycleLength); }
+    public Integer getBillCycleLength() { return billCycleLength.get(); }
+    public void setBillCycleLength(Integer billingCycleLength) { billCycleLength.set(billingCycleLength); }
     
-    public String getCurrency() { return _currency.get(); }
-    public void setCurrency(String currency) { _currency.set(currency); }
+    public String getCurrency() { return currency.get(); }
+    public void setCurrency(String currency) { this.currency.set(currency); }
     
-    public String getPaymentMethod() { return _paymentMethod.get(); }
-    public void setPaymentMethod(String paymentMethod) { _paymentMethod.set(paymentMethod); }
+    public String getPaymentMethod() { return paymentMethod.get(); }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod.set(paymentMethod); }
     
-    public List<BillingCycleLink> getBillingCycleLinks() { return _billingCycleLinks.get(); }
+    public List<BillingCycleLink> getBillingCycleLinks() { return billingCycleLinks.get(); }
     public BillingCycleLink getBillingCycleLink(DateTime refDate){
-        for(BillingCycleLink billCycleLink:_billingCycleLinks){
+        for(BillingCycleLink billCycleLink:billingCycleLinks){
             if(billCycleLink.isValidForDate(refDate)){
                 return billCycleLink;
             }
@@ -114,36 +114,36 @@ public class BillingAccount extends BusinessDocument {
         return null;
     }
     
-    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks){_billingCycleLinks.set(billingCycleLinks);}
+    public void setBillingCycleLinks(Collection<BillingCycleLink> billingCycleLinks){this.billingCycleLinks.set(billingCycleLinks);}
 
     public void addBillingCycleLink(BillingCycleLink billingCycleLink){
         if(getBillingCycleLink(billingCycleLink.getStartDate())!=null){
             ///TODO generate a duplicate error
         }
-        _billingCycleLinks.add(billingCycleLink);
+        billingCycleLinks.add(billingCycleLink);
     }
 
 
     // ExternalIds Accessors
-    public List<ExternalId> getExternalIds() { return _externalIds.get(); }
-    public void setExternalIds(Collection<ExternalId> vals) { _externalIds.set(vals); }
-    public boolean addExternalIds(ExternalId val){ return _externalIds.add(val); }
-    public boolean removeExternalIds(ExternalId val){ return _externalIds.remove(val); }
+    public List<ExternalId> getExternalIds() { return externalIds.get(); }
+    public void setExternalIds(Collection<ExternalId> vals) { externalIds.set(vals); }
+    public boolean addExternalIds(ExternalId val){ return externalIds.add(val); }
+    public boolean removeExternalIds(ExternalId val){ return externalIds.remove(val); }
 
     public BillingAccountLink newLink(){
         return new BillingAccountLink(this);
     }
 
 
-    public List<PartyLink> getPartyLinks() { return Collections.unmodifiableList(_partyLinks); }
-    public void setPartyLinks(List<PartyLink> links) { _partyLinks.clear();_partyLinks.addAll(links);}
-    public void addPartyLink(PartyLink link){_partyLinks.add(link);}
+    public List<PartyLink> getPartyLinks() { return Collections.unmodifiableList(partyLinks); }
+    public void setPartyLinks(List<PartyLink> links) { partyLinks.clear();partyLinks.addAll(links);}
+    public void addPartyLink(PartyLink link){partyLinks.add(link);}
 
     // Contributors Accessors
-    public List<BillingAccountContributorLink> getContributors() { return _contributors.get(); }
-    public void setContributors(Collection<BillingAccountContributorLink> vals) { _contributors.set(vals); }
-    public boolean addContributors(BillingAccountContributorLink val){ return _contributors.add(val); }
-    public boolean removeContributors(BillingAccountContributorLink val){ return _contributors.remove(val); }
+    public List<BillingAccountContributorLink> getContributors() { return contributors.get(); }
+    public void setContributors(Collection<BillingAccountContributorLink> vals) { contributors.set(vals); }
+    public boolean addContributors(BillingAccountContributorLink val){ return contributors.add(val); }
+    public boolean removeContributors(BillingAccountContributorLink val){ return contributors.remove(val); }
 
     /**
      * the types of billing account
@@ -151,19 +151,19 @@ public class BillingAccount extends BusinessDocument {
     public enum Type {
         prepaid("prepaid"),
         postpaid("postpaid");
-        private String _value;
+        private String value;
         
-        Type(String value){ _value = value; }
+        Type(String value){ this.value = value; }
         @Override
-        public String toString(){ return _value; }
+        public String toString(){ return value; }
     }
     
     @Override
     public String toString(){
         String result=super.toString()+",\n";
-        result+="uid:"+_uid+",\n";
-        result+="ledgerSegment:"+_ledgerSegment+",\n";
-        result+="billingCycleLinks: "+_billingCycleLinks+"\n";
+        result+="uid:"+uid+",\n";
+        result+="ledgerSegment:"+ledgerSegment+",\n";
+        result+="billingCycleLinks: "+billingCycleLinks+"\n";
         return result;
     }
 }

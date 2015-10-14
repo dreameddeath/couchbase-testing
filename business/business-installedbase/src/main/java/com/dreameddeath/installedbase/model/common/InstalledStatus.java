@@ -30,27 +30,27 @@ public class InstalledStatus extends CouchbaseDocumentElement {
      *  code : Status Code
      */
     @DocumentProperty("code")
-    private Property<Code> _code = new StandardProperty<Code>(InstalledStatus.this);
+    private Property<Code> code = new StandardProperty<Code>(InstalledStatus.this);
     /**
      *  startDate : Start Validity date of the status
      */
     @DocumentProperty("startDate")
-    private Property<DateTime> _startDate = new StandardProperty<DateTime>(InstalledStatus.this);
+    private Property<DateTime> startDate = new StandardProperty<DateTime>(InstalledStatus.this);
     /**
      *  endDate : End validity date of the status
      */
     @DocumentProperty("endDate")
-    private Property<DateTime> _endDate = new StandardProperty<DateTime>(InstalledStatus.this);
+    private Property<DateTime> endDate = new StandardProperty<DateTime>(InstalledStatus.this);
 
     // code accessors
-    public Code getCode() { return _code.get(); }
-    public void setCode(Code val) { _code.set(val); }
+    public Code getCode() { return code.get(); }
+    public void setCode(Code val) { code.set(val); }
     // startDate accessors
-    public DateTime getStartDate() { return _startDate.get(); }
-    public void setStartDate(DateTime val) { _startDate.set(val); }
+    public DateTime getStartDate() { return startDate.get(); }
+    public void setStartDate(DateTime val) { startDate.set(val); }
     // endDate accessors
-    public DateTime getEndDate() { return _endDate.get(); }
-    public void setEndDate(DateTime val) { _endDate.set(val); }
+    public DateTime getEndDate() { return endDate.get(); }
+    public void setEndDate(DateTime val) { endDate.set(val); }
 
     public enum Code{
         INITIALIZED,

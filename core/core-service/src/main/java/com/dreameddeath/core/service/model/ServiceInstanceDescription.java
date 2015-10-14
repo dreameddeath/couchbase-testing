@@ -25,90 +25,90 @@ import org.apache.curator.x.discovery.ServiceInstance;
  * Created by Christophe Jeunesse on 04/03/2015.
  */
 public class ServiceInstanceDescription{
-    private static ServiceJacksonObjectMapper _OBJECT_MAPPER = ServiceJacksonObjectMapper.getInstance();
+    private static ServiceJacksonObjectMapper OBJECT_MAPPER = ServiceJacksonObjectMapper.getInstance();
 
     @JsonProperty("name")
-    private String _name;
+    private String name;
     @JsonProperty("address")
-    private String _address;
+    private String address;
     @JsonProperty("version")
-    private String _version;
+    private String version;
     @JsonProperty("port")
-    private Integer _port;
+    private Integer port;
     @JsonProperty("uid")
-    private String _uid;
+    private String uid;
     @JsonProperty("swagger")
-    private Swagger _swagger;
+    private Swagger swagger;
     @JsonProperty("state")
-    private String _state;
+    private String state;
 
     public ServiceInstanceDescription(ServiceInstance<ServiceDescription> instance){
-        _name =instance.getName();
-        _address = instance.getAddress();
-        _uid = instance.getId();
-        _swagger = instance.getPayload().getSwagger();
+        name =instance.getName();
+        address = instance.getAddress();
+        uid = instance.getId();
+        swagger = instance.getPayload().getSwagger();
 
-        _version = instance.getPayload().getVersion();
-        _state = instance.getPayload().getState();
-        _port=instance.getPort();
+        version = instance.getPayload().getVersion();
+        state = instance.getPayload().getState();
+        port=instance.getPort();
     }
 
     public ServiceInstanceDescription(){}
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public void setName(String name) {
-        _name = name;
+        this.name = name;
     }
 
     public String getAddress() {
-        return _address;
+        return address;
     }
 
     public void setAddress(String address) {
-        _address = address;
+        this.address = address;
     }
 
     public String getVersion() {
-        return _version;
+        return version;
     }
 
     public void setVersion(String version) {
-        _version = version;
+        this.version = version;
     }
 
     public Integer getPort() {
-        return _port;
+        return port;
     }
 
     public void setPort(Integer port) {
-        _port = port;
+        this.port = port;
     }
 
     public String getUid() {
-        return _uid;
+        return uid;
     }
 
     public void setUid(String uid) {
-        _uid = uid;
+        this.uid = uid;
     }
 
     public Swagger getSwagger() {
-        return _swagger;
+        return swagger;
     }
 
     public void setSwagger(Swagger swagger) {
-        _swagger = swagger;
+        this.swagger = swagger;
     }
 
     public String getState() {
-        return _state;
+        return state;
     }
 
     public void setState(String state) {
-        _state = state;
+        this.state = state;
     }
 }
 

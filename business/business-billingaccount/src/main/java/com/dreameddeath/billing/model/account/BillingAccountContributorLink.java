@@ -30,7 +30,7 @@ public class BillingAccountContributorLink extends BusinessDocumentLink<BillingA
      *  type : Type of contributor
      */
     @DocumentProperty("type")
-    private Property<ContributorType> _type = new SynchronizedLinkProperty<ContributorType,BillingAccountContributor>(BillingAccountContributorLink.this){
+    private Property<ContributorType> type = new SynchronizedLinkProperty<ContributorType,BillingAccountContributor>(BillingAccountContributorLink.this){
         @Override
         protected  ContributorType getRealValue(BillingAccountContributor doc){
             return doc.getContributorType();
@@ -38,8 +38,8 @@ public class BillingAccountContributorLink extends BusinessDocumentLink<BillingA
     };
 
     // type accessors
-    public BillingAccountContributor.ContributorType getType() { return _type.get(); }
-    public void setType(BillingAccountContributor.ContributorType val) { _type.set(val); }
+    public BillingAccountContributor.ContributorType getType() { return type.get(); }
+    public void setType(BillingAccountContributor.ContributorType val) { type.set(val); }
 
 
     public BillingAccountContributorLink(){}

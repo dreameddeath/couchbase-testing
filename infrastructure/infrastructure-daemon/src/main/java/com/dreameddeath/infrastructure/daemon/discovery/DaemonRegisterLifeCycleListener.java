@@ -23,16 +23,16 @@ import org.apache.curator.framework.CuratorFramework;
  * Created by Christophe Jeunesse on 16/09/2015.
  */
 public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listener {
-    private final DaemonDiscovery _daemonDiscovery;
+    private final DaemonDiscovery daemonDiscovery;
 
     public DaemonRegisterLifeCycleListener(CuratorFramework framework){
-        _daemonDiscovery = new DaemonDiscovery(framework);
+        daemonDiscovery = new DaemonDiscovery(framework);
     }
 
     @Override
     public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
         try {
-            _daemonDiscovery.register(lifeCycle.getDaemon());
+            daemonDiscovery.register(lifeCycle.getDaemon());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -42,7 +42,7 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
     @Override
     public void lifeCycleStarted(IDaemonLifeCycle lifeCycle) {
         try {
-            _daemonDiscovery.update(lifeCycle.getDaemon());
+            daemonDiscovery.update(lifeCycle.getDaemon());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -52,7 +52,7 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
     @Override
     public void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception) {
         try {
-            _daemonDiscovery.update(lifeCycle.getDaemon());
+            daemonDiscovery.update(lifeCycle.getDaemon());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -62,7 +62,7 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
     @Override
     public void lifeCycleReload(IDaemonLifeCycle lifeCycle) {
         try {
-            _daemonDiscovery.update(lifeCycle.getDaemon());
+            daemonDiscovery.update(lifeCycle.getDaemon());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -72,7 +72,7 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
     @Override
     public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
         try {
-            _daemonDiscovery.update(lifeCycle.getDaemon());
+            daemonDiscovery.update(lifeCycle.getDaemon());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -82,7 +82,7 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
     @Override
     public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
         try {
-            _daemonDiscovery.update(lifeCycle.getDaemon());
+            daemonDiscovery.update(lifeCycle.getDaemon());
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -92,7 +92,7 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
     @Override
     public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
         try {
-            _daemonDiscovery.unregister(lifeCycle.getDaemon());
+            daemonDiscovery.unregister(lifeCycle.getDaemon());
         }
         catch(Exception e){
             throw new RuntimeException(e);

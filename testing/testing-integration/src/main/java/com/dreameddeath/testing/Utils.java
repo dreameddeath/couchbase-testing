@@ -62,21 +62,21 @@ public class Utils {
     public static final String VIEW_PER_PREFIX = "perPrefixView";
 
     public static class TestEnvironment{
-        private ICouchbaseBucketFactory _bucketFactory;
-        private CouchbaseSessionFactory _sessionFactory;
-        private ICouchbaseBucket _client;
+        private ICouchbaseBucketFactory bucketFactory;
+        private CouchbaseSessionFactory sessionFactory;
+        private ICouchbaseBucket client;
 
-        private ElasticSearchServer _esServer=null;
-        private ElasticSearchSessionFactory _esSessionFactory=null;
-        private IElasticSearchMapper _esMapper=null;
-        private ElasticSearchClient _esClient=null;
-        private CouchbaseDCPConnector _connector=null;
+        private ElasticSearchServer esServer=null;
+        private ElasticSearchSessionFactory esSessionFactory=null;
+        private IElasticSearchMapper esMapper=null;
+        private ElasticSearchClient esClient=null;
+        private CouchbaseDCPConnector connector=null;
 
 
         public static class TestElasticSearchMapper implements IElasticSearchMapper{
-            private IDocumentInfoMapper _documentInfoMapper;
+            private IDocumentInfoMapper documentInfoMapper;
             public TestElasticSearchMapper(IDocumentInfoMapper mapper){
-                _documentInfoMapper = mapper;
+                documentInfoMapper = mapper;
             }
 
             @Override
@@ -92,7 +92,7 @@ public class Utils {
             @Override
             public String documentTypeBuilder(String bucketName, String key) {
                 try {
-                    return documentTypeBuilder(bucketName, _documentInfoMapper.getMappingFromKey(key).classMappingInfo().classInfo());
+                    return documentTypeBuilder(bucketName, documentInfoMapper.getMappingFromKey(key).classMappingInfo().classInfo());
                 }
                 catch(MappingNotFoundException e){
                     throw new RuntimeException(e);
@@ -136,49 +136,49 @@ public class Utils {
                             (System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR) != null) &&
                             (System.getenv(COUCHBASE_DB_URL_ENV_VAR) != null)
                     ) {
-                _bucketFactory = new CouchbaseBucketFactory(new CouchbaseClusterFactory());
-                _client = new CouchbaseBucketWrapper(CouchbaseCluster.create(System.getenv(COUCHBASE_DB_URL_ENV_VAR)), System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR), System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR), prefix);
+                bucketFactory = new CouchbaseBucketFactory(new CouchbaseClusterFactory());
+                client = new CouchbaseBucketWrapper(CouchbaseCluster.create(System.getenv(COUCHBASE_DB_URL_ENV_VAR)), System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR), System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR), prefix);
                 couchbaseConnectionList = Arrays.asList(System.getenv(COUCHBASE_DB_URL_ENV_VAR).split(","));
                 bucketName = System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR);
                 bucketPassword = System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR);
             }
             else {
-                _bucketFactory = new CouchbaseBucketFactorySimulator();
-                _client = new CouchbaseBucketSimulator(prefix+"test", prefix);
+                bucketFactory = new CouchbaseBucketFactorySimulator();
+                client = new CouchbaseBucketSimulator(prefix+"test", prefix);
                 couchbaseConnectionList = Arrays.asList("localhost:8091");
-                bucketName = _client.getBucketName();
+                bucketName = client.getBucketName();
                 bucketPassword = "dummy";
             }
 
             CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
-            sessionBuilder.getDocumentDaoFactoryBuilder().withBucketFactory(_bucketFactory).getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
-            _sessionFactory = sessionBuilder.build();
+            sessionBuilder.getDocumentDaoFactoryBuilder().withBucketFactory(bucketFactory).getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+            sessionFactory = sessionBuilder.build();
 
             if(type.hasElasticSearch()){
-                _esServer = new ElasticSearchServer(prefix+"ES");
-                _esSessionFactory = ElasticSearchSessionFactory.builder().withDocumentInfoMappper(sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper()).build();
-                _esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper());
-                _esClient = new ElasticSearchClient(_esServer.getClient(),GenericJacksonTranscoder.MAPPER);
+                esServer = new ElasticSearchServer(prefix+"ES");
+                esSessionFactory = ElasticSearchSessionFactory.builder().withDocumentInfoMappper(sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper()).build();
+                esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper());
+                esClient = new ElasticSearchClient(esServer.getClient(),GenericJacksonTranscoder.MAPPER);
                 ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
                 ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(
-                        _esClient,
-                        _esMapper,
+                        esClient,
+                        esMapper,
                         sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper(),
                         true);
-                if(_client instanceof CouchbaseBucketSimulator) {
-                    _connector = new CouchbaseDCPConnectorSimulator(env,couchbaseConnectionList ,bucketName, bucketPassword, dcpFlowHandler, (CouchbaseBucketSimulator)_client);
+                if(client instanceof CouchbaseBucketSimulator) {
+                    connector = new CouchbaseDCPConnectorSimulator(env,couchbaseConnectionList ,bucketName, bucketPassword, dcpFlowHandler, (CouchbaseBucketSimulator)client);
                 }
                 else{
-                    _connector = new CouchbaseDCPConnector(env,couchbaseConnectionList,bucketName,bucketPassword,dcpFlowHandler);
+                    connector = new CouchbaseDCPConnector(env,couchbaseConnectionList,bucketName,bucketPassword,dcpFlowHandler);
                 }
             }
         }
 
         public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao dao,Class<TOBJ> objClass) throws DuplicateMappedEntryInfoException{
-            _sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(_client), new GenericJacksonTranscoder<>(objClass));
-            if(_esSessionFactory!=null){
-                ElasticSearchDao<TOBJ> elasticSearchDao = new ElasticSearchDao<>(_client.getBucketName(),_esClient ,_esMapper,new GenericJacksonTranscoder<>(objClass));
-                _esSessionFactory.getElasticSearchDaoFactory().addDaoForClass(objClass,elasticSearchDao);
+            sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(client), new GenericJacksonTranscoder<>(objClass));
+            if(esSessionFactory!=null){
+                ElasticSearchDao<TOBJ> elasticSearchDao = new ElasticSearchDao<>(client.getBucketName(),esClient ,esMapper,new GenericJacksonTranscoder<>(objClass));
+                esSessionFactory.getElasticSearchDaoFactory().addDaoForClass(objClass,elasticSearchDao);
             }
 
         }
@@ -202,9 +202,9 @@ public class Utils {
         }
 
         public void start() throws StorageException {
-            _client.start();
-            if(_client.getClass().equals(CouchbaseBucketWrapper.class)){
-                Bucket bucket=((CouchbaseBucketWrapper) _client).getBucket();
+            client.start();
+            if(client.getClass().equals(CouchbaseBucketWrapper.class)){
+                Bucket bucket=((CouchbaseBucketWrapper) client).getBucket();
                 DesignDocument designDocument = bucket.bucketManager().getDesignDocument(TESTING_DESIGN_DOC);
                 Map<String,String> referenceMap=testingUtilsViews();
                 boolean toRebuild = false;
@@ -231,20 +231,20 @@ public class Utils {
                     bucket.bucketManager().upsertDesignDocument(newDesignDocument);
                 }
             }
-            _sessionFactory.getDocumentDaoFactory().getViewDaoFactory().initAllViews();
-            if(_esServer!=null){
-                _esServer.start();
-                _connector.run();
+            sessionFactory.getDocumentDaoFactory().getViewDaoFactory().initAllViews();
+            if(esServer!=null){
+                esServer.start();
+                connector.run();
             }
         }
 
-        public CouchbaseSessionFactory getSessionFactory(){return _sessionFactory;}
+        public CouchbaseSessionFactory getSessionFactory(){return sessionFactory;}
 
         public void shutdown(boolean cleanUp){
-            if(cleanUp && _client.getClass().equals(CouchbaseBucketWrapper.class)){
-                ViewQuery listQuery = ViewQuery.from(TESTING_DESIGN_DOC,VIEW_PER_PREFIX).key(_client.getPrefix());
+            if(cleanUp && client.getClass().equals(CouchbaseBucketWrapper.class)){
+                ViewQuery listQuery = ViewQuery.from(TESTING_DESIGN_DOC,VIEW_PER_PREFIX).key(client.getPrefix());
                 listQuery.stale(Stale.FALSE);
-                final Bucket bucket=((CouchbaseBucketWrapper) _client).getBucket();
+                final Bucket bucket=((CouchbaseBucketWrapper) client).getBucket();
                 bucket.async().query(listQuery).
                         flatMap(
                                 AsyncViewResult::rows
@@ -254,29 +254,29 @@ public class Utils {
                                 bucket.async().remove(aViewRow.id())
                         ).toBlocking().last();
             }
-            _client.shutdown();
-            if(_esServer!=null){
-                _connector.stop();
-                _esServer.stop();
+            client.shutdown();
+            if(esServer!=null){
+                connector.stop();
+                esServer.stop();
             }
         }
 
         public ElasticSearchServer getEsServer(){
-            return _esServer;
+            return esServer;
         }
 
         public ElasticSearchClient getEsClient(){
-            return _esClient;
+            return esClient;
         }
         public ElasticSearchSessionFactory getEsSessionFactory() {
-            return _esSessionFactory;
+            return esSessionFactory;
         }
 
         public void fullElasticSearchReSync(){
-            if(_connector!=null){
-                _connector.stop();
-                _esClient.syncIndexes();
-                _connector.run();
+            if(connector!=null){
+                connector.stop();
+                esClient.syncIndexes();
+                connector.run();
             }
         }
     }

@@ -26,45 +26,45 @@ import com.fasterxml.jackson.annotation.JsonSetter;
  * Created by Christophe Jeunesse on 16/04/2015.
  */
 public class SerializableViewQueryRow<TKEY,TVALUE,TDOC extends CouchbaseDocument>{
-    TKEY _key;
-    TVALUE _value;
-    String _docKey;
+    TKEY key;
+    TVALUE value;
+    String docKey;
 
     public SerializableViewQueryRow(){}
 
     public SerializableViewQueryRow(IViewQueryRow<TKEY,TVALUE,TDOC> sourceRow){
-        _docKey = sourceRow.getDocKey();
-        _key = sourceRow.getKey();
-        _value = sourceRow.getValue();
+        docKey = sourceRow.getDocKey();
+        key = sourceRow.getKey();
+        value = sourceRow.getValue();
     }
 
     @JsonGetter("key")
     public TKEY getKey() {
-        return _key;
+        return key;
     }
 
     @JsonSetter("key")
     public void setKey(TKEY key) {
-        _key = key;
+        this.key = key;
     }
 
     @JsonGetter("value")
     public TVALUE getValue() {
-        return _value;
+        return value;
     }
 
     @JsonSetter("value")
     public void setValue(TVALUE value) {
-        _value = value;
+        this.value = value;
     }
 
     @JsonGetter("docKey")
     public String getDocKey() {
-        return _docKey;
+        return docKey;
     }
 
     @JsonSetter("docKey")
     public void setDocKey(String docKey) {
-        _docKey = docKey;
+        this.docKey = docKey;
     }
 }

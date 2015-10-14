@@ -20,10 +20,10 @@ package com.dreameddeath.core.curator.exception;
  * Created by Christophe Jeunesse on 06/02/2015.
  */
 public class BadConnectionStringException extends Exception{
-    private String _connectionString;
+    private String connectionString;
 
     public BadConnectionStringException(String connectionString){
         super("The connection string was inconsistent <"+connectionString+">");
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 }

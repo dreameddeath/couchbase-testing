@@ -30,27 +30,27 @@ public class BillingOrderItemStatus extends CouchbaseDocumentElement {
      *  status : Status of the billing item
      */
     @DocumentProperty("status")
-    private Property<Status> _status = new StandardProperty<Status>(BillingOrderItemStatus.this);
+    private Property<Status> status = new StandardProperty<Status>(BillingOrderItemStatus.this);
     /**
      *  startDate : The start Date of the status
      */
     @DocumentProperty("startDate")
-    private Property<DateTime> _startDate = new StandardProperty<DateTime>(BillingOrderItemStatus.this);
+    private Property<DateTime> startDate = new StandardProperty<DateTime>(BillingOrderItemStatus.this);
     /**
      *  endDate : The end of validity date of the status
      */
     @DocumentProperty("endDate")
-    private Property<DateTime> _endDate = new StandardProperty<DateTime>(BillingOrderItemStatus.this);
+    private Property<DateTime> endDate = new StandardProperty<DateTime>(BillingOrderItemStatus.this);
 
     // status accessors
-    public Status getStatus() { return _status.get(); }
-    public void setStatus(Status val) { _status.set(val); }
+    public Status getStatus() { return status.get(); }
+    public void setStatus(Status val) { status.set(val); }
     // startDate accessors
-    public DateTime getStartDate() { return _startDate.get(); }
-    public void setStartDate(DateTime val) { _startDate.set(val); }
+    public DateTime getStartDate() { return startDate.get(); }
+    public void setStartDate(DateTime val) { startDate.set(val); }
     // endDate accessors
-    public DateTime getEndDate() { return _endDate.get(); }
-    public void setEndDate(DateTime val) { _endDate.set(val); }
+    public DateTime getEndDate() { return endDate.get(); }
+    public void setEndDate(DateTime val) { endDate.set(val); }
 
     public enum Status{
         ACTIVE,

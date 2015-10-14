@@ -27,7 +27,7 @@ import java.util.List;
 public class ProxyWebServer extends AbstractWebServer {
     public ProxyWebServer(Builder builder){
         super(builder);
-        getWebServer().setHandler(new ProxyServletContextHandler(this,builder._discoverPaths));
+        getWebServer().setHandler(new ProxyServletContextHandler(this,builder.discoverPaths));
     }
 
     public static Builder builder(){
@@ -35,10 +35,10 @@ public class ProxyWebServer extends AbstractWebServer {
     }
 
     public static class Builder extends AbstractWebServer.Builder<Builder>{
-        List<String> _discoverPaths=new ArrayList<>();
+        List<String> discoverPaths=new ArrayList<>();
 
         public Builder withDiscoverPath(String path){
-            _discoverPaths.add(path);
+            discoverPaths.add(path);
             return this;
         }
     }

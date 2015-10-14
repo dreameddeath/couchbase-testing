@@ -17,8 +17,9 @@
 package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
-import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
+import com.dreameddeath.core.model.entity.EntityDefinitionManager;
+import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
@@ -30,9 +31,9 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 07/11/2014.
  */
 public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
-    private JavaType _baseType;
-    private Map<String,JavaType> _mapClass = new HashMap<>();
-    private VersionUpgradeManager _versionUpgradeManager;
+    private JavaType baseType;
+    private Map<String,JavaType> mapClass = new HashMap<>();
+    private EntityVersionUpgradeManager entityVersionUpgradeManager;
 
     public  CouchbaseDocumentTypeIdResolver() {
         super(null, null);
@@ -40,7 +41,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     @Override
     public void init(JavaType baseType){
-        _baseType =baseType;
+        this.baseType =baseType;
     }
 
     @Override
@@ -61,12 +62,12 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     @Override
     public String idFromBaseType() {
-        DocumentDef annot = _baseType.getRawClass().getAnnotation(DocumentDef.class);
+        DocumentDef annot = baseType.getRawClass().getAnnotation(DocumentDef.class);
         if(annot!=null){
-            return EntityModelId.build(annot, _baseType.getRawClass()).toString();
+            return EntityModelId.build(annot, baseType.getRawClass()).toString();
         }
         else{
-            throw new RuntimeException("Need the DocumentRef annotation on class "+ _baseType.getRawClass().getName());
+            throw new RuntimeException("Need the DocumentRef annotation on class "+ baseType.getRawClass().getName());
         }
     }
 
@@ -76,16 +77,10 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     }
 
     public JavaType typeFromId(DatabindContext context, String id) {
-        if(!_mapClass.containsKey(id)) {
-            if (_versionUpgradeManager == null){
-                _versionUpgradeManager = (VersionUpgradeManager)context.getConfig().getAttributes().getAttribute(VersionUpgradeManager.class);
-                if(_versionUpgradeManager==null){
-                    _versionUpgradeManager=new VersionUpgradeManager();
-                }
-            }
-            _mapClass.put(id, context.getTypeFactory().constructType(_versionUpgradeManager.findClassFromVersionnedTypeId(id)));
+        if(!mapClass.containsKey(id)) {
+            mapClass.put(id, context.getTypeFactory().constructType(EntityDefinitionManager.getInstance().findClassFromVersionnedTypeId(id)));
         }
-        return _mapClass.get(id);
+        return mapClass.get(id);
     }
 
     @Override

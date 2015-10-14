@@ -26,51 +26,51 @@ import com.couchbase.client.core.message.dcp.SnapshotMarkerMessage;
  * Created by Christophe Jeunesse on 27/05/2015.
  */
 public class DCPEvent {
-    private CouchbaseMessage _message;
-    private Type _type=Type.UNKNOWN;
+    private CouchbaseMessage message;
+    private Type type=Type.UNKNOWN;
 
 
     public DCPEvent setMessage(final CouchbaseMessage message) {
-        this._message = message;
+        this.message = message;
         if(message instanceof MutationMessage){
-            _type = Type.MUTATION;
+            type = Type.MUTATION;
         }
         else if(message instanceof RemoveMessage){
-            _type = Type.DELETION;
+            type = Type.DELETION;
         }
         else if(message instanceof SnapshotMarkerMessage){
-            _type = Type.SNAPSHOT;
+            type = Type.SNAPSHOT;
         }
         return this;
     }
 
     public Type getType(){
-        return _type;
+        return type;
     }
 
     public CouchbaseMessage message() {
-        return _message;
+        return message;
     }
 
     public MutationMessage asMutationMessage(){
-        if (_message instanceof MutationMessage) {
-            return (MutationMessage) _message;
+        if (message instanceof MutationMessage) {
+            return (MutationMessage) message;
         } else {
             return null;
         }
     }
 
     public SnapshotMarkerMessage asSnapshotMessage(){
-        if (_message instanceof SnapshotMarkerMessage) {
-            return (SnapshotMarkerMessage) _message;
+        if (message instanceof SnapshotMarkerMessage) {
+            return (SnapshotMarkerMessage) message;
         } else {
             return null;
         }
     }
 
     public RemoveMessage asDeletionMessage(){
-        if (_message instanceof RemoveMessage) {
-            return (RemoveMessage) _message;
+        if (message instanceof RemoveMessage) {
+            return (RemoveMessage) message;
         } else {
             return null;
         }

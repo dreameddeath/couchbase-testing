@@ -24,15 +24,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 30/08/2014.
  */
 public class ValidatorFactory {
-    private ValidatorCache _cache = new ValidatorCache();
+    private ValidatorCache cache = new ValidatorCache();
 
 
     public <T> Validator<T> getValidator(Class<T> clazz){
-        Validator<BaseCouchbaseDocumentElement> validator = (Validator<BaseCouchbaseDocumentElement>)_cache.get(clazz);
+        Validator<BaseCouchbaseDocumentElement> validator = (Validator<BaseCouchbaseDocumentElement>)cache.get(clazz);
         if(validator==null){
             if(BaseCouchbaseDocumentElement.class.isAssignableFrom(clazz)){
                 validator = (Validator<BaseCouchbaseDocumentElement>)new CouchbaseDocumentElementValidator(clazz,this);
-                _cache.put((Class<BaseCouchbaseDocumentElement>)clazz,validator);
+                cache.put((Class<BaseCouchbaseDocumentElement>)clazz,validator);
             }
         }
         return (Validator<T>)validator;

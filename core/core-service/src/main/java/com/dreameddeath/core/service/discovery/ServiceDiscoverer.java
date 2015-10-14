@@ -38,35 +38,35 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 18/01/2015.
  */
 public class ServiceDiscoverer {
-    private final String _basePath;
-    private final CuratorFramework _client;
-    private ServiceDiscovery<ServiceDescription> _serviceDiscovery;
-    private final ConcurrentMap<String,ServiceProvider<ServiceDescription>> _serviceProviderMap=new ConcurrentHashMap<>();
+    private final String basePath;
+    private final CuratorFramework client;
+    private ServiceDiscovery<ServiceDescription> serviceDiscovery;
+    private final ConcurrentMap<String,ServiceProvider<ServiceDescription>> serviceProviderMap=new ConcurrentHashMap<>();
 
 
     public ServiceDiscoverer(CuratorFramework client,String basePath){
-        _client = client;
+        this.client = client;
         if(!basePath.startsWith("/")){
             basePath="/"+basePath;
         }
-        _basePath = basePath;
+        this.basePath = basePath;
     }
 
     public void start() throws ServiceDiscoveryException {
         try {
-            _client.blockUntilConnected(10, TimeUnit.SECONDS);
+            client.blockUntilConnected(10, TimeUnit.SECONDS);
         }
         catch(InterruptedException e){
             throw new ServiceDiscoveryException("Cannot connect to Zookeeper",e);
         }
 
-        ServiceNamingUtils.createBaseServiceName(_client,_basePath);
-        _serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
+        ServiceNamingUtils.createBaseServiceName(client,basePath);
+        serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
                 .serializer(new ServiceInstanceSerializerImpl())
-                .client(_client)
-                .basePath(_basePath).build();
+                .client(client)
+                .basePath(basePath).build();
         try {
-            _serviceDiscovery.start();
+            serviceDiscovery.start();
         }
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot start service discovery",e);
@@ -77,17 +77,17 @@ public class ServiceDiscoverer {
 
 
     public  ServiceProvider<ServiceDescription> getServiceProvider(String name) throws ServiceDiscoveryException{
-        if(!_serviceProviderMap.containsKey(name)){
+        if(!serviceProviderMap.containsKey(name)){
             loadService(name);
         }
-        return _serviceProviderMap.get(name);
+        return serviceProviderMap.get(name);
     }
 
     synchronized public void loadService(String name) throws ServiceDiscoveryException {
         try {
-            ServiceProvider<ServiceDescription> provider = _serviceDiscovery.serviceProviderBuilder().serviceName(name).build();
+            ServiceProvider<ServiceDescription> provider = serviceDiscovery.serviceProviderBuilder().serviceName(name).build();
             provider.start();
-            _serviceProviderMap.putIfAbsent(name, provider);
+            serviceProviderMap.putIfAbsent(name, provider);
         }
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot start service provider for service "+name,e);
@@ -96,7 +96,7 @@ public class ServiceDiscoverer {
 
     public void resyncAllServices() throws ServiceDiscoveryException{
         try {
-            for (String name : _serviceDiscovery.queryForNames()) {
+            for (String name : serviceDiscovery.queryForNames()) {
                 loadService(name);
             }
         }
@@ -109,11 +109,11 @@ public class ServiceDiscoverer {
     }
 
     public ServiceInstance<ServiceDescription> getInstance(String fullName) throws ServiceDiscoveryException{
-        if(!_serviceProviderMap.containsKey(fullName)){
+        if(!serviceProviderMap.containsKey(fullName)){
             loadService(fullName);
         }
         try {
-            return _serviceProviderMap.get(fullName).getInstance();
+            return serviceProviderMap.get(fullName).getInstance();
         }
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot get instance for service "+fullName,e);
@@ -121,11 +121,11 @@ public class ServiceDiscoverer {
     }
 
     public ServiceInstance<ServiceDescription> getInstance(String fullName,String uid) throws ServiceDiscoveryException{
-        if(!_serviceProviderMap.containsKey(fullName)){
+        if(!serviceProviderMap.containsKey(fullName)){
             loadService(fullName);
         }
         try {
-            ServiceProvider<ServiceDescription> provider = _serviceProviderMap.get(fullName);
+            ServiceProvider<ServiceDescription> provider = serviceProviderMap.get(fullName);
             for(ServiceInstance<ServiceDescription> instance : provider.getAllInstances()){
                 if(instance.getId().equals(uid)){
                     return instance;
@@ -142,7 +142,7 @@ public class ServiceDiscoverer {
     public ServicesByNameInstanceDescription getInstancesDescription() throws ServiceDiscoveryException{
         resyncAllServices();
         ServicesByNameInstanceDescription desc = new ServicesByNameInstanceDescription();
-        for(Map.Entry<String,ServiceProvider<ServiceDescription>> entry:_serviceProviderMap.entrySet()){
+        for(Map.Entry<String,ServiceProvider<ServiceDescription>> entry:serviceProviderMap.entrySet()){
             try {
                 for (ServiceInstance<ServiceDescription> instance : entry.getValue().getAllInstances()) {
                     desc.addServiceInstance(new ServiceInstanceDescription(instance));
@@ -159,7 +159,7 @@ public class ServiceDiscoverer {
         resyncAllServices();
         ServicesListInstanceDescription result = new ServicesListInstanceDescription();
         try {
-            for (ServiceInstance<ServiceDescription> instance : _serviceProviderMap.get(fullName).getAllInstances()) {
+            for (ServiceInstance<ServiceDescription> instance : serviceProviderMap.get(fullName).getAllInstances()) {
                 result.addServiceInstance(new ServiceInstanceDescription(instance));
             }
         }
@@ -173,7 +173,7 @@ public class ServiceDiscoverer {
     public Collection<ServiceInfoDescription> getInstancesInfo(String filterName) throws ServiceDiscoveryException {
         resyncAllServices();
         Map<String,ServiceInfoDescription> mapServiceByName = new TreeMap<>();
-        for(Map.Entry<String,ServiceProvider<ServiceDescription>> entry:_serviceProviderMap.entrySet()){
+        for(Map.Entry<String,ServiceProvider<ServiceDescription>> entry:serviceProviderMap.entrySet()){
             String fullName = entry.getKey();
             String name = ServiceNamingUtils.getNameFromServiceFullName(fullName);
             if(StringUtils.isNotEmpty(filterName) && !filterName.equals(name)){

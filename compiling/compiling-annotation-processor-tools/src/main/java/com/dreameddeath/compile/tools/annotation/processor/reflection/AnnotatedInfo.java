@@ -34,46 +34,46 @@ import java.util.List;
 public class AnnotatedInfo {
     private static Logger LOG = LoggerFactory.getLogger(AnnotatedInfo.class);
 
-    private AnnotatedElement _annotElt=null;
-    private Element _element=null;
-    private String _javaDoc = null;
+    private AnnotatedElement annotElt=null;
+    private Element element=null;
+    private String javaDoc = null;
 
     public AnnotatedInfo(AnnotatedElement elt){
-        _annotElt =elt;
+        annotElt =elt;
     }
 
     public AnnotatedInfo(Element elt){
-        _element= elt;
+        element= elt;
         if(AnnotationElementType.CURRENT_ELEMENT_UTILS.get()!=null){
-            _javaDoc = AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getDocComment(elt);
+            javaDoc = AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getDocComment(elt);
         }
     }
 
     public <A extends Annotation> A getAnnotation(Class<A> clazz){
-        if(_annotElt!=null){
-            return _annotElt.getAnnotation(clazz);
+        if(annotElt!=null){
+            return annotElt.getAnnotation(clazz);
         }
         else{
-            return _element.getAnnotation(clazz);
+            return element.getAnnotation(clazz);
         }
     }
 
     public <A extends Annotation> A[] getAnnotationByType(Class<A> clazz){
-        if(_annotElt!=null){
-            return _annotElt.getAnnotationsByType(clazz);
+        if(annotElt!=null){
+            return annotElt.getAnnotationsByType(clazz);
         }
         else{
-            return _element.getAnnotationsByType(clazz);
+            return element.getAnnotationsByType(clazz);
         }
     }
 
     public Annotation[] getAnnotations(){
-        if(_annotElt!=null){
-            return _annotElt.getAnnotations();
+        if(annotElt!=null){
+            return annotElt.getAnnotations();
         }
         else{
-            List<Annotation> annotations = new ArrayList<>(_element.getAnnotationMirrors().size());
-            for(AnnotationMirror annotMirror:_element.getAnnotationMirrors()){
+            List<Annotation> annotations = new ArrayList<>(element.getAnnotationMirrors().size());
+            for(AnnotationMirror annotMirror:element.getAnnotationMirrors()){
                 AnnotationInfo annotInfo = (AnnotationInfo)AbstractClassInfo.getClassInfo((TypeElement)annotMirror.getAnnotationType().asElement());
                 for(Annotation annot:getAnnotationByType(annotInfo.getCurrentClass())){
                     annotations.add(annot);
@@ -90,6 +90,6 @@ public class AnnotatedInfo {
     public*/
 
     public String getJavaDoc() {
-        return _javaDoc;
+        return javaDoc;
     }
 }

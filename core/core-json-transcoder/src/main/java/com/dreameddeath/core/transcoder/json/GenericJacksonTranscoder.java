@@ -18,11 +18,11 @@ package com.dreameddeath.core.transcoder.json;
 
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.entity.IVersionedDocument;
+import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingException;
 import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
-import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +43,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     public static final ObjectMapper MAPPER;
     static {
         MAPPER = new ObjectMapper();
-        MAPPER.setConfig(MAPPER.getDeserializationConfig().withAttribute(VersionUpgradeManager.class,new VersionUpgradeManager()));
+        MAPPER.setConfig(MAPPER.getDeserializationConfig().withAttribute(EntityVersionUpgradeManager.class,new EntityVersionUpgradeManager()));
         MAPPER.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         MAPPER.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
@@ -63,13 +63,13 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     }
 
 
-    private final Class<T> _dummyClass;
-    private final Class _rootClass;
+    private final Class<T> dummyClass;
+    private final Class rootClass;
 
     public static Class findRootClass(Class clazz) {
         Class currentClass = clazz;
         //For versionned document, find the root class
-        if (IVersionedDocument.class.isAssignableFrom(currentClass)) {
+        if (IVersionedEntity.class.isAssignableFrom(currentClass)) {
             JsonTypeIdResolver foundAnnot = null;
             while (!currentClass.isPrimitive()) {
                 Annotation[] annot = currentClass.getDeclaredAnnotations();
@@ -93,16 +93,16 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     }
 
     public GenericJacksonTranscoder(Class<T> clazz){
-        _dummyClass = clazz;
-        _rootClass = findRootClass(clazz);
+        dummyClass = clazz;
+        rootClass = findRootClass(clazz);
 
 
     }
 
     @Override
-    public Class<T> getBaseClass() {return _dummyClass;}
+    public Class<T> getBaseClass() {return dummyClass;}
 
-    public Class getRootClass(){return _rootClass;}
+    public Class getRootClass(){return rootClass;}
     @Override
     public T decode(byte[] content) throws DocumentDecodingException{
         try {

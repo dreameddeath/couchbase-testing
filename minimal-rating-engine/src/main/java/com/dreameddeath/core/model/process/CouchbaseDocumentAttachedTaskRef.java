@@ -33,53 +33,53 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public class CouchbaseDocumentAttachedTaskRef extends BaseCouchbaseDocumentElement {
 
     @DocumentProperty("jobKey") @NotNull
-    private Property<String> _jobKey = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<String> jobKey = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
     /**
      *  jobClass : class of the job
      */
     @DocumentProperty("jobClass") @NotNull
-    private Property<String> _jobClassName = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<String> jobClassName = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
 
     @DocumentProperty("taskId") @NotNull
-    private Property<String> _taskId = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<String> taskId = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
     /**
      *  taskClass : the class of the task
      */
     @DocumentProperty("taskClass") @NotNull
-    private Property<String> _taskClassName = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<String> taskClassName = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
 
     // jobKey accessors
-    public String getJobKey(){ return _jobKey.get();}
-    public void setJobKey(String key){ _jobKey.set(key);}
+    public String getJobKey(){ return jobKey.get();}
+    public void setJobKey(String key){ jobKey.set(key);}
     // jobClass accessors
-    public String getJobClass() { return _jobClassName.get(); }
-    public void setJobClass(String val) { _jobClassName.set(val); }
+    public String getJobClass() { return jobClassName.get(); }
+    public void setJobClass(String val) { jobClassName.set(val); }
     // task id accessors
-    public String getTaskId(){ return _taskId.get();}
-    public void setTaskId(String id){ _taskId.set(id);}
+    public String getTaskId(){ return taskId.get();}
+    public void setTaskId(String id){ taskId.set(id);}
     // taskClass accessors
-    public String getTaskClass() { return _taskClassName.get(); }
-    public void setTaskClass(String val) { _taskClassName.set(val); }
+    public String getTaskClass() { return taskClassName.get(); }
+    public void setTaskClass(String val) { taskClassName.set(val); }
 
     public boolean isForTask(AbstractTask task){
-        return task.getParentJob().getBaseMeta().getKey().equals(_jobKey.get()) && task.getUid().equals(_taskId.get());
+        return task.getParentJob().getBaseMeta().getKey().equals(jobKey.get()) && task.getUid().equals(taskId.get());
     }
 
     public boolean isOfJobType(Class<? extends AbstractJob> jobClass){
         try {
-            return jobClass.isAssignableFrom(Class.forName(_jobClassName.get()));
+            return jobClass.isAssignableFrom(Class.forName(jobClassName.get()));
         }
         catch(ClassNotFoundException e){
-            throw new RuntimeException("The job class <"+_jobClassName.get()+"> is not found",e);
+            throw new RuntimeException("The job class <"+jobClassName.get()+"> is not found",e);
         }
     }
 
     public boolean isOfTaskType(Class<? extends AbstractTask> taskClass){
         try {
-            return taskClass.isAssignableFrom(Class.forName(_taskClassName.get()));
+            return taskClass.isAssignableFrom(Class.forName(taskClassName.get()));
         }
         catch(ClassNotFoundException e){
-            throw new RuntimeException("The task class <"+_taskClassName.get()+"> is not found",e);
+            throw new RuntimeException("The task class <"+taskClassName.get()+"> is not found",e);
         }
     }
 

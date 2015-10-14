@@ -24,49 +24,49 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  * Created by Christophe Jeunesse on 10/10/2014.
  */
 public abstract class BucketDocument<T extends CouchbaseDocument> implements Document<T> {
-    final private T _doc;
-    private String _keyPrefix=null;
+    final private T doc;
+    private String keyPrefix=null;
 
-    public BucketDocument(T doc){ _doc = doc;}
+    public BucketDocument(T doc){ this.doc = doc;}
     @Override
     public String id() {
-        return ICouchbaseBucket.Utils.buildKey(_keyPrefix,_doc.getBaseMeta().getKey());
+        return ICouchbaseBucket.Utils.buildKey(keyPrefix,doc.getBaseMeta().getKey());
     }
 
     @Override
     public T content() {
-        return _doc;
+        return doc;
     }
 
     @Override
     public long cas() {
-        return _doc.getBaseMeta().getCas();
+        return doc.getBaseMeta().getCas();
     }
 
     @Override
     public int expiry() {
-        return _doc.getBaseMeta().getExpiry();
+        return doc.getBaseMeta().getExpiry();
     }
 
     public void syncMeta(BucketDocument<T> ref){
-        _doc.getBaseMeta().setCas(ref._doc.getBaseMeta().getCas());
-        _doc.getBaseMeta().setExpiry(ref._doc.getBaseMeta().getExpiry());
-        _doc.getBaseMeta().setDbSize(ref._doc.getBaseMeta().getDbSize());
+        doc.getBaseMeta().setCas(ref.doc.getBaseMeta().getCas());
+        doc.getBaseMeta().setExpiry(ref.doc.getBaseMeta().getExpiry());
+        doc.getBaseMeta().setDbSize(ref.doc.getBaseMeta().getDbSize());
         if(ref.mutationToken()!=null){
-            _doc.getBaseMeta().setVbucketID(ref.mutationToken().vbucketID());
-            _doc.getBaseMeta().setVbucketUUID(ref.mutationToken().vbucketUUID());
-            _doc.getBaseMeta().setSequenceNumber(ref.mutationToken().sequenceNumber());
+            doc.getBaseMeta().setVbucketID(ref.mutationToken().vbucketID());
+            doc.getBaseMeta().setVbucketUUID(ref.mutationToken().vbucketUUID());
+            doc.getBaseMeta().setSequenceNumber(ref.mutationToken().sequenceNumber());
         }
     }
 
     
     public T getDocument(){
-        return _doc;
+        return doc;
     }
 
     public MutationToken mutationToken(){
-        if(_doc.getBaseMeta().getVbucketID()!=0){
-            return new MutationToken(_doc.getBaseMeta().getVbucketID(),_doc.getBaseMeta().getVbucketUUID(),_doc.getBaseMeta().getSequenceNumber());
+        if(doc.getBaseMeta().getVbucketID()!=0){
+            return new MutationToken(doc.getBaseMeta().getVbucketID(),doc.getBaseMeta().getVbucketUUID(),doc.getBaseMeta().getSequenceNumber());
         }
         else{
             return null;
@@ -74,10 +74,10 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
     }
 
     public String getKeyPrefix() {
-        return _keyPrefix;
+        return keyPrefix;
     }
 
     public void setKeyPrefix(String keyPrefix) {
-        _keyPrefix = keyPrefix;
+        this.keyPrefix = keyPrefix;
     }
 }

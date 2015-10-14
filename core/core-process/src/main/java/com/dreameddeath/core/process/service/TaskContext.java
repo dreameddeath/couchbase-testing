@@ -22,14 +22,14 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
  * Created by Christophe Jeunesse on 23/11/2014.
  */
 public class TaskContext {
-    private JobContext _jobContext;
-    public JobContext getJobContext(){return _jobContext;}
-    public void setJobContext(JobContext context){_jobContext=context;}
+    private JobContext jobContext;
+    public JobContext getJobContext(){return jobContext;}
+    public void setJobContext(JobContext context){jobContext=context;}
 
-    public ICouchbaseSession getSession(){return _jobContext.getSession();}
+    public ICouchbaseSession getSession(){return jobContext.getSession();}
 
-    public ExecutorServiceFactory getExecutorFactory(){return _jobContext.getExecutorFactory();}
-    public ProcessingServiceFactory getProcessingFactory(){return _jobContext.getProcessingFactory();}
+    public ExecutorServiceFactory getExecutorFactory(){return jobContext.getExecutorFactory();}
+    public ProcessingServiceFactory getProcessingFactory(){return jobContext.getProcessingFactory();}
 
     public static TaskContext newContext(JobContext ctxt){
         TaskContext res = new TaskContext();

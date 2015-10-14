@@ -31,13 +31,13 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 10/10/2015.
  */
 public class CouchbaseClusterFactory implements ICouchbaseClusterFactory,AutoCloseable {
-    private final Boolean _autoCreatedEnv;
-    private final CouchbaseEnvironment _env;
-    private Map<String,CouchbaseCluster> _couchbaseClusterMap = new HashMap<>();
+    private final Boolean autoCreatedEnv;
+    private final CouchbaseEnvironment env;
+    private Map<String,CouchbaseCluster> couchbaseClusterMap = new HashMap<>();
 
     private CouchbaseClusterFactory(CouchbaseEnvironment env,Boolean autoCreatedEnv){
-        _env = env;
-        _autoCreatedEnv = autoCreatedEnv;
+        this.env = env;
+        this.autoCreatedEnv = autoCreatedEnv;
     }
 
     public CouchbaseClusterFactory(CouchbaseEnvironment env){
@@ -51,10 +51,10 @@ public class CouchbaseClusterFactory implements ICouchbaseClusterFactory,AutoClo
     @Override
     synchronized public CouchbaseCluster getCluster(final String name)throws ConfigPropertyValueNotFoundException{
             try {
-                return _couchbaseClusterMap.computeIfAbsent(name, name1 -> {
+                return couchbaseClusterMap.computeIfAbsent(name, name1 -> {
                     try {
                         List<String> clusterAddresses = CouchbaseConfigProperties.COUCHBASE_CLUSTER_ADDRESSES.getProperty(name).getMandatoryValue("Please define the addresses of cluster <{}>", name);
-                        return CouchbaseCluster.create(_env, clusterAddresses);
+                        return CouchbaseCluster.create(env, clusterAddresses);
                     } catch (ConfigPropertyValueNotFoundException e) {
                         throw new RuntimeException("Cluster setup failure", e);
                     }
@@ -72,11 +72,11 @@ public class CouchbaseClusterFactory implements ICouchbaseClusterFactory,AutoClo
 
     @Override
     synchronized public void close(){
-        for(CouchbaseCluster cluster:_couchbaseClusterMap.values()){
+        for(CouchbaseCluster cluster:couchbaseClusterMap.values()){
             cluster.disconnect();
         }
-        if(_autoCreatedEnv){
-            _env.shutdown();
+        if(autoCreatedEnv){
+            env.shutdown();
         }
     }
 

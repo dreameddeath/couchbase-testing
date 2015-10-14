@@ -31,10 +31,10 @@ import java.util.Collection;
  * Created by Christophe Jeunesse on 12/10/2014.
  */
 public abstract class BaseCouchbaseDocumentDao<T extends BaseCouchbaseDocument>{
-    private CouchbaseBucketWrapper _client;
-    private BaseCouchbaseDocumentDaoFactory _factory;
-    public CouchbaseBucketWrapper getClient(){ return _client; }
-    public BaseCouchbaseDocumentDaoFactory getDaoFactory(){ return _factory; }
+    private CouchbaseBucketWrapper client;
+    private BaseCouchbaseDocumentDaoFactory factory;
+    public CouchbaseBucketWrapper getClient(){ return client; }
+    public BaseCouchbaseDocumentDaoFactory getDaoFactory(){ return factory; }
 
     public abstract GenericTranscoder<T> getTranscoder();
     //public abstract BucketDocument<T> buildBucketDocument(T doc);
@@ -53,13 +53,13 @@ public abstract class BaseCouchbaseDocumentDao<T extends BaseCouchbaseDocument>{
         if(counterDaoBuilder.getClient()==null){
             counterDaoBuilder.withClient(getClient());
         }
-        _factory.registerCounter(new CouchbaseCounterDao(counterDaoBuilder));
+        factory.registerCounter(new CouchbaseCounterDao(counterDaoBuilder));
     }
 
 
     public BaseCouchbaseDocumentDao(CouchbaseBucketWrapper client,BaseCouchbaseDocumentDaoFactory factory){
-        _client = client;
-        _factory = factory;
+        this.client = client;
+        this.factory = factory;
         client.addTranscoder(getTranscoder());
     }
 

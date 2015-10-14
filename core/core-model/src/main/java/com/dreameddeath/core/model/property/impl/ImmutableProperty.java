@@ -29,10 +29,10 @@ public class ImmutableProperty<T> extends AbstractProperty<T> {
 
 
     @Override
-    public final boolean set(T value) {
-        if(!equalsValue(value) && (_value!=null)){
-            throw new UnsupportedOperationException("Cannot reassign value <"+_value+"> with newValue <"+_value+">");
+    public final boolean set(T newValue) {
+        if(!equalsValue(newValue) && (this.value!=null)){
+            throw new UnsupportedOperationException("Cannot reassign value <"+newValue+"> with newValue <"+newValue+">");
         }
-        return super.set(value);
+        return super.set(newValue);
     }
 }

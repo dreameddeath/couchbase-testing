@@ -34,9 +34,9 @@ import java.util.*;
  * Created by Christophe Jeunesse on 10/01/2015.
  */
 public class AnnotationProcessorTestingWrapper {
-    private JavaCompiler _compiler = ToolProvider.getSystemJavaCompiler();
-    private String _tempDirectoryPrefix;
-    private List<Processor> _annotationProcessors=new ArrayList<>();
+    private JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    private String tempDirectoryPrefix;
+    private List<Processor> annotationProcessors=new ArrayList<>();
 
     public Result run(Iterable<JavaFileObject> files) throws Exception{
         Result result = new Result();
@@ -46,16 +46,16 @@ public class AnnotationProcessorTestingWrapper {
 
         result.setSourceFiles(files);
 
-        Path tmpDir = Files.createTempDirectory(_tempDirectoryPrefix);
+        Path tmpDir = Files.createTempDirectory(tempDirectoryPrefix);
         result.setOutputDir(tmpDir);
 
-        StandardJavaFileManager fileManager=_compiler.getStandardFileManager(null,null,null);
+        StandardJavaFileManager fileManager=compiler.getStandardFileManager(null,null,null);
         fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Arrays.asList(tmpDir.toFile()));
         fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Arrays.asList(tmpDir.toFile()));
         result.setOutputManager(fileManager);
 
-        JavaCompiler.CompilationTask task = _compiler.getTask(new PrintWriter(System.out), fileManager, diagnostics, null, null, files);
-        task.setProcessors(_annotationProcessors);
+        JavaCompiler.CompilationTask task = compiler.getTask(new PrintWriter(System.out), fileManager, diagnostics, null, null, files);
+        task.setProcessors(annotationProcessors);
 
         result.setResult(task.call());
         return result;
@@ -76,7 +76,7 @@ public class AnnotationProcessorTestingWrapper {
 
 
     private Iterable<JavaFileObject> getSourceFiles(String p_path) throws Exception {
-        StandardJavaFileManager files = _compiler.getStandardFileManager(null, null, null);
+        StandardJavaFileManager files = compiler.getStandardFileManager(null, null, null);
 
         files.setLocation(StandardLocation.SOURCE_PATH, Arrays.asList(new File(p_path)));
 
@@ -85,19 +85,19 @@ public class AnnotationProcessorTestingWrapper {
     }
 
     public String getTempDirectoryPrefix() {
-        return _tempDirectoryPrefix;
+        return tempDirectoryPrefix;
     }
 
     public void setTempDirectoryPrefix(String tempDirectoryPrefix) {
-        _tempDirectoryPrefix = tempDirectoryPrefix;
+        this.tempDirectoryPrefix = tempDirectoryPrefix;
     }
 
     public List<Processor> getAnnotationProcessors() {
-        return Collections.unmodifiableList(_annotationProcessors);
+        return Collections.unmodifiableList(annotationProcessors);
     }
 
     public void addAnnotationProcessor(Processor processor){
-        _annotationProcessors.add(processor);
+        annotationProcessors.add(processor);
     }
 
     public AnnotationProcessorTestingWrapper withAnnotationProcessor(Processor processor){
@@ -113,13 +113,13 @@ public class AnnotationProcessorTestingWrapper {
 
 
     public static class Result{
-        private Boolean _result;
-        private DiagnosticCollector<JavaFileObject> _diagnostics;
-        private Iterable<JavaFileObject> _sourceFiles;
-        private Path _outputDir;
-        private JavaFileManager _outputManager;
-        private ClassLoader _outputClassLoader;
-        private ClassLoader _oldThreadClassLoader=null;
+        private Boolean result;
+        private DiagnosticCollector<JavaFileObject> diagnostics;
+        private Iterable<JavaFileObject> sourceFiles;
+        private Path outputDir;
+        private JavaFileManager outputManager;
+        private ClassLoader outputClassLoader;
+        private ClassLoader oldThreadClassLoader=null;
 
         public boolean hasClass(String name){
             try{
@@ -134,7 +134,7 @@ public class AnnotationProcessorTestingWrapper {
         }
 
         public Class getClass(String name) throws ClassNotFoundException{
-            return _outputClassLoader.loadClass(name);
+            return outputClassLoader.loadClass(name);
         }
 
         public Constructor getConstructor(String className,Class<?>... parameterTypes)  throws ClassNotFoundException,NoSuchMethodException{
@@ -143,7 +143,7 @@ public class AnnotationProcessorTestingWrapper {
                 params[i] = getClass(parameterTypes[i].getName());
             }
 
-            return _outputClassLoader.loadClass(className).getConstructor(params);
+            return outputClassLoader.loadClass(className).getConstructor(params);
         }
 
 
@@ -152,7 +152,7 @@ public class AnnotationProcessorTestingWrapper {
             for(int i=0;i<parameterTypes.length;++i){
                 params[i] = getClass(parameterTypes[i].getName());
             }
-            return _outputClassLoader.loadClass(className).getDeclaredMethod(methodName,params);
+            return outputClassLoader.loadClass(className).getDeclaredMethod(methodName,params);
         }
 
 
@@ -161,7 +161,7 @@ public class AnnotationProcessorTestingWrapper {
         }
 
         public File getFile(String name){
-            URL result = _outputClassLoader.getResource(name);
+            URL result = outputClassLoader.getResource(name);
             if(result!=null) {
                 return new File(result.getFile());
             }
@@ -172,10 +172,10 @@ public class AnnotationProcessorTestingWrapper {
 
         public void cleanUp(){
             try {
-                if(_oldThreadClassLoader!=null){
-                    Thread.currentThread().setContextClassLoader(_oldThreadClassLoader);
+                if(oldThreadClassLoader!=null){
+                    Thread.currentThread().setContextClassLoader(oldThreadClassLoader);
                 }
-                deleteRecursive(_outputDir.toFile());
+                deleteRecursive(outputDir.toFile());
             }
             catch(FileNotFoundException e){
                 //Ignore error
@@ -183,35 +183,35 @@ public class AnnotationProcessorTestingWrapper {
         }
 
         public Boolean getResult() {
-            return _result;
+            return result;
         }
 
         public void setResult(Boolean result) {
-            _result = result;
+            this.result = result;
         }
 
         public DiagnosticCollector<JavaFileObject> getDiagnostics() {
-            return _diagnostics;
+            return diagnostics;
         }
 
         public void setDiagnostics(DiagnosticCollector<JavaFileObject> diagnostics) {
-            _diagnostics = diagnostics;
+            this.diagnostics = diagnostics;
         }
 
         public Iterable<JavaFileObject> getSourceFiles() {
-            return _sourceFiles;
+            return sourceFiles;
         }
 
         public void setSourceFiles(Iterable<JavaFileObject> sourceFiles) {
-            _sourceFiles = sourceFiles;
+            this.sourceFiles = sourceFiles;
         }
 
         public Path getOutputDir() {
-            return _outputDir;
+            return outputDir;
         }
 
         public void setOutputDir(Path outputDir) {
-            _outputDir = outputDir;
+            this.outputDir = outputDir;
         }
 
         private  boolean deleteRecursive(File path) throws FileNotFoundException {
@@ -226,17 +226,17 @@ public class AnnotationProcessorTestingWrapper {
         }
 
         public JavaFileManager getOutputManager() {
-            return _outputManager;
+            return outputManager;
         }
 
         public void setOutputManager(JavaFileManager outputManager) {
-            _outputManager = outputManager;
-            _outputClassLoader = _outputManager.getClassLoader(StandardLocation.CLASS_OUTPUT);
+            this.outputManager = outputManager;
+            outputClassLoader = outputManager.getClassLoader(StandardLocation.CLASS_OUTPUT);
         }
 
         public void updateSystemClassLoader() throws IOException{
-            _oldThreadClassLoader=Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(_outputClassLoader);
+            oldThreadClassLoader=Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(outputClassLoader);
         }
     }
 

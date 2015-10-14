@@ -28,25 +28,25 @@ public interface CouchbaseConstants {
         Compressed(0x100),
         Deleted(0x200);
         
-        private int _value;
+        private int value;
         
         DocumentFlag(int value){
-            this._value = value;
+            this.value = value;
         }
         
         public int toInteger(){
-            return _value;
+            return value;
         }
         
         @Override
         public String toString(){
-            return String.format("%s(0x%X)",super.toString(),_value);
+            return String.format("%s(0x%X)",super.toString(),value);
         }
         
         static public Set<DocumentFlag> unPack(int binValue){
             Set<DocumentFlag> result=new HashSet<DocumentFlag>();
             for(DocumentFlag flag:DocumentFlag.values()){
-                if((flag._value & binValue)!=0){
+                if((flag.value & binValue)!=0){
                    result.add(flag); 
                 }
             }

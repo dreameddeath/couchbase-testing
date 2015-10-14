@@ -58,7 +58,7 @@ public class DaoGeneratorAnnotationProcessor extends AbstractAnnotationProcessor
     /**
      *  Provide a hash map for just generated classes
      */
-    private Map<ClassInfo,DaoDef> _daoClassMap=new HashMap<>();
+    private Map<ClassInfo,DaoDef> daoClassMap=new HashMap<>();
 
 
 
@@ -95,7 +95,7 @@ public class DaoGeneratorAnnotationProcessor extends AbstractAnnotationProcessor
         ClassInfo daoClassInfo = (ClassInfo)AbstractClassInfo.getClassInfo((TypeElement)element);
         VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + daoClassInfo.getImportName());
 
-        DaoRestServiceDef restDef= new DaoRestServiceDef(daoClassInfo,_daoClassMap);
+        DaoRestServiceDef restDef= new DaoRestServiceDef(daoClassInfo,daoClassMap);
         context.put("service",restDef);
 
         AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_READ_REST_FILENAME, restDef.getReadFullName(), element);
@@ -115,7 +115,7 @@ public class DaoGeneratorAnnotationProcessor extends AbstractAnnotationProcessor
 
         DaoDef daoDef = new DaoDef(docReflection);
         context.put("daoDef", daoDef);
-        _daoClassMap.put(docReflection.getClassInfo(),daoDef);
+        daoClassMap.put(docReflection.getClassInfo(),daoDef);
         DbPathDef dbPathDef = new DbPathDef(docReflection);
         context.put("dbPath", dbPathDef);
 

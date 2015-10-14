@@ -31,14 +31,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 01/08/2014.
  */
 public class ProcessingServiceFactory {
-    private Map<Class<? extends AbstractJob>, IJobProcessingService<?>> _jobProcessingServicesMap
+    private Map<Class<? extends AbstractJob>, IJobProcessingService<?>> jobProcessingServicesMap
             = new ConcurrentHashMap<Class<? extends AbstractJob>, IJobProcessingService<?>>();
-    private Map<Class<? extends AbstractTask>, ITaskProcessingService<?>> _taskProcessingServicesMap
+    private Map<Class<? extends AbstractTask>, ITaskProcessingService<?>> taskProcessingServicesMap
             = new ConcurrentHashMap<Class<? extends AbstractTask>, ITaskProcessingService<?>>();
 
 
     public <T extends AbstractJob> void addJobProcessingServiceFor(Class<T> entityClass, IJobProcessingService<T> service){
-        _jobProcessingServicesMap.put(entityClass, service);
+        jobProcessingServicesMap.put(entityClass, service);
     }
 
     public ProcessingServiceFactory addJobProcessingService(Class<? extends IJobProcessingService> serviceClass){
@@ -60,7 +60,7 @@ public class ProcessingServiceFactory {
     }
 
     public <T extends AbstractTask> void addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<T> service){
-        _taskProcessingServicesMap.put(entityClass, service);
+        taskProcessingServicesMap.put(entityClass, service);
     }
 
     public void addTaskProcessingService(Class<? extends ITaskProcessingService> serviceClass){
@@ -75,13 +75,13 @@ public class ProcessingServiceFactory {
 
 
     public <T extends AbstractTask> ITaskProcessingService<T> getTaskProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException {
-        ITaskProcessingService<T> result = (ITaskProcessingService<T>) _taskProcessingServicesMap.get(entityClass);
+        ITaskProcessingService<T> result = (ITaskProcessingService<T>) taskProcessingServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractTask.class.isAssignableFrom(parentClass)) {
                 result = getTaskProcessingServiceForClass(parentClass.asSubclass(AbstractTask.class));
                 if (result != null) {
-                    _taskProcessingServicesMap.put(entityClass, result);
+                    taskProcessingServicesMap.put(entityClass, result);
                 }
             }
         }
@@ -94,13 +94,13 @@ public class ProcessingServiceFactory {
 
 
     public <T extends AbstractJob> IJobProcessingService<T> getJobProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException{
-        IJobProcessingService<T> result = (IJobProcessingService<T>) _jobProcessingServicesMap.get(entityClass);
+        IJobProcessingService<T> result = (IJobProcessingService<T>) jobProcessingServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractJob.class.isAssignableFrom(parentClass)) {
                 result = getJobProcessingServiceForClass(parentClass.asSubclass(AbstractJob.class));
                 if (result != null) {
-                    _jobProcessingServicesMap.put(entityClass, result);
+                    jobProcessingServicesMap.put(entityClass, result);
                 }
             }
         }

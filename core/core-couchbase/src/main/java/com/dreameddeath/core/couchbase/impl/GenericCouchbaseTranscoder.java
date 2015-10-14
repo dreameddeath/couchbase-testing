@@ -39,20 +39,20 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements ICouchbaseTranscoder<T> {
     private final static Logger logger = LoggerFactory.getLogger(GenericCouchbaseTranscoder.class);
-    private ITranscoder<T> _transcoder;
-    private final Class<T> _dummyClass;
-    private final Class<? extends BucketDocument<T>> _baseDocumentClazz;
-    private final Constructor<? extends BucketDocument<T>> _baseDocumentContructor;
-    private String _keyPrefix;
+    private ITranscoder<T> transcoder;
+    private final Class<T> dummyClass;
+    private final Class<? extends BucketDocument<T>> baseDocumentClazz;
+    private final Constructor<? extends BucketDocument<T>> baseDocumentContructor;
+    private String keyPrefix;
 
 
 
     public GenericCouchbaseTranscoder(Class<T> clazz, Class<? extends BucketDocument<T>> baseDocumentClazz) {
         super();
         try {
-            _dummyClass = clazz;
-            _baseDocumentClazz = baseDocumentClazz;
-            _baseDocumentContructor = _baseDocumentClazz.getDeclaredConstructor(_dummyClass);
+            dummyClass = clazz;
+            this.baseDocumentClazz = baseDocumentClazz;
+            baseDocumentContructor = baseDocumentClazz.getDeclaredConstructor(dummyClass);
         } catch (Exception e) {
             logger.error("Error during transcoder init for class <{}>", clazz.getName(), e);
             throw new RuntimeException("Error during transcoder init for class <" + clazz.getName() + ">");
@@ -65,9 +65,9 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
     }
 
 
-    public final ITranscoder<T> getTranscoder(){return _transcoder;}
+    public final ITranscoder<T> getTranscoder(){return transcoder;}
 
-    public final void setTranscoder(ITranscoder<T> transcoder){_transcoder=transcoder;}
+    public final void setTranscoder(ITranscoder<T> transcoder){this.transcoder=transcoder;}
 
 
     @Override
@@ -77,7 +77,7 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
 
     @Override
     public BucketDocument<T> newDocument(String id, int expiry, T content, long cas, MutationToken mutationToken) {
-        id = ICouchbaseBucket.Utils.extractKey(_keyPrefix,id);
+        id = ICouchbaseBucket.Utils.extractKey(keyPrefix,id);
         content.getBaseMeta().setKey(id);
         content.getBaseMeta().setCas(cas);
         content.getBaseMeta().setExpiry(expiry);
@@ -87,7 +87,7 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
             content.getBaseMeta().setSequenceNumber(mutationToken.sequenceNumber());
         }
         try {
-            return _baseDocumentContructor.newInstance(content);
+            return baseDocumentContructor.newInstance(content);
         }
         catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
             throw new DocumentSetUpException("Error during setup", e);
@@ -97,9 +97,9 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
     @Override
     public BucketDocument<T> newDocument(T baseDocument){
         try {
-            BucketDocument<T> newDocument=_baseDocumentContructor.newInstance(baseDocument);
-            if(_keyPrefix!=null){
-                newDocument.setKeyPrefix(_keyPrefix);
+            BucketDocument<T> newDocument=baseDocumentContructor.newInstance(baseDocument);
+            if(keyPrefix!=null){
+                newDocument.setKeyPrefix(keyPrefix);
             }
             return newDocument;
         }
@@ -110,26 +110,26 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
 
     @Override
     public Class<BucketDocument<T>> documentType() {
-        return (Class<BucketDocument<T>>)_baseDocumentClazz;
+        return (Class<BucketDocument<T>>)baseDocumentClazz;
     }
 
 
     @Override
     public BucketDocument<T> decode(String id, ByteBuf content, long cas, int expiry, int flags, ResponseStatus status) {
-        return newDocument(id,expiry,_transcoder.decode(content.array()),cas);
+        return newDocument(id,expiry,transcoder.decode(content.array()),cas);
     }
 
     @Override
     public Tuple2<ByteBuf, Integer> encode(BucketDocument<T> document){
-        return Tuple.create(Unpooled.wrappedBuffer(_transcoder.encode(document.content())), document.content().getBaseMeta().getEncodedFlags());
+        return Tuple.create(Unpooled.wrappedBuffer(transcoder.encode(document.content())), document.content().getBaseMeta().getEncodedFlags());
     }
 
     public String getKeyPrefix() {
-        return _keyPrefix;
+        return keyPrefix;
     }
 
     @Override
     public void setKeyPrefix(String keyPrefix) {
-        _keyPrefix = keyPrefix;
+        this.keyPrefix = keyPrefix;
     }
 }

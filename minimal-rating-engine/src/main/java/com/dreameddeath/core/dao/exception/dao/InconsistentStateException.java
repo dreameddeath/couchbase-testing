@@ -23,26 +23,27 @@ import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
  */
 @SuppressWarnings("StringBufferReplaceableByString")
 public class InconsistentStateException extends DaoException {
-    private BaseCouchbaseDocument _doc;
+    private BaseCouchbaseDocument doc;
+
     public InconsistentStateException(BaseCouchbaseDocument doc,Throwable e){
         super(e);
-        _doc=doc;
+        this.doc=doc;
     }
     public InconsistentStateException(BaseCouchbaseDocument doc,String message, Throwable e){
         super(message,e);
-        _doc=doc;
+        this.doc=doc;
     }
     public InconsistentStateException(BaseCouchbaseDocument doc,String message){
         super(message);
-        _doc=doc;
+        this.doc=doc;
     }
 
     public BaseCouchbaseDocument getDocument(){
-        return _doc;
+        return doc;
     }
 
     @Override
     public String getMessage(){
-        return new StringBuilder(super.getMessage()).append("\n The document was <").append(_doc).toString();
+        return new StringBuilder(super.getMessage()).append("\n The document was <").append(doc).toString();
     }
 }

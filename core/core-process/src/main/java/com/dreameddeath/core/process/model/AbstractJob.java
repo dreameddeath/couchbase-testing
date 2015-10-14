@@ -19,8 +19,8 @@ package com.dreameddeath.core.process.model;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.entity.IVersionedDocument;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -41,93 +41,93 @@ import java.util.*;
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
-public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES extends CouchbaseDocumentElement> extends CouchbaseDocument implements IVersionedDocument {
-    private EntityModelId _fullEntityId;
+public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES extends CouchbaseDocumentElement> extends CouchbaseDocument implements IVersionedEntity {
+    private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
-        _fullEntityId = EntityModelId.build(typeId);
+        fullEntityId = EntityModelId.build(typeId);
     }
     @Override
     public final String getDocumentFullVersionId(){
-        return _fullEntityId!=null?_fullEntityId.toString():null;
+        return fullEntityId!=null?fullEntityId.toString():null;
     }
     @Override
     public final EntityModelId getModelId(){
-        return _fullEntityId;
+        return fullEntityId;
     }
 
     @DocumentProperty("uid")
-    private Property<UUID> _uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
+    private Property<UUID> uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
     @DocumentProperty(value = "state",getter = "getJobState",setter = "setJobState")
-    private Property<State> _state=new StandardProperty<State>(AbstractJob.this, State.NEW);
+    private Property<State> state=new StandardProperty<State>(AbstractJob.this, State.NEW);
     @DocumentProperty("tasks") @Validate
-    private ListProperty<AbstractTask> _taskList = new ArrayListProperty<AbstractTask>(AbstractJob.this);
+    private ListProperty<AbstractTask> taskList = new ArrayListProperty<AbstractTask>(AbstractJob.this);
     @DocumentProperty("lastRunError")
-    private Property<String> _errorName=new StandardProperty<String>(AbstractJob.this);
+    private Property<String> errorName=new StandardProperty<String>(AbstractJob.this);
     /**
      *  request : The request content for this job
      */
     @DocumentProperty("request") @NotNull @Validate
-    private Property<TREQ> _request = new StandardProperty<TREQ>(AbstractJob.this);
+    private Property<TREQ> request = new StandardProperty<TREQ>(AbstractJob.this);
     /**
      *  result : The result content for this job
      */
     @DocumentProperty("result")
-    private Property<TRES> _result = new StandardProperty<TRES>(AbstractJob.this);
+    private Property<TRES> result = new StandardProperty<TRES>(AbstractJob.this);
 
     public AbstractJob(TREQ request,TRES result){
-        _request.set(request);
-        _result.set(result);
+        this.request.set(request);
+        this.result.set(result);
     }
 
     public AbstractJob(TREQ request){
-        _request.set(request);
-        _result.set(newResult());
+        this.request.set(request);
+        result.set(newResult());
     }
     public AbstractJob(){
-        _request.set(newRequest());
-        _result.set(newResult());
+        request.set(newRequest());
+        result.set(newResult());
     }
 
     public abstract TREQ newRequest();
     public abstract TRES newResult();
 
-    public String getLastRunError(){return _errorName.get();}
-    public void setLastRunError(String errorName){_errorName.set(errorName);}
+    public String getLastRunError(){return errorName.get();}
+    public void setLastRunError(String errorName){this.errorName.set(errorName);}
 
-    public State getJobState() { return _state.get(); }
-    public void setJobState(State state) { _state.set(state); }
-    public boolean isInitialized(){ return _state.get().compareTo(State.INITIALIZED)>=0; }
-    public boolean isPrepared(){ return _state.get().compareTo(State.PREPROCESSED)>=0; }
-    public boolean isProcessed(){ return _state.get().compareTo(State.PROCESSED)>=0; }
-    public boolean isFinalized(){ return _state.get().compareTo(State.POSTPROCESSED)>=0; }
-    public boolean isDone(){ return _state.get().compareTo(State.DONE)>=0; }
+    public State getJobState() { return state.get(); }
+    public void setJobState(State state) { this.state.set(state); }
+    public boolean isInitialized(){ return state.get().compareTo(State.INITIALIZED)>=0; }
+    public boolean isPrepared(){ return state.get().compareTo(State.PREPROCESSED)>=0; }
+    public boolean isProcessed(){ return state.get().compareTo(State.PROCESSED)>=0; }
+    public boolean isFinalized(){ return state.get().compareTo(State.POSTPROCESSED)>=0; }
+    public boolean isDone(){ return state.get().compareTo(State.DONE)>=0; }
     // uid accessors
-    public UUID getUid() { return _uid.get(); }
-    public void setUid(UUID uid) { _uid.set(uid); }
+    public UUID getUid() { return uid.get(); }
+    public void setUid(UUID uid) { this.uid.set(uid); }
     // result accessors
-    public TRES getResult() { return _result.get(); }
-    public void setResult(TRES val) { _result.set(val); }
+    public TRES getResult() { return result.get(); }
+    public void setResult(TRES val) { result.set(val); }
 
     // request accessors
-    public TREQ getRequest() { return _request.get(); }
-    public void setRequest(TREQ val) { _request.set(val); }
+    public TREQ getRequest() { return request.get(); }
+    public void setRequest(TREQ val) { request.set(val); }
 
-    public List<AbstractTask> getTasks() { return _taskList.get();}
+    public List<AbstractTask> getTasks() { return taskList.get();}
     //should not be used direclty (only used for Jackson)
     public void setTasks(Collection<AbstractTask> tasks) {
-        _taskList.set(tasks);
+        taskList.set(tasks);
     }
 
     public AbstractTask getTask(String id) {
-        for(AbstractTask task :_taskList){
+        for(AbstractTask task :taskList){
             if(id.equals(task.getUid())){ return task; }
         }
         return null;
     }
 
     public AbstractTask getTask(Integer pos) {
-        return _taskList.get(pos);
+        return taskList.get(pos);
     }
     public <T extends AbstractTask> T getTask(Integer pos,Class<T> clazz) {return (T)getTask(pos);}
     public <T extends AbstractTask> T getTask(String id, Class<T>clazz) {
@@ -151,7 +151,7 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
         }
         else {
             task.setDependency(prerequisiteTasks);
-            _taskList.add(task);
+            taskList.add(task);
         }
         return task;
     }
@@ -171,12 +171,12 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
     }
 
     public String buildTaskId(AbstractTask task){
-        return String.format("%010d", _taskList.size());
+        return String.format("%010d", taskList.size());
     }
 
     public List<AbstractTask> getPendingTasks() {
         List<AbstractTask> pendingTasks=new ArrayList<AbstractTask>();
-        for(AbstractTask task:_taskList){
+        for(AbstractTask task:taskList){
             if(! task.isDone()){
                 pendingTasks.add(task);
             }
@@ -185,7 +185,7 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
     }
 
     public AbstractTask getNextExecutableTask(){
-        for(AbstractTask task:_taskList){
+        for(AbstractTask task:taskList){
             if(! task.isDone()){
                 List<String> preRequisiteList = new ArrayList<String>();
                 for(String uid:task.getDependency()){
@@ -211,6 +211,4 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
         POSTPROCESSED, //Job Update Processing done
         DONE//Cleaning done
     }
-
-
 }

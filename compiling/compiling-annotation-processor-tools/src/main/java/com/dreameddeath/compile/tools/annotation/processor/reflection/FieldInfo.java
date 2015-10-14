@@ -23,28 +23,28 @@ import java.lang.reflect.Field;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class FieldInfo extends MemberInfo {
-    private final AbstractClassInfo _parent;
-    private String _name;
-    private VariableElement _variableElement=null;
-    private Field _field=null;
-    private ParameterizedTypeInfo _typeInfo=null;
+    private final AbstractClassInfo parent;
+    private String name;
+    private VariableElement variableElement=null;
+    private Field field=null;
+    private ParameterizedTypeInfo typeInfo=null;
 
     protected void init(){
-        if(_field!=null){
-            _name = _field.getName();
-            _typeInfo = new ParameterizedTypeInfo(_field.getGenericType());
+        if(field!=null){
+            name = field.getName();
+            typeInfo = new ParameterizedTypeInfo(field.getGenericType());
         }
 
-        if(_variableElement!=null){
-            _name = _variableElement.getSimpleName().toString();
-            _typeInfo = new ParameterizedTypeInfo(_variableElement.asType());
+        if(variableElement!=null){
+            name = variableElement.getSimpleName().toString();
+            typeInfo = new ParameterizedTypeInfo(variableElement.asType());
         }
     }
 
     private FieldInfo(AbstractClassInfo parent,VariableElement element){
         super(parent,element);
-        _parent = parent;
-        _variableElement=element;
+        this.parent = parent;
+        variableElement=element;
         init();
     }
 
@@ -56,8 +56,8 @@ public class FieldInfo extends MemberInfo {
 
     private FieldInfo(AbstractClassInfo parent,Field field){
         super(parent,field);
-        _parent = parent;
-        _field = field;
+        this.parent = parent;
+        this.field = field;
         init();
     }
 
@@ -67,15 +67,15 @@ public class FieldInfo extends MemberInfo {
     }
 
     public String getName(){
-        return _name;
+        return name;
     }
 
     public String getFullName(){
-        return _parent.getFullName()+"."+getName();
+        return parent.getFullName()+"."+getName();
     }
 
     public ParameterizedTypeInfo getType() {
-        return _typeInfo;
+        return typeInfo;
     }
 
 }

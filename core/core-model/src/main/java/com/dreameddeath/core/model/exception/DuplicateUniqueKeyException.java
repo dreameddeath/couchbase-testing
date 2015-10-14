@@ -23,17 +23,17 @@ import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
  * Created by Christophe Jeunesse on 20/11/2014.
  */
 public class DuplicateUniqueKeyException extends Exception {
-    CouchbaseDocument _doc;
-    String _key;
-    CouchbaseUniqueKey _uniqueKeyDoc;
-    String _ownerDocumentKey;
+    CouchbaseDocument doc;
+    String key;
+    CouchbaseUniqueKey uniqueKeyDoc;
+    String ownerDocumentKey;
 
     public DuplicateUniqueKeyException(String key,String ownerDocumentKey,CouchbaseDocument requestingDoc,CouchbaseUniqueKey uniqueKeyDoc,String message) {
         super(message);
-        _doc = requestingDoc;
-        _key = key;
-        _ownerDocumentKey = ownerDocumentKey;
-        _uniqueKeyDoc = uniqueKeyDoc;
+        doc = requestingDoc;
+        this.key = key;
+        this.ownerDocumentKey = ownerDocumentKey;
+        this.uniqueKeyDoc = uniqueKeyDoc;
     }
 
     public DuplicateUniqueKeyException(String key,String ownerDocumentKey,CouchbaseDocument requestingDoc,CouchbaseUniqueKey uniqueKeyDoc) {
@@ -44,6 +44,6 @@ public class DuplicateUniqueKeyException extends Exception {
 
     @Override
     public String getMessage(){
-        return super.getMessage() + "\n The doc was " + _doc;
+        return super.getMessage() + "\n The doc was " + doc;
     }
 }

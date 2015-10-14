@@ -51,11 +51,11 @@ public class TestSpringSelfConfig implements ServletContextAware
 {
     @Autowired
     private ConfigurableApplicationContext ctxt;
-    private ServletContext _servletContext;
+    private ServletContext servletContext;
 
     @Override
     public void setServletContext(ServletContext servletContext) {
-        this._servletContext = servletContext;
+        this.servletContext = servletContext;
     }
 
     public void setCtxt(ConfigurableApplicationContext ctxt) {
@@ -65,13 +65,13 @@ public class TestSpringSelfConfig implements ServletContextAware
 
     @Bean(name="curatorClient")
     public CuratorFramework getClient() throws Exception{
-        return (CuratorFramework)_servletContext.getAttribute("curatorClient");
+        return (CuratorFramework)servletContext.getAttribute("curatorClient");
     }
 
 
     @Bean(name="serviceDiscoverer")
     public ServiceDiscoverer getDiscoverer(){
-        return (ServiceDiscoverer)_servletContext.getAttribute("serviceDiscoverer");
+        return (ServiceDiscoverer)servletContext.getAttribute("serviceDiscoverer");
     }
 
     @Bean(name="testingJaxRsServer")
@@ -82,10 +82,10 @@ public class TestSpringSelfConfig implements ServletContextAware
         factory.setProviders(Arrays.asList(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance())));
 
         List<ResourceProvider> resourceProviders = new LinkedList<>();
-        Map<String,AbstractExposableService> servicesMap = (Map)_servletContext.getAttribute("servicesMap");
-        final IRestEndPointDescription endPointDescr=(IRestEndPointDescription)_servletContext.getAttribute("endPointInfo");
+        Map<String,AbstractExposableService> servicesMap = (Map)servletContext.getAttribute("servicesMap");
+        final IRestEndPointDescription endPointDescr=(IRestEndPointDescription)servletContext.getAttribute("endPointInfo");
         for(Map.Entry<String,AbstractExposableService> serviceDef:servicesMap.entrySet()){
-            serviceDef.getValue().setServiceRegistrar((ServiceRegistrar)_servletContext.getAttribute("serviceRegistrar"));
+            serviceDef.getValue().setServiceRegistrar((ServiceRegistrar)servletContext.getAttribute("serviceRegistrar"));
             serviceDef.getValue().setEndPoint(new IRestEndPointDescription() {
                 @Override
                 public int port() {

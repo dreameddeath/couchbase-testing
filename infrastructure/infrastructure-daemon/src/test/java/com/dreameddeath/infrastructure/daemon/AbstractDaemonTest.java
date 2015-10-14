@@ -48,17 +48,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class AbstractDaemonTest extends Assert {
     private static final Logger LOG =  LoggerFactory.getLogger(AbstractDaemonTest.class);
-    private CuratorTestUtils _testUtils;
+    private CuratorTestUtils testUtils;
     @Before
     public void setup() throws Exception{
-        _testUtils = new CuratorTestUtils();
-        _testUtils.prepare(1);
+        testUtils = new CuratorTestUtils();
+        testUtils.prepare(1);
     }
 
     @Test
     public void testDaemon() throws Exception{
         final AtomicInteger nbErrors=new AtomicInteger(0);
-        String connectionString = _testUtils.getCluster().getConnectString();
+        String connectionString = testUtils.getCluster().getConnectString();
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         final AbstractDaemon daemon=AbstractDaemon.builder().withName("testing Daemon").build();
         daemon.addWebServer(RestWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));

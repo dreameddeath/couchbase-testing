@@ -27,62 +27,59 @@ import java.util.List;
  * Created by Christophe Jeunesse on 16/03/2015.
  */
 public abstract class MemberInfo extends AnnotatedInfo {
-    private AbstractClassInfo _parent;
-    private ParameterizedTypeInfo _parameterizedTypeInfo;
-    private Member _member;
-    private Element _element;
-    private List<ModifierInfo> _modifierInfos=new ArrayList<>();
+    private AbstractClassInfo parent;
+    private ParameterizedTypeInfo parameterizedTypeInfo;
+    private Member member;
+    private Element element;
+    private List<ModifierInfo> modifierInfos=new ArrayList<>();
 
     private void init(){
-        if(_element!=null){
-            for(javax.lang.model.element.Modifier modifier: _element.getModifiers()){
+        if(element!=null){
+            for(javax.lang.model.element.Modifier modifier: element.getModifiers()){
                 ModifierInfo modifierInfo = ModifierInfo.valueOf(modifier);
                 if(modifierInfo!=null) {
-                    _modifierInfos.add(modifierInfo);
+                    modifierInfos.add(modifierInfo);
                 }
             }
         }
         else{
-            int modifier = _member.getModifiers();
+            int modifier = member.getModifiers();
             if(Modifier.isPrivate(modifier)){
-                _modifierInfos.add(ModifierInfo.PRIVATE);
+                modifierInfos.add(ModifierInfo.PRIVATE);
             }
             else if(Modifier.isPublic(modifier)){
-                _modifierInfos.add(ModifierInfo.PUBLIC);
+                modifierInfos.add(ModifierInfo.PUBLIC);
             }
             else if(Modifier.isProtected(modifier)){
-                _modifierInfos.add(ModifierInfo.PROTECTED);
+                modifierInfos.add(ModifierInfo.PROTECTED);
             }
         }
     }
     public <T extends AccessibleObject & Member> MemberInfo(AbstractClassInfo parent,T elt) {
         super(elt);
-        _parent = parent;
-        _member = elt;
+        this.parent = parent;
+        member = elt;
         init();
     }
 
     public MemberInfo(AbstractClassInfo parent,Element elt) {
         super(elt);
-        _parent = parent;
-        _element = elt;
+        this.parent = parent;
+        element = elt;
         init();
     }
 
 
     public List<ModifierInfo> getModifiers(){
-        return _modifierInfos;
+        return modifierInfos;
     }
 
     public boolean isPublic(){
-        return _modifierInfos.contains(ModifierInfo.PUBLIC);
+        return modifierInfos.contains(ModifierInfo.PUBLIC);
     }
 
-    //private
-
-
     public AbstractClassInfo getDeclaringClassInfo(){
-        return _parent;
+        return parent;
     }
 
     public abstract String getName();
@@ -90,6 +87,6 @@ public abstract class MemberInfo extends AnnotatedInfo {
     public abstract String getFullName();
 
     public Member getMember(){
-        return _member;
+        return member;
     }
 }

@@ -45,32 +45,32 @@ import java.util.concurrent.TimeUnit;
  */
 public class ServiceRegistrar {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRegistrar.class);
-    private final CuratorFramework _curatorClient;
-    private final String _basePath;
-    private Set<AbstractExposableService> _services = new CopyOnWriteArraySet<>();
-    private ServiceDiscovery<ServiceDescription> _serviceDiscovery;
+    private final CuratorFramework curatorClient;
+    private final String basePath;
+    private Set<AbstractExposableService> services = new CopyOnWriteArraySet<>();
+    private ServiceDiscovery<ServiceDescription> serviceDiscovery;
 
 
     public ServiceRegistrar(CuratorFramework curatorClient,String basePath){
-        _curatorClient = curatorClient;
+        this.curatorClient = curatorClient;
         if(!basePath.startsWith("/")){
             basePath="/"+basePath;
         }
-        _basePath = basePath;
+        this.basePath = basePath;
     }
 
     public void start() throws Exception{
-        _curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
-        ServiceNamingUtils.createBaseServiceName(_curatorClient, _basePath);
+        curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
+        ServiceNamingUtils.createBaseServiceName(curatorClient, basePath);
 
-        _serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
+        serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
                 .serializer(new ServiceInstanceSerializerImpl())
-                .client(_curatorClient)
-                .basePath(_basePath).build();
+                .client(curatorClient)
+                .basePath(basePath).build();
 
-        _serviceDiscovery.start();
+        serviceDiscovery.start();
 
-        for(AbstractExposableService foundService:_services) {
+        for(AbstractExposableService foundService:services) {
             ServiceDef annotDef = foundService.getClass().getAnnotation(ServiceDef.class);
             Swagger swagger = new Swagger();
             Path pathAnnot = foundService.getClass().getAnnotation(Path.class);
@@ -97,22 +97,22 @@ public class ServiceRegistrar {
                     .payload(serviceDescr)
                     .build();
 
-            _serviceDiscovery.registerService(newServiceDef);
+            serviceDiscovery.registerService(newServiceDef);
         }
 
-        LOG.info("Services :" + _serviceDiscovery.queryForNames().toString());
+        LOG.info("Services :" + serviceDiscovery.queryForNames().toString());
     }
 
     public void stop() throws IOException{
-        _serviceDiscovery.close();
+        serviceDiscovery.close();
     }
 
     public Set<AbstractExposableService> getServices(){
-        return Collections.unmodifiableSet(_services);
+        return Collections.unmodifiableSet(services);
     }
 
     public void addService(AbstractExposableService service){
-        _services.add(service);
+        services.add(service);
     }
 
 }

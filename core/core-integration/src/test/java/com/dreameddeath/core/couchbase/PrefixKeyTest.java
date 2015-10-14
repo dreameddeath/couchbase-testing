@@ -80,32 +80,32 @@ public class PrefixKeyTest {
         }
     }
 
-    private final static CouchbaseSessionFactory _sessionFactory ;
-    private final static CouchbaseBucketSimulator _client ;
+    private final static CouchbaseSessionFactory sessionFactory ;
+    private final static CouchbaseBucketSimulator client ;
     static {
-        _client = new CouchbaseBucketSimulator("test","user1");
+        client = new CouchbaseBucketSimulator("test","user1");
         CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
         sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
-        _sessionFactory = sessionBuilder.build();
+        sessionFactory = sessionBuilder.build();
         try {
-            _sessionFactory.getDocumentDaoFactory().addDao(new TestPrefixKeyDao().setClient(_client), new GenericJacksonTranscoder<>(TestPrefixKey.class));
+            sessionFactory.getDocumentDaoFactory().addDao(new TestPrefixKeyDao().setClient(client), new GenericJacksonTranscoder<>(TestPrefixKey.class));
         }
         catch(Exception e){
             throw new RuntimeException(e);
         }
 
-        _client.start();
+        client.start();
     }
 
     @Test
     public void testPrefixKey()throws Exception{
-        ICouchbaseSession session = _sessionFactory.newReadWriteSession(null);
+        ICouchbaseSession session = sessionFactory.newReadWriteSession(null);
         TestPrefixKey testClass = session.newEntity(TestPrefixKey.class);
         testClass.value = "simple Test";
 
         session.save(testClass);
 
-        assertNotNull(_client.getFromCache("user1"+ICouchbaseBucket.Utils.KEY_SEP + testClass.getBaseMeta().getKey(), TestPrefixKeyDao.LocalBucketDocument.class));
+        assertNotNull(client.getFromCache("user1"+ICouchbaseBucket.Utils.KEY_SEP + testClass.getBaseMeta().getKey(), TestPrefixKeyDao.LocalBucketDocument.class));
         session.reset();
         TestPrefixKey readClass = session.get(testClass.getMeta().getKey(),TestPrefixKey.class);
         assertEquals(readClass.value,testClass.value);

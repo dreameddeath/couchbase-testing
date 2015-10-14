@@ -33,12 +33,12 @@ public class TestingExternalElement extends CouchbaseDocumentElement {
      *  date : DateTime test
      */
     @DocumentProperty("date")
-    private ListProperty<DateTime> _date = new ArrayListProperty<DateTime>(TestingExternalElement.this);
+    private ListProperty<DateTime> date = new ArrayListProperty<DateTime>(TestingExternalElement.this);
 
     // Date Accessors
-    public List<DateTime> getDate() { return _date.get(); }
-    public void setDate(Collection<DateTime> vals) { _date.set(vals); }
-    public boolean addDate(DateTime val){ return _date.add(val); }
-    public boolean removeDate(DateTime val){ return _date.remove(val); }
+    public List<DateTime> getDate() { return date.get(); }
+    public void setDate(Collection<DateTime> vals) { date.set(vals); }
+    public boolean addDate(DateTime val){ return date.add(val); }
+    public boolean removeDate(DateTime val){ return date.remove(val); }
 
 }

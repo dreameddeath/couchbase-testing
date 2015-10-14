@@ -24,17 +24,17 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class DbPathDef {
-    private String _basePath;
-    private String _idFormat;
-    private String _idPattern;
-    private String _formatPrefix = "";
-    private String _patternPrefix = "";
+    private String basePath;
+    private String idFormat;
+    private String idPattern;
+    private String formatPrefix = "";
+    private String patternPrefix = "";
 
     public DbPathDef(CouchbaseDocumentReflection docReflection) {
         DaoEntity annot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
-        _basePath = annot.dbPath();
-        _idFormat = annot.idFormat();
-        _idPattern = annot.idPattern();
+        basePath = annot.dbPath();
+        idFormat = annot.idFormat();
+        idPattern = annot.idPattern();
         DbPathDef parentDbPath = null;
         ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
         if(parentAnnot!=null) {
@@ -43,37 +43,37 @@ public class DbPathDef {
         }
 
         if (parentDbPath != null) {
-            _formatPrefix = "%s" + parentAnnot.separator();
-            _patternPrefix = parentDbPath.getFullPattern() + parentAnnot.separator();
+            formatPrefix = "%s" + parentAnnot.separator();
+            patternPrefix = parentDbPath.getFullPattern() + parentAnnot.separator();
         }
     }
 
 
     public String getFullPattern() {
-        return _patternPrefix + _basePath + _idPattern;
+        return patternPrefix + basePath + idPattern;
     }
 
     public String getFullFormat() {
-        return _formatPrefix + _basePath + _idFormat;
+        return formatPrefix + basePath + idFormat;
     }
 
     public String getFormatPrefix() {
-        return _formatPrefix;
+        return formatPrefix;
     }
 
     public String getPatternPrefix() {
-        return _patternPrefix;
+        return patternPrefix;
     }
 
     public String getIdFormat() {
-        return _idFormat;
+        return idFormat;
     }
 
     public String getIdPattern() {
-        return _idPattern;
+        return idPattern;
     }
 
     public String getBasePath() {
-        return _basePath;
+        return basePath;
     }
 }

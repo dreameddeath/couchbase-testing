@@ -50,48 +50,48 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class ViewTest {
 
-    private Utils.TestEnvironment _env;
-    private TestingRestServer _server;
-    private CuratorTestUtils _testUtils;
+    private Utils.TestEnvironment env;
+    private TestingRestServer server;
+    private CuratorTestUtils testUtils;
 
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
-        _env.addDocumentDao(new TestDao(), TestDoc.class);
-        _env.addDocumentDao(new TestChildDao(),TestDocChild.class);
-        _env.start();
+        env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
+        env.addDocumentDao(new TestDao(), TestDoc.class);
+        env.addDocumentDao(new TestChildDao(),TestDocChild.class);
+        env.start();
 
-        _testUtils = new CuratorTestUtils().prepare(1);
-        _server = new TestingRestServer("serverTesting", _testUtils.getClient("serverTesting"),DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE));
+        testUtils = new CuratorTestUtils().prepare(1);
+        server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"),DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE));
         TestDaoRestService service = new TestDaoRestService();
-        service.setSessionFactory(_env.getSessionFactory());
+        service.setSessionFactory(env.getSessionFactory());
         service.setUserFactory(new IUserFactory() {
             @Override
             public IUser validateFromToken(String token) {
                 return null;
             }
         });
-        _server.registerService("TestDaoRestService", service);
+        server.registerService("TestDaoRestService", service);
 
 
         TestChildDaoRestService childService = new TestChildDaoRestService();
-        childService.setSessionFactory(_env.getSessionFactory());
+        childService.setSessionFactory(env.getSessionFactory());
         childService.setUserFactory(new IUserFactory() {
             @Override
             public IUser validateFromToken(String token) {
                 return null;
             }
         });
-        _server.registerService("TestChildDaoRestService", childService);
+        server.registerService("TestChildDaoRestService", childService);
 
 
-        _server.start();
+        server.start();
 
     }
 
     @Test
     public void testView() throws Exception{
-        ICouchbaseSession session = _env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession(null);
         for(int i=0;i<10;++i){
             TestDoc doc = session.newEntity(TestDoc.class);
             doc.strVal="test "+i;
@@ -121,10 +121,10 @@ public class ViewTest {
 
         assertEquals(3, rows.size());
 
-        WebTarget target = _server.getClientFactory().getClient("dao$testDomain$test", "1.0")
+        WebTarget target = server.getClientFactory().getClient("dao$testDomain$test", "1.0")
                 .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
 
-        WebTarget childTarget = _server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
+        WebTarget childTarget = server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
                 .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
 
 
@@ -210,6 +210,6 @@ public class ViewTest {
 
     @After
     public void endTest(){
-        _env.shutdown(true);
+        env.shutdown(true);
     }
 }

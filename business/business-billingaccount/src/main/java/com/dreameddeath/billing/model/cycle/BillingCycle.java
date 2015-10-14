@@ -36,27 +36,27 @@ import org.joda.time.DateTime;
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 public class BillingCycle extends BusinessDocument {
     @DocumentProperty(value="ba",getter = "getBillingAccountLink",setter="setBillingAccountLink")
-    private ImmutableProperty<BillingAccountLink> _baLink=new ImmutableProperty<>(BillingCycle.this);
+    private ImmutableProperty<BillingAccountLink> baLink=new ImmutableProperty<>(BillingCycle.this);
     @DocumentProperty("startDate")
-    private Property<DateTime> _startDate = new StandardProperty<>(BillingCycle.this);
+    private Property<DateTime> startDate = new StandardProperty<>(BillingCycle.this);
     @DocumentProperty("endDate")
-    private Property<DateTime> _endDate= new StandardProperty<>(BillingCycle.this);
+    private Property<DateTime> endDate= new StandardProperty<>(BillingCycle.this);
 
-    public BillingAccountLink getBillingAccountLink() { return _baLink.get(); }
-    public void setBillingAccountLink(BillingAccountLink baLink) { _baLink.set(baLink); }
+    public BillingAccountLink getBillingAccountLink() { return baLink.get(); }
+    public void setBillingAccountLink(BillingAccountLink baLink) { this.baLink.set(baLink); }
 
-    public DateTime getStartDate() { return _startDate.get(); }
-    public void setStartDate(DateTime startDate) { _startDate.set(startDate); }
+    public DateTime getStartDate() { return startDate.get(); }
+    public void setStartDate(DateTime startDate) { this.startDate.set(startDate); }
 
-    public DateTime getEndDate() { return _endDate.get(); }
-    public void setEndDate(DateTime endDate) { _endDate.set(endDate); }
+    public DateTime getEndDate() { return endDate.get(); }
+    public void setEndDate(DateTime endDate) { this.endDate.set(endDate); }
 
     public BillingCycleLink newLink(){
         return new BillingCycleLink(this);
     }
     
     public boolean isValidForDate(DateTime refDate){
-        return BillingCycle.isValidForDate(refDate,_startDate.get(),_endDate.get());
+        return BillingCycle.isValidForDate(refDate,startDate.get(),endDate.get());
     }
     
     public static boolean isValidForDate(DateTime refDate, DateTime startTime,DateTime endTime){
@@ -66,8 +66,8 @@ public class BillingCycle extends BusinessDocument {
     @Override
     public String toString(){
         String result= super.toString()+",\n";
-        result+="startDate:"+_startDate+",\n";
-        result+="startend:"+_endDate+",\n";
+        result+="startDate:"+startDate+",\n";
+        result+="startend:"+endDate+",\n";
         return result;
     }
 }

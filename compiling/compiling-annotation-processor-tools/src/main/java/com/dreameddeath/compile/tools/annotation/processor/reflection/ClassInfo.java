@@ -34,8 +34,8 @@ import java.util.List;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class ClassInfo extends AbstractClassInfo {
-    private ClassInfo _superClass=null;
-    private List<FieldInfo> _declaredFields = null;
+    private ClassInfo superClass=null;
+    private List<FieldInfo> declaredFields = null;
 
     @Override
     public boolean isInterface() {
@@ -44,13 +44,13 @@ public class ClassInfo extends AbstractClassInfo {
 
     private void init(){
         if(getTypeElement()!=null){
-            TypeMirror superClass = getTypeElement().getSuperclass();
-            if(superClass.getKind()!= TypeKind.NONE){
-                _superClass = (ClassInfo) getClassInfo((TypeElement) ((DeclaredType)superClass).asElement());
+            TypeMirror superClassTypeMirror = getTypeElement().getSuperclass();
+            if(superClassTypeMirror.getKind()!= TypeKind.NONE){
+                superClass = (ClassInfo) getClassInfo((TypeElement) ((DeclaredType)superClassTypeMirror).asElement());
             }
         }
         else if(getCurrentClass().getSuperclass()!=null){
-            _superClass = (ClassInfo) getClassInfo(getCurrentClass().getSuperclass());
+            superClass = (ClassInfo) getClassInfo(getCurrentClass().getSuperclass());
         }
     }
 
@@ -67,8 +67,8 @@ public class ClassInfo extends AbstractClassInfo {
     @Override
     public MethodInfo getMethod(String name,ParameterizedTypeInfo ...infos){
         MethodInfo foundMethod = getDeclaredMethod(name,infos);
-        if((foundMethod==null)&&(_superClass!=null)){
-            foundMethod = _superClass.getMethod(name,infos);
+        if((foundMethod==null)&&(superClass!=null)){
+            foundMethod = superClass.getMethod(name,infos);
         }
         if(foundMethod==null){
             for(InterfaceInfo parentInterface:getParentInterfaces()){
@@ -80,14 +80,14 @@ public class ClassInfo extends AbstractClassInfo {
     }
 
     public List<FieldInfo> getDeclaredFields(){
-        if(_declaredFields ==null){
-            _declaredFields =new ArrayList<>();
+        if(declaredFields ==null){
+            declaredFields =new ArrayList<>();
             if(getTypeElement()!=null){
                 for(Element elt:getTypeElement().getEnclosedElements()){
                     try {
                         AnnotationElementType eltType = AnnotationElementType.getTypeOf(elt);
                         if(eltType.equals(AnnotationElementType.FIELD)){
-                            _declaredFields.add(new FieldInfo(this,(VariableElement) elt));
+                            declaredFields.add(new FieldInfo(this,(VariableElement) elt));
                         }
                     }
                     catch(AnnotationProcessorException e){
@@ -97,11 +97,11 @@ public class ClassInfo extends AbstractClassInfo {
             }
             else{
                 for(Field declaredField: getCurrentClass().getDeclaredFields()){
-                    _declaredFields.add(new FieldInfo(this,declaredField));
+                    declaredFields.add(new FieldInfo(this,declaredField));
                 }
             }
         }
-        return Collections.unmodifiableList(_declaredFields);
+        return Collections.unmodifiableList(declaredFields);
     }
 
     public FieldInfo getFieldByName(String name){
@@ -110,13 +110,13 @@ public class ClassInfo extends AbstractClassInfo {
                 return field;
             }
         }
-        if(_superClass!=null){
-            return _superClass.getFieldByName(name);
+        if(superClass!=null){
+            return superClass.getFieldByName(name);
         }
         return null;
     }
 
     public ClassInfo getSuperClass() {
-        return _superClass;
+        return superClass;
     }
 }

@@ -29,8 +29,8 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 29/11/2014.
  */
 public class TestSpout implements IRichSpout {
-    SpoutOutputCollector _collector;
-    private int _pos=1;
+    SpoutOutputCollector collector;
+    private int pos=1;
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
         outputFieldsDeclarer.declare(new Fields("test"));
@@ -54,7 +54,7 @@ public class TestSpout implements IRichSpout {
 
     @Override
     public void activate() {
-        _pos = 0;
+        pos = 0;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class TestSpout implements IRichSpout {
 
     @Override
     public void nextTuple() {
-        _collector.emit(new Values("Test value " +(++_pos)));
+        collector.emit(new Values("Test value " +(++pos)));
     }
 
     @Override

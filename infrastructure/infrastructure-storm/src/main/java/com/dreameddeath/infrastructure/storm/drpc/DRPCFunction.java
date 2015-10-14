@@ -39,13 +39,13 @@ public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
     private static ObjectMapper MAPPER = new ObjectMapper();
 
     private static Logger LOG = LoggerFactory.getLogger(DRPCFunction.class);
-    private DistributedRPC.Iface _drpcClient;
-    private String _drpcServerName;
-    private String _drpcFunctionName;
+    private DistributedRPC.Iface drpcClient;
+    private String drpcServerName;
+    private String drpcFunctionName;
 
     public DRPCFunction(String drpcServerName, String drpcFunctionName){
-        _drpcServerName = drpcServerName;
-        _drpcFunctionName = drpcFunctionName;
+        this.drpcServerName = drpcServerName;
+        this.drpcFunctionName = drpcFunctionName;
     }
 
     @Override
@@ -53,15 +53,15 @@ public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
         super.prepare(conf,context);
         //LOG.warn(conf.toString());
         boolean isLocal = "local".equals(conf.get("storm.cluster.mode"));
-        String serverHost = (String)conf.get(builderServerConfigEntry(_drpcServerName,EntryType.SERVER_NAME));
-        Integer serverPort = Integer.parseInt((String) conf.get(builderServerConfigEntry(_drpcServerName, EntryType.SERVER_PORT)));
-        String localServiceId = (String)conf.get(builderServerConfigEntry(_drpcServerName,EntryType.LOCAL_SERVICE_ID));
+        String serverHost = (String)conf.get(builderServerConfigEntry(drpcServerName,EntryType.SERVER_NAME));
+        Integer serverPort = Integer.parseInt((String) conf.get(builderServerConfigEntry(drpcServerName, EntryType.SERVER_PORT)));
+        String localServiceId = (String)conf.get(builderServerConfigEntry(drpcServerName,EntryType.LOCAL_SERVICE_ID));
         LOG.warn("isLocal {} with service id {}",isLocal,localServiceId);
         if(isLocal) {
-            _drpcClient =  (DistributedRPC.Iface) ServiceRegistry.getService(localServiceId);
+            drpcClient =  (DistributedRPC.Iface) ServiceRegistry.getService(localServiceId);
         }
         else{
-            _drpcClient = new DRPCClient(serverHost,serverPort);
+            drpcClient = new DRPCClient(serverHost,serverPort);
         }
     }
 
@@ -73,7 +73,7 @@ public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
         try {
             TIN processedInput=DRPCInputPrepareProcess(tridentTuple,MAPPER);
             String drpcStrInput = MAPPER.writeValueAsString(processedInput);
-            String outputResult = _drpcClient.execute(_drpcFunctionName,drpcStrInput);
+            String outputResult = drpcClient.execute(drpcFunctionName,drpcStrInput);
             List<List<TOUT>> parsingResult = MAPPER.readValue(outputResult,getTypeReference());
 
             DRPCResultProcess(parsingResult.get(0).get(0), tridentCollector);

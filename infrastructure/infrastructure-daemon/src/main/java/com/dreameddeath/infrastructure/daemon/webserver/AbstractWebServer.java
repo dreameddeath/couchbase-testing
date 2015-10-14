@@ -17,8 +17,10 @@
 package com.dreameddeath.infrastructure.daemon.webserver;
 
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.couchbase.WebServerCouchbaseFactories;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.component.LifeCycle;
@@ -35,11 +37,14 @@ public abstract class AbstractWebServer {
     public static final String GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME = "daemonLifeCycle";
     public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
     public static final String GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME = "propertySources";
-    private final AbstractDaemon _parentDaemon;
-    private final String _name;
-    private final Server _webServer;
-    private final ServerConnector _serverConnector;
-    private final PropertySources _propertySources;
+    public static final String GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME = "couchbaseDaoFactory";
+
+    private final AbstractDaemon parentDaemon;
+    private final String name;
+    private final Server webServer;
+    private final WebServerCouchbaseFactories couchbaseFactories;
+    private final ServerConnector serverConnector;
+    private final PropertySources propertySources;
 
     private String getAddress(String address,String networkInterfaceName){
         if(address!=null){
@@ -61,70 +66,84 @@ public abstract class AbstractWebServer {
     }
 
     public AbstractWebServer(Builder builder) {
-        _parentDaemon = builder._daemon;
-        _name = builder._name;
-        _parentDaemon.getDaemonLifeCycle().addLifeCycleListener(new WebServerDaemonLifeCycleListner(this,builder._isRoot));
-        _webServer = new Server();
-        _serverConnector = new ServerConnector(_webServer);
+        parentDaemon = builder.daemon;
+        name = builder.name;
+        parentDaemon.getDaemonLifeCycle().addLifeCycleListener(new WebServerDaemonLifeCycleListener(this,builder.isRoot));
+        webServer = new Server();
+        serverConnector = new ServerConnector(webServer);
 
-        String address = getAddress(builder._address, builder._interfaceName);
+        String address = getAddress(builder.address, builder.interfaceName);
         if(address==null){
             address = getAddress(DaemonConfigProperties.DAEMON_WEBSERVER_ADDRESS.get(),DaemonConfigProperties.DAEMON_WEBSERVER_INTERFACE.get());
         }
         if(address!=null){
-            _serverConnector.setHost(address);
+            serverConnector.setHost(address);
         }
 
-        int port = builder._port;
+        int port = builder.port;
         if(port==0){
             port = DaemonConfigProperties.DAEMON_WEBSERVER_PORT.get();
         }
         if(port!=0){
-            _serverConnector.setPort(port);
+            serverConnector.setPort(port);
         }
 
-        _webServer.addConnector(_serverConnector);
-        PropertySources propertySources = builder._propertySources;
+        webServer.addConnector(serverConnector);
+        PropertySources propertySources = builder.propertySources;
         if(propertySources==null){
             propertySources = new ConfigMutablePropertySources();
         }
-        _propertySources = propertySources;
+        this.propertySources = propertySources;
+
+        if(builder.withCouchbase){
+            if(builder.documentDaoFactory==null){
+                builder.documentDaoFactory=CouchbaseDocumentDaoFactory.builder().withBucketFactory(parentDaemon.getDaemonCouchbaseFactories().getBucketFactory()).build();
+            }
+            couchbaseFactories = new WebServerCouchbaseFactories(parentDaemon.getDaemonCouchbaseFactories().getClusterFactory(),parentDaemon.getDaemonCouchbaseFactories().getBucketFactory(),builder.documentDaoFactory);
+        }
+        else{
+            couchbaseFactories=null;
+        }
     }
 
     public AbstractDaemon getParentDaemon() {
-        return _parentDaemon;
+        return parentDaemon;
     }
 
     public Server getWebServer() {
-        return _webServer;
+        return webServer;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public ServerConnector getServerConnector() {
-        return _serverConnector;
+        return serverConnector;
+    }
+
+    public WebServerCouchbaseFactories getCouchbaseFactories() {
+        return couchbaseFactories;
     }
 
     public void start() throws Exception{
-        _webServer.start();
+        webServer.start();
     }
 
     public void stop() throws Exception{
-        _webServer.stop();
+        webServer.stop();
     }
 
     public void join() throws Exception{
-        _webServer.join();
+        webServer.join();
     }
 
     public Status getStatus(){
-        return Status.fromStateString(_webServer.getState());
+        return Status.fromStateString(webServer.getState());
     }
 
     public PropertySources getPropertySources() {
-        return _propertySources;
+        return propertySources;
     }
 
     public enum Status{
@@ -150,7 +169,7 @@ public abstract class AbstractWebServer {
     }
 
     public LifeCycle getLifeCycle(){
-        return _webServer;
+        return webServer;
     }
 
 
@@ -159,47 +178,58 @@ public abstract class AbstractWebServer {
     }
 
     public static class Builder<T extends AbstractWebServer.Builder> {
-        private AbstractDaemon _daemon;
-        private PropertySources _propertySources=null;
-        private String _name;
-        private String _address=null;
-        private String _interfaceName=null;
-        private boolean _isRoot=false;
-        private int _port=0;
+        private AbstractDaemon daemon;
+        private PropertySources propertySources=null;
+        private String name;
+        private String address=null;
+        private String interfaceName=null;
+        private boolean isRoot=false;
+        private int port=0;
+        private boolean withCouchbase=false;
+        private CouchbaseDocumentDaoFactory documentDaoFactory;
 
         public T withAddress(String address) {
-            _address = address;
+            this.address = address;
             return (T)this;
         }
 
         public T withInterfaceName(String interfaceName) {
-            _interfaceName = interfaceName;
+            this.interfaceName = interfaceName;
             return (T)this;
         }
 
         public T withIsRoot(boolean isRoot) {
-            _isRoot = isRoot;
-
+            this.isRoot = isRoot;
             return (T) this;
         }
 
         public T withName(String name) {
-            _name = name;
+            this.name = name;
             return (T)this;
         }
 
         public T withDaemon(AbstractDaemon daemon) {
-            _daemon = daemon;
+            this.daemon = daemon;
             return (T)this;
         }
 
         public T withPort(int port) {
-            _port = port;
+            this.port = port;
+            return (T)this;
+        }
+
+        public T withWithCouchbase(boolean withCouchbase) {
+            this.withCouchbase = withCouchbase;
+            return (T)this;
+        }
+
+        public T withDocumentDaoFactory(CouchbaseDocumentDaoFactory documentDaoFactory) {
+            this.documentDaoFactory = documentDaoFactory;
             return (T)this;
         }
 
         public Builder withPropertySources(PropertySources propertySources) {
-            _propertySources = propertySources;
+            this.propertySources = propertySources;
             return this;
         }
     }

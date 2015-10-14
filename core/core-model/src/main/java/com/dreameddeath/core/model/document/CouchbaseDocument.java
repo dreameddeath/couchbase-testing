@@ -34,102 +34,102 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility= JsonAutoDetect.Visibility.NONE,fieldVisibility= JsonAutoDetect.Visibility.NONE,isGetterVisibility = JsonAutoDetect.Visibility.NONE,setterVisibility = JsonAutoDetect.Visibility.NONE,creatorVisibility = JsonAutoDetect.Visibility.NONE)
 public class CouchbaseDocument implements HasParent {
-    private BaseMetaInfo _meta;
+    private BaseMetaInfo meta;
 
-    public BaseMetaInfo getBaseMeta(){return _meta;}
-    public void setBaseMeta(BaseMetaInfo meta){ _meta=meta;}
+    public BaseMetaInfo getBaseMeta(){return meta;}
+    public void setBaseMeta(BaseMetaInfo meta){ this.meta=meta;}
 
-    public CouchbaseDocument(){_meta=this.new BaseMetaInfo();}
-    public CouchbaseDocument(BaseMetaInfo meta){_meta=meta;}
+    public CouchbaseDocument(){meta=this.new BaseMetaInfo();}
+    public CouchbaseDocument(BaseMetaInfo meta){this.meta=meta;}
 
     public class BaseMetaInfo {
         //private CouchbaseSession _session;
-        private String _key;
-        private long   _cas;
-        private Boolean _isLocked;
-        private Integer _dbDocSize;
-        private long _vbucketID=0;
-        private long _vbucketUUID=0;
-        private long _sequenceNumber=0;
+        private String key;
+        private long   cas;
+        private Boolean isLocked;
+        private Integer dbDocSize;
+        private long vbucketID=0;
+        private long vbucketUUID=0;
+        private long sequenceNumber=0;
 
-        private Set<DocumentFlag> _flags =EnumSet.noneOf(DocumentFlag.class);
-        private int _expiry;
-        private DocumentState _docState = DocumentState.NEW;
+        private Set<DocumentFlag> flags =EnumSet.noneOf(DocumentFlag.class);
+        private int expiry;
+        private DocumentState docState = DocumentState.NEW;
 
-        public final String getKey(){ return _key; }
-        public final void setKey(String key){ _key=key;}
+        public final String getKey(){ return key; }
+        public final void setKey(String key){ this.key=key;}
 
-        public final long getCas(){ return _cas; }
-        public final void setCas(long cas){ this._cas = cas; }
+        public final long getCas(){ return cas; }
+        public final void setCas(long cas){ this.cas = cas; }
 
-        public final Boolean getIsLocked(){ return _isLocked; }
-        public final void setIsLocked(Boolean isLocked){ this._isLocked = isLocked; }
+        public final Boolean getIsLocked(){ return isLocked; }
+        public final void setIsLocked(Boolean isLocked){ this.isLocked = isLocked; }
 
-        public final Integer getDbSize(){ return _dbDocSize; }
-        public final void setDbSize(Integer docSize){ this._dbDocSize = docSize; }
+        public final Integer getDbSize(){ return dbDocSize; }
+        public final void setDbSize(Integer docSize){ this.dbDocSize = docSize; }
 
-        public final Collection<DocumentFlag> getFlags(){ return _flags; }
-        public final Integer getEncodedFlags(){ return DocumentFlag.pack(_flags); }
-        public final void setEncodedFlags(Integer encodedFlags){ _flags.clear(); _flags.addAll(DocumentFlag.unPack(encodedFlags)); }
-        public final void setFlags(Collection<DocumentFlag> flags){ _flags.clear(); _flags.addAll(flags); }
-        public final void addEncodedFlags(Integer encodedFlags){ _flags.addAll(DocumentFlag.unPack(encodedFlags)); }
-        public final void addFlag(DocumentFlag flag){ _flags.add(flag); }
-        public final void addFlags(Collection<DocumentFlag> flags){ _flags.addAll(flags); }
-        public final void removeFlag(DocumentFlag flag){ _flags.remove(flag); }
-        public final void removeFlags(Collection<DocumentFlag> flags){_flags.remove(flags); }
-        public boolean hasFlag(DocumentFlag flag){ return _flags.contains(flag); }
+        public final Collection<DocumentFlag> getFlags(){ return flags; }
+        public final Integer getEncodedFlags(){ return DocumentFlag.pack(flags); }
+        public final void setEncodedFlags(Integer encodedFlags){ flags.clear(); flags.addAll(DocumentFlag.unPack(encodedFlags)); }
+        public final void setFlags(Collection<DocumentFlag> flags){ flags.clear(); flags.addAll(flags); }
+        public final void addEncodedFlags(Integer encodedFlags){ flags.addAll(DocumentFlag.unPack(encodedFlags)); }
+        public final void addFlag(DocumentFlag flag){ flags.add(flag); }
+        public final void addFlags(Collection<DocumentFlag> flags){ flags.addAll(flags); }
+        public final void removeFlag(DocumentFlag flag){ flags.remove(flag); }
+        public final void removeFlags(Collection<DocumentFlag> flags){flags.remove(flags); }
+        public boolean hasFlag(DocumentFlag flag){ return flags.contains(flag); }
 
 
-        public int getExpiry(){return _expiry;}
-        public void setExpiry(int expiry){ _expiry=expiry;}
+        public int getExpiry(){return expiry;}
+        public void setExpiry(int expiry){ this.expiry=expiry;}
 
         public void setStateDirty(){
-            if(_docState.equals(DocumentState.SYNC)){
-                _docState = DocumentState.DIRTY;
+            if(docState.equals(DocumentState.SYNC)){
+                docState = DocumentState.DIRTY;
             }
         }
 
         public void setStateDeleted(){
-            _docState = DocumentState.DELETED;
+            docState = DocumentState.DELETED;
         }
 
-        public void setStateSync(){ _docState = DocumentState.SYNC; }
-        public DocumentState getState(){ return _docState; }
+        public void setStateSync(){ docState = DocumentState.SYNC; }
+        public DocumentState getState(){ return docState; }
 
         public long getVbucketID() {
-            return _vbucketID;
+            return vbucketID;
         }
 
         public void setVbucketID(long vbucketID) {
-            _vbucketID = vbucketID;
+            this.vbucketID = vbucketID;
         }
 
         public long getVbucketUUID() {
-            return _vbucketUUID;
+            return vbucketUUID;
         }
 
         public void setVbucketUUID(long vbucketUUID) {
-            _vbucketUUID = vbucketUUID;
+            this.vbucketUUID = vbucketUUID;
         }
 
         public long getSequenceNumber() {
-            return _sequenceNumber;
+            return sequenceNumber;
         }
 
         public void setSequenceNumber(long sequenceNumber) {
-            _sequenceNumber = sequenceNumber;
+            this.sequenceNumber = sequenceNumber;
         }
 
         @Override
         public String toString(){
             return
-                    "key   : "+_key+",\n"+
-                    "cas   : "+_cas+",\n"+
-                    "mut   : "+_vbucketID+"#"+_vbucketUUID+"#"+_sequenceNumber+",\n"+
-                    "lock  : "+_isLocked+",\n"+
-                    "size  : "+_dbDocSize+",\n"+
-                    "state : "+_docState +",\n"+
-                    "flags : "+_flags.toString();
+                    "key   : "+key+",\n"+
+                    "cas   : "+cas+",\n"+
+                    "mut   : "+vbucketID+"#"+vbucketUUID+"#"+sequenceNumber+",\n"+
+                    "lock  : "+isLocked+",\n"+
+                    "size  : "+dbDocSize+",\n"+
+                    "state : "+docState +",\n"+
+                    "flags : "+flags.toString();
         }
 
     }
@@ -137,7 +137,7 @@ public class CouchbaseDocument implements HasParent {
     public boolean equals(CouchbaseDocument doc){
         if     (doc == null){ return false;}
         else if(doc == this){ return true; }
-        else if(_meta.getKey()!=null) { return _meta.getKey().equals(doc._meta.getKey()); }
+        else if(meta.getKey()!=null) { return meta.getKey().equals(doc.meta.getKey()); }
         else                { return false; }
     }
 
@@ -153,25 +153,25 @@ public class CouchbaseDocument implements HasParent {
         Compressed(0x100),
         Deleted(0x200);
 
-        private int _value;
+        private int value;
 
         DocumentFlag(int value){
-            this._value = value;
+            this.value = value;
         }
 
         public int toInteger(){
-            return _value;
+            return value;
         }
 
         @Override
         public String toString(){
-            return String.format("%s(0x%X)",super.toString(),_value);
+            return String.format("%s(0x%X)",super.toString(),value);
         }
 
         static public Set<DocumentFlag> unPack(int binValue){
             Set<DocumentFlag> result=new HashSet<DocumentFlag>();
             for(DocumentFlag flag:DocumentFlag.values()){
-                if((flag._value & binValue)!=0){
+                if((flag.value & binValue)!=0){
                     result.add(flag);
                 }
             }

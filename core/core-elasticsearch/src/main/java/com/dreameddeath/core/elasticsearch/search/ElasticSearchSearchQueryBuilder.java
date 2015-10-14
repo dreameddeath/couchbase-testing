@@ -26,11 +26,11 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 26/05/2015.
  */
 public class ElasticSearchSearchQueryBuilder extends SearchRequestBuilder {
-    private final ElasticSearchClient _client;
+    private final ElasticSearchClient client;
 
     public ElasticSearchSearchQueryBuilder(ElasticSearchClient client) {
         super(client.getInternalClient());
-        _client = client;
+        this.client = client;
     }
 
     @Override

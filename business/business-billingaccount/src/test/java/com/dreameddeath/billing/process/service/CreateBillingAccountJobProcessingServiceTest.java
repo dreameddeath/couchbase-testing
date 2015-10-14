@@ -37,43 +37,43 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class CreateBillingAccountJobProcessingServiceTest {
-    Utils.TestEnvironment _env;
+    Utils.TestEnvironment env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
-        _env.addDocumentDao(new PartyDao());
-        _env.addDocumentDao(new JobDao());
-        _env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
-        _env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.cycle.BillingCycleDao").newInstance());
-        _env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());
+        env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
+        env.addDocumentDao(new PartyDao());
+        env.addDocumentDao(new JobDao());
+        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.cycle.BillingCycleDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());
         //_env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
         // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
-        _env.start();
+        env.start();
     }
 
-    private final static ExecutorServiceFactory _execFactory=new ExecutorServiceFactory();
-    private final static ProcessingServiceFactory _processFactory=new ProcessingServiceFactory();
+    private final static ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
+    private final static ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
     static {
-        _processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
-        _processFactory.addJobProcessingService(CreateBillingAccountJobProcessingService.class);
-        _processFactory.addJobProcessingService(CreateBillingCycleJobProcessingService.class);
+        processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
+        processFactory.addJobProcessingService(CreateBillingAccountJobProcessingService.class);
+        processFactory.addJobProcessingService(CreateBillingCycleJobProcessingService.class);
     }
 
     @Test
     public void JobTest() throws Exception{
-        ICouchbaseSession session =_env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session =env.getSessionFactory().newReadWriteSession(null);
         CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
         createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
         createPartyJob.getRequest().person = new CreatePartyRequest.Person();
         createPartyJob.getRequest().person.firstName = "christophe";
         createPartyJob.getRequest().person.lastName = "jeunesse";
 
-        _execFactory.execute(JobContext.newContext(session, _execFactory, _processFactory), createPartyJob);
+        execFactory.execute(JobContext.newContext(session, execFactory, processFactory), createPartyJob);
 
         CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
         createBaJob.getRequest().billDay=2;
         createBaJob.getRequest().partyId = createPartyJob.getTask(0,CreatePartyJob.CreatePartyTask.class).getDocument(session).getUid();
-        _execFactory.execute(JobContext.newContext(session, _execFactory, _processFactory),createBaJob);
+        execFactory.execute(JobContext.newContext(session, execFactory, processFactory),createBaJob);
 
 
         //ICouchbaseSession controlSession = _sessionFactory.newReadOnlySession(null);

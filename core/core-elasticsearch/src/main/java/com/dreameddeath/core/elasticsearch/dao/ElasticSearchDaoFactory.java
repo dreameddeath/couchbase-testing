@@ -25,10 +25,10 @@ import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
  * Created by Christophe Jeunesse on 08/07/2015.
  */
 public class ElasticSearchDaoFactory {
-    private final IDocumentInfoMapper _documentInfoMapper;
+    private final IDocumentInfoMapper documentInfoMapper;
 
     public ElasticSearchDaoFactory(Builder builder){
-        _documentInfoMapper = builder._documentInfoMapper;
+        documentInfoMapper = builder.documentInfoMapper;
     }
 
     public static Builder builder(){
@@ -37,9 +37,9 @@ public class ElasticSearchDaoFactory {
 
 
     public void addDaoForClass(Class<? extends CouchbaseDocument> docClass,ElasticSearchDao dao){
-        if(!_documentInfoMapper.contains(docClass)){
+        if(!documentInfoMapper.contains(docClass)){
             try {
-                _documentInfoMapper.addRawDocument(docClass);
+                documentInfoMapper.addRawDocument(docClass);
             }
             catch(DuplicateMappedEntryInfoException e){
                 //Should not occur
@@ -47,7 +47,7 @@ public class ElasticSearchDaoFactory {
         }
 
         try {
-            _documentInfoMapper.getMappingFromClass(docClass).attachObject(ElasticSearchDao.class, dao);
+            documentInfoMapper.getMappingFromClass(docClass).attachObject(ElasticSearchDao.class, dao);
         }
         catch(MappingNotFoundException e){
             //Should not occur
@@ -55,9 +55,9 @@ public class ElasticSearchDaoFactory {
     }
 
     public void addDaoForClassAndPattern(Class<? extends CouchbaseDocument> docClass,String pattern,ElasticSearchDao dao){
-        if(!_documentInfoMapper.contains(docClass)){
+        if(!documentInfoMapper.contains(docClass)){
             try {
-                _documentInfoMapper.addDocument(docClass, pattern);
+                documentInfoMapper.addDocument(docClass, pattern);
             }
             catch(DuplicateMappedEntryInfoException e){
                 //Should not occur
@@ -65,7 +65,7 @@ public class ElasticSearchDaoFactory {
         }
 
         try {
-            _documentInfoMapper.getMappingFromClass(docClass).attachObject(ElasticSearchDao.class, dao);
+            documentInfoMapper.getMappingFromClass(docClass).attachObject(ElasticSearchDao.class, dao);
         }
         catch(MappingNotFoundException e){
             //Should not occur
@@ -74,15 +74,15 @@ public class ElasticSearchDaoFactory {
 
 
     public <T extends CouchbaseDocument> ElasticSearchDao<T> getDaoForClass(Class<T> clazz) throws MappingNotFoundException{
-        return _documentInfoMapper.getMappingFromClass(clazz).getAttachedObject(ElasticSearchDao.class);
+        return documentInfoMapper.getMappingFromClass(clazz).getAttachedObject(ElasticSearchDao.class);
     }
 
 
     public static class Builder{
-        private IDocumentInfoMapper _documentInfoMapper;
+        private IDocumentInfoMapper documentInfoMapper;
 
         public Builder withDocumentInfoMappper(IDocumentInfoMapper mapper){
-            _documentInfoMapper = mapper;
+            documentInfoMapper = mapper;
             return this;
         }
 

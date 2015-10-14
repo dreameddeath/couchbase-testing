@@ -72,37 +72,37 @@ public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment imple
     }
 
 
-    private final Integer _threadPoolSize;
-    private final String _threadPoolName;
-    private final Integer _eventBufferSize;
-    private final String _streamName;
+    private final Integer threadPoolSize;
+    private final String threadPoolName;
+    private final Integer eventBufferSize;
+    private final String streamName;
 
     protected DefaultCouchbaseDCPEnvironment(Builder builder){
         super(builder);
-        _threadPoolName = builder.threadPoolName();
-        _threadPoolSize = builder.threadPoolSize();
-        _eventBufferSize= builder.eventBufferSize();
-        _streamName = builder.streamName();
+        threadPoolName = builder.threadPoolName();
+        threadPoolSize = builder.threadPoolSize();
+        eventBufferSize= builder.eventBufferSize();
+        streamName = builder.streamName();
     }
 
     @Override
     public Integer threadPoolSize() {
-        return _threadPoolSize;
+        return threadPoolSize;
     }
 
     @Override
     public String threadPoolName() {
-        return _threadPoolName;
+        return threadPoolName;
     }
 
     @Override
     public Integer eventBufferSize() {
-        return _eventBufferSize;
+        return eventBufferSize;
     }
 
     @Override
     public String streamName() {
-        return _streamName;
+        return streamName;
     }
 
     public static DefaultCouchbaseDCPEnvironment.Builder builder(){
@@ -110,50 +110,50 @@ public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment imple
     }
 
     public static class Builder extends DefaultCoreEnvironment.Builder{
-        private Integer _threadPoolSize=DEFAULT_THREAD_POOL_SIZE;
-        private String _threadPoolName=DEFAULT_THREAD_POOL_NAME;
-        private Integer _eventBufferSize=DEFAULT_EVENT_BUFFER_SIZE;
-        private String _streamName;
+        private Integer threadPoolSize=DEFAULT_THREAD_POOL_SIZE;
+        private String threadPoolName=DEFAULT_THREAD_POOL_NAME;
+        private Integer eventBufferSize=DEFAULT_EVENT_BUFFER_SIZE;
+        private String streamName;
 
         public Builder(){
             dcpEnabled(true);
         }
 
         public Builder threadPoolSize(Integer size){
-            _threadPoolSize = size;
+            threadPoolSize = size;
             return this;
         }
 
         public Builder threadPoolName(String name){
-            _threadPoolName = name;
+            threadPoolName = name;
             return this;
         }
 
         public Builder eventBufferSize(Integer size){
-            _eventBufferSize = size;
+            eventBufferSize = size;
             return this;
         }
 
         public Builder streamName(String name){
-            _streamName = name;
+            streamName = name;
             return this;
         }
 
         public Integer threadPoolSize() {
-            return _threadPoolSize;
+            return threadPoolSize;
         }
 
         public String threadPoolName() {
-            return _threadPoolName;
+            return threadPoolName;
         }
 
         public Integer eventBufferSize() {
-            return _eventBufferSize;
+            return eventBufferSize;
         }
 
 
         public String streamName() {
-            return _streamName;
+            return streamName;
         }
 
         @Override

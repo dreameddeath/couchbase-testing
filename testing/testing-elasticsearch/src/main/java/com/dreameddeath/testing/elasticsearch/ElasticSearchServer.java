@@ -33,31 +33,31 @@ import java.nio.file.Files;
  */
 public class ElasticSearchServer {
 
-    private final File _dataDir;
-    private final Settings _settings;
-    private Node _node=null;
-    private Client _client=null;
+    private final File dataDir;
+    private final Settings settings;
+    private Node node=null;
+    private Client client=null;
 
     public ElasticSearchServer(String clusterName) throws Exception{
-        _dataDir = Files.createTempDirectory("elasticsearch_data_"+clusterName).toFile();
-        _settings = ImmutableSettings.settingsBuilder()
-                .put("path.data", _dataDir.toString())
+        dataDir = Files.createTempDirectory("elasticsearch_data_"+clusterName).toFile();
+        settings = ImmutableSettings.settingsBuilder()
+                .put("path.data", dataDir.toString())
                 .put("cluster.name", clusterName)
                 .build();
     }
 
     public Node getNode(){
-        if(_node==null){
-            _node = NodeBuilder.nodeBuilder().local(true).settings(_settings).build();
+        if(node==null){
+            node = NodeBuilder.nodeBuilder().local(true).settings(settings).build();
         }
-        return  _node;
+        return  node;
     }
 
     public Client getClient(){
-        if(_client==null){
-            _client = getNode().client();
+        if(client==null){
+            client = getNode().client();
         }
-        return _client;
+        return client;
     }
 
     public void start(){
@@ -65,11 +65,11 @@ public class ElasticSearchServer {
     }
 
     public void stop(){
-        if(_node!=null) {
-            _node.close();
+        if(node!=null) {
+            node.close();
         }
         try{
-            FileUtils.forceDelete(_dataDir);
+            FileUtils.forceDelete(dataDir);
         }
         catch(IOException e){
             //Ignore error

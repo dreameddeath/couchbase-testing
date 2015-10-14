@@ -30,8 +30,8 @@ import java.net.MalformedURLException;
 public class WebJarsServlet extends DefaultServlet {
     public static final String PREFIX_WEBJARS_PARAM_NAME="pathPrefix";
     public static final String DEFAULT_CACHE_SIZE =  Integer.toString(5 * 1024 * 1024);
-    private boolean _manualTesting=false;
-    private String _prefix;
+    private boolean manualTesting=false;
+    private String prefix;
 
     private void assignDefault(ServletConfig config,String name,String value){
         if(config.getServletContext().getInitParameter(name)==null){
@@ -43,10 +43,10 @@ public class WebJarsServlet extends DefaultServlet {
     public void init(ServletConfig config) throws ServletException {
         String forTesting = config.getServletContext().getInitParameter(WebJarsServletContextHandler.APPS_WEBJARS_LIBS_FOR_TESTING);
         if ("true".equalsIgnoreCase(forTesting)){
-            _manualTesting = true;
+            manualTesting = true;
         }
-        _prefix = config.getInitParameter(PREFIX_WEBJARS_PARAM_NAME);
-        _prefix=ServletUtils.normalizePath(_prefix,true);
+        prefix = config.getInitParameter(PREFIX_WEBJARS_PARAM_NAME);
+        prefix=ServletUtils.normalizePath(prefix,true);
 
         config.getServletContext().setInitParameter("dirAllowed", "false");
         config.getServletContext().setInitParameter("gzip", "true");
@@ -57,9 +57,9 @@ public class WebJarsServlet extends DefaultServlet {
 
     @Override
     public Resource getResource(String pathInContext) {
-        pathInContext = pathInContext.replace(_prefix,"/webjars/");
+        pathInContext = pathInContext.replace(prefix,"/webjars/");
         pathInContext = "/META-INF/resources" + pathInContext;
-        if(_manualTesting){
+        if(manualTesting){
             File srcFile = new File(ServletUtils.LOCAL_WEBAPP_SRC + "/" + pathInContext);
             if (srcFile.exists()) {
                 try {

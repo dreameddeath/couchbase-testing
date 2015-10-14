@@ -32,26 +32,26 @@ import java.util.regex.Pattern;
  * Created by Christophe Jeunesse on 02/09/2014.
  */
 public class CouchbaseCounterDaoFactory {
-    private Map<Pattern,CouchbaseCounterDao> _patternsMap
+    private Map<Pattern,CouchbaseCounterDao> patternsMap
             = new ConcurrentHashMap<Pattern,CouchbaseCounterDao>();
 
-    private final IDocumentInfoMapper _documentInfoMapper;
+    private final IDocumentInfoMapper documentInfoMapper;
 
     public CouchbaseCounterDaoFactory(Builder builder){
-        _documentInfoMapper = builder._documentInfoMapper;
+        documentInfoMapper = builder.documentInfoMapper;
     }
 
 
     public void addDao(CouchbaseCounterDao dao){
-        synchronized (_documentInfoMapper){
+        synchronized (documentInfoMapper){
             try {
-                if (!_documentInfoMapper.contains(CouchbaseCounter.class)) {
-                    _documentInfoMapper.addRawDocument(CouchbaseCounter.class);
-                    _documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(ITranscoder.class, new CounterTranscoder());
+                if (!documentInfoMapper.contains(CouchbaseCounter.class)) {
+                    documentInfoMapper.addRawDocument(CouchbaseCounter.class);
+                    documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(ITranscoder.class, new CounterTranscoder());
                 }
                 if(dao.getKeyPattern()!=null) {
-                    _documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(CouchbaseCounterDao.class, dao.getKeyPattern(), dao);
-                    _documentInfoMapper.addKeyPattern(CouchbaseCounter.class,dao.getKeyPattern());
+                    documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(CouchbaseCounterDao.class, dao.getKeyPattern(), dao);
+                    documentInfoMapper.addKeyPattern(CouchbaseCounter.class,dao.getKeyPattern());
                 }
             }
             catch(DuplicateMappedEntryInfoException|MappingNotFoundException e){
@@ -62,7 +62,7 @@ public class CouchbaseCounterDaoFactory {
 
     public CouchbaseCounterDao getDaoForKey(String key) throws DaoNotFoundException {
         try {
-            CouchbaseCounterDao res = _documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).getAttachedObject(CouchbaseCounterDao.class, key);
+            CouchbaseCounterDao res = documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).getAttachedObject(CouchbaseCounterDao.class, key);
             if(res!=null){
                 return res;
             }
@@ -79,10 +79,10 @@ public class CouchbaseCounterDaoFactory {
     }
 
     public static class Builder{
-        private IDocumentInfoMapper _documentInfoMapper;
+        private IDocumentInfoMapper documentInfoMapper;
 
         public Builder withDocumentInfoMapper(IDocumentInfoMapper mapper){
-            _documentInfoMapper = mapper;
+            documentInfoMapper = mapper;
             return this;
         }
 

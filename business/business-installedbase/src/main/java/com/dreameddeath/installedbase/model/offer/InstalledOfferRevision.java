@@ -32,23 +32,23 @@ public class InstalledOfferRevision extends InstalledItemRevision {
      *  links : links for this revision
      */
     @DocumentProperty("links")
-    private ListProperty<InstalledOfferLink> _links = new ArrayListProperty<InstalledOfferLink>(InstalledOfferRevision.this);
+    private ListProperty<InstalledOfferLink> links = new ArrayListProperty<InstalledOfferLink>(InstalledOfferRevision.this);
     /**
      *  commercialParameters : list of commercial parameters of the revision
      */
     @DocumentProperty("commercialParameters")
-    private ListProperty<InstalledCommercialParameter> _commercialParameters = new ArrayListProperty<InstalledCommercialParameter>(InstalledOfferRevision.this);
+    private ListProperty<InstalledCommercialParameter> commercialParameters = new ArrayListProperty<InstalledCommercialParameter>(InstalledOfferRevision.this);
 
     // Links Accessors
-    public List<InstalledOfferLink> getLinks() { return _links.get(); }
-    public void setLinks(Collection<InstalledOfferLink> vals) { _links.set(vals); }
-    public boolean addLinks(InstalledOfferLink val){ return _links.add(val); }
-    public boolean removeLinks(InstalledOfferLink val){ return _links.remove(val); }
+    public List<InstalledOfferLink> getLinks() { return links.get(); }
+    public void setLinks(Collection<InstalledOfferLink> vals) { links.set(vals); }
+    public boolean addLinks(InstalledOfferLink val){ return links.add(val); }
+    public boolean removeLinks(InstalledOfferLink val){ return links.remove(val); }
 
     // CommercialParameters Accessors
-    public List<InstalledCommercialParameter> getCommercialParameters() { return _commercialParameters.get(); }
-    public void setCommercialParameters(Collection<InstalledCommercialParameter> vals) { _commercialParameters.set(vals); }
-    public boolean addCommercialParameters(InstalledCommercialParameter val){ return _commercialParameters.add(val); }
-    public boolean removeCommercialParameters(InstalledCommercialParameter val){ return _commercialParameters.remove(val); }
+    public List<InstalledCommercialParameter> getCommercialParameters() { return commercialParameters.get(); }
+    public void setCommercialParameters(Collection<InstalledCommercialParameter> vals) { commercialParameters.set(vals); }
+    public boolean addCommercialParameters(InstalledCommercialParameter val){ return commercialParameters.add(val); }
+    public boolean removeCommercialParameters(InstalledCommercialParameter val){ return commercialParameters.remove(val); }
 
 }

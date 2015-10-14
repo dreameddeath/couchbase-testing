@@ -29,12 +29,12 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 04/01/2015.
  */
 public class CouchbaseDocumentFieldReflection {
-    private String _name;
-    private FieldInfo _field;
-    private ParameterizedTypeInfo _effectiveType;
+    private String name;
+    private FieldInfo field;
+    private ParameterizedTypeInfo effectiveType;
 
-    private MemberInfo _getter;
-    private MemberInfo _setter;
+    private MemberInfo getter;
+    private MemberInfo setter;
 
 
     protected String nameBuilder(String name, String prefix){
@@ -47,21 +47,21 @@ public class CouchbaseDocumentFieldReflection {
 
     public MethodInfo fieldGetterFinder(){
         MethodInfo result = null;
-        if(_field.getAnnotation(DocumentProperty.class)!=null){
-            DocumentProperty prop = _field.getAnnotation(DocumentProperty.class);
+        if(field.getAnnotation(DocumentProperty.class)!=null){
+            DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
             String getter = prop.getter();
             if((getter!=null)&& !getter.equals("")){
-                result=_field.getDeclaringClassInfo().getDeclaredMethod(getter);
+                result=field.getDeclaringClassInfo().getDeclaredMethod(getter);
             }
             else {
                 String name = nameBuilder(prop.value(),"get");
-                result= _field.getDeclaringClassInfo().getDeclaredMethod(name);
+                result= field.getDeclaringClassInfo().getDeclaredMethod(name);
             }
         }
 
         if(result==null){
-            String name = nameBuilder(_field.getName(),"get");
-            result = _field.getDeclaringClassInfo().getDeclaredMethod(name);
+            String name = nameBuilder(field.getName(),"get");
+            result = field.getDeclaringClassInfo().getDeclaredMethod(name);
         }
 
         return result;
@@ -69,59 +69,59 @@ public class CouchbaseDocumentFieldReflection {
 
     public MethodInfo fieldSetterFinder(){
         MethodInfo result = null;
-        if(_field.getAnnotation(DocumentProperty.class)!=null){
-            DocumentProperty prop = _field.getAnnotation(DocumentProperty.class);
+        if(field.getAnnotation(DocumentProperty.class)!=null){
+            DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
             String setter = prop.setter();
             if((setter!=null)&& !setter.equals("")){
-                result = _field.getDeclaringClassInfo().getDeclaredMethod(setter, _effectiveType);
+                result = field.getDeclaringClassInfo().getDeclaredMethod(setter, effectiveType);
             }
             else {
                 String name = nameBuilder(prop.value(), "set");
-                result= _field.getDeclaringClassInfo().getDeclaredMethod(name,_effectiveType);
+                result= field.getDeclaringClassInfo().getDeclaredMethod(name,effectiveType);
             }
         }
 
         if(result==null) {
-            String name = nameBuilder(_field.getName(), "set");
-            result = _field.getDeclaringClassInfo().getDeclaredMethod(name,_effectiveType);
+            String name = nameBuilder(field.getName(), "set");
+            result = field.getDeclaringClassInfo().getDeclaredMethod(name,effectiveType);
         }
         return result;
     }
 
     public CouchbaseDocumentFieldReflection(FieldInfo fieldInfo) {
-        _name = fieldInfo.getAnnotation(DocumentProperty.class).value();
-        _field = fieldInfo;
-        _getter = fieldGetterFinder();
-        if(_getter==null){
+        name = fieldInfo.getAnnotation(DocumentProperty.class).value();
+        field = fieldInfo;
+        getter = fieldGetterFinder();
+        if(getter==null){
             if(fieldInfo.isPublic()){
-                _getter = fieldInfo;
-                _effectiveType = fieldInfo.getType();
+                getter = fieldInfo;
+                effectiveType = fieldInfo.getType();
             }
             else{
-                throw new RuntimeException("Cannot find getter of field "+_name+ " for entity "+fieldInfo.getDeclaringClassInfo().getFullName());
+                throw new RuntimeException("Cannot find getter of field "+name+ " for entity "+fieldInfo.getDeclaringClassInfo().getFullName());
             }
         }
         else{
-            _effectiveType = ((MethodInfo)_getter).getReturnType();
+            effectiveType = ((MethodInfo)getter).getReturnType();
         }
 
-        _setter= fieldSetterFinder();
-        if(_setter==null) {
+        setter= fieldSetterFinder();
+        if(setter==null) {
             if (fieldInfo.isPublic()) {
-                _setter = fieldInfo;
+                setter = fieldInfo;
             }
             else {
-                throw new RuntimeException("Cannot find setter of field " + _name + " for entity" + fieldInfo.getDeclaringClassInfo().getFullName());
+                throw new RuntimeException("Cannot find setter of field " + name + " for entity" + fieldInfo.getDeclaringClassInfo().getFullName());
             }
         }
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public FieldInfo getField() {
-        return _field;
+        return field;
     }
 
     public Class<?> getEffectiveTypeClass() {
@@ -129,15 +129,15 @@ public class CouchbaseDocumentFieldReflection {
     }
 
     public ParameterizedTypeInfo getEffectiveTypeInfo() {
-        return _effectiveType;
+        return effectiveType;
     }
 
     public MemberInfo getGetter() {
-        return _getter;
+        return getter;
     }
 
     public String buildGetterCode(){
-        if(_getter instanceof FieldInfo){
+        if(getter instanceof FieldInfo){
             return getGetterName();
         }
         else{
@@ -146,43 +146,43 @@ public class CouchbaseDocumentFieldReflection {
     }
 
     public String getGetterName(){
-        return _getter.getName();
+        return getter.getName();
     }
 
     public MemberInfo getSetter() {
-        return _setter;
+        return setter;
     }
 
     public String getSetterName(){
-        return _setter.getName();
+        return setter.getName();
     }
 
     public boolean isCollection() {
-        return _field.getType().isAssignableTo(Collection.class);
+        return field.getType().isAssignableTo(Collection.class);
     }
 
     public Class<?> getCollectionElementClass() {
         return getCollectionElementTypeInfo().getMainType().getCurrentClass();
     }
     public ParameterizedTypeInfo getCollectionElementTypeInfo() {
-        return _field.getType().getMainTypeGeneric(0);
+        return field.getType().getMainTypeGeneric(0);
     }
 
     public boolean isMap() {
-        return _field.getType().isAssignableTo(Map.class);
+        return field.getType().isAssignableTo(Map.class);
     }
 
     public Class<?> getMapKeyClass() {
         return getMapKeyTypeInfo().getMainType().getCurrentClass();
     }
     public ParameterizedTypeInfo getMapKeyTypeInfo() {
-        return _field.getType().getMainTypeGeneric(0);
+        return field.getType().getMainTypeGeneric(0);
     }
 
     public Class<?> getMapValueClass() {
         return getMapValueTypeInfo().getMainType().getCurrentClass();
     }
     public ParameterizedTypeInfo getMapValueTypeInfo() {
-        return _field.getType().getMainTypeGeneric(1);
+        return field.getType().getMainTypeGeneric(1);
     }
 }

@@ -31,12 +31,12 @@ import com.dreameddeath.core.process.common.AbstractTask;
  */
 public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends AbstractTask {
     @DocumentProperty("docKey")
-    private Property<String> _docKey=new ImmutableProperty<String>(DocumentCreateTask.this);
+    private Property<String> docKey=new ImmutableProperty<String>(DocumentCreateTask.this);
 
-    public String getDocKey(){return _docKey.get(); }
-    public void setDocKey(String docKey){_docKey.set(docKey); }
+    public String getDocKey(){return docKey.get(); }
+    public void setDocKey(String docKey){docKey.set(docKey); }
     public T getDocument() throws DaoException,StorageException{
-        return (T)this.getParentJob().getMeta().getSession().get(_docKey.get());
+        return (T)this.getParentJob().getMeta().getSession().get(docKey.get());
     }
 
 

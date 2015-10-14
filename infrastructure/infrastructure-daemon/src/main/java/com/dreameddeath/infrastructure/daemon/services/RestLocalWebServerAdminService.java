@@ -39,10 +39,10 @@ import java.util.List;
 @Path("/")
 public class RestLocalWebServerAdminService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalWebServerAdminService.class);
-    private AbstractDaemon _daemon;
+    private AbstractDaemon daemon;
 
     public void setDaemon(AbstractDaemon daemon){
-        _daemon = daemon;
+        this.daemon = daemon;
     }
 
     @GET
@@ -52,8 +52,8 @@ public class RestLocalWebServerAdminService {
             responseContainer = "List",
             position = 0)
     public List<WebServerInfo> getInfo(){
-        List<WebServerInfo> result = new ArrayList<>(_daemon.getAdditionalWebServers().size());
-        for(AbstractWebServer webServer:_daemon.getAdditionalWebServers()){
+        List<WebServerInfo> result = new ArrayList<>(daemon.getAdditionalWebServers().size());
+        for(AbstractWebServer webServer:daemon.getAdditionalWebServers()){
             result.add(new WebServerInfo(webServer));
         }
         return result;
@@ -126,7 +126,7 @@ public class RestLocalWebServerAdminService {
 
 
     private AbstractWebServer findByName(String name) throws NotFoundException{
-        for(AbstractWebServer webServer:_daemon.getAdditionalWebServers()){
+        for(AbstractWebServer webServer:daemon.getAdditionalWebServers()){
             if(webServer.getName().equals(name)){
                 return webServer;
             }

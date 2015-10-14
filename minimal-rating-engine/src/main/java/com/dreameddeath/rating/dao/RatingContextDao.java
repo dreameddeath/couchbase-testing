@@ -39,10 +39,10 @@ public class RatingContextDao extends CouchbaseDocumentDao<RatingContext> {
         public LocalBucketDocument(RatingContext obj){super(obj);}
     }
 
-    private static GenericJacksonTranscoder<RatingContext> _tc = new GenericJacksonTranscoder<RatingContext>(RatingContext.class,LocalBucketDocument.class);
+    private static GenericJacksonTranscoder<RatingContext> tc = new GenericJacksonTranscoder<RatingContext>(RatingContext.class,LocalBucketDocument.class);
     
     public GenericTranscoder<RatingContext> getTranscoder(){
-        return _tc;
+        return tc;
     }
     
     public RatingContextDao(CouchbaseBucketWrapper client, BaseCouchbaseDocumentDaoFactory factory){

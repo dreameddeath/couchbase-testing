@@ -29,11 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 01/08/2014.
  */
 public class ProcessingServiceFactory {
-    private Map<Class<? extends AbstractJob>, JobProcessingService<?>> _jobServicesMap
+    private Map<Class<? extends AbstractJob>, JobProcessingService<?>> jobServicesMap
             = new ConcurrentHashMap<Class<? extends AbstractJob>, JobProcessingService<?>>();
 
 
-    private Map<Class<? extends AbstractTask>, TaskProcessingService<?>> _taskServicesMap
+    private Map<Class<? extends AbstractTask>, TaskProcessingService<?>> taskServicesMap
             = new ConcurrentHashMap<Class<? extends AbstractTask>, TaskProcessingService<?>>();
 
 
@@ -44,17 +44,17 @@ public class ProcessingServiceFactory {
 
 
     public <T extends AbstractTask> void addTaskServiceFor(Class<T> entityClass,TaskProcessingService<T> service){
-        _taskServicesMap.put(entityClass, service);
+        taskServicesMap.put(entityClass, service);
     }
 
     public <T extends AbstractTask> TaskProcessingService<T> getTaskServiceForClass(Class<T> entityClass) {
-        TaskProcessingService<T> result = (TaskProcessingService<T>) _taskServicesMap.get(entityClass);
+        TaskProcessingService<T> result = (TaskProcessingService<T>) taskServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractTask.class.isAssignableFrom(parentClass)) {
                 result = getTaskServiceForClass(parentClass.asSubclass(AbstractTask.class));
                 if (result != null) {
-                    _taskServicesMap.put(entityClass, result);
+                    taskServicesMap.put(entityClass, result);
                 }
             }
         }
@@ -64,17 +64,17 @@ public class ProcessingServiceFactory {
 
 
     public <T extends AbstractJob> void addJobServiceFor(Class<T> entityClass,JobProcessingService<T> service){
-        _jobServicesMap.put(entityClass,service);
+        jobServicesMap.put(entityClass,service);
     }
 
     public <T extends AbstractJob> JobProcessingService<T> getJobServiceForClass(Class<T> entityClass) throws ExecutionServiceNotFoundException{
-        JobProcessingService<T> result = (JobProcessingService<T>) _jobServicesMap.get(entityClass);
+        JobProcessingService<T> result = (JobProcessingService<T>) jobServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractJob.class.isAssignableFrom(parentClass)) {
                 result = getJobServiceForClass(parentClass.asSubclass(AbstractJob.class));
                 if (result != null) {
-                    _jobServicesMap.put(entityClass, result);
+                    jobServicesMap.put(entityClass, result);
                 }
             }
         }

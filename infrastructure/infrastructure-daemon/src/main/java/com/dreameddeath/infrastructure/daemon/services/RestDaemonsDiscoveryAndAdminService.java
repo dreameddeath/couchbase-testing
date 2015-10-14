@@ -38,29 +38,29 @@ import java.util.List;
 @Path("/daemons")
 @Api(value = "/daemons", description = "Daemons Discovery And Administration service")
 public class RestDaemonsDiscoveryAndAdminService {
-    private IDaemonDiscovery _daemonDiscovery;
-    private ServiceClientFactory _serviceFactory;
+    private IDaemonDiscovery daemonDiscovery;
+    private ServiceClientFactory serviceFactory;
 
     public void setDaemonDiscovery(IDaemonDiscovery daemonDiscovery){
-        _daemonDiscovery = daemonDiscovery;
+        this.daemonDiscovery = daemonDiscovery;
     }
 
     public void setClientFactory(ServiceClientFactory factory){
-        _serviceFactory = factory;
+        serviceFactory = factory;
     }
 
     @GET
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<DaemonInfo> getDaemons() throws Exception{
-        return _daemonDiscovery.registeredDaemonInfoList();
+        return daemonDiscovery.registeredDaemonInfoList();
     }
 
     @GET
     @Path("/{id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public DaemonInfo getDaemon(@PathParam("id") String uid) throws Exception{
-        return _serviceFactory
+        return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .request(MediaType.APPLICATION_JSON)
@@ -71,7 +71,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Path("/{id}/status")
     @Produces({ MediaType.APPLICATION_JSON })
     public StatusResponse getDaemonStatus(@PathParam("id") String uid) throws Exception{
-        return _serviceFactory
+        return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path("/status")
@@ -84,7 +84,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
     public StatusResponse updateDaemonStatus(@PathParam("id") String uid,StatusUpdateRequest statusUpdateRequest) throws Exception{
-        return _serviceFactory
+        return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path("/status")
@@ -96,7 +96,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Path("/{id}/webservers")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<WebServerInfo> getWebservers(@PathParam("id") String uid){
-        return _serviceFactory
+        return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path("/webservers")
@@ -109,7 +109,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Path("/{id}/webservers/{wid}")
     @Produces({ MediaType.APPLICATION_JSON })
     public WebServerInfo getWebserverInfo(@PathParam("id") String uid,@PathParam("wid") String webServerId){
-        return _serviceFactory
+        return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path("/webservers/{wid}")
@@ -122,7 +122,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Path("/{id}/webservers/{wid}/status")
     @Produces({ MediaType.APPLICATION_JSON })
     public com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse getWebserverStatus(@PathParam("id") String uid,@PathParam("wid") String webServerId){
-        return _serviceFactory
+        return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path("/webservers/{wid}/status")
@@ -136,7 +136,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
     public com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse updateWebserverStatus(@PathParam("id") String uid,@PathParam("wid") String webServerId,com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusUpdateRequest updateRequest){
-        return _serviceFactory
+        return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
                 .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()))
                 .path("/webservers/{wid}/status")

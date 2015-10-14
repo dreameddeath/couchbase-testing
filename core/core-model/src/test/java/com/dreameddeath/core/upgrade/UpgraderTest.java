@@ -18,9 +18,9 @@ package com.dreameddeath.core.upgrade;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
-import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.entity.IVersionedDocument;
-import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
+import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -30,21 +30,21 @@ import static org.junit.Assert.assertEquals;
  */
 public class UpgraderTest {
     @DocumentDef(domain="test",name="test",version = "1.0.0")
-    public static class TestModel implements IVersionedDocument {
-        private EntityModelId _entityModelId;
+    public static class TestModel implements IVersionedEntity {
+        private EntityModelId entityModelId;
         @Override
         public void setDocumentFullVersionId(String versionId) {
-            _entityModelId=EntityModelId.build(versionId);
+            entityModelId=EntityModelId.build(versionId);
         }
 
         @Override
         public String getDocumentFullVersionId() {
-            return _entityModelId.toString();
+            return entityModelId.toString();
         }
 
         @Override
         public EntityModelId getModelId() {
-            return _entityModelId;
+            return entityModelId;
         }
 
         public String value;
@@ -72,7 +72,7 @@ public class UpgraderTest {
 
     @Test
     public void upgradeUnitTests(){
-        VersionUpgradeManager upgradeManager = new VersionUpgradeManager();
+        EntityVersionUpgradeManager upgradeManager = new EntityVersionUpgradeManager();
         TestModel v1 = new TestModel();
         String refValue = "A first Value";
         v1.value = refValue;

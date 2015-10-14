@@ -27,18 +27,18 @@ import com.dreameddeath.core.user.IUser;
  * Created by Christophe Jeunesse on 09/07/2015.
  */
 public class ElasticSearchSession implements IElasticSearchSession{
-    final private ElasticSearchSessionFactory _sessionFactory;
-    final private IDateTimeService _dateTimeService;
-    final private IUser _user;
+    final private ElasticSearchSessionFactory sessionFactory;
+    final private IDateTimeService dateTimeService;
+    final private IUser user;
 
     public ElasticSearchSession(ElasticSearchSessionFactory factory, IUser user){
-        _sessionFactory = factory;
-        _user = user;
-        _dateTimeService = _sessionFactory.getDateTimeServiceFactory().getService();
+        sessionFactory = factory;
+        this.user = user;
+        dateTimeService = sessionFactory.getDateTimeServiceFactory().getService();
     }
 
     @Override
     public <T extends CouchbaseDocument> ElasticSearchQuery<T> newElasticSearchQuery(Class<T> targetClass) throws MappingNotFoundException{
-        return _sessionFactory.getElasticSearchDaoFactory().getDaoForClass(targetClass).newQuery();
+        return sessionFactory.getElasticSearchDaoFactory().getDaoForClass(targetClass).newQuery();
     }
 }

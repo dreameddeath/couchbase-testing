@@ -35,30 +35,30 @@ public class ChargedToLink extends BillingAccountLink {
      *  startDate : date de debut d'application du lien
      */
     @DocumentProperty("startDate")
-    private Property<DateTime> _startDate = new StandardProperty<>(ChargedToLink.this);
+    private Property<DateTime> startDate = new StandardProperty<>(ChargedToLink.this);
     /**
      *  endDate : date de fin de l'application du lien
      */
     @DocumentProperty("endDate")
-    private Property<DateTime> _endDate = new StandardProperty<>(ChargedToLink.this);
+    private Property<DateTime> endDate = new StandardProperty<>(ChargedToLink.this);
     /**
      *  elements : List of applicable elements (empty list means all)
      */
     @DocumentProperty("elements")
-    private ListProperty<ChargeableElementFilter> _elements = new ArrayListProperty<>(ChargedToLink.this);
+    private ListProperty<ChargeableElementFilter> elements = new ArrayListProperty<>(ChargedToLink.this);
 
 
     // startDate accessors
-    public DateTime getStartDate() { return _startDate.get(); }
-    public void setStartDate(DateTime val) { _startDate.set(val); }
+    public DateTime getStartDate() { return startDate.get(); }
+    public void setStartDate(DateTime val) { startDate.set(val); }
     // endDate accessors
-    public DateTime getEndDate() { return _endDate.get(); }
-    public void setEndDate(DateTime val) { _endDate.set(val); }
+    public DateTime getEndDate() { return endDate.get(); }
+    public void setEndDate(DateTime val) { endDate.set(val); }
     // Elements Accessors
-    public List<ChargeableElementFilter> getElements() { return _elements.get(); }
-    public void setElements(Collection<ChargeableElementFilter> vals) { _elements.set(vals); }
-    public boolean addElements(ChargeableElementFilter val){ return _elements.add(val); }
-    public boolean removeElements(ChargeableElementFilter val){ return _elements.remove(val); }
+    public List<ChargeableElementFilter> getElements() { return elements.get(); }
+    public void setElements(Collection<ChargeableElementFilter> vals) { elements.set(vals); }
+    public boolean addElements(ChargeableElementFilter val){ return elements.add(val); }
+    public boolean removeElements(ChargeableElementFilter val){ return elements.remove(val); }
 
     public enum ChargeableElementFilter {
         RECURRING_TARIFFS,

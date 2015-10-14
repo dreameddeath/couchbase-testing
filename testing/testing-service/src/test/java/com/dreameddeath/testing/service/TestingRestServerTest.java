@@ -29,8 +29,8 @@ import rx.Observable;
  */
 public class TestingRestServerTest extends Assert{
     public static final String RESULT_VALUE = "test Successfull";
-    public TestingRestServer _server;
-    public CuratorTestUtils _testUtils;
+    public TestingRestServer server;
+    public CuratorTestUtils testUtils;
 
     public interface ITestServer{
         Observable<String> genValue();
@@ -39,21 +39,21 @@ public class TestingRestServerTest extends Assert{
 
     @Before
     public void initServer() throws Exception{
-        _testUtils = new CuratorTestUtils().prepare(1);
-        _server = new TestingRestServer("serverTesting", _testUtils.getClient("serverTesting"));
-        _server.registerService("TestService",ServiceExpositionDef.newRestServerIntance(new TestServerImpl()));
-        _server.start();
+        testUtils = new CuratorTestUtils().prepare(1);
+        server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"));
+        server.registerService("TestService",ServiceExpositionDef.newRestServerIntance(new TestServerImpl()));
+        server.start();
     }
 
     @Test
     public void testServer() throws Exception{
-        String value = ServiceExpositionDef.getRestClientIntance(TestServerImpl.class,ITestServer.class,_server.getClientFactory()).genValue().toBlocking().first();
+        String value = ServiceExpositionDef.getRestClientIntance(TestServerImpl.class,ITestServer.class,server.getClientFactory()).genValue().toBlocking().first();
         assertEquals(RESULT_VALUE,value);
     }
 
     @After
     public void stopServer()throws Exception{
-        _server.stop();
-        _testUtils.stop();
+        server.stop();
+        testUtils.stop();
     }
 }

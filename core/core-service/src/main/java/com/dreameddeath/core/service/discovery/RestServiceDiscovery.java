@@ -35,38 +35,38 @@ import java.util.List;
  */
 @Path("/services")
 public class RestServiceDiscovery {
-    private ServiceDiscoverer _serviceDiscoverer;
+    private ServiceDiscoverer serviceDiscoverer;
 
     public void setServiceDiscoverer(ServiceDiscoverer serviceDiscoverer){
-        _serviceDiscoverer = serviceDiscoverer;
+        this.serviceDiscoverer = serviceDiscoverer;
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/instances")
     public ServicesByNameInstanceDescription getServices() throws Exception{
-        return _serviceDiscoverer.getInstancesDescription();
+        return serviceDiscoverer.getInstancesDescription();
     }
 
     @GET
     @Path("/instances/{fullname}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServicesListInstanceDescription getService(@PathParam("fullname") String fullName) throws Exception{
-        return _serviceDiscoverer.getInstancesDescriptionByFullName(fullName);
+        return serviceDiscoverer.getInstancesDescriptionByFullName(fullName);
     }
 
     @GET
     @Path("/instances/{fullname}/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceInstanceDescription getService(@PathParam("fullname") String fullName,@PathParam("id") String id) throws Exception{
-        return new ServiceInstanceDescription(_serviceDiscoverer.getInstance(fullName,id));
+        return new ServiceInstanceDescription(serviceDiscoverer.getInstance(fullName,id));
     }
 
     @GET
     @Path("/infos/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceInfoDescription getServicesInfosByName(@PathParam("name") String name) throws Exception{
-        Collection<ServiceInfoDescription> filteredList = _serviceDiscoverer.getInstancesInfo(name);
+        Collection<ServiceInfoDescription> filteredList = serviceDiscoverer.getInstancesInfo(name);
         if(filteredList.size()==0){
             return null;
         }
@@ -77,7 +77,7 @@ public class RestServiceDiscovery {
     @Path("/infos")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceInfoDescription> getServicesInfos() throws Exception{
-        Collection<ServiceInfoDescription> services= _serviceDiscoverer.getInstancesInfo(null);
+        Collection<ServiceInfoDescription> services= serviceDiscoverer.getInstancesInfo(null);
         List<ServiceInfoDescription> result = new ArrayList<>(services.size());
         result.addAll(services);
         return result;

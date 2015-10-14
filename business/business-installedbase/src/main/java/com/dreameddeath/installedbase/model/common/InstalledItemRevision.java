@@ -29,28 +29,28 @@ public abstract class InstalledItemRevision extends CouchbaseDocumentElement {
      *  orderId : Id of the order asking for a modification
      */
     @DocumentProperty("orderId")
-    private Property<String> _orderId = new StandardProperty<String>(InstalledItemRevision.this);
+    private Property<String> orderId = new StandardProperty<String>(InstalledItemRevision.this);
     /**
      *  orderItemId : the id of the order item requesting a modification
      */
     @DocumentProperty("orderItemId")
-    private Property<String> _orderItemId = new StandardProperty<String>(InstalledItemRevision.this);
+    private Property<String> orderItemId = new StandardProperty<String>(InstalledItemRevision.this);
     /**
      *  status : Status item linked to the revision
      */
     @DocumentProperty("status")
-    private Property<InstalledStatus> _status = new StandardProperty<InstalledStatus>(InstalledItemRevision.this);
+    private Property<InstalledStatus> status = new StandardProperty<InstalledStatus>(InstalledItemRevision.this);
 
     // orderId accessors
-    public String getOrderId() { return _orderId.get(); }
-    public void setOrderId(String val) { _orderId.set(val); }
+    public String getOrderId() { return orderId.get(); }
+    public void setOrderId(String val) { orderId.set(val); }
 
     // orderItemId accessors
-    public String getOrderItemId() { return _orderItemId.get(); }
-    public void setOrderItemId(String val) { _orderItemId.set(val); }
+    public String getOrderItemId() { return orderItemId.get(); }
+    public void setOrderItemId(String val) { orderItemId.set(val); }
 
     // status accessors
-    public InstalledStatus getStatus() { return _status.get(); }
-    public void setStatus(InstalledStatus val) { _status.set(val); }
+    public InstalledStatus getStatus() { return status.get(); }
+    public void setStatus(InstalledStatus val) { status.set(val); }
 
 }

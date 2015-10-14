@@ -32,19 +32,19 @@ import java.util.List;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T>,HasParentDocumentElement {
-    BaseCouchbaseDocumentElement _parentElt;
+    BaseCouchbaseDocumentElement parentElt;
     public ArrayListProperty(BaseCouchbaseDocumentElement parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
 
 
     public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
-    public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+    public BaseCouchbaseDocumentElement getParentDocumentElement(){return parentElt;}
 
     protected boolean dirtyParent(){
-        BaseCouchbaseDocument rootDoc = _parentElt.getParentDocument();
+        BaseCouchbaseDocument rootDoc = parentElt.getParentDocument();
         if(rootDoc!=null){ rootDoc.getBaseMeta().setStateDirty();}
         return true;
     }
@@ -69,7 +69,7 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
     @Override
     public boolean add(T elt){
         if(elt instanceof HasParentDocumentElement){
-            ((HasParentDocumentElement) elt).setParentDocumentElement(_parentElt);
+            ((HasParentDocumentElement) elt).setParentDocumentElement(parentElt);
         }
         dirtyParent();
         return super.add(elt);
@@ -79,7 +79,7 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
     public boolean addAll(Collection<? extends T> list){
         for(T elt : list){
             if(elt instanceof HasParentDocumentElement){
-                ((HasParentDocumentElement) elt).setParentDocumentElement(_parentElt);
+                ((HasParentDocumentElement) elt).setParentDocumentElement(parentElt);
             }
         }
         dirtyParent();

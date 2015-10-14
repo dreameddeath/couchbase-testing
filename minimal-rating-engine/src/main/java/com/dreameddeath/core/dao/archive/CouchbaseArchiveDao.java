@@ -25,16 +25,16 @@ import com.dreameddeath.core.model.document.BucketDocument;
  * Created by Christophe Jeunesse on 17/09/2014.
  */
 public abstract class CouchbaseArchiveDao<T extends CouchbaseDocument> {
-    private CouchbaseBucketWrapper _client;
+    private CouchbaseBucketWrapper client;
 
     public abstract Transcoder<BucketDocument<T>,T> getTranscoder();
 
     protected CouchbaseBucketWrapper getClientWrapper(){
-        return _client;
+        return client;
     }
 
     public CouchbaseArchiveDao(CouchbaseBucketWrapper client,String key, Integer expiration){
-        _client = client;
-        Integer _expiration = expiration;
+        this.client = client;
+        //Integer expiration = expiration;
     }
 }

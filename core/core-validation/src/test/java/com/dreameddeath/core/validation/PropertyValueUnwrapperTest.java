@@ -64,11 +64,11 @@ public class PropertyValueUnwrapperTest extends Assert{
          *  test : Test Property
          */
         @DocumentProperty("test") @Size(min = 3) @NotNull @UnwrapValidatedValue
-        private Property<String> _test = new StandardProperty<String>(TestProperty.this);
+        private Property<String> test = new StandardProperty<String>(TestProperty.this);
 
         // test accessors
-        public String getTest() { return _test.get(); }
-        public void setTest(String val) { _test.set(val); }
+        public String getTest() { return test.get(); }
+        public void setTest(String val) { test.set(val); }
     }
 
     @Test

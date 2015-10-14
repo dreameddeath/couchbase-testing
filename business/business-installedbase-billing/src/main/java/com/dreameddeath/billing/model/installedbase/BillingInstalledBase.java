@@ -49,34 +49,34 @@ public class BillingInstalledBase extends BillingAccountContributor {
      *  ba : Link toward the parent billing account
      */
     @DocumentProperty(value = "ba",getter = "getBaLink",setter = "setBaLink") @NotNull
-    private Property<BillingAccountLink> _ba = new StandardProperty<BillingAccountLink>(BillingInstalledBase.this);
+    private Property<BillingAccountLink> ba = new StandardProperty<BillingAccountLink>(BillingInstalledBase.this);
     /**
      *  installedBaseLink : Link toward the installed based being billed
      */
     @DocumentProperty("installedBaseLink") @NotNull
-    private Property<InstalledBaseLink> _installedBaseLink = new StandardProperty<InstalledBaseLink>(BillingInstalledBase.this);
+    private Property<InstalledBaseLink> installedBaseLink = new StandardProperty<InstalledBaseLink>(BillingInstalledBase.this);
     /**
      *  billingItems : List the corresponding billing Items
      */
     @DocumentProperty("billingItems")
-    private ListProperty<BillingInstalledBaseItem> _billingInstalledBaseItems = new ArrayListProperty<BillingInstalledBaseItem>(BillingInstalledBase.this);
+    private ListProperty<BillingInstalledBaseItem> billingInstalledBaseItems = new ArrayListProperty<BillingInstalledBaseItem>(BillingInstalledBase.this);
     /**
      *  itemIdNextKey : Next key for item ids
      */
     @DocumentProperty("itemIdNextKey")
-    private NumericProperty<Long> _itemIdNextKey = new StandardLongProperty(BillingInstalledBase.this);
+    private NumericProperty<Long> itemIdNextKey = new StandardLongProperty(BillingInstalledBase.this);
 
 
     // BillingItems Accessors
-    public List<BillingInstalledBaseItem> getBillingItems() { return _billingInstalledBaseItems.get(); }
-    public void setBillingItems(Collection<BillingInstalledBaseItem> vals) { _billingInstalledBaseItems.set(vals); }
+    public List<BillingInstalledBaseItem> getBillingItems() { return billingInstalledBaseItems.get(); }
+    public void setBillingItems(Collection<BillingInstalledBaseItem> vals) { billingInstalledBaseItems.set(vals); }
     public boolean addBillingItems(BillingInstalledBaseItem val){
         buildItemId(val);
-        return _billingInstalledBaseItems.add(val);
+        return billingInstalledBaseItems.add(val);
     }
-    public boolean removeBillingItems(BillingInstalledBaseItem val){ return _billingInstalledBaseItems.remove(val); }
+    public boolean removeBillingItems(BillingInstalledBaseItem val){ return billingInstalledBaseItems.remove(val); }
     public BillingInstalledBaseItem getItemById(Long id){
-        for(BillingInstalledBaseItem item:_billingInstalledBaseItems){
+        for(BillingInstalledBaseItem item:billingInstalledBaseItems){
             if(item.getId().equals(id)){return item;}
         }
         return null;
@@ -86,15 +86,15 @@ public class BillingInstalledBase extends BillingAccountContributor {
     }
 
     // installedBaseLink accessors
-    public InstalledBaseLink getInstalledBaseLink() { return _installedBaseLink.get(); }
-    public void setInstalledBaseLink(InstalledBaseLink val) { _installedBaseLink.set(val); }
+    public InstalledBaseLink getInstalledBaseLink() { return installedBaseLink.get(); }
+    public void setInstalledBaseLink(InstalledBaseLink val) { installedBaseLink.set(val); }
 
     // ba accessors
-    public BillingAccountLink getBaLink() { return _ba.get(); }
-    public void setBaLink(BillingAccountLink val) { _ba.set(val); }
+    public BillingAccountLink getBaLink() { return ba.get(); }
+    public void setBaLink(BillingAccountLink val) { ba.set(val); }
     // itemIdNextKey accessors
-    public Long getItemIdNextKey() { return _itemIdNextKey.get(); }
-    public void setItemIdNextKey(Long val) { _itemIdNextKey.set(val); }
-    public void buildItemId(BillingInstalledBaseItem item) { item.setId(_itemIdNextKey.inc(1).get());}
+    public Long getItemIdNextKey() { return itemIdNextKey.get(); }
+    public void setItemIdNextKey(Long val) { itemIdNextKey.set(val); }
+    public void buildItemId(BillingInstalledBaseItem item) { item.setId(itemIdNextKey.inc(1).get());}
 
 }

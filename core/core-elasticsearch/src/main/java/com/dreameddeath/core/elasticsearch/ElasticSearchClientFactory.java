@@ -23,11 +23,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 26/05/2015.
  */
 public class ElasticSearchClientFactory {
-    private Map<String,ElasticSearchClient> _clientClusterMap = new ConcurrentHashMap<>();
+    private Map<String,ElasticSearchClient> clientClusterMap = new ConcurrentHashMap<>();
 
     public ElasticSearchClientFactory(){}
 
     public void addElasticSearchClient(String clusterName,ElasticSearchClient client){
-        _clientClusterMap.put(clusterName,client);
+        clientClusterMap.put(clusterName,client);
     }
 }

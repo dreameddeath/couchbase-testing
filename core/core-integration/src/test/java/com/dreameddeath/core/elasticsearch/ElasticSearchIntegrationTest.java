@@ -134,19 +134,19 @@ public class ElasticSearchIntegrationTest {
         }
     }
 
-    Utils.TestEnvironment _env;
+    Utils.TestEnvironment env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
-        _env.addDocumentDao(new TestDao(), TestDoc.class);
-        _env.start();
+        env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
+        env.addDocumentDao(new TestDao(), TestDoc.class);
+        env.start();
     }
 
 
 
     @Test
     public void test() throws Exception{
-        ICouchbaseSession session = _env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession(null);
         for(int i=0;i<10;++i){
             TestDoc doc = session.newEntity(TestDoc.class);
             doc.strVal="test "+i;
@@ -165,8 +165,8 @@ public class ElasticSearchIntegrationTest {
 
         //_env.getEsServer()
         //Thread.sleep(10000);
-        IElasticSearchSession esSession = _env.getEsSessionFactory().newSession(null);
-        _env.fullElasticSearchReSync();
+        IElasticSearchSession esSession = env.getEsSessionFactory().newSession(null);
+        env.fullElasticSearchReSync();
 
         ElasticSearchResult<TestDoc> result = esSession.newElasticSearchQuery(TestDoc.class).setQuery(QueryBuilders.matchAllQuery()).setSize(20).search();
         //result.getTotalHitCount();

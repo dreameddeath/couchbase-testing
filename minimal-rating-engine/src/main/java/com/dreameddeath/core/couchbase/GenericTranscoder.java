@@ -31,16 +31,16 @@ import java.lang.reflect.InvocationTargetException;
  */
 public abstract class GenericTranscoder<T extends BaseCouchbaseDocument> implements Transcoder<BucketDocument<T>,T> {
     private final static Logger logger = LoggerFactory.getLogger(GenericTranscoder.class);
-    private final Class<T> _dummyClass;
-    private final Class<? extends BucketDocument<T>> _baseDocumentClazz;
-    private final Constructor<? extends BucketDocument<T>> _baseDocumentContructor;
+    private final Class<T> dummyClass;
+    private final Class<? extends BucketDocument<T>> baseDocumentClazz;
+    private final Constructor<? extends BucketDocument<T>> baseDocumentContructor;
 
     public GenericTranscoder(Class<T> clazz, Class<? extends BucketDocument<T>> baseDocumentClazz) {
         super();
         try {
-            _dummyClass = clazz;
-            _baseDocumentClazz = baseDocumentClazz;
-            _baseDocumentContructor = _baseDocumentClazz.getDeclaredConstructor(_dummyClass);
+            dummyClass = clazz;
+            this.baseDocumentClazz = baseDocumentClazz;
+            baseDocumentContructor = baseDocumentClazz.getDeclaredConstructor(dummyClass);
 
         } catch (Exception e) {
             logger.error("Error during transcoder init for class <{}>", clazz.getName(), e);
@@ -48,7 +48,7 @@ public abstract class GenericTranscoder<T extends BaseCouchbaseDocument> impleme
         }
     }
 
-    public final Class<T> getBaseClass(){ return _dummyClass;}
+    public final Class<T> getBaseClass(){ return dummyClass;}
 
     @Override
     public BucketDocument<T> newDocument(String id, int expiry, T content, long cas) {
@@ -56,7 +56,7 @@ public abstract class GenericTranscoder<T extends BaseCouchbaseDocument> impleme
         content.getBaseMeta().setCas(cas);
         content.getBaseMeta().setExpiry(expiry);
         try {
-            return _baseDocumentContructor.newInstance(content);
+            return baseDocumentContructor.newInstance(content);
         } catch (IllegalAccessException e) {
             throw new DocumentSetUpException("Error during setup", e);
         } catch (InstantiationException e) {
@@ -68,7 +68,7 @@ public abstract class GenericTranscoder<T extends BaseCouchbaseDocument> impleme
 
     public BucketDocument<T> newDocument(T baseDocument){
         try {
-            return _baseDocumentContructor.newInstance(baseDocument);
+            return baseDocumentContructor.newInstance(baseDocument);
         } catch (IllegalAccessException e) {
             throw new DocumentSetUpException("Error during setup", e);
         } catch (InstantiationException e) {
@@ -80,6 +80,6 @@ public abstract class GenericTranscoder<T extends BaseCouchbaseDocument> impleme
 
     @Override
     public Class<BucketDocument<T>> documentType() {
-        return (Class<BucketDocument<T>>)_baseDocumentClazz;
+        return (Class<BucketDocument<T>>)baseDocumentClazz;
     }
 }

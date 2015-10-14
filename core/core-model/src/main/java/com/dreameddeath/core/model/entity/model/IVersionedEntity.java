@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.model.entity;
+package com.dreameddeath.core.model.entity.model;
 
 /**
  * Created by Christophe Jeunesse on 28/11/2014.
  */
-public interface IVersionedDocument {
+public interface IVersionedEntity {
     void setDocumentFullVersionId(String typeId);
     String getDocumentFullVersionId();
     EntityModelId getModelId();

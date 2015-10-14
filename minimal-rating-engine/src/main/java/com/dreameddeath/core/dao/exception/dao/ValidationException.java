@@ -29,72 +29,72 @@ import java.util.List;
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class ValidationException extends DaoException {
-    BaseCouchbaseDocumentElement _docElt;
-    AccessibleObject _field;
-    Object _value;
-    Long _iterablePos;
-    List<ValidationException> _childList;
+    BaseCouchbaseDocumentElement docElt;
+    AccessibleObject field;
+    Object value;
+    Long iterablePos;
+    List<ValidationException> childList;
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,String message,List<ValidationException> listChildException){
         super(message);
-        _docElt = docElt;
-        _field = field;
-        _childList = listChildException;
+        this.docElt = docElt;
+        this.field = field;
+        childList = listChildException;
     }
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,String message,List<ValidationException> listChildException){
         super(message);
-        _docElt = docElt;
-        _childList = listChildException;
+        this.docElt = docElt;
+        childList = listChildException;
     }
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,Long iterablePos,String message,List<ValidationException> listChildException){
         super(message);
-        _docElt = docElt;
-        _iterablePos = iterablePos;
-        _childList = listChildException;
+        this.docElt = docElt;
+        this.iterablePos = iterablePos;
+        childList = listChildException;
     }
 
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,String message){
         super(message);
-        _docElt = docElt;
-        _field = field;
+        this.docElt = docElt;
+        this.field = field;
     }
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,String message,Throwable e){
         super(message,e);
-        _docElt = docElt;
-        _field = field;
+        this.docElt = docElt;
+        this.field = field;
     }
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Throwable e){
         super(e);
-        _docElt = docElt;
-        _field = field;
+        this.docElt = docElt;
+        this.field = field;
     }
 
 
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Object value,String message){
         super(message);
-        _docElt = docElt;
-        _field = field;
-        _value = value;
+        this.docElt = docElt;
+        this.field = field;
+        this.value = value;
     }
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Object value,String message,Throwable e){
         super(message,e);
-        _docElt = docElt;
-        _field = field;
-        _value = value;
+        this.docElt = docElt;
+        this.field = field;
+        this.value = value;
     }
 
     public ValidationException(BaseCouchbaseDocumentElement docElt,AccessibleObject field,Object value,Throwable e){
         super(e);
-        _docElt = docElt;
-        _field = field;
-        _value = value;
+        this.docElt = docElt;
+        this.field = field;
+        this.value = value;
     }
 
     @SuppressWarnings("StringBufferMayBeStringBuilder")
@@ -103,11 +103,11 @@ public class ValidationException extends DaoException {
         boolean hasSubBlock=false;
         for(int i=0;i<level;++i){buf.append("  ");}
 
-        if(_field==null){
-            buf.append(_docElt.getClass().getSimpleName()).append(" ");
-            if(_docElt instanceof CouchbaseDocument){
+        if(field==null){
+            buf.append(docElt.getClass().getSimpleName()).append(" ");
+            if(docElt instanceof CouchbaseDocument){
                 buf.append("The document [");
-                String key = ((CouchbaseDocument) _docElt).getBaseMeta().getKey();
+                String key = ((CouchbaseDocument) docElt).getBaseMeta().getKey();
                 if(key!=null){ buf.append(key); }
                 else{ buf.append("NEW");}
                 buf.append("] ");
@@ -117,23 +117,23 @@ public class ValidationException extends DaoException {
             }
             hasSubBlock=true;
         }
-        else if(!_field.equals(parentField)){
-            if(_field instanceof Field){
+        else if(!field.equals(parentField)){
+            if(field instanceof Field){
                 buf.append("The field ");
-                DocumentProperty docProp = _field.getAnnotation(DocumentProperty.class);
+                DocumentProperty docProp = field.getAnnotation(DocumentProperty.class);
                 if(docProp!=null){buf.append(docProp.value());}
-                else {buf.append(((Field) _field).getName());}
+                else {buf.append(((Field) field).getName());}
                 buf.append(" ");
                 hasSubBlock=true;
             }
-            else if(_field instanceof Method){
+            else if(field instanceof Method){
                 buf.append("The method ");
-                buf.append(((Method)_field).getName()).append("() ");
+                buf.append(((Method)field).getName()).append("() ");
                 hasSubBlock=true;
             }
         }
-        else if(_iterablePos!=null){
-            buf.append("[").append(_iterablePos).append("] ");
+        else if(iterablePos!=null){
+            buf.append("[").append(iterablePos).append("] ");
             hasSubBlock=true;
         }
 
@@ -141,9 +141,9 @@ public class ValidationException extends DaoException {
 
         if(hasSubBlock){ buf.append(" {\n"); }
 
-        if(_childList!=null) {
-            for (ValidationException a_childList : _childList) {
-                buf.append(a_childList.formatValidationIssues(_field, level + 1));
+        if(childList!=null) {
+            for (ValidationException a_childList : childList) {
+                buf.append(a_childList.formatValidationIssues(field, level + 1));
             }
         }
         else if(getCause()!=null){

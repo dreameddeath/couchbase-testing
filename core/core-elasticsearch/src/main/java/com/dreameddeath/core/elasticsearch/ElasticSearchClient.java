@@ -23,11 +23,8 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -44,12 +41,12 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 25/05/2015.
  */
 public class ElasticSearchClient {
-    private Client _client;
-    private ObjectMapper _objectMapper;
+    private Client client;
+    private ObjectMapper objectMapper;
 
     public ElasticSearchClient(Client client,ObjectMapper mapper){
-        _client = client;
-        _objectMapper = mapper;
+        this.client = client;
+        objectMapper = mapper;
     }
 
     public boolean isIndexExists(String indexName){
@@ -59,15 +56,16 @@ public class ElasticSearchClient {
 
     public void createIndex(String indexName){
         synchronized (this) {
-            CreateIndexResponse createResponse = getInternalClient().admin().indices().prepareCreate(indexName).execute().actionGet();
-            //TODO manage Error
-            ClusterHealthResponse statusCheckResponse = getInternalClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
+            getInternalClient().admin().indices().prepareCreate(indexName).execute().actionGet();
+            //TODO check and manage error
+            getInternalClient().admin().cluster().prepareHealth(indexName).setWaitForActiveShards(1).execute().actionGet();
         }
     }
 
     public void syncIndexes(){
         synchronized (this) {
-            RefreshResponse refreshResponse = getInternalClient().admin().indices().prepareRefresh().execute().actionGet();
+            getInternalClient().admin().indices().prepareRefresh().execute().actionGet();
+            //TODO check and manage error
         }
     }
 
@@ -78,15 +76,15 @@ public class ElasticSearchClient {
     }
 
     public Observable<GetResponse> get(String indexName,String type,String key){
-        ActionFuture<GetResponse> asyncRes = _client.prepareGet(indexName, type, key).execute();
+        ActionFuture<GetResponse> asyncRes = client.prepareGet(indexName, type, key).execute();
         return Observable.from(asyncRes);//TODO manage common errors
     }
 
 
     public Observable<IndexResponse> create(String indexName,String type,CouchbaseDocument doc) throws JsonEncodingException{
         try {
-            byte[] encodedStr = _objectMapper.writeValueAsBytes(doc);
-            ActionFuture<IndexResponse> asyncRes = _client.prepareIndex(indexName, type, doc.getBaseMeta().getKey())
+            byte[] encodedStr = objectMapper.writeValueAsBytes(doc);
+            ActionFuture<IndexResponse> asyncRes = client.prepareIndex(indexName, type, doc.getBaseMeta().getKey())
                     .setSource(encodedStr)
                     //.setVersion(doc.getBaseMeta().getCas()).setVersionType(VersionType.EXTERNAL)
                     .execute();
@@ -100,8 +98,8 @@ public class ElasticSearchClient {
 
     public Observable<UpdateResponse> update(String indexName,String type,CouchbaseDocument doc) throws JsonEncodingException{
         try {
-            byte[] encodedStr = _objectMapper.writeValueAsBytes(doc);
-            ActionFuture<UpdateResponse> asyncRes = _client.prepareUpdate(indexName, type, doc.getBaseMeta().getKey())
+            byte[] encodedStr = objectMapper.writeValueAsBytes(doc);
+            ActionFuture<UpdateResponse> asyncRes = client.prepareUpdate(indexName, type, doc.getBaseMeta().getKey())
                     .setDoc(encodedStr)
                     .setVersion(doc.getBaseMeta().getCas()).setVersionType(VersionType.EXTERNAL)
                     .execute();
@@ -114,8 +112,8 @@ public class ElasticSearchClient {
 
     public Observable<UpdateResponse> upsert(String indexName,String type,CouchbaseDocument doc) throws JsonEncodingException{
         try {
-            byte[] encodedStr = _objectMapper.writeValueAsBytes(doc);
-            ActionFuture<UpdateResponse> asyncRes = _client.prepareUpdate(indexName, type, doc.getBaseMeta().getKey())
+            byte[] encodedStr = objectMapper.writeValueAsBytes(doc);
+            ActionFuture<UpdateResponse> asyncRes = client.prepareUpdate(indexName, type, doc.getBaseMeta().getKey())
                     .setDoc(encodedStr)
                     //.setVersion(doc.getBaseMeta().getCas()).setVersionType(VersionType.EXTERNAL)
                     .setUpsert(
@@ -133,7 +131,7 @@ public class ElasticSearchClient {
 
 
     public Observable<DeleteResponse> delete(String indexName,String type,String key){
-        ActionFuture<DeleteResponse> asyncRes = _client.prepareDelete(indexName, type, key).execute();
+        ActionFuture<DeleteResponse> asyncRes = client.prepareDelete(indexName, type, key).execute();
         return Observable.from(asyncRes);//TODO manage common errors
     }
 
@@ -147,15 +145,15 @@ public class ElasticSearchClient {
     }
 
     public Observable<SearchResponse> search(String[] indexes,String[] types,String query){
-        ActionFuture<SearchResponse> asyncRes = _client.prepareSearch(indexes).setTypes(types).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).execute();
+        ActionFuture<SearchResponse> asyncRes = client.prepareSearch(indexes).setTypes(types).setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setQuery(query).execute();
         return Observable.from(asyncRes);//TODO manage common errors
     }
 
     public ObjectMapper getObjectMapper(){
-        return _objectMapper;
+        return objectMapper;
     }
 
     public Client getInternalClient() {
-        return _client;
+        return client;
     }
 }

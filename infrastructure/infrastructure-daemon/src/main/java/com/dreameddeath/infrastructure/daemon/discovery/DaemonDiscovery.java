@@ -32,11 +32,11 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 17/09/2015.
  */
 public class DaemonDiscovery implements IDaemonDiscovery {
-    private final CuratorFramework _curatorFramework;
-    private PersistentEphemeralNode _currDaemonNode = null;
+    private final CuratorFramework curatorFramework;
+    private PersistentEphemeralNode currDaemonNode = null;
 
     public DaemonDiscovery(CuratorFramework curatorFramework) {
-        _curatorFramework = curatorFramework;
+        this.curatorFramework = curatorFramework;
     }
 
     private String getAndCreateRootPath() throws Exception {
@@ -44,8 +44,8 @@ public class DaemonDiscovery implements IDaemonDiscovery {
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
-        if (_curatorFramework.checkExists().forPath(path) == null) {
-            _curatorFramework.create().creatingParentsIfNeeded().forPath(path);
+        if (curatorFramework.checkExists().forPath(path) == null) {
+            curatorFramework.create().creatingParentsIfNeeded().forPath(path);
         }
         return path;
     }
@@ -56,8 +56,7 @@ public class DaemonDiscovery implements IDaemonDiscovery {
     }
 
     private PersistentEphemeralNode setupNode(AbstractDaemon daemon) throws Exception {
-        String rootPath = getAndCreateRootPath();
-        PersistentEphemeralNode node = new PersistentEphemeralNode(_curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL, getAndDaemonPath(daemon), serializeDaemonInfo(daemon));
+        PersistentEphemeralNode node = new PersistentEphemeralNode(curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL, getAndDaemonPath(daemon), serializeDaemonInfo(daemon));
         node.start();
         node.waitForInitialCreate(1, TimeUnit.SECONDS);
         return node;
@@ -71,34 +70,34 @@ public class DaemonDiscovery implements IDaemonDiscovery {
 
     @Override
     synchronized public void register(AbstractDaemon daemon) throws Exception {
-        _currDaemonNode = setupNode(daemon);
+        currDaemonNode = setupNode(daemon);
     }
 
     @Override
     synchronized public void unregister(AbstractDaemon daemon) throws Exception {
-        if (_currDaemonNode != null) {
-            _currDaemonNode.close();
-            _currDaemonNode = null;
+        if (currDaemonNode != null) {
+            currDaemonNode.close();
+            currDaemonNode = null;
         }
     }
 
     @Override
     synchronized public void update(AbstractDaemon daemon) throws Exception {
-        if (_currDaemonNode == null) {
-            _currDaemonNode = setupNode(daemon);
+        if (currDaemonNode == null) {
+            currDaemonNode = setupNode(daemon);
         }
         else {
-            _currDaemonNode.setData(serializeDaemonInfo(daemon));
+            currDaemonNode.setData(serializeDaemonInfo(daemon));
         }
     }
 
     @Override
     public List<DaemonInfo> registeredDaemonInfoList() throws Exception {
         String rootPath = getAndCreateRootPath();
-        List<String> childrenPathList = _curatorFramework.getChildren().forPath(rootPath);
+        List<String> childrenPathList = curatorFramework.getChildren().forPath(rootPath);
         List<DaemonInfo> result = new ArrayList<>(childrenPathList.size());
         for (String childrenPath : childrenPathList) {
-            byte[] childrenData = _curatorFramework.getData().forPath(rootPath + "/" + childrenPath);
+            byte[] childrenData = curatorFramework.getData().forPath(rootPath + "/" + childrenPath);
             DaemonInfo info = DaemonJacksonMapper.getInstance().readValue(childrenData, DaemonInfo.class);
             result.add(info);
         }
@@ -108,7 +107,7 @@ public class DaemonDiscovery implements IDaemonDiscovery {
     @Override
     public DaemonInfo registeredDaemonInfo(String id) throws Exception {
         String rootPath = getAndCreateRootPath();
-        byte[] childrenData = _curatorFramework.getData().forPath(rootPath + "/" + id);
+        byte[] childrenData = curatorFramework.getData().forPath(rootPath + "/" + id);
         return DaemonJacksonMapper.getInstance().readValue(childrenData, DaemonInfo.class);
     }
 }

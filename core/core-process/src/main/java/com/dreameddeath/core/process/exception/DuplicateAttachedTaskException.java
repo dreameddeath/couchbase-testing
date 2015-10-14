@@ -22,9 +22,9 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  * Created by Christophe Jeunesse on 20/11/2014.
  */
 public class DuplicateAttachedTaskException extends Exception {
-    private String _taskUid;
-    private String _jobKey;
-    private CouchbaseDocument _doc;
+    private String taskUid;
+    private String jobKey;
+    private CouchbaseDocument doc;
 
 
     public DuplicateAttachedTaskException(CouchbaseDocument doc, String jobKey,String taskUid){
@@ -33,9 +33,9 @@ public class DuplicateAttachedTaskException extends Exception {
 
     public DuplicateAttachedTaskException(CouchbaseDocument doc,String jobKey, String taskUid,  String message){
         super(message);
-        _doc = doc;
-        _jobKey = jobKey;
-        _taskUid = taskUid;
+        this.doc = doc;
+        this.jobKey = jobKey;
+        this.taskUid = taskUid;
     }
 
 }

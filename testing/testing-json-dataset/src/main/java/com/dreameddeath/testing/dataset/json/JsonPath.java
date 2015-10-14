@@ -25,21 +25,21 @@ import java.util.List;
  * Created by Christophe Jeunesse on 08/12/2014.
  */
 public class JsonPath {
-    private String _path;
-    private PartType _type;
-    private String _localName;
-    private String _subPath;
-    private JsonPath _subJsonPath;
+    private String path;
+    private PartType type;
+    private String localName;
+    private String subPath;
+    private JsonPath subJsonPath;
 
     protected void parsePath(){
-        if(_path.contains(".")){
-            _localName = _path.substring(0,_path.indexOf('.'));
-            _subPath = _path.substring(_path.indexOf('.')+1);
+        if(path.contains(".")){
+            localName = path.substring(0,path.indexOf('.'));
+            subPath = path.substring(path.indexOf('.')+1);
         }
         else{
-            _localName = _path;
-            _subPath = null;
-            _subJsonPath = null;
+            localName = path;
+            subPath = null;
+            subJsonPath = null;
         }
     }
 
@@ -54,8 +54,8 @@ public class JsonPath {
         return result;
     }
 
-    public String getPath(){return _path;}
-    public void setPath(String path){ _path=path; parsePath();}
+    public String getPath(){return path;}
+    public void setPath(String path){ this.path=path; parsePath();}
 
     public enum PartType{
         STD,

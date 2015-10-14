@@ -26,17 +26,17 @@ import java.util.regex.Pattern;
  * Created by Christophe Jeunesse on 02/09/2014.
  */
 public class CouchbaseCounterDaoFactory {
-    private Map<Pattern,CouchbaseCounterDao> _patternsMap
+    private Map<Pattern,CouchbaseCounterDao> patternsMap
             = new ConcurrentHashMap<Pattern,CouchbaseCounterDao>();
 
     public void addDao(CouchbaseCounterDao dao){
-        _patternsMap.put(Pattern.compile("^"+dao.getKeyPattern()+"$"),dao);
+        patternsMap.put(Pattern.compile("^"+dao.getKeyPattern()+"$"),dao);
     }
 
     public CouchbaseCounterDao getDaoForKey(String key) throws DaoNotFoundException {
-        for(Pattern pattern:_patternsMap.keySet()){
+        for(Pattern pattern:patternsMap.keySet()){
             if(pattern.matcher(key).matches()){
-                return _patternsMap.get(pattern);
+                return patternsMap.get(pattern);
             }
         }
         throw new DaoNotFoundException(key, DaoNotFoundException.Type.COUNTER);

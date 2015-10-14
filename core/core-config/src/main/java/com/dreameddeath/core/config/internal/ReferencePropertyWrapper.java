@@ -24,12 +24,12 @@ import com.dreameddeath.core.config.IConfigProperty;
  * Created by Christophe Jeunesse on 22/05/2015.
  */
 public abstract class ReferencePropertyWrapper<T> extends ExtendedPropertyWrapper<T> {
-    private IConfigProperty<T> _defaultRefProperty;
+    private IConfigProperty<T> defaultRefProperty;
 
     protected ReferencePropertyWrapper(String name, IConfigProperty<T> defaultRefProperty) {
         super(name, defaultRefProperty.getDefaultValue());
-        _defaultRefProperty = defaultRefProperty;
-        _defaultRefProperty.addCallback(new RefChangeCallBack<>(this));
+        this.defaultRefProperty = defaultRefProperty;
+        defaultRefProperty.addCallback(new RefChangeCallBack<>(this));
     }
 
     public abstract T getLocalValue();
@@ -41,21 +41,21 @@ public abstract class ReferencePropertyWrapper<T> extends ExtendedPropertyWrappe
 
     @Override
     public T getDefaultValue() {
-        return _defaultRefProperty.getValue();
+        return defaultRefProperty.getValue();
     }
 
     protected static class RefChangeCallBack<T> implements ConfigPropertyChangedCallback<T> {
-        private ReferencePropertyWrapper<T> _refProperty;
+        private ReferencePropertyWrapper<T> refProperty;
 
         protected RefChangeCallBack(ReferencePropertyWrapper<T> ref) {
-            _refProperty = ref;
+            refProperty = ref;
         }
 
         @Override
         public void onChange(IConfigProperty<T> prop, T oldValue, T newValue) {
-            if (_refProperty.getLocalValue() == null) {
-                _refProperty.propertyChanged(newValue);
-                ConfigPropertyFactory.fireCallback(_refProperty.getName(), newValue);
+            if (refProperty.getLocalValue() == null) {
+                refProperty.propertyChanged(newValue);
+                ConfigPropertyFactory.fireCallback(refProperty.getName(), newValue);
             }
         }
     }

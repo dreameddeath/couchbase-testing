@@ -36,21 +36,21 @@ public class BillingInstalledBaseItem extends CouchbaseDocumentElement {
      *  id : internal id of the item for crossrefs
      */
     @DocumentProperty("id")
-    private Property<Long> _id = new StandardProperty<Long>(BillingInstalledBaseItem.this);
+    private Property<Long> id = new StandardProperty<Long>(BillingInstalledBaseItem.this);
     /**
      *  statuses : List of statuses (history by dates)
      */
     @DocumentProperty("statuses")
-    private ListProperty<BillingInstalledBaseItemStatus> _statuses = new ArrayListProperty<BillingInstalledBaseItemStatus>(BillingInstalledBaseItem.this);
+    private ListProperty<BillingInstalledBaseItemStatus> statuses = new ArrayListProperty<BillingInstalledBaseItemStatus>(BillingInstalledBaseItem.this);
 
     // id accessors
-    public Long getId() { return _id.get(); }
-    public void setId(Long val) { _id.set(val); }
+    public Long getId() { return id.get(); }
+    public void setId(Long val) { id.set(val); }
     // Statuses Accessors
-    public List<BillingInstalledBaseItemStatus> getStatuses() { return _statuses.get(); }
-    public void setStatuses(Collection<BillingInstalledBaseItemStatus> vals) { _statuses.set(vals); }
-    public boolean addStatuses(BillingInstalledBaseItemStatus val){ return _statuses.add(val); }
-    public boolean removeStatuses(BillingInstalledBaseItemStatus val){ return _statuses.remove(val); }
+    public List<BillingInstalledBaseItemStatus> getStatuses() { return statuses.get(); }
+    public void setStatuses(Collection<BillingInstalledBaseItemStatus> vals) { statuses.set(vals); }
+    public boolean addStatuses(BillingInstalledBaseItemStatus val){ return statuses.add(val); }
+    public boolean removeStatuses(BillingInstalledBaseItemStatus val){ return statuses.remove(val); }
 
     public BillingInstalledBaseItem getItemById(Long id){ return Helper.getFirstParentOfClass(this,BillingInstalledBase.class).getItemById(id);}
     public <T extends BillingInstalledBaseItem> T getItemById(Long id,Class<T> clazz){ return (T)getItemById(id);}

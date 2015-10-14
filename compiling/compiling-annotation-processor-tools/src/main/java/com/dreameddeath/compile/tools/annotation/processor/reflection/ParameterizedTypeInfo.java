@@ -31,21 +31,21 @@ import java.util.List;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class ParameterizedTypeInfo{
-    private String _name;
-    private Type _type;
-    List<AbstractClassInfo> _parameterizedInfosList=new ArrayList<>();
-    List<ParameterizedTypeInfo> _parametersGenericsInfo = new ArrayList<>();
+    private String name;
+    private Type type;
+    List<AbstractClassInfo> parameterizedInfosList=new ArrayList<>();
+    List<ParameterizedTypeInfo> parametersGenericsInfo = new ArrayList<>();
 
     private void addType(DeclaredType type){
         if(type.asElement().getKind().isInterface()){
-            _parameterizedInfosList.add(AbstractClassInfo.getClassInfo((TypeElement)type.asElement()));
+            parameterizedInfosList.add(AbstractClassInfo.getClassInfo((TypeElement)type.asElement()));
         }
         else if(type.asElement().getKind().isClass()){
-            _parameterizedInfosList.add(AbstractClassInfo.getClassInfo((TypeElement) type.asElement()));
+            parameterizedInfosList.add(AbstractClassInfo.getClassInfo((TypeElement) type.asElement()));
         }
 
         for(TypeMirror parameterElement:type.getTypeArguments()){
-            _parametersGenericsInfo.add(new ParameterizedTypeInfo(parameterElement));
+            parametersGenericsInfo.add(new ParameterizedTypeInfo(parameterElement));
         }
     }
 
@@ -61,31 +61,31 @@ public class ParameterizedTypeInfo{
         }
     }
 
-    public ParameterizedTypeInfo(TypeParameterElement type) {
-        for(TypeMirror subType:type.getBounds()){
+    public ParameterizedTypeInfo(TypeParameterElement typeParameter) {
+        for(TypeMirror subType:typeParameter.getBounds()){
             addType(subType);
         }
-        if(_parameterizedInfosList.size()>0) {
-            _type = getMainType().getCurrentClass();
+        if(parameterizedInfosList.size()>0) {
+            type = getMainType().getCurrentClass();
         }
     }
 
-    public ParameterizedTypeInfo(TypeMirror type){
-        addType(type);
-        if(_parameterizedInfosList.size()>0) {
-            _type = getMainType().getCurrentClass();
+    public ParameterizedTypeInfo(TypeMirror typeMirror){
+        addType(typeMirror);
+        if(parameterizedInfosList.size()>0) {
+            type = getMainType().getCurrentClass();
         }
     }
 
     private void addType(Class clazz){
-        _parameterizedInfosList.add(AbstractClassInfo.getClassInfo(clazz));
+        parameterizedInfosList.add(AbstractClassInfo.getClassInfo(clazz));
         for(TypeVariable parameterElement:clazz.getTypeParameters()){
-            _parametersGenericsInfo.add(new ParameterizedTypeInfo(parameterElement));
+            parametersGenericsInfo.add(new ParameterizedTypeInfo(parameterElement));
         }
     }
 
     public ParameterizedTypeInfo(Type paramType){
-        _type = paramType;
+        type = paramType;
         if(paramType instanceof Class){
             addType((Class)paramType);
         }
@@ -106,26 +106,26 @@ public class ParameterizedTypeInfo{
         else if(paramType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType)paramType;
             ParameterizedTypeInfo rawTypeInfo = new ParameterizedTypeInfo(parameterizedType.getRawType());
-            _parameterizedInfosList.addAll(rawTypeInfo._parameterizedInfosList);
+            parameterizedInfosList.addAll(rawTypeInfo.parameterizedInfosList);
             for(Type genericParam:parameterizedType.getActualTypeArguments()){
-                _parametersGenericsInfo.add(new ParameterizedTypeInfo(genericParam));
+                parametersGenericsInfo.add(new ParameterizedTypeInfo(genericParam));
             }
         }
 
     }
 
     public List<AbstractClassInfo> getParameterizedInfosList() {
-        return _parameterizedInfosList;
+        return parameterizedInfosList;
     }
 
     public AbstractClassInfo getMainType(){
-        return _parameterizedInfosList.get(0);
+        return parameterizedInfosList.get(0);
     }
 
 
 
     public ParameterizedTypeInfo getMainTypeGeneric(int pos){
-        return _parametersGenericsInfo.get(pos);
+        return parametersGenericsInfo.get(pos);
     }
 
 
@@ -134,15 +134,15 @@ public class ParameterizedTypeInfo{
     }
 
     public void setName(String name) {
-        _name = name;
+        this.name = name;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
 
     public Type getType() {
-        return _type;
+        return type;
     }
 }

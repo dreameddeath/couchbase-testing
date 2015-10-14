@@ -37,10 +37,10 @@ public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
         public LocalBucketDocument(Party party){super(party);}
     }
 
-    private static GenericJacksonTranscoder<Party> _tc = new GenericJacksonTranscoder<Party>(Party.class,LocalBucketDocument.class);
+    private static GenericJacksonTranscoder<Party> tc = new GenericJacksonTranscoder<Party>(Party.class,LocalBucketDocument.class);
 
     public GenericTranscoder<Party> getTranscoder(){
-        return _tc;
+        return tc;
     }
 
     public PartyDao(CouchbaseBucketWrapper client,BaseCouchbaseDocumentDaoFactory factory){

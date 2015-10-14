@@ -28,9 +28,9 @@ public class PostalAddress extends Address {
      *  name : name of the receiver
      */
     @DocumentProperty("name")
-    private Property<String> _name = new StandardProperty<String>(PostalAddress.this);
+    private Property<String> name = new StandardProperty<String>(PostalAddress.this);
 
     // name accessors
-    public String getName() { return _name.get(); }
-    public void setName(String val) { _name.set(val); }
+    public String getName() { return name.get(); }
+    public void setName(String val) { name.set(val); }
 }

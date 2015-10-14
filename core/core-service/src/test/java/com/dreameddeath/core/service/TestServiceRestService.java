@@ -37,11 +37,11 @@ import javax.ws.rs.core.MediaType;
 @ServiceDef(name="testService",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractExposableService {
-    private TestServiceImpl _testService=new TestServiceImpl();
-    private IGlobalContextTranscoder _transcoder;
+    private TestServiceImpl testService=new TestServiceImpl();
+    private IGlobalContextTranscoder transcoder;
 
     public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
-        _transcoder = transcoder;
+        this.transcoder = transcoder;
     }
 
     @POST
@@ -57,11 +57,11 @@ public class TestServiceRestService extends AbstractExposableService {
             @ApiResponse(code = 404, message = "object not found")
     })
     public ITestService.Result runWithRes(@HeaderParam("X-CONTEXT") String contextParam,@PathParam("rootId") String rootId,@PathParam("id") String id, ITestService.Input input){
-        IGlobalContext context = _transcoder.decode(contextParam);
+        IGlobalContext context = transcoder.decode(contextParam);
         /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
         input.id = id;*/
-        return _testService.runWithRes(context,input).toBlocking().first();
+        return testService.runWithRes(context,input).toBlocking().first();
     }
 
     @GET
@@ -81,7 +81,7 @@ public class TestServiceRestService extends AbstractExposableService {
         /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
         input.id = id;*/
-        return _testService.getWithRes(rootId, id).toBlocking().first();
+        return testService.getWithRes(rootId, id).toBlocking().first();
     }
 
     @PUT
@@ -100,7 +100,7 @@ public class TestServiceRestService extends AbstractExposableService {
         /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
         input.id = id;*/
-        return _testService.putWithQuery(rootId, id).toBlocking().first();
+        return testService.putWithQuery(rootId, id).toBlocking().first();
     }
 
 
@@ -117,6 +117,6 @@ public class TestServiceRestService extends AbstractExposableService {
     })
 
     public TestingDocument initDocument(){
-        return _testService.initDocument(null).toBlocking().first();
+        return testService.initDocument(null).toBlocking().first();
     }
 }

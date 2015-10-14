@@ -26,22 +26,22 @@ import java.util.List;
  * Created by Christophe Jeunesse on 20/11/2014.
  */
 public class ValidatorContext {
-    private ICouchbaseSession _session;
-    private List<HasParent> _stack = new LinkedList<HasParent>();
+    private ICouchbaseSession session;
+    private List<HasParent> stack = new LinkedList<HasParent>();
 
-    public ICouchbaseSession getSession(){return _session;}
-    public void setSession(ICouchbaseSession session){ _session = session;}
+    public ICouchbaseSession getSession(){return session;}
+    public void setSession(ICouchbaseSession session){ this.session = session;}
 
     public void push(HasParent parent){
-        _stack.add(0,parent);
+        stack.add(0,parent);
     }
 
     public HasParent head(){
-        return _stack.get(0);
+        return stack.get(0);
     }
 
     public HasParent pop(){
-        return _stack.remove(0);
+        return stack.remove(0);
     }
 
     public static ValidatorContext buildContext(ICouchbaseSession session){

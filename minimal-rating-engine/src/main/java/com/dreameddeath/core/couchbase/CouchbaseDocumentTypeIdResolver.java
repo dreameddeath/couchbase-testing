@@ -37,25 +37,25 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase {
     private static final Pattern VERSION_PATTERN = Pattern.compile(VERSION);
     private static final Pattern ID_PATTERN = Pattern.compile(ID);
 
-    protected final MapperConfig<?> _config;
+    protected final MapperConfig<?> config;
 
     /**
      * Mappings from class name to type id, used for serialization
      */
-    protected final HashMap<String, String> _typeToId;
+    protected final HashMap<String, String> typeToId;
 
     /**
      * Mappings from type id to JavaType, used for deserialization
      */
-    protected final HashMap<String, JavaType> _idToType;
+    protected final HashMap<String, JavaType> idToType;
 
     protected CouchbaseDocumentTypeIdResolver(MapperConfig<?> config, JavaType baseType,
                                  HashMap<String, String> typeToId, HashMap<String, JavaType> idToType)
     {
         super(baseType, config.getTypeFactory());
-        _config = config;
-        _typeToId = typeToId;
-        _idToType = idToType;
+        this.config = config;
+        this.typeToId = typeToId;
+        this.idToType = idToType;
     }
 
 
@@ -63,7 +63,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase {
      * If no name was explicitly given for a class, we will just
      * use non-qualified class name
      */
-    protected static String _defaultTypeId(Class<?> cls)
+    protected static String defaultTypeId(Class<?> cls)
     {
         String n = cls.getName();
         int ix = n.lastIndexOf('.');
@@ -90,7 +90,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase {
                  * use non-qualified class name
                  */
                 Class<?> cls = t.getType();
-                String id = t.hasName() ? t.getName() : _defaultTypeId(cls);
+                String id = t.hasName() ? t.getName() : defaultTypeId(cls);
                 if (forSer) {
                     typeToId.put(cls.getName(), id);
                 }

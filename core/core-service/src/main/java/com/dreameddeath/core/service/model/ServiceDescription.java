@@ -24,33 +24,33 @@ import io.swagger.models.Swagger;
  */
 public class ServiceDescription {
     @JsonProperty("version")
-    private String _version;
+    private String version;
     @JsonProperty("state")
-    private String _state;
+    private String state;
     @JsonProperty("swagger")
-    private Swagger _swagger;
+    private Swagger swagger;
 
     public String getVersion() {
-        return _version;
+        return version;
     }
 
     public void setVersion(String version) {
-        _version = version;
+        this.version = version;
     }
 
     public String getState() {
-        return _state;
+        return state;
     }
 
     public void setState(String state) {
-        _state = state;
+        this.state = state;
     }
 
     public Swagger getSwagger() {
-        return _swagger;
+        return swagger;
     }
 
     public void setSwagger(Swagger swagger) {
-        _swagger = swagger;
+        this.swagger = swagger;
     }
 }

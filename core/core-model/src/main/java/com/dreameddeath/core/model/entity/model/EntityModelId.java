@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.model.entity;
+package com.dreameddeath.core.model.entity.model;
 
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.lang.model.element.Element;
 import java.util.regex.Matcher;
@@ -31,33 +32,34 @@ public class EntityModelId {
     public static final Pattern ENTITY_PATTERN=Pattern.compile("^"+ENTITY_PATTERN_STRING+"$");
     public static final Pattern FULL_ENTITY_ID= Pattern.compile("^"+ENTITY_PATTERN_STRING+"/("+EntityVersion.VERSION_PATTERN_STR+")$");
 
-    private String _domain;
-    private String _name;
-    private EntityVersion _entityVersion;
+    @JsonProperty("domain")
+    private String domain;
+    private String name;
+    private EntityVersion entityVersion;
 
     public EntityModelId(String entity,String version){
         parseEntityString(entity);
-        _entityVersion = version!=null?EntityVersion.version(version):null;
+        entityVersion = version!=null?EntityVersion.version(version):null;
     }
 
     public EntityModelId(String domain,String name,EntityVersion version){
-        _domain = domain;
-        _name = name;
-        _entityVersion = version;
+        this.domain = domain;
+        this.name = name;
+        entityVersion = version;
     }
 
     public EntityModelId(String domain,String name,String version){
-        _domain = domain;
-        _name = name;
-        _entityVersion = version!=null?EntityVersion.version(version):null;
+        this.domain = domain;
+        this.name = name;
+        entityVersion = version!=null?EntityVersion.version(version):null;
     }
 
     public EntityModelId(DocumentDef documentDef,Element elt) {
-        this(documentDef.domain(),StringUtils.isEmpty(documentDef.name())?elt.getSimpleName().toString():documentDef.name(),documentDef.version());
+        this(documentDef.domain(),StringUtils.isEmpty(documentDef.name())?elt.getSimpleName().toString().toLowerCase():documentDef.name(),documentDef.version());
     }
 
     public EntityModelId(DocumentDef documentDef,Class<?> clazz){
-        this(documentDef.domain(),StringUtils.isEmpty(documentDef.name())?clazz.getSimpleName():documentDef.name(),documentDef.version());
+        this(documentDef.domain(),StringUtils.isEmpty(documentDef.name())?clazz.getSimpleName().toLowerCase():documentDef.name(),documentDef.version());
     }
 
     public EntityModelId(String fullString){
@@ -66,22 +68,22 @@ public class EntityModelId {
 
 
     public String getDomain() {
-        return _domain;
+        return domain;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public EntityVersion getEntityVersion() {
-        return _entityVersion;
+        return entityVersion;
     }
 
     private void parseEntityString(String entityString){
         Matcher matcher = ENTITY_PATTERN.matcher(entityString);
         if(matcher.matches()){
-            _domain = matcher.group(1);
-            _name = matcher.group(2);
+            domain = matcher.group(1);
+            name = matcher.group(2);
         }
         else{
             throw new IllegalArgumentException("The model id <"+entityString+"> hasn't the correct model id syntax");
@@ -91,22 +93,25 @@ public class EntityModelId {
     private void parseFullEntityIdString(String fullString){
         Matcher matcher = FULL_ENTITY_ID.matcher(fullString);
         if(matcher.matches()){
-            _domain = matcher.group(1);
-            _name = matcher.group(2);
-            _entityVersion = EntityVersion.version(matcher.group(4), matcher.group(5), matcher.group(6));
+            domain = matcher.group(1);
+            name = matcher.group(2);
+            entityVersion = EntityVersion.version(matcher.group(4), matcher.group(5), matcher.group(6));
         }
         else{
             throw new IllegalArgumentException("The model id <"+fullString+"> hasn't the correct model id syntax");
         }
     }
 
-
     public void setFullEntityId(String fullEntityId){
         parseFullEntityIdString(fullEntityId);
     }
 
     public String toString(){
-        return _domain+"/"+_name+"/"+_entityVersion.toString();
+        return domain+"/"+name+"/"+entityVersion.toString();
+    }
+
+    public String getClassUnivoqueModelId(){
+        return domain+"/"+name+"/"+entityVersion.getMajor().toString();
     }
 
     public static EntityModelId build(String fullIdString){

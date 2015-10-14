@@ -40,26 +40,26 @@ import javax.ws.rs.core.MediaType;
         comments = "Generated for servcice $"
 )
 public class TestServiceRestClientImpl implements ITestService {
-    private IGlobalContextTranscoder _transcoder;
-    private ServiceClientFactory _serviceClientFactory;
+    private IGlobalContextTranscoder transcoder;
+    private ServiceClientFactory serviceClientFactory;
 
     public void setContextTranscoder(IGlobalContextTranscoder transcoder){
-        _transcoder = transcoder;
+        this.transcoder = transcoder;
     }
 
     public void setServiceClientFactory(ServiceClientFactory clientFactory){
-        _serviceClientFactory = clientFactory;
+        serviceClientFactory = clientFactory;
     }
 
     @Override
     public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
-        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
         target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
         target = target.path(String.format("toto/%s/tuto/%s", input.rootId, input.id));
 
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)
-                        .header("X-CONTEXT", _transcoder.encode(ctxt))
+                        .header("X-CONTEXT", transcoder.encode(ctxt))
                         .async().post(
                         Entity.entity(input, MediaType.APPLICATION_JSON_TYPE),
                         new GenericType<>(Result.class)
@@ -68,7 +68,7 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<Result> getWithRes(String rootId, String id) {
-        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
         target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
         target = target.path(String.format("toto/%s/tuto/%s", rootId, id));
 
@@ -82,7 +82,7 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<Result> putWithQuery(String rootId, String id) {
-        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
         target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
         target = target.path(String.format("toto/%s", rootId));
         target = target.queryParam("id",id);
@@ -97,7 +97,7 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
-        WebTarget target = _serviceClientFactory.getClient("testService", "1.0");
+        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
         target = target.register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
         target = target.path(String.format("testingDocument"));
         return Observable.from(

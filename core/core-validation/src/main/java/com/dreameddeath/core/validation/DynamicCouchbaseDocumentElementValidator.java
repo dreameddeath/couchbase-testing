@@ -25,17 +25,17 @@ import java.lang.reflect.Field;
  * Created by Christophe Jeunesse on 30/08/2014.
  */
 public class DynamicCouchbaseDocumentElementValidator implements Validator<Object>{
-    final private Field _field;
-    final ValidatorFactory _factory;
+    final private Field field;
+    final ValidatorFactory factory;
 
     public DynamicCouchbaseDocumentElementValidator(Field field,ValidatorFactory factory){
-        _field=field;
-        _factory = factory;
+        this.field=field;
+        this.factory = factory;
     }
 
     public void validate(ValidatorContext ctxt,Object elt) throws ValidationException{
         if(elt instanceof CouchbaseDocumentElement){
-            Validator<CouchbaseDocumentElement> validator = _factory.getValidator((CouchbaseDocumentElement)elt);
+            Validator<CouchbaseDocumentElement> validator = factory.getValidator((CouchbaseDocumentElement)elt);
             validator.validate(ctxt,(CouchbaseDocumentElement)elt);
         }
     }

@@ -29,8 +29,8 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
+import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -191,16 +191,16 @@ public class UpgraderTest {
     }
 
 
-    private final static CouchbaseSessionFactory _sessionFactory ;
+    private final static CouchbaseSessionFactory sessionFactory ;
     static {
         CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
 
         CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
         sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
-        _sessionFactory = sessionBuilder.build();
+        sessionFactory = sessionBuilder.build();
         try {
-            _sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV1().setClient(client), new GenericJacksonTranscoder<>(TestModel.class));
-            _sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV2().setClient(client), new GenericJacksonTranscoder<>(TestModelV2.class));
+            sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV1().setClient(client), new GenericJacksonTranscoder<>(TestModel.class));
+            sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV2().setClient(client), new GenericJacksonTranscoder<>(TestModelV2.class));
         }catch(Exception e){
             throw new RuntimeException(e);
         }
@@ -210,8 +210,8 @@ public class UpgraderTest {
 
     @Test
     public void upgradeUnitTests() throws Exception{
-        VersionUpgradeManager upgradeManager = (VersionUpgradeManager)GenericJacksonTranscoder.MAPPER.getDeserializationConfig().getAttributes().getAttribute(VersionUpgradeManager.class);
-        ICouchbaseSession session = _sessionFactory.newReadWriteSession(null);
+        EntityVersionUpgradeManager upgradeManager = (EntityVersionUpgradeManager)GenericJacksonTranscoder.MAPPER.getDeserializationConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
+        ICouchbaseSession session = sessionFactory.newReadWriteSession(null);
         TestModel v1 =session.newEntity(TestModel.class);
         String refValue = "A first Value";
         v1.value = refValue;

@@ -22,9 +22,9 @@ import javax.lang.model.element.Element;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class AnnotationProcessorException extends Exception{
-    private Element _element;
+    private Element element;
     public AnnotationProcessorException(Element elt,String message){
         super(message);
-        _element = elt;
+        element = elt;
     }
 }

@@ -41,10 +41,10 @@ import java.util.TreeSet;
 public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
     public static final String DCP_FLOW_INDEX_NAME = "$$dcp$$";
     public static final String DCP_FLOW_TYPE_NAME = "snapshot";
-    private ElasticSearchClient _client;
-    private boolean _autoCreateIndexes;
-    private final Set<String> _checkedIndexes = new TreeSet<>();
-    private IElasticSearchMapper _mapper;
+    private ElasticSearchClient client;
+    private boolean autoCreateIndexes;
+    private final Set<String> checkedIndexes = new TreeSet<>();
+    private IElasticSearchMapper mapper;
 
     public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder transcoder){
         this(client,mapper,transcoder,false);
@@ -60,33 +60,33 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
 
     public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder transcoder,boolean autoCreateIndexes){
         super(transcoder);
-        _client = client;
-        _mapper = mapper;
-        _autoCreateIndexes = autoCreateIndexes;
+        this.client = client;
+        this.mapper = mapper;
+        this.autoCreateIndexes = autoCreateIndexes;
     }
 
     public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,Map<String,ITranscoder> transcodersMap,boolean autoCreateIndexes){
         super(transcodersMap);
-        _client = client;
-        _mapper = mapper;
-        _autoCreateIndexes = autoCreateIndexes;
+        this.client = client;
+        this.mapper = mapper;
+        this.autoCreateIndexes = autoCreateIndexes;
     }
 
     public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,IDocumentInfoMapper docMapper,boolean autoCreateIndexes){
         super(docMapper);
-        _client = client;
-        _mapper = mapper;
-        _autoCreateIndexes = autoCreateIndexes;
+        this.client = client;
+        this.mapper = mapper;
+        this.autoCreateIndexes = autoCreateIndexes;
     }
 
     protected void createIndexIfNeeded(String indexName){
-        if(_autoCreateIndexes && !_checkedIndexes.contains(indexName)){
-            synchronized (_checkedIndexes) {
-                boolean result = _client.isIndexExists(indexName);
+        if(autoCreateIndexes && !checkedIndexes.contains(indexName)){
+            synchronized (checkedIndexes) {
+                boolean result = client.isIndexExists(indexName);
                 if (!result) {
-                    _client.createIndex(indexName);
+                    client.createIndex(indexName);
                 }
-                _checkedIndexes.add(indexName);
+                checkedIndexes.add(indexName);
             }
         }
     }
@@ -97,19 +97,19 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
     }
 
     protected String documentIndexBuilder(String bucketName,String key){
-        return _mapper.documentIndexBuilder(bucketName,key);
+        return mapper.documentIndexBuilder(bucketName,key);
     }
 
     protected String documentTypeBuilder(String bucketName,String key){
-        return _mapper.documentTypeBuilder(bucketName, key);
+        return mapper.documentTypeBuilder(bucketName, key);
     }
 
     @Override
     public LastSnapshotReceived getLastSnapshot(String bucketName, short partition) {
         try {
-            GetResponse response = _client.getInternalClient().prepareGet(DCP_FLOW_INDEX_NAME, DCP_FLOW_INDEX_NAME, snapshotIdBuilder(bucketName, partition)).execute().get();
+            GetResponse response = client.getInternalClient().prepareGet(DCP_FLOW_INDEX_NAME, DCP_FLOW_INDEX_NAME, snapshotIdBuilder(bucketName, partition)).execute().get();
             if(response.isExists()){
-                ElasticSearchSnapshotStorage storage = _client.getObjectMapper().readValue(response.getSourceAsBytes(),ElasticSearchSnapshotStorage.class);
+                ElasticSearchSnapshotStorage storage = client.getObjectMapper().readValue(response.getSourceAsBytes(),ElasticSearchSnapshotStorage.class);
                 return new LastSnapshotReceived(storage.getStartSequence(),storage.getEndSequence());
             }
         }
@@ -123,10 +123,10 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
     public void manageSnapshotMessage(SnapshotMarkerMessage message) {
         ElasticSearchSnapshotStorage doc = new ElasticSearchSnapshotStorage(message);
         try {
-            byte[] serialized = _client.getObjectMapper().writeValueAsBytes(doc);
+            byte[] serialized = client.getObjectMapper().writeValueAsBytes(doc);
             createIndexIfNeeded(DCP_FLOW_INDEX_NAME);
             UpdateRequest upsertRequest = new UpdateRequest(DCP_FLOW_INDEX_NAME, DCP_FLOW_TYPE_NAME, snapshotIdBuilder(message.bucket(),message.partition())).source(serialized).upsert(serialized);
-            _client.getInternalClient().update(upsertRequest).get();
+            client.getInternalClient().update(upsertRequest).get();
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -138,7 +138,7 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
         try {
             String indexName = documentIndexBuilder(message.bucket(), message.key());
             createIndexIfNeeded(indexName);
-            UpdateResponse responseUpdate = _client.upsert(
+            UpdateResponse responseUpdate = client.upsert(
                     indexName,
                     documentTypeBuilder(message.bucket(), message.key()),
                     mappedObject
@@ -152,7 +152,7 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
 
     @Override
     public void manageDeletionMessage(RemoveMessage message) {
-        _client.delete(
+        client.delete(
                 documentIndexBuilder(message.bucket(),message.key()),
                 documentTypeBuilder(message.bucket(), message.key()),
                 message.key()

@@ -26,35 +26,35 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class EntityDef {
-    private CouchbaseDocumentReflection _docReflection;
-    private String _parentKeyAccessor;
-    private String _parentKeyPath;
-    private String _parentEntityClassName ="";
+    private CouchbaseDocumentReflection docReflection;
+    private String parentKeyAccessor;
+    private String parentKeyPath;
+    private String parentEntityClassName ="";
 
     public EntityDef(CouchbaseDocumentReflection docReflection) {
-        _docReflection = docReflection;
+        this.docReflection = docReflection;
         ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
 
         if((parentAnnot==null)||(parentAnnot.keyPath()==null) || parentAnnot.keyPath().equals("")){
-            _parentKeyPath = "null";
+            parentKeyPath = "null";
         }
         else{
-            _parentKeyPath = "doc."+parentAnnot.keyPath();
+            parentKeyPath = "doc."+parentAnnot.keyPath();
         }
 
         if (parentAnnot != null) {
 
             if(parentAnnot!=null) {
                 CouchbaseDocumentReflection classInfo = CouchbaseDocumentReflection.getClassInfoFromAnnot(parentAnnot, ParentEntity::c);
-                _parentEntityClassName = classInfo.getName();
+                parentEntityClassName = classInfo.getName();
             }
             String[] fieldNameParts = parentAnnot.keyPath().split("\\.");
             CouchbaseDocumentStructureReflection currStructure = docReflection.getStructure();
 
-            _parentKeyAccessor = "";
+            parentKeyAccessor = "";
             for (int partPos = 0; partPos < fieldNameParts.length; ++partPos) {
                 CouchbaseDocumentFieldReflection field = currStructure.getFieldByPropertyName(fieldNameParts[partPos]);
-                _parentKeyAccessor += "." + field.buildGetterCode();
+                parentKeyAccessor += "." + field.buildGetterCode();
                 if (partPos + 1 < fieldNameParts.length) {
                     currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) field.getEffectiveTypeInfo().getMainType());
                 }
@@ -63,34 +63,34 @@ public class EntityDef {
     }
 
     public String getSimpleName() {
-        return _docReflection.getSimpleName();
+        return docReflection.getSimpleName();
     }
 
     public String getName() {
-        return _docReflection.getName();
+        return docReflection.getName();
     }
 
     public String getDomain() {
-        return _docReflection.getStructure().getStructDomain();
+        return docReflection.getStructure().getStructDomain();
     }
 
-    public String getDbName(){return _docReflection.getStructure().getStructName();}
+    public String getDbName(){return docReflection.getStructure().getStructName();}
 
-    public String getVersion(){return _docReflection.getStructure().getStructVersion();}
+    public String getVersion(){return docReflection.getStructure().getStructVersion();}
 
     public String getParentKeyAccessor() {
-        return _parentKeyAccessor;
+        return parentKeyAccessor;
     }
 
     public String getParentKeyPath() {
-        return _parentKeyPath;
+        return parentKeyPath;
     }
 
     public String getPackageName() {
-        return _docReflection.getClassInfo().getPackageInfo().getName();
+        return docReflection.getClassInfo().getPackageInfo().getName();
     }
 
     public String getParentEntityClassName() {
-        return _parentEntityClassName;
+        return parentEntityClassName;
     }
 }

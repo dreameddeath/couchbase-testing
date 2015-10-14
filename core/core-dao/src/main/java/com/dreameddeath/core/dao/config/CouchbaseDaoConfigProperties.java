@@ -57,4 +57,40 @@ public class CouchbaseDaoConfigProperties {
     )
     public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_TRANSCODER_CLASS_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.transcoder.class", (String) null);
 
+
+    @ConfigPropertyDoc(
+            name="core.couchbase.dao.{domain}.{name}.{flavor}.bucket",
+            descr = "defines the attached couchbase bucket name for given domain/name",
+            defaultValue = "@Ref{core.couchbase.dao.{domain}.{name}.bucket,dao}",
+            examples = {"default bucket"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_BUCKET_NAME_FOR_FLAVOR = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.{flavor}.bucket", COUCHBASE_DAO_BUCKET_NAME);
+
+
+    @ConfigPropertyDoc(
+            name="core.couchbase.dao.{domain}.{name}.{flavor}.entity.class",
+            descr = "defines the attached couchbase class for given domain/name",
+            defaultValue = "@Ref{core.couchbase.dao.{domain}.{name}.entity.class,dao}",
+            examples = {"com.project.business.model.Party","com.project.business.model.BillingAccount"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_ENTITY_CLASS_NAME_FOR_FLAVOR = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.{flavor}.entity.class", COUCHBASE_DAO_ENTITY_CLASS_NAME);
+
+    @ConfigPropertyDoc(
+            name="core.couchbase.dao.{domain}.{name}.{flavor}.class",
+            descr = "defines the attached dao class for given domain/name",
+            defaultValue = "@Ref{core.couchbase.dao.{domain}.{name}.class,dao}",
+            examples = {"com.project.business.dao.PartyDao","com.project.business.dao.BillingAccount"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_CLASS_NAME_FOR_FLAVOR = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.{flavor}.class", COUCHBASE_DAO_CLASS_NAME);
+
+
+    @ConfigPropertyDoc(
+            name="core.couchbase.dao.{domain}.{name}.{flavor}.transcoder.class",
+            descr = "defines the attached transcoder class for given domain/name. It must be of the class ITranscoder. If not given, a ",
+            defaultValue = "@Ref{core.couchbase.dao.{domain}.{name}.transcoder.class,dao}",
+            examples = {"com.project.business.transcoder.PartyTranscoder","com.project.business.dao.BillingAccount"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_TRANSCODER_CLASS_NAME_FOR_FLAVOR = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.{flavor}.transcoder.class", COUCHBASE_TRANSCODER_CLASS_NAME);
+
+
 }

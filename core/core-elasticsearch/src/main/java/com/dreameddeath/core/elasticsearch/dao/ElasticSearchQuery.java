@@ -27,54 +27,54 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 19/07/2015.
  */
 public class ElasticSearchQuery<T extends CouchbaseDocument> {
-    private final ElasticSearchDao<T> _elasticSearchDao;
-    private ElasticSearchSearchQueryBuilder _query;
+    private final ElasticSearchDao<T> elasticSearchDao;
+    private ElasticSearchSearchQueryBuilder query;
 
     ElasticSearchQuery(ElasticSearchDao<T> dao) {
-        _elasticSearchDao = dao;
-        _query = new ElasticSearchSearchQueryBuilder(_elasticSearchDao.getClient());
-        _query.setIndices(_elasticSearchDao.getMapper().documentIndexBuilder(_elasticSearchDao.getBucketName(), _elasticSearchDao.getTranscoder().getBaseClass()));
-        _query.setTypes(_elasticSearchDao.getMapper().documentTypeBuilder(_elasticSearchDao.getBucketName(), _elasticSearchDao.getTranscoder().getBaseClass()));
+        elasticSearchDao = dao;
+        query = new ElasticSearchSearchQueryBuilder(elasticSearchDao.getClient());
+        query.setIndices(elasticSearchDao.getMapper().documentIndexBuilder(elasticSearchDao.getBucketName(), elasticSearchDao.getTranscoder().getBaseClass()));
+        query.setTypes(elasticSearchDao.getMapper().documentTypeBuilder(elasticSearchDao.getBucketName(), elasticSearchDao.getTranscoder().getBaseClass()));
     }
 
     public ElasticSearchQuery<T> setSearchType(SearchType searchType) {
-        _query.setSearchType(searchType);
+        query.setSearchType(searchType);
         return this;
     }
 
     public ElasticSearchQuery<T> setQuery(QueryBuilder builder) {
-        _query.setQuery(builder);
+        query.setQuery(builder);
         return this;
     }
 
     public ElasticSearchQuery<T> setQuery(String queryStr) {
-        _query.setQuery(queryStr);
+        query.setQuery(queryStr);
         return this;
     }
 
     public ElasticSearchQuery<T> addFields(String... fields) {
-        _query.addFields(fields);
+        query.addFields(fields);
         return this;
     }
 
     public ElasticSearchQuery<T> setSize(int size) {
-        _query.setSize(size);
+        query.setSize(size);
         return this;
     }
 
 
     public ElasticSearchQuery<T> setPostFilter(FilterBuilder builder) {
-        _query.setPostFilter(builder);
+        query.setPostFilter(builder);
         return this;
     }
 
     public ElasticSearchQuery<T> setPostFilter(String postFilterStr) {
-        _query.setPostFilter(postFilterStr);
+        query.setPostFilter(postFilterStr);
         return this;
     }
 
     public ElasticSearchQuery<T> setFetchSource(boolean activate) {
-        _query.setFetchSource(activate);
+        query.setFetchSource(activate);
         return this;
     }
 
@@ -84,7 +84,7 @@ public class ElasticSearchQuery<T extends CouchbaseDocument> {
 
 
     public Observable<ElasticSearchResult<T>> asyncSearch() {
-        return this._query.executeAsObservable().map(result -> new ElasticSearchResult<>(_elasticSearchDao, result));
+        return this.query.executeAsObservable().map(result -> new ElasticSearchResult<>(elasticSearchDao, result));
     }
 
 }

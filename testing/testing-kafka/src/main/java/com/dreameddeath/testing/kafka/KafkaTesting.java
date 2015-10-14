@@ -40,13 +40,13 @@ public class KafkaTesting {
     }
 
 
-    private Future<KafkaServerStartable> _futureServer;
-    private KafkaServerStartable _server;
+    private Future<KafkaServerStartable> futureServer;
+    private KafkaServerStartable server;
 
 
     public KafkaTesting(final CuratorTestUtils curatorTestUtils){
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        _futureServer = executor.submit(new Callable<KafkaServerStartable>() {
+        futureServer = executor.submit(new Callable<KafkaServerStartable>() {
             @Override
             public KafkaServerStartable call() throws Exception {
                 KafkaConfig config = getKafkaConfig(curatorTestUtils.getCluster().getConnectString());
@@ -58,10 +58,10 @@ public class KafkaTesting {
     }
 
     synchronized private KafkaServerStartable getServer() throws Exception{
-        if(_server==null){
-            _server = _futureServer.get();
+        if(server==null){
+            server = futureServer.get();
         }
-        return _server;
+        return server;
     }
 
 

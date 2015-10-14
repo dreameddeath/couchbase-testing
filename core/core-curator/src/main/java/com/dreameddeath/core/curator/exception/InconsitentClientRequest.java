@@ -20,21 +20,21 @@ package com.dreameddeath.core.curator.exception;
  * Created by Christophe Jeunesse on 06/02/2015.
  */
 public class InconsitentClientRequest extends Exception {
-    private String _existingNameSpace;
-    private String _requestedNameSpace;
+    private String existingNameSpace;
+    private String requestedNameSpace;
 
     public InconsitentClientRequest(String existingNameSpace,String requestedNameSpace){
         super("The requested namespace <"+requestedNameSpace+"> is inconsistent with "+existingNameSpace);
-        _existingNameSpace = existingNameSpace;
-        _requestedNameSpace = requestedNameSpace;
+        this.existingNameSpace = existingNameSpace;
+        this.requestedNameSpace = requestedNameSpace;
     }
 
 
     public String getExistingNameSpace() {
-        return _existingNameSpace;
+        return existingNameSpace;
     }
 
     public String getRequestedNameSpace() {
-        return _requestedNameSpace;
+        return requestedNameSpace;
     }
 }

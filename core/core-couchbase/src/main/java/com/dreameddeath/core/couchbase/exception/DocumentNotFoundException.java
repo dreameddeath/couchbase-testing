@@ -22,35 +22,35 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  * Created by Christophe Jeunesse on 13/09/2014.
  */
 public class DocumentNotFoundException extends StorageException {
-    private CouchbaseDocument _doc;
-    private String _key;
+    private CouchbaseDocument doc;
+    private String key;
 
 
 
     public DocumentNotFoundException(String key,String message){
         super(message);
-        _key=key;
+        this.key=key;
     }
     public DocumentNotFoundException(CouchbaseDocument doc, String message){
         super(message);
-        _doc=doc;
+        this.doc=doc;
     }
 
     public DocumentNotFoundException(CouchbaseDocument doc, Throwable e){
         super(e);
-        _doc=doc;
+        this.doc=doc;
     }
 
     public DocumentNotFoundException(CouchbaseDocument doc, String message,Throwable e){
         super(message);
-        _doc=doc;
+        this.doc=doc;
     }
 
     @Override
     public String getMessage(){
         StringBuilder builder = new StringBuilder(super.getMessage());
-        if(_doc!=null){ builder.append(" The doc was <").append(_doc).append(">");}
-        if(_key!=null){ builder.append(" The key was <").append(_key).append(">");}
+        if(doc!=null){ builder.append(" The doc was <").append(doc).append(">");}
+        if(key!=null){ builder.append(" The key was <").append(key).append(">");}
         return builder.toString();
     }
 }

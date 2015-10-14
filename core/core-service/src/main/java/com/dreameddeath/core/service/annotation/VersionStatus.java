@@ -24,15 +24,15 @@ public enum VersionStatus {
     STABLE("stable"),
     DEPRECATED("deprecated");
 
-    private String _name;
+    private String name;
 
     VersionStatus(String name){
-        _name=name;
+        this.name=name;
     }
 
     @Override
     public String toString(){
-        return _name;
+        return name;
     }
 
 }

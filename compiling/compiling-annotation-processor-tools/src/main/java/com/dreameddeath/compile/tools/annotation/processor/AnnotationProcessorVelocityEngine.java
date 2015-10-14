@@ -75,7 +75,7 @@ public class AnnotationProcessorVelocityEngine {
         VelocityContext context = new VelocityContext();
 
         context.put("esc", new StdEscape());
-        context.put("log",logger._logger);
+        context.put("log",logger.logger);
         context.put("message",logger);
 
         return context;
@@ -86,7 +86,7 @@ public class AnnotationProcessorVelocityEngine {
         VelocityContext context = new VelocityContext();
 
         context.put("esc", new StdEscape());
-        context.put("log",logger._logger);
+        context.put("log",logger.logger);
         context.put("message",logger);
         context.put("generator",generatorInfo);
         return context;
@@ -127,20 +127,20 @@ public class AnnotationProcessorVelocityEngine {
     }
 
     public static class VelocityLogger{
-        private Logger _logger;
-        private Messager _messager;
+        private Logger logger;
+        private Messager messager;
 
         public VelocityLogger(Logger logger, Messager messager){
-            _logger=logger;
-            _messager = messager;
+            this.logger=logger;
+            this.messager = messager;
         }
 
         public void note(String message){
-            _messager.printMessage(Diagnostic.Kind.NOTE, message);
+            messager.printMessage(Diagnostic.Kind.NOTE, message);
         }
 
         public void error(String message){
-            _messager.printMessage(Diagnostic.Kind.ERROR, message);
+            messager.printMessage(Diagnostic.Kind.ERROR, message);
         }
 
     }
@@ -164,25 +164,25 @@ public class AnnotationProcessorVelocityEngine {
     }
 
     public static class GeneratorInfo{
-        private String _generatorName;
-        private DateTime _dateTime = DateTime.now();
-        private String _comment;
+        private String generatorName;
+        private DateTime dateTime = DateTime.now();
+        private String comment;
 
         public GeneratorInfo(Class processorClass,String comment){
-            _generatorName = processorClass.getName();
-            _comment = comment;
+            generatorName = processorClass.getName();
+            this.comment = comment;
         }
 
         public DateTime getDate() {
-            return _dateTime;
+            return dateTime;
         }
 
         public String getName() {
-            return _generatorName;
+            return generatorName;
         }
 
         public String getComment() {
-            return _comment;
+            return comment;
         }
     }
 }

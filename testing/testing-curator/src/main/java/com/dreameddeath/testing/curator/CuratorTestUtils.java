@@ -29,8 +29,8 @@ import java.util.concurrent.*;
  */
 public class CuratorTestUtils {
     private static int TIMEOUT_DURATION =5;
-    private TestingCluster _testingCluster=null;
-    private Future<TestingCluster> _pendingCluster=null;
+    private TestingCluster testingCluster=null;
+    private Future<TestingCluster> pendingCluster=null;
 
     public CuratorTestUtils prepare(final int nbServers) throws Exception{
         System.setProperty("zookeeper.jmx.log4j.disable","true");
@@ -49,16 +49,16 @@ public class CuratorTestUtils {
                 }
             }
         });
-        _testingCluster = future.get(1, TimeUnit.MINUTES);
+        testingCluster = future.get(1, TimeUnit.MINUTES);
         executor.shutdownNow();
         return this;
     }
 
     public TestingCluster getCluster() throws Exception{
-        if(_testingCluster==null){
-            _testingCluster = _pendingCluster.get(1,TimeUnit.MINUTES);
+        if(testingCluster==null){
+            testingCluster = pendingCluster.get(1,TimeUnit.MINUTES);
         }
-        return _testingCluster;
+        return testingCluster;
     }
 
     public CuratorFramework getClient(String nameSpacePrefix) throws Exception{
@@ -70,8 +70,8 @@ public class CuratorTestUtils {
     }
 
     public CuratorTestUtils stop() throws IOException{
-        if(_testingCluster!=null){
-            _testingCluster.stop();
+        if(testingCluster!=null){
+            testingCluster.stop();
         }
         return this;
     }

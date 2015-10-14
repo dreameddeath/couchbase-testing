@@ -20,8 +20,8 @@ package com.dreameddeath.core.couchbase.dcp.exception;
  * Created by Christophe Jeunesse on 01/06/2015.
  */
 public class HandlerException extends Exception {
-    private long _sequence;
-    private Object _event;
+    private long sequence;
+    private Object event;
 
     public HandlerException(Throwable ex){
         this(ex,0,null);
@@ -29,7 +29,7 @@ public class HandlerException extends Exception {
 
     public HandlerException(Throwable ex, long sequence, Object event){
         super(ex);
-        _event = event;
-        _sequence = sequence;
+        this.event = event;
+        this.sequence = sequence;
     }
 }

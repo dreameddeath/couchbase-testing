@@ -24,22 +24,22 @@ import com.dreameddeath.core.user.IUserFactory;
  * Created by Christophe Jeunesse on 16/04/2015.
  */
 public abstract class AbstractDaoRestService extends AbstractExposableService {
-    private CouchbaseSessionFactory _sessionFactory;
-    private IUserFactory _userFactory;
+    private CouchbaseSessionFactory sessionFactory;
+    private IUserFactory userFactory;
 
     public void setSessionFactory(CouchbaseSessionFactory sessionFactory){
-        _sessionFactory = sessionFactory;
+        this.sessionFactory = sessionFactory;
     }
 
     public CouchbaseSessionFactory getSessionFactory() {
-        return _sessionFactory;
+        return sessionFactory;
     }
 
     public void setUserFactory(IUserFactory userFactory){
-        _userFactory = userFactory;
+        this.userFactory = userFactory;
     }
 
     public IUserFactory getUserFactory() {
-        return _userFactory;
+        return userFactory;
     }
 }

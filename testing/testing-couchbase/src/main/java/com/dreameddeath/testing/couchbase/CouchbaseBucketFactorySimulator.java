@@ -27,7 +27,7 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 11/10/2015.
  */
 public class CouchbaseBucketFactorySimulator implements ICouchbaseBucketFactory {
-    private Map<String,ICouchbaseBucket> _couchbaseBucketMap = new HashMap<>();
+    private Map<String,ICouchbaseBucket> couchbaseBucketMap = new HashMap<>();
     @Override
     synchronized  public ICouchbaseBucket getBucket(String name) throws ConfigPropertyValueNotFoundException {
         return getBucket(name,null);
@@ -35,7 +35,7 @@ public class CouchbaseBucketFactorySimulator implements ICouchbaseBucketFactory 
 
     @Override
     synchronized  public ICouchbaseBucket getBucket(String name, String prefix) throws ConfigPropertyValueNotFoundException {
-        return _couchbaseBucketMap.computeIfAbsent(name+((prefix==null)?"":("#"+prefix)),name1->
+        return couchbaseBucketMap.computeIfAbsent(name+((prefix==null)?"":("#"+prefix)),name1->
                 new CouchbaseBucketSimulator(name,prefix));
 
     }

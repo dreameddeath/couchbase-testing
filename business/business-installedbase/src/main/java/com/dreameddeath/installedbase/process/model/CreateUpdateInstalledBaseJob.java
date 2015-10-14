@@ -48,11 +48,11 @@ public class CreateUpdateInstalledBaseJob extends AbstractJob<CreateUpdateInstal
          *  contractTempId : The contract temporary Id to be created
          */
         @DocumentProperty("contractTempId")
-        private Property<String> _contractTempId = new StandardProperty<String>(InitEmptyInstalledBase.this);
+        private Property<String> contractTempId = new StandardProperty<String>(InitEmptyInstalledBase.this);
 
         // contractTempId accessors
-        public String getContractTempId() { return _contractTempId.get(); }
-        public void setContractTempId(String val) { _contractTempId.set(val); }
+        public String getContractTempId() { return contractTempId.get(); }
+        public void setContractTempId(String val) { contractTempId.set(val); }
 
     }
 
@@ -63,10 +63,10 @@ public class CreateUpdateInstalledBaseJob extends AbstractJob<CreateUpdateInstal
          *  contractUid : UID of the contract
          */
         @DocumentProperty("contractUid")
-        private Property<String> _contractUid = new StandardProperty<String>(UpdateInstalledBase.this);
+        private Property<String> contractUid = new StandardProperty<String>(UpdateInstalledBase.this);
 
         // contractUid accessors
-        public String getContractUid() { return _contractUid.get(); }
-        public void setContractUid(String val) { _contractUid.set(val); }
+        public String getContractUid() { return contractUid.get(); }
+        public void setContractUid(String val) { contractUid.set(val); }
     }
 }

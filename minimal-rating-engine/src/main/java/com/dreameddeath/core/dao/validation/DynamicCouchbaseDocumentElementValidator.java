@@ -26,16 +26,16 @@ import java.lang.reflect.Field;
  */
 @SuppressWarnings("ALL")
 public class DynamicCouchbaseDocumentElementValidator implements Validator<Object>{
-    final private Field _field;
-    final ValidatorFactory _factory;
+    final private Field field;
+    final ValidatorFactory factory;
 
     public DynamicCouchbaseDocumentElementValidator(Field field,ValidatorFactory factory){
-        _field=field;
-        _factory = factory;
+        field=field;
+        factory = factory;
     }
 
     public void validate(Object elt,BaseCouchbaseDocumentElement parent) throws ValidationException{
         if(elt instanceof BaseCouchbaseDocumentElement)
-            _factory.getValidator((BaseCouchbaseDocumentElement)elt).validate((BaseCouchbaseDocumentElement)elt,parent);
+            factory.getValidator((BaseCouchbaseDocumentElement)elt).validate((BaseCouchbaseDocumentElement)elt,parent);
     }
 }

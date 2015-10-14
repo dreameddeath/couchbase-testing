@@ -16,42 +16,49 @@
 
 package com.dreameddeath.core.model.document;
 
+import com.couchbase.client.core.message.kv.MutationToken;
 import com.couchbase.client.java.document.Document;
 
 /**
  * Created by Christophe Jeunesse on 10/10/2014.
  */
 public class BucketDocument<T extends BaseCouchbaseDocument> implements Document<T> {
-    final private T _doc;
+    final private T doc;
 
-    public BucketDocument(T doc){ _doc = doc;}
+    public BucketDocument(T doc){ this.doc = doc;}
+
     @Override
     public String id() {
-        return _doc.getBaseMeta().getKey();
+        return doc.getBaseMeta().getKey();
     }
 
     @Override
     public T content() {
-        return _doc;
+        return doc;
     }
 
     @Override
     public long cas() {
-        return _doc.getBaseMeta().getCas();
+        return doc.getBaseMeta().getCas();
     }
 
     @Override
     public int expiry() {
-        return _doc.getBaseMeta().getExpiry();
+        return doc.getBaseMeta().getExpiry();
+    }
+
+    @Override
+    public MutationToken mutationToken() {
+        return null;
     }
 
     public void syncCas(BucketDocument<T> ref){
-        _doc.getBaseMeta().setCas(ref._doc.getBaseMeta().getCas());
-        _doc.getBaseMeta().setExpiry(ref._doc.getBaseMeta().getExpiry());
-        _doc.getBaseMeta().setDbSize(ref._doc.getBaseMeta().getDbSize());
+        doc.getBaseMeta().setCas(ref.doc.getBaseMeta().getCas());
+        doc.getBaseMeta().setExpiry(ref.doc.getBaseMeta().getExpiry());
+        doc.getBaseMeta().setDbSize(ref.doc.getBaseMeta().getDbSize());
     }
 
     public T getDocument(){
-        return _doc;
+        return doc;
     }
 }

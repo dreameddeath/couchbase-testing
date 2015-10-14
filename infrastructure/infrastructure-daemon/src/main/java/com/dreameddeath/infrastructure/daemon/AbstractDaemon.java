@@ -17,9 +17,12 @@
 package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
+import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
+import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
 import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.couchbase.DaemonCouchbaseFactories;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonRegisterLifeCycleListener;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
@@ -41,12 +44,13 @@ import java.util.UUID;
 public class AbstractDaemon {
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
 
-    private final String _name;
-    private final UUID _uuid = UUID.randomUUID();
-    private final IDaemonLifeCycle _daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
-    private final CuratorFramework _curatorClient;
-    private final RestWebServer _adminWebServer;
-    private final List<AbstractWebServer> _additionalWebServers = new ArrayList<>();
+    private final String name;
+    private final UUID uuid = UUID.randomUUID();
+    private final IDaemonLifeCycle daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
+    private final CuratorFramework curatorClient;
+    private final DaemonCouchbaseFactories daemonCouchbaseFactories;
+    private final RestWebServer adminWebServer;
+    private final List<AbstractWebServer> additionalWebServers = new ArrayList<>();
 
     protected static CuratorFramework setupDefaultCuratorClient(){
         try {
@@ -74,6 +78,19 @@ public class AbstractDaemon {
         if(builder.getCuratorFramework()==null){
             builder.withCuratorFramework(setupDefaultCuratorClient());
         }
+        if(builder.getWithCouchbase()){
+            if(builder.getWithCouchbaseClusterFactory()==null){
+                builder.withWithCouchbaseClusterFactory(new CouchbaseClusterFactory());
+            }
+            if(builder.getWithCouchbaseBucketFactory()==null){
+                builder.withWithCouchbaseBucketFactory(new CouchbaseBucketFactory(builder.getWithCouchbaseClusterFactory()));
+            }
+            daemonCouchbaseFactories = new DaemonCouchbaseFactories(builder.getWithCouchbaseClusterFactory(),builder.getWithCouchbaseBucketFactory());
+        }
+        else {
+            daemonCouchbaseFactories = null;
+        }
+
         if(builder.getName()==null){
             try {
                 builder.withName(DaemonConfigProperties.DAEMON_NAME.getMandatoryValue("The name must be given"));
@@ -82,9 +99,9 @@ public class AbstractDaemon {
                 throw new RuntimeException(e);
             }
         }
-        _name = builder.getName();
-        _curatorClient = builder.getCuratorFramework();
-        _adminWebServer = new RestWebServer(
+        name = builder.getName();
+        curatorClient = builder.getCuratorFramework();
+        adminWebServer = new RestWebServer(
                     RestWebServer.builder().withDaemon(this)
                             .withName(builder.getAdminWebServerName())
                             .withApplicationContextConfig(builder.getAdminApplicationContextName())
@@ -93,62 +110,66 @@ public class AbstractDaemon {
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::stopForShutdownHook));
         if(builder.getRegisterDaemon()){
-            _daemonLifeCycle.addLifeCycleListener(new DaemonRegisterLifeCycleListener(_curatorClient));
+            daemonLifeCycle.addLifeCycleListener(new DaemonRegisterLifeCycleListener(curatorClient));
         }
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public CuratorFramework getCuratorClient(){
-        return _curatorClient;
+        return curatorClient;
     }
 
     public RestWebServer getAdminWebServer() {
-        return _adminWebServer;
+        return adminWebServer;
     }
 
     public List<AbstractWebServer> getAdditionalWebServers(){
-        return Collections.unmodifiableList(_additionalWebServers);
+        return Collections.unmodifiableList(additionalWebServers);
     }
 
     public UUID getUuid() {
-        return _uuid;
+        return uuid;
     }
 
     synchronized public RestWebServer addWebServer(RestWebServer.Builder builder){
         RestWebServer newWebServer  = new RestWebServer(builder.withDaemon(this));
-        _additionalWebServers.add(newWebServer);
+        additionalWebServers.add(newWebServer);
         return newWebServer;
     }
 
     synchronized public ProxyWebServer addWebServer(ProxyWebServer.Builder builder){
         ProxyWebServer newWebServer  = new ProxyWebServer(builder.withDaemon(this));
-        _additionalWebServers.add(newWebServer);
+        additionalWebServers.add(newWebServer);
         return newWebServer;
     }
 
     synchronized public WebAppWebServer addWebServer(WebAppWebServer.Builder builder){
         WebAppWebServer newWebServer  = new WebAppWebServer(builder.withDaemon(this));
-        _additionalWebServers.add(newWebServer);
+        additionalWebServers.add(newWebServer);
         return newWebServer;
     }
 
+    public DaemonCouchbaseFactories getDaemonCouchbaseFactories() {
+        return daemonCouchbaseFactories;
+    }
 
     public IDaemonLifeCycle getDaemonLifeCycle() {
-        return _daemonLifeCycle;
+        return daemonLifeCycle;
     }
-
 
     public IDaemonLifeCycle.Status getStatus() {
-        return _daemonLifeCycle.getStatus();
+        return daemonLifeCycle.getStatus();
     }
+
+
 
     public void startAndJoin() throws Exception{
         //Starting using the status manager
-        _daemonLifeCycle.start();
-        _daemonLifeCycle.join();
+        daemonLifeCycle.start();
+        daemonLifeCycle.join();
     }
 
     private void stopForShutdownHook(){
@@ -161,59 +182,91 @@ public class AbstractDaemon {
         }
     }
 
+
+
     public static Builder builder(){
         return new Builder();
     }
 
     public static class Builder{
-        private String _name=null;
-        private Boolean _registerDaemon=true;
-        private CuratorFramework _curatorFramework=null;
-        private String _adminApplicationContextName="daemon.admin.applicationContext.xml";
-        private String _adminWebServerName="admin";
+        private String name=null;
+        private boolean registerDaemon=true;
+        private CuratorFramework curatorFramework=null;
+        private String adminApplicationContextName="daemon.admin.applicationContext.xml";
+        private String adminWebServerName="admin";
+        private boolean withCouchbase=false;
+        private CouchbaseClusterFactory withCouchbaseClusterFactory=null;
+        private CouchbaseBucketFactory withCouchbaseBucketFactory=null;
 
         public String getName() {
-            return _name;
+            return name;
         }
 
         public Builder withName(String name) {
-            _name = name;
+            this.name = name;
             return this;
         }
 
         public String getAdminApplicationContextName() {
-            return _adminApplicationContextName;
+            return adminApplicationContextName;
         }
 
         public Builder withAdminApplicationContextName(String adminApplicationContextName) {
-            _adminApplicationContextName = adminApplicationContextName;
+            this.adminApplicationContextName = adminApplicationContextName;
             return this;
         }
 
         public CuratorFramework getCuratorFramework() {
-            return _curatorFramework;
+            return curatorFramework;
         }
 
         public Builder withCuratorFramework(CuratorFramework curatorFramework) {
-            _curatorFramework = curatorFramework;
+            this.curatorFramework = curatorFramework;
             return this;
         }
 
         public String getAdminWebServerName() {
-            return _adminWebServerName;
+            return adminWebServerName;
         }
 
         public Builder withAdminWebServerName(String adminWebServerName) {
-            _adminWebServerName = adminWebServerName;
+            this.adminWebServerName = adminWebServerName;
             return this;
         }
 
-        public Boolean getRegisterDaemon() {
-            return _registerDaemon;
+        public boolean getRegisterDaemon() {
+            return registerDaemon;
         }
 
         public Builder withRegisterDaemon(Boolean registerDaemon) {
-            _registerDaemon = registerDaemon;
+            this.registerDaemon = registerDaemon;
+            return this;
+        }
+
+        public boolean getWithCouchbase() {
+            return withCouchbase;
+        }
+
+        public Builder withWithCouchbase(boolean withCouchbase) {
+            this.withCouchbase = withCouchbase;
+            return this;
+        }
+
+        public CouchbaseClusterFactory getWithCouchbaseClusterFactory() {
+            return withCouchbaseClusterFactory;
+        }
+
+        public Builder withWithCouchbaseClusterFactory(CouchbaseClusterFactory withCouchbaseClusterFactory) {
+            this.withCouchbaseClusterFactory = withCouchbaseClusterFactory;
+            return this;
+        }
+
+        public CouchbaseBucketFactory getWithCouchbaseBucketFactory() {
+            return withCouchbaseBucketFactory;
+        }
+
+        public Builder withWithCouchbaseBucketFactory(CouchbaseBucketFactory withCouchbaseBucketFactory) {
+            this.withCouchbaseBucketFactory = withCouchbaseBucketFactory;
             return this;
         }
 

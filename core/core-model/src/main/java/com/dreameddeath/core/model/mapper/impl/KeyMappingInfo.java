@@ -23,35 +23,35 @@ import com.dreameddeath.core.model.mapper.IKeyMappingInfo;
  * Created by Christophe Jeunesse on 08/06/2015.
  */
 public class KeyMappingInfo implements IKeyMappingInfo {
-    private final String _prefix;
-    private final String _key;
-    private final String _fullKey;
-    private final IDocumentClassMappingInfo _documentClassMappingInfo;
+    private final String prefix;
+    private final String key;
+    private final String fullKey;
+    private final IDocumentClassMappingInfo documentClassMappingInfo;
 
     protected KeyMappingInfo(String prefix,String key,String fullKey,IDocumentClassMappingInfo classMappingInfo){
-        _prefix = prefix;
-        _key = key;
-        _fullKey = fullKey;
-        _documentClassMappingInfo = classMappingInfo;
+        this.prefix = prefix;
+        this.key = key;
+        this.fullKey = fullKey;
+        documentClassMappingInfo = classMappingInfo;
     }
 
     @Override
     public String prefix() {
-        return _prefix;
+        return prefix;
     }
 
     @Override
     public String key() {
-        return _key;
+        return key;
     }
 
     @Override
     public String fullKey() {
-        return _fullKey;
+        return fullKey;
     }
 
     @Override
     public IDocumentClassMappingInfo classMappingInfo() {
-        return _documentClassMappingInfo;
+        return documentClassMappingInfo;
     }
 }

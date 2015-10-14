@@ -25,20 +25,20 @@ import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocumentLink<T>{
     @DocumentProperty("@c")
-    private Property<String> _class= new StandardProperty<String>(CdrsBucketLink.this);
+    private Property<String> class= new StandardProperty<String>(CdrsBucketLink.this)
     @DocumentProperty("nbCdrs")
-    private Property<Integer>   _nbCdrs= new StandardProperty<Integer>(CdrsBucketLink.this,0);
+    private Property<Integer>   nbCdrs= new StandardProperty<Integer>(CdrsBucketLink.this,0);
     @DocumentProperty("dbSize")
-    private Property<Integer>  _dbSize= new StandardProperty<Integer>(CdrsBucketLink.this,0);
+    private Property<Integer>  dbSize= new StandardProperty<Integer>(CdrsBucketLink.this,0);
     
-    public String getType() { return _class.get();}
-    public void setType(String clazz) { _class.set(clazz);}
+    public String getType() { return class.get();}
+    public void setType(String clazz) { class.set(clazz);}
     
-    public Integer getNbCdrs() { return _nbCdrs.get();}
-    public void setNbCdrs(Integer nbCdrs) { _nbCdrs.set(nbCdrs);}
+    public Integer getNbCdrs() { return nbCdrs.get();}
+    public void setNbCdrs(Integer nbCdrs) { nbCdrs.set(nbCdrs);}
     
-    public Integer getDbSize() { return _dbSize.get();}
-    public void setDbSize(Integer dbSize) { _dbSize.set(dbSize);}
+    public Integer getDbSize() { return dbSize.get();}
+    public void setDbSize(Integer dbSize) { dbSize.set(dbSize);}
     
     public CdrsBucketLink(){}
     public CdrsBucketLink(T bucket){
@@ -57,12 +57,12 @@ public class CdrsBucketLink<T extends GenericCdrsBucket> extends CouchbaseDocume
     
     public void updateFromBucket(T bucketUpdate) {
         if(bucketUpdate.getBinaryMeta().getBinaryDocumentType().equals(BinaryCouchbaseDocument.BinaryDocumentType.BINARY_FULL)){
-            _nbCdrs.set(bucketUpdate.getCdrs().size());
-            _dbSize.set(bucketUpdate.getBinaryMeta().getLastWrittenSize());
+            nbCdrs.set(bucketUpdate.getCdrs().size());
+            dbSize.set(bucketUpdate.getBinaryMeta().getLastWrittenSize());
         }
         else{
-            _nbCdrs.set(_nbCdrs.get()+bucketUpdate.getCdrs().size());
-            _dbSize.set(_dbSize.get()+bucketUpdate.getBinaryMeta().getLastWrittenSize());
+            nbCdrs.set(nbCdrs.get()+bucketUpdate.getCdrs().size());
+            dbSize.set(dbSize.get()+bucketUpdate.getBinaryMeta().getLastWrittenSize());
         }
     }
     

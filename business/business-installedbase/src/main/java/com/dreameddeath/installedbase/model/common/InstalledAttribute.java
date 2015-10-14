@@ -34,21 +34,21 @@ public abstract class InstalledAttribute extends CouchbaseDocumentElement {
      *  code : The catalogue code of the attribute
      */
     @DocumentProperty("code")
-    private Property<String> _code = new StandardProperty<>(InstalledAttribute.this);
+    private Property<String> code = new StandardProperty<>(InstalledAttribute.this);
     /**
      *  values : List of values (and their history)
      */
     @DocumentProperty("values")
-    private ListProperty<InstalledValue> _values = new ArrayListProperty<>(InstalledAttribute.this);
+    private ListProperty<InstalledValue> values = new ArrayListProperty<>(InstalledAttribute.this);
 
     // code accessors
-    public String getCode() { return _code.get(); }
-    public void setCode(String val) { _code.set(val); }
+    public String getCode() { return code.get(); }
+    public void setCode(String val) { code.set(val); }
 
     // Values Accessors
-    public List<InstalledValue> getValues() { return _values.get(); }
-    public void setValues(Collection<InstalledValue> vals) { _values.set(vals); }
-    public boolean addValues(InstalledValue val){ return _values.add(val); }
-    public boolean removeValues(InstalledValue val){ return _values.remove(val); }
+    public List<InstalledValue> getValues() { return values.get(); }
+    public void setValues(Collection<InstalledValue> vals) { values.set(vals); }
+    public boolean addValues(InstalledValue val){ return values.add(val); }
+    public boolean removeValues(InstalledValue val){ return values.remove(val); }
 
 }

@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
  * Created by Christophe Jeunesse on 09/10/2015.
  */
 public class ConfigPropertySource extends PropertySource {
-    private ConcurrentMap<String,IConfigProperty<String>> _propertyMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String,IConfigProperty<String>> propertyMap = new ConcurrentHashMap<>();
 
     public ConfigPropertySource(String name) {
         super(name);
@@ -35,6 +35,6 @@ public class ConfigPropertySource extends PropertySource {
 
     @Override
     public String getProperty(String name) {
-        return _propertyMap.computeIfAbsent(name,s-> ConfigPropertyFactory.getStringProperty(name,(String)null)).getValue();
+        return propertyMap.computeIfAbsent(name,s-> ConfigPropertyFactory.getStringProperty(name,(String)null)).getValue();
     }
 }

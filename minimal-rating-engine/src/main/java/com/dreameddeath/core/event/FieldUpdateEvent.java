@@ -20,11 +20,11 @@ import com.dreameddeath.core.model.business.CouchbaseDocument;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
 
 public class FieldUpdateEvent{
-    private CouchbaseDocument _rootDoc;
-    private BaseCouchbaseDocumentElement _elementDoc;
-    private String  _fieldFullPath;
-    private String  _fieldPath;
-    private Object  _newValue;
+    private CouchbaseDocument rootDoc;
+    private BaseCouchbaseDocumentElement elementDoc;
+    private String  fieldFullPath;
+    private String  fieldPath;
+    private Object  newValue;
     
     
 }

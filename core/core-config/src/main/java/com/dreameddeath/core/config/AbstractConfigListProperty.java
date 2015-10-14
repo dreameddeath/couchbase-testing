@@ -33,14 +33,14 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractConfigListProperty<T> implements IConfigProperty<List<T>>{
     private static String DEFAULT_DELIMITER_REGEXP = ",";
-    private final List<ConfigPropertyChangedCallback<List<T>>> _callbacks = new CopyOnWriteArrayList<>();
+    private final List<ConfigPropertyChangedCallback<List<T>>> callbacks = new CopyOnWriteArrayList<>();
 
-    private final StringConfigProperty _stringProp;
-    private String _cachedValue=null;
-    private List<T> _cachedList;
-    private String _cachedDefaultValue=null;
-    private List<T> _defaultValue=null;
-    private final Splitter _splitter;
+    private final StringConfigProperty stringProp;
+    private String cachedValue=null;
+    private List<T> cachedList;
+    private String cachedDefaultValue=null;
+    private List<T> defaultValue=null;
+    private final Splitter splitter;
 
     protected abstract List<T> splitValue(Splitter splitter,String value);
 
@@ -51,19 +51,19 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
 
 
     private AbstractConfigListProperty(String name,Splitter splitter,String defaultValue,ConfigPropertyChangedCallback<List<T>> callback) {
-        _splitter = splitter;
-        _stringProp= new StringConfigProperty(name,defaultValue);
+        this.splitter = splitter;
+        stringProp= new StringConfigProperty(name,defaultValue);
         final AbstractConfigListProperty<T> curr = this;
-        _stringProp.addCallback(new ConfigPropertyChangedCallback<String>(){
+        stringProp.addCallback(new ConfigPropertyChangedCallback<String>(){
             @Override
             public void onChange(IConfigProperty<String> prop, String oldValue, String newValue) {
                 List<T> oldValueList=null;
                 if(oldValue!=null){
-                    oldValueList = curr.splitValue(curr._splitter,oldValue);
+                    oldValueList = curr.splitValue(curr.splitter,oldValue);
                 }
                 List<T> newValueList=null;
                 if(newValue!=null){
-                    newValueList = curr.splitValue(curr._splitter,newValue);
+                    newValueList = curr.splitValue(curr.splitter,newValue);
 
                 }
                 for(ConfigPropertyChangedCallback<List<T>> callback:curr.getCallbacks()){
@@ -81,8 +81,8 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
     }
 
     private AbstractConfigListProperty(String name,Splitter splitter,AbstractConfigListProperty<T> defaultValueRef,ConfigPropertyChangedCallback<List<T>> callback) {
-        _splitter = splitter;
-        _stringProp=new StringConfigProperty(name,defaultValueRef._stringProp);
+        this.splitter = splitter;
+        stringProp=new StringConfigProperty(name,defaultValueRef.stringProp);
         if(callback!=null){
             addCallback(callback);
         }
@@ -134,15 +134,15 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
 
     @Override
     public List<T> getValue() {
-        String res = _stringProp.getValue();
+        String res = stringProp.getValue();
         if(res==null){
             return getDefaultValue();
         }
-        else if(!res.equals(_cachedValue)){
-            _cachedValue = res;
-            _cachedList = splitValue(_splitter,res);
+        else if(!res.equals(cachedValue)){
+            cachedValue = res;
+            cachedList = splitValue(splitter,res);
         }
-        return _cachedList;
+        return cachedList;
     }
 
 
@@ -166,37 +166,37 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
 
     @Override
     public List<T> getDefaultValue() {
-        String defaultValue = _stringProp.getDefaultValue();
-        if(_cachedDefaultValue.equals(defaultValue)){
-            _cachedDefaultValue = defaultValue;
-            _defaultValue = splitValue(_splitter,_cachedDefaultValue);
+        String defaultValueStr = stringProp.getDefaultValue();
+        if(!cachedDefaultValue.equals(defaultValueStr)){
+            cachedDefaultValue = defaultValueStr;
+            this.defaultValue = splitValue(splitter,cachedDefaultValue);
         }
-        return _defaultValue;
+        return this.defaultValue;
     }
 
     @Override
     public String getName() {
-        return _stringProp.getName();
+        return stringProp.getName();
     }
 
     @Override
     public DateTime getLastChangedDate() {
-        return _stringProp.getLastChangedDate();
+        return stringProp.getLastChangedDate();
     }
 
     @Override
     public void addCallback(final ConfigPropertyChangedCallback<List<T>> callback) {
-        _callbacks.add(callback);
+        callbacks.add(callback);
     }
 
     @Override
     public void removeAllCallbacks() {
-        _stringProp.removeAllCallbacks();
+        stringProp.removeAllCallbacks();
     }
 
     @Override
     public Collection<ConfigPropertyChangedCallback<List<T>>> getCallbacks(){
-        return Collections.unmodifiableCollection(_callbacks);
+        return Collections.unmodifiableCollection(callbacks);
     }
 
     public List<T> get(){

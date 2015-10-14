@@ -23,18 +23,21 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
  * Created by Christophe Jeunesse on 10/10/2015.
  */
 public class AbstractServletContextHandler extends ServletContextHandler {
-    private final AbstractWebServer _webServer;
+    private final AbstractWebServer webServer;
     public AbstractServletContextHandler(AbstractWebServer parentServer){
         super(parentServer.getWebServer(),null);
-        _webServer = parentServer;
+        webServer = parentServer;
 
         this.setAttribute(AbstractWebServer.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME, parentServer.getParentDaemon().getCuratorClient());
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PARAM_NAME, parentServer.getParentDaemon());
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, parentServer.getParentDaemon().getDaemonLifeCycle());
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME,parentServer.getPropertySources());
+        if(parentServer.getCouchbaseFactories()!=null){
+            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME,parentServer.getCouchbaseFactories().getDocumentDaoFactory());
+        }
     }
 
     public AbstractWebServer getWebServer(){
-        return _webServer;
+        return webServer;
     }
 }

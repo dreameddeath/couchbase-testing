@@ -31,22 +31,22 @@ import java.util.UUID;
  */
 public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractTask {
     @DocumentProperty("jobId")
-    private Property<UUID> _jobId =new StandardProperty<UUID>(SubJobProcessTask.this);
+    private Property<UUID> jobId =new StandardProperty<UUID>(SubJobProcessTask.this);
 
-    public UUID getJobId(){ return _jobId.get(); }
-    public void setJobId(UUID jobId){_jobId.set(jobId);}
-    public T getJob() throws DaoException,StorageException {return (T)this.getParentJob().getMeta().getSession().getFromUID(_jobId.get().toString(),AbstractJob.class);}
+    public UUID getJobId(){ return jobId.get(); }
+    public void setJobId(UUID jobId){jobId.set(jobId);}
+    public T getJob() throws DaoException,StorageException {return (T)this.getParentJob().getMeta().getSession().getFromUID(jobId.get().toString(),AbstractJob.class);}
 
     @Override
     public final boolean init() throws TaskExecutionException{
         try {
-            if(_jobId.get()!=null){
+            if(jobId.get()!=null){
                 if(getJob()!=null) return false;
             }
 
             T job=buildSubJob();
             //Retrieve UID
-            _jobId.set(job.getUid());
+            jobId.set(job.getUid());
             //Save task to allow retries without creation duplicates
             getParentJob().getMeta().getSession().save(getParentJob());
             //Save job (should be a creation)

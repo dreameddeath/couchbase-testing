@@ -45,7 +45,7 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
      * Helper method for constructing standard {@link TypeResolverBuilder}
      * implementation.
      */
-    protected StdTypeResolverBuilder _constructStdTypeResolverBuilder() {
+    protected StdTypeResolverBuilder constructStdTypeResolverBuilder() {
         return new DocumentTypeResolverBuilder();
     }
 

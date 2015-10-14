@@ -44,16 +44,16 @@ import java.util.regex.Pattern;
  */
 public class RequireJsServlet extends HttpServlet {
     public static String APPS_WEBJARS_LIBS_FULL_PATH="webjar_path";
-    private boolean _manualTesting=false;
-    private String _libFullPath;
-    private String _response;
-    private String _eTag;
+    private boolean manualTesting=false;
+    private String libFullPath;
+    private String response;
+    private String eTag;
 
     private void buildResponse(){
-        if(_manualTesting){
+        if(manualTesting){
             try {
                 List<String> prefixes = new ArrayList<>();
-                prefixes.add(_libFullPath);
+                prefixes.add(libFullPath);
 
                 Map<String,String> webJars = (new WebJarAssetLocator(
                         WebJarAssetLocator.getFullPathIndex(
@@ -62,14 +62,14 @@ public class RequireJsServlet extends HttpServlet {
                                 WebJarAssetLocator.class.getClassLoader()
                         )
                 )).getWebJars();
-                _response = RequireJS.generateSetupJavaScript(prefixes, webJars);
+                response = RequireJS.generateSetupJavaScript(prefixes, webJars);
             }
             catch(MalformedURLException e){
                 throw new RuntimeException("Cannot setup testing env",e);
             }
         }
         else {
-            _response = RequireJS.getSetupJavaScript(_libFullPath);
+            response = RequireJS.getSetupJavaScript(libFullPath);
         }
         MessageDigest md;
         try {
@@ -78,20 +78,20 @@ public class RequireJsServlet extends HttpServlet {
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("MD5 cryptographic algorithm is not available.", e);
         }
-        byte[] messageDigest = md.digest(_response.getBytes());
+        byte[] messageDigest = md.digest(response.getBytes());
         BigInteger number = new BigInteger(1, messageDigest);
         StringBuffer sb = new StringBuffer("0");
         sb.append(number.toString(16));
-        _eTag=sb.toString();
+        eTag=sb.toString();
     }
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         String forTesting = config.getServletContext().getInitParameter(WebJarsServletContextHandler.APPS_WEBJARS_LIBS_FOR_TESTING);
         if ("true".equalsIgnoreCase(forTesting)){
-            _manualTesting = true;
+            manualTesting = true;
         }
-        _libFullPath = config.getInitParameter(APPS_WEBJARS_LIBS_FULL_PATH);
+        libFullPath = config.getInitParameter(APPS_WEBJARS_LIBS_FULL_PATH);
         buildResponse();
 
     }
@@ -100,16 +100,16 @@ public class RequireJsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
-        if(_manualTesting){
+        if(manualTesting){
             buildResponse();
         }
-        response.setHeader(HttpHeader.ETAG.toString(), _eTag);
-        if(_eTag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.toString()))){
+        response.setHeader(HttpHeader.ETAG.toString(), eTag);
+        if(eTag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.toString()))){
             response.setStatus(HttpStatus.NOT_MODIFIED_304);
         }
         else {
             response.setContentType("application/javascript");
-            response.getWriter().println(_response);
+            response.getWriter().println(response);
         }
     }
 }

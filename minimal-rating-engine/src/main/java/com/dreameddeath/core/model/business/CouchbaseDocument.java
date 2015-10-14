@@ -34,59 +34,59 @@ import java.util.Set;
 
 public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
     @DocumentProperty("attachedTasks")
-    private ListProperty<CouchbaseDocumentAttachedTaskRef> _attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(CouchbaseDocument.this);
+    private ListProperty<CouchbaseDocumentAttachedTaskRef> attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(CouchbaseDocument.this);
     @DocumentProperty("docRevision")
-    private Long _revision = 0L;
+    private Long revision = 0L;
     @DocumentProperty("docLastModDate")
-    private DateTime _lastModificationDate;
+    private DateTime lastModificationDate;
     /**
      *  docUniqKeys : List of uniqueness Keys attached to this document
      */
     @DocumentProperty("docUniqKeys")
-    private SetProperty<String> _docUniqKeys = new HashSetProperty<String>(CouchbaseDocument.this);
-    private Set<String> _inDbUniqKeys = new HashSet<String>();
+    private SetProperty<String> docUniqKeys = new HashSetProperty<String>(CouchbaseDocument.this);
+    private Set<String> inDbUniqKeys = new HashSet<String>();
 
 
-    public final Long getDocRevision(){ return _revision; }
-    public final void setDocRevision(Long rev){ _revision=rev; }
-    public final Long incDocRevision(){ return (++_revision); }
+    public final Long getDocRevision(){ return revision; }
+    public final void setDocRevision(Long rev){ revision=rev; }
+    public final Long incDocRevision(){ return (++revision); }
 
-    public final DateTime getDocLastModDate(){ return _lastModificationDate; }
-    public final void setDocLastModDate(DateTime date){ _lastModificationDate=date; }
-    public final void updateDocLastModDate(){ _lastModificationDate=DateTime.now(); }
+    public final DateTime getDocLastModDate(){ return lastModificationDate; }
+    public final void setDocLastModDate(DateTime date){ lastModificationDate=date; }
+    public final void updateDocLastModDate(){ lastModificationDate=DateTime.now(); }
 
     // DocUniqKeys Accessors
-    public final Set<String> getDocUniqKeys() { return _docUniqKeys.get(); }
-    public final void setDocUniqKeys(Set<String> vals) { _docUniqKeys.set(vals); }
-    public final boolean addDocUniqKeys(String key){ return _docUniqKeys.add(key); }
-    public final boolean removeDocUniqKeys(String key){ return _docUniqKeys.remove(key); }
+    public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
+    public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
+    public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
+    public final boolean removeDocUniqKeys(String key){ return docUniqKeys.remove(key); }
 
 
     protected void syncKeyWithDb(){
-        _inDbUniqKeys.clear();
-        _inDbUniqKeys.addAll(_docUniqKeys.get());
-        _docUniqKeys.clear();
+        inDbUniqKeys.clear();
+        inDbUniqKeys.addAll(docUniqKeys.get());
+        docUniqKeys.clear();
     }
 
     public Set<String> getToBeDeletedUniqueKeys(){
-        Set<String> toRemoveKeyList=new HashSet<String>(_inDbUniqKeys);
-        toRemoveKeyList.addAll(_docUniqKeys.get());
+        Set<String> toRemoveKeyList=new HashSet<String>(inDbUniqKeys);
+        toRemoveKeyList.addAll(docUniqKeys.get());
         return toRemoveKeyList;
     }
 
     public Set<String> getRemovedUniqueKeys(){
-        Set<String> removed=new HashSet<String>(_inDbUniqKeys);
-        removed.removeAll(_docUniqKeys.get());
+        Set<String> removed=new HashSet<String>(inDbUniqKeys);
+        removed.removeAll(docUniqKeys.get());
         return removed;
     }
 
-    public List<CouchbaseDocumentAttachedTaskRef> getAttachedTasks(){return _attachedTasks.get();}
+    public List<CouchbaseDocumentAttachedTaskRef> getAttachedTasks(){return attachedTasks.get();}
     public void setAttachedTasks(Collection<CouchbaseDocumentAttachedTaskRef> tasks){
-        _attachedTasks.set(tasks);
+        attachedTasks.set(tasks);
     }
 
     public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(String jobKey,String taskId){
-        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks) {
+        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks) {
             if (jobKey.equals(taskRef.getJobKey()) && (taskId.equals(taskRef.getTaskId()))) {
                 return taskRef;
             }
@@ -98,11 +98,11 @@ public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
         if(getAttachedTaskRef(task.getJobKey(), task.getTaskId())!=null){
             ///TODO throw error
         }
-        _attachedTasks.add(task);
+        attachedTasks.add(task);
     }
 
     public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(AbstractTask task){
-        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks){
+        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks){
             if(taskRef.isForTask(task)){
                 return taskRef;
             }
@@ -117,14 +117,14 @@ public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
      */
     public void cleanupAttachedTaskRef(AbstractTask task){
         CouchbaseDocumentAttachedTaskRef result=null;
-        for(CouchbaseDocumentAttachedTaskRef taskRef: _attachedTasks){
+        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks){
             if(taskRef.isForTask(task)) {
                 result = taskRef;
                 break;
             }
         }
         if(result!=null){
-            _attachedTasks.remove(result);
+            attachedTasks.remove(result);
         }
     }
 
@@ -139,15 +139,15 @@ public abstract class CouchbaseDocument extends BaseCouchbaseDocument {
     }
 
     public class MetaInfo extends BaseMetaInfo {
-        private Collection<CouchbaseDocumentLink> _reverseLinks=new HashSet<CouchbaseDocumentLink>();
+        private Collection<CouchbaseDocumentLink> reverseLinks=new HashSet<CouchbaseDocumentLink>();
 
-        public void addReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.add(lnk); }
-        public void removeReverseLink(CouchbaseDocumentLink lnk){ _reverseLinks.remove(lnk); }
+        public void addReverseLink(CouchbaseDocumentLink lnk){ reverseLinks.add(lnk); }
+        public void removeReverseLink(CouchbaseDocumentLink lnk){ reverseLinks.remove(lnk); }
 
         @Override
         public void setStateDirty(){
             super.setStateDirty();
-            for(CouchbaseDocumentLink link: _reverseLinks){
+            for(CouchbaseDocumentLink link: reverseLinks){
                 link.syncFields();
             }
         }

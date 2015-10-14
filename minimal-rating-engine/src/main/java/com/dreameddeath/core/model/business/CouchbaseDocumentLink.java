@@ -29,10 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class CouchbaseDocumentLink<T extends BaseCouchbaseDocument> extends BaseCouchbaseDocumentElement {
-    private List<SynchronizedLinkProperty> _childLinks=new ArrayList<SynchronizedLinkProperty>();
-    private Property<T>            _docObject=new ImmutableProperty<T>(null);
+    private List<SynchronizedLinkProperty> childLinks=new ArrayList<SynchronizedLinkProperty>();
+    private Property<T>            docObject=new ImmutableProperty<T>(null);
     @DocumentProperty("key")
-    private Property<String> _key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
+    private Property<String> key=new SynchronizedLinkProperty<String,T>(CouchbaseDocumentLink.this){
         @Override
         protected  String getRealValue(T doc){
             return doc.getBaseMeta().getKey();
@@ -41,34 +41,34 @@ public abstract class CouchbaseDocumentLink<T extends BaseCouchbaseDocument> ext
 
 
     public void addChildSynchronizedProperty(SynchronizedLinkProperty prop){
-        _childLinks.add(prop);
+        childLinks.add(prop);
     }
 
-    public final String getKey(){ return _key.get();}
-    public final void setKey(String key){ _key.set(key); }
+    public final String getKey(){ return key.get();}
+    public final void setKey(String key){ key.set(key); }
     
 
     public T getLinkedObjectFromCache(){
-        return _docObject.get();
+        return docObject.get();
     }
 
     public T getLinkedObject() throws DaoException,StorageException{
-        if((_docObject.get()==null)){
-            if(_key==null){
+        if((docObject.get()==null)){
+            if(key==null){
                 ///TODO throw an error
             }
             else{
                 BaseCouchbaseDocument parentDoc = getParentDocument();
                 if((parentDoc!=null) && parentDoc.getBaseMeta().getSession()!=null){
-                    _docObject.set((T)parentDoc.getBaseMeta().getSession().get(_key.get()));
+                    docObject.set((T)parentDoc.getBaseMeta().getSession().get(key.get()));
                 }
             }
         }
-        return _docObject.get();
+        return docObject.get();
     }
     
     public void setLinkedObject(T docObj){ 
-        _docObject.set(docObj);
+        docObject.set(docObj);
         if(docObj instanceof CouchbaseDocument) {
             ((CouchbaseDocument)docObj).getMeta().addReverseLink(this);
         }
@@ -85,7 +85,7 @@ public abstract class CouchbaseDocumentLink<T extends BaseCouchbaseDocument> ext
     
     public CouchbaseDocumentLink(CouchbaseDocumentLink<T> srcLink){
         setKey(srcLink.getKey());
-        setLinkedObject(srcLink._docObject.get());
+        setLinkedObject(srcLink.docObject.get());
     }
     
     
@@ -99,10 +99,10 @@ public abstract class CouchbaseDocumentLink<T extends BaseCouchbaseDocument> ext
         }
         else if(target instanceof CouchbaseDocumentLink){
             CouchbaseDocumentLink targetLnk=(CouchbaseDocumentLink) target;
-            if((_key!=null) && _key.equals(targetLnk._key)){
+            if((key!=null) && key.equals(targetLnk.key)){
                 return true;
             }
-            else if((_docObject!=null)&& _docObject.equals(targetLnk._docObject)){
+            else if((docObject!=null)&& docObject.equals(targetLnk.docObject)){
                 return true;
             }
         }
@@ -116,7 +116,7 @@ public abstract class CouchbaseDocumentLink<T extends BaseCouchbaseDocument> ext
     }
 
     public void syncFields(){
-        for(SynchronizedLinkProperty prop:_childLinks){
+        for(SynchronizedLinkProperty prop:childLinks){
             prop.sync();
         }
     }

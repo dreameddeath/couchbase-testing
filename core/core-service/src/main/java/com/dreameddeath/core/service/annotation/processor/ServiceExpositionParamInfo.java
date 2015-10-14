@@ -29,13 +29,13 @@ public class ServiceExpositionParamInfo {
     private final static String MAIN_PATTERN_STR = "(\\w+)(?:\\s*(<?=>?)\\s*(\\w+(?:.\\w+(?:\\(\\))?)*))?";
     private final static Pattern PATH_PATTERN = Pattern.compile(":" + MAIN_PATTERN_STR);
     private final static Pattern QUERY_PATTERN = Pattern.compile(MAIN_PATTERN_STR);
-    private final boolean _isQuery;
-    private String _name;
-    private boolean _isSimpleMapping;
-    private Direction _mappingDirection;
-    private String _getterString;
-    private String _setterString;
-    private ParameterizedTypeInfo _typeInfo;
+    private final boolean isQuery;
+    private String name;
+    private boolean isSimpleMapping;
+    private Direction mappingDirection;
+    private String getterString;
+    private String setterString;
+    private ParameterizedTypeInfo typeInfo;
 
     public enum Direction {
         TO_PATH_ONLY,
@@ -43,19 +43,19 @@ public class ServiceExpositionParamInfo {
     }
 
     private void initFromAttributePath(String name,String attributePath,MethodInfo methodInfo){
-        _name = name;
+        this.name = name;
         //;
         if((attributePath == null) || attributePath.equals("") || attributePath.split("\\.").length==1){
-            _isSimpleMapping = true;
-            _getterString = attributePath;
-            _setterString = attributePath+"="+_name;
-            _typeInfo = methodInfo.getMethodParamByName(attributePath);
+            isSimpleMapping = true;
+            getterString = attributePath;
+            setterString = attributePath+"="+name;
+            typeInfo = methodInfo.getMethodParamByName(attributePath);
         }
         else{
             String[] attributeElements =attributePath.split("\\.");
-            _isSimpleMapping = false;
-            _getterString = "";
-            _setterString = "";
+            isSimpleMapping = false;
+            getterString = "";
+            setterString = "";
             AbstractClassInfo currentElement = null;
             int nbProcessedElement = 0;
             for(String attributeElement : attributeElements){
@@ -66,8 +66,8 @@ public class ServiceExpositionParamInfo {
                         throw new RuntimeException("Cannot find method attribute <"+attributeElement+"> from method <"+methodInfo.getFullName()+">");
                     }
                     currentElement = foundMethod.getMainType();
-                    _getterString = attributeElement;
-                    _setterString = attributeElement;
+                    getterString = attributeElement;
+                    setterString = attributeElement;
                 }
                 else{
                     //First try to access by getter/Setter
@@ -94,39 +94,39 @@ public class ServiceExpositionParamInfo {
 
                     if (nbProcessedElement < attributeElements.length) {
                         if (getterMethod != null) {
-                            _getterString += "." + getterMethod.getName() + "()";
+                            getterString += "." + getterMethod.getName() + "()";
                         } else {
-                            _getterString += "." + fieldInfo.getName();
+                            getterString += "." + fieldInfo.getName();
                         }
                     } else {
                         if (getterMethod != null) {
-                            _typeInfo = getterMethod.getReturnType();
-                            _setterString = _getterString + "." + setterMethod.getName() + "(" + _name + ")";
-                            _getterString += _getterString + "." + getterMethod.getName() + "()";
+                            typeInfo = getterMethod.getReturnType();
+                            setterString = getterString + "." + setterMethod.getName() + "(" + name + ")";
+                            getterString += getterString + "." + getterMethod.getName() + "()";
                         } else {
-                            _setterString = _getterString + "." + fieldInfo.getName() + "=" + _name;
-                            _getterString += "." + fieldInfo.getName();
-                            _typeInfo = fieldInfo.getType();
+                            setterString = getterString + "." + fieldInfo.getName() + "=" + name;
+                            getterString += "." + fieldInfo.getName();
+                            typeInfo = fieldInfo.getType();
                         }
                     }
                 }
             }
         }
 
-        if(_typeInfo==null){
+        if(typeInfo==null){
             throw new RuntimeException("Cannot find type for info "+attributePath+ " in method "+methodInfo.getFullName());
         }
     }
 
     public ServiceExpositionParamInfo(String name,String paramPath, MethodInfo methodInfo) {
-        _isQuery = false;
+        isQuery = false;
         initFromAttributePath(name,paramPath,methodInfo);
     }
 
     public ServiceExpositionParamInfo(boolean isQuery, String paramDef, MethodInfo methodInfo) {
-        _isQuery = isQuery;
+        this.isQuery = isQuery;
         Matcher matcher;
-        if(_isQuery){
+        if(isQuery){
             matcher = QUERY_PATTERN.matcher(paramDef);
         }
         else {
@@ -135,11 +135,11 @@ public class ServiceExpositionParamInfo {
 
         if (matcher.matches()) {
             if(matcher.group(2)!=null) {
-                _mappingDirection = matcher.group(2).equals("<=") ? Direction.TO_PATH_ONLY : Direction.BIDIRECTIONNAL;
+                mappingDirection = matcher.group(2).equals("<=") ? Direction.TO_PATH_ONLY : Direction.BIDIRECTIONNAL;
                 initFromAttributePath(matcher.group(1), matcher.group(3), methodInfo);
             }
             else{
-                _mappingDirection = Direction.BIDIRECTIONNAL;
+                mappingDirection = Direction.BIDIRECTIONNAL;
                 initFromAttributePath(matcher.group(1), matcher.group(1), methodInfo);
             }
         }
@@ -149,37 +149,37 @@ public class ServiceExpositionParamInfo {
     }
 
     public String getImportName(){
-        return _typeInfo.getMainType().getImportName();
+        return typeInfo.getMainType().getImportName();
     }
 
     public String getClassName(){
-        return _typeInfo.getMainType().getSimpleName();
+        return typeInfo.getMainType().getSimpleName();
     }
 
     public boolean isQuery() {
-        return _isQuery;
+        return isQuery;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public Direction getMappingDirection() {
-        return _mappingDirection;
+        return mappingDirection;
     }
 
     public String getGetterString() {
-        return _getterString;
+        return getterString;
     }
 
     public String getSetterString() {
-        return _setterString;
+        return setterString;
     }
 
     public String getPatternFormat(){
-        if(_typeInfo.getMainType().isInstanceOf(Number.class)){
+        if(typeInfo.getMainType().isInstanceOf(Number.class)){
             for(Class clazz:new Class[]{Float.class, Double.class,BigDecimal.class,}){
-                if(_typeInfo.getMainType().isInstanceOf(clazz)){
+                if(typeInfo.getMainType().isInstanceOf(clazz)){
                     return "%f";
                 }
             }
@@ -189,6 +189,6 @@ public class ServiceExpositionParamInfo {
     }
 
     public ParameterizedTypeInfo getParamType(){
-        return _typeInfo;
+        return typeInfo;
     }
 }

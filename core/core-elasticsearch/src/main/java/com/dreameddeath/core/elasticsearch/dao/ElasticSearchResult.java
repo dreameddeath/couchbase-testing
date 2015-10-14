@@ -27,31 +27,31 @@ import java.util.List;
  * Created by Christophe Jeunesse on 19/07/2015.
  */
 public class ElasticSearchResult<T extends CouchbaseDocument> {
-    private final ElasticSearchDao<T> _elasticSearchDao;
-    private final SearchResponse _esResult;
-    private List<ElasticSearchResultHit<T>> _elasticSearchResultHitList = null;
+    private final ElasticSearchDao<T> elasticSearchDao;
+    private final SearchResponse esResult;
+    private List<ElasticSearchResultHit<T>> elasticSearchResultHitList = null;
 
     public ElasticSearchResult(ElasticSearchDao<T> dao, SearchResponse esResult) {
-        _elasticSearchDao = dao;
-        _esResult = esResult;
+        elasticSearchDao = dao;
+        this.esResult = esResult;
     }
 
 
     public long getTotalHitCount() {
-        return _esResult.getHits().getTotalHits();
+        return esResult.getHits().getTotalHits();
     }
 
     public List<ElasticSearchResultHit<T>> getList() {
-        if (_elasticSearchResultHitList == null) {
+        if (elasticSearchResultHitList == null) {
             synchronized (this) {
-                if (_elasticSearchResultHitList == null) {
-                    _elasticSearchResultHitList = new ArrayList<>(_esResult.getHits().hits().length);
-                    for (SearchHit hit : _esResult.getHits().hits()) {
-                        _elasticSearchResultHitList.add(new ElasticSearchResultHit(_elasticSearchDao, hit));
+                if (elasticSearchResultHitList == null) {
+                    elasticSearchResultHitList = new ArrayList<>(esResult.getHits().hits().length);
+                    for (SearchHit hit : esResult.getHits().hits()) {
+                        elasticSearchResultHitList.add(new ElasticSearchResultHit(elasticSearchDao, hit));
                     }
                 }
             }
         }
-        return _elasticSearchResultHitList;
+        return elasticSearchResultHitList;
     }
 }

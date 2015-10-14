@@ -22,18 +22,18 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
  * Created by Christophe Jeunesse on 23/11/2014.
  */
 public class JobContext {
-    private ICouchbaseSession _session;
-    private ExecutorServiceFactory _executorFactory;
-    private ProcessingServiceFactory _processingFactory;
+    private ICouchbaseSession session;
+    private ExecutorServiceFactory executorFactory;
+    private ProcessingServiceFactory processingFactory;
 
-    public ICouchbaseSession getSession(){return _session;}
-    public void setSession(ICouchbaseSession session){ _session=session;}
+    public ICouchbaseSession getSession(){return session;}
+    public void setSession(ICouchbaseSession session){ this.session=session;}
 
-    public void setExecutorFactory(ExecutorServiceFactory factory){_executorFactory = factory;}
-    public ExecutorServiceFactory getExecutorFactory(){return _executorFactory;}
+    public void setExecutorFactory(ExecutorServiceFactory factory){executorFactory = factory;}
+    public ExecutorServiceFactory getExecutorFactory(){return executorFactory;}
 
-    public void setProcessingFactory(ProcessingServiceFactory factory){_processingFactory = factory;}
-    public ProcessingServiceFactory getProcessingFactory(){return _processingFactory;}
+    public void setProcessingFactory(ProcessingServiceFactory factory){processingFactory = factory;}
+    public ProcessingServiceFactory getProcessingFactory(){return processingFactory;}
 
     public static JobContext newContext(ICouchbaseSession session, ExecutorServiceFactory execFactory,ProcessingServiceFactory processFactory){
         JobContext res = new JobContext();

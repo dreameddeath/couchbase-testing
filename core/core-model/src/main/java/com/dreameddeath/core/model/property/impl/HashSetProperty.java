@@ -28,15 +28,15 @@ import java.util.Set;
  * Created by Christophe Jeunesse on 08/08/2014.
  */
 public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,HasParent {
-    HasParent _parentElt;
+    HasParent parentElt;
 
     public HashSetProperty(HasParent parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
     @Override
-    public void setParentElement(HasParent parentElement){ _parentElt=parentElement;}
+    public void setParentElement(HasParent parentElement){ parentElt=parentElement;}
     @Override
-    public HasParent getParentElement(){ return _parentElt;}
+    public HasParent getParentElement(){ return parentElt;}
 
 
     @Override
@@ -71,7 +71,7 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,Has
     public boolean add(T elt){
         HasParent.Helper.dirtyParentDocument(this);
         if((elt!=null) && (elt instanceof HasParent)){
-            ((HasParent) elt).setParentElement(_parentElt);
+            ((HasParent) elt).setParentElement(parentElt);
         }
         return super.add(elt);
     }
@@ -81,7 +81,7 @@ public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,Has
         HasParent.Helper.dirtyParentDocument(this);
         for(T elt:elts) {
             if ((elt != null) && (elt instanceof HasParent)) {
-                ((HasParent) elt).setParentElement(_parentElt);
+                ((HasParent) elt).setParentElement(parentElt);
             }
         }
         return super.addAll(elts);

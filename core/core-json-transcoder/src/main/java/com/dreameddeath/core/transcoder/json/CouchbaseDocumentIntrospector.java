@@ -41,10 +41,10 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
         INTERNAL_SERVICE
     }
 
-    private Domain _domain = Domain.STORAGE;
+    private Domain domain = Domain.STORAGE;
 
     public CouchbaseDocumentIntrospector(){}
-    public CouchbaseDocumentIntrospector(Domain domain){_domain = domain;}
+    public CouchbaseDocumentIntrospector(Domain domain){this.domain = domain;}
 
     @Override
     public Version version() {
@@ -53,10 +53,6 @@ public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector
 
 
     @Override
-    /**
-     * Helper method for constructing standard {@link com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder}
-     * implementation.
-     */
     protected StdTypeResolverBuilder _constructStdTypeResolverBuilder() {
         return new DocumentTypeResolverBuilder();
     }

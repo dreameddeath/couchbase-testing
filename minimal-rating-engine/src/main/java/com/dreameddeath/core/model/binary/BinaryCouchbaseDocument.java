@@ -63,23 +63,23 @@ public class BinaryCouchbaseDocument extends BaseCouchbaseDocument {
 
     public class BinaryMetaInfo extends BaseMetaInfo {
         /// The document type is used during the Transcoder
-        private BinaryDocumentType _binaryDocumentType;
+        private BinaryDocumentType binaryDocumentType;
         /// The check-sum of the last cdrs read to detect the error
-        private int _endingCheckSum;
+        private int endingCheckSum;
         /// The last append/written size
-        private int _lastWrittenSize;
+        private int lastWrittenSize;
 
         /// Checksum Getter/Setter
-        public int getEndingCheckSum(){ return _endingCheckSum;}
-        public void setEndingCheckSum(int endingCheckSum){_endingCheckSum=endingCheckSum;}
+        public int getEndingCheckSum(){ return endingCheckSum;}
+        public void setEndingCheckSum(int endingCheckSum){this.endingCheckSum=endingCheckSum;}
 
         /// Last Written Size Getter/Setter
-        public int getLastWrittenSize(){return _lastWrittenSize;}
-        public void setLastWrittenSize(int appendedSize){_lastWrittenSize=appendedSize;}
+        public int getLastWrittenSize(){return lastWrittenSize;}
+        public void setLastWrittenSize(int appendedSize){lastWrittenSize=appendedSize;}
 
         /// Getter of document Type
-        public BinaryDocumentType getBinaryDocumentType(){return _binaryDocumentType; }
-        public void setBinaryDocumentType(BinaryDocumentType binaryDocumentType){_binaryDocumentType=binaryDocumentType; }
+        public BinaryDocumentType getBinaryDocumentType(){return binaryDocumentType; }
+        public void setBinaryDocumentType(BinaryDocumentType binaryDocumentType){this.binaryDocumentType=binaryDocumentType; }
 
     }
 
@@ -93,15 +93,15 @@ public class BinaryCouchbaseDocument extends BaseCouchbaseDocument {
         BINARY_PARTIAL_WITHOUT_CHECKSUM("partiel_without_checksum");
 
 
-        private String _value;
+        private String value;
 
         BinaryDocumentType(String value){
-            this._value = value;
+            this.value = value;
         }
 
         @Override
         public String toString(){
-            return _value;
+            return value;
         }
     }
 

@@ -22,11 +22,11 @@ import java.util.List;
  * Created by Christophe Jeunesse on 13/09/2014.
  */
 public class BulkUpdateException extends StorageException {
-    List<BulkUpdateException> _childList;
+    List<BulkUpdateException> childList;
 
     public BulkUpdateException(String message,List<BulkUpdateException> listChildException){
         super(message);
-        _childList=listChildException;
+        childList=listChildException;
     }
 
     public BulkUpdateException(String message,Throwable e){
@@ -41,8 +41,8 @@ public class BulkUpdateException extends StorageException {
 
         buf.append("<").append(super.getMessage()).append(">");
 
-        if(_childList!=null) {
-            for (BulkUpdateException a_childList : _childList) {
+        if(childList!=null) {
+            for (BulkUpdateException a_childList : childList) {
                 buf.append(a_childList.formatValidationIssues());
             }
         }

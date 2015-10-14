@@ -23,36 +23,36 @@ import org.elasticsearch.search.SearchHit;
  * Created by Christophe Jeunesse on 19/07/2015.
  */
 public class ElasticSearchResultHit<T extends CouchbaseDocument> {
-    private ElasticSearchDao<T> _elasticSearchDao;
-    private SearchHit _hit;
-    private boolean _mappingAttempted;
-    private T _obj;
+    private ElasticSearchDao<T> elasticSearchDao;
+    private SearchHit hit;
+    private boolean mappingAttempted;
+    private T obj;
 
     public ElasticSearchResultHit(ElasticSearchDao<T> dao, SearchHit hit) {
-        _elasticSearchDao = dao;
-        _hit = hit;
-        _mappingAttempted = false;
+        elasticSearchDao = dao;
+        this.hit = hit;
+        mappingAttempted = false;
     }
 
     public float getScore() {
-        return _hit.score();
+        return hit.score();
     }
 
     public String getKey() {
-        return _hit.getId();
+        return hit.getId();
     }
 
     public T get() {
-        if (!_mappingAttempted) {
+        if (!mappingAttempted) {
             synchronized (this) {
-                if (!_mappingAttempted) {
-                    if (!_hit.isSourceEmpty()) {
-                        _obj = _elasticSearchDao.getTranscoder().decode(_hit.source());
+                if (!mappingAttempted) {
+                    if (!hit.isSourceEmpty()) {
+                        obj = elasticSearchDao.getTranscoder().decode(hit.source());
                     }
-                    _mappingAttempted = true;
+                    mappingAttempted = true;
                 }
             }
         }
-        return _obj;
+        return obj;
     }
 }

@@ -22,35 +22,35 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 12/12/2014.
  */
 public class ReadParams {
-    private ReadReplicateMode _readMode=ReadReplicateMode.FROM_MASTER;
-    private long _timeOut=0;
-    private TimeUnit _timeOutUnit=null;
+    private ReadReplicateMode readMode=ReadReplicateMode.FROM_MASTER;
+    private long timeOut=0;
+    private TimeUnit timeOutUnit=null;
 
     public ReadReplicateMode getReadMode() {
-        return _readMode;
+        return readMode;
     }
     public void setReadMode(ReadReplicateMode readMode) {
-        _readMode = readMode;
+        this.readMode = readMode;
     }
 
     public long getTimeOut() {
-        return _timeOut;
+        return timeOut;
     }
     public void setTimeOut(long timeOut) {
-        _timeOut = timeOut;
+        this.timeOut = timeOut;
     }
 
     public TimeUnit getTimeOutUnit() {
-        return _timeOutUnit;
+        return timeOutUnit;
     }
     public void setTimeOutUnit(TimeUnit timeOutUnit) {
-        _timeOutUnit = timeOutUnit;
+        this.timeOutUnit = timeOutUnit;
     }
 
     public static ReadParams create(){return new ReadParams();}
 
-    public ReadParams with(ReadReplicateMode mode){_readMode = mode;return this;}
-    public ReadParams with(long timeout,TimeUnit unit){ _timeOut = timeout;_timeOutUnit = unit;return this;}
+    public ReadParams with(ReadReplicateMode mode){readMode = mode;return this;}
+    public ReadParams with(long timeout,TimeUnit unit){ timeOut = timeout;timeOutUnit = unit;return this;}
 
     public enum ReadReplicateMode {
         FROM_MASTER,

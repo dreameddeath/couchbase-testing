@@ -28,24 +28,24 @@ import java.lang.reflect.Field;
  * Created by Christophe Jeunesse on 06/08/2014.
  */
 public class UniqueValidator<T> implements Validator<T> {
-    private Unique _annotation;
-    private Field _field;
+    private Unique annotation;
+    private Field field;
     public UniqueValidator(Field field,Unique ann){
-        _annotation = ann;
-        _field = field;
+        annotation = ann;
+        this.field = field;
     }
 
     @Override
     public void validate(ValidatorContext ctxt,T value) throws ValidationException{
         if(value!=null){
             try {
-                ctxt.getSession().addOrUpdateUniqueKey(HasParent.Helper.getParentDocument(ctxt.head()), value, _annotation.nameSpace());
+                ctxt.getSession().addOrUpdateUniqueKey(HasParent.Helper.getParentDocument(ctxt.head()), value, annotation.nameSpace());
             }
             catch(DuplicateUniqueKeyException e){
-                throw new ValidationFailedException(ctxt.head(),_field,"Duplicate Exception for value" ,e);
+                throw new ValidationFailedException(ctxt.head(),field,"Duplicate Exception for value" ,e);
             }
             catch(Exception e){
-                throw new ValidationFailedException(ctxt.head(),_field,"Other Exception",e);
+                throw new ValidationFailedException(ctxt.head(),field,"Other Exception",e);
             }
         }
     }

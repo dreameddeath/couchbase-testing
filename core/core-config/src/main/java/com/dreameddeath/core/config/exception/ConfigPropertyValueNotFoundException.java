@@ -22,15 +22,15 @@ import com.dreameddeath.core.config.IConfigProperty;
  * Created by Christophe Jeunesse on 05/02/2015.
  */
 public class ConfigPropertyValueNotFoundException extends Exception {
-    IConfigProperty _property;
+    IConfigProperty property;
 
     public ConfigPropertyValueNotFoundException(IConfigProperty prop, String message){
         super(message);
-        _property = prop;
+        property = prop;
     }
 
     @Override
     public String getMessage(){
-        return "The property <"+_property.getName()+"> value hasn't been found. The error message :\n"+super.getMessage();
+        return "The property <"+property.getName()+"> value hasn't been found. The error message :\n"+super.getMessage();
     }
 }

@@ -29,7 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ConfigPropertyFactory {
     private static ConfigPropertyFactory INSTANCE=null;
-    private static ConcurrentMap<String, List<IConfigProperty>> _mapCallbackPerProperty = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, List<IConfigProperty>> mapCallbackPerProperty = new ConcurrentHashMap<>();
 
     public static synchronized ConfigPropertyFactory getInstance(){
         if(INSTANCE==null){
@@ -42,11 +42,11 @@ public class ConfigPropertyFactory {
 
 
 
-    private DynamicPropertyFactory _dynamicPropertyFactory;
+    private DynamicPropertyFactory dynamicPropertyFactory;
 
 
     public ConfigPropertyFactory(){
-        _dynamicPropertyFactory = DynamicPropertyFactory.getInstance();
+        dynamicPropertyFactory = DynamicPropertyFactory.getInstance();
     }
 
 
@@ -105,23 +105,23 @@ public class ConfigPropertyFactory {
 
 
     protected static void addPropertyToGlobalMap(IConfigProperty prop) {
-        if (!ConfigPropertyFactory._mapCallbackPerProperty.containsKey(prop.getName())) {
-            ConfigPropertyFactory._mapCallbackPerProperty.putIfAbsent(prop.getName(), new CopyOnWriteArrayList<>());
+        if (!ConfigPropertyFactory.mapCallbackPerProperty.containsKey(prop.getName())) {
+            ConfigPropertyFactory.mapCallbackPerProperty.putIfAbsent(prop.getName(), new CopyOnWriteArrayList<>());
         }
 
-        ConfigPropertyFactory._mapCallbackPerProperty.get(prop.getName()).add(prop);
+        ConfigPropertyFactory.mapCallbackPerProperty.get(prop.getName()).add(prop);
     }
 
     protected static void removePropertyFromGlobalMap(IConfigProperty prop) {
-        if (!ConfigPropertyFactory._mapCallbackPerProperty.containsKey(prop.getName())) {
-            ConfigPropertyFactory._mapCallbackPerProperty.putIfAbsent(prop.getName(), new CopyOnWriteArrayList<>());
+        if (!ConfigPropertyFactory.mapCallbackPerProperty.containsKey(prop.getName())) {
+            ConfigPropertyFactory.mapCallbackPerProperty.putIfAbsent(prop.getName(), new CopyOnWriteArrayList<>());
         }
-        ConfigPropertyFactory._mapCallbackPerProperty.get(prop.getName()).remove(prop);
+        ConfigPropertyFactory.mapCallbackPerProperty.get(prop.getName()).remove(prop);
     }
 
     public static void fireCallback(String name, Object value) {
-        if (ConfigPropertyFactory._mapCallbackPerProperty.containsKey(name)) {
-            for (IConfigProperty<?> prop : ConfigPropertyFactory._mapCallbackPerProperty.get(name)) {
+        if (ConfigPropertyFactory.mapCallbackPerProperty.containsKey(name)) {
+            for (IConfigProperty<?> prop : ConfigPropertyFactory.mapCallbackPerProperty.get(name)) {
                 for (ConfigPropertyChangedCallback callback : prop.getCallbacks()) {
                     callback.onChange(prop, prop.getValue(), value);
                 }

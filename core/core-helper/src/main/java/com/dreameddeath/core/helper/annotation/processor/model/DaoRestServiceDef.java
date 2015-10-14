@@ -33,38 +33,38 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 19/04/2015.
  */
 public class DaoRestServiceDef {
-    private List<String> _imports = new ArrayList<>();
-    private String _name;
-    private String _domain;
-    private String _version;
-    private String _descr;
-    private String _dbPath;
-    private String _restRootPath;
-    private String _restUIdName;
-    private VersionStatus _versionStatus;
-    private DaoRestServiceDef _parentServiceDef=null;
-    private CouchbaseDocumentReflection _rootClassInfo;
-    private String _targetPackage;
-    private String _targetReadName;
-    private String _targetWriteName;
+    private List<String> imports = new ArrayList<>();
+    private String name;
+    private String domain;
+    private String version;
+    private String descr;
+    private String dbPath;
+    private String restRootPath;
+    private String restUIdName;
+    private VersionStatus versionStatus;
+    private DaoRestServiceDef parentServiceDef=null;
+    private CouchbaseDocumentReflection rootClassInfo;
+    private String targetPackage;
+    private String targetReadName;
+    private String targetWriteName;
 
     public DaoRestServiceDef(ClassInfo daoInfo,Map<ClassInfo,DaoDef> daoMap){
         RestDao daoRestAnnot = daoInfo.getAnnotation(RestDao.class);
-        _targetPackage = daoInfo.getPackageInfo().getName().replaceAll("\\bdao\\b", "service");
-        _targetReadName = daoInfo.getSimpleName().replaceAll("Dao$", "ReadRestService");
-        _targetWriteName = daoInfo.getSimpleName().replaceAll("Dao$", "WriteRestService");
-        _name = daoRestAnnot.name();
-        _domain = daoRestAnnot.domain();
-        _version = daoRestAnnot.version();
-        _descr = daoRestAnnot.descr();
-        _dbPath = daoRestAnnot.dbPath();
-        _versionStatus = daoRestAnnot.status();
-        _restRootPath = daoRestAnnot.rootPath();
-        _restUIdName = daoRestAnnot.uidName();
+        targetPackage = daoInfo.getPackageInfo().getName().replaceAll("\\bdao\\b", "service");
+        targetReadName = daoInfo.getSimpleName().replaceAll("Dao$", "ReadRestService");
+        targetWriteName = daoInfo.getSimpleName().replaceAll("Dao$", "WriteRestService");
+        name = daoRestAnnot.name();
+        domain = daoRestAnnot.domain();
+        version = daoRestAnnot.version();
+        descr = daoRestAnnot.descr();
+        dbPath = daoRestAnnot.dbPath();
+        versionStatus = daoRestAnnot.status();
+        restRootPath = daoRestAnnot.rootPath();
+        restUIdName = daoRestAnnot.uidName();
 
         DaoForClass daoClassAnnot = daoInfo.getAnnotation(DaoForClass.class);
-        _rootClassInfo = CouchbaseDocumentReflection.getClassInfoFromAnnot(daoClassAnnot,DaoForClass::value);
-        _imports.add(_rootClassInfo.getClassInfo().getImportName());
+        rootClassInfo = CouchbaseDocumentReflection.getClassInfoFromAnnot(daoClassAnnot,DaoForClass::value);
+        imports.add(rootClassInfo.getClassInfo().getImportName());
 
         //AbstractClassInfo parentClassInfo = AnnotationInfo.getClassInfoFromAnnot(daoRestAnnot, RestDao::parentDao);
         if(! daoRestAnnot.parentClassName().equals("")){
@@ -73,56 +73,56 @@ public class DaoRestServiceDef {
                 parentEntityClassInfo = CouchbaseDocumentReflection.getClassInfo(daoRestAnnot.parentClassName());
             }
             catch(ClassNotFoundException e){
-                throw new RuntimeException("Cannot find parent entity class "+daoRestAnnot.parentClassName()+" from class "+_rootClassInfo.getName());
+                throw new RuntimeException("Cannot find parent entity class "+daoRestAnnot.parentClassName()+" from class "+rootClassInfo.getName());
             }
 
 
             if(daoMap.containsKey(parentEntityClassInfo.getClassInfo())){
                 String className = daoMap.get(parentEntityClassInfo.getClassInfo()).getName();
                 try {
-                    _parentServiceDef = new DaoRestServiceDef((ClassInfo)AbstractClassInfo.getClassInfo(className),daoMap);
+                    parentServiceDef = new DaoRestServiceDef((ClassInfo)AbstractClassInfo.getClassInfo(className),daoMap);
                 }
                 catch(ClassNotFoundException e){
-                    throw new RuntimeException("Cannot find dao of parent class "+parentEntityClassInfo.getName()+" for class "+_rootClassInfo.getName());
+                    throw new RuntimeException("Cannot find dao of parent class "+parentEntityClassInfo.getName()+" for class "+rootClassInfo.getName());
                 }
             }
             else{
                  ClassInfo parentClassDao = DaoUtils.getDaoFromClass(parentEntityClassInfo);
                 if(parentClassDao!=null) {
-                    _parentServiceDef = new DaoRestServiceDef(parentClassDao, daoMap);
+                    parentServiceDef = new DaoRestServiceDef(parentClassDao, daoMap);
                 }
             }
         }
     }
 
     public List<String> getImports() {
-        return Collections.unmodifiableList(_imports);
+        return Collections.unmodifiableList(imports);
     }
 
     public String getRegisteringName(){
-        return "dao#"+_domain+"#"+_name;
+        return "dao#"+domain+"#"+name;
     }
 
     public String getStatus(){
-        return _versionStatus.getClass().getEnumConstants()[_versionStatus.ordinal()].name() ;
+        return versionStatus.getClass().getEnumConstants()[versionStatus.ordinal()].name() ;
     }
     public String getVersion() {
-        return _version;
+        return version;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
 
     public String getClassSimpleName(){
-        return _rootClassInfo.getSimpleName();
+        return rootClassInfo.getSimpleName();
     }
 
 
     public List<AttributInfo> getRootPathAttributeInfoList() {
-        if(_parentServiceDef!=null){
-            return _parentServiceDef.getPathAttributeInfoList();
+        if(parentServiceDef!=null){
+            return parentServiceDef.getPathAttributeInfoList();
         }
         else{
             return new ArrayList<>();
@@ -132,12 +132,12 @@ public class DaoRestServiceDef {
     public List<AttributInfo> getPathAttributeInfoList(){
         List<AttributInfo> result = getRootPathAttributeInfoList();
 
-        result.add(new AttributInfo(getDefaultAttributeName(),"String","Id of Element "+_name));
+        result.add(new AttributInfo(getDefaultAttributeName(),"String","Id of Element "+name));
         return result;
     }
 
     public String getRootRestPath(){
-        return normalizePath(_domain+"/"+_version+"/"+ getInnerRootRestPath());
+        return normalizePath(domain+"/"+version+"/"+ getInnerRootRestPath());
     }
 
     private String getInnerFullRestPath(){
@@ -146,22 +146,22 @@ public class DaoRestServiceDef {
 
     private String getInnerRootRestPath(){
         String result;
-        if(_parentServiceDef!=null){
-            result="/"+_parentServiceDef.getInnerFullRestPath();
+        if(parentServiceDef!=null){
+            result="/"+parentServiceDef.getInnerFullRestPath();
         }
         else{
             result = "";
         }
-        result+="/"+_restRootPath;
+        result+="/"+restRootPath;
         return normalizePath(result);
     }
 
     public String getDefaultSubPath(){
-        return normalizePath("{"+ _restUIdName +"}");
+        return normalizePath("{"+ restUIdName +"}");
     }
 
     public String getDefaultAttributeName(){
-        return _restUIdName;
+        return restUIdName;
     }
 
     private String normalizePath(String path){
@@ -169,33 +169,33 @@ public class DaoRestServiceDef {
     }
 
     public String getReadFullName(){
-        return _targetPackage+"."+getTargetReadName();
+        return targetPackage+"."+getTargetReadName();
     }
 
     public String getWriteFullName(){
-        return _targetPackage+"."+getTargetWriteName();
+        return targetPackage+"."+getTargetWriteName();
     }
 
     public String getTargetReadName(){
-        return _targetReadName;
+        return targetReadName;
     }
     public String getTargetWriteName(){
-        return _targetWriteName;
+        return targetWriteName;
     }
 
     public String getPackage(){
-        return _targetPackage;
+        return targetPackage;
     }
 
 
-    public String getDbName(){return _name;}
+    public String getDbName(){return name;}
     public String getDbPath(){
-        return _dbPath;
+        return dbPath;
     }
 
 
     public String getRootDbKeyPattern(){
-        return (_parentServiceDef!=null)?_parentServiceDef.getFullDbKeyPattern():"";
+        return (parentServiceDef!=null)?parentServiceDef.getFullDbKeyPattern():"";
     }
     public String getFullDbKeyPattern(){
         String result =getRootDbKeyPattern();
@@ -207,26 +207,26 @@ public class DaoRestServiceDef {
     }
 
     public static class AttributInfo{
-        private String _type;
-        private String _name;
-        private String _descr;
+        private String type;
+        private String name;
+        private String descr;
 
         public AttributInfo(String name,String type,String descr){
-            _name = name;
-            _type = type;
-            _descr = descr;
+            this.name = name;
+            this.type = type;
+            this.descr = descr;
         }
 
         public String getType() {
-            return _type;
+            return type;
         }
 
         public String getName() {
-            return _name;
+            return name;
         }
 
         public String getDescr() {
-            return _descr;
+            return descr;
         }
     }
 }

@@ -23,50 +23,50 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class CounterDef {
-    private String _name;
-    private String _dbName;
-    private String _pattern;
-    private DbPathDef _dbPathDef;
-    private boolean _isKeyGen;
-    private int _defaultValue;
-    private long _modulus;
+    private String name;
+    private String dbName;
+    private String pattern;
+    private DbPathDef dbPathDef;
+    private boolean isKeyGen;
+    private int defaultValue;
+    private long modulus;
 
     public CounterDef(CouchbaseDocumentReflection docReflection, Counter annot, DbPathDef pathDef) {
-        _name = annot.name();
-        _dbName = annot.name();
-        _isKeyGen = annot.isKeyGen();
-        _defaultValue = annot.defaultValue();
-        _modulus = annot.modulus();
-        _dbPathDef = pathDef;
+        name = annot.name();
+        dbName = annot.name();
+        isKeyGen = annot.isKeyGen();
+        defaultValue = annot.defaultValue();
+        modulus = annot.modulus();
+        dbPathDef = pathDef;
     }
 
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public String getDbName() {
-        return _dbName;
+        return dbName;
     }
 
     public boolean isKeyGen() {
-        return _isKeyGen;
+        return isKeyGen;
     }
 
     public int getDefaultValue() {
-        return _defaultValue;
+        return defaultValue;
     }
 
     public long getModulus() {
-        return _modulus;
+        return modulus;
     }
 
     public String getFullPattern() {
-        return _dbPathDef.getPatternPrefix() + _dbPathDef.getBasePath() + getDbName();
+        return dbPathDef.getPatternPrefix() + dbPathDef.getBasePath() + getDbName();
     }
 
     public String getFullFormat() {
-        return _dbPathDef.getFormatPrefix() + _dbPathDef.getBasePath() + getDbName();
+        return dbPathDef.getFormatPrefix() + dbPathDef.getBasePath() + getDbName();
     }
 
     @Override

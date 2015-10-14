@@ -42,13 +42,13 @@ import java.io.IOException;
 public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> extends GenericTranscoder<T>{
     private final static Logger logger = LoggerFactory.getLogger(GenericJacksonTranscoder.class);
 
-    private static final ObjectMapper _mapper;
+    private static final ObjectMapper mapper;
     static {
-        _mapper = new ObjectMapper();
-        _mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        _mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        _mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
-        _mapper.registerModule(new JodaModule());
+        mapper = new ObjectMapper();
+        mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
+        mapper.registerModule(new JodaModule());
     }
 
     public GenericJacksonTranscoder(Class<T> clazz,Class<? extends BucketDocument<T>> baseDocumentClazz){
@@ -65,7 +65,7 @@ public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> extends G
     @Override
     public BucketDocument<T> decode(String id, ByteBuf content, long cas, int expiry, int flags, ResponseStatus status) {
         try {
-            T result = _mapper.readValue(content.array(),getBaseClass());
+            T result = mapper.readValue(content.array(),getBaseClass());
             result.getBaseMeta().setDbSize(content.array().length);
             return newDocument(id,expiry,result,cas);
         }
@@ -83,7 +83,7 @@ public class GenericJacksonTranscoder<T extends BaseCouchbaseDocument> extends G
     @Override
     public Tuple2<ByteBuf, Integer> encode(BucketDocument<T> document) {
         try {
-            byte[] encoded = _mapper.writeValueAsBytes(document.content());
+            byte[] encoded = mapper.writeValueAsBytes(document.content());
             document.content().getBaseMeta().setDbSize(encoded.length);
             return Tuple.create(Unpooled.wrappedBuffer(encoded), document.content().getBaseMeta().getEncodedFlags());
         }

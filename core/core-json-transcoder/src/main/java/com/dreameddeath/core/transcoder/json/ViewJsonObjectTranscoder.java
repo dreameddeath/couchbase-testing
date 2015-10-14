@@ -29,12 +29,12 @@ import java.io.IOException;
  * Created by Christophe Jeunesse on 22/12/2014.
  */
 public abstract class ViewJsonObjectTranscoder<T> implements IViewTranscoder<T> {
-    private final Class _rootClass;
+    private final Class rootClass;
     protected abstract Class<T> getBaseClass();
 
-    protected Class getRootClass(){ return _rootClass;}
+    protected Class getRootClass(){ return rootClass;}
     public ViewJsonObjectTranscoder(){
-        _rootClass = GenericJacksonTranscoder.findRootClass(getBaseClass());
+        rootClass = GenericJacksonTranscoder.findRootClass(getBaseClass());
     }
 
     @Override

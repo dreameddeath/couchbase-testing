@@ -29,25 +29,25 @@ import java.util.Map;
  */
 public class CouchbaseUniqueKey extends CouchbaseDocument {
     @DocumentProperty("maps")
-    MapProperty<String,String> _keyMaps = new HashMapProperty<String, String>(CouchbaseUniqueKey.this);
+    MapProperty<String,String> keyMaps = new HashMapProperty<String, String>(CouchbaseUniqueKey.this);
 
-    public Map<String,String> getMaps(){ return _keyMaps.get();}
-    public void setMaps(Map<String,String> maps){_keyMaps.set(maps);}
+    public Map<String,String> getMaps(){ return keyMaps.get();}
+    public void setMaps(Map<String,String> maps){keyMaps.set(maps);}
 
     public void addKey(String key,CouchbaseDocument doc) throws DuplicateUniqueKeyException {
-        if(_keyMaps.containsKey(key)) {
-            if (!doc.getBaseMeta().getKey().equals(_keyMaps.get(key))) {
-                throw new DuplicateUniqueKeyException(key,_keyMaps.get(key),doc,this);
+        if(keyMaps.containsKey(key)) {
+            if (!doc.getBaseMeta().getKey().equals(keyMaps.get(key))) {
+                throw new DuplicateUniqueKeyException(key,keyMaps.get(key),doc,this);
             }
         }
-        _keyMaps.put(key,doc.getBaseMeta().getKey());
+        keyMaps.put(key,doc.getBaseMeta().getKey());
     }
 
     public boolean isEmpty(){
-        return _keyMaps.size()==0;
+        return keyMaps.size()==0;
     }
 
     public boolean removeKey(String buildKey){
-        return _keyMaps.remove(buildKey)!=null;
+        return keyMaps.remove(buildKey)!=null;
     }
 }

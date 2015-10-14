@@ -47,22 +47,22 @@ public class BillingOrder extends BusinessDocument {
      *  billingAccount : Link to the parent billing Account
      */
     @DocumentProperty("billingAccount") @NotNull
-    private Property<BillingAccountLink> _billingAccount = new StandardProperty<>(BillingOrder.this);
+    private Property<BillingAccountLink> billingAccount = new StandardProperty<>(BillingOrder.this);
     /**
      *  items : List of order items
      */
     @DocumentProperty("items")
-    private ListProperty<BillingOrderItem> _items = new ArrayListProperty<>(BillingOrder.this);
+    private ListProperty<BillingOrderItem> items = new ArrayListProperty<>(BillingOrder.this);
 
     // Items Accessors
-    public List<BillingOrderItem> getItems() { return _items.get();  }
-    public void setItems(Collection<BillingOrderItem> vals) { _items.set(vals); }
-    public boolean addItems(BillingOrderItem val){ return _items.add(val); }
-    public boolean removeItems(BillingOrderItem val){ return _items.remove(val); }
+    public List<BillingOrderItem> getItems() { return items.get();  }
+    public void setItems(Collection<BillingOrderItem> vals) { items.set(vals); }
+    public boolean addItems(BillingOrderItem val){ return items.add(val); }
+    public boolean removeItems(BillingOrderItem val){ return items.remove(val); }
 
     // billingAccount accessors
-    public BillingAccountLink getBillingAccount() { return _billingAccount.get(); }
-    public void setBillingAccount(BillingAccountLink val) { _billingAccount.set(val); }
+    public BillingAccountLink getBillingAccount() { return billingAccount.get(); }
+    public void setBillingAccount(BillingAccountLink val) { billingAccount.set(val); }
 
 
 }

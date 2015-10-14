@@ -45,86 +45,86 @@ import java.util.concurrent.TimeUnit;
 *  Class used to perform storage 
 */
 public class CouchbaseBucketWrapper implements ICouchbaseBucket {
-    private Bucket _bucket;
-    private int _replicatCount;
-    private Random _replicateRandom = new Random();
-    private PersistTo _persistToAllValue;
-    private ReplicateTo _replicateToAllValue;
-    private final Cluster _cluster;
-    private final String _bucketName;
-    private final String _bucketPassword;
-    protected final String _keyPrefix;
-    private List<Transcoder<? extends Document, ?>> _transcoders = new ArrayList<>();
+    private Bucket bucket;
+    private int replicatCount;
+    private Random replicateRandom = new Random();
+    private PersistTo persistToAllValue;
+    private ReplicateTo replicateToAllValue;
+    private final Cluster cluster;
+    private final String bucketName;
+    private final String bucketPassword;
+    protected final String keyPrefix;
+    private List<Transcoder<? extends Document, ?>> transcoders = new ArrayList<>();
 
 
 
     public CouchbaseBucketWrapper(CouchbaseCluster cluster, String bucketName, String bucketPassword){
-        _cluster = cluster;
-        _bucketName = bucketName;
-        _bucketPassword = bucketPassword;
-        _keyPrefix=null;
+        this.cluster = cluster;
+        this.bucketName = bucketName;
+        this.bucketPassword = bucketPassword;
+        keyPrefix=null;
     }
 
     public CouchbaseBucketWrapper(CouchbaseCluster cluster, String bucketName, String bucketPassword,String keyPrefix){
-        _cluster = cluster;
-        _bucketName = bucketName;
-        _bucketPassword = bucketPassword;
-        _keyPrefix=keyPrefix;
+        this.cluster = cluster;
+        this.bucketName = bucketName;
+        this.bucketPassword = bucketPassword;
+        this.keyPrefix=keyPrefix;
     }
 
     public Bucket getInternalBucket(){
-        return _bucket;
+        return bucket;
     }
     @Override
     public void start(long timeout,TimeUnit unit){
-        _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders,timeout,unit);
+        bucket = cluster.openBucket(bucketName,bucketPassword,transcoders,timeout,unit);
         initReplicatInfo();
     }
 
     @Override
     public void start(){
-        _bucket = _cluster.openBucket(_bucketName,_bucketPassword,_transcoders);
+        bucket = cluster.openBucket(bucketName,bucketPassword,transcoders);
         initReplicatInfo();
     }
 
     @Override
     public boolean shutdown(long timeout,TimeUnit unit){
-        return _bucket.close(timeout,unit);
+        return bucket.close(timeout,unit);
     }
     @Override
     public void shutdown(){
-        _bucket.close();
+        bucket.close();
     }
 
     @Override
     public String getBucketName(){
-        return _bucketName;
+        return bucketName;
     }
 
     public void initReplicatInfo(){
-        _replicatCount = _bucket.bucketManager().info().replicaCount();
-        switch (_replicatCount){
+        replicatCount = bucket.bucketManager().info().replicaCount();
+        switch (replicatCount){
             case 0:
-                _persistToAllValue = PersistTo.MASTER;
-                _replicateToAllValue = ReplicateTo.NONE;
+                persistToAllValue = PersistTo.MASTER;
+                replicateToAllValue = ReplicateTo.NONE;
                 break;
             case 1:
-                _persistToAllValue = PersistTo.ONE;
-                _replicateToAllValue = ReplicateTo.ONE;
+                persistToAllValue = PersistTo.ONE;
+                replicateToAllValue = ReplicateTo.ONE;
                 break;
             case 2:
-                _persistToAllValue = PersistTo.TWO;
-                _replicateToAllValue = ReplicateTo.TWO;
+                persistToAllValue = PersistTo.TWO;
+                replicateToAllValue = ReplicateTo.TWO;
                 break;
             case 3:
-                _persistToAllValue = PersistTo.THREE;
-                _replicateToAllValue = ReplicateTo.THREE;
+                persistToAllValue = PersistTo.THREE;
+                replicateToAllValue = ReplicateTo.THREE;
                 break;
         }
     }
 
     public ReplicaMode getReplicat(){
-        switch(_replicateRandom.nextInt(_replicatCount)){
+        switch(replicateRandom.nextInt(replicatCount)){
             case 0:return ReplicaMode.FIRST;
             case 1:return ReplicaMode.SECOND;
             case 2:return ReplicaMode.THIRD;
@@ -136,16 +136,16 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder){
-        if(_bucket!=null){
+        if(bucket!=null){
             throw new IllegalStateException("Cannot add transcoder "+transcoder.getClass().getName()+" after client initialization");
         }
-        _transcoders.add(transcoder);
-        if(_keyPrefix!=null){transcoder.setKeyPrefix(_keyPrefix);}
+        transcoders.add(transcoder);
+        if(keyPrefix!=null){transcoder.setKeyPrefix(keyPrefix);}
         return this;
     }
 
     public Bucket getBucket(){
-        return _bucket;
+        return bucket;
     }
 
     @Override
@@ -173,8 +173,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,final ICouchbaseTranscoder<T> transcoder){
-        id = ICouchbaseBucket.Utils.buildKey(_keyPrefix,id);
-        return _bucket.async().get(id,transcoder.documentType()).map(new Func1<BucketDocument<T>, T>() {
+        id = ICouchbaseBucket.Utils.buildKey(keyPrefix,id);
+        return bucket.async().get(id,transcoder.documentType()).map(new Func1<BucketDocument<T>, T>() {
             @Override
             public T call(BucketDocument<T> tBucketDocument) {
                 return tBucketDocument.content();
@@ -184,18 +184,18 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder, ReadParams params) {
-        id = ICouchbaseBucket.Utils.buildKey(_keyPrefix,id);
+        id = ICouchbaseBucket.Utils.buildKey(keyPrefix,id);
         Observable<BucketDocument<T>> result;
         switch (params.getReadMode()){
-            case FROM_REPLICATE:result=_bucket.async().getFromReplica(id, getReplicat(),transcoder.documentType());break;
+            case FROM_REPLICATE:result=bucket.async().getFromReplica(id, getReplicat(),transcoder.documentType());break;
             case FROM_MASTER_THEN_REPLICATE:
             {
-                final Observable<BucketDocument<T>> fromReplicatResult = _bucket.async().getFromReplica(id, getReplicat(), transcoder.documentType());
-                result=_bucket.async().get(id, transcoder.documentType()).onErrorResumeNext(fromReplicatResult);
+                final Observable<BucketDocument<T>> fromReplicatResult = bucket.async().getFromReplica(id, getReplicat(), transcoder.documentType());
+                result=bucket.async().get(id, transcoder.documentType()).onErrorResumeNext(fromReplicatResult);
             }
             break;
             default:
-                result=_bucket.async().get(id,transcoder.documentType());
+                result=bucket.async().get(id,transcoder.documentType());
         }
         if(params.getTimeOutUnit()!=null){
             result = result.timeout(params.getTimeOut(),params.getTimeOutUnit());
@@ -212,14 +212,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     protected PersistTo getPersistToFromParam(WriteParams params){
         switch(params.getWritePersistMode()) {
             case MASTER:return PersistTo.MASTER;
-            case MASTER_AND_ALL_SLAVES:return _persistToAllValue;
+            case MASTER_AND_ALL_SLAVES:return persistToAllValue;
             default:return PersistTo.NONE;
         }
     }
 
     protected ReplicateTo getReplicateToFromParam(WriteParams params){
         switch (params.getWriteReplicateMode()) {
-            case ALL_SLAVES:return _replicateToAllValue;
+            case ALL_SLAVES:return replicateToAllValue;
             default:return ReplicateTo.NONE;
         }
     }
@@ -267,14 +267,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().insert(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        return bucket.async().insert(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return asyncWritePostProcess(
-                _bucket.async().insert(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                bucket.async().insert(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
                 bucketDoc,
                 transcoder,
                 params);
@@ -293,14 +293,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().upsert(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        return bucket.async().upsert(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc, ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return asyncWritePostProcess(
-                _bucket.async().upsert(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                bucket.async().upsert(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
                 bucketDoc,
                 transcoder,
                 params);
@@ -319,14 +319,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().replace(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        return bucket.async().replace(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc, ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return asyncWritePostProcess(
-                _bucket.async().replace(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                bucket.async().replace(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
                 bucketDoc,
                 transcoder,
                 params);
@@ -351,14 +351,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().remove(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        return bucket.async().remove(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc, ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return asyncWritePostProcess(
-                _bucket.async().remove(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                bucket.async().remove(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
                 bucketDoc,
                 transcoder,
                 params);
@@ -378,13 +378,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().append(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        return bucket.async().append(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc, ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return asyncWritePostProcess(_bucket.async().append(bucketDoc),
+        return asyncWritePostProcess(bucket.async().append(bucketDoc),
                 bucketDoc,
                 transcoder,
                 params);
@@ -403,14 +403,14 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException{
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-        return _bucket.async().prepend(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        return bucket.async().prepend(bucketDoc).map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc, ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
         return  asyncWritePostProcess(
-                _bucket.async().prepend(bucketDoc),
+                bucket.async().prepend(bucketDoc),
                 bucketDoc,
                 transcoder,
                 params);
@@ -442,8 +442,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiry)throws StorageException{
-        key = ICouchbaseBucket.Utils.buildKey(_keyPrefix,key);
-        return _bucket.async().counter(key, by, defaultValue, expiry).map(new Func1<JsonLongDocument, Long>() {
+        key = ICouchbaseBucket.Utils.buildKey(keyPrefix,key);
+        return bucket.async().counter(key, by, defaultValue, expiry).map(new Func1<JsonLongDocument, Long>() {
             @Override
             public Long call(JsonLongDocument jsonLongDocument) {
                 return jsonLongDocument.content();
@@ -453,8 +453,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) throws StorageException {
-        key = ICouchbaseBucket.Utils.buildKey(_keyPrefix,key);
-        Observable<JsonLongDocument> result = _bucket.async().counter(key, by, defaultValue, expiration);
+        key = ICouchbaseBucket.Utils.buildKey(keyPrefix,key);
+        Observable<JsonLongDocument> result = bucket.async().counter(key, by, defaultValue, expiration);
 
         if(params.getTimeOutUnit()!=null){
             result = result.timeout(params.getTimeOut(),params.getTimeOutUnit());
@@ -506,30 +506,30 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     public class DocumentResync<T extends CouchbaseDocument> implements Func1<BucketDocument<T>, T>{
-        private final BucketDocument<T> _bucketDoc;
+        private final BucketDocument<T> bucketDoc;
         public DocumentResync(final BucketDocument<T> doc){
-            _bucketDoc = doc;
+            bucketDoc = doc;
         }
         @Override
         public T call(BucketDocument<T> tBucketDocument) {
-            _bucketDoc.syncMeta(tBucketDocument);
-            return _bucketDoc.content();
+            bucketDoc.syncMeta(tBucketDocument);
+            return bucketDoc.content();
         }
     }
 
     @Override
     public Observable<AsyncViewResult> asyncQuery(ViewQuery query){
-        return _bucket.async().query(query);
+        return bucket.async().query(query);
     }
 
     @Override
     public ViewResult query(ViewQuery query){
-        return _bucket.query(query);
+        return bucket.query(query);
     }
 
     @Override
     public String getPrefix(){
-        return _keyPrefix;
+        return keyPrefix;
     }
 
 
@@ -537,15 +537,16 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public void createOrUpdateView(String designDoc,Map<String,String> viewsMap) throws StorageException{
-        designDoc = ICouchbaseBucket.Utils.buildDesignDoc(_keyPrefix,designDoc);
+        designDoc = ICouchbaseBucket.Utils.buildDesignDoc(keyPrefix,designDoc);
 
-        DesignDocument existingDesignDocument = _bucket.bucketManager().getDesignDocument(designDoc);
+        //DesignDocument existingDesignDocument = bucket.bucketManager().getDesignDocument(designDoc);
+        ///TODO check if already up to date
         List<View> viewList = new ArrayList<>();
         for(Map.Entry<String,String> view:viewsMap.entrySet()){
             viewList.add(DefaultView.create(view.getKey(),view.getValue()));
         }
         DesignDocument designDocument = DesignDocument.create(designDoc,viewList);
 
-        _bucket.bucketManager().upsertDesignDocument(designDocument);
+        bucket.bucketManager().upsertDesignDocument(designDocument);
     }
 }

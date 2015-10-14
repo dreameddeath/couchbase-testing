@@ -29,21 +29,21 @@ import org.junit.Test;
 
 public class BillingOrderTest extends Assert {
 
-    Utils.TestEnvironment _env;
+    Utils.TestEnvironment env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
-        _env.addDocumentDao(new PartyDao());
-        _env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
-        _env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());
+        env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
+        env.addDocumentDao(new PartyDao());
+        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());
         // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
-        _env.start();
+        env.start();
     }
 
 
     @Test
     public void test()throws Throwable{
-        ICouchbaseSession session=_env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session=env.getSessionFactory().newReadWriteSession(null);
         Person person = session.newEntity(Person.class);
         person.setFirstName("test");
         person.setLastName("test");

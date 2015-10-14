@@ -16,9 +16,9 @@
 
 package com.dreameddeath.core.transcoder.json;
 
-import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.entity.IVersionedDocument;
-import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
+import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -39,7 +39,7 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 28/11/2014.
  */
 public class CouchbaseBusinessDocumentDeserializer extends BeanDeserializer {
-    private VersionUpgradeManager _versionUpgradeManager=null;
+    private EntityVersionUpgradeManager entityVersionUpgradeManager =null;
     /**
      * Constructor used by {@link com.fasterxml.jackson.databind.deser.BeanDeserializerBuilder}.
      */
@@ -80,15 +80,15 @@ public class CouchbaseBusinessDocumentDeserializer extends BeanDeserializer {
     public Object deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException {
         Object res = super.deserialize(jp, ctxt);
-        if(res instanceof  IVersionedDocument){
-            String versionTypeId = ((IVersionedDocument) res).getDocumentFullVersionId();
-            if(_versionUpgradeManager==null){
-                _versionUpgradeManager=(VersionUpgradeManager)ctxt.getConfig().getAttributes().getAttribute(VersionUpgradeManager.class);
-                if(_versionUpgradeManager==null){
-                    _versionUpgradeManager=new VersionUpgradeManager();
+        if(res instanceof IVersionedEntity){
+            String versionTypeId = ((IVersionedEntity) res).getDocumentFullVersionId();
+            if(entityVersionUpgradeManager ==null){
+                entityVersionUpgradeManager =(EntityVersionUpgradeManager)ctxt.getConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
+                if(entityVersionUpgradeManager ==null){
+                    entityVersionUpgradeManager =new EntityVersionUpgradeManager();
                 }
             }
-            res = _versionUpgradeManager.performUpgrade(res, EntityModelId.build(versionTypeId));
+            res = entityVersionUpgradeManager.performUpgrade(res, EntityModelId.build(versionTypeId));
         }
         return res;
     }

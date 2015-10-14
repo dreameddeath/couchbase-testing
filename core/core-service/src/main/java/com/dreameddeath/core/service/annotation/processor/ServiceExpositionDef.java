@@ -54,38 +54,38 @@ public class ServiceExpositionDef {
         return result;
     }
 
-    private String _package;
-    private String _className;
-    private List<String> _interfaces = new ArrayList<>();
-    private AbstractClassInfo _classInfo;
-    private String _path;
-    private String _name;
-    private String _version;
-    private VersionStatus _status;
-    private Set<String> _imports = new TreeSet<>();
-    private List<ServiceExpositionMethodDef> _methodList = new ArrayList<>();
+    private String packageName;
+    private String className;
+    private List<String> interfaces = new ArrayList<>();
+    private AbstractClassInfo classInfo;
+    private String path;
+    private String name;
+    private String version;
+    private VersionStatus status;
+    private Set<String> imports = new TreeSet<>();
+    private List<ServiceExpositionMethodDef> methodList = new ArrayList<>();
 
     public ServiceExpositionDef(AbstractClassInfo classInfo){
-        _classInfo = classInfo;
+        this.classInfo = classInfo;
         ExposeService serviceInfosAnnot = classInfo.getAnnotation(ExposeService.class);
-        _package = classInfo.getPackageInfo().getName();
-        _className = classInfo.getSimpleName();
-        _imports.add(classInfo.getImportName());
+        packageName = classInfo.getPackageInfo().getName();
+        className = classInfo.getSimpleName();
+        imports.add(classInfo.getImportName());
         classInfo.getParentInterfaces().forEach(it->{
-            _imports.add(it.getImportName());
-            _interfaces.add(it.getSimpleName());
+            imports.add(it.getImportName());
+            interfaces.add(it.getSimpleName());
         });
-        _path = serviceInfosAnnot.path();
-        _name = serviceInfosAnnot.name();
-        _version = serviceInfosAnnot.version();
-        _status = serviceInfosAnnot.status();
+        path = serviceInfosAnnot.path();
+        name = serviceInfosAnnot.name();
+        version = serviceInfosAnnot.version();
+        status = serviceInfosAnnot.status();
 
         classInfo.getDeclaredMethods().stream()
                 .filter(methodInfo -> methodInfo.getAnnotation(ExposeMethod.class) != null)
                 .map(method -> {
                     ServiceExpositionMethodDef methodDef = new ServiceExpositionMethodDef(method);
-                    _imports.addAll(methodDef.getImports());
-                    return _methodList.add(methodDef);
+                    imports.addAll(methodDef.getImports());
+                    return methodList.add(methodDef);
                 })
                 .collect(Collectors.toList());
 
@@ -93,60 +93,60 @@ public class ServiceExpositionDef {
     }
 
     public String getPath(){
-        return _path;
+        return path;
     }
 
     public String getPackage() {
-        return _package;
+        return packageName;
     }
 
     public VersionStatus getStatus() {
-        return _status;
+        return status;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public String getVersion() {
-        return _version;
+        return version;
     }
 
     public String getClassName() {
-        return _className;
+        return className;
     }
 
     public String getClientSimpleClassName(){
-        return _classInfo.getSimpleName()+ REST_CLIENT_SUFFIX;
+        return classInfo.getSimpleName()+ REST_CLIENT_SUFFIX;
     }
 
     public String getServerSimpleClassName(){
-        return _classInfo.getSimpleName()+ REST_SERVICE_SUFFIX;
+        return classInfo.getSimpleName()+ REST_SERVICE_SUFFIX;
     }
 
     public String getClientClassName(){
-        return _classInfo.getFullName()+ REST_CLIENT_SUFFIX;
+        return classInfo.getFullName()+ REST_CLIENT_SUFFIX;
     }
 
     public String getServerClassName(){
-        return _classInfo.getFullName()+ REST_SERVICE_SUFFIX;
+        return classInfo.getFullName()+ REST_SERVICE_SUFFIX;
     }
 
 
     public List<String> getInterfaces() {
-        return Collections.unmodifiableList(_interfaces);
+        return Collections.unmodifiableList(interfaces);
     }
 
     public List<ServiceExpositionMethodDef> getMethods() {
-        return Collections.unmodifiableList(_methodList);
+        return Collections.unmodifiableList(methodList);
     }
 
     public boolean hasGlobalContextTranscoder(){
-        return _methodList.stream().filter(ServiceExpositionMethodDef::hasGlobalContextParam).count()>0;
+        return methodList.stream().filter(ServiceExpositionMethodDef::hasGlobalContextParam).count()>0;
     }
 
     public Set<String> getImports() {
-        return _imports;
+        return imports;
     }
 
 

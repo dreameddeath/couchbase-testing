@@ -23,20 +23,20 @@ import java.util.Arrays;
  * Created by Christophe Jeunesse on 16/09/2014.
  */
 public class DocumentDecodingException extends RuntimeException{
-    private byte[] _data;
+    private byte[] data;
     public DocumentDecodingException(String message, byte[] data,Throwable e){
         super(message,e);
-        _data = data;
+        this.data = data;
     }
 
     public String getMessage(){
         StringBuilder result = new StringBuilder(super.getMessage());
         result.append(" with data ");
         try{
-            result.append(new String(_data,"UTF-8"));
+            result.append(new String(data,"UTF-8"));
         }
         catch(UnsupportedEncodingException e){
-            result.append(Arrays.toString(_data));
+            result.append(Arrays.toString(data));
         }
         return result.toString();
     }

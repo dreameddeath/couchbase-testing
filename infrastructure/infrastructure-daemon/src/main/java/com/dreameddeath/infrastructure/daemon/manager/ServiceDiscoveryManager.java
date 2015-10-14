@@ -35,86 +35,86 @@ public class ServiceDiscoveryManager {
         STOPPED
     }
 
-    private final CuratorFramework _curatorClient;
-    private Status _status = Status.STOPPED;
-    private Map<String,ServiceRegistrar> _serviceRegistrarMap = new HashMap<>();
-    private Map<String,ServiceDiscoverer> _serviceDiscovererMap = new HashMap<>();
-    private Map<String,ServiceClientFactory> _serviceClientFactoryMap = new HashMap<>();
+    private final CuratorFramework curatorClient;
+    private Status status = Status.STOPPED;
+    private Map<String,ServiceRegistrar> serviceRegistrarMap = new HashMap<>();
+    private Map<String,ServiceDiscoverer> serviceDiscovererMap = new HashMap<>();
+    private Map<String,ServiceClientFactory> serviceClientFactoryMap = new HashMap<>();
 
     public ServiceDiscoveryManager(CuratorFramework curatorClient){
-        _curatorClient = curatorClient;
+        this.curatorClient = curatorClient;
     }
 
     synchronized public ServiceRegistrar getServiceRegistrar(String domain) throws Exception{
-        if(!_serviceRegistrarMap.containsKey(domain)){
-            ServiceRegistrar newRegistrar = new ServiceRegistrar(_curatorClient,domain);
-            _serviceRegistrarMap.put(domain,newRegistrar);
-            if(_status==Status.STARTED){
+        if(!serviceRegistrarMap.containsKey(domain)){
+            ServiceRegistrar newRegistrar = new ServiceRegistrar(curatorClient,domain);
+            serviceRegistrarMap.put(domain,newRegistrar);
+            if(status==Status.STARTED){
                 newRegistrar.start();
             }
         }
-        return _serviceRegistrarMap.get(domain);
+        return serviceRegistrarMap.get(domain);
     }
 
     synchronized public ServiceDiscoverer getServiceDiscoverer(String domain) throws Exception{
-        if(!_serviceDiscovererMap.containsKey(domain)){
-            ServiceDiscoverer newDiscoverer = new ServiceDiscoverer(_curatorClient,domain);
-            _serviceDiscovererMap.put(domain,newDiscoverer);
-            if(_status==Status.STARTED || _status==Status.STARTING){
+        if(!serviceDiscovererMap.containsKey(domain)){
+            ServiceDiscoverer newDiscoverer = new ServiceDiscoverer(curatorClient,domain);
+            serviceDiscovererMap.put(domain,newDiscoverer);
+            if(status==Status.STARTED || status==Status.STARTING){
                 newDiscoverer.start();
             }
         }
-        return _serviceDiscovererMap.get(domain);
+        return serviceDiscovererMap.get(domain);
     }
 
 
     synchronized public ServiceClientFactory getClientFactory(String domain) throws Exception{
-        if(!_serviceClientFactoryMap.containsKey(domain)){
+        if(!serviceClientFactoryMap.containsKey(domain)){
             ServiceClientFactory newServiceClientFactory = new ServiceClientFactory(getServiceDiscoverer(domain));
-            _serviceClientFactoryMap.put(domain,newServiceClientFactory);
+            serviceClientFactoryMap.put(domain,newServiceClientFactory);
         }
-        return _serviceClientFactoryMap.get(domain);
+        return serviceClientFactoryMap.get(domain);
     }
 
-    synchronized public void setStatus(Status status) throws Exception{
-        if(_status==Status.STOPPED && (status==Status.STARTING||status==Status.STARTED)){
+    synchronized public void setStatus(Status newStatus) throws Exception{
+        if(status==Status.STOPPED && (newStatus==Status.STARTING||newStatus==Status.STARTED)){
             startDiscoverers();
         }
 
-        if((_status!=Status.STARTED)&& (status==Status.STARTED)){
+        if((status!=Status.STARTED)&& (newStatus==Status.STARTED)){
             startRegistrars();
         }
 
-        if((_status==Status.STARTED)&& (status!=Status.STARTED)){
+        if((status==Status.STARTED)&& (newStatus!=Status.STARTED)){
             stopRegistrars();
         }
 
-        if((_status!=Status.STOPPED)&& (status!=Status.STARTED)){
+        if((status!=Status.STOPPED)&& (newStatus!=Status.STARTED)){
             stopRegistrars();
         }
-        _status=status;
+        this.status=newStatus;
     }
 
 
     synchronized private void startRegistrars() throws Exception {
-        for (ServiceRegistrar registrar : _serviceRegistrarMap.values()) {
+        for (ServiceRegistrar registrar : serviceRegistrarMap.values()) {
             registrar.start();
         }
     }
 
     synchronized private void stopRegistrars() throws Exception {
-        for (ServiceRegistrar registrar : _serviceRegistrarMap.values()) {
+        for (ServiceRegistrar registrar : serviceRegistrarMap.values()) {
             registrar.stop();
         }
     }
     synchronized private void startDiscoverers() throws Exception {
-        for(ServiceDiscoverer discoverer:_serviceDiscovererMap.values()){
+        for(ServiceDiscoverer discoverer:serviceDiscovererMap.values()){
             discoverer.start();
         }
     }
 
     synchronized private void stopDiscoverers() throws Exception {
-        for(ServiceDiscoverer discoverer:_serviceDiscovererMap.values()){
+        for(ServiceDiscoverer discoverer:serviceDiscovererMap.values()){
             discoverer.start();
         }
     }

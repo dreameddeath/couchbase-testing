@@ -29,16 +29,16 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 06/08/2014.
  */
 public class HashMapProperty<K,V> extends HashMap<K,V> implements MapProperty<K,V>,HasParentDocumentElement {
-    BaseCouchbaseDocumentElement _parentElt;
+    BaseCouchbaseDocumentElement parentElt;
     public HashMapProperty(BaseCouchbaseDocumentElement parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
 
-    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ _parentElt=parentElement;}
-    public BaseCouchbaseDocumentElement getParentDocumentElement(){return _parentElt;}
+    public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElement){ parentElt=parentElement;}
+    public BaseCouchbaseDocumentElement getParentDocumentElement(){return parentElt;}
 
     protected boolean dirtyParent(){
-        BaseCouchbaseDocument rootDoc = _parentElt.getParentDocument();
+        BaseCouchbaseDocument rootDoc = parentElt.getParentDocument();
         if(rootDoc!=null){ rootDoc.getBaseMeta().setStateDirty();}
         return true;
     }
@@ -69,10 +69,10 @@ public class HashMapProperty<K,V> extends HashMap<K,V> implements MapProperty<K,
             ((HasParentDocumentElement) oldValue).setParentDocumentElement(null);
         }
         if((key!=null) && (key instanceof HasParentDocumentElement)){
-            ((HasParentDocumentElement) key).setParentDocumentElement(_parentElt);
+            ((HasParentDocumentElement) key).setParentDocumentElement(parentElt);
         }
         if((value!=null) && (value instanceof HasParentDocumentElement)){
-            ((HasParentDocumentElement) value).setParentDocumentElement(_parentElt);
+            ((HasParentDocumentElement) value).setParentDocumentElement(parentElt);
         }
         dirtyParent();
         return oldValue;
@@ -82,10 +82,10 @@ public class HashMapProperty<K,V> extends HashMap<K,V> implements MapProperty<K,
     public void putAll(Map<? extends K,? extends V> maps){
         for(Map.Entry<? extends K,? extends V> entry: maps.entrySet()){
             if((entry.getKey()!=null) && (entry.getKey() instanceof HasParentDocumentElement)){
-                ((HasParentDocumentElement) entry.getKey()).setParentDocumentElement(_parentElt);
+                ((HasParentDocumentElement) entry.getKey()).setParentDocumentElement(parentElt);
             }
             if((entry.getValue()!=null) && (entry.getValue() instanceof HasParentDocumentElement)){
-                ((HasParentDocumentElement) entry.getValue()).setParentDocumentElement(_parentElt);
+                ((HasParentDocumentElement) entry.getValue()).setParentDocumentElement(parentElt);
             }
         }
         dirtyParent();

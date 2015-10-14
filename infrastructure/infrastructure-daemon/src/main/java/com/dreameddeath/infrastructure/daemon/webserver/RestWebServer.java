@@ -25,37 +25,37 @@ import com.dreameddeath.infrastructure.daemon.servlet.RestServicesServletContext
  * Created by Christophe Jeunesse on 18/08/2015.
  */
 public class RestWebServer extends AbstractWebServer {
-    private ServiceDiscoveryManager _serviceDiscoveryManager;
+    private ServiceDiscoveryManager serviceDiscoveryManager;
 
     public RestWebServer(Builder builder){
         super(builder);
-        _serviceDiscoveryManager = new ServiceDiscoveryManager(getParentDaemon().getCuratorClient());
-        getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(_serviceDiscoveryManager));
+        serviceDiscoveryManager = new ServiceDiscoveryManager(getParentDaemon().getCuratorClient());
+        getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(serviceDiscoveryManager));
 
-        String path = builder._apiPath;
+        String path = builder.apiPath;
         if(path ==null){
             path = DaemonConfigProperties.DAEMON_WEBSERVER_API_PATH_PREFIX.get();
         }
-        getWebServer().setHandler(new RestServicesServletContextHandler(this,builder._applicationContextConfig,path,_serviceDiscoveryManager));
+        getWebServer().setHandler(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,serviceDiscoveryManager));
     }
 
 
     public ServiceDiscoveryManager getServiceDiscoveryManager() {
-        return _serviceDiscoveryManager;
+        return serviceDiscoveryManager;
     }
 
 
     public static class Builder extends AbstractWebServer.Builder<Builder>{
-        private String _apiPath=null;
-        private String _applicationContextConfig;
+        private String apiPath=null;
+        private String applicationContextConfig;
 
         public Builder withApplicationContextConfig(String configName){
-            _applicationContextConfig = configName;
+            applicationContextConfig = configName;
             return this;
         }
 
         public Builder withPath(String path){
-            _apiPath = path;
+            apiPath = path;
             return this;
         }
     }

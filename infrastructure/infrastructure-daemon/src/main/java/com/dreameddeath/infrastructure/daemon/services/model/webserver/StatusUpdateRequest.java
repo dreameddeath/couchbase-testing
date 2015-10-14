@@ -20,14 +20,14 @@ package com.dreameddeath.infrastructure.daemon.services.model.webserver;
  * Created by Christophe Jeunesse on 14/08/2015.
  */
 public class StatusUpdateRequest {
-    private Action _action;
+    private Action action;
 
     public Action getAction() {
-        return _action;
+        return action;
     }
 
     public void setAction(Action action) {
-        this._action = action;
+        this.action = action;
     }
 
     public enum Action {

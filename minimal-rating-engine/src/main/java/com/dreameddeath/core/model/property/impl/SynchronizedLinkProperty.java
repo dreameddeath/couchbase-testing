@@ -20,20 +20,20 @@ import com.dreameddeath.core.model.business.CouchbaseDocumentLink;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocument;
 
 public abstract class SynchronizedLinkProperty<T,TDOC extends BaseCouchbaseDocument> extends StandardProperty<T> {
-    CouchbaseDocumentLink<TDOC> _parentLink;
+    CouchbaseDocumentLink<TDOC> parentLink;
 
     public SynchronizedLinkProperty(CouchbaseDocumentLink<TDOC> parentLink){
         super(parentLink);
         parentLink.addChildSynchronizedProperty(this);
-        _parentLink=parentLink;
+        this.parentLink=parentLink;
     }
     
     protected abstract T getRealValue(TDOC doc);
 
     @Override
     public final T get(){ 
-        if(_parentLink.getLinkedObjectFromCache()!=null){
-            set(getRealValue(_parentLink.getLinkedObjectFromCache()));
+        if(parentLink.getLinkedObjectFromCache()!=null){
+            set(getRealValue(parentLink.getLinkedObjectFromCache()));
         }
         return super.get();
     }

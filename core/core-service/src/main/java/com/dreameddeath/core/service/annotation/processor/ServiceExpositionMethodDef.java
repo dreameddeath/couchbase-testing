@@ -31,74 +31,74 @@ import java.util.*;
  * Created by Christophe Jeunesse on 03/04/2015.
  */
 public class ServiceExpositionMethodDef {
-    private String _name;
-    private String _httpMethod;
-    private AbstractClassInfo _returnType;
-    private String _globalContextParamName =null;
-    private VersionStatus _status;
-    private ServiceExpositionPathInfo _pathInfo;
-    private List<ServiceExpositionMethodParamDefinition> _methodParamsDefinition =new ArrayList<>();
-    private ServiceExpositionMethodBodyDef _bodyInfo = null;
+    private String name;
+    private String httpMethod;
+    private AbstractClassInfo returnType;
+    private String globalContextParamName =null;
+    private VersionStatus status;
+    private ServiceExpositionPathInfo pathInfo;
+    private List<ServiceExpositionMethodParamDefinition> methodParamsDefinition =new ArrayList<>();
+    private ServiceExpositionMethodBodyDef bodyInfo = null;
 
 
     public ServiceExpositionMethodDef(MethodInfo methodInfo){
         ExposeMethod exposeMethodAnnot=methodInfo.getAnnotation(ExposeMethod.class);
-        _name = methodInfo.getName();
-        _httpMethod = exposeMethodAnnot.method();
-        _status = exposeMethodAnnot.status();
-        _pathInfo = new ServiceExpositionPathInfo(exposeMethodAnnot.path(),methodInfo);
+        name = methodInfo.getName();
+        httpMethod = exposeMethodAnnot.method();
+        status = exposeMethodAnnot.status();
+        pathInfo = new ServiceExpositionPathInfo(exposeMethodAnnot.path(),methodInfo);
 
-        _returnType = methodInfo.getReturnType().getMainTypeGeneric(0).getMainType();
+        returnType = methodInfo.getReturnType().getMainTypeGeneric(0).getMainType();
 
         for(ParameterizedTypeInfo paramInfo: methodInfo.getMethodParameters()){
-            ServiceExpositionMethodParamDefinition methodParam = new ServiceExpositionMethodParamDefinition(paramInfo,_pathInfo);
-            _methodParamsDefinition.add(methodParam);
+            ServiceExpositionMethodParamDefinition methodParam = new ServiceExpositionMethodParamDefinition(paramInfo,pathInfo);
+            methodParamsDefinition.add(methodParam);
             if(methodParam.isGlobalContextParam()){
-                _globalContextParamName = methodParam.getName();
+                globalContextParamName = methodParam.getName();
             }
         }
 
 
         BodyInfo bodyInfoAnnot = methodInfo.getAnnotation(BodyInfo.class);
         if(bodyInfoAnnot!=null) {
-            _bodyInfo = new ServiceExpositionMethodBodyDef(bodyInfoAnnot.paramName(),methodInfo);
+            bodyInfo = new ServiceExpositionMethodBodyDef(bodyInfoAnnot.paramName(),methodInfo);
         }
         else{
-            _bodyInfo =null;
+            bodyInfo =null;
         }
 
     }
 
     public String getName(){
-        return _name;
+        return name;
     }
 
     public String getHttpMethod() {
-        return _httpMethod;
+        return httpMethod;
     }
 
     public List<ServiceExpositionMethodParamDefinition> getMethodParamsDefinition() {
-        return Collections.unmodifiableList(_methodParamsDefinition);
+        return Collections.unmodifiableList(methodParamsDefinition);
     }
 
     public ServiceExpositionPathInfo getPathInfo() {
-        return _pathInfo;
+        return pathInfo;
     }
 
     public boolean hasGlobalContextParam() {
-        return _globalContextParamName !=null;
+        return globalContextParamName !=null;
     }
 
     public String getGlobalContextParamName(){
-        return _globalContextParamName;
+        return globalContextParamName;
     }
 
     public VersionStatus getStatus() {
-        return _status;
+        return status;
     }
 
     public String getReturnClassName() {
-        return _returnType.getSimpleName();
+        return returnType.getSimpleName();
     }
 
     public Set<String> getImports(){
@@ -107,25 +107,25 @@ public class ServiceExpositionMethodDef {
             result.add(AbstractClassInfo.getClassInfo(IGlobalContext.class).getImportName());
             result.add(AbstractClassInfo.getClassInfo(IGlobalContextTranscoder.class).getImportName());
         }
-        result.add(_returnType.getImportName());
-        for(ServiceExpositionMethodParamDefinition methodParam:_methodParamsDefinition){
+        result.add(returnType.getImportName());
+        for(ServiceExpositionMethodParamDefinition methodParam:methodParamsDefinition){
             result.add(methodParam.getImportName());
         }
-        result.addAll(_pathInfo.getImports());
-        if(_bodyInfo!=null){
-            result.add(_bodyInfo.getImportName());
+        result.addAll(pathInfo.getImports());
+        if(bodyInfo!=null){
+            result.add(bodyInfo.getImportName());
         }
         return result;
     }
 
     public boolean hasBody() {
-        return _bodyInfo !=null;
+        return bodyInfo !=null;
     }
 
     public boolean needEmptyBody(){
-        return (_httpMethod.equalsIgnoreCase("post")||_httpMethod.equalsIgnoreCase("put"));
+        return (httpMethod.equalsIgnoreCase("post")||httpMethod.equalsIgnoreCase("put"));
     }
     public ServiceExpositionMethodBodyDef getBodyInfo() {
-        return _bodyInfo;
+        return bodyInfo;
     }
 }

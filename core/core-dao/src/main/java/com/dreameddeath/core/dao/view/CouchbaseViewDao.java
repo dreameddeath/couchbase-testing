@@ -35,9 +35,9 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 18/12/2014.
  */
 public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocument> {
-    private CouchbaseDocumentDao<TDOC> _parentDao;
-    private String _viewName;
-    private String _designDoc;
+    private CouchbaseDocumentDao<TDOC> parentDao;
+    private String viewName;
+    private String designDoc;
     public abstract String getContent();
 
     public IViewQuery<TKEY,TVALUE,TDOC> buildViewQuery(){ return new ViewQuery<TKEY,TVALUE,TDOC>(this);}
@@ -45,17 +45,17 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
     public abstract IViewTranscoder<TVALUE> getValueTranscoder();
 
     public CouchbaseViewDao(String designDoc,String viewName,CouchbaseDocumentDao<TDOC> parentDao){
-        _parentDao = parentDao;
-        _designDoc = designDoc;
-        _viewName = viewName;
+        this.parentDao = parentDao;
+        this.designDoc = designDoc;
+        this.viewName = viewName;
     }
 
-    public String getViewName(){return _viewName;}
-    public String getDesignDoc(){return _designDoc;}
-    public CouchbaseDocumentDao<TDOC> getParentDao(){return _parentDao;}
+    public String getViewName(){return viewName;}
+    public String getDesignDoc(){return designDoc;}
+    public CouchbaseDocumentDao<TDOC> getParentDao(){return parentDao;}
 
 
-    public ICouchbaseBucket getClient(){ return _parentDao.getClient(); }
+    public ICouchbaseBucket getClient(){ return parentDao.getClient(); }
 
     public String buildMapString(){
         String bucketPrefix = getClient().getPrefix();
@@ -65,8 +65,8 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
         StringBuilder sb = new StringBuilder();
         sb.append("function (doc, meta) {\n");
         //Append Prefix if needed
-        if(_parentDao instanceof  CouchbaseDocumentWithKeyPatternDao){
-            String pattern = ((bucketPrefix!=null)?bucketPrefix:"")+((CouchbaseDocumentWithKeyPatternDao)_parentDao).getKeyPattern();
+        if(parentDao instanceof  CouchbaseDocumentWithKeyPatternDao){
+            String pattern = ((bucketPrefix!=null)?bucketPrefix:"")+((CouchbaseDocumentWithKeyPatternDao)parentDao).getKeyPattern();
             pattern = pattern.replaceAll("([/\\$])","\\\\$1");
             sb.append("if(/^"+pattern + "$/.test(meta.id)==false) return;");
             sb.append("\n");
@@ -88,7 +88,7 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
         try{
             final TKEY key = getKeyTranscoder().decode(row.key());
             final TVALUE value = (row.value()!=null)?getValueTranscoder().decode(row.value()):null;
-            final String docKey = ICouchbaseBucket.Utils.extractKey(_parentDao.getClient().getPrefix(), row.id());
+            final String docKey = ICouchbaseBucket.Utils.extractKey(parentDao.getClient().getPrefix(), row.id());
             return new IViewQueryRow<TKEY, TVALUE, TDOC>() {
                 @Override public TKEY getKey() { return key;}
                 @Override public TVALUE getValue() { return value;}
@@ -105,7 +105,7 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
         try{
             final TKEY key = getKeyTranscoder().decode(row.key());
             final TVALUE value = (row.value()!=null)?getValueTranscoder().decode(row.value()):null;
-            final String docKey = ICouchbaseBucket.Utils.extractKey(_parentDao.getClient().getPrefix(), row.id());
+            final String docKey = ICouchbaseBucket.Utils.extractKey(parentDao.getClient().getPrefix(), row.id());
             return new IViewQueryRow<TKEY, TVALUE, TDOC>() {
                 @Override public TKEY getKey() { return key;}
                 @Override public TVALUE getValue() { return value;}

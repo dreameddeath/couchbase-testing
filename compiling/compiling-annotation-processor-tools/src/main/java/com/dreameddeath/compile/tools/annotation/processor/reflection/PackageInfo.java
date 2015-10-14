@@ -26,23 +26,23 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class PackageInfo extends AnnotatedInfo {
-    private static Map<PackageElement,PackageInfo> _packageElementToInfoMap = new HashMap<>();
-    private static Map<Package,PackageInfo> _packageToInfoMap = new HashMap<>();
+    private static Map<PackageElement,PackageInfo> packageElementToInfoMap = new HashMap<>();
+    private static Map<Package,PackageInfo> packageToInfoMap = new HashMap<>();
 
 
     public static PackageInfo getPackageInfo(Package aPackage){
-        if(!_packageToInfoMap.containsKey(aPackage)){
+        if(!packageToInfoMap.containsKey(aPackage)){
             return new PackageInfo(aPackage);
         }
-        return _packageToInfoMap.get(aPackage);
+        return packageToInfoMap.get(aPackage);
     }
 
     public static PackageInfo getPackageInfo(PackageElement packageElement){
-        if(!_packageElementToInfoMap.containsKey(packageElement)) {
+        if(!packageElementToInfoMap.containsKey(packageElement)) {
             return new PackageInfo(packageElement);
         }
 
-        return _packageElementToInfoMap.get(packageElement);
+        return packageElementToInfoMap.get(packageElement);
     }
 
     public static PackageInfo getPackageInfo(TypeElement element){
@@ -62,35 +62,35 @@ public class PackageInfo extends AnnotatedInfo {
         return Package.getPackage(elt.getQualifiedName().toString());
     }
 
-    private String _name;
-    private PackageElement _packageElement=null;
-    private Package _package = null;
+    private String name;
+    private PackageElement packageElement=null;
+    private Package packageRef = null;
 
     private void init(){
-        if(_package!=null){
-            _name = _package.getName();
-            _packageToInfoMap.put(_package,this);
+        if(packageRef!=null){
+            name = packageRef.getName();
+            packageToInfoMap.put(packageRef,this);
         }
-        if(_packageElement!=null){
-            _name = _packageElement.getQualifiedName().toString();
-            _packageElementToInfoMap.put(_packageElement,this);
+        if(packageElement!=null){
+            name = packageElement.getQualifiedName().toString();
+            packageElementToInfoMap.put(packageElement,this);
         }
     }
 
     private PackageInfo(PackageElement element){
         super(element);
-        _packageElement=element;
-        _package = getPackage(_packageElement);
+        packageElement=element;
+        packageRef = getPackage(packageElement);
         init();
     }
 
     private PackageInfo(Package aPackage){
         super(aPackage);
-        _package = aPackage;
+        packageRef = aPackage;
         init();
     }
 
     public String getName(){
-        return _name;
+        return name;
     }
 }

@@ -24,19 +24,19 @@ import org.joda.time.DateTime;
  * Created by Christophe Jeunesse on 03/11/2014.
  */
 public class CouchbaseSessionServiceContext {
-    final private CouchbaseSession _session;
+    final private CouchbaseSession session;
 
     public CouchbaseSessionServiceContext(CouchbaseSession session){
-        _session = session;
+        this.session = session;
     }
 
-    public CouchbaseSession getSession(){return _session;}
+    public CouchbaseSession getSession(){return session;}
 
     public <T extends BaseCouchbaseDocument> T newEntity(Class<T> clazz){
-        return _session.newEntity(clazz);
+        return session.newEntity(clazz);
     }
 
     public DateTime getCurrentDate(){
-        return _session.getDateTimeService().getCurrentDate();
+        return session.getDateTimeService().getCurrentDate();
     }
 }

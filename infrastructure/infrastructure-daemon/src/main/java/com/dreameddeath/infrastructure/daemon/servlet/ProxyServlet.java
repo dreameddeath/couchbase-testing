@@ -47,16 +47,16 @@ public class ProxyServlet extends AsyncProxyServlet {
     public static String PROXY_PREFIX_PARAM_NAME = "proxy-url-prefix";
     private static Logger LOG = LoggerFactory.getLogger(ProxyServlet.class);
 
-    private String _prefix;
-    private List<ServiceDiscoverer> _serviceDiscoverers=new ArrayList<>();
-    private ConcurrentMap<ServiceUid,ServiceProvider<ServiceDescription>> _serviceMap = new ConcurrentHashMap<>();
+    private String prefix;
+    private List<ServiceDiscoverer> serviceDiscoverers=new ArrayList<>();
+    private ConcurrentMap<ServiceUid,ServiceProvider<ServiceDescription>> serviceMap = new ConcurrentHashMap<>();
 
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         CuratorFramework curatorClient = (CuratorFramework) config.getServletContext().getAttribute(AbstractDaemon.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME);
-        _prefix = ServletUtils.normalizePath((String)config.getServletContext().getAttribute(PROXY_PREFIX_PARAM_NAME),false);
+        prefix = ServletUtils.normalizePath((String)config.getServletContext().getAttribute(PROXY_PREFIX_PARAM_NAME),false);
 
         List<String> basePathsList = (List<String>)config.getServletContext().getAttribute(SERVICE_DISCOVERER_PATHES_PARAM_NAME);
         for(String basePath:basePathsList){
@@ -67,7 +67,7 @@ public class ProxyServlet extends AsyncProxyServlet {
             catch (ServiceDiscoveryException e){
                 throw new ServletException(e);
             }
-            _serviceDiscoverers.add(newService);
+            serviceDiscoverers.add(newService);
         }
     }
 
@@ -75,7 +75,7 @@ public class ProxyServlet extends AsyncProxyServlet {
 
     private ServiceProvider<ServiceDescription> findServiceProvider(ServiceUid suid){
         String name = ServiceNamingUtils.buildServiceFullName(suid.getServiceId(),suid.getVersion());
-        for(ServiceDiscoverer discoverer:_serviceDiscoverers){
+        for(ServiceDiscoverer discoverer:serviceDiscoverers){
             try {
                 discoverer.resyncAllServices();
                 return discoverer.getServiceProvider(name);
@@ -94,7 +94,7 @@ public class ProxyServlet extends AsyncProxyServlet {
 
         String effectivePath = clientRequest.getRequestURI();
 
-        effectivePath = effectivePath.substring(_prefix.length() + 1); //remove prefix
+        effectivePath = effectivePath.substring(prefix.length() + 1); //remove prefix
         String serviceId = effectivePath.substring(0, effectivePath.indexOf("/"));
         effectivePath = effectivePath.substring(serviceId.length()+1);
         String version;
@@ -110,7 +110,7 @@ public class ProxyServlet extends AsyncProxyServlet {
 
         try {
             serviceId = URLDecoder.decode(serviceId, "UTF-8");
-            ServiceProvider<ServiceDescription> provider = _serviceMap.computeIfAbsent(new ServiceUid(serviceId,version), suid -> findServiceProvider(suid));
+            ServiceProvider<ServiceDescription> provider = serviceMap.computeIfAbsent(new ServiceUid(serviceId,version), suid -> findServiceProvider(suid));
             ServiceInstance<ServiceDescription> instance=provider.getInstance();
             if(instance==null){
 
@@ -138,20 +138,20 @@ public class ProxyServlet extends AsyncProxyServlet {
 
 
     private static class ServiceUid{
-        private String _serviceId;
-        private String _version;
+        private String serviceId;
+        private String version;
 
         public ServiceUid(String serviceId, String version) {
-            _serviceId = serviceId;
-            _version = version;
+            this.serviceId = serviceId;
+            this.version = version;
         }
 
         public String getServiceId() {
-            return _serviceId;
+            return serviceId;
         }
 
         public String getVersion() {
-            return _version;
+            return version;
         }
 
         @Override
@@ -161,15 +161,15 @@ public class ProxyServlet extends AsyncProxyServlet {
 
             ServiceUid that = (ServiceUid) o;
 
-            if (!_serviceId.equals(that._serviceId)) return false;
-            return _version.equals(that._version);
+            if (!serviceId.equals(that.serviceId)) return false;
+            return version.equals(that.version);
 
         }
 
         @Override
         public int hashCode() {
-            int result = _serviceId.hashCode();
-            result = 31 * result + _version.hashCode();
+            int result = serviceId.hashCode();
+            result = 31 * result + version.hashCode();
             return result;
         }
     }

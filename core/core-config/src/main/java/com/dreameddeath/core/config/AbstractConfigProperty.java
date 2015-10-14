@@ -33,19 +33,19 @@ import java.util.regex.Pattern;
  * Created by Christophe Jeunesse on 03/02/2015.
  */
 public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
-    private final PropertyWrapper<T> _wrapper;
-    private final List<ConfigPropertyChangedCallback<T>> _callbacks = new CopyOnWriteArrayList<>();
+    private final PropertyWrapper<T> wrapper;
+    private final List<ConfigPropertyChangedCallback<T>> callbacks = new CopyOnWriteArrayList<>();
 
     public static <T> PropertyWrapper<T> buildDefaultWrapper(String name,  T defaultValue) {
         return new ExtendedPropertyWrapper<T>(name, defaultValue) {
-            private Class<T> _class=null;
+            private Class<T> clazz=null;
             @Override
             @SuppressWarnings("unchecked")
             public T getValue() {
-                if(_class==null){
-                    _class=(Class<T>) defaultValue.getClass();
+                if(clazz==null){
+                    clazz=(Class<T>) defaultValue.getClass();
                 }
-                T res = prop.getCachedValue(_class).get();
+                T res = prop.getCachedValue(clazz).get();
                 return res!=null?res:defaultValue;
             }
         };
@@ -54,11 +54,11 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
 
     public static <T> PropertyWrapper<T> buildDefaultWrapperWithRef(String name, final IConfigProperty<T> defaultValueRef) {
         return new ReferencePropertyWrapper<T>(name, defaultValueRef) {
-            private Class<T> _class=null;
+            private Class<T> clazz=null;
             @Override
             @SuppressWarnings("unchecked")
             public T getLocalValue() {
-                return prop.getCachedValue(_class).get();
+                return prop.getCachedValue(clazz).get();
             }
         };
     }
@@ -83,7 +83,7 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
 
 
     public AbstractConfigProperty(PropertyWrapper<T> wrapper) {
-        _wrapper = wrapper;
+        this.wrapper = wrapper;
         ConfigPropertyFactory.addPropertyToGlobalMap(this);
         if(!(wrapper instanceof ReferencePropertyWrapper)&& (wrapper.getDefaultValue()!=null)) {
             ConfigManagerFactory.addDefaultConfigurationEntry(wrapper.getName(), wrapper.getDefaultValue());
@@ -97,7 +97,7 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
 
     @Override
     public T getValue() {
-        return _wrapper.getValue();
+        return wrapper.getValue();
     }
 
     @Override
@@ -119,32 +119,32 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
 
     @Override
     public T getDefaultValue() {
-        return _wrapper.getDefaultValue();
+        return wrapper.getDefaultValue();
     }
 
     @Override
     public String getName() {
-        return _wrapper.getName();
+        return wrapper.getName();
     }
 
     @Override
     public DateTime getLastChangedDate() {
-        return new DateTime(_wrapper.getChangedTimestamp());
+        return new DateTime(wrapper.getChangedTimestamp());
     }
 
     @Override
     public void addCallback(final ConfigPropertyChangedCallback<T> callback) {
-        _callbacks.add(callback);
+        callbacks.add(callback);
     }
 
     @Override
     public void removeAllCallbacks() {
-        _wrapper.removeAllCallbacks();
+        wrapper.removeAllCallbacks();
     }
 
     @Override
     public Collection<ConfigPropertyChangedCallback<T>> getCallbacks(){
-        return Collections.unmodifiableCollection(_callbacks);
+        return Collections.unmodifiableCollection(callbacks);
     }
 
 }

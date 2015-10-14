@@ -29,12 +29,12 @@ import org.junit.Test;
 public class DaoGeneratorTest extends Assert {
 
 
-    Utils.TestEnvironment _env;
+    Utils.TestEnvironment env;
     @Before
     public void initTest() throws  Exception{
-        _env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
+        env = new Utils.TestEnvironment("ViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
        // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
-        _env.start();
+        env.start();
     }
 
     @Test

@@ -42,31 +42,31 @@ public class AnnotationProcessFileUtils {
     }
 
     public static class ResourceFile{
-        private FileObject _fileObject;
-        private Writer _writer;
-        private Messager _messager;
+        private FileObject fileObject;
+        private Writer writer;
+        private Messager messager;
 
         public ResourceFile(FileObject fileObject,Writer writer,Messager messager){
-            _fileObject = fileObject;
-            _writer = writer;
-            _messager = messager;
+            this.fileObject = fileObject;
+            this.writer = writer;
+            this.messager = messager;
         }
 
         public FileObject getFileObject() {
-            return _fileObject;
+            return fileObject;
         }
 
         public Writer getWriter() {
-            return _writer;
+            return writer;
         }
 
         public void close(){
             try {
-                _writer.close();
-                _messager.printMessage(Diagnostic.Kind.NOTE, "Generating resource file " + _fileObject.getName());
+                writer.close();
+                messager.printMessage(Diagnostic.Kind.NOTE, "Generating resource file " + fileObject.getName());
             }
             catch(IOException e){
-                _messager.printMessage(Diagnostic.Kind.ERROR, "Error during generating " + _fileObject.getName()+" "+e.getMessage());
+                messager.printMessage(Diagnostic.Kind.ERROR, "Error during generating " + fileObject.getName()+" "+e.getMessage());
             }
         }
     }

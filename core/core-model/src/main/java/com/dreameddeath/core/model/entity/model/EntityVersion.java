@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.model.entity;
+package com.dreameddeath.core.model.entity.model;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,9 +26,9 @@ public class EntityVersion implements Comparable<EntityVersion>{
     public static final EntityVersion DEFAULT_VERSION = EntityVersion.version(1,0,0);
     public static final String VERSION_PATTERN_STR = "[Vv]?(\\d+)\\.(\\d+)(?:\\.(\\d+))?";
     public static final Pattern VERSION_PATTERN = Pattern.compile("^"+VERSION_PATTERN_STR+"$");
-    private Integer _major=0;
-    private Integer _minor=0;
-    private Integer _patch=null;
+    private Integer major=0;
+    private Integer minor=0;
+    private Integer patch=null;
 
     public EntityVersion(String version){
         parseString(version);
@@ -36,39 +36,39 @@ public class EntityVersion implements Comparable<EntityVersion>{
 
     public EntityVersion(Integer major, Integer minor, Integer patch){
         //TODO assert not null and positive
-        _major = major;
-        _minor = minor;
-        _patch = patch;
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
     }
 
     private void parseString(String versionStr){
         Matcher matcher = VERSION_PATTERN.matcher(versionStr);
         if(matcher.matches()){
-            _major = Integer.parseInt(matcher.group(1));
-            _minor = Integer.parseInt(matcher.group(2));
-            _patch = (matcher.group(3)!=null)?Integer.parseInt(matcher.group(3)):null;
+            major = Integer.parseInt(matcher.group(1));
+            minor = Integer.parseInt(matcher.group(2));
+            patch = (matcher.group(3)!=null)?Integer.parseInt(matcher.group(3)):null;
         }
     }
 
     public Integer getMajor() {
-        return _major;
+        return major;
     }
 
     public Integer getMinor() {
-        return _minor;
+        return minor;
     }
 
     public Integer getPatch() {
-        return _patch;
+        return patch;
     }
 
     @Override
     public String toString(){
-        if(_patch==null) {
-            return String.format("%d.%d.0", _major, _minor);
+        if(patch==null) {
+            return String.format("%d.%d.0", major, minor);
         }
         else {
-            return String.format("%d.%d.%d", _major, _minor, _patch);
+            return String.format("%d.%d.%d", major, minor, patch);
         }
     }
 
@@ -79,28 +79,28 @@ public class EntityVersion implements Comparable<EntityVersion>{
 
         EntityVersion entityVersion = (EntityVersion) o;
 
-        if (!_major.equals(entityVersion._major)) return false;
-        if (!_minor.equals(entityVersion._minor)) return false;
-        return !(_patch != null ? !_patch.equals(entityVersion._patch) : entityVersion._patch != null);
+        if (!major.equals(entityVersion.major)) return false;
+        if (!minor.equals(entityVersion.minor)) return false;
+        return !(patch != null ? !patch.equals(entityVersion.patch) : entityVersion.patch != null);
     }
 
     @Override
     public int hashCode() {
-        int result = _major.hashCode();
-        result = 31 * result + _minor.hashCode();
-        result = 31 * result + (_patch != null ? _patch.hashCode() : 0);
+        int result = major.hashCode();
+        result = 31 * result + minor.hashCode();
+        result = 31 * result + (patch != null ? patch.hashCode() : 0);
         return result;
     }
 
     @Override
     public int compareTo(EntityVersion o) {
-        int result = _major.compareTo(o._major);
+        int result = major.compareTo(o.major);
         if(result!=0) return result;
-        result=_minor.compareTo(o._minor);
+        result=minor.compareTo(o.minor);
         if(result!=0) return result;
         //Null means match everything
-        if((_patch==null)||(o._patch==null)) return 0;
-        return _patch.compareTo(o._patch);
+        if((patch==null)||(o.patch==null)) return 0;
+        return patch.compareTo(o.patch);
     }
 
     public static EntityVersion version(String major,String minor,String patch){

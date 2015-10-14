@@ -29,28 +29,28 @@ import java.util.regex.Pattern;
  * Created by Christophe Jeunesse on 08/06/2015.
  */
 public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInfo {
-    private final Class<? extends CouchbaseDocument> _clazz;
-    private final IDocumentClassMappingInfo _parent;
-    private final Class<? extends CouchbaseDocument> _clazzRoot;
-    private final Set<Class<? extends CouchbaseDocument>> _childClasses =new HashSet<>();
-    private final String _keyPattern;
-    private final Map<Class,Object> _attachedInfo =new ConcurrentHashMap<>();
-    private final Map<KeyClassTuple,Object> _perKeyAttachedInfo =new ConcurrentHashMap<>();
+    private final Class<? extends CouchbaseDocument> clazz;
+    private final IDocumentClassMappingInfo parent;
+    private final Class<? extends CouchbaseDocument> clazzRoot;
+    private final Set<Class<? extends CouchbaseDocument>> childClasses =new HashSet<>();
+    private final String keyPattern;
+    private final Map<Class,Object> attachedInfo =new ConcurrentHashMap<>();
+    private final Map<KeyClassTuple,Object> perKeyAttachedInfo =new ConcurrentHashMap<>();
 
     private class KeyClassTuple{
-        private final String _patternStr;
-        private Pattern _pattern;
-        private final Class _class;
+        private final String patternStr;
+        private Pattern pattern;
+        private final Class clazz;
         private KeyClassTuple(String pattern,Class clazz){
-            _patternStr = pattern;
-            _class = clazz;
+            patternStr = pattern;
+            this.clazz = clazz;
         }
 
         public boolean matches(String key,Class clazz){
-            if(_pattern==null){
-                _pattern = Pattern.compile("^"+_patternStr+"$");
+            if(pattern==null){
+                pattern = Pattern.compile("^"+patternStr+"$");
             }
-            return _pattern.matcher(key).matches() && _class.equals(clazz);
+            return pattern.matcher(key).matches() && this.clazz.equals(clazz);
         }
 
 
@@ -66,39 +66,39 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
                 return false;
             }
             KeyClassTuple target = (KeyClassTuple)obj;
-            return _class.equals(target._class) && _pattern.equals(target._pattern);
+            return clazz.equals(target.clazz) && pattern.equals(target.pattern);
         }
     }
 
     public DefaultDocumentClassInfoMapping(Class<? extends CouchbaseDocument> clazz, IDocumentClassMappingInfo parent, String pattern){
-        _clazz = clazz;
-        _keyPattern = pattern;
+        this.clazz = clazz;
+        keyPattern = pattern;
         if(parent !=null){
-            _clazzRoot = parent.classRootInfo();
-            _parent = parent;
-            _parent.addChildClass(clazz);
+            clazzRoot = parent.classRootInfo();
+            this.parent = parent;
+            parent.addChildClass(clazz);
         }
         else{
-            _parent = null;
-            _clazzRoot = _clazz;
+            this.parent = null;
+            clazzRoot = clazz;
         }
     }
 
     @Override
      public synchronized void addChildClass(Class<? extends CouchbaseDocument> childDocClass) {
-        _childClasses.add(childDocClass);
-        if(_parent!=null){
-            _parent.addChildClass(childDocClass);
+        childClasses.add(childDocClass);
+        if(parent!=null){
+            parent.addChildClass(childDocClass);
         }
     }
 
     @Override
     public <T> T getAttachedObject(Class<T> clazz) {
         @SuppressWarnings("unchecked")
-        T res = (T)_attachedInfo.get(clazz);
-        if(res==null && _parent!=null){
-            T resParent = _parent.getAttachedObject(clazz);
-            _attachedInfo.putIfAbsent(clazz, resParent);
+        T res = (T)attachedInfo.get(clazz);
+        if(res==null && parent!=null){
+            T resParent = parent.getAttachedObject(clazz);
+            attachedInfo.putIfAbsent(clazz, resParent);
             return resParent;
         }
         return res;
@@ -106,13 +106,13 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
 
     @Override
     public <T> T getAttachedObject(Class<T> clazz,String key) {
-        for(Map.Entry<KeyClassTuple,Object> element:_perKeyAttachedInfo.entrySet()){
+        for(Map.Entry<KeyClassTuple,Object> element:perKeyAttachedInfo.entrySet()){
             if(element.getKey().matches(key, clazz)){
                 return (T)element.getValue();
             }
         }
-        if(_parent!=null){
-            return _parent.getAttachedObject(clazz,key);
+        if(parent!=null){
+            return parent.getAttachedObject(clazz,key);
         }
         return null;
     }
@@ -120,31 +120,31 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
 
     @Override
     public synchronized <T> void attachObject(Class<T> clazz, Object obj) {
-        _attachedInfo.put(clazz,obj);
+        attachedInfo.put(clazz,obj);
     }
 
     @Override
     public synchronized <T> void attachObject(Class<T> clazz,String pattern, Object obj) {
-        _perKeyAttachedInfo.put(new KeyClassTuple(pattern,clazz),obj);
+        perKeyAttachedInfo.put(new KeyClassTuple(pattern,clazz),obj);
     }
 
     @Override
     public Set<Class<? extends CouchbaseDocument>> getChildClasses(){
-        return _childClasses;
+        return childClasses;
     }
 
     @Override
     public Class<? extends CouchbaseDocument> classInfo() {
-        return _clazz;
+        return clazz;
     }
 
     @Override
     public Class<? extends CouchbaseDocument> classRootInfo() {
-        return _clazzRoot;
+        return clazzRoot;
     }
 
     @Override
     public String keyPattern() {
-        return _keyPattern;
+        return keyPattern;
     }
 }

@@ -42,9 +42,9 @@ public class CouchbaseUniqueKeyDao extends BaseCouchbaseDocumentDao<CouchbaseUni
     }
 
 
-    private static GenericJacksonTranscoder<CouchbaseUniqueKey> _tc = new GenericJacksonTranscoder<CouchbaseUniqueKey>(CouchbaseUniqueKey.class,LocalBucketDocument.class);
+    private static GenericJacksonTranscoder<CouchbaseUniqueKey> tc = new GenericJacksonTranscoder<CouchbaseUniqueKey>(CouchbaseUniqueKey.class,LocalBucketDocument.class);
     public GenericTranscoder<CouchbaseUniqueKey> getTranscoder(){
-        return _tc;
+        return tc;
     }
 
 
@@ -76,7 +76,7 @@ public class CouchbaseUniqueKeyDao extends BaseCouchbaseDocumentDao<CouchbaseUni
 
     public CouchbaseUniqueKeyDao(CouchbaseBucketWrapper client, CouchbaseUniqueKeyDaoFactory factory){
         super(client,null);
-        CouchbaseUniqueKeyDaoFactory _parentFactory = factory;
+        //this.parentFactory = factory;
     }
 
     public String buildKey(String nameSpace, String value) throws DaoException{

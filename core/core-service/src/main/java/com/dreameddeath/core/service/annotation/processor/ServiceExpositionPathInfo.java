@@ -24,10 +24,10 @@ import java.util.*;
  * Created by Christophe Jeunesse on 08/04/2015.
  */
 public class ServiceExpositionPathInfo {
-    private String _jaxRsPath = "";
-    private String _jaxRsPattern = "";
-    private List<ServiceExpositionParamInfo> _urlParamsList = new ArrayList<>();
-    private List<ServiceExpositionParamInfo> _queryParamsList = new ArrayList<>();
+    private String jaxRsPath = "";
+    private String jaxRsPattern = "";
+    private List<ServiceExpositionParamInfo> urlParamsList = new ArrayList<>();
+    private List<ServiceExpositionParamInfo> queryParamsList = new ArrayList<>();
 
     public ServiceExpositionPathInfo(String path, MethodInfo methodInfo) {
         String[] uriParts = path.split("\\?"); //Split path and Query Part
@@ -43,40 +43,40 @@ public class ServiceExpositionPathInfo {
                 continue;
             }
             if (pathPart.matches("^\\w+$")) {
-                _jaxRsPath += "/" + pathPart;
-                _jaxRsPattern+= "/"+pathPart;
+                jaxRsPath += "/" + pathPart;
+                jaxRsPattern+= "/"+pathPart;
             } else {
                 ServiceExpositionParamInfo paramInfo = new ServiceExpositionParamInfo(false, pathPart, methodInfo);
-                _jaxRsPath += "/{" + paramInfo.getName() + "}";
-                _jaxRsPattern+="/"+paramInfo.getPatternFormat();
-                _urlParamsList.add(paramInfo);
+                jaxRsPath += "/{" + paramInfo.getName() + "}";
+                jaxRsPattern+="/"+paramInfo.getPatternFormat();
+                urlParamsList.add(paramInfo);
             }
         }
 
         for (String queryParam : queryParams) {
-            _queryParamsList.add(new ServiceExpositionParamInfo(true, queryParam, methodInfo));
+            queryParamsList.add(new ServiceExpositionParamInfo(true, queryParam, methodInfo));
         }
     }
 
     public String getJaxRsPath() {
-        return _jaxRsPath;
+        return jaxRsPath;
     }
 
     public String getJaxRsPattern() {
-        return _jaxRsPattern;
+        return jaxRsPattern;
     }
 
     public List<ServiceExpositionParamInfo> getUrlParamsList() {
-        return Collections.unmodifiableList(_urlParamsList);
+        return Collections.unmodifiableList(urlParamsList);
     }
 
     public List<ServiceExpositionParamInfo> getQueryParamsList() {
-        return Collections.unmodifiableList(_queryParamsList);
+        return Collections.unmodifiableList(queryParamsList);
     }
 
     public Set<String> getImports(){
         Set<String> result = new TreeSet<>();
-        for(ServiceExpositionParamInfo paramInfo: _urlParamsList){
+        for(ServiceExpositionParamInfo paramInfo: urlParamsList){
             result.add(paramInfo.getImportName());
         }
         return result;

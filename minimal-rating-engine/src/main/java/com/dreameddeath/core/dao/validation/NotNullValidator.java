@@ -26,13 +26,14 @@ import java.lang.reflect.Field;
  * Created by Christophe Jeunesse on 06/08/2014.
  */
 public class NotNullValidator<T> implements Validator<T> {
-    final private Field _field;
+    final private Field field;
+
     public NotNullValidator(Field field,NotNull ann){
-        _field = field;
+        this.field = field;
     }
     public void validate(T value,BaseCouchbaseDocumentElement parent) throws ValidationException{
         if(value==null){
-            throw new ValidationException(parent,_field,"The field should be set");
+            throw new ValidationException(parent,field,"The field should be set");
         }
     }
 }

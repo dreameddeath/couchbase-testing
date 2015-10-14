@@ -32,19 +32,19 @@ import java.util.Map;
  */
 public class CouchbaseUniqueKey extends BaseCouchbaseDocument {
     @DocumentProperty("maps")
-    MapProperty<String,String> _keyMaps = new HashMapProperty<String, String>(CouchbaseUniqueKey.this);
+    MapProperty<String,String> keyMaps = new HashMapProperty<String, String>(CouchbaseUniqueKey.this);
 
-    public Map<String,String> getMaps(){ return _keyMaps.get();}
-    public void setMaps(Map<String,String> maps){_keyMaps.set(maps);}
+    public Map<String,String> getMaps(){ return keyMaps.get();}
+    public void setMaps(Map<String,String> maps){keyMaps.set(maps);}
 
     public void checkKey(String buildKey,CouchbaseDocument doc) throws StorageException,DaoException{
         //If the key already exists
-        if(_keyMaps.containsKey(buildKey)){
+        if(keyMaps.containsKey(buildKey)){
             //Compare the attached document key
-            if(!_keyMaps.get(buildKey).equals(doc.getBaseMeta().getKey())){
+            if(!keyMaps.get(buildKey).equals(doc.getBaseMeta().getKey())){
                 //If target document still exists
-                if(doc.getBaseMeta().getSession().get(_keyMaps.get(buildKey))!=null){
-                    throw new DuplicateUniqueKeyException(doc,"The key <"+buildKey+"> is already used by the document <"+_keyMaps.get(buildKey)+">");
+                if(doc.getBaseMeta().getSession().get(keyMaps.get(buildKey))!=null){
+                    throw new DuplicateUniqueKeyException(doc,"The key <"+buildKey+"> is already used by the document <"+keyMaps.get(buildKey)+">");
                 }
             }
         }
@@ -53,14 +53,14 @@ public class CouchbaseUniqueKey extends BaseCouchbaseDocument {
     public void addKey(String key,CouchbaseDocument doc) throws StorageException,DaoException{
         if(doc.getBaseMeta().getKey()==null){ doc.getBaseMeta().getSession().buildKey(doc); }
         checkKey(key,doc);
-        _keyMaps.put(key,doc.getBaseMeta().getKey());
+        keyMaps.put(key,doc.getBaseMeta().getKey());
     }
 
     public boolean isEmpty(){
-        return _keyMaps.size()==0;
+        return keyMaps.size()==0;
     }
 
     public boolean removeKey(String buildKey){
-        return _keyMaps.remove(buildKey)!=null;
+        return keyMaps.remove(buildKey)!=null;
     }
 }

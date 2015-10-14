@@ -33,19 +33,19 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility=Visibility.NONE,fieldVisibility=Visibility.NONE,isGetterVisibility = Visibility.NONE,setterVisibility = Visibility.NONE,creatorVisibility = Visibility.NONE)
 public abstract class BaseCouchbaseDocumentElement implements HasParentDocumentElement{
-    private Property<BaseCouchbaseDocumentElement> _parentElt=new StandardProperty<BaseCouchbaseDocumentElement>(null);
-    private List<BaseCouchbaseDocumentElement> _childElementList=new ArrayList<BaseCouchbaseDocumentElement>();
+    private Property<BaseCouchbaseDocumentElement> parentElt=new StandardProperty<BaseCouchbaseDocumentElement>(null);
+    private List<BaseCouchbaseDocumentElement> childElementList=new ArrayList<BaseCouchbaseDocumentElement>();
 
     protected void addChildElement(BaseCouchbaseDocumentElement elt){
-        _childElementList.add(elt);
+        childElementList.add(elt);
     }
     protected void removeChildElement(BaseCouchbaseDocumentElement elt){
-        _childElementList.remove(elt);
+        childElementList.remove(elt);
     }
 
     public <T extends BaseCouchbaseDocumentElement> List<T> getChildElementsOfType(Class<T> clazz){
         List<T> res=new ArrayList<T>();
-        for(BaseCouchbaseDocumentElement child : _childElementList){
+        for(BaseCouchbaseDocumentElement child : childElementList){
             if(clazz.isAssignableFrom(child.getClass())){
                 res.add((T)child);
             }
@@ -54,12 +54,12 @@ public abstract class BaseCouchbaseDocumentElement implements HasParentDocumentE
         return res;
     }
     
-    public BaseCouchbaseDocumentElement getParentDocumentElement() { return _parentElt.get();}
+    public BaseCouchbaseDocumentElement getParentDocumentElement() { return parentElt.get();}
     public void setParentDocumentElement(BaseCouchbaseDocumentElement parentElt) {
-        if(_parentElt.get()!=null){
-            _parentElt.get().removeChildElement(this);
+        if(parentElt.get()!=null){
+            parentElt.get().removeChildElement(this);
         }
-        _parentElt.set(parentElt);
+        parentElt.set(parentElt);
         if(parentElt!=null) {
             parentElt.addChildElement(this);
         }
@@ -69,8 +69,8 @@ public abstract class BaseCouchbaseDocumentElement implements HasParentDocumentE
         if(this instanceof BaseCouchbaseDocument){
             return (BaseCouchbaseDocument)this;
         }
-        else if(_parentElt.get() !=null){
-            return _parentElt.get().getParentDocument();
+        else if(parentElt.get() !=null){
+            return parentElt.get().getParentDocument();
         }
         return null;
     }
@@ -83,12 +83,12 @@ public abstract class BaseCouchbaseDocumentElement implements HasParentDocumentE
     }
 
     public <T extends BaseCouchbaseDocumentElement> T getFirstParentOfClass(Class<T> clazz){
-        if(_parentElt.get()!=null){
-            if(clazz.isAssignableFrom(_parentElt.get().getClass())){
-                return (T) (_parentElt.get());
+        if(parentElt.get()!=null){
+            if(clazz.isAssignableFrom(parentElt.get().getClass())){
+                return (T) (parentElt.get());
             }
             else{
-                return _parentElt.get().getFirstParentOfClass(clazz);
+                return parentElt.get().getFirstParentOfClass(clazz);
             }
         }
         return null;

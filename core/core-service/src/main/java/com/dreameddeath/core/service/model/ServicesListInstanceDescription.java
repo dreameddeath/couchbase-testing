@@ -29,34 +29,34 @@ import java.util.List;
  */
 public class ServicesListInstanceDescription {
     @JsonProperty("name")
-    private String _name;
+    private String name;
     @JsonProperty("services")
-    List<ServiceInstanceDescription> _instanceDescriptions =new ArrayList<>();
+    List<ServiceInstanceDescription> instanceDescriptions =new ArrayList<>();
 
     @JsonSetter("services")
     public void setServiceInstanceList(List<ServiceInstanceDescription> list){
-        _instanceDescriptions.clear();
-        _instanceDescriptions.addAll(list);
+        instanceDescriptions.clear();
+        instanceDescriptions.addAll(list);
     }
 
     @JsonGetter("services")
     public List<ServiceInstanceDescription> setServiceInstanceList(){
-        return Collections.unmodifiableList(_instanceDescriptions);
+        return Collections.unmodifiableList(instanceDescriptions);
     }
 
     @JsonGetter("name")
     public String getName() {
-        return _name;
+        return name;
     }
 
     @JsonSetter("name")
     public void setName(String name) {
-        _name = name;
+        this.name = name;
     }
 
 
     public void addServiceInstance(ServiceInstanceDescription serviceDescr){
-        _instanceDescriptions.add(serviceDescr);
+        instanceDescriptions.add(serviceDescr);
     }
 
 }

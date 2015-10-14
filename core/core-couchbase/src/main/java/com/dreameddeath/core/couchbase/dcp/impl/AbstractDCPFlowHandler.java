@@ -36,38 +36,38 @@ import java.util.regex.Pattern;
  * Created by Christophe Jeunesse on 29/05/2015.
  */
 public abstract class AbstractDCPFlowHandler {
-    private final Handler _handler;
-    private final MappingMode _mappingMode;
-    private Map<Pattern,ITranscoder<?>> _keyPatternsMap = new ConcurrentHashMap<>();
-    private ITranscoder<?> _genericTranscoder=null;
-    private IDocumentInfoMapper _documentInfoMapper=null;
+    private final Handler handler;
+    private final MappingMode mappingMode;
+    private Map<Pattern,ITranscoder<?>> keyPatternsMap = new ConcurrentHashMap<>();
+    private ITranscoder<?> genericTranscoder=null;
+    private IDocumentInfoMapper documentInfoMapper=null;
 
     public AbstractDCPFlowHandler(ITranscoder transcoder){
-        _mappingMode = MappingMode.GENERIC_TRANSCODER;
-        _genericTranscoder = transcoder;
-        _handler = new Handler();
+        mappingMode = MappingMode.GENERIC_TRANSCODER;
+        genericTranscoder = transcoder;
+        handler = new Handler();
     }
 
     public AbstractDCPFlowHandler(IDocumentInfoMapper mapper){
-        _mappingMode = MappingMode.DOCUMENT_MAPPER;
-        _documentInfoMapper = mapper;
-        _handler = new Handler();
+        mappingMode = MappingMode.DOCUMENT_MAPPER;
+        documentInfoMapper = mapper;
+        handler = new Handler();
     }
 
-    public AbstractDCPFlowHandler(Map<String,ITranscoder> _keyPatternMap){
-        _mappingMode = MappingMode.KEY_PATTERN;
-        if(_keyPatternMap!=null) {
-            addKeyPatternsMap(_keyPatternMap);
+    public AbstractDCPFlowHandler(Map<String,ITranscoder> keyPatternMap){
+        mappingMode = MappingMode.KEY_PATTERN;
+        if(keyPatternMap!=null) {
+            addKeyPatternsMap(keyPatternMap);
         }
-        _handler = new Handler();
+        handler = new Handler();
     }
 
     /*public AbstractDCPFlowHandler(){
         this((Map<String,ITranscoder>) null);
     }*/
 
-    public void addKeyPatternsMap(Map<String,ITranscoder> _keyPatternMap){
-        for(Map.Entry<String,ITranscoder> entry:_keyPatternMap.entrySet()){
+    public void addKeyPatternsMap(Map<String,ITranscoder> keyPatternMap){
+        for(Map.Entry<String,ITranscoder> entry:keyPatternMap.entrySet()){
             this.addKeyPatternEntry(entry.getKey(),entry.getValue());
         }
     }
@@ -77,38 +77,38 @@ public abstract class AbstractDCPFlowHandler {
     }
 
     public void addKeyPatternEntry(Pattern pattern, ITranscoder transcoder){
-        if(_mappingMode==MappingMode.KEY_PATTERN){
-            _keyPatternsMap.putIfAbsent(pattern,transcoder);
+        if(mappingMode==MappingMode.KEY_PATTERN){
+            keyPatternsMap.putIfAbsent(pattern,transcoder);
         }
         else{
-            throw new IllegalArgumentException("Cannot add a pattern based mapping while being in mode "+_mappingMode.toString());
+            throw new IllegalArgumentException("Cannot add a pattern based mapping while being in mode "+mappingMode.toString());
         }
     }
 
 
     public EventHandler<DCPEvent> getEventHandler(){
-        return _handler;
+        return handler;
     }
 
     public ExceptionHandler getExceptionHandler(){
-        return _handler;
+        return handler;
     }
 
     public ITranscoder findTranscoder(MutationMessage message){
-        if(_mappingMode==MappingMode.KEY_PATTERN){
-            for(Pattern pattern:_keyPatternsMap.keySet()){
+        if(mappingMode==MappingMode.KEY_PATTERN){
+            for(Pattern pattern:keyPatternsMap.keySet()){
                 if(pattern.matcher(message.key()).matches()){
-                    return _keyPatternsMap.get(pattern);
+                    return keyPatternsMap.get(pattern);
                 }
             }
             return null;
         }
-        else if(_mappingMode==MappingMode.GENERIC_TRANSCODER){
-            return _genericTranscoder;
+        else if(mappingMode==MappingMode.GENERIC_TRANSCODER){
+            return genericTranscoder;
         }
-        else if(_mappingMode==MappingMode.DOCUMENT_MAPPER){
+        else if(mappingMode==MappingMode.DOCUMENT_MAPPER){
             try {
-                return _documentInfoMapper.getMappingFromKey(message.key()).classMappingInfo().getAttachedObject(ITranscoder.class);
+                return documentInfoMapper.getMappingFromKey(message.key()).classMappingInfo().getAttachedObject(ITranscoder.class);
             }
             catch(MappingNotFoundException e){
                 return null;
@@ -126,20 +126,20 @@ public abstract class AbstractDCPFlowHandler {
 
 
     public static class LastSnapshotReceived{
-        private final long _startSequenceNumber;
-        private final long _endSequenceNumber;
+        private final long startSequenceNumber;
+        private final long endSequenceNumber;
 
         public LastSnapshotReceived(long startSequenceNumber,long endSequenceNumber){
-            _startSequenceNumber = startSequenceNumber;
-            _endSequenceNumber = endSequenceNumber;
+            this.startSequenceNumber = startSequenceNumber;
+            this.endSequenceNumber = endSequenceNumber;
         }
 
         public long getStartSequenceNumber() {
-            return _startSequenceNumber;
+            return startSequenceNumber;
         }
 
         public long getEndSequenceNumber() {
-            return _endSequenceNumber;
+            return endSequenceNumber;
         }
     }
 

@@ -36,8 +36,8 @@ import java.util.*;
  */
 public class ServiceClientFactory {
     private static final Set<String> VARIABLE_TO_IGNORE = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("scheme","port","address")));
-    private final ServiceDiscoverer _serviceDiscoverer;
-    private final ThreadLocal<Map<String,WebTarget>> _clientPerUri = new ThreadLocal<Map<String,WebTarget>>() {
+    private final ServiceDiscoverer serviceDiscoverer;
+    private final ThreadLocal<Map<String,WebTarget>> clientPerUri = new ThreadLocal<Map<String,WebTarget>>() {
         protected Map<String,WebTarget> initialValue() {
             return new HashMap<>();
         }
@@ -54,13 +54,13 @@ public class ServiceClientFactory {
     }
 
     public ServiceClientFactory(ServiceDiscoverer serviceDiscoverer){
-        _serviceDiscoverer = serviceDiscoverer;
+        this.serviceDiscoverer = serviceDiscoverer;
     }
 
     public WebTarget getClient(String serviceName,String serviceVersion){
         try{
-            String uri = buildUri(_serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion)));
-            return _clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
+            String uri = buildUri(serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion)));
+            return clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
         }
         catch(ServiceDiscoveryException e){
             throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
@@ -71,8 +71,8 @@ public class ServiceClientFactory {
 
     public WebTarget getClient(String serviceName,String serviceVersion,String uid){
         try{
-            String uri = buildUri(_serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion),uid));
-            return _clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
+            String uri = buildUri(serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion),uid));
+            return clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
         }
         catch(ServiceDiscoveryException e){
             throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);

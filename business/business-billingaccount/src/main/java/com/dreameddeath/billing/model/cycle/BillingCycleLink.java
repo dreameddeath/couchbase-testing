@@ -25,25 +25,25 @@ import org.joda.time.DateTime;
 
 public class BillingCycleLink extends BusinessDocumentLink<BillingCycle> {
     @DocumentProperty("startDate")
-    private Property<DateTime> _startDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
+    private Property<DateTime> startDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
         @Override
         protected  DateTime getRealValue(BillingCycle cycle){
             return cycle.getStartDate();
         }
     };
     @DocumentProperty("endDate")
-    private Property<DateTime> _endDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
+    private Property<DateTime> endDate=new SynchronizedLinkProperty<DateTime,BillingCycle>(BillingCycleLink.this){
         @Override
         protected  DateTime getRealValue(BillingCycle cycle){
             return cycle.getEndDate();
         }
     };
     
-    public DateTime getStartDate() { return _startDate.get(); }
-    public void setStartDate(DateTime startDate) { _startDate.set(startDate); }
+    public DateTime getStartDate() { return startDate.get(); }
+    public void setStartDate(DateTime startDate) { this.startDate.set(startDate); }
     
-    public DateTime getEndDate() { return _endDate.get(); }
-    public void setEndDate(DateTime endDate) { _endDate.set(endDate); }
+    public DateTime getEndDate() { return endDate.get(); }
+    public void setEndDate(DateTime endDate) { this.endDate.set(endDate); }
     
     public BillingCycleLink(){}
     public BillingCycleLink(BillingCycle billCycle){ super(billCycle);}
@@ -54,7 +54,7 @@ public class BillingCycleLink extends BusinessDocumentLink<BillingCycle> {
     }
     
     public boolean isValidForDate(DateTime refDate){
-        return BillingCycle.isValidForDate(refDate,_startDate.get(),_endDate.get());
+        return BillingCycle.isValidForDate(refDate,startDate.get(),endDate.get());
     }
     
     

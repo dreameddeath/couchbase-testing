@@ -23,28 +23,28 @@ import com.dreameddeath.core.process.model.AbstractTask;
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class TaskExecutionException extends Exception {
-    AbstractTask.State _state;
-    AbstractTask _task;
+    AbstractTask.State state;
+    AbstractTask task;
 
     public TaskExecutionException(AbstractTask task, AbstractTask.State state, String message) {
         super(message);
-        _task = task;
-        _state = state;
+        this.task = task;
+        this.state = state;
     }
 
     public TaskExecutionException(AbstractTask task, AbstractTask.State state, String message, Throwable e) {
         super(message, e);
-        _task = task;
-        _state = state;
+        this.task = task;
+        this.state = state;
     }
 
     public TaskExecutionException(AbstractTask task, AbstractTask.State state, Throwable e) {
         super(e);
-        _task = task;
-        _state = state;
+        this.task = task;
+        this.state = state;
     }
 
-    public AbstractTask getTask(){ return _task;}
-    public AbstractTask.State getState(){ return _state;}
+    public AbstractTask getTask(){ return task;}
+    public AbstractTask.State getState(){ return state;}
 
 }

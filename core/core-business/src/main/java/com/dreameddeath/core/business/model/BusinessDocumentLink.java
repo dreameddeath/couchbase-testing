@@ -30,10 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BusinessDocumentLink<T extends com.dreameddeath.core.model.document.CouchbaseDocument> extends CouchbaseDocumentElement {
-    private List<SynchronizedLinkProperty> _childLinks=new ArrayList<SynchronizedLinkProperty>();
-    private Property<T>            _docObject=new ImmutableProperty<T>(null);
+    private List<SynchronizedLinkProperty> childLinks=new ArrayList<SynchronizedLinkProperty>();
+    private Property<T>            docObject=new ImmutableProperty<T>(null);
     @DocumentProperty("key") @NotNull
-    private Property<String> _key=new SynchronizedLinkProperty<String,T>(BusinessDocumentLink.this){
+    private Property<String> key=new SynchronizedLinkProperty<String,T>(BusinessDocumentLink.this){
         @Override
         protected  String getRealValue(T doc){
             return doc.getBaseMeta().getKey();
@@ -42,15 +42,15 @@ public abstract class BusinessDocumentLink<T extends com.dreameddeath.core.model
 
 
     public void addChildSynchronizedProperty(SynchronizedLinkProperty prop){
-        _childLinks.add(prop);
+        childLinks.add(prop);
     }
 
-    public final String getKey(){ return _key.get();}
-    public final void setKey(String key){ _key.set(key); }
+    public final String getKey(){ return key.get();}
+    public final void setKey(String key){ this.key.set(key); }
     
 
     public T getLinkedObjectFromCache(){
-        return _docObject.get();
+        return docObject.get();
     }
 
     public T getLinkedObject(ICouchbaseSession session)throws DaoException,StorageException{
@@ -61,7 +61,7 @@ public abstract class BusinessDocumentLink<T extends com.dreameddeath.core.model
     }
 
     public void setLinkedObject(T docObj){
-        _docObject.set(docObj);
+        docObject.set(docObj);
         if(docObj instanceof BusinessDocument) {
             ((BusinessDocument)docObj).getMeta().addReverseLink(this);
         }
@@ -78,7 +78,7 @@ public abstract class BusinessDocumentLink<T extends com.dreameddeath.core.model
     
     public BusinessDocumentLink(BusinessDocumentLink<T> srcLink){
         setKey(srcLink.getKey());
-        setLinkedObject(srcLink._docObject.get());
+        setLinkedObject(srcLink.docObject.get());
     }
     
     
@@ -92,10 +92,10 @@ public abstract class BusinessDocumentLink<T extends com.dreameddeath.core.model
         }
         else if(target instanceof BusinessDocumentLink){
             BusinessDocumentLink targetLnk=(BusinessDocumentLink) target;
-            if((_key!=null) && _key.equals(targetLnk._key)){
+            if((key!=null) && key.equals(targetLnk.key)){
                 return true;
             }
-            else if((_docObject!=null)&& _docObject.equals(targetLnk._docObject)){
+            else if((docObject!=null)&& docObject.equals(targetLnk.docObject)){
                 return true;
             }
         }
@@ -109,7 +109,7 @@ public abstract class BusinessDocumentLink<T extends com.dreameddeath.core.model
     }
 
     public void syncFields(){
-        for(SynchronizedLinkProperty prop:_childLinks){
+        for(SynchronizedLinkProperty prop:childLinks){
             prop.sync();
         }
     }

@@ -46,7 +46,7 @@ public class CuratorFrameworkFactory{
     //private static final int DEFAULT_SESSION_TIMEOUT_MS = Integer.getInteger("curator-default-session-timeout", '\uea60').intValue();
     //private static final int DEFAULT_CONNECTION_TIMEOUT_MS = Integer.getInteger("curator-default-connection-timeout", 15000).intValue();
 
-    private static final ConcurrentMap<String,CuratorFramework> _curatorFrameworkConcurrentMap = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String,CuratorFramework> curatorFrameworkConcurrentMap = new ConcurrentHashMap<>();
 
 
     public static Builder builder() {
@@ -121,16 +121,16 @@ public class CuratorFrameworkFactory{
 
     public static class Builder{
 
-        private final org.apache.curator.framework.CuratorFrameworkFactory.Builder _effectiveBuilder= org.apache.curator.framework.CuratorFrameworkFactory.builder();
-        private final String _nameSpacePrefix;
-        private String _connectionString=null;
+        private final org.apache.curator.framework.CuratorFrameworkFactory.Builder effectiveBuilder= org.apache.curator.framework.CuratorFrameworkFactory.builder();
+        private final String nameSpacePrefix;
+        private String connectionString=null;
 
         private void addClosureListener(CuratorFramework framework){
             framework.getCuratorListenable().addListener(new CuratorListener() {
                 @Override
                 public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
                     if(event.getType().equals(CuratorEventType.CLOSING)){
-                        Iterator<Map.Entry<String,CuratorFramework>> iterator =_curatorFrameworkConcurrentMap.entrySet().iterator();
+                        Iterator<Map.Entry<String,CuratorFramework>> iterator =curatorFrameworkConcurrentMap.entrySet().iterator();
                         while(iterator.hasNext()){
                             Map.Entry<String,CuratorFramework> nextEntry = iterator.next();
                             if(nextEntry.getValue().equals(client)){
@@ -143,17 +143,17 @@ public class CuratorFrameworkFactory{
         }
 
         public CuratorFramework build() throws DuplicateClusterClientException,BadConnectionStringException{
-            if(_connectionString==null){
-                throw new BadConnectionStringException(_connectionString);
+            if(connectionString==null){
+                throw new BadConnectionStringException(connectionString);
             }
             List<String> servers = new ArrayList();
             CuratorFramework oldFramework=null;
-            synchronized (_curatorFrameworkConcurrentMap) {
-                for (String server : _connectionString.split(CONNECTION_STRING_SEPARATOR)) {
+            synchronized (curatorFrameworkConcurrentMap) {
+                for (String server : connectionString.split(CONNECTION_STRING_SEPARATOR)) {
                     server = server.trim().toLowerCase();
                     servers.add(server);
-                    if (_curatorFrameworkConcurrentMap.containsKey(server)) {
-                        CuratorFramework foundFramework = _curatorFrameworkConcurrentMap.get(server);
+                    if (curatorFrameworkConcurrentMap.containsKey(server)) {
+                        CuratorFramework foundFramework = curatorFrameworkConcurrentMap.get(server);
                         if((oldFramework!=null) && (oldFramework!=foundFramework)){
                             ///TODO throw an error
                         }
@@ -161,9 +161,9 @@ public class CuratorFrameworkFactory{
                     }
                 }
                 if(oldFramework==null){
-                    CuratorFramework newCuratorFramework =_effectiveBuilder.build();
+                    CuratorFramework newCuratorFramework =effectiveBuilder.build();
                     for(String server:servers){
-                        _curatorFrameworkConcurrentMap.putIfAbsent(server,newCuratorFramework);
+                        curatorFrameworkConcurrentMap.putIfAbsent(server,newCuratorFramework);
                     }
                     addClosureListener(newCuratorFramework);
                     return newCuratorFramework;
@@ -175,11 +175,11 @@ public class CuratorFrameworkFactory{
             }
         }
 
-        public CuratorTempFramework buildTemp(){return _effectiveBuilder.buildTemp();}
-        public CuratorTempFramework buildTemp(long inactiveThreshold, TimeUnit unit) { return _effectiveBuilder.buildTemp(inactiveThreshold,unit);}
+        public CuratorTempFramework buildTemp(){return effectiveBuilder.buildTemp();}
+        public CuratorTempFramework buildTemp(long inactiveThreshold, TimeUnit unit) { return effectiveBuilder.buildTemp(inactiveThreshold,unit);}
 
         public Builder authorization(String scheme, byte[] auth) {
-            _effectiveBuilder.authorization(scheme, auth);
+            effectiveBuilder.authorization(scheme, auth);
             return this;
         }
 
@@ -190,80 +190,83 @@ public class CuratorFrameworkFactory{
             else if(!CONNECTION_STRING_PATTERN.matcher(connectString).matches()){
                 throw new BadConnectionStringException(connectString);
             }
-            _connectionString = connectString;
-            _effectiveBuilder.connectString(connectString);
+            connectionString = connectString;
+            effectiveBuilder.connectString(connectString);
             return this;
         }
 
         public Builder ensembleProvider(EnsembleProvider ensembleProvider) {
-            _effectiveBuilder.ensembleProvider(ensembleProvider);
+            effectiveBuilder.ensembleProvider(ensembleProvider);
             return this;
         }
 
         public Builder defaultData(byte[] defaultData) {
-            _effectiveBuilder.defaultData(defaultData);
+            effectiveBuilder.defaultData(defaultData);
             return this;
         }
 
         public Builder namespace(String namespace) {
-            if(_nameSpacePrefix!=null){
-                namespace = _nameSpacePrefix+"/"+namespace;
+            if(nameSpacePrefix!=null){
+                namespace = nameSpacePrefix+"/"+namespace;
             }
-            _effectiveBuilder.namespace(namespace);
+            effectiveBuilder.namespace(namespace);
             return this;
         }
 
         public Builder sessionTimeoutMs(int sessionTimeoutMs) {
-            _effectiveBuilder.sessionTimeoutMs(sessionTimeoutMs);
+            effectiveBuilder.sessionTimeoutMs(sessionTimeoutMs);
             return this;
         }
 
         public Builder connectionTimeoutMs(int connectionTimeoutMs) {
-            _effectiveBuilder.connectionTimeoutMs(connectionTimeoutMs);
+            effectiveBuilder.connectionTimeoutMs(connectionTimeoutMs);
             return this;
         }
 
         public Builder maxCloseWaitMs(int maxCloseWaitMs) {
-            _effectiveBuilder.maxCloseWaitMs(maxCloseWaitMs);
+            effectiveBuilder.maxCloseWaitMs(maxCloseWaitMs);
             return this;
         }
 
         public Builder retryPolicy(RetryPolicy retryPolicy) {
-            _effectiveBuilder.retryPolicy(retryPolicy);
+            effectiveBuilder.retryPolicy(retryPolicy);
             return this;
         }
 
         public Builder threadFactory(ThreadFactory threadFactory) {
-            _effectiveBuilder.threadFactory(threadFactory);
+            effectiveBuilder.threadFactory(threadFactory);
             return this;
         }
 
         public Builder compressionProvider(CompressionProvider compressionProvider) {
-            _effectiveBuilder.compressionProvider(compressionProvider);
+            effectiveBuilder.compressionProvider(compressionProvider);
             return this;
         }
 
         public Builder zookeeperFactory(ZookeeperFactory zookeeperFactory) {
-            _effectiveBuilder.zookeeperFactory(zookeeperFactory);
+            effectiveBuilder.zookeeperFactory(zookeeperFactory);
             return this;
         }
 
         public Builder aclProvider(ACLProvider aclProvider) {
-            _effectiveBuilder.aclProvider(aclProvider);
+            effectiveBuilder.aclProvider(aclProvider);
             return this;
         }
 
         public Builder canBeReadOnly(boolean canBeReadOnly) {
-            _effectiveBuilder.canBeReadOnly(canBeReadOnly);
+            effectiveBuilder.canBeReadOnly(canBeReadOnly);
             return this;
         }
 
-        protected Builder(){_nameSpacePrefix="";}
+        protected Builder(){
+            nameSpacePrefix="";
+        }
+
         protected Builder(String nameSpacePrefix){
             nameSpacePrefix = normalizeNameSpacePrefix(nameSpacePrefix);
             //by default set to the user namespace
             namespace(nameSpacePrefix);
-            _nameSpacePrefix = nameSpacePrefix;
+            this.nameSpacePrefix = nameSpacePrefix;
         }
     }
 }

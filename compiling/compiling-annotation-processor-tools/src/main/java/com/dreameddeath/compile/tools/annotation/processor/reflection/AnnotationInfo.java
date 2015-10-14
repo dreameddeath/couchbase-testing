@@ -17,13 +17,11 @@
 package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 import javax.lang.model.element.TypeElement;
-import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 24/04/2015.
  */
 public class AnnotationInfo extends InterfaceInfo {
-    private List<FieldInfo> _declaredFields = null;
 
     public AnnotationInfo(Class elt) {
         super(elt);

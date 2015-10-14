@@ -45,11 +45,11 @@ public class TestDaoUid extends BusinessDocument {
      *  testList : List of strings
      */
     @DocumentProperty("testList")
-    private ListProperty<String> _testList = new ArrayListProperty<String>(TestDaoUid.this);
+    private ListProperty<String> testList = new ArrayListProperty<String>(TestDaoUid.this);
 
     // TestList Accessors
-    public List<String> getTestList() { return _testList.get(); }
-    public void setTestList(Collection<String> vals) { _testList.set(vals); }
-    public boolean addTestList(String val){ return _testList.add(val); }
-    public boolean removeTestList(String val){ return _testList.remove(val); }
+    public List<String> getTestList() { return testList.get(); }
+    public void setTestList(Collection<String> vals) { testList.set(vals); }
+    public boolean addTestList(String val){ return testList.add(val); }
+    public boolean removeTestList(String val){ return testList.remove(val); }
 }

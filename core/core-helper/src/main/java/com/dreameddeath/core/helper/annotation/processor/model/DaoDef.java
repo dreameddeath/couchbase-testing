@@ -33,52 +33,52 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class DaoDef {
-    private AbstractClassInfo _baseDaoClassInfo;
-    private String _simpleName;
-    private String _packageName;
-    private Type _type;
-    private UidType _uidType;
-    private boolean _isUidPureField;
-    private String _uidSetterPattern;
-    private String _uidGetterPattern;
-    private boolean _generateRestLayer;
+    private AbstractClassInfo baseDaoClassInfo;
+    private String simpleName;
+    private String packageName;
+    private Type type;
+    private UidType uidType;
+    private boolean isUidPureField;
+    private String uidSetterPattern;
+    private String uidGetterPattern;
+    private boolean generateRestLayer;
 
     public DaoDef(CouchbaseDocumentReflection docReflection) {
 
-        _simpleName = docReflection.getSimpleName().replaceAll("\\$", "") + "Dao";
-        _packageName = docReflection.getClassInfo().getPackageInfo().getName().replaceAll("\\bmodel\\b", "dao");
+        simpleName = docReflection.getSimpleName().replaceAll("\\$", "") + "Dao";
+        packageName = docReflection.getClassInfo().getPackageInfo().getName().replaceAll("\\bmodel\\b", "dao");
         DaoEntity daoEntityAnnot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
-        _baseDaoClassInfo = AbstractClassInfo.getClassInfoFromAnnot(daoEntityAnnot, DaoEntity::baseDao);
-        _generateRestLayer = daoEntityAnnot.rest();
+        baseDaoClassInfo = AbstractClassInfo.getClassInfoFromAnnot(daoEntityAnnot, DaoEntity::baseDao);
+        generateRestLayer = daoEntityAnnot.rest();
 
-        if (_baseDaoClassInfo.isInstanceOf(CouchbaseDocumentWithKeyPatternDao.class)) {
-            if (_baseDaoClassInfo.isInstanceOf(BusinessCouchbaseDocumentDaoWithUID.class)) {
-                _type = Type.WITH_UID;
+        if (baseDaoClassInfo.isInstanceOf(CouchbaseDocumentWithKeyPatternDao.class)) {
+            if (baseDaoClassInfo.isInstanceOf(BusinessCouchbaseDocumentDaoWithUID.class)) {
+                type = Type.WITH_UID;
                 UidDef uidDef = docReflection.getClassInfo().getAnnotation(UidDef.class);
                 if (uidDef != null) {
                     String[] fieldNameParts = uidDef.fieldName().split("\\.");
-                    _uidGetterPattern = "";
-                    _uidSetterPattern = "";
+                    uidGetterPattern = "";
+                    uidSetterPattern = "";
                     CouchbaseDocumentStructureReflection currStructure = docReflection.getStructure();
                     for (int partPos = 0; partPos < fieldNameParts.length; ++partPos) {
                         CouchbaseDocumentFieldReflection field = currStructure.getFieldByPropertyName(fieldNameParts[partPos]);
                         //Last element
                         if (partPos + 1 == fieldNameParts.length) {
-                            _isUidPureField = field.getSetter() instanceof FieldInfo;
-                            _uidSetterPattern += _uidGetterPattern + "." + field.getSetterName();
+                            isUidPureField = field.getSetter() instanceof FieldInfo;
+                            uidSetterPattern += uidGetterPattern + "." + field.getSetterName();
 
                             if (UUID.class.isAssignableFrom(field.getEffectiveTypeClass())) {
-                                _uidType = UidType.UUID;
+                                uidType = UidType.UUID;
                             } else if (Long.class.isAssignableFrom(field.getEffectiveTypeClass())) {
-                                _uidType = UidType.LONG;
+                                uidType = UidType.LONG;
                             } else if (String.class.isAssignableFrom(field.getEffectiveTypeClass())) {
-                                _uidType = UidType.STRING;
+                                uidType = UidType.STRING;
                             } else {
                                 //TODO throw an error
                             }
 
                         }
-                        _uidGetterPattern += "." + field.buildGetterCode();
+                        uidGetterPattern += "." + field.buildGetterCode();
                         if (partPos + 1 < fieldNameParts.length) {
                             currStructure = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) field.getEffectiveTypeInfo().getMainType());
                         }
@@ -87,60 +87,60 @@ public class DaoDef {
                     //TODO throw error
                 }
             } else {
-                _type = Type.WITH_PATTERN;
+                type = Type.WITH_PATTERN;
             }
         } else {
-            _type = Type.BASE;
+            type = Type.BASE;
         }
 
     }
 
     public String getSimpleName() {
-        return _simpleName;
+        return simpleName;
     }
 
     public String getPackageName() {
-        return _packageName;
+        return packageName;
     }
 
     public String getName() {
-        return _packageName + "." + _simpleName;
+        return packageName + "." + simpleName;
     }
 
     public String getFilename() {
-        return _packageName.replaceAll("\\.", "/") + "/" + _simpleName + ".java";
+        return packageName.replaceAll("\\.", "/") + "/" + simpleName + ".java";
     }
 
     public String getBaseSimpleName() {
-        return _baseDaoClassInfo.getSimpleName();
+        return baseDaoClassInfo.getSimpleName();
     }
 
     public String getBaseName() {
-        return _baseDaoClassInfo.getName();
+        return baseDaoClassInfo.getName();
     }
 
     public String getBaseImportName() {
-        return _baseDaoClassInfo.getImportName();
+        return baseDaoClassInfo.getImportName();
     }
 
     public Type getType() {
-        return _type;
+        return type;
     }
 
     public boolean isUidTypeLong() {
-        return UidType.LONG.equals(_type);
+        return UidType.LONG.equals(type);
     }
 
     public UidType getUidType() {
-        return _uidType;
+        return uidType;
     }
 
     public String getUidSetterPattern() {
-        return _uidSetterPattern;
+        return uidSetterPattern;
     }
 
     public String buildUidSetter(String data) {
-        if (_isUidPureField) return getUidSetterPattern() + "=" + data;
+        if (isUidPureField) return getUidSetterPattern() + "=" + data;
         else return getUidSetterPattern() + "(" + data + ")";
     }
 
@@ -150,25 +150,25 @@ public class DaoDef {
         WITH_PATTERN(true, false),
         WITH_UID(true, true);
 
-        private boolean _hasPattern;
-        private boolean _hasUid;
+        private boolean hasPattern;
+        private boolean hasUid;
 
         Type(boolean pattern, boolean uid) {
-            _hasPattern = pattern;
-            _hasUid = uid;
+            hasPattern = pattern;
+            hasUid = uid;
         }
 
         public boolean hasPattern() {
-            return _hasPattern;
+            return hasPattern;
         }
 
         public boolean hasUid() {
-            return _hasUid;
+            return hasUid;
         }
     }
 
     public boolean needGenerateRestLayer() {
-        return _generateRestLayer;
+        return generateRestLayer;
     }
 
     public enum UidType {

@@ -30,19 +30,19 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 public class CouchbaseArchiveDao<T extends CouchbaseDocument> extends CouchbaseDocumentDao<T> {
     public static String BASE_PATTERN_FMT ="arch/%s";
     public static String BASE_PATTERN ="arch/";
-    private CouchbaseDocumentDao<T> _refDao;
+    private CouchbaseDocumentDao<T> refDao;
 
-    public void setRefDao(CouchbaseDocumentDao<T> refDao){_refDao = refDao;}
-    public CouchbaseDocumentDao<T> getRefDao(){return _refDao;}
+    public void setRefDao(CouchbaseDocumentDao<T> refDao){this.refDao = refDao;}
+    public CouchbaseDocumentDao<T> getRefDao(){return refDao;}
 
     @Override
     public ICouchbaseTranscoder<T> getTranscoder(){
-        return _refDao.getTranscoder();
+        return refDao.getTranscoder();
     }
 
     @Override
     public Class<? extends BucketDocument<T>> getBucketDocumentClass() {
-        return _refDao.getBucketDocumentClass();
+        return refDao.getBucketDocumentClass();
     }
 
     @Override

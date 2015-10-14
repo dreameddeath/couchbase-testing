@@ -29,7 +29,7 @@ import java.util.concurrent.*;
 
 public class CuratorFrameworkFactoryTest extends Assert{
     private static int TIMEOUT_DURATION =5;
-    TestingCluster _testingCluster=null;
+    TestingCluster testingCluster=null;
 
     @Before
     public void prepare() throws Exception{
@@ -48,13 +48,13 @@ public class CuratorFrameworkFactoryTest extends Assert{
                 }
             }
         });
-        _testingCluster = future.get(1,TimeUnit.MINUTES);
+        testingCluster = future.get(1,TimeUnit.MINUTES);
         executor.shutdownNow();
     }
 
     @Test
     public void testStandardInit() throws Exception{
-        String connectionString = _testingCluster.getConnectString();
+        String connectionString = testingCluster.getConnectString();
         CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, new ExponentialBackoffRetry(1000, 3));
         client.start();
         client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
@@ -63,13 +63,13 @@ public class CuratorFrameworkFactoryTest extends Assert{
 
     @Test
     public void testDuplicate() throws Exception{
-        String connectionString = _testingCluster.getConnectString();
+        String connectionString = testingCluster.getConnectString();
         CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, new ExponentialBackoffRetry(1000, 3));
         client.start();
         client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
         String[] servers = connectionString.split(CuratorFrameworkFactory.CONNECTION_STRING_SEPARATOR);
         try{
-            CuratorFramework newClient = CuratorFrameworkFactory.newClientInstance(servers[2] + "," + servers[1], new ExponentialBackoffRetry(1000, 3));
+            CuratorFrameworkFactory.newClientInstance(servers[2] + "," + servers[1], new ExponentialBackoffRetry(1000, 3));
             fail("The duplicate exception hasn't been raised");
         }
         catch(DuplicateClusterClientException e){
@@ -81,13 +81,13 @@ public class CuratorFrameworkFactoryTest extends Assert{
 
     @Test
     public void testNameSpace() throws Exception{
-        String connectionString = _testingCluster.getConnectString();
+        String connectionString = testingCluster.getConnectString();
         CuratorFramework client = CuratorFrameworkFactory.newClient("prefix",connectionString, new ExponentialBackoffRetry(1000, 3));
         client.start();
         client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
 
         final String refValue="a testing String";
-        String result = client.create().forPath("/subPath",refValue.getBytes("UTF-8"));
+        client.create().forPath("/subPath",refValue.getBytes("UTF-8"));
 
         CuratorFramework rawClient = org.apache.curator.framework.CuratorFrameworkFactory.builder().connectString(connectionString).retryPolicy(new ExponentialBackoffRetry(1000,3)).build();
         rawClient.start();
@@ -104,7 +104,7 @@ public class CuratorFrameworkFactoryTest extends Assert{
             @Override
             public Boolean call() {
                 try {
-                    _testingCluster.close();
+                    testingCluster.close();
                     return true;
                 }
                 catch(Exception e){

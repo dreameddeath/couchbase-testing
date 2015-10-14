@@ -29,21 +29,21 @@ import java.util.List;
  * Created by Christophe Jeunesse on 01/09/2014.
  */
 public class PropertyValidator<T> implements Validator<Property<T>>{
-    private Member _field;
-    private List<Validator<Object>> _validationRules = new ArrayList<Validator<Object>>();
+    private Member field;
+    private List<Validator<Object>> validationRules = new ArrayList<Validator<Object>>();
 
     public PropertyValidator(Member field){
-        _field = field;
+        this.field = field;
     }
     public void addRule(Validator<Object> validator){
-        _validationRules.add(validator);
+        validationRules.add(validator);
     }
 
 
     public void validate(Property<T> elt,BaseCouchbaseDocumentElement parent)throws ValidationException{
         T obj=elt.get();
         List<ValidationException> eltErrors=null;
-        for(Validator<Object> validator:_validationRules){
+        for(Validator<Object> validator:validationRules){
             try {
                 validator.validate(obj, parent);
             }
@@ -55,7 +55,7 @@ public class PropertyValidator<T> implements Validator<Property<T>>{
             }
         }
         if(eltErrors!=null) {
-            throw new ValidationException(parent,(AccessibleObject)_field,"Errors in Property",eltErrors);
+            throw new ValidationException(parent,(AccessibleObject)field,"Errors in Property",eltErrors);
         }
     }
 }

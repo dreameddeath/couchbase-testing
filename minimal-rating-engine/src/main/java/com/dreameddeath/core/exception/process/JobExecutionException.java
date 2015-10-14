@@ -22,28 +22,28 @@ import com.dreameddeath.core.process.common.AbstractJob;
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class JobExecutionException extends Exception {
-    AbstractJob.State _state;
-    AbstractJob _job;
+    private AbstractJob.State state;
+    private AbstractJob job;
 
     public JobExecutionException(AbstractJob job, AbstractJob.State state, String message) {
         super(message);
-        _job = job;
-        _state = state;
+        this.job = job;
+        this.state = state;
     }
 
     public JobExecutionException(AbstractJob job, AbstractJob.State state, String message, Throwable e) {
         super(message, e);
-        _job = job;
-        _state = state;
+        this.job = job;
+        this.state = state;
     }
 
     public JobExecutionException(AbstractJob job, AbstractJob.State state, Throwable e) {
         super(e);
-        _job = job;
-        _state = state;
+        this.job = job;
+        this.state = state;
     }
 
-    public AbstractJob getJob(){ return _job;}
-    public AbstractJob.State getState(){ return _state;}
+    public AbstractJob getJob(){ return job;}
+    public AbstractJob.State getState(){ return state;}
 
 }

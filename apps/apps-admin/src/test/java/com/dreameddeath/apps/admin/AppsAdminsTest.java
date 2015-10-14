@@ -36,30 +36,30 @@ import java.util.List;
  */
 public class AppsAdminsTest {
     public final static boolean MANUAL_TEST_MODE =false;
-    private List<AbstractDaemon> _daemons=new ArrayList<>();
-    private CuratorTestUtils _testUtils;
+    private List<AbstractDaemon> daemons=new ArrayList<>();
+    private CuratorTestUtils testUtils;
 
     @Before
     public void runServer() throws Exception{
-        _testUtils = new CuratorTestUtils();
-        _testUtils.prepare(1);
-        String connectionString = _testUtils.getCluster().getConnectString();
+        testUtils = new CuratorTestUtils();
+        testUtils.prepare(1);
+        String connectionString = testUtils.getCluster().getConnectString();
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
-        CuratorFramework client = _testUtils.getClient("testingDaemons");
+        CuratorFramework client = testUtils.getClient("testingDaemons");
         AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client).build();
         daemon.addWebServer(WebAppWebServer.builder().withName("apps-admin-tests").withApplicationContextConfig("testadmin.applicationContext.xml").withApiPath("/apis").withForTesting(MANUAL_TEST_MODE));
-        _daemons.add(daemon);
+        daemons.add(daemon);
         daemon.getDaemonLifeCycle().start();
         final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client).build();
         daemon2.addWebServer(RestWebServer.builder().withName("testing-rest").withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
-        _daemons.add(daemon2);
+        daemons.add(daemon2);
         daemon2.getDaemonLifeCycle().start();
     }
 
     @Test @Ignore
     public void runTest(){
         try {
-            System.out.println(">>> STARTING webserver : http://localhost:"+_daemons.get(0).getAdditionalWebServers().get(0).getServerConnector().getLocalPort()+"/webapp/");
+            System.out.println(">>> STARTING webserver : http://localhost:"+daemons.get(0).getAdditionalWebServers().get(0).getServerConnector().getLocalPort()+"/webapp/");
             System.out.println(">>> STARTING EMBEDDED JETTY SERVER, PRESS ANY KEY TO STOP");
             while (System.in.available() == 0) {
                 Thread.sleep(5000);
@@ -73,10 +73,10 @@ public class AppsAdminsTest {
 
     @After
     public void close() throws Exception{
-        for(AbstractDaemon daemon:_daemons){
+        for(AbstractDaemon daemon:daemons){
             daemon.getDaemonLifeCycle().stop();
             daemon.getDaemonLifeCycle().join();
         }
-        _testUtils.stop();
+        testUtils.stop();
     }
 }

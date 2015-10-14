@@ -27,7 +27,7 @@ import java.util.UUID;
 public abstract class AbstractExposableService {
     private String address="";
     private IRestEndPointDescription endPoint;
-    private ServiceRegistrar _serviceRegistrar;
+    private ServiceRegistrar serviceRegistrar;
 
 
     public String getId(){return UUID.randomUUID().toString();}
@@ -46,11 +46,11 @@ public abstract class AbstractExposableService {
         return endPoint;
     }
     public void setServiceRegistrar(ServiceRegistrar serviceRegistrar){
-        _serviceRegistrar = serviceRegistrar;
+        this.serviceRegistrar = serviceRegistrar;
         serviceRegistrar.addService(this);
     }
 
     public ServiceRegistrar getServiceRegistrar() {
-        return _serviceRegistrar;
+        return serviceRegistrar;
     }
 }

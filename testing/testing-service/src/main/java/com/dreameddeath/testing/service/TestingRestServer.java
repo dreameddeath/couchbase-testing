@@ -40,36 +40,36 @@ import java.util.Map;
  */
 public class TestingRestServer {
     private static final String BASE_PATH = "/services";
-    private Server _server;
-    private CuratorFramework _curatorClient;
-    private ServiceDiscoverer _serviceDiscoverer;
-    private ServiceClientFactory _serviceClientFactory;
-    private ServiceRegistrar _serviceRegistrar;
-    private ServerConnector _connector;
-    private Map<String,AbstractExposableService> _servicesMap = new HashMap<>();
+    private Server server;
+    private CuratorFramework curatorClient;
+    private ServiceDiscoverer serviceDiscoverer;
+    private ServiceClientFactory serviceClientFactory;
+    private ServiceRegistrar serviceRegistrar;
+    private ServerConnector connector;
+    private Map<String,AbstractExposableService> servicesMap = new HashMap<>();
 
     public TestingRestServer(String testName,CuratorFramework curatorClient,ObjectMapper jacksonMapper) throws Exception{
-        _curatorClient = curatorClient;
-        _server = new Server();
-        _connector = new ServerConnector(_server);
-        _server.addConnector(_connector);
+        this.curatorClient = curatorClient;
+        server = new Server();
+        connector = new ServerConnector(server);
+        server.addConnector(connector);
         ServletContextHandler contextHandler = new ServletContextHandler();
-        _server.setHandler(contextHandler);
+        server.setHandler(contextHandler);
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
         cxfHolder.setInitOrder(1);
         contextHandler.addServlet(cxfHolder, "/*");
-        _serviceDiscoverer = new ServiceDiscoverer(_curatorClient, BASE_PATH);
-        _serviceRegistrar = new ServiceRegistrar(_curatorClient, BASE_PATH);
-        _server.addLifeCycleListener(new LifeCycleListener(_serviceRegistrar, _serviceDiscoverer));
+        serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
+        serviceRegistrar = new ServiceRegistrar(curatorClient, BASE_PATH);
+        server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar, serviceDiscoverer));
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.test.applicationContext.xml");
         contextHandler.setAttribute("jacksonObjectMapper", jacksonMapper);
-        contextHandler.setAttribute("serviceRegistrar", _serviceRegistrar);
-        contextHandler.setAttribute("serviceDiscoverer", _serviceDiscoverer);
-        contextHandler.setAttribute("curatorClient", _curatorClient);
+        contextHandler.setAttribute("serviceRegistrar", serviceRegistrar);
+        contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
+        contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
             @Override
             public int port() {
-                return _connector.getLocalPort();
+                return connector.getLocalPort();
             }
 
             @Override
@@ -87,10 +87,10 @@ public class TestingRestServer {
             }
         });
 
-        contextHandler.setAttribute("servicesMap",_servicesMap);
+        contextHandler.setAttribute("servicesMap",servicesMap);
         contextHandler.addEventListener(new ContextLoaderListener());
 
-        _serviceClientFactory = new ServiceClientFactory(_serviceDiscoverer);
+        serviceClientFactory = new ServiceClientFactory(serviceDiscoverer);
     }
 
 
@@ -100,22 +100,22 @@ public class TestingRestServer {
     }
 
     public void registerService(String name,AbstractExposableService service){
-        _servicesMap.put(name,service);
+        servicesMap.put(name,service);
     }
 
 
     public ServiceClientFactory getClientFactory(){
-        return _serviceClientFactory;
+        return serviceClientFactory;
     }
 
 
     public void start() throws Exception{
-        _server.start();
+        server.start();
     }
 
     public void stop()throws Exception{
-        if((_server!=null) && !_server.isStopped()) {
-            _server.stop();
+        if((server!=null) && !server.isStopped()) {
+            server.stop();
         }
     }
 }

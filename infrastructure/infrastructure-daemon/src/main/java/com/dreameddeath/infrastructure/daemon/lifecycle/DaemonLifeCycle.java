@@ -27,64 +27,64 @@ import java.util.List;
  * Created by Christophe Jeunesse on 13/08/2015.
  */
 public class DaemonLifeCycle implements IDaemonLifeCycle {
-    private final AbstractDaemon _daemon;
-    private final List<Listener>  _listeners = new ArrayList<>();
-    private Status _status = Status.STOPPED;
-    private DateTime _creationDate;
-    private DateTime _lastStartDate;
-    private DateTime _lastHaltStartDate;
+    private final AbstractDaemon daemon;
+    private final List<Listener>  listeners = new ArrayList<>();
+    private Status status = Status.STOPPED;
+    private DateTime creationDate;
+    private DateTime lastStartDate;
+    private DateTime lastHaltStartDate;
 
 
     public DaemonLifeCycle(AbstractDaemon daemon){
-        _daemon = daemon;
-        _creationDate = new DateTime();
+        this.daemon = daemon;
+        creationDate = new DateTime();
     }
 
     @Override
     synchronized public void start() throws Exception {
-        if(_status== Status.STOPPED||
-                _status== Status.STARTING) {
-            _status = Status.STARTING;
-            for (Listener listener : _listeners) {
+        if(status== Status.STOPPED||
+                status== Status.STARTING) {
+            status = Status.STARTING;
+            for (Listener listener : listeners) {
                 listener.lifeCycleStarting(this);
             }
         }
-        if(_status== Status.STARTING||
-                _status== Status.HALTED) {
-            for (Listener listener : _listeners) {
+        if(status== Status.STARTING||
+                status== Status.HALTED) {
+            for (Listener listener : listeners) {
                 listener.lifeCycleStarted(this);
             }
-            _status = Status.STARTED;
+            status = Status.STARTED;
         }
-        _lastStartDate = new DateTime();
+        lastStartDate = new DateTime();
     }
 
     @Override
     synchronized public void halt() throws Exception {
-        if(_status== Status.STARTED) {
-            for (Listener listener : _listeners) {
+        if(status== Status.STARTED) {
+            for (Listener listener : listeners) {
                 listener.lifeCycleHalt(this);
             }
-            _status = Status.HALTED;
-            _lastHaltStartDate = new DateTime();
+            status = Status.HALTED;
+            lastHaltStartDate = new DateTime();
         }
     }
 
 
     @Override
     synchronized public void stop() throws Exception {
-        if(_status== Status.STARTED) {
-            _status = Status.STOPPING;
-            for (Listener listener : _listeners) {
+        if(status== Status.STARTED) {
+            status = Status.STOPPING;
+            for (Listener listener : listeners) {
                 listener.lifeCycleStopping(this);
             }
         }
-        if(_status== Status.HALTED ||
-                _status == Status.STOPPING){
-            for (Listener listener : _listeners) {
+        if(status== Status.HALTED ||
+                status == Status.STOPPING){
+            for (Listener listener : listeners) {
                 listener.lifeCycleStopped(this);
             }
-            _status = Status.STOPPED;
+            status = Status.STOPPED;
         }
 
         this.notifyAll();
@@ -92,8 +92,8 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void reload() throws Exception {
-        if(_status== Status.STARTED){
-            for (Listener listener : _listeners) {
+        if(status== Status.STARTED){
+            for (Listener listener : listeners) {
                 listener.lifeCycleReload(this);
             }
         }
@@ -101,14 +101,14 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void join() throws Exception{
-        while(!_status.equals(Status.STOPPED)) {
+        while(!status.equals(Status.STOPPED)) {
             this.wait();
         }
     }
 
     @Override
     synchronized public void join(long timeout) throws Exception{
-        while(!_status.equals(Status.STOPPED)) {
+        while(!status.equals(Status.STOPPED)) {
             this.wait(timeout);
         }
     }
@@ -116,32 +116,32 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public boolean isRunning() {
-        return _status== Status.STARTED; //todo distinguish from started
+        return status== Status.STARTED; //todo distinguish from started
     }
 
     @Override
     synchronized public boolean isHalt() {
-        return _status== Status.HALTED;
+        return status== Status.HALTED;
     }
 
     @Override
     synchronized public boolean isStarted() {
-        return _status== Status.STARTED;
+        return status== Status.STARTED;
     }
 
     @Override
     synchronized public boolean isStarting() {
-        return _status== Status.STARTING;
+        return status== Status.STARTING;
     }
 
     @Override
     synchronized public boolean isStopping() {
-        return _status== Status.STOPPING;
+        return status== Status.STOPPING;
     }
 
     @Override
     synchronized public boolean isStopped() {
-        return _status== Status.STOPPED;
+        return status== Status.STOPPED;
     }
 
     @Override
@@ -151,36 +151,36 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void addLifeCycleListener(DaemonLifeCycle.Listener listener) {
-        _listeners.add(listener);
+        listeners.add(listener);
     }
 
     @Override
     synchronized public void removeLifeCycleListener(DaemonLifeCycle.Listener listener) {
-        _listeners.remove(listener);
+        listeners.remove(listener);
     }
 
     @Override
     public AbstractDaemon getDaemon() {
-        return _daemon;
+        return daemon;
     }
 
     @Override
     synchronized public Status getStatus() {
-        return _status;
+        return status;
     }
 
     @Override
     public DateTime getCreationDate() {
-        return _creationDate;
+        return creationDate;
     }
 
     @Override
     public DateTime getLastStartDate() {
-        return _lastStartDate;
+        return lastStartDate;
     }
 
     @Override
     public DateTime getLastHaltStartDate() {
-        return _lastHaltStartDate;
+        return lastHaltStartDate;
     }
 }

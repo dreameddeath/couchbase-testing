@@ -27,15 +27,15 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 06/08/2014.
  */
 public class HashMapProperty<K,V> extends HashMap<K,V> implements MapProperty<K,V>,HasParent {
-    HasParent _parentElt;
+    HasParent parentElt;
     public HashMapProperty(HasParent parentElement){
-        _parentElt=parentElement;
+        parentElt=parentElement;
     }
 
     @Override
-    public void setParentElement(HasParent parentElement){ _parentElt=parentElement;}
+    public void setParentElement(HasParent parentElement){ parentElt=parentElement;}
     @Override
-    public HasParent getParentElement(){return _parentElt;}
+    public HasParent getParentElement(){return parentElt;}
 
 
 
@@ -65,10 +65,10 @@ public class HashMapProperty<K,V> extends HashMap<K,V> implements MapProperty<K,
             ((HasParent) oldValue).setParentElement(null);
         }
         if((key!=null) && (key instanceof HasParent)){
-            ((HasParent) key).setParentElement(_parentElt);
+            ((HasParent) key).setParentElement(parentElt);
         }
         if((value!=null) && (value instanceof HasParent)){
-            ((HasParent) value).setParentElement(_parentElt);
+            ((HasParent) value).setParentElement(parentElt);
         }
         HasParent.Helper.dirtyParentDocument(this);
         return oldValue;
@@ -78,10 +78,10 @@ public class HashMapProperty<K,V> extends HashMap<K,V> implements MapProperty<K,
     public void putAll(Map<? extends K,? extends V> maps){
         for(Map.Entry<? extends K,? extends V> entry: maps.entrySet()){
             if((entry.getKey()!=null) && (entry.getKey() instanceof HasParent)){
-                ((HasParent) entry.getKey()).setParentElement(_parentElt);
+                ((HasParent) entry.getKey()).setParentElement(parentElt);
             }
             if((entry.getValue()!=null) && (entry.getValue() instanceof HasParent)){
-                ((HasParent) entry.getValue()).setParentElement(_parentElt);
+                ((HasParent) entry.getValue()).setParentElement(parentElt);
             }
         }
         HasParent.Helper.dirtyParentDocument(this);

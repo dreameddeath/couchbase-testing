@@ -56,62 +56,62 @@ import java.util.List;
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 public class DaoGenerationTest extends Assert {
-    CouchbaseBucketSimulator _couchbaseClient;
-    AnnotationProcessorTestingWrapper.Result _compiledEnv;
+    CouchbaseBucketSimulator couchbaseClient;
+    AnnotationProcessorTestingWrapper.Result compiledEnv;
 
-    private Utils.TestEnvironment _env;
-    private TestingRestServer _server;
-    private CuratorTestUtils _testUtils;
+    private Utils.TestEnvironment env;
+    private TestingRestServer server;
+    private CuratorTestUtils testUtils;
 
     public void initService(String className,String serviceName) throws Exception{
-        AbstractDaoRestService service = (AbstractDaoRestService)_compiledEnv.getClass(className).newInstance();
-        service.setSessionFactory(_env.getSessionFactory());
+        AbstractDaoRestService service = (AbstractDaoRestService)compiledEnv.getClass(className).newInstance();
+        service.setSessionFactory(env.getSessionFactory());
         service.setUserFactory(new IUserFactory() {
             @Override
             public IUser validateFromToken(String token) {
                 return null;
             }
         });
-        _server.registerService(serviceName, service);
+        server.registerService(serviceName, service);
     }
 
     @Before
     public void initTest() throws  Exception{
-        _couchbaseClient = new CouchbaseBucketSimulator("test","test");
+        couchbaseClient = new CouchbaseBucketSimulator("test","test");
         AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
         annotTester.
                 withAnnotationProcessor(new DaoGeneratorAnnotationProcessor()).
                 withAnnotationProcessor(new DocumentDefAnnotationProcessor()).
                 withTempDirectoryPrefix("DaoAnnotationProcessorTest");
-        _compiledEnv= annotTester.run(this.getClass().getClassLoader().getResource("daoSourceFiles").getPath());
-        assertTrue(_compiledEnv.getResult());
+        compiledEnv= annotTester.run(this.getClass().getClassLoader().getResource("daoSourceFiles").getPath());
+        assertTrue(compiledEnv.getResult());
 
-        _compiledEnv.updateSystemClassLoader();
-        Constructor method = _compiledEnv.getConstructor(Utils.TestEnvironment.class.getName(), String.class, Utils.TestEnvironment.TestEnvType.class);
-        _env = (Utils.TestEnvironment)method.newInstance("GeneratedDaoAndViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
+        compiledEnv.updateSystemClassLoader();
+        Constructor method = compiledEnv.getConstructor(Utils.TestEnvironment.class.getName(), String.class, Utils.TestEnvironment.TestEnvType.class);
+        env = (Utils.TestEnvironment)method.newInstance("GeneratedDaoAndViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
         //_env = new Utils.TestEnvironment("GeneratedDaoAndViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
-        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestGeneratedDaoDao").newInstance());
-        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestGeneratedDaoChildDao").newInstance());
-        _env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) _compiledEnv.getClass("dao.TestGeneratedDaoUidDao").newInstance());
-        _env.start();
+        env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) compiledEnv.getClass("dao.TestGeneratedDaoDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) compiledEnv.getClass("dao.TestGeneratedDaoChildDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao<CouchbaseDocument>) compiledEnv.getClass("dao.TestGeneratedDaoUidDao").newInstance());
+        env.start();
 
-        _testUtils = new CuratorTestUtils().prepare(1);
-        _server = new TestingRestServer("serverTesting", _testUtils.getClient("serverTesting"), DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE));
+        testUtils = new CuratorTestUtils().prepare(1);
+        server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"), DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE));
 
         initService("service.TestGeneratedDaoReadRestService", "TestGeneratedDaoReadRestService");
         initService("service.TestGeneratedDaoWriteRestService", "TestGeneratedDaoWriteRestService");
         initService("service.TestGeneratedDaoChildReadRestService", "TestGeneratedDaoChildReadRestService");
         initService("service.TestGeneratedDaoChildWriteRestService", "TestGeneratedDaoChildWriteRestService");
 
-        _server.start();
+        server.start();
 
     }
 
     @Test
     public void runAnnotationProcessor() throws Exception {
-        ICouchbaseSession session = _env.getSessionFactory().newReadWriteSession(null);
-        Class<CouchbaseDocument> testGeneratedDaoClass = _compiledEnv.getClass("model.TestGeneratedDao");
-        Class<CouchbaseDocument> testGeneratedDaoChildClass = _compiledEnv.getClass("model.TestGeneratedDaoChild");
+        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession(null);
+        Class<CouchbaseDocument> testGeneratedDaoClass = compiledEnv.getClass("model.TestGeneratedDao");
+        Class<CouchbaseDocument> testGeneratedDaoChildClass = compiledEnv.getClass("model.TestGeneratedDaoChild");
         for(int i=0;i<10;++i){
             ITestDao doc = (ITestDao)session.newEntity(testGeneratedDaoClass);
             doc.setValue("test "+i);
@@ -131,14 +131,14 @@ public class DaoGenerationTest extends Assert {
 
         assertEquals(3, rows.size());
 
-        WebTarget readTarget = _server.getClientFactory().getClient("dao#test#daoProccessor$read", "1.0.0")
+        WebTarget readTarget = server.getClientFactory().getClient("dao#test#daoProccessor$read", "1.0.0")
                 .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
-        WebTarget writeTarget = _server.getClientFactory().getClient("dao#test#daoProccessor$write", "1.0.0")
+        WebTarget writeTarget = server.getClientFactory().getClient("dao#test#daoProccessor$write", "1.0.0")
                 .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
 
-        WebTarget childReadTarget = _server.getClientFactory().getClient("dao#test#daoProccessorChild$read", "1.0.0")
+        WebTarget childReadTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$read", "1.0.0")
                 .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
-        WebTarget childWriteTarget = _server.getClientFactory().getClient("dao#test#daoProccessorChild$write", "1.0.0")
+        WebTarget childWriteTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$write", "1.0.0")
                 .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
 
         for(IViewQueryRow<String,String,CouchbaseDocument> row:rows){
@@ -213,23 +213,23 @@ public class DaoGenerationTest extends Assert {
 
     @After
     public void cleanupTest()throws Exception{
-        if(_couchbaseClient!=null) {
-            _couchbaseClient.shutdown();
+        if(couchbaseClient!=null) {
+            couchbaseClient.shutdown();
         }
-        if(_compiledEnv!=null) {
-            _compiledEnv.cleanUp();
+        if(compiledEnv!=null) {
+            compiledEnv.cleanUp();
         }
 
-        if(_server!=null){
+        if(server!=null){
             try {
-                _server.stop();
+                server.stop();
             }
             catch(Exception e){
                 //ignore
             }
         }
-        if(_env!=null){
-            _env.shutdown(true);
+        if(env!=null){
+            env.shutdown(true);
         }
     }
 

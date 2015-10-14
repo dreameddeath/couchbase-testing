@@ -26,19 +26,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 30/08/2014.
  */
 public class ValidatorFactory {
-    private ValidatorCache _cache = new ValidatorCache();
+    private ValidatorCache cache = new ValidatorCache();
 
 
     public <T extends HasParent> Validator<T> getValidator(Class<T> clazz){
-        Validator<T> validator = (Validator<T>)_cache.get(clazz);
+        Validator<T> validator = (Validator<T>)cache.get(clazz);
         if(validator==null){
             if(CouchbaseDocument.class.isAssignableFrom(clazz)){
                 validator = (Validator<T>)new RawCouchbaseDocumentValidator(clazz,this);
-                _cache.put(clazz,validator);
+                cache.put(clazz,validator);
             }
             else if(CouchbaseDocumentElement.class.isAssignableFrom(clazz)){
                 validator = (Validator<T>)new CouchbaseDocumentElementValidator(clazz,this);
-                _cache.put(clazz,validator);
+                cache.put(clazz,validator);
             }
         }
         return validator;

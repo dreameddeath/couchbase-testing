@@ -23,31 +23,31 @@ import com.dreameddeath.core.service.context.IGlobalContext;
  * Created by Christophe Jeunesse on 07/04/2015.
  */
 public class ServiceExpositionMethodParamDefinition {
-    private boolean _isGlobalContextParam;
-    private ParameterizedTypeInfo _paramInfo;
+    private boolean isGlobalContextParam;
+    private ParameterizedTypeInfo paramInfo;
 
     public ServiceExpositionMethodParamDefinition(ParameterizedTypeInfo paramInfo, ServiceExpositionPathInfo pathInfo){
-        _isGlobalContextParam = paramInfo.isAssignableTo(IGlobalContext.class);
-        _paramInfo = paramInfo;
+        isGlobalContextParam = paramInfo.isAssignableTo(IGlobalContext.class);
+        this.paramInfo = paramInfo;
     }
 
     public boolean isGlobalContextParam() {
-        return _isGlobalContextParam;
+        return isGlobalContextParam;
     }
 
     public String getName(){
-        return _paramInfo.getName();
+        return paramInfo.getName();
     }
 
     public String getClassName(){
-        return _paramInfo.getMainType().getSimpleName();
+        return paramInfo.getMainType().getSimpleName();
     }
 
     public String getPackage(){
-        return _paramInfo.getMainType().getPackageInfo().getName();
+        return paramInfo.getMainType().getPackageInfo().getName();
     }
 
     public String getImportName(){
-        return _paramInfo.getMainType().getImportName();
+        return paramInfo.getMainType().getImportName();
     }
 }

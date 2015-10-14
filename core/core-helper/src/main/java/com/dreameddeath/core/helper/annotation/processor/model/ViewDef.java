@@ -30,45 +30,45 @@ import java.io.InputStream;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class ViewDef {
-    private CouchbaseDocumentReflection _documentReflection;
-    private String _className;
-    private String _name;
-    private String _content;
-    private String _contentFilename = null;
-    private KeyDef _key;
-    private ValueDef _value;
-    private ContentSource _contentSource;
+    private CouchbaseDocumentReflection documentReflection;
+    private String className;
+    private String name;
+    private String content;
+    private String contentFilename = null;
+    private KeyDef key;
+    private ValueDef value;
+    private ContentSource contentSource;
 
     public ContentSource getContentSource() {
-        return _contentSource;
+        return contentSource;
     }
 
     public boolean isContentSourceFile() {
-        return _contentSource == ContentSource.FILE;
+        return contentSource == ContentSource.FILE;
     }
 
     public ValueDef getValue() {
-        return _value;
+        return value;
     }
 
     public String getClassName() {
-        return _className;
+        return className;
     }
 
     public KeyDef getKey() {
-        return _key;
+        return key;
     }
 
     public String getContentFilename() {
-        return _contentFilename;
+        return contentFilename;
     }
 
     public String getContent() {
-        return _content;
+        return content;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public enum ContentSource {
@@ -78,24 +78,24 @@ public class ViewDef {
 
 
     public ViewDef(EntityDef entity, CouchbaseDocumentReflection documentReflection, View viewAnnot) {
-        _documentReflection = documentReflection;
-        _name = viewAnnot.name();
-        _className = _name.substring(0, 1).toUpperCase() + _name.substring(1);
+        this.documentReflection = documentReflection;
+        name = viewAnnot.name();
+        className = name.substring(0, 1).toUpperCase() + name.substring(1);
 
         if ((viewAnnot.content() != null) && !viewAnnot.content().equals("")) {
-            _content = viewAnnot.content();
-            _contentSource = ContentSource.STRING;
+            content = viewAnnot.content();
+            contentSource = ContentSource.STRING;
         } else if ((viewAnnot.contentFilename() != null) && (!viewAnnot.contentFilename().equals(""))) {
-            _contentFilename = viewAnnot.contentFilename();
-            _contentSource = ContentSource.FILE;
-            InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(_contentFilename);
+            contentFilename = viewAnnot.contentFilename();
+            contentSource = ContentSource.FILE;
+            InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(contentFilename);
             if (inputStream == null) {
-                throw new RuntimeException("Cannot find the requested file <" + _contentFilename + ">");
+                throw new RuntimeException("Cannot find the requested file <" + contentFilename + ">");
             } else {
                 try {
                     IOUtils.toString(inputStream, "UTF-8");
                 } catch (IOException e) {
-                    throw new RuntimeException("Cannot read file content <" + _contentFilename + ">", e);
+                    throw new RuntimeException("Cannot read file content <" + contentFilename + ">", e);
                 }
             }
         } else {
@@ -103,46 +103,46 @@ public class ViewDef {
         }
 
         ViewKeyDef keyDefAnnot = viewAnnot.keyDef();
-        _key = new KeyDef(keyDefAnnot);
+        key = new KeyDef(keyDefAnnot);
 
         ViewValueDef viewValueDef = viewAnnot.valueDef();
-        _value = new ValueDef(viewValueDef);
+        value = new ValueDef(viewValueDef);
     }
 
 
     public static class KeyDef {
-        private String _type;
-        private String _transcoder;
+        private String type;
+        private String transcoder;
 
         public KeyDef(ViewKeyDef def) {
-            _type = AbstractClassInfo.getClassInfoFromAnnot(def, annot1 -> def.type()).getName();
-            _transcoder = AbstractClassInfo.getClassInfoFromAnnot(def, annot1 -> def.transcoder()).getName();
+            type = AbstractClassInfo.getClassInfoFromAnnot(def, annot1 -> def.type()).getName();
+            transcoder = AbstractClassInfo.getClassInfoFromAnnot(def, annot1 -> def.transcoder()).getName();
         }
 
         public String getType() {
-            return _type;
+            return type;
         }
 
         public String getTranscoder() {
-            return _transcoder;
+            return transcoder;
         }
     }
 
     public static class ValueDef {
-        private String _type;
-        private String _transcoder;
+        private String type;
+        private String transcoder;
 
         public ValueDef(ViewValueDef def) {
-            _type = AbstractClassInfo.getClassInfoFromAnnot(def, ViewValueDef::type).getName();
-            _transcoder = AbstractClassInfo.getClassInfoFromAnnot(def, ViewValueDef::transcoder).getName();
+            type = AbstractClassInfo.getClassInfoFromAnnot(def, ViewValueDef::type).getName();
+            transcoder = AbstractClassInfo.getClassInfoFromAnnot(def, ViewValueDef::transcoder).getName();
         }
 
         public String getType() {
-            return _type;
+            return type;
         }
 
         public String getTranscoder() {
-            return _transcoder;
+            return transcoder;
         }
     }
 }

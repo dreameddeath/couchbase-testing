@@ -48,28 +48,28 @@ public class CouchbaseDCPConnector implements Runnable {
     private static final DCPEventFactory DCP_EVENT_FACTORY = new DCPEventFactory();
     public static final int MAX_DCP_SEQUENCE = 0xffffffff;
 
-    private final ClusterFacade _core;
-    private final AbstractDCPFlowHandler _flowHandler;
-    private final RingBuffer<DCPEvent> _dcpRingBuffer;
-    private final Disruptor<DCPEvent> _disruptor;
-    private final List<String> _nodes;
-    private final String _bucket;
-    private final String _streamName;
-    private final String _password;
-    private final EventTranslatorOneArg<DCPEvent, CouchbaseMessage> _translator;
+    private final ClusterFacade core;
+    private final AbstractDCPFlowHandler flowHandler;
+    private final RingBuffer<DCPEvent> dcpRingBuffer;
+    private final Disruptor<DCPEvent> disruptor;
+    private final List<String> nodes;
+    private final String bucket;
+    private final String streamName;
+    private final String password;
+    private final EventTranslatorOneArg<DCPEvent, CouchbaseMessage> translator;
 
 
     protected RingBuffer<DCPEvent> getDcpRingBuffer(){
-        return _dcpRingBuffer;
+        return dcpRingBuffer;
     }
-    protected Disruptor<DCPEvent> getDisruptor(){return _disruptor;}
+    protected Disruptor<DCPEvent> getDisruptor(){return disruptor;}
 
     protected EventTranslatorOneArg<DCPEvent, CouchbaseMessage>  getTranslator(){
-        return _translator;
+        return translator;
     }
 
     public String getBucket(){
-        return _bucket;
+        return bucket;
     }
 
 
@@ -78,25 +78,25 @@ public class CouchbaseDCPConnector implements Runnable {
                                   final String couchbaseBucket, final String couchbasePassword,
                                   final AbstractDCPFlowHandler flowHandler
     ) {
-        _flowHandler = flowHandler;
-        _streamName = environment.streamName();
-        _nodes = couchbaseNodes;
-        _bucket = couchbaseBucket;
-        _password = couchbasePassword;
-        _core = new CouchbaseCore(environment);
+        this.flowHandler = flowHandler;
+        streamName = environment.streamName();
+        nodes = couchbaseNodes;
+        bucket = couchbaseBucket;
+        password = couchbasePassword;
+        core = new CouchbaseCore(environment);
         ExecutorService disruptorExecutor = Executors.newFixedThreadPool(environment.threadPoolSize(), new DefaultThreadFactory(environment.threadPoolName(), true));
-        _disruptor = new Disruptor<>(
+        disruptor = new Disruptor<>(
                 DCP_EVENT_FACTORY,
                 environment.eventBufferSize(),
                 disruptorExecutor
         );
 
-        _disruptor.handleEventsWith(flowHandler.getEventHandler());
-        _disruptor.handleExceptionsWith(flowHandler.getExceptionHandler());
-        _disruptor.start();
-        _dcpRingBuffer = _disruptor.getRingBuffer();
+        disruptor.handleEventsWith(flowHandler.getEventHandler());
+        disruptor.handleExceptionsWith(flowHandler.getExceptionHandler());
+        disruptor.start();
+        dcpRingBuffer = disruptor.getRingBuffer();
 
-        _translator = (event, sequence, message) -> event.setMessage(message);
+        translator = (event, sequence, message) -> event.setMessage(message);
     }
 
 
@@ -105,13 +105,13 @@ public class CouchbaseDCPConnector implements Runnable {
     }
 
     public void connect(final long timeout, final TimeUnit timeUnit) {
-        ConnectionString connectionString = ConnectionString.fromHostnames(_nodes);
+        ConnectionString connectionString = ConnectionString.fromHostnames(nodes);
         List<String> seedNodes = connectionString.hosts().stream().map(InetSocketAddress::getHostName).collect(Collectors.toList());
-        _core.send(new SeedNodesRequest(seedNodes))
+        core.send(new SeedNodesRequest(seedNodes))
                 .timeout(timeout, timeUnit)
                 .toBlocking()
                 .single();
-        _core.send(new OpenBucketRequest(_bucket, _password))
+        core.send(new OpenBucketRequest(bucket, password))
                 .timeout(timeout, timeUnit)
                 .toBlocking()
                 .single();
@@ -122,41 +122,41 @@ public class CouchbaseDCPConnector implements Runnable {
      * Executes worker reading loop, which relays events from Couchbase to Any "client".
      */
     public void run() {
-        _core.send(new OpenConnectionRequest(_streamName, _bucket))
+        core.send(new OpenConnectionRequest(streamName, bucket))
                 .toList()
                 .flatMap(couchbaseResponses -> CouchbaseDCPConnector.this.partitionSize())
                 .flatMap(this::requestStreams)
                 .toBlocking()
-                .forEach(dcpRequest -> _dcpRingBuffer.tryPublishEvent(CouchbaseDCPConnector.this._translator, dcpRequest));
+                .forEach(dcpRequest -> dcpRingBuffer.tryPublishEvent(CouchbaseDCPConnector.this.translator, dcpRequest));
 
     }
 
     private Observable<Integer> partitionSize() {
-        return _core
+        return core
                 .<GetClusterConfigResponse>send(new GetClusterConfigRequest())
-                .map(response->((CouchbaseBucketConfig) response.config().bucketConfig(_bucket)).numberOfPartitions());
+                .map(response->((CouchbaseBucketConfig) response.config().bucketConfig(bucket)).numberOfPartitions());
 
     }
 
     private Observable<DCPRequest> requestStreams(final int numberOfPartitions) {
         return Observable.merge(
                 Observable.range(0, numberOfPartitions)
-                        .flatMap(partition -> _core.<StreamRequestResponse>send(buildStreamRequest(partition)))
+                        .flatMap(partition -> core.<StreamRequestResponse>send(buildStreamRequest(partition)))
                         .map(StreamRequestResponse::stream)
         );
     }
 
     public StreamRequestRequest buildStreamRequest(Integer partition){
-        AbstractDCPFlowHandler.LastSnapshotReceived lastSnapshotReceived = _flowHandler.getLastSnapshot(_bucket, partition.shortValue());
+        AbstractDCPFlowHandler.LastSnapshotReceived lastSnapshotReceived = flowHandler.getLastSnapshot(bucket, partition.shortValue());
         if(lastSnapshotReceived!=null){
-            return new StreamRequestRequest(partition.shortValue(),0,0, MAX_DCP_SEQUENCE,lastSnapshotReceived.getStartSequenceNumber(),lastSnapshotReceived.getEndSequenceNumber(),_bucket);
+            return new StreamRequestRequest(partition.shortValue(),0,0, MAX_DCP_SEQUENCE,lastSnapshotReceived.getStartSequenceNumber(),lastSnapshotReceived.getEndSequenceNumber(),bucket);
         }
         else {
-            return new StreamRequestRequest(partition.shortValue(), _bucket);
+            return new StreamRequestRequest(partition.shortValue(), bucket);
         }
     }
 
     public Boolean stop(){
-        return _core.send(new CloseBucketRequest(_bucket)).map(reponse->reponse.status().isSuccess()).toBlocking().first();
+        return core.send(new CloseBucketRequest(bucket)).map(reponse->reponse.status().isSuccess()).toBlocking().first();
     }
 }

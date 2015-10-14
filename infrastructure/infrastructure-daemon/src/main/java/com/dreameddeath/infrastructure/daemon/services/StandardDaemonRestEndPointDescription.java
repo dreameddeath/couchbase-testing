@@ -24,12 +24,12 @@ import org.eclipse.jetty.server.ServerConnector;
  * Created by Christophe Jeunesse on 18/08/2015.
  */
 public class StandardDaemonRestEndPointDescription implements IRestEndPointDescription {
-    private final ServerConnector _connector;
-    private final String _path;
+    private final ServerConnector connector;
+    private final String path;
 
     public StandardDaemonRestEndPointDescription(ServerConnector connector,String path) {
-        _connector = connector;
-        _path = path;
+        this.connector = connector;
+        this.path = path;
     }
 
     public StandardDaemonRestEndPointDescription(ServerConnector connector) {
@@ -38,16 +38,16 @@ public class StandardDaemonRestEndPointDescription implements IRestEndPointDescr
 
     @Override
     public int port() {
-        return ServerConnectorUtils.getConnectorPort(_connector);
+        return ServerConnectorUtils.getConnectorPort(connector);
     }
 
     @Override
     public String path() {
-        return _path;
+        return path;
     }
 
     @Override
     public String host() {
-        return ServerConnectorUtils.getConnectorHost(_connector);
+        return ServerConnectorUtils.getConnectorHost(connector);
     }
 }

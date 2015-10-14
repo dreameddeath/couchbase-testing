@@ -31,7 +31,7 @@ import java.util.*;
 */
 public abstract class GenericCdrsBucket<T extends GenericCdr> extends BinaryCouchbaseDocument {
     ///The key of the parent billing account
-    private String _billingAccountKey;
+    private String billingAccountKey;
     ///The key of the parent billing cycle
     private String _billingCycleKey;
     ///The key of the parent rating Context

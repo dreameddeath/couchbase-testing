@@ -32,7 +32,7 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
     public static final String JOB_FMT_KEY="job/%s";
     public static final String JOB_KEY_PATTERN="job/.*";
 
-    private static GenericJacksonTranscoder<AbstractJob> _tc = new GenericJacksonTranscoder<AbstractJob>(AbstractJob.class,LocalBucketDocument.class);
+    private static GenericJacksonTranscoder<AbstractJob> tc = new GenericJacksonTranscoder<AbstractJob>(AbstractJob.class,LocalBucketDocument.class);
 
     public static class LocalBucketDocument extends BucketDocument<AbstractJob> {
         public LocalBucketDocument(AbstractJob obj){super(obj);}
@@ -40,7 +40,7 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
 
     @Override
     public GenericTranscoder<AbstractJob> getTranscoder(){
-        return _tc;
+        return tc;
     }
 
     public JobDao(CouchbaseBucketWrapper client,BaseCouchbaseDocumentDaoFactory factory){

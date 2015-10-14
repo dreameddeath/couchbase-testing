@@ -22,14 +22,14 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  * Created by Christophe Jeunesse on 21/11/2014.
  */
 public final class CouchbaseCounter extends CouchbaseDocument {
-    private long _current;
+    private long current;
 
 
     public CouchbaseCounter(long value){
-        _current = value;
+        current = value;
     }
 
     public long getCurrent() {
-        return _current;
+        return current;
     }
 }

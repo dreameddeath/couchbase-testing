@@ -23,16 +23,16 @@ import org.eclipse.jetty.util.component.LifeCycle;
  * Created by Christophe Jeunesse on 13/08/2015.
  */
 public class ServiceDiscoveryLifeCycleManager implements LifeCycle.Listener {
-    private final ServiceDiscoveryManager _manager;
+    private final ServiceDiscoveryManager manager;
 
     public ServiceDiscoveryLifeCycleManager(ServiceDiscoveryManager manager){
-        _manager =manager;
+        this.manager =manager;
     }
 
     @Override
     public void lifeCycleStarting(LifeCycle lifeCycle) {
         try {
-            _manager.setStatus(ServiceDiscoveryManager.Status.STARTING);
+            manager.setStatus(ServiceDiscoveryManager.Status.STARTING);
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -42,7 +42,7 @@ public class ServiceDiscoveryLifeCycleManager implements LifeCycle.Listener {
     @Override
     public void lifeCycleStarted(LifeCycle lifeCycle) {
         try{
-            _manager.setStatus(ServiceDiscoveryManager.Status.STARTED);
+            manager.setStatus(ServiceDiscoveryManager.Status.STARTED);
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -57,7 +57,7 @@ public class ServiceDiscoveryLifeCycleManager implements LifeCycle.Listener {
     @Override
     public void lifeCycleStopping(LifeCycle lifeCycle) {
         try{
-            _manager.setStatus(ServiceDiscoveryManager.Status.STOPPING);
+            manager.setStatus(ServiceDiscoveryManager.Status.STOPPING);
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -68,7 +68,7 @@ public class ServiceDiscoveryLifeCycleManager implements LifeCycle.Listener {
     @Override
     public void lifeCycleStopped(LifeCycle lifeCycle) {
         try{
-            _manager.setStatus(ServiceDiscoveryManager.Status.STOPPED);
+            manager.setStatus(ServiceDiscoveryManager.Status.STOPPED);
         }
         catch(Exception e){
             throw new RuntimeException(e);

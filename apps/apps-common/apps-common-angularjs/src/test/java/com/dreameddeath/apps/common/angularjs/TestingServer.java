@@ -55,7 +55,7 @@ import static org.junit.Assert.assertEquals;
  * Created by Christophe Jeunesse on 23/08/2015.
  */
 public class TestingServer {
-    private Server _server;
+    private Server server;
 
     @Before
     public void runServer() throws Exception{
@@ -97,36 +97,36 @@ public class TestingServer {
         }
         {
             ServletHolder servletHolder = new ServletHolder(new HttpServlet(){
-                private String _response;
-                private String _eTag;
+                private String response;
+                private String eTag;
                 public void init(ServletConfig config) throws ServletException {
                     super.init(config);
-                    _response = RequireJS.getSetupJavaScript("/webapp/libs/webjars/");
+                    response = RequireJS.getSetupJavaScript("/webapp/libs/webjars/");
                     MessageDigest md;
                     try {
                         md = MessageDigest.getInstance("MD5");
                     } catch (NoSuchAlgorithmException e) {
                         throw new RuntimeException("MD5 cryptographic algorithm is not available.", e);
                     }
-                    byte[] messageDigest = md.digest(_response.getBytes());
+                    byte[] messageDigest = md.digest(response.getBytes());
                     BigInteger number = new BigInteger(1, messageDigest);
                     // prepend a zero to get a "proper" MD5 hash value
                     StringBuffer sb = new StringBuffer('0');
                     sb.append(number.toString(16));
-                    _eTag=sb.toString();
+                    eTag=sb.toString();
                 }
 
                 @Override
                 protected void doGet(HttpServletRequest request,
                                      HttpServletResponse response)
                         throws ServletException, IOException {
-                    response.setHeader(HttpHeader.ETAG.toString(), _eTag);
-                    if(_eTag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.toString()))){
+                    response.setHeader(HttpHeader.ETAG.toString(), eTag);
+                    if(eTag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.toString()))){
                         response.setStatus(304);
                     }
                     else {
                         response.setContentType("application/javascript");
-                        response.getWriter().println(_response);
+                        response.getWriter().println(response);
                     }
                 }
             });
@@ -152,7 +152,7 @@ public class TestingServer {
         server.setHandler(contexts);
 
         server.start();
-        _server = server;
+        this.server = server;
     }
 
 
@@ -221,7 +221,7 @@ public class TestingServer {
 
     @After
     public void close() throws Exception{
-        _server.stop();
+        server.stop();
     }
 }
 

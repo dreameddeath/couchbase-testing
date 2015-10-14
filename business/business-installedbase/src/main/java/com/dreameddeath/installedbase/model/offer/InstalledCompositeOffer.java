@@ -31,12 +31,12 @@ public class InstalledCompositeOffer extends InstalledOffer {
      *  children : List of children offers id
      */
     @DocumentProperty("children")
-    private ListProperty<String> _children = new ArrayListProperty<String>(InstalledCompositeOffer.this);
+    private ListProperty<String> children = new ArrayListProperty<String>(InstalledCompositeOffer.this);
 
     // Children Accessors
-    public List<String> getChildren() { return _children.get(); }
-    public void setChildren(Collection<String> vals) { _children.set(vals); }
-    public boolean addChildren(String val){ return _children.add(val); }
-    public boolean removeChildren(String val){ return _children.remove(val); }
+    public List<String> getChildren() { return children.get(); }
+    public void setChildren(Collection<String> vals) { children.set(vals); }
+    public boolean addChildren(String val){ return children.add(val); }
+    public boolean removeChildren(String val){ return children.remove(val); }
 
 }

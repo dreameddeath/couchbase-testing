@@ -29,42 +29,42 @@ import java.util.*;
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentElement> implements Validator<T>{
-    Map<AccessibleObject,CouchbaseDocumentValidatorFieldEntry> _validationRules = new HashMap<AccessibleObject,CouchbaseDocumentValidatorFieldEntry>();
+    Map<AccessibleObject,CouchbaseDocumentValidatorFieldEntry> validationRules = new HashMap<AccessibleObject,CouchbaseDocumentValidatorFieldEntry>();
 
     public static class CouchbaseDocumentValidatorFieldEntry{
-        private List<Validator> _validationRules=new ArrayList<Validator>();
-        private String _fieldName;
-        private Field _field;
+        private List<Validator> validationRules=new ArrayList<Validator>();
+        private String fieldName;
+        private Field field;
 
         public CouchbaseDocumentValidatorFieldEntry(Field field){
-            _field = field;
+            this.field = field;
             DocumentProperty docProp = field.getAnnotation(DocumentProperty.class);
             if(docProp!=null){
-                _fieldName=docProp.value();
+                fieldName=docProp.value();
             }
             else{
-                _fieldName=field.getName();
+                fieldName=field.getName();
             }
         }
 
         public String getFieldName(){
-            return _fieldName;
+            return fieldName;
         }
 
         public Field getField(){
-            return _field;
+            return field;
         }
 
         public List<Validator> getValidators(){
-            return Collections.unmodifiableList(_validationRules);
+            return Collections.unmodifiableList(validationRules);
         }
         public void addValidator(Validator validator){
-            _validationRules.add(validator);
+            validationRules.add(validator);
         }
     }
 
     public Map<AccessibleObject,CouchbaseDocumentValidatorFieldEntry> getValidationRules(){
-        return Collections.unmodifiableMap(_validationRules);
+        return Collections.unmodifiableMap(validationRules);
     }
 
     public Method fieldGetterFinder(Field field) throws NoSuchMethodException{
@@ -105,11 +105,11 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
     }
 
     private void addPropertyValidator(Field field,AccessibleObject obj,Validator validator){
-        if (!_validationRules.containsKey(obj)) {
-            _validationRules.put(obj, new CouchbaseDocumentValidatorFieldEntry(field));
+        if (!validationRules.containsKey(obj)) {
+            validationRules.put(obj, new CouchbaseDocumentValidatorFieldEntry(field));
         }
 
-        for(Validator existingValidator:_validationRules.get(obj).getValidators()){
+        for(Validator existingValidator:validationRules.get(obj).getValidators()){
             if(existingValidator instanceof PropertyValidator){
                 ((PropertyValidator) existingValidator).addRule(validator);
                 return;
@@ -117,23 +117,23 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
         }
         PropertyValidator newPropertyValidator = new PropertyValidator((Member)obj);
         newPropertyValidator.addRule(validator);
-        _validationRules.get(obj).addValidator(newPropertyValidator);
+        validationRules.get(obj).addValidator(newPropertyValidator);
     }
 
 
     private void addSimpleValidator(Field field,AccessibleObject obj,Validator validator){
-        if (!_validationRules.containsKey(obj)) {
-            _validationRules.put(obj,new CouchbaseDocumentValidatorFieldEntry(field));
+        if (!validationRules.containsKey(obj)) {
+            validationRules.put(obj,new CouchbaseDocumentValidatorFieldEntry(field));
         }
-        _validationRules.get(obj).addValidator(validator);
+        validationRules.get(obj).addValidator(validator);
     }
 
     private void addIterableValidator(Field field,AccessibleObject obj,Validator validator){
-        if (!_validationRules.containsKey(obj)) {
-            _validationRules.put(obj, new CouchbaseDocumentValidatorFieldEntry(field));
+        if (!validationRules.containsKey(obj)) {
+            validationRules.put(obj, new CouchbaseDocumentValidatorFieldEntry(field));
         }
 
-        for(Validator existingValidator:_validationRules.get(obj).getValidators()){
+        for(Validator existingValidator:validationRules.get(obj).getValidators()){
             if(existingValidator instanceof IterableValidator){
                 ((IterableValidator) existingValidator).addRule(validator);
                 return;
@@ -141,7 +141,7 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
         }
         IterableValidator newIterableValidator = new IterableValidator((Member)obj);
         newIterableValidator.addRule(validator);
-        _validationRules.get(obj).addValidator(newIterableValidator);
+        validationRules.get(obj).addValidator(newIterableValidator);
     }
 
     private void addValidator(Field field,AccessibleObject obj,boolean isIterable,Validator validator){
@@ -228,13 +228,13 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
         }
         if((rootObj.getSuperclass()!=null) && BaseCouchbaseDocumentElement.class.isAssignableFrom(rootObj.getSuperclass())){
             Class<BaseCouchbaseDocumentElement> parentClass = (Class<BaseCouchbaseDocumentElement>)rootObj.getSuperclass();
-            this._validationRules.putAll(((CouchbaseDocumentElementValidator) factory.getValidator(parentClass)).getValidationRules());
+            this.validationRules.putAll(((CouchbaseDocumentElementValidator) factory.getValidator(parentClass)).getValidationRules());
         }
     }
 
     public void validate(T element,BaseCouchbaseDocumentElement parent) throws ValidationException{
         List<ValidationException> fieldsErrors=null;
-        for(AccessibleObject elt:_validationRules.keySet()){
+        for(AccessibleObject elt:validationRules.keySet()){
             Object obj=null;
             try {
                 if (elt instanceof Field) {
@@ -244,7 +244,7 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
                 }
 
                 List<ValidationException> fldErrors=null;
-                for (Validator<Object> validator : _validationRules.get(elt).getValidators()) {
+                for (Validator<Object> validator : validationRules.get(elt).getValidators()) {
                     try {
                         validator.validate(obj, element);
                     }
@@ -259,20 +259,20 @@ public class CouchbaseDocumentElementValidator<T extends BaseCouchbaseDocumentEl
                     if(fieldsErrors==null){
                         fieldsErrors=new ArrayList<ValidationException>();
                     }
-                    fieldsErrors.add(new ValidationException(element,_validationRules.get(elt).getField(),"Errors of field",fldErrors));
+                    fieldsErrors.add(new ValidationException(element,validationRules.get(elt).getField(),"Errors of field",fldErrors));
                 }
             }
             catch(IllegalAccessException e){
                 if(fieldsErrors==null){
                     fieldsErrors=new ArrayList<ValidationException>();
                 }
-                fieldsErrors.add(new ValidationException(element,_validationRules.get(elt).getField(),"Cannot access to the value of the field",e));
+                fieldsErrors.add(new ValidationException(element,validationRules.get(elt).getField(),"Cannot access to the value of the field",e));
             }
             catch(InvocationTargetException e){
                 if(fieldsErrors==null){
                     fieldsErrors=new ArrayList<ValidationException>();
                 }
-                fieldsErrors.add(new ValidationException(element,_validationRules.get(elt).getField(),"Cannot access to the target of the field",e));
+                fieldsErrors.add(new ValidationException(element,validationRules.get(elt).getField(),"Cannot access to the target of the field",e));
             }
 
             if(fieldsErrors!=null){

@@ -24,17 +24,17 @@ import java.util.List;
  * Created by Christophe Jeunesse on 06/02/2015.
  */
 public class DuplicateClusterClientException extends Exception {
-    private List<String> _connectionString;
-    private CuratorFramework _existingFramework;
+    private List<String> connectionString;
+    private CuratorFramework existingFramework;
 
     public DuplicateClusterClientException(List<String> connections,String message,CuratorFramework existingClient){
         super(message);
-        _connectionString = connections;
-        _existingFramework = existingClient;
+        connectionString = connections;
+        existingFramework = existingClient;
     }
 
     public CuratorFramework getExistingFramework(){
-        return _existingFramework;
+        return existingFramework;
     }
 
 }

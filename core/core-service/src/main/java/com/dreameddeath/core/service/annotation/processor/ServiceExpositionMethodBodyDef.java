@@ -22,38 +22,38 @@ import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo
  * Created by Christophe Jeunesse on 09/04/2015.
  */
 public class ServiceExpositionMethodBodyDef {
-    private Type _bodyType;
-    private String _name;
-    private ServiceExpositionParamInfo _paramInfo;
+    private Type bodyType;
+    private String name;
+    private ServiceExpositionParamInfo paramInfo;
 
     //Init from
     public ServiceExpositionMethodBodyDef(String paramName,MethodInfo info){
-        _bodyType = Type.INPUT_PARAM;
-        _name = "bodyEntity";
-        _paramInfo = new ServiceExpositionParamInfo(_name,paramName,info);
+        bodyType = Type.INPUT_PARAM;
+        name = "bodyEntity";
+        paramInfo = new ServiceExpositionParamInfo(name,paramName,info);
     }
 
     public Type getBodyType() {
-        return _bodyType;
+        return bodyType;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public String getImportName() {
-        return _paramInfo.getImportName();
+        return paramInfo.getImportName();
     }
 
     public String getClassName(){
-        return _paramInfo.getClassName();
+        return paramInfo.getClassName();
     }
 
     public String getGetterString(){
-        return _paramInfo.getGetterString();
+        return paramInfo.getGetterString();
     }
 
-    public String getSetterString(){ return _paramInfo.getSetterString();}
+    public String getSetterString(){ return paramInfo.getSetterString();}
 
     public enum Type{
         INPUT_PARAM,

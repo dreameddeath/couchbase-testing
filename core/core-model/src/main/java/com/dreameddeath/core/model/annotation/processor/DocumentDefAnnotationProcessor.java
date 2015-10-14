@@ -20,8 +20,8 @@ import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationPro
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentDef;
-import com.dreameddeath.core.model.entity.EntityModelId;
-import com.dreameddeath.core.model.upgrade.VersionUpgradeManager;
+import com.dreameddeath.core.model.entity.EntityDefinitionManager;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -42,12 +42,11 @@ public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor 
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        VersionUpgradeManager versionUpgradeManager = new VersionUpgradeManager();
         Messager messager = processingEnv.getMessager();
         for(Element classElem:roundEnv.getElementsAnnotatedWith(DocumentDef.class)){
             DocumentDef annot =classElem.getAnnotation(DocumentDef.class);
             try {
-                String fileName= versionUpgradeManager.getDocumentEntityFilename(EntityModelId.build(annot, classElem));
+                String fileName= EntityDefinitionManager.getInstance().getDocumentEntityFilename(EntityModelId.build(annot, classElem));
                 AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, classElem);
                 AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)classElem);
                 file.getWriter().write(classInfo.getFullName());

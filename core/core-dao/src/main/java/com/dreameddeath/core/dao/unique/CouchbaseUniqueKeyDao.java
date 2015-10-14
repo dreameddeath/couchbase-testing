@@ -43,11 +43,11 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     private static final String INTERNAL_KEY_FMT="%s/%s";
     private static final String INTERNAL_KEY_SEPARATOR="/";
 
-    private CouchbaseDocumentDao _refDocumentDao;
-    private String _namespace;
+    private CouchbaseDocumentDao refDocumentDao;
+    private String namespace;
 
-    public String getNameSpace(){return _namespace;}
-    public void setNameSpace(String nameSpace){_namespace=nameSpace;}
+    public String getNameSpace(){return namespace;}
+    public void setNameSpace(String nameSpace){namespace=nameSpace;}
 
 
     public CouchbaseUniqueKeyDao(Builder builder){
@@ -57,14 +57,14 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         setNameSpace(builder.getNameSpace());
     }
 
-    public void setBaseDocumentDao(CouchbaseDocumentDao dao){_refDocumentDao = dao;}
-    public CouchbaseDocumentDao getBaseDocumentDao(){return _refDocumentDao;}
+    public void setBaseDocumentDao(CouchbaseDocumentDao dao){refDocumentDao = dao;}
+    public CouchbaseDocumentDao getBaseDocumentDao(){return refDocumentDao;}
 
     @Override
     public ICouchbaseBucket getClient(){
         ICouchbaseBucket client = super.getClient();
         if(client!=null) return client;
-        else return _refDocumentDao.getClient();
+        else return refDocumentDao.getClient();
     }
 
     public static class LocalBucketDocument extends BucketDocument<CouchbaseUniqueKey> {
@@ -188,29 +188,29 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     }
 
     public static class Builder{
-        private String _namespace;
-        private ICouchbaseBucket _client;
-        private CouchbaseDocumentDao _baseDao;
+        private String namespace;
+        private ICouchbaseBucket client;
+        private CouchbaseDocumentDao baseDao;
 
         public Builder withNameSpace(String key){
-            _namespace = key;
+            namespace = key;
             return this;
         }
 
 
         public Builder withClient(ICouchbaseBucket client){
-            _client = client;
+            this.client = client;
             return this;
         }
 
         public Builder withBaseDao(CouchbaseDocumentDao dao){
-            _baseDao = dao;
+            baseDao = dao;
             return this;
         }
 
-        public String getNameSpace(){return _namespace;}
-        public ICouchbaseBucket getClient(){return _client;}
-        public CouchbaseDocumentDao getBaseDao(){return _baseDao;}
+        public String getNameSpace(){return namespace;}
+        public ICouchbaseBucket getClient(){return client;}
+        public CouchbaseDocumentDao getBaseDao(){return baseDao;}
 
         public CouchbaseUniqueKeyDao build(){
             return new CouchbaseUniqueKeyDao(this);

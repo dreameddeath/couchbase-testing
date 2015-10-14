@@ -27,23 +27,23 @@ import java.util.*;
  */
 public class ServicesByNameInstanceDescription {
     @JsonProperty("services")
-    private Map<String,List<ServiceInstanceDescription>> _serviceInstanceMap =new HashMap<>();
+    private Map<String,List<ServiceInstanceDescription>> serviceInstanceMap =new HashMap<>();
 
     @JsonSetter("services")
     public void setServiceInstanceMap(Map<String,List<ServiceInstanceDescription>> map){
-        _serviceInstanceMap.clear();
-        _serviceInstanceMap.putAll(map);
+        serviceInstanceMap.clear();
+        serviceInstanceMap.putAll(map);
     }
 
     @JsonGetter("services")
     public Map<String,List<ServiceInstanceDescription>> getServiceInstanceMap(){
-        return Collections.unmodifiableMap(_serviceInstanceMap);
+        return Collections.unmodifiableMap(serviceInstanceMap);
     }
 
     public void addServiceInstance(ServiceInstanceDescription serviceDescr){
-        if(!_serviceInstanceMap.containsKey(serviceDescr.getName())){
-            _serviceInstanceMap.put(serviceDescr.getName(),new ArrayList<>());
+        if(!serviceInstanceMap.containsKey(serviceDescr.getName())){
+            serviceInstanceMap.put(serviceDescr.getName(),new ArrayList<>());
         }
-        _serviceInstanceMap.get(serviceDescr.getName()).add(serviceDescr);
+        serviceInstanceMap.get(serviceDescr.getName()).add(serviceDescr);
     }
 }

@@ -47,25 +47,25 @@ public class CouchbaseDocumentReflectionTest {
 
     public static class TestElement extends CouchbaseDocumentElement{
         @DocumentProperty("test")
-        public String _test;
+        public String test;
     }
 
     @TestAnnotation
     public static class TestClass extends CouchbaseDocument{
         @DocumentProperty("testSimple")
-        public String _testSimple;
+        public String testSimple;
 
         @DocumentProperty("testCollection")
-        public List<String> _testCollection;
+        public List<String> testCollection;
 
         @DocumentProperty("testMap")
-        public Map<String,String> _testMap;
+        public Map<String,String> testMap;
 
         @DocumentProperty("testElement")
-        public TestElement _element;
+        public TestElement element;
 
         @DocumentProperty("testComplexElement")
-        public Set<? extends TestElement> _complexElement;
+        public Set<? extends TestElement> complexElement;
 
     }
 
@@ -74,21 +74,21 @@ public class CouchbaseDocumentReflectionTest {
          *  docProp : propertyTest
          */
         @DocumentProperty("docProp")
-        private Property<Long> _docProp = new StandardProperty<Long>(TestInherited.this);
+        private Property<Long> docProp = new StandardProperty<Long>(TestInherited.this);
 
         // docProp accessors
-        public Long getDocProp() { return _docProp.get(); }
-        public void setDocProp(Long val) { _docProp.set(val); }
+        public Long getDocProp() { return docProp.get(); }
+        public void setDocProp(Long val) { docProp.set(val); }
 
         /**
          *  modifiedAccessors : custom getter/setter
          */
         @DocumentProperty(value = "modifiedAccessors",getter = "getModifiedAccessors2",setter = "setModifiedAccessors2")
-        private Property<String> _modifiedAccessors = new StandardProperty<String>(TestInherited.this);
+        private Property<String> modifiedAccessors = new StandardProperty<String>(TestInherited.this);
 
         // modifiedAccessors accessors
-        public String getModifiedAccessors2() { return _modifiedAccessors.get(); }
-        public void setModifiedAccessors2(String val) { _modifiedAccessors.set(val); }
+        public String getModifiedAccessors2() { return modifiedAccessors.get(); }
+        public void setModifiedAccessors2(String val) { modifiedAccessors.set(val); }
     }
 
 

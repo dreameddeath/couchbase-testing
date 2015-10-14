@@ -65,27 +65,27 @@ import java.util.stream.Stream;
 public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     private static Logger LOG = LoggerFactory.getLogger(CouchbaseBucketSimulator.class);
 
-    private final JsonTranscoder _couchbaseJsonTranscoder=new JsonTranscoder();
-    private final ScriptEngineManager _enginefactory = new ScriptEngineManager();
+    private final JsonTranscoder couchbaseJsonTranscoder=new JsonTranscoder();
+    private final ScriptEngineManager enginefactory = new ScriptEngineManager();
     // create a JavaScript engine
-    private final ScriptEngine _engine = _enginefactory.getEngineByName("JavaScript");
-    private Map<String,DocumentSimulator> _dbContent = new ConcurrentHashMap<>();
-    public Map<Class,Transcoder<? extends Document, ?>> _transcoderMap = new HashMap<>();
-    public Map<String,Map<String,ScriptObjectMirror>> _viewsMaps = new HashMap<>();
-    public Set<CouchbaseDCPConnectorSimulator> _dcpSimulators= new HashSet<>();
+    private final ScriptEngine engine = enginefactory.getEngineByName("JavaScript");
+    private Map<String,DocumentSimulator> dbContent = new ConcurrentHashMap<>();
+    public Map<Class,Transcoder<? extends Document, ?>> transcoderMap = new HashMap<>();
+    public Map<String,Map<String,ScriptObjectMirror>> viewsMaps = new HashMap<>();
+    public Set<CouchbaseDCPConnectorSimulator> dcpSimulators= new HashSet<>();
 
     private void initTranscoders(){
-        _transcoderMap.put(CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.JSON_ARRAY_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_ARRAY_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.JSON_BOOLEAN_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_BOOLEAN_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.JSON_DOUBLE_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_DOUBLE_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.JSON_LONG_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_LONG_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.JSON_STRING_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_STRING_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.RAW_JSON_TRANSCODER.documentType(), CouchbaseAsyncBucket.RAW_JSON_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.LEGACY_TRANSCODER.documentType(), CouchbaseAsyncBucket.LEGACY_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.BINARY_TRANSCODER.documentType(), CouchbaseAsyncBucket.BINARY_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.STRING_TRANSCODER.documentType(), CouchbaseAsyncBucket.STRING_TRANSCODER);
-        _transcoderMap.put(CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER.documentType(), CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.JSON_ARRAY_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_ARRAY_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.JSON_BOOLEAN_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_BOOLEAN_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.JSON_DOUBLE_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_DOUBLE_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.JSON_LONG_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_LONG_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.JSON_STRING_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_STRING_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.RAW_JSON_TRANSCODER.documentType(), CouchbaseAsyncBucket.RAW_JSON_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.LEGACY_TRANSCODER.documentType(), CouchbaseAsyncBucket.LEGACY_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.BINARY_TRANSCODER.documentType(), CouchbaseAsyncBucket.BINARY_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.STRING_TRANSCODER.documentType(), CouchbaseAsyncBucket.STRING_TRANSCODER);
+        transcoderMap.put(CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER.documentType(), CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER);
     }
     public CouchbaseBucketSimulator(String bucketName){
         super(null, bucketName, null);
@@ -99,7 +99,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     public ScriptEngine getJavaScriptEngine(){
-        return _engine;
+        return engine;
     }
 
 
@@ -117,12 +117,12 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     @Override
     public ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder) {
         super.addTranscoder(transcoder);
-        _transcoderMap.put(transcoder.documentType(),transcoder);
+        transcoderMap.put(transcoder.documentType(),transcoder);
         return this;
     }
 
     public Long updateCacheCounter(String key,Long by,Long defaultValue,Integer expiration) throws StorageException{
-        DocumentSimulator foundDoc = _dbContent.get(key);
+        DocumentSimulator foundDoc = dbContent.get(key);
         if(foundDoc==null){
             if(defaultValue!=null){
                 foundDoc = new DocumentSimulator(this);
@@ -131,7 +131,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 foundDoc.setExpiry(expiration);
                 foundDoc.setKey(key);
                 foundDoc.setData(Unpooled.wrappedBuffer(defaultValue.toString().getBytes()));
-                _dbContent.put(foundDoc.getKey(), foundDoc);
+                dbContent.put(foundDoc.getKey(), foundDoc);
                 notifyUpdate(ImpactMode.ADD,foundDoc);
                 return defaultValue;
             }
@@ -152,25 +152,25 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
     }
     public void notifyUpdate(ImpactMode mode,DocumentSimulator doc){
-        for(CouchbaseDCPConnectorSimulator simulator:_dcpSimulators){
+        for(CouchbaseDCPConnectorSimulator simulator:dcpSimulators){
             simulator.notifyUpdate(mode,doc);
         }
     }
 
     public void addCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
-        _dcpSimulators.add(simulator);
-        for(DocumentSimulator doc :_dbContent.values()){
+        dcpSimulators.add(simulator);
+        for(DocumentSimulator doc :dbContent.values()){
             simulator.notifyUpdate(ImpactMode.ADD,doc);
         }
     }
 
     public void removeCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
-        _dcpSimulators.remove(simulator);
+        dcpSimulators.remove(simulator);
     }
 
     public Document getFromCache(String key,Class docType) throws StorageException{
-        Transcoder transcoder = _transcoderMap.get(docType);
-        DocumentSimulator foundDoc = _dbContent.get(key);
+        Transcoder transcoder = transcoderMap.get(docType);
+        DocumentSimulator foundDoc = dbContent.get(key);
         if(foundDoc==null){
             throw new DocumentDoesNotExistException("The document <"+key+"> is not ot found in couchbase simulator");
         }
@@ -191,8 +191,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     public <T extends CouchbaseDocument> Document<T> performImpact(BucketDocument<T> bucketDoc, Class docType, ImpactMode mode, int expiry) throws StorageException{
-        Transcoder transcoder = _transcoderMap.get(docType);
-        DocumentSimulator foundDoc = _dbContent.get(bucketDoc.id());
+        Transcoder transcoder = transcoderMap.get(docType);
+        DocumentSimulator foundDoc = dbContent.get(bucketDoc.id());
         if((foundDoc==null) && !mode.equals(ImpactMode.ADD) && !mode.equals(ImpactMode.UPDATE) ){
             throw new DocumentDoesNotExistException("Key <"+bucketDoc.id()+"> isn't found in couchbase simulator");
         }
@@ -203,7 +203,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             foundDoc = new DocumentSimulator(this);
             foundDoc.setKey(bucketDoc.id());
             foundDoc.setCas(0L);
-            _dbContent.put(foundDoc.getKey(),foundDoc);
+            dbContent.put(foundDoc.getKey(),foundDoc);
         }
         else{
             if((bucketDoc.cas()!=0) && (bucketDoc.cas()!=foundDoc.getCas())){
@@ -241,7 +241,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
         Document<T> result = getFromCache(bucketDoc.id(),docType);
         if(mode==ImpactMode.DELETE){
-            _dbContent.remove(bucketDoc.id());
+            dbContent.remove(bucketDoc.id());
         }
         return result;
     }
@@ -249,7 +249,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder) {
         try{
-            id=ICouchbaseBucket.Utils.buildKey(_keyPrefix,id);
+            id=ICouchbaseBucket.Utils.buildKey(keyPrefix,id);
             return Observable.just((T)(getFromCache(id,transcoder.documentType()).content()));
         }
         catch(Throwable e){
@@ -331,7 +331,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException {
         try{
-            key = ICouchbaseBucket.Utils.buildKey(_keyPrefix,key);
+            key = ICouchbaseBucket.Utils.buildKey(keyPrefix,key);
             return Observable.just(updateCacheCounter(key,by,defaultValue,expiration));
         }
         catch(Exception e){
@@ -342,20 +342,20 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
     @Override
     public void createOrUpdateView(String designDoc,Map<String,String> viewList) throws StorageException{
-        designDoc = ICouchbaseBucket.Utils.buildDesignDoc(_keyPrefix,designDoc);
+        designDoc = ICouchbaseBucket.Utils.buildDesignDoc(keyPrefix,designDoc);
 
         LOG.debug("Attempt to create design Doc {}",designDoc);
 
         Map<String,ScriptObjectMirror> newDesignDocMap = new HashMap<>();
         for(Map.Entry<String,String> viewDef:viewList.entrySet()){
-            Compilable compilator = (Compilable)_engine;
+            Compilable compilator = (Compilable)engine;
             String scriptContent = viewDef.getValue();
 
             scriptContent = scriptContent.replaceAll("^(\\s*function\\s*\\(\\s*doc\\s*,\\s*meta\\s*)", "$1,globalResultEmitter");
             scriptContent = scriptContent.replaceAll("\\bemit\\(", "globalResultEmitter.emit(meta.id,");
 
             try{
-                newDesignDocMap.put(viewDef.getKey(),(ScriptObjectMirror)_engine.eval(scriptContent));
+                newDesignDocMap.put(viewDef.getKey(),(ScriptObjectMirror)engine.eval(scriptContent));
             }
             catch(ScriptException e){
                 throw new ViewCompileException(
@@ -367,7 +367,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                         e);
             }
         }
-        _viewsMaps.put(designDoc,newDesignDocMap);
+        viewsMaps.put(designDoc,newDesignDocMap);
     }
 
     public Observable<AsyncViewResult> asyncQuery(ViewQuery query){
@@ -383,39 +383,39 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         String designDoc = query.getDesign();
         String viewName = query.getView();
 
-        ScriptObjectMirror viewScript = _viewsMaps.get(designDoc).get(viewName);
+        ScriptObjectMirror viewScript = viewsMaps.get(designDoc).get(viewName);
         EmitSimulator result = new EmitSimulator(this);
-        for(Map.Entry<String,DocumentSimulator> docInstance:_dbContent.entrySet()){
+        for(Map.Entry<String,DocumentSimulator> docInstance:dbContent.entrySet()){
             try {
-                Object callResult = viewScript.call(null, docInstance.getValue().getJavascriptObject(), docInstance.getValue().getMeta(),result);
+                viewScript.call(null, docInstance.getValue().getJavascriptObject(), docInstance.getValue().getMeta(),result);
             }
             catch(Exception e){
                 throw new RuntimeException("Error ",e);
             }
         }
 
-        Map<String,Integer> additionnalCriteria = new HashMap<>();
-        Predicate<InternalRow> filterPredicate=decodeParams(query,additionnalCriteria);
+        Map<String,Integer> additionalCriteria = new HashMap<>();
+        Predicate<InternalRow> filterPredicate=decodeParams(query,additionalCriteria);
         Stream<InternalRow> stream = result.getFullResult().stream();
-        if(additionnalCriteria.containsKey("reverse") && additionnalCriteria.get("reverse").equals(1)){
+        if(additionalCriteria.containsKey("reverse") && additionalCriteria.get("reverse").equals(1)){
             stream = stream.sorted((vr1,vr2)->-EmitSimulator.compare(vr1.key(), vr2.key()));
         }
         else{
             stream = stream.sorted((vr1, vr2) -> EmitSimulator.compare(vr1.key(), vr2.key()));
         }
         stream=stream.filter(filterPredicate);
-        if(additionnalCriteria.containsKey("skip")){
-            stream=stream.skip(additionnalCriteria.get("skip"));
+        if(additionalCriteria.containsKey("skip")){
+            stream=stream.skip(additionalCriteria.get("skip"));
         }
-        if(additionnalCriteria.containsKey("limit")){
-            stream=stream.limit(additionnalCriteria.get("limit"));
+        if(additionalCriteria.containsKey("limit")){
+            stream=stream.limit(additionalCriteria.get("limit"));
         }
         return new InternalViewResult(stream.collect(Collectors.<InternalRow>toList()),result.getFullResult().size());
     }
 
     public Object parseParamKey(String key) throws Exception{
         if(key.startsWith("[") || key.startsWith("{")){
-            return _couchbaseJsonTranscoder.stringToJsonObject(key);
+            return couchbaseJsonTranscoder.stringToJsonObject(key);
         }
         else if(key.startsWith("\"")){
             return key.substring(1,key.length()-1);
@@ -437,10 +437,11 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
     protected  Predicate<InternalRow> decodeParams(ViewQuery query,Map<String,Integer> streamComplements){
         Map<String,String> params = new HashMap<>();
+        //can use split as it is enconded
         for(String paramElem:query.toString().split("&")){
             String[] paramParts=paramElem.split("=");
             try {
-                params.put(paramParts[0], URLDecoder.decode(paramParts[1], "UTF-8"));
+                params.put(paramParts[0], URLDecoder.decode(paramParts[1],"UTF-8"));
             }
             catch(Exception e){
                 throw new RuntimeException(String.format("Decoding error of param <%s>/<%s>",paramParts[0],paramParts[1]),e);
@@ -454,12 +455,12 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 resultPredicate = resultPredicate.and((InternalRow vr)->vr.key().equals(keyPredicateCriteria));
             }
             if (params.containsKey("startkey_docid")) {
-                resultPredicate = resultPredicate.and((InternalRow vr)->vr.id().compareTo(params.get("startkey_docid").toString())>0);
+                resultPredicate = resultPredicate.and((InternalRow vr)->vr.id().compareTo(params.get("startkey_docid"))>0);
             }
             if (params.containsKey("endkey_docid")) {
-                if(inclusive_end) { resultPredicate = resultPredicate.and((InternalRow vr) -> vr.id().compareTo(params.get("endkey_docid").toString())<=0); }
+                if(inclusive_end) { resultPredicate = resultPredicate.and((InternalRow vr) -> vr.id().compareTo(params.get("endkey_docid"))<=0); }
                 else{ resultPredicate = resultPredicate.and((InternalRow vr) ->
-                        vr.id().compareTo(params.get("endkey_docid").toString())<0
+                        vr.id().compareTo(params.get("endkey_docid"))<0
                 );}
             }
             if (params.containsKey("startkey")) {
@@ -505,14 +506,14 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     public static class EmitSimulator{
-        private CouchbaseBucketSimulator _wrapper;
+        private CouchbaseBucketSimulator wrapper;
         public EmitSimulator(CouchbaseBucketSimulator wrapper){
-            _wrapper = wrapper;
+            this.wrapper = wrapper;
         }
-        private List<InternalRow> _resultList = new ArrayList<>();
+        private List<InternalRow> resultList = new ArrayList<>();
 
         public List<InternalRow> getFullResult(){
-            return _resultList;
+            return resultList;
         }
 
         public Object toNormalizedObject(Object obj){
@@ -546,7 +547,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             LOG.debug("Emitting {}/{} for key {}",key,value,docKey);
             final Object realKey= toNormalizedObject(key);
             final Object realValue =toNormalizedObject(value);
-            _resultList.add(new InternalRow(docKey,realKey,realValue,EmitSimulator.this._wrapper));
+            resultList.add(new InternalRow(docKey,realKey,realValue,EmitSimulator.this.wrapper));
         }
 
         public static int compare(Object key1, Object key2) {
@@ -581,65 +582,65 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     public static class InternalRow{
-        private final CouchbaseBucketSimulator _wrapper;
-        private final String _docKey;
-        private final Object _key;
-        private final Object _value;
+        private final CouchbaseBucketSimulator wrapper;
+        private final String docKey;
+        private final Object key;
+        private final Object value;
 
         public InternalRow(String docKey,Object key,Object value,CouchbaseBucketSimulator wrapper){
-            _wrapper = wrapper;
-            _key = key;
-            _docKey = docKey;
-            _value = value;
+            this.wrapper = wrapper;
+            this.key = key;
+            this.docKey = docKey;
+            this.value = value;
         }
 
         public static ViewRow toViewRow(final InternalRow row){
             return new ViewRow() {
-                private InternalRow _row=row;
-                @Override public String id() {return _row.id();}
-                @Override public Object key() {return _row.key();}
-                @Override public Object value() {return _row.value();}
-                @Override public JsonDocument document() {return _row.document();}
+                private InternalRow internalRow=row;
+                @Override public String id() {return internalRow.id();}
+                @Override public Object key() {return internalRow.key();}
+                @Override public Object value() {return internalRow.value();}
+                @Override public JsonDocument document() {return internalRow.document();}
                 @Override public JsonDocument document(long timeout, TimeUnit timeUnit) {return document();}
-                @Override public <D extends Document<?>> D document(Class<D> target) {return _row.document(target);}
+                @Override public <D extends Document<?>> D document(Class<D> target) {return internalRow.document(target);}
                 @Override public <D extends Document<?>> D document(Class<D> target, long timeout, TimeUnit timeUnit) {return document(target);}
             };
         }
 
         public static AsyncViewRow toAsyncViewRow(final InternalRow row){
             return new AsyncViewRow() {
-                private InternalRow _row=row;
-                @Override public String id() {return _row.id();}
-                @Override public Object key() {return _row.key();}
-                @Override public Object value() {return _row.value();}
-                @Override public Observable<JsonDocument> document() {return Observable.from(new JsonDocument[]{_row.document()});}
-                @Override public <D extends Document<?>> Observable<D> document(Class<D> target) {return Observable.from((D[])new JsonDocument[]{(JsonDocument)_row.document(target)});}
+                private InternalRow internalRow = row;
+                @Override public String id() {return internalRow.id();}
+                @Override public Object key() {return internalRow.key();}
+                @Override public Object value() {return internalRow.value();}
+                @Override public Observable<JsonDocument> document() {return Observable.from(new JsonDocument[]{internalRow.document()});}
+                @Override public <D extends Document<?>> Observable<D> document(Class<D> target) {return Observable.from((D[])new JsonDocument[]{(JsonDocument) internalRow.document(target)});}
             };
         }
 
-        public String id() {return _docKey;}
-        public Object key() {return _key;}
-        public Object value() {return _value;}
+        public String id() {return docKey;}
+        public Object key() {return key;}
+        public Object value() {return value;}
         public JsonDocument document() {return document(JsonDocument.class);}
         public <D extends Document<?>> D document(Class<D> target) {
-            try { return JacksonTransformers.MAPPER.readValue(_wrapper._dbContent.get(id()).getData().array(), target);}
+            try { return JacksonTransformers.MAPPER.readValue(wrapper.dbContent.get(id()).getData().array(), target);}
             catch(Exception e){ throw new RuntimeException("Unexpected exception",e);}
         }
     }
 
     public static class InternalViewResult{
-        public List<InternalRow> _results;
-        int _totalRows;
+        public List<InternalRow> results;
+        int totalRows;
 
         public static AsyncViewResult toAsyncViewResult(final InternalViewResult result){
             return new AsyncViewResult() {
-                private InternalViewResult _internalResult=result;
+                private InternalViewResult internalResult=result;
                 @Override
                 public Observable<AsyncViewRow> rows() {
-                    return Observable.from(_internalResult.allRows().stream().map(InternalRow::toAsyncViewRow).collect(Collectors.<AsyncViewRow>toList()));
+                    return Observable.from(internalResult.allRows().stream().map(InternalRow::toAsyncViewRow).collect(Collectors.<AsyncViewRow>toList()));
                 }
 
-                @Override public int totalRows() {return _internalResult.totalRows();}
+                @Override public int totalRows() {return internalResult.totalRows();}
                 @Override public boolean success() {return true;}
                 @Override public Observable<JsonObject> error() {return null;}
                 @Override public JsonObject debug() {return null;}
@@ -649,17 +650,17 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         public static ViewResult toViewResult(final InternalViewResult result){
             return new ViewResult() {
 
-                private InternalViewResult _internalResult=result;
+                private InternalViewResult internalResult=result;
 
                 @Override
                 public List<ViewRow> allRows() {
-                    return _internalResult.allRows().stream().map(InternalRow::toViewRow).collect(Collectors.<ViewRow>toList());
+                    return internalResult.allRows().stream().map(InternalRow::toViewRow).collect(Collectors.<ViewRow>toList());
                 }
 
                 @Override public List<ViewRow> allRows(long timeout, TimeUnit timeUnit) {return allRows();}
                 @Override public Iterator<ViewRow> rows() {return allRows().iterator();}
                 @Override public Iterator<ViewRow> rows(long timeout, TimeUnit timeUnit) {return allRows().iterator();}
-                @Override public int totalRows() {return _internalResult.totalRows();}
+                @Override public int totalRows() {return internalResult.totalRows();}
                 @Override public boolean success() {return true;}
                 @Override public JsonObject error() {return null;}
                 @Override public Iterator<ViewRow> iterator() { return allRows().iterator(); }
@@ -669,14 +670,14 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
 
         public InternalViewResult(List<InternalRow> results,int totalRows){
-            _totalRows = totalRows;
-            _results = results;
+            this.totalRows = totalRows;
+            this.results = results;
         }
 
-        public List<InternalRow> allRows() {return Collections.unmodifiableList(_results);}
+        public List<InternalRow> allRows() {return Collections.unmodifiableList(results);}
 
         public int totalRows() {
-            return _totalRows;
+            return totalRows;
         }
     }
 

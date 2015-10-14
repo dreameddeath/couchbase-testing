@@ -28,38 +28,38 @@ import java.util.Collection;
  * Created by Christophe Jeunesse on 19/12/2014.
  */
 public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IViewQuery<TKEY,TVALUE,TDOC> {
-    private CouchbaseViewDao<TKEY,TVALUE,TDOC> _dao;
+    private CouchbaseViewDao<TKEY,TVALUE,TDOC> dao;
 
-    private TKEY _key;
-    private Collection<TKEY> _keys;
-    private TKEY _startKey;
-    private TKEY _endKey;
-    private boolean _isInclusive;
-    private boolean _isDescending;
-    private int _start=0;
-    private int _limit=10;
-    private boolean _syncWithDoc;
+    private TKEY key;
+    private Collection<TKEY> keys;
+    private TKEY startKey;
+    private TKEY endKey;
+    private boolean isInclusive;
+    private boolean isDescending;
+    private int start=0;
+    private int limit=10;
+    private boolean syncWithDoc;
 
 
     public ViewQuery(CouchbaseViewDao<TKEY,TVALUE,TDOC> dao){
-        _dao = dao;
+        this.dao = dao;
     }
 
     public ViewQuery(ViewQuery<TKEY,TVALUE,TDOC> src, int offset){
-        _dao = src._dao;
-        _startKey= src._startKey;
-        _endKey = src._endKey;
-        _key = src._key;
-        _keys = src._keys;
-        _isInclusive = src._isInclusive;
-        _isDescending = src._isDescending;
-        _start = src._start+offset;
-        _limit = offset;
-        _syncWithDoc = src._syncWithDoc;
+        dao = src.dao;
+        startKey= src.startKey;
+        endKey = src.endKey;
+        key = src.key;
+        keys = src.keys;
+        isInclusive = src.isInclusive;
+        isDescending = src.isDescending;
+        start = src.start+offset;
+        limit = offset;
+        syncWithDoc = src.syncWithDoc;
     }
 
     @Override
-    public CouchbaseViewDao<TKEY,TVALUE,TDOC> getDao(){return _dao;}
+    public CouchbaseViewDao<TKEY,TVALUE,TDOC> getDao(){return dao;}
 
     @Override
     public IViewQuery<TKEY, TVALUE, TDOC> next(int nb) {
@@ -69,25 +69,25 @@ public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IV
 
     @Override
     public com.couchbase.client.java.view.ViewQuery toCouchbaseQuery(){
-        String designDoc = ICouchbaseBucket.Utils.buildDesignDoc(_dao.getClient().getPrefix(), _dao.getDesignDoc());
-        com.couchbase.client.java.view.ViewQuery result = com.couchbase.client.java.view.ViewQuery.from(designDoc,_dao.getViewName());
-        if(_key!=null) {
-            _dao.getKeyTranscoder().key(result,_key);
+        String designDoc = ICouchbaseBucket.Utils.buildDesignDoc(dao.getClient().getPrefix(), dao.getDesignDoc());
+        com.couchbase.client.java.view.ViewQuery result = com.couchbase.client.java.view.ViewQuery.from(designDoc,dao.getViewName());
+        if(key!=null) {
+            dao.getKeyTranscoder().key(result,key);
         }
-        else if(_keys!=null){
-            _dao.getKeyTranscoder().keys(result,_keys);
+        else if(keys!=null){
+            dao.getKeyTranscoder().keys(result,keys);
         }
         else{
-            _dao.getKeyTranscoder().startKey(result, _startKey);
-            _dao.getKeyTranscoder().endKey(result,_endKey);
+            dao.getKeyTranscoder().startKey(result, startKey);
+            dao.getKeyTranscoder().endKey(result,endKey);
         }
 
-        result.descending(_isDescending).
-                inclusiveEnd(_isInclusive).
-                skip(_start).
-                limit(_limit);
+        result.descending(isDescending).
+                inclusiveEnd(isInclusive).
+                skip(start).
+                limit(limit);
 
-        if(_syncWithDoc){
+        if(syncWithDoc){
             result.stale(Stale.FALSE);
         }
         return result;
@@ -95,60 +95,60 @@ public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IV
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC> withKey(TKEY key) {
-        _key = key;
-        _startKey = null;
-        _endKey = null;
-        _keys = null;
+        this.key = key;
+        this.startKey = null;
+        this.endKey = null;
+        this.keys = null;
         return this;
     }
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC> withKeys(Collection<TKEY> keys) {
-        _key = null;
-        _startKey = null;
-        _endKey = null;
-        _keys = keys;
+        this.key = null;
+        this.startKey = null;
+        this.endKey = null;
+        this.keys = keys;
         return this;
     }
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC>  withStartKey(TKEY key) {
-        _startKey = key;
-        _key = null;
-        _keys = null;
+        this.startKey = key;
+        this.key = null;
+        this.keys = null;
         return this;
     }
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC>  withEndKey(TKEY key, boolean isInclusive) {
-        _key = null;
-        _keys = null;
-        _endKey = key;
-        _isInclusive = isInclusive;
+        this.key = null;
+        this.keys = null;
+        this.endKey = key;
+        this.isInclusive = isInclusive;
         return this;
     }
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC>  withDescending(boolean desc) {
-        _isDescending = desc;
+        this.isDescending = desc;
         return this;
     }
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC>  withOffset(int nb) {
-        _start=nb;
+        this.start=nb;
         return this;
     }
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC>  withLimit(int nb) {
-        _limit=nb;
+        this.limit=nb;
         return this;
     }
 
     @Override
     public ViewQuery<TKEY,TVALUE,TDOC> syncWithDoc(){
-        _syncWithDoc = true;
+        this.syncWithDoc = true;
         return this;
     }
 }

@@ -24,57 +24,57 @@ import com.fasterxml.jackson.annotation.JsonSetter;
  * Created by Christophe Jeunesse on 02/06/2015.
  */
 public class ElasticSearchSnapshotStorage {
-    private String _bucketName;
-    private int _partition;
-    private Long _startSequence;
-    private Long _endSequence;
+    private String bucketName;
+    private int partition;
+    private Long startSequence;
+    private Long endSequence;
 
     public ElasticSearchSnapshotStorage(SnapshotMarkerMessage message){
-        _bucketName = message.bucket();
-        _partition = message.partition();
-        _startSequence = message.startSequenceNumber();
-        _endSequence = message.endSequenceNumber();
+        bucketName = message.bucket();
+        partition = message.partition();
+        startSequence = message.startSequenceNumber();
+        endSequence = message.endSequenceNumber();
     }
 
     public ElasticSearchSnapshotStorage(){}
 
     @JsonGetter("bucketName")
     public String getBucketName() {
-        return _bucketName;
+        return bucketName;
     }
 
     @JsonSetter("bucketName")
     public void setBucketName(String bucketName) {
-        this._bucketName = bucketName;
+        this.bucketName = bucketName;
     }
 
     @JsonGetter("partition")
     public int getPartition() {
-        return _partition;
+        return partition;
     }
 
     @JsonSetter("partition")
     public void setPartition(int partition) {
-        this._partition = partition;
+        this.partition = partition;
     }
 
     @JsonGetter("startSeq")
     public Long getStartSequence() {
-        return _startSequence;
+        return startSequence;
     }
 
     @JsonSetter("startSeq")
     public void setStartSequence(Long startSequence) {
-        this._startSequence = startSequence;
+        this.startSequence = startSequence;
     }
 
     @JsonGetter("endSeq")
     public Long getEndSequence() {
-        return _endSequence;
+        return endSequence;
     }
 
     @JsonSetter("endSeq")
     public void setEndSequence(Long endSequence) {
-        this._endSequence = endSequence;
+        this.endSequence = endSequence;
     }
 }

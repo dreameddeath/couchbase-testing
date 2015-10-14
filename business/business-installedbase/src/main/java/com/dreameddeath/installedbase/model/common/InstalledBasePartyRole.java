@@ -34,22 +34,22 @@ public class InstalledBasePartyRole extends PartyRole {
      *  roles : List of roles on this Installed base (or part of it)
      */
     @DocumentProperty("roles")
-    private ListProperty<Roles> _roles = new ArrayListProperty<Roles>(InstalledBasePartyRole.this);
+    private ListProperty<Roles> roles = new ArrayListProperty<Roles>(InstalledBasePartyRole.this);
     /**
      *  installedBase : The installed base implied by the role
      */
     @DocumentProperty("installedBase")
-    private Property<InstalledBaseLink> _installedBase = new StandardProperty<InstalledBaseLink>(InstalledBasePartyRole.this);
+    private Property<InstalledBaseLink> installedBase = new StandardProperty<InstalledBaseLink>(InstalledBasePartyRole.this);
 
     // Roles Accessors
-    public List<Roles> getRoles() { return _roles.get(); }
-    public void setRoles(Collection<Roles> vals) { _roles.set(vals); }
-    public boolean addRoles(Roles val){ return _roles.add(val); }
-    public boolean removeRoles(Roles val){ return _roles.remove(val); }
+    public List<Roles> getRoles() { return roles.get(); }
+    public void setRoles(Collection<Roles> vals) { roles.set(vals); }
+    public boolean addRoles(Roles val){ return roles.add(val); }
+    public boolean removeRoles(Roles val){ return roles.remove(val); }
 
     // installedBase accessors
-    public InstalledBaseLink getInstalledBase() { return _installedBase.get(); }
-    public void setInstalledBase(InstalledBaseLink val) { _installedBase.set(val); }
+    public InstalledBaseLink getInstalledBase() { return installedBase.get(); }
+    public void setInstalledBase(InstalledBaseLink val) { installedBase.set(val); }
 
 
     public enum Roles{

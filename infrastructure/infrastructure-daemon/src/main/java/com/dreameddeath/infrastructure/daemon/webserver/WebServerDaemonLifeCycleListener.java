@@ -21,20 +21,20 @@ import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 /**
  * Created by Christophe Jeunesse on 18/08/2015.
  */
-public class WebServerDaemonLifeCycleListner implements IDaemonLifeCycle.Listener {
-    private final AbstractWebServer _standardWebServer;
-    private final boolean _isRootWebServer;
+public class WebServerDaemonLifeCycleListener implements IDaemonLifeCycle.Listener {
+    private final AbstractWebServer standardWebServer;
+    private final boolean isRootWebServer;
 
-    public WebServerDaemonLifeCycleListner(AbstractWebServer standardWebServer, boolean isRootWebServer) {
-        _standardWebServer = standardWebServer;
-        _isRootWebServer = isRootWebServer;
+    public WebServerDaemonLifeCycleListener(AbstractWebServer standardWebServer, boolean isRootWebServer) {
+        this.standardWebServer = standardWebServer;
+        this.isRootWebServer = isRootWebServer;
     }
 
     @Override
     public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
-        if(_isRootWebServer){
+        if(isRootWebServer){
             try {
-                _standardWebServer.start();
+                standardWebServer.start();
             }
             catch(Exception e){
                 throw new RuntimeException(e);
@@ -44,9 +44,9 @@ public class WebServerDaemonLifeCycleListner implements IDaemonLifeCycle.Listene
 
     @Override
     public void lifeCycleStarted(IDaemonLifeCycle lifeCycle) {
-        if(!_isRootWebServer){
+        if(!isRootWebServer){
             try {
-                _standardWebServer.start();
+                standardWebServer.start();
             }
             catch(Exception e){
                 throw new RuntimeException(e);
@@ -61,10 +61,10 @@ public class WebServerDaemonLifeCycleListner implements IDaemonLifeCycle.Listene
 
     @Override
     public void lifeCycleReload(IDaemonLifeCycle lifeCycle) {
-        if(!_isRootWebServer){
+        if(!isRootWebServer){
             try {
-                _standardWebServer.stop();
-                _standardWebServer.start();
+                standardWebServer.stop();
+                standardWebServer.start();
             }
             catch(Exception e){
                 throw new RuntimeException(e);
@@ -74,9 +74,9 @@ public class WebServerDaemonLifeCycleListner implements IDaemonLifeCycle.Listene
 
     @Override
     public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
-        if(!_isRootWebServer){
+        if(!isRootWebServer){
             try {
-                _standardWebServer.stop();
+                standardWebServer.stop();
             }
             catch(Exception e){
                 throw new RuntimeException(e);
@@ -86,9 +86,9 @@ public class WebServerDaemonLifeCycleListner implements IDaemonLifeCycle.Listene
 
     @Override
     public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
-        if(!_isRootWebServer){
+        if(!isRootWebServer){
             try {
-                _standardWebServer.stop();
+                standardWebServer.stop();
             }
             catch(Exception e){
                 throw new RuntimeException(e);
@@ -98,9 +98,9 @@ public class WebServerDaemonLifeCycleListner implements IDaemonLifeCycle.Listene
 
     @Override
     public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
-        if(_isRootWebServer){
+        if(isRootWebServer){
             try {
-                _standardWebServer.stop();
+                standardWebServer.stop();
             }
             catch(Exception e){
                 throw new RuntimeException(e);
