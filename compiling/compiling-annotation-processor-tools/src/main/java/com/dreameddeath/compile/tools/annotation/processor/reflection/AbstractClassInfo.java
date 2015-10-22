@@ -54,44 +54,53 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public static AbstractClassInfo getClassInfo(String name) throws ClassNotFoundException{
         if(AnnotationElementType.CURRENT_ELEMENT_UTILS.get()!=null){
-            TypeElement elt=AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getTypeElement(name);
-            if(elt!=null) {
-                return getClassInfo(elt);
+            try {
+                TypeElement elt = AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getTypeElement(name);
+                if (elt != null) {
+                    return getClassInfo(elt);
+                }
+            }
+            catch (Throwable e){
+                //Ignore error to fallback to class
             }
         }
-        return getClassInfo(Class.forName(name));
+        return getClassInfo(Thread.currentThread().getContextClassLoader().loadClass(name));
     }
 
 
     public static AbstractClassInfo getClassInfo(Class clazz){
-        if(!classToInfoMap.containsKey(clazz)){
-            if(clazz.isAnnotation()){
-                return new AnnotationInfo(clazz);
+        synchronized (classToInfoMap) {
+            if (!classToInfoMap.containsKey(clazz)) {
+                if (clazz.isAnnotation()) {
+                    return new AnnotationInfo(clazz);
+                }
+                else if (clazz.isInterface()) {
+                    return new InterfaceInfo(clazz);
+                }
+                else {
+                    return new ClassInfo(clazz);
+                }
             }
-            else if(clazz.isInterface()){
-                return new InterfaceInfo(clazz);
-            }
-            else{
-                return new ClassInfo(clazz);
-            }
+            return classToInfoMap.get(clazz);
         }
-        return classToInfoMap.get(clazz);
     }
 
     public static AbstractClassInfo getClassInfo(TypeElement elt){
-        if(!typeElementToInfoMap.containsKey(elt)){
-            //if(elt.getKind().)
-            if(elt.getKind().equals(ElementKind.ANNOTATION_TYPE)){
-                return new AnnotationInfo(elt);
+        synchronized (typeElementToInfoMap) {
+            if (!typeElementToInfoMap.containsKey(elt)) {
+                //if(elt.getKind().)
+                if (elt.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
+                    return new AnnotationInfo(elt);
+                }
+                else if (elt.getKind().isInterface()) {
+                    return new InterfaceInfo(elt);
+                }
+                else {
+                    return new ClassInfo(elt);
+                }
             }
-            else if(elt.getKind().isInterface()){
-                return new InterfaceInfo(elt);
-            }
-            else{
-                return new ClassInfo(elt);
-            }
+            return typeElementToInfoMap.get(elt);
         }
-        return typeElementToInfoMap.get(elt);
     }
 
 
@@ -112,9 +121,16 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     }
 
     private static Class getClassFrom(TypeElement element) {
+        try{
+            return Thread.currentThread().getContextClassLoader().loadClass(getClassName(element));
+        }
+        catch (Exception e) {
+            //System.out.println(e);
+        }
         try {
             return Class.forName(getClassName(element));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             //System.out.println(e);
         }
         return null;
@@ -364,7 +380,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
         }
         else{
             AbstractClassInfo target = (AbstractClassInfo)o;
-            return ((clazz!=null) && clazz.equals(target.clazz))||(this.typeElement.getQualifiedName().toString().equals(target.typeElement.getQualifiedName().toString()));
+            return this.getFullName().equals(target.getFullName());
         }
     }
 

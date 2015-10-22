@@ -95,8 +95,6 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     public GenericJacksonTranscoder(Class<T> clazz){
         dummyClass = clazz;
         rootClass = findRootClass(clazz);
-
-
     }
 
     @Override

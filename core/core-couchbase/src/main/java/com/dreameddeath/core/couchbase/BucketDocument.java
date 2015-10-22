@@ -27,7 +27,10 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
     final private T doc;
     private String keyPrefix=null;
 
-    public BucketDocument(T doc){ this.doc = doc;}
+    public BucketDocument(T doc){
+        this.doc = doc;
+    }
+
     @Override
     public String id() {
         return ICouchbaseBucket.Utils.buildKey(keyPrefix,doc.getBaseMeta().getKey());
@@ -78,6 +81,14 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
     }
 
     public void setKeyPrefix(String keyPrefix) {
+        if(doc!=null){
+            ICouchbaseBucket.Utils.cleanDocKey(keyPrefix,doc);
+        }
         this.keyPrefix = keyPrefix;
+    }
+
+    public BucketDocument<T> withKeyPrefix(String prefix){
+        setKeyPrefix(prefix);
+        return this;
     }
 }

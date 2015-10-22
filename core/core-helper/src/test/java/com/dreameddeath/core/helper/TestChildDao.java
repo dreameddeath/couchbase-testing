@@ -17,6 +17,7 @@
 package com.dreameddeath.core.helper;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
@@ -47,6 +48,7 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
         return TEST_CHILD_KEY_PATTERN;
     }
 
+    @BucketDocumentForClass(TestDocChild.class)
     public static class LocalBucketDocument extends BucketDocument<TestDocChild> {
         public LocalBucketDocument(TestDocChild obj) {
             super(obj);
@@ -81,6 +83,11 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
         return Arrays.asList(
                 new AllElementsViewDao(this)
         );
+    }
+
+    @Override
+    protected Class<TestDocChild> getBaseClass() {
+        return TestDocChild.class;
     }
 
     public static class AllElementsViewDao extends CouchbaseViewDao<String,String,TestDocChild>{

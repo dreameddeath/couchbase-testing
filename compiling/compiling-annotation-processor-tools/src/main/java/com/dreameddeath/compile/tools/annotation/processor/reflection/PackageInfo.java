@@ -26,23 +26,27 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class PackageInfo extends AnnotatedInfo {
-    private static Map<PackageElement,PackageInfo> packageElementToInfoMap = new HashMap<>();
-    private static Map<Package,PackageInfo> packageToInfoMap = new HashMap<>();
+    private final static Map<PackageElement,PackageInfo> packageElementToInfoMap = new HashMap<>();
+    private final static Map<Package,PackageInfo> packageToInfoMap = new HashMap<>();
 
 
     public static PackageInfo getPackageInfo(Package aPackage){
-        if(!packageToInfoMap.containsKey(aPackage)){
-            return new PackageInfo(aPackage);
+        synchronized (packageElementToInfoMap) {
+            if (!packageToInfoMap.containsKey(aPackage)) {
+                return new PackageInfo(aPackage);
+            }
+            return packageToInfoMap.get(aPackage);
         }
-        return packageToInfoMap.get(aPackage);
     }
 
     public static PackageInfo getPackageInfo(PackageElement packageElement){
-        if(!packageElementToInfoMap.containsKey(packageElement)) {
-            return new PackageInfo(packageElement);
-        }
+        synchronized (packageElementToInfoMap) {
+            if (!packageElementToInfoMap.containsKey(packageElement)) {
+                return new PackageInfo(packageElement);
+            }
 
-        return packageElementToInfoMap.get(packageElement);
+            return packageElementToInfoMap.get(packageElement);
+        }
     }
 
     public static PackageInfo getPackageInfo(TypeElement element){

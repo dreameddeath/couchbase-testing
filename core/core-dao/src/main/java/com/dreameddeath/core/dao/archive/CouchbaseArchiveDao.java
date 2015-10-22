@@ -17,7 +17,6 @@
 package com.dreameddeath.core.dao.archive;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
-import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -27,7 +26,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 /**
  * Created by Christophe Jeunesse on 17/09/2014.
  */
-public class CouchbaseArchiveDao<T extends CouchbaseDocument> extends CouchbaseDocumentDao<T> {
+public abstract class CouchbaseArchiveDao<T extends CouchbaseDocument> extends CouchbaseDocumentDao<T> {
     public static String BASE_PATTERN_FMT ="arch/%s";
     public static String BASE_PATTERN ="arch/";
     private CouchbaseDocumentDao<T> refDao;
@@ -35,10 +34,6 @@ public class CouchbaseArchiveDao<T extends CouchbaseDocument> extends CouchbaseD
     public void setRefDao(CouchbaseDocumentDao<T> refDao){this.refDao = refDao;}
     public CouchbaseDocumentDao<T> getRefDao(){return refDao;}
 
-    @Override
-    public ICouchbaseTranscoder<T> getTranscoder(){
-        return refDao.getTranscoder();
-    }
 
     @Override
     public Class<? extends BucketDocument<T>> getBucketDocumentClass() {

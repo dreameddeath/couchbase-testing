@@ -16,9 +16,10 @@
 
 package com.dreameddeath.core.model.entity.model;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.annotation.DocumentDef;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.lang.model.element.Element;
 import java.util.regex.Matcher;
@@ -27,14 +28,21 @@ import java.util.regex.Pattern;
 /**
  * Created by Christophe Jeunesse on 12/10/2015.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonAutoDetect(getterVisibility= JsonAutoDetect.Visibility.NONE,fieldVisibility= JsonAutoDetect.Visibility.NONE,isGetterVisibility = JsonAutoDetect.Visibility.NONE,setterVisibility = JsonAutoDetect.Visibility.NONE,creatorVisibility = JsonAutoDetect.Visibility.NONE)
 public class EntityModelId {
     public static final String ENTITY_PATTERN_STRING = "(\\w+)/(\\w+)";
     public static final Pattern ENTITY_PATTERN=Pattern.compile("^"+ENTITY_PATTERN_STRING+"$");
     public static final Pattern FULL_ENTITY_ID= Pattern.compile("^"+ENTITY_PATTERN_STRING+"/("+EntityVersion.VERSION_PATTERN_STR+")$");
+    public static final EntityModelId EMPTY_MODEL_ID=new EntityModelId(null,null,EntityVersion.EMPTY_VERSION);
+
 
     @JsonProperty("domain")
     private String domain;
+    @JsonProperty("name")
     private String name;
+    @JsonProperty("version")
     private EntityVersion entityVersion;
 
     public EntityModelId(String entity,String version){
@@ -42,7 +50,9 @@ public class EntityModelId {
         entityVersion = version!=null?EntityVersion.version(version):null;
     }
 
-    public EntityModelId(String domain,String name,EntityVersion version){
+
+    @JsonCreator
+    public EntityModelId(@JsonProperty("domain") String domain,@JsonProperty("name") String name,@JsonProperty("verion") EntityVersion version){
         this.domain = domain;
         this.name = name;
         entityVersion = version;
@@ -118,6 +128,17 @@ public class EntityModelId {
         return new EntityModelId(fullIdString);
     }
 
+    public static EntityModelId build(DocumentDef annot,ClassInfo classInfo){
+        if(classInfo.getCurrentClass()!=null){
+            return EntityModelId.build(annot,classInfo.getCurrentClass());
+        }
+        else{
+            return EntityModelId.build(annot,classInfo.getTypeElement());
+        }
+    }
+
+
+
     public static EntityModelId build(String domain,String name,String version){
         return new EntityModelId(domain,name,version);
     }
@@ -126,11 +147,15 @@ public class EntityModelId {
         return new EntityModelId(annot,elt);
     }
 
-    public static EntityModelId build(DocumentDef annot,Class<?> clazz){
+    public static EntityModelId build(DocumentDef annot,Class clazz){
         return new EntityModelId(annot,clazz);
     }
 
     public static EntityModelId buildPartial(String partialId){
         return new EntityModelId(partialId,null);
+    }
+
+    public static EntityModelId buildPartial(String domain,String name){
+        return new EntityModelId(domain,name,(EntityVersion)null);
     }
 }

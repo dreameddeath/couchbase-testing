@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.process.model;
 
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
@@ -41,6 +42,7 @@ import java.util.*;
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
+@DocumentDef(domain="core")
 public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES extends CouchbaseDocumentElement> extends CouchbaseDocument implements IVersionedEntity {
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
@@ -57,23 +59,23 @@ public abstract class AbstractJob<TREQ extends CouchbaseDocumentElement,TRES ext
     }
 
     @DocumentProperty("uid")
-    private Property<UUID> uid=new ImmutableProperty<UUID>(AbstractJob.this,UUID.randomUUID());
+    private Property<UUID> uid=new ImmutableProperty<>(AbstractJob.this,UUID.randomUUID());
     @DocumentProperty(value = "state",getter = "getJobState",setter = "setJobState")
-    private Property<State> state=new StandardProperty<State>(AbstractJob.this, State.NEW);
+    private Property<State> state=new StandardProperty<>(AbstractJob.this, State.NEW);
     @DocumentProperty("tasks") @Validate
-    private ListProperty<AbstractTask> taskList = new ArrayListProperty<AbstractTask>(AbstractJob.this);
+    private ListProperty<AbstractTask> taskList = new ArrayListProperty<>(AbstractJob.this);
     @DocumentProperty("lastRunError")
-    private Property<String> errorName=new StandardProperty<String>(AbstractJob.this);
+    private Property<String> errorName=new StandardProperty<>(AbstractJob.this);
     /**
      *  request : The request content for this job
      */
     @DocumentProperty("request") @NotNull @Validate
-    private Property<TREQ> request = new StandardProperty<TREQ>(AbstractJob.this);
+    private Property<TREQ> request = new StandardProperty<>(AbstractJob.this);
     /**
      *  result : The result content for this job
      */
     @DocumentProperty("result")
-    private Property<TRES> result = new StandardProperty<TRES>(AbstractJob.this);
+    private Property<TRES> result = new StandardProperty<>(AbstractJob.this);
 
     public AbstractJob(TREQ request,TRES result){
         this.request.set(request);

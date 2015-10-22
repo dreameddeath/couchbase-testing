@@ -28,7 +28,6 @@ import java.util.List;
  */
 public abstract class MemberInfo extends AnnotatedInfo {
     private AbstractClassInfo parent;
-    private ParameterizedTypeInfo parameterizedTypeInfo;
     private Member member;
     private Element element;
     private List<ModifierInfo> modifierInfos=new ArrayList<>();

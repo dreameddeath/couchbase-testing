@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 12/12/2014.
  */
 public class WriteParams {
+    private String keyPrefix=null;
     private ReplicateToMode writeReplicateMode = ReplicateToMode.NONE;
     private PersistToMode writePersistMode = PersistToMode.NONE;
 
@@ -29,6 +30,14 @@ public class WriteParams {
     private long timeOut=0;
     private TimeUnit timeOutUnit=null;
 
+    public String getKeyPrefix() {
+        return keyPrefix;
+    }
+
+    public void setKeyPrefix(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
+    }
+    public WriteParams with(String keyPrefix){this.keyPrefix = keyPrefix;return this;}
 
     public long getTimeOut() {
         return timeOut;

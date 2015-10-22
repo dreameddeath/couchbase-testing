@@ -30,7 +30,9 @@ public interface HasParent {
         public static <T extends HasParent> T getFirstParentOfClass(HasParent src, Class<T> clazz) {
             if (src != null) {
                 if (clazz.isAssignableFrom(src.getClass())) {
-                    return (T) (src);
+                    @SuppressWarnings("unchecked")
+                    T result = (T) src;
+                    return result;
                 } else {
                     return getFirstParentOfClass(src.getParentElement(), clazz);
                 }

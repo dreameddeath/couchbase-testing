@@ -16,28 +16,35 @@
 
 package com.dreameddeath.core.model.entity.model;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
+import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 13/10/2015.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonAutoDetect(getterVisibility= JsonAutoDetect.Visibility.NONE,fieldVisibility= JsonAutoDetect.Visibility.NONE,isGetterVisibility = JsonAutoDetect.Visibility.NONE,setterVisibility = JsonAutoDetect.Visibility.NONE,creatorVisibility = JsonAutoDetect.Visibility.NONE)
 public class EntityDef {
     @JsonProperty("modelId")
     private EntityModelId modelId;
+    @JsonProperty("className")
     private String className;
+    @JsonProperty("parents")
     private List<String> parentClasses=new ArrayList<>();
 
-    @JsonGetter("modelId")
     public EntityModelId getModelId() {
         return modelId;
     }
 
-    @JsonSetter("modelId")
     public void setModelId(EntityModelId modelId) {
         this.modelId = modelId;
     }
@@ -51,10 +58,23 @@ public class EntityDef {
     }
 
     public List<String> getParentClasses() {
-        return parentClasses;
+        return Collections.unmodifiableList(parentClasses);
     }
 
     public void setParentClasses(List<String> parentClasses) {
-        this.parentClasses = parentClasses;
+        this.parentClasses.clear();
+        this.parentClasses.addAll(parentClasses);
+    }
+
+    public static EntityDef build(CouchbaseDocumentStructureReflection documentDef){
+        EntityDef result = new EntityDef();
+        result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentDef.class), documentDef.getClassInfo().getTypeElement()));
+        result.setClassName(documentDef.getClassInfo().getFullName());
+        CouchbaseDocumentStructureReflection currDocReflection = documentDef;
+        while(currDocReflection.getSuperclassReflexion()!=null){
+            currDocReflection = currDocReflection.getSuperclassReflexion();
+            result.parentClasses.add(currDocReflection.getClassInfo().getFullName());
+        }
+        return result;
     }
 }

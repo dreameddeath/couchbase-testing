@@ -16,9 +16,17 @@
 
 package com.dreameddeath.core.config;
 
+import com.dreameddeath.core.config.annotation.ConfigPropertyClassReference;
 import com.dreameddeath.core.config.impl.*;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.netflix.config.DynamicPropertyFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -28,6 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Created by Christophe Jeunesse on 04/02/2015.
  */
 public class ConfigPropertyFactory {
+    public static final String LISTING_CONFIG_FILE="META-INF/core-config/configClasses";
     private static ConfigPropertyFactory INSTANCE=null;
     private static ConcurrentMap<String, List<IConfigProperty>> mapCallbackPerProperty = new ConcurrentHashMap<>();
 
@@ -37,10 +46,51 @@ public class ConfigPropertyFactory {
         }
         return INSTANCE;
     }
-    private static final ConcurrentHashMap<String, ConfigPropertyFactory> ALL_PROPS
-            = new ConcurrentHashMap<>();
 
+    private static void preloadConfigClass(String name,List<String>preloadedClasses){
+        try {
+            if(preloadedClasses.contains(name)) return;
+            Class configClass = Thread.currentThread().getContextClassLoader().loadClass(name);
+            ConfigPropertyClassReference refAnnot = (ConfigPropertyClassReference) configClass.getAnnotation(ConfigPropertyClassReference.class);
+            if ((refAnnot != null) && refAnnot.value() != null) {
+                for (int refPos = 0; refPos < refAnnot.value().length; ++refPos) {
+                    String className = refAnnot.value()[refPos].getName();
+                    if (!preloadedClasses.contains(className)) {
+                        preloadConfigClass(className, preloadedClasses);
+                    }
+                }
+            }
+            configClass.newInstance();
+            preloadedClasses.add(name);
+        }
+        catch (ClassNotFoundException|InstantiationException|IllegalAccessException e){
+            throw new RuntimeException();
+        }
+    }
 
+    public static void preloadConfigClasses(){
+        try {
+            List<String> initializedClasses = new ArrayList<>();
+            //PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources(ConfigPropertyFactory.LISTING_CONFIG_FILE);
+            //Resource[] resultResources= resolver.getResources("classpath:" + ConfigPropertyFactory.LISTING_CONFIG_FILE);
+            while (urls.hasMoreElements()) {
+                URL url = urls.nextElement();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!StringUtils.isEmpty(line)) {
+                        if (!initializedClasses.contains(line)) {
+                            preloadConfigClass(line, initializedClasses);
+                        }
+                    }
+                }
+            }
+        }
+        catch(IOException e){
+            throw new RuntimeException(e);
+        }
+    }
 
     private DynamicPropertyFactory dynamicPropertyFactory;
 

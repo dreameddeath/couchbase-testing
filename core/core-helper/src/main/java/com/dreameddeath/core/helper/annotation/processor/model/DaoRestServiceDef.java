@@ -19,7 +19,7 @@ package com.dreameddeath.core.helper.annotation.processor.model;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
-import com.dreameddeath.core.dao.utils.DaoUtils;
+import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.helper.annotation.service.RestDao;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.service.annotation.VersionStatus;
@@ -87,7 +87,7 @@ public class DaoRestServiceDef {
                 }
             }
             else{
-                 ClassInfo parentClassDao = DaoUtils.getDaoFromClass(parentEntityClassInfo);
+                 ClassInfo parentClassDao = DaoUtils.getDaoClassInfo(parentEntityClassInfo);
                 if(parentClassDao!=null) {
                     parentServiceDef = new DaoRestServiceDef(parentClassDao, daoMap);
                 }

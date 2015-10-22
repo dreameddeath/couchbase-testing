@@ -18,7 +18,6 @@ package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
-import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
@@ -33,7 +32,7 @@ import java.util.Map;
 public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     private JavaType baseType;
     private Map<String,JavaType> mapClass = new HashMap<>();
-    private EntityVersionUpgradeManager entityVersionUpgradeManager;
+    private EntityDefinitionManager entityDefinitionManager = new EntityDefinitionManager();
 
     public  CouchbaseDocumentTypeIdResolver() {
         super(null, null);
@@ -78,7 +77,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     public JavaType typeFromId(DatabindContext context, String id) {
         if(!mapClass.containsKey(id)) {
-            mapClass.put(id, context.getTypeFactory().constructType(EntityDefinitionManager.getInstance().findClassFromVersionnedTypeId(id)));
+            mapClass.put(id, context.getTypeFactory().constructType(entityDefinitionManager.findClassFromVersionnedTypeId(id)));
         }
         return mapClass.get(id);
     }

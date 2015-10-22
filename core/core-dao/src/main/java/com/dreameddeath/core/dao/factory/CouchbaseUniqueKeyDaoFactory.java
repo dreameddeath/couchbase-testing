@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.dao.unique;
+package com.dreameddeath.core.dao.factory;
 
-import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
-import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
+import com.dreameddeath.core.couchbase.exception.TranscoderNotFoundException;
+import com.dreameddeath.core.couchbase.utils.CouchbaseUtils;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
+import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
+import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
@@ -32,29 +34,16 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 11/09/2014.
  */
-public class CouchbaseUniqueKeyDaoFactory{
+public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
     private IDocumentInfoMapper documentInfoMapper;
     private Map<String, CouchbaseUniqueKeyDao> daosMap  = new ConcurrentHashMap<String, CouchbaseUniqueKeyDao>();
 
-    private ICouchbaseTranscoder<CouchbaseUniqueKey> defaultTranscoder;
-
-
     public CouchbaseUniqueKeyDaoFactory(Builder builder){
         documentInfoMapper = builder.documentInfoMapper;
-        try {
-            documentInfoMapper.addDocument(CouchbaseUniqueKey.class, CouchbaseUniqueKeyDao.UNIQ_KEY_PATTERN);
-        }
-        catch(DuplicateMappedEntryInfoException e){
-            //ignore error
-        }
-        defaultTranscoder = builder.defaultTranscoder;
     }
 
 
     public void addDaoFor(String nameSpace,CouchbaseUniqueKeyDao dao){
-        if(dao.getTranscoder()==null){
-            dao.setTranscoder(defaultTranscoder);
-        }
         daosMap.put(nameSpace,dao);
     }
 
@@ -74,6 +63,25 @@ public class CouchbaseUniqueKeyDaoFactory{
             }
         }
         throw new DaoNotFoundException(key, DaoNotFoundException.Type.KEY);
+    }
+
+    @Override
+    public synchronized void cleanup() {
+        daosMap.clear();
+    }
+
+    @Override
+    public synchronized void init() {
+        try {
+            documentInfoMapper.addDocument(CouchbaseUniqueKey.class, CouchbaseUniqueKeyDao.UNIQ_KEY_PATTERN);
+            documentInfoMapper.getMappingFromClass(CouchbaseUniqueKey.class).attachObject(ITranscoder.class, CouchbaseUtils.resolveTranscoderForClass(CouchbaseUniqueKey.class));
+        }
+        catch(DuplicateMappedEntryInfoException|MappingNotFoundException e){
+            //ignore error
+        }
+        catch(TranscoderNotFoundException e){
+            throw new RuntimeException(e);
+        }
     }
 
     public Map<CouchbaseUniqueKeyDao,List<String>> mapRemovedUniqueKeys(CouchbaseDocument doc) throws DaoNotFoundException{
@@ -99,22 +107,9 @@ public class CouchbaseUniqueKeyDaoFactory{
     }
     public static class Builder{
         private IDocumentInfoMapper documentInfoMapper;
-        private ICouchbaseTranscoder<CouchbaseUniqueKey> defaultTranscoder;
 
         public Builder withDocumentInfoMapper(IDocumentInfoMapper mapper){
             documentInfoMapper = mapper;
-            return this;
-        }
-
-        public Builder withDefaultTranscoder(ICouchbaseTranscoder<CouchbaseUniqueKey> trans){
-            defaultTranscoder=trans;
-            return this;
-        }
-
-        public Builder withDefaultTranscoder(ITranscoder<CouchbaseUniqueKey> trans){
-            GenericCouchbaseTranscoder<CouchbaseUniqueKey> transcoder = new GenericCouchbaseTranscoder<>(CouchbaseUniqueKey.class,CouchbaseUniqueKeyDao.LocalBucketDocument.class);
-            transcoder.setTranscoder(trans);
-            defaultTranscoder = transcoder;
             return this;
         }
 

@@ -18,7 +18,7 @@ package com.dreameddeath.infrastructure.daemon.couchbase;
 
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
 import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 
 /**
  * Created by Christophe Jeunesse on 13/10/2015.

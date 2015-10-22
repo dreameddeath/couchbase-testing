@@ -17,42 +17,39 @@
 package com.dreameddeath.compile.tools.annotation.processor.testing;
 
 import com.dreameddeath.compile.tools.annotation.exception.AnnotationProcessorException;
+import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessorVelocityEngine;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.AnnotatedInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.InterfaceInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.*;
 import org.apache.velocity.VelocityContext;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.Assert.assertNotNull;
+
 /**
  * Created by Christophe Jeunesse on 06/03/2015.
  */
 @SupportedAnnotationTypes(
         {"com.dreameddeath.compile.tools.annotation.processor.testing.TestingAnnotation"}
 )
-public class TestingAnnotationProcessor extends AbstractProcessor {
+public class TestingAnnotationProcessor extends AbstractAnnotationProcessor {
     private static final Logger LOG= LoggerFactory.getLogger(TestingAnnotationProcessor.class);
 
     private int nbProcessedClasses = 0;
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
-    }
 
     public int getNbProcessedClasses() {
         return nbProcessedClasses;
@@ -68,6 +65,17 @@ public class TestingAnnotationProcessor extends AbstractProcessor {
             nbProcessedClasses++;
             try {
                 AnnotatedInfo elemInfo= AnnotationElementType.getInfoOf(baseElem);
+                if(baseElem instanceof TypeElement) {
+                    AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)baseElem);
+                    if(classInfo.getSimpleName().equals("ExtendsGenericClassWithGenerics")){
+                        ClassInfo classWithGenericsInfo = ((ClassInfo)classInfo).getSuperClass();
+                        FieldInfo field = classWithGenericsInfo.getFieldByName("value");
+                        MethodInfo info = classWithGenericsInfo.getMethod("classWithTreq", field.getType());
+                        assertNotNull(info);
+                        info = classWithGenericsInfo.getMethod("setStatus",classWithGenericsInfo.getFieldByName("status").getType());
+                        assertNotNull(info);
+                    }
+                }
                 Annotation[] annotArray = elemInfo.getAnnotations();
                 Assert.assertEquals(1, annotArray.length);
                 for(Annotation annot : annotArray){
@@ -90,18 +98,26 @@ public class TestingAnnotationProcessor extends AbstractProcessor {
 
             VelocityContext velocityContext = AnnotationProcessorVelocityEngine.newContext(velocityLogger);
             velocityContext.internalGetKeys();
-
+            try {
+                AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement) baseElem);
+                velocityContext.put("packageName",classInfo.getPackageInfo().getName());
+                velocityContext.put("className",classInfo.getSimpleName());
+                AnnotationProcessorVelocityEngine.createSource(processingEnv, velocityContext, "velocityClass.vm", classInfo.getName() + "Generated");
+            }
+            catch(IOException e){
+                throw new RuntimeException("Cannot generate element",e);
+            }
         }
 
         return false;
     }
 
-    public static class ClassInfo {
+    public static class LocalClassInfo {
         //private final String _className;
         private final String packageName;
         private final String annotationValue;
 
-        public ClassInfo(Elements elementUtils,Element element){
+        public LocalClassInfo(Elements elementUtils, Element element){
             TestingAnnotation annotation = element.getAnnotation(TestingAnnotation.class);
             annotationValue = annotation.value();
             packageName = elementUtils.getPackageOf(element).getQualifiedName().toString();

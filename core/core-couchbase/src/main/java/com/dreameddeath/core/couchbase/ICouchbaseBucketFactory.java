@@ -23,5 +23,4 @@ import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundExcepti
  */
 public interface ICouchbaseBucketFactory {
     ICouchbaseBucket getBucket(String name) throws ConfigPropertyValueNotFoundException;
-    ICouchbaseBucket getBucket(final String name,final String prefix) throws ConfigPropertyValueNotFoundException ;
 }

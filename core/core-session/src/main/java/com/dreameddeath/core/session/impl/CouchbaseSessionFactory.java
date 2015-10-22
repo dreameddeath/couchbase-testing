@@ -16,10 +16,10 @@
 
 package com.dreameddeath.core.session.impl;
 
-import com.dreameddeath.core.dao.counter.CouchbaseCounterDaoFactory;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.factory.CouchbaseCounterDaoFactory;
+import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.factory.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.ValidatorFactory;
@@ -53,10 +53,19 @@ public class CouchbaseSessionFactory {
     public ICouchbaseSession newSession(CouchbaseSession.SessionType type, IUser user){
         return new CouchbaseSession(this,type,user);
     }
+    public ICouchbaseSession newSession(CouchbaseSession.SessionType type, IUser user,String keyPrefix){
+        return new CouchbaseSession(this,type,user,keyPrefix);
+    }
+
+
 
     public ICouchbaseSession newReadOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.READ_ONLY,user);}
     public ICouchbaseSession newReadWriteSession(IUser user){return newSession(CouchbaseSession.SessionType.READ_WRITE,user);}
     public ICouchbaseSession newCalcOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.CALC_ONLY,user);}
+    public ICouchbaseSession newReadOnlySession(IUser user,String keyPrefix){return newSession(CouchbaseSession.SessionType.READ_ONLY,user,keyPrefix);}
+    public ICouchbaseSession newReadWriteSession(IUser user,String keyPrefix){return newSession(CouchbaseSession.SessionType.READ_WRITE,user,keyPrefix);}
+    public ICouchbaseSession newCalcOnlySession(IUser user,String keyPrefix){return newSession(CouchbaseSession.SessionType.CALC_ONLY,user,keyPrefix);}
+
 
 
     public static class Builder{

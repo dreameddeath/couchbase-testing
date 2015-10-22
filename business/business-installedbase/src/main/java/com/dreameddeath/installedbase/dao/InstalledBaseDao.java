@@ -38,6 +38,11 @@ public class InstalledBaseDao extends BusinessCouchbaseDocumentDaoWithUID<Instal
     }
 
     @Override
+    protected Class<InstalledBase> getBaseClass(){
+        return InstalledBase.class;
+    }
+
+    @Override
     public Class<? extends BucketDocument<InstalledBase>> getBucketDocumentClass() {
         return LocalBucketDocument.class;
     }

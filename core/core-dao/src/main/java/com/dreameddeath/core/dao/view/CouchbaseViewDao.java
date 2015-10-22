@@ -40,7 +40,7 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
     private String designDoc;
     public abstract String getContent();
 
-    public IViewQuery<TKEY,TVALUE,TDOC> buildViewQuery(){ return new ViewQuery<TKEY,TVALUE,TDOC>(this);}
+    public IViewQuery<TKEY,TVALUE,TDOC> buildViewQuery(String keyPrefix){ return new ViewQuery<>(this,keyPrefix);}
     public abstract IViewKeyTranscoder<TKEY> getKeyTranscoder();
     public abstract IViewTranscoder<TVALUE> getValueTranscoder();
 
@@ -58,41 +58,37 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
     public ICouchbaseBucket getClient(){ return parentDao.getClient(); }
 
     public String buildMapString(){
-        String bucketPrefix = getClient().getPrefix();
-        if(bucketPrefix!=null){
-            bucketPrefix=bucketPrefix+ICouchbaseBucket.Utils.KEY_SEP;
-        }
         StringBuilder sb = new StringBuilder();
         sb.append("function (doc, meta) {\n");
         //Append Prefix if needed
         if(parentDao instanceof  CouchbaseDocumentWithKeyPatternDao){
-            String pattern = ((bucketPrefix!=null)?bucketPrefix:"")+((CouchbaseDocumentWithKeyPatternDao)parentDao).getKeyPattern();
+            String pattern = ((CouchbaseDocumentWithKeyPatternDao)parentDao).getKeyPattern();
             pattern = pattern.replaceAll("([/\\$])","\\\\$1");
-            sb.append("if(/^"+pattern + "$/.test(meta.id)==false) return;");
+            sb.append("if(/^(?:[^\\$]+\\$)?"+pattern + "$/.test(meta.id)==false) return;");
             sb.append("\n");
         }
-        else if(bucketPrefix!=null){
-            sb.append("if(meta.id.indexOf(\""+bucketPrefix+"\")!==0) return;");
-            sb.append("\n");
-        }
+
         String content = getContent();
-        if(bucketPrefix!=null) {
-            content.replaceAll("meta\\.id","meta.id.replace(/^"+bucketPrefix.replaceAll("([/\\$])","\\\\$1")+"/,\"\")");
-        }
+        content.replaceAll("meta\\.id","meta.id.replace(/^(?:[^\\$]+\\$)/,\"\")");
         sb.append("\n\n" + content + "\n");
         sb.append("}\n");
         return sb.toString();
     }
 
     public IViewQueryRow<TKEY,TVALUE,TDOC> map(AsyncViewRow row){
+        return map(row, null);
+    }
+
+    public IViewQueryRow<TKEY,TVALUE,TDOC> map(AsyncViewRow row,final String keyPrefix){
         try{
             final TKEY key = getKeyTranscoder().decode(row.key());
             final TVALUE value = (row.value()!=null)?getValueTranscoder().decode(row.value()):null;
-            final String docKey = ICouchbaseBucket.Utils.extractKey(parentDao.getClient().getPrefix(), row.id());
+            final String docKey = ICouchbaseBucket.Utils.extractKey(keyPrefix, row.id());
             return new IViewQueryRow<TKEY, TVALUE, TDOC>() {
                 @Override public TKEY getKey() { return key;}
                 @Override public TVALUE getValue() { return value;}
                 @Override public String getDocKey() {return docKey;}
+                @Override public String getPrefix() {return keyPrefix;}
                 @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.get(docKey);}
             };
         }
@@ -102,14 +98,19 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
     }
 
     public IViewQueryRow<TKEY,TVALUE,TDOC> map(ViewRow row){
+        return map(row,null);
+    }
+
+    public IViewQueryRow<TKEY,TVALUE,TDOC> map(ViewRow row,final String keyPrefix){
         try{
             final TKEY key = getKeyTranscoder().decode(row.key());
             final TVALUE value = (row.value()!=null)?getValueTranscoder().decode(row.value()):null;
-            final String docKey = ICouchbaseBucket.Utils.extractKey(parentDao.getClient().getPrefix(), row.id());
+            final String docKey = ICouchbaseBucket.Utils.extractKey(keyPrefix, row.id());
             return new IViewQueryRow<TKEY, TVALUE, TDOC>() {
                 @Override public TKEY getKey() { return key;}
                 @Override public TVALUE getValue() { return value;}
                 @Override public String getDocKey() {return docKey;}
+                @Override public String getPrefix() {return keyPrefix;}
                 @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.get(docKey);}
             };
         }

@@ -60,6 +60,8 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     public void setBaseDocumentDao(CouchbaseDocumentDao dao){refDocumentDao = dao;}
     public CouchbaseDocumentDao getBaseDocumentDao(){return refDocumentDao;}
 
+
+
     @Override
     public ICouchbaseBucket getClient(){
         ICouchbaseBucket client = super.getClient();
@@ -104,7 +106,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         return String.format(UNIQ_FMT_KEY, getHashKey(nameSpace,value));
     }
 
-    public String buildKey( String internalKey) throws DaoException{
+    public String buildKey(String internalKey) throws DaoException{
         return String.format(UNIQ_FMT_KEY, getHashKey(internalKey));
     }
 
@@ -113,12 +115,17 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         throw new RuntimeException("Shouldn't append");
     }
 
-    public CouchbaseUniqueKey get(String nameSpace,String value) throws DaoException,StorageException{
-        return super.get(buildKey(nameSpace, value));
+    @Override
+    protected Class<CouchbaseUniqueKey> getBaseClass() {
+        return CouchbaseUniqueKey.class;
     }
 
-    public CouchbaseUniqueKey getFromInternalKey(String internalKey) throws DaoException,StorageException{
-        return super.get(buildKey(internalKey));
+    public CouchbaseUniqueKey get(ICouchbaseSession session,String nameSpace,String value) throws DaoException,StorageException{
+        return super.get(session,buildKey(nameSpace, value));
+    }
+
+    public CouchbaseUniqueKey getFromInternalKey(ICouchbaseSession session,String internalKey) throws DaoException,StorageException{
+        return super.get(session,buildKey(internalKey));
     }
 
     private CouchbaseUniqueKey create(ICouchbaseSession session,CouchbaseDocument doc,String internalKey,boolean isCalcOnly) throws DaoException,StorageException,ValidationException {

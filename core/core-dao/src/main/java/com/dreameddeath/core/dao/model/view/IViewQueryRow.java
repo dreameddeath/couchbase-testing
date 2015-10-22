@@ -28,5 +28,6 @@ public interface IViewQueryRow<TKEY,TVALUE,TDOC extends CouchbaseDocument> {
     TKEY getKey();
     TVALUE getValue();
     String getDocKey();
+    String getPrefix();
     TDOC getDoc(ICouchbaseSession session) throws DaoException,StorageException;
 }

@@ -17,6 +17,7 @@
 package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
+import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
@@ -29,6 +30,7 @@ import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdate
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.junit.After;
@@ -50,19 +52,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AbstractDaemonTest extends Assert {
     private static final Logger LOG =  LoggerFactory.getLogger(AbstractDaemonTest.class);
     private CuratorTestUtils testUtils;
+    private CouchbaseBucketFactorySimulator couchbaseBucketFactory;
     @Before
     public void setup() throws Exception{
         testUtils = new CuratorTestUtils();
         testUtils.prepare(1);
+        couchbaseBucketFactory = new CouchbaseBucketFactorySimulator();
     }
 
     @Test
     public void testDaemon() throws Exception{
         final AtomicInteger nbErrors=new AtomicInteger(0);
         String connectionString = testUtils.getCluster().getConnectString();
+
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
-        final AbstractDaemon daemon=AbstractDaemon.builder().withName("testing Daemon").build();
-        daemon.addWebServer(RestWebServer.builder().withName("tests").withApplicationContextConfig("applicationContext.xml"));
+        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test","testdoc").getName(),"testBucketName");
+        final AbstractDaemon daemon=AbstractDaemon.builder()
+                .withName("testing Daemon")
+                .withWithCouchbase(true)
+                .withWithCouchbaseBucketFactory(couchbaseBucketFactory)
+                .build();
+
+        daemon.addWebServer(RestWebServer.builder().withName("tests")
+                .withApplicationContextConfig("applicationContext.xml")
+                .withWithCouchbase(true));
         daemon.addWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverPath("tests/services"));
         Thread stopping_thread = new Thread(new Runnable() {
             @Override
@@ -282,6 +295,7 @@ public class AbstractDaemonTest extends Assert {
             }
         });
         daemon.startAndJoin();
+        LOG.warn("Going to stop");
         stopping_thread.join();
         assertEquals(0L, nbErrors.get());
         {

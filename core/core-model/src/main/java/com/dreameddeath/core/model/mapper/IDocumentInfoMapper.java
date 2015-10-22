@@ -36,4 +36,6 @@ public interface IDocumentInfoMapper {
     void addDocument(Class<? extends CouchbaseDocument> docClass) throws DuplicateMappedEntryInfoException;
     void addDocument(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws DuplicateMappedEntryInfoException;
     void addKeyPattern(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws MappingNotFoundException;
+
+    void cleanup();
 }

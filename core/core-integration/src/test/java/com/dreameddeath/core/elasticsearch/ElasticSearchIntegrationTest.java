@@ -17,6 +17,7 @@
 package com.dreameddeath.core.elasticsearch;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
@@ -27,6 +28,7 @@ import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.Utils;
@@ -46,6 +48,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ElasticSearchIntegrationTest {
 
+    @DocumentDef(domain="testEs")
     public static class TestDoc extends CouchbaseDocument {
         @DocumentProperty("strVal")
         public String strVal;
@@ -104,6 +107,7 @@ public class ElasticSearchIntegrationTest {
             @Override public IViewKeyTranscoder<String> getKeyTranscoder() {return IViewTranscoder.Utils.stringKeyTranscoder();}
         }
 
+        @BucketDocumentForClass(TestDoc.class)
         public static class LocalBucketDocument extends BucketDocument<TestDoc> {
             public LocalBucketDocument(TestDoc obj){super(obj);}
         }
@@ -118,6 +122,11 @@ public class ElasticSearchIntegrationTest {
             return Arrays.asList(
                     new TestViewDao(this)
             );
+        }
+
+        @Override
+        protected Class<TestDoc> getBaseClass() {
+            return TestDoc.class;
         }
 
         @Override

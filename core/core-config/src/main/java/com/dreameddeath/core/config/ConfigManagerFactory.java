@@ -21,10 +21,12 @@ import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
 import org.apache.commons.configuration.BaseConfiguration;
 
+
 /**
  * Created by Christophe Jeunesse on 20/01/2015.
  */
 public class ConfigManagerFactory {
+
     private final static BaseConfiguration defaultValueConfig;
     static{
         //*TODO manage configuration overloading

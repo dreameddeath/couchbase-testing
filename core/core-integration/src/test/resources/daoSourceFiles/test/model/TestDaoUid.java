@@ -31,7 +31,7 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 
-@DocumentDef(domain="test",name="daoProccessorUid",version = "1.0.0")
+@DocumentDef(domain="testGeneration",name="daoProccessorUid",version = "1.0.0")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "testUid/",idFormat = "%010d",idPattern = "\\d{10}")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @Counter(name= "checks",dbName = "checks")

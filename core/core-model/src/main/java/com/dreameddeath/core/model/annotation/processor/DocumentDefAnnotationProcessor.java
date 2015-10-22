@@ -18,10 +18,10 @@ package com.dreameddeath.core.model.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -43,17 +43,18 @@ public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
+        EntityDefinitionManager entityDefinitionManager = new EntityDefinitionManager();
         for(Element classElem:roundEnv.getElementsAnnotatedWith(DocumentDef.class)){
             DocumentDef annot =classElem.getAnnotation(DocumentDef.class);
             try {
-                String fileName= EntityDefinitionManager.getInstance().getDocumentEntityFilename(EntityModelId.build(annot, classElem));
+                String fileName= entityDefinitionManager.getDocumentEntityFilename(EntityModelId.build(annot, classElem));
                 AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, classElem);
-                AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)classElem);
-                file.getWriter().write(classInfo.getFullName());
+                entityDefinitionManager.buildEntityDefinitionFile(file.getWriter(), CouchbaseDocumentReflection.getReflectionFromTypeElement((TypeElement)classElem));
                 file.close();
             }
             catch(IOException e){
                 messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());
+                throw new RuntimeException(e);
             }
         }
         return true;

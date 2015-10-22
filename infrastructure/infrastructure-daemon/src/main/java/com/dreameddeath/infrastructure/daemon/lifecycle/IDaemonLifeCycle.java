@@ -55,7 +55,8 @@ public interface IDaemonLifeCycle {
         STARTING("starting"),
         STARTED("started"),
         HALTED("halted"),
-        STOPPING("stopping");
+        STOPPING("stopping"),
+        FAILED("failed"),;
 
         private final String name;
 

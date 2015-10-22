@@ -17,6 +17,9 @@
 package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.DeclaredType;
@@ -25,16 +28,31 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class ParameterizedTypeInfo{
-    private String name;
-    private Type type;
-    List<AbstractClassInfo> parameterizedInfosList=new ArrayList<>();
-    List<ParameterizedTypeInfo> parametersGenericsInfo = new ArrayList<>();
+    private static Logger LOG= LoggerFactory.getLogger(ParameterizedTypeInfo.class);
+
+    private static final Map<TypeMirror,ParameterizedTypeInfo> typeMirrorCache=new HashMap<>();
+
+    public static ParameterizedTypeInfo getParameterizedTypeInfo(TypeMirror typeMirror){
+        synchronized (typeMirrorCache) {
+            if(!typeMirrorCache.containsKey(typeMirror)) {
+                return new ParameterizedTypeInfo(typeMirror);
+            }
+            return typeMirrorCache.get(typeMirror);
+        }
+    }
+
+    private final String name;
+    private final Type type;
+    private final List<AbstractClassInfo> parameterizedInfosList=new ArrayList<>();
+    private final List<ParameterizedTypeInfo> parametersGenericsInfo = new ArrayList<>();
 
     private void addType(DeclaredType type){
         if(type.asElement().getKind().isInterface()){
@@ -45,7 +63,7 @@ public class ParameterizedTypeInfo{
         }
 
         for(TypeMirror parameterElement:type.getTypeArguments()){
-            parametersGenericsInfo.add(new ParameterizedTypeInfo(parameterElement));
+            parametersGenericsInfo.add(getParameterizedTypeInfo(parameterElement));
         }
     }
 
@@ -59,22 +77,45 @@ public class ParameterizedTypeInfo{
         else if(type instanceof DeclaredType){
             addType((DeclaredType) type);
         }
+        else if(type instanceof javax.lang.model.type.TypeVariable){
+            TypeMirror upperBound = ((javax.lang.model.type.TypeVariable) type).getUpperBound();
+            if((upperBound!=null) && (upperBound instanceof DeclaredType)){
+                addType((DeclaredType) upperBound);
+            }
+        }
     }
 
     public ParameterizedTypeInfo(TypeParameterElement typeParameter) {
+        name = null;
         for(TypeMirror subType:typeParameter.getBounds()){
             addType(subType);
         }
         if(parameterizedInfosList.size()>0) {
             type = getMainType().getCurrentClass();
         }
+        else{
+            type=null;
+        }
     }
 
-    public ParameterizedTypeInfo(TypeMirror typeMirror){
+    private ParameterizedTypeInfo(TypeMirror typeMirror){
+        name = null;
+        typeMirrorCache.put(typeMirror,this);
         addType(typeMirror);
         if(parameterizedInfosList.size()>0) {
             type = getMainType().getCurrentClass();
         }
+        else{
+            type=null;
+        }
+    }
+
+    public ParameterizedTypeInfo(ParameterizedTypeInfo source,String name){
+        this.name = name;
+        this.type = source.type;
+        this.parameterizedInfosList.addAll(source.parameterizedInfosList);
+        this.parametersGenericsInfo.addAll(source.parametersGenericsInfo);
+
     }
 
     private void addType(Class clazz){
@@ -85,6 +126,7 @@ public class ParameterizedTypeInfo{
     }
 
     public ParameterizedTypeInfo(Type paramType){
+        name=null;
         type = paramType;
         if(paramType instanceof Class){
             addType((Class)paramType);
@@ -133,14 +175,9 @@ public class ParameterizedTypeInfo{
         return AbstractClassInfo.getClassInfo(clazz).isAssignableFrom(getMainType());
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getName() {
         return name;
     }
-
 
     public Type getType() {
         return type;

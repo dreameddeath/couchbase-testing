@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.dao.counter;
+package com.dreameddeath.core.dao.factory;
 
+import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.model.counter.CouchbaseCounter;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
@@ -31,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Christophe Jeunesse on 02/09/2014.
  */
-public class CouchbaseCounterDaoFactory {
+public class CouchbaseCounterDaoFactory implements IDaoFactory{
     private Map<Pattern,CouchbaseCounterDao> patternsMap
             = new ConcurrentHashMap<Pattern,CouchbaseCounterDao>();
 
@@ -72,6 +73,16 @@ public class CouchbaseCounterDaoFactory {
         }
 
         throw new DaoNotFoundException(key, DaoNotFoundException.Type.COUNTER);
+    }
+
+    @Override
+    public synchronized void init() {
+        //Nothing to do
+    }
+
+    @Override
+    public synchronized void cleanup() {
+        patternsMap.clear();
     }
 
     public static Builder builder(){

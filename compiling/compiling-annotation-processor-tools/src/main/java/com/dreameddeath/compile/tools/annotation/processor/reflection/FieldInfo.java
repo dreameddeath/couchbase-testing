@@ -37,7 +37,7 @@ public class FieldInfo extends MemberInfo {
 
         if(variableElement!=null){
             name = variableElement.getSimpleName().toString();
-            typeInfo = new ParameterizedTypeInfo(variableElement.asType());
+            typeInfo =  ParameterizedTypeInfo.getParameterizedTypeInfo(variableElement.asType());
         }
     }
 

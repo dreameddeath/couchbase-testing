@@ -17,7 +17,7 @@
 package com.dreameddeath.infrastructure.daemon.webserver;
 
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.couchbase.WebServerCouchbaseFactories;

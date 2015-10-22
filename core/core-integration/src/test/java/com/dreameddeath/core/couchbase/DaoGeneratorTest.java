@@ -28,8 +28,6 @@ import org.junit.Test;
  * Created by Christophe Jeunesse on 02/01/2015.
  */
 public class DaoGeneratorTest extends Assert {
-
-
     Utils.TestEnvironment env;
     @Before
     public void initTest() throws  Exception{
@@ -52,6 +50,8 @@ public class DaoGeneratorTest extends Assert {
 
     @After
     public void end(){
-        env.shutdown(true);
+        if(env!=null) {
+            env.shutdown(true);
+        }
     }
 }

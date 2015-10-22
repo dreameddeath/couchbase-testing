@@ -37,18 +37,39 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${mvn.compiler.version}</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <!-- Disable annotation processing for ourselves. -->
-                    <compilerArgument>-proc:none</compilerArgument>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                            <!-- Disable annotation processing for ourselves. -->
+                            <compilerArgument>-proc:none</compilerArgument>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                            <!-- Disable annotation processing for ourselves. -->
+                            <!--<compilerArgument>-proc:none</compilerArgument>-->
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
-
     </build>
 
-  <dependencies>
+    <dependencies>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-java-utils</artifactId>
@@ -205,5 +226,11 @@
           <version>${project.version}</version>
           <scope>test</scope>
       </dependency>
+        <!--<dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>compiling-annotation-processor-tools</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>-->
   </dependencies>
 </project>

@@ -45,8 +45,6 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
     private final Constructor<? extends BucketDocument<T>> baseDocumentContructor;
     private String keyPrefix;
 
-
-
     public GenericCouchbaseTranscoder(Class<T> clazz, Class<? extends BucketDocument<T>> baseDocumentClazz) {
         super();
         try {

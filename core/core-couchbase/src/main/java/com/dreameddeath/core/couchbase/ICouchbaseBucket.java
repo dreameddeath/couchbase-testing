@@ -34,10 +34,10 @@ import java.util.concurrent.TimeUnit;
 public interface ICouchbaseBucket {
     ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder);
 
-    <T extends CouchbaseDocument> T get(final String key, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> T get(final String key, final ICouchbaseTranscoder<T> transcoder, ReadParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncGet(final String id, final ICouchbaseTranscoder<T> transcoder);
-    <T extends CouchbaseDocument> Observable<T> asyncGet(final String id, final ICouchbaseTranscoder<T> transcoder, ReadParams params);
+    <T extends CouchbaseDocument> T get(final String key,Class<T> entity) throws StorageException;
+    <T extends CouchbaseDocument> T get(final String key,Class<T> entity, ReadParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,Class<T> entity);
+    <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,Class<T> entity, ReadParams params);
     //Observable<JsonDocument> getAndTouch(String id, int expiry);
     //<D extends Document<?>> Observable<Boolean> touch(String id, int expiry);
     //<D extends Document<?>> Observable<Boolean> touch(D document);
@@ -47,36 +47,36 @@ public interface ICouchbaseBucket {
     //Observable<Boolean> unlock(D document);
     //Observable<Boolean> unlock(String id,long cas);
 
-    <T extends CouchbaseDocument> T add(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> T add(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> T add(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> T add(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, WriteParams params) throws StorageException;
 
 
-    <T extends CouchbaseDocument> T set(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> T set(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> T set(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> T set(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, WriteParams params) throws StorageException;
 
-    <T extends CouchbaseDocument> T replace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> T replace(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> T replace(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> T replace(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, WriteParams params) throws StorageException;
 
-    <T extends CouchbaseDocument> T delete(T bucketDoc, ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> T delete(T bucketDoc, ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> T delete(T bucketDoc) throws StorageException;
+    <T extends CouchbaseDocument> T delete(T bucketDoc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, WriteParams params) throws StorageException;
 
-    <T extends CouchbaseDocument> T append(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> T append(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> T append(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> T append(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, WriteParams params) throws StorageException;
 
-    <T extends CouchbaseDocument> T prepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> T prepend(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, final ICouchbaseTranscoder<T> transcoder) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, final ICouchbaseTranscoder<T> transcoder, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> T prepend(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> T prepend(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, WriteParams params) throws StorageException;
 
     Long counter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException;
     Long counter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) throws StorageException;
@@ -91,9 +91,6 @@ public interface ICouchbaseBucket {
     Long counter(String key, Long by, WriteParams params) throws StorageException;
     Observable<Long> asyncCounter(String key, Long by)throws StorageException;
     Observable<Long> asyncCounter(String key, Long by, WriteParams params)throws StorageException;
-
-
-    String getPrefix();
 
     void createOrUpdateView(String designDoc, Map<String, String> viewMap) throws StorageException;
 
@@ -132,11 +129,18 @@ public interface ICouchbaseBucket {
 
         public static String extractKey(String prefix,String key){
             if((prefix!=null) && key.startsWith(prefix+KEY_SEP)){
-                return key.substring(prefix.length()+1);
+                return key.substring(prefix.length() + 1);
             }
             else{
                 return key;
             }
+        }
+
+        public static <T extends CouchbaseDocument> T cleanDocKey(String prefix,T doc){
+            if((prefix!=null) && doc.getBaseMeta().getKey().startsWith(prefix+KEY_SEP)){
+                doc.getBaseMeta().setKey(doc.getBaseMeta().getKey().substring(prefix.length()+1));
+            }
+            return doc;
         }
     }
 

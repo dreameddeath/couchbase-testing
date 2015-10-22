@@ -20,8 +20,8 @@ package com.dreameddeath.core.model;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
 import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -30,7 +30,6 @@ import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
-import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -90,12 +89,13 @@ public class UpgraderTest {
 
     }
 
-    @DaoForClass(TestModel.class)
+    //@DaoForClass(TestModel.class)
     public static class TestDaoV1 extends CouchbaseDocumentDao<TestModel>{
         public static final String TEST_CNT_KEY="test/cnt";
         public static final String TEST_CNT_KEY_PATTERN="test/cnt";
         public static final String TEST_KEY_FMT="test/%010d";
 
+        @BucketDocumentForClass(TestModel.class)
         public static class LocalBucketDocument extends BucketDocument<TestModel> {
             public LocalBucketDocument(TestModel obj){super(obj);}
         }
@@ -112,6 +112,12 @@ public class UpgraderTest {
                     new CouchbaseCounterDao.Builder().withKeyPattern(TEST_CNT_KEY_PATTERN).withDefaultValue(1L).withBaseDao(this)
             );
         }
+
+        @Override
+        protected Class<TestModel> getBaseClass() {
+            return TestModel.class;
+        }
+
         @Override
         public TestModel buildKey(ICouchbaseSession session, TestModel newObject) throws DaoException, StorageException {
             long result = session.incrCounter(TEST_CNT_KEY, 1);
@@ -121,11 +127,12 @@ public class UpgraderTest {
         }
     }
 
-    @DaoForClass(TestModelV2.class)
+    //@DaoForClass(TestModelV2.class)
     public static class TestDaoV2 extends CouchbaseDocumentDao<TestModelV2>{
         public static final String TEST_CNT_KEY="test/cnt";
         public static final String TEST_CNT_KEY_PATTERN="test/cnt";
 
+        @BucketDocumentForClass(TestModelV2.class)
         public static class LocalBucketDocument extends BucketDocument<TestModelV2> {
             public LocalBucketDocument(TestModelV2 obj){super(obj);}
         }
@@ -141,6 +148,11 @@ public class UpgraderTest {
             newObject.getBaseMeta().setKey(String.format(TEST_CNT_KEY, result));
 
             return newObject;
+        }
+
+        @Override
+        protected Class<TestModelV2> getBaseClass() {
+            return TestModelV2.class;
         }
     }
 
@@ -196,12 +208,13 @@ public class UpgraderTest {
         CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
 
         CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
-        sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+        sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder();
         sessionFactory = sessionBuilder.build();
         try {
-            sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV1().setClient(client), new GenericJacksonTranscoder<>(TestModel.class));
-            sessionFactory.getDocumentDaoFactory().addDao(new TestDaoV2().setClient(client), new GenericJacksonTranscoder<>(TestModelV2.class));
-        }catch(Exception e){
+            sessionFactory.getDocumentDaoFactory().addDaoFor(TestModel.class,new TestDaoV1().setClient(client));
+            sessionFactory.getDocumentDaoFactory().addDaoFor(TestModelV2.class,new TestDaoV2().setClient(client));
+        }
+        catch(Exception e){
             throw new RuntimeException(e);
         }
 

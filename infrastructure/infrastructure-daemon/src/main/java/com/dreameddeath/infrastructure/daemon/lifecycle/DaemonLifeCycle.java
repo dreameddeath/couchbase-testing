@@ -19,6 +19,8 @@ package com.dreameddeath.infrastructure.daemon.lifecycle;
 
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 13/08/2015.
  */
 public class DaemonLifeCycle implements IDaemonLifeCycle {
+    private static final Logger LOG = LoggerFactory.getLogger(DaemonLifeCycle.class);
     private final AbstractDaemon daemon;
     private final List<Listener>  listeners = new ArrayList<>();
     private Status status = Status.STOPPED;
@@ -40,75 +43,110 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
         creationDate = new DateTime();
     }
 
+    private void manageException(Exception e,String action) throws Exception{
+        LOG.error("Error during "+action,e);
+        status=Status.FAILED;
+        for(Listener listener:listeners){
+            try{
+                listener.lifeCycleFailure(this,e);
+            }
+            catch (Exception failureException){
+                LOG.error("Error during failure of "+action+" management",failureException);
+            }
+        }
+        this.notifyAll();
+        throw e;
+    }
+
     @Override
     synchronized public void start() throws Exception {
-        if(status== Status.STOPPED||
-                status== Status.STARTING) {
-            status = Status.STARTING;
-            for (Listener listener : listeners) {
-                listener.lifeCycleStarting(this);
+        try {
+            if (status == Status.STOPPED ||
+                    status == Status.STARTING) {
+                status = Status.STARTING;
+                for (Listener listener : listeners) {
+                    listener.lifeCycleStarting(this);
+                }
             }
-        }
-        if(status== Status.STARTING||
-                status== Status.HALTED) {
-            for (Listener listener : listeners) {
-                listener.lifeCycleStarted(this);
+            if (status == Status.STARTING ||
+                    status == Status.HALTED) {
+                for (Listener listener : listeners) {
+                    listener.lifeCycleStarted(this);
+                }
+                status = Status.STARTED;
             }
-            status = Status.STARTED;
+            lastStartDate = new DateTime();
         }
-        lastStartDate = new DateTime();
+        catch(Exception e){
+            manageException(e,"start");
+        }
     }
 
     @Override
     synchronized public void halt() throws Exception {
-        if(status== Status.STARTED) {
-            for (Listener listener : listeners) {
-                listener.lifeCycleHalt(this);
+        try {
+
+            if (status == Status.STARTED) {
+                for (Listener listener : listeners) {
+                    listener.lifeCycleHalt(this);
+                }
+                status = Status.HALTED;
+                lastHaltStartDate = new DateTime();
             }
-            status = Status.HALTED;
-            lastHaltStartDate = new DateTime();
+        }
+        catch(Exception e){
+            manageException(e, "halt");
         }
     }
 
 
     @Override
     synchronized public void stop() throws Exception {
-        if(status== Status.STARTED) {
-            status = Status.STOPPING;
-            for (Listener listener : listeners) {
-                listener.lifeCycleStopping(this);
+        try {
+            if (status == Status.STARTED) {
+                status = Status.STOPPING;
+                for (Listener listener : listeners) {
+                    listener.lifeCycleStopping(this);
+                }
             }
-        }
-        if(status== Status.HALTED ||
-                status == Status.STOPPING){
-            for (Listener listener : listeners) {
-                listener.lifeCycleStopped(this);
+            if (status == Status.HALTED ||
+                    status == Status.STOPPING) {
+                for (Listener listener : listeners) {
+                    listener.lifeCycleStopped(this);
+                }
+                status = Status.STOPPED;
             }
-            status = Status.STOPPED;
+            this.notifyAll();
         }
-
-        this.notifyAll();
+        catch(Exception e){
+            manageException(e,"stop");
+        }
     }
 
     @Override
     synchronized public void reload() throws Exception {
-        if(status== Status.STARTED){
-            for (Listener listener : listeners) {
-                listener.lifeCycleReload(this);
+        try {
+            if (status == Status.STARTED) {
+                for (Listener listener : listeners) {
+                    listener.lifeCycleReload(this);
+                }
             }
+        }
+        catch(Exception e){
+            manageException(e,"reload");
         }
     }
 
     @Override
     synchronized public void join() throws Exception{
-        while(!status.equals(Status.STOPPED)) {
+        while(!(isStopped() || isFailed())) {
             this.wait();
         }
     }
 
     @Override
     synchronized public void join(long timeout) throws Exception{
-        while(!status.equals(Status.STOPPED)) {
+        while(!(isStopped() || isFailed())) {
             this.wait(timeout);
         }
     }
@@ -146,7 +184,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public boolean isFailed() {
-        return false;  //TODO
+        return status==Status.FAILED;
     }
 
     @Override

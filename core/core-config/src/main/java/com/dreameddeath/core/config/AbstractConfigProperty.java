@@ -101,15 +101,22 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
     }
 
     @Override
-    public T getMandatoryValue(String errorMessage,Object ...params) throws ConfigPropertyValueNotFoundException {
+    public T getMandatoryValue(String errorMessage,Object ... params) throws ConfigPropertyValueNotFoundException {
         T value = getValue();
         if (value == null) {
             Pattern pattern = Pattern.compile("(\\{\\})");
             Matcher matcher =pattern.matcher(errorMessage);
             StringBuffer resultMessage = new StringBuffer();
             int pos=0;
+            //System.err.println("Nb params :"+params.length);
             while(matcher.find()) {
-                matcher.appendReplacement(resultMessage, params[pos++].toString());
+                if(pos>params.length){
+                    matcher.appendReplacement(resultMessage, "<undef>");
+                }
+                else{
+                    Object paramValue = params[pos++];
+                    matcher.appendReplacement(resultMessage, paramValue!=null?paramValue.toString():"<null>");
+                }
             }
             matcher.appendTail(resultMessage);
             throw new ConfigPropertyValueNotFoundException(this, resultMessage.toString());

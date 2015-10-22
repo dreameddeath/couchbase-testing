@@ -16,11 +16,13 @@
 
 package com.dreameddeath.core.elasticsearch.dao;
 
+import com.dreameddeath.core.couchbase.utils.CouchbaseUtils;
 import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
 import com.dreameddeath.core.elasticsearch.IElasticSearchMapper;
 import com.dreameddeath.core.elasticsearch.exception.ElasticSearchDaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
+import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import org.elasticsearch.action.get.GetResponse;
 import rx.Observable;
 
@@ -29,10 +31,10 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 26/05/2015.
  */
 public class ElasticSearchDao<T extends CouchbaseDocument> {
-    private String  bucketName;
-    private ElasticSearchClient client;
-    private IElasticSearchMapper mapper;
-    private ITranscoder<T> transcoder;
+    final private String  bucketName;
+    final private ElasticSearchClient client;
+    final private IElasticSearchMapper mapper;
+    final private ITranscoder<T> transcoder;
 
     public ElasticSearchDao(String bucketName,ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder<T> transcoder){
         this.client = client;
@@ -40,6 +42,21 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
         this.bucketName = bucketName;
         this.transcoder = transcoder;
     }
+
+    public ElasticSearchDao(String bucketName,ElasticSearchClient client,IElasticSearchMapper mapper,Class<T> entityClass){
+        this.client = client;
+        this.mapper = mapper;
+        this.bucketName = bucketName;
+        CouchbaseDocumentReflection documentReflection = CouchbaseDocumentReflection.getReflectionFromClass(entityClass);
+        try {
+            transcoder = CouchbaseUtils.resolveTranscoderForClass(documentReflection.getClassInfo().getCurrentClass());
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
+
+    }
+
 
     public static <T extends CouchbaseDocument> Builder<T> builder(){
         return new Builder<>();

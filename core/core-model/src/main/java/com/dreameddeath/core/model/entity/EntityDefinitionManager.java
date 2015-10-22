@@ -16,44 +16,57 @@
 
 package com.dreameddeath.core.model.entity;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import java.io.*;
-import java.util.HashMap;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Christophe Jeunesse on 13/10/2015.
  */
 public class EntityDefinitionManager {
-    public static final String ROOT_PATH="META-INF/core-annotation";
+    private final static Logger LOG = LoggerFactory.getLogger(EntityDefinitionManager.class);
+
+    public static final String ROOT_PATH="META-INF/core-model";
     public static final String DOCUMENT_DEF_PATH="DocumentDef";
 
-    private final static EntityDefinitionManager ENTITY_DEFINITION_MANAGER_REF;
-    static{
-        ENTITY_DEFINITION_MANAGER_REF = new EntityDefinitionManager();
-        ENTITY_DEFINITION_MANAGER_REF.preloadClasses();
+    public final static ObjectMapper MAPPER = new ObjectMapper();
+    static {
+        MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        MAPPER.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false);
+        MAPPER.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        MAPPER.setTimeZone(TimeZone.getDefault());
+        //MAPPER.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     }
 
-    public static EntityDefinitionManager getInstance(){
-        return ENTITY_DEFINITION_MANAGER_REF;
-    }
+    private Map<String,Class> versionClassMap=new ConcurrentHashMap<>();
 
-    private Map<String,Class> versionClassMap=new HashMap<>();
+    public EntityDefinitionManager(){}
 
-    private EntityDefinitionManager(){}
-
-    public void buildEntityDefinitionFile(Writer writer,CouchbaseDocumentReflection documentDef){
-        DocumentDef docDef = documentDef.getClassInfo().getAnnotation(DocumentDef.class);
-        EntityModelId modelId = EntityModelId.build(docDef,documentDef.getClassInfo().getTypeElement());
-        //TODO generate json
+    public void buildEntityDefinitionFile(Writer writer,CouchbaseDocumentReflection documentDef) throws IOException{
+        MAPPER.writeValue(writer,EntityDef.build(documentDef.getStructure()));
     }
 
     public String getDocumentEntityFilename(EntityModelId modelId){
-        return String.format("%s/%s/%s.%s/v%s", ROOT_PATH, DOCUMENT_DEF_PATH,
+        return String.format("%s/%s/%s/%s/v%s.json", ROOT_PATH, DOCUMENT_DEF_PATH,
                 modelId.getDomain(),
                 modelId.getName(),
                 modelId.getEntityVersion().getMajor());
@@ -63,16 +76,15 @@ public class EntityDefinitionManager {
         Class result =versionClassMap.get(modelId.getClassUnivoqueModelId());
         if(result==null) {
             //it will naturally exclude patch from typeId
-            String filename = EntityDefinitionManager.getInstance().getDocumentEntityFilename(modelId);
+            String filename = getDocumentEntityFilename(modelId);
             InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
             if (is == null) {
                 throw new RuntimeException("Cannot find/read file <" + filename + "> for id <" + modelId.toString() + ">");
             }
-            BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
             try {
-                String className = fileReader.readLine();
-                result = Thread.currentThread().getContextClassLoader().loadClass(className);
-                versionClassMap.put(modelId.getClassUnivoqueModelId(), result);
+                EntityDef def = MAPPER.readValue(is, EntityDef.class);
+                result = Thread.currentThread().getContextClassLoader().loadClass(def.getClassName());
+                versionClassMap.putIfAbsent(modelId.getClassUnivoqueModelId(), result);
             } catch (ClassNotFoundException | IOException e) {
                 throw new RuntimeException("Cannot find/read file <" + filename + "> for id <" + modelId.toString() + ">", e);
             }
@@ -85,15 +97,24 @@ public class EntityDefinitionManager {
     }
 
 
-    private void preloadClasses(){
+    public synchronized List<EntityDef> getEntities(){
         try {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            //Resource[] resultResources= resolver.getResources("classpath:" + ROOT_PATH + "/" + DOCUMENT_DEF_PATH + "/*/*");
-
+            Resource[] resultResources= resolver.getResources("classpath*:" + ROOT_PATH + "/" + DOCUMENT_DEF_PATH + "/*/*/*.json");
+            List<EntityDef> result = new ArrayList<>(resultResources.length);
+            for(Resource entityResource:resultResources){
+                try {
+                    result.add(MAPPER.readValue(entityResource.getInputStream(), EntityDef.class));
+                }
+                catch(Throwable e){
+                    LOG.error("Cannot read entity file <"+entityResource.getFile().getAbsolutePath()+">",e);
+                    throw new RuntimeException("Cannot read entity file <"+entityResource.getFilename()+">",e);
+                }
+            }
+            return result;
         }
-        catch(Exception e){
+        catch(Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 }

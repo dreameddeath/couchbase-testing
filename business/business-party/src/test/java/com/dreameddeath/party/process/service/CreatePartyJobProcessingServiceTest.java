@@ -74,6 +74,8 @@ public class CreatePartyJobProcessingServiceTest {
 
     @After
     public void close(){
-        testEnvironment.shutdown(true);
+        if(testEnvironment!=null) {
+            testEnvironment.shutdown(true);
+        }
     }
 }

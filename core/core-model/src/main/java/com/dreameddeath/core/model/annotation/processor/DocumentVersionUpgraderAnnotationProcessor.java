@@ -17,7 +17,8 @@
 package com.dreameddeath.core.model.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 
@@ -25,11 +26,9 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Set;
 
@@ -46,29 +45,18 @@ public class DocumentVersionUpgraderAnnotationProcessor extends AbstractAnnotati
         EntityVersionUpgradeManager entityVersionUpgradeManager = new EntityVersionUpgradeManager();
         Messager messager = processingEnv.getMessager();
         for(Element baseElem:roundEnv.getElementsAnnotatedWith(DocumentVersionUpgrader.class)){
-            DocumentVersionUpgrader annot =baseElem.getAnnotation(DocumentVersionUpgrader.class);
+            MethodInfo methodInfo = MethodInfo.getMethodInfo((ExecutableElement)baseElem);
+            DocumentVersionUpgrader annot =methodInfo.getAnnotation(DocumentVersionUpgrader.class);
             try {
                 String fileName= entityVersionUpgradeManager.getFilename(annot);
-                FileObject jfo = processingEnv.getFiler().createResource(
-                        StandardLocation.CLASS_OUTPUT,
-                        "",
-                        fileName,
-                        baseElem);
-
-                AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement) baseElem.getEnclosingElement());
-
-                BufferedWriter bw = new BufferedWriter(jfo.openWriter());
-                bw.write(classInfo.getName());
-                bw.write(";");
-                bw.write(baseElem.getSimpleName().toString());
-                bw.write(";");
-                bw.write(entityVersionUpgradeManager.buildTargetVersion(annot));
-                bw.flush();
-                bw.close();
+                AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, baseElem);
+                entityVersionUpgradeManager.buildUpgradeDefinition(file.getWriter(),methodInfo);
+                file.close();
                 messager.printMessage(Diagnostic.Kind.NOTE, "Creating file Upgrader " + fileName + " to upgrade to  " + entityVersionUpgradeManager.buildTargetVersion(annot));
             }
             catch(IOException e){
                 messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());
+                throw new RuntimeException(e);
             }
         }
         return true;

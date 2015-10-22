@@ -59,7 +59,7 @@ public class RequireJsServlet extends HttpServlet {
                         WebJarAssetLocator.getFullPathIndex(
                                 Pattern.compile(".*"),
                                 new URLClassLoader(new URL[]{new File(ServletUtils.LOCAL_WEBAPP_SRC).toURI().toURL()}),
-                                WebJarAssetLocator.class.getClassLoader()
+                                Thread.currentThread().getContextClassLoader()
                         )
                 )).getWebJars();
                 response = RequireJS.generateSetupJavaScript(prefixes, webJars);

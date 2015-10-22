@@ -18,6 +18,7 @@ package com.dreameddeath.party.model.base;
 
 import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -30,6 +31,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 27/07/2014.
  */
+@DocumentDef(domain="party")
 public abstract class Party extends BusinessDocument {
     @DocumentProperty("uid")
     private ImmutableProperty<String> uid=new ImmutableProperty<String>(Party.this);

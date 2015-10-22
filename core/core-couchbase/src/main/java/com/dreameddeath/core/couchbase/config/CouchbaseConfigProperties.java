@@ -50,4 +50,27 @@ public class CouchbaseConfigProperties {
     )
     public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_BUCKET_PASSWORD_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class,"core.couchbase.bucket.{bucketName}.password", (String) null);
 
+
+    @ConfigPropertyDoc(
+            name="core.couchbase.transcoder.{domain}.{name}.model.class",
+            descr = "defines the attached transcoder class for given domain/name. It must be of the class ITranscoder",
+            examples = {"com.project.business.transcoder.PartyTranscoder","com.project.business.dao.BillingAccount"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_TRANSCODER_CLASS_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.transcoder.{domain}.{name}.class", (String) null);
+
+    @ConfigPropertyDoc(
+            name="core.couchbase.transcoder.{domain}.{name}.cb.class",
+            descr = "defines the attached couchbase transcoder class for given domain/name. It must be of the class ICouchbaseTranscoder.",
+            defaultValue = "com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder",
+            examples = {"com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_CBTRANSCODER_CLASS_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.transcoder.{domain}.{name}.cb.class", "com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder");
+
+
+    @ConfigPropertyDoc(
+            name="core.couchbase.transcoder.{domain}.{name}.bucketdoc.class",
+            descr = "defines the attached couchbase bucket document class for given domain/name. It must be of the class BucketDocument.",
+            examples = {"com.dreameddeath.billing.dao.account.BillingAccountDao$LocalBucketDocument"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_BUCKETDOCUMENT_CLASS_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.bucketdoc.class", (String)null);
 }

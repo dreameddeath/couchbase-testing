@@ -19,7 +19,9 @@ package com.dreameddeath.core.dao.counter;
 
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 
 /**
  * Created by Christophe Jeunesse on 02/09/2014.
@@ -42,7 +44,7 @@ public class CouchbaseCounterDao{
     }
 
     public CouchbaseCounterDao(String key, Long defaultValue, Long modulus, Integer expiration){
-        keyPattern = key;
+        this.keyPattern = key;
         this.defaultValue = defaultValue;
         this.modulus = modulus;
         this.expiration = expiration;
@@ -66,15 +68,20 @@ public class CouchbaseCounterDao{
         return keyPattern;
     }
 
-    public Long getCounter(String key,boolean isCalcOnly) throws StorageException {
-        return incrCounter(key,0,isCalcOnly);
+    public Long getCounter(ICouchbaseSession session,String key,boolean isCalcOnly) throws StorageException {
+        return incrCounter(session,key,0,isCalcOnly);
     }
 
-    public long incrCounter(String key, long by,boolean isCalcOny) throws StorageException {
+    public long incrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws StorageException {
         long result;
 
         if(isCalcOny){
-                result = getClient().counter(key, 0L);
+                if(session.getKeyPrefix()!=null){
+                    result = getClient().counter(key, 0L, WriteParams.create().with(session.getKeyPrefix()));
+                }
+                else {
+                    result = getClient().counter(key, 0L);
+                }
                 if(result<0){
                     result=defaultValue;
                 }
@@ -83,13 +90,28 @@ public class CouchbaseCounterDao{
         else{
             switch (mode) {
                 case WITH_DEFAULT:
-                    result = getClient().counter(key, by, defaultValue);
+                    if(session.getKeyPrefix()!=null) {
+                        result = getClient().counter(key, by, defaultValue);
+                    }
+                    else{
+                        result = getClient().counter(key, by, defaultValue, WriteParams.create().with(session.getKeyPrefix()));
+                    }
                     break;
                 case WITH_DEFAULT_AND_EXPIRATION:
-                    result = getClient().counter(key, by, defaultValue, expiration);
+                    if(session.getKeyPrefix()!=null) {
+                        result = getClient().counter(key, by, defaultValue, expiration);
+                    }
+                    else{
+                        result = getClient().counter(key, by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
+                    }
                     break;
                 default:
-                    result = getClient().counter(key, by);
+                    if(session.getKeyPrefix()!=null) {
+                        result = getClient().counter(key, by);
+                    }
+                    else{
+                        result = getClient().counter(key, by, WriteParams.create().with(session.getKeyPrefix()));
+                    }
             }
         }
         if (modulus != null) {
@@ -99,10 +121,15 @@ public class CouchbaseCounterDao{
         }
     }
 
-    public long decrCounter(String key, long by,boolean isCalcOny) throws StorageException {
+    public long decrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws StorageException {
         if(isCalcOny){
             long result;
-            result = getClient().counter(key, 0L);
+            if(session.getKeyPrefix()!=null) {
+                result = getClient().counter(key, 0L);
+            }
+            else{
+                result = getClient().counter(key, 0L, WriteParams.create().with(session.getKeyPrefix()));
+            }
             if(result<0){
                 result=defaultValue;
             }
@@ -113,11 +140,26 @@ public class CouchbaseCounterDao{
         else {
             switch (mode) {
                 case WITH_DEFAULT:
-                    return getClient().counter(key,-by, defaultValue);
+                    if(session.getKeyPrefix()!=null) {
+                        return getClient().counter(key, -by, defaultValue);
+                    }
+                    else{
+                        return getClient().counter(key, -by, defaultValue,WriteParams.create().with(session.getKeyPrefix()));
+                    }
                 case WITH_DEFAULT_AND_EXPIRATION:
-                    return getClient().counter(key, -by, defaultValue, expiration);
+                    if(session.getKeyPrefix()!=null) {
+                        return getClient().counter(key, -by, defaultValue, expiration);
+                    }
+                    else{
+                        return getClient().counter(key, -by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
+                    }
                 default:
-                    return getClient().counter(key,-by);
+                    if(session.getKeyPrefix()!=null) {
+                        return getClient().counter(key, -by);
+                    }
+                    else{
+                        return getClient().counter(key, -by, WriteParams.create().with(session.getKeyPrefix()));
+                    }
             }
         }
     }

@@ -18,6 +18,7 @@ package com.dreameddeath.core.process.dao;
 
 
 import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
@@ -32,10 +33,16 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
     public static final String JOB_KEY_PATTERN="job/[^/]+";
 
 
+    @BucketDocumentForClass(AbstractJob.class)
     public static class LocalBucketDocument extends BucketDocument<AbstractJob> {
         public LocalBucketDocument(AbstractJob obj){super(obj);}
     }
 
+
+    @Override
+    protected Class<AbstractJob> getBaseClass(){
+        return AbstractJob.class;
+    }
 
     @Override
     public Class<? extends BucketDocument<AbstractJob>> getBucketDocumentClass() { return LocalBucketDocument.class; }

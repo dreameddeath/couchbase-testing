@@ -19,8 +19,9 @@ package com.dreameddeath.core.dao.annotation.processor;
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
-import com.dreameddeath.core.dao.utils.DaoUtils;
+import com.dreameddeath.core.dao.factory.DaoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +50,18 @@ public class DaoAnnotationProcessor extends AbstractAnnotationProcessor {
                 for (Element element : roundEnv.getElementsAnnotatedWith(DaoForClass.class)) {
                     try {
                         AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement) element);
-
-                        String fileName= DaoUtils.getTargetDaoRegisteringFilename(classInfo.getAnnotation(DaoForClass.class));
-                        AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, element);
-                        file.getWriter().write(classInfo.getFullName());
-                        file.close();
+                        {
+                            String fileName = DaoUtils.getTargetDaoPerClassRegisteringFilename(classInfo.getAnnotation(DaoForClass.class));
+                            AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, element);
+                            DaoUtils.writeDaoInfo(file.getWriter(), classInfo.getAnnotation(DaoForClass.class), (ClassInfo) classInfo);
+                            file.close();
+                        }
+                        {
+                            String fileName = DaoUtils.getTargetDaoPerModelRegisteringFilename(classInfo.getAnnotation(DaoForClass.class));
+                            AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, element);
+                            DaoUtils.writeDaoInfo(file.getWriter(), classInfo.getAnnotation(DaoForClass.class), (ClassInfo) classInfo);
+                            file.close();
+                        }
                     }
                     catch(IOException e){
                         messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());

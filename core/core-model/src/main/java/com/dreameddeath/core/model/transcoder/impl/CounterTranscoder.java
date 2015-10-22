@@ -26,6 +26,13 @@ import com.dreameddeath.core.model.transcoder.ITranscoder;
  */
 public class CounterTranscoder implements ITranscoder<CouchbaseCounter> {
 
+    public CounterTranscoder(){
+    }
+
+    public CounterTranscoder(Class<CouchbaseCounter> clazz){
+    }
+
+
     @Override
     public Class<CouchbaseCounter> getBaseClass() {
         return CouchbaseCounter.class;

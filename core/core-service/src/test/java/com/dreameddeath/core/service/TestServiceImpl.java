@@ -16,8 +16,6 @@
 
 package com.dreameddeath.core.service;
 
-import com.dreameddeath.core.service.annotation.ExposeService;
-import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.swagger.TestingExternalElement;
@@ -27,7 +25,7 @@ import rx.Observable;
 /**
  * Created by Christophe Jeunesse on 05/03/2015.
  */
-@ExposeService(path="/TestService",name = "testService",version = "1.0",status = VersionStatus.STABLE)
+//@ExposeService(path="/TestService",name = "testService",version = "1.0",status = VersionStatus.STABLE)
 public class TestServiceImpl implements ITestService {
 
     @Override

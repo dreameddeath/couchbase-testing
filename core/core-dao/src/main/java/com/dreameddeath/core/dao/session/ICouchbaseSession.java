@@ -58,6 +58,8 @@ public interface ICouchbaseSession {
 
     DateTime getCurrentDate();
 
+    String getKeyPrefix();
+
     <T extends CouchbaseDocument> IViewQuery initViewQuery(Class<T> forClass, String viewName) throws DaoException;
     <TKEY,TVALUE,T extends CouchbaseDocument> IViewQueryResult<TKEY,TVALUE,T> executeQuery(IViewQuery<TKEY, TVALUE, T> query) throws DaoException,StorageException;
     <TKEY,TVALUE,T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY,TVALUE,T>> executeAsyncQuery(IViewQuery<TKEY, TVALUE, T> query) throws DaoException,StorageException;

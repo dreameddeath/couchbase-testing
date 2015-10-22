@@ -16,26 +16,35 @@
 
 package com.dreameddeath.core.model.entity.model;
 
+import com.fasterxml.jackson.annotation.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Created by Christophe Jeunesse on 12/10/2015.
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonAutoDetect(getterVisibility= JsonAutoDetect.Visibility.NONE,fieldVisibility= JsonAutoDetect.Visibility.NONE,isGetterVisibility = JsonAutoDetect.Visibility.NONE,setterVisibility = JsonAutoDetect.Visibility.NONE,creatorVisibility = JsonAutoDetect.Visibility.NONE)
 public class EntityVersion implements Comparable<EntityVersion>{
     public static final EntityVersion DEFAULT_VERSION = EntityVersion.version(1,0,0);
+    public static final String DEFAULT_VERSION_STR = "1.0.0";
     public static final String VERSION_PATTERN_STR = "[Vv]?(\\d+)\\.(\\d+)(?:\\.(\\d+))?";
     public static final Pattern VERSION_PATTERN = Pattern.compile("^"+VERSION_PATTERN_STR+"$");
+    public static final EntityVersion EMPTY_VERSION = new EntityVersion(null,null,null);
+
     private Integer major=0;
     private Integer minor=0;
     private Integer patch=null;
 
+    @JsonCreator
     public EntityVersion(String version){
         parseString(version);
     }
 
     public EntityVersion(Integer major, Integer minor, Integer patch){
-        //TODO assert not null and positive
+        //TODO assert not null for major and positive
         this.major = major;
         this.minor = minor;
         this.patch = patch;
@@ -62,14 +71,9 @@ public class EntityVersion implements Comparable<EntityVersion>{
         return patch;
     }
 
-    @Override
+    @Override @JsonValue
     public String toString(){
-        if(patch==null) {
-            return String.format("%d.%d.0", major, minor);
-        }
-        else {
-            return String.format("%d.%d.%d", major, minor, patch);
-        }
+        return String.format("%d.%d.%d", major, minor, patch);
     }
 
     @Override

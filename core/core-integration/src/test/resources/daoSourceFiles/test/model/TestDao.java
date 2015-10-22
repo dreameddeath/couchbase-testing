@@ -24,7 +24,7 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 
-@DocumentDef(domain="test",name="daoProccessor",version = "1.0.0")
+@DocumentDef(domain="testGeneration",name="daoProccessor",version = "1.0.0")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "test/",idFormat = "%010d",idPattern = "\\d{10}")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @Counter(name= "checks",dbName = "checks")

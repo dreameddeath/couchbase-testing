@@ -35,6 +35,7 @@ import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -44,6 +45,7 @@ import java.util.Properties;
  * Created by Christophe Jeunesse on 06/03/2015.
  */
 public class AnnotationProcessorVelocityEngine {
+    public static final String VELOCITY_VELOCITY_PROPERTIES = "com/dreameddeath/core/velocity/velocity.properties";
     private static VelocityEngine VELOCITY_ENGINE=null;
     private static Map<String,Template> TEMPLATE_MAP=new HashMap<>();
 
@@ -51,7 +53,22 @@ public class AnnotationProcessorVelocityEngine {
     synchronized public static VelocityEngine getEngine(){
         if(VELOCITY_ENGINE==null) {
             Properties props = new Properties();
-            URL url = AnnotationProcessorVelocityEngine.class.getClassLoader().getResource("com/dreameddeath/core/velocity/velocity.properties");
+            URL url=null;
+            for(String name : Arrays.asList(VELOCITY_VELOCITY_PROPERTIES,"/"+VELOCITY_VELOCITY_PROPERTIES)){
+                url = Thread.currentThread().getContextClassLoader().getResource(name);
+                if(url==null){
+                    url = AnnotationProcessorVelocityEngine.class.getClassLoader().getResource(name);
+                }
+                if(url==null){
+                    url = AnnotationProcessorVelocityEngine.class.getResource(name);
+                }
+                if(url!=null){
+                    break;
+                }
+            }
+            if(url==null){
+                throw new RuntimeException("Cannot find "+VELOCITY_VELOCITY_PROPERTIES);
+            }
             try {
                 props.load(url.openStream());
             } catch (Exception e) {

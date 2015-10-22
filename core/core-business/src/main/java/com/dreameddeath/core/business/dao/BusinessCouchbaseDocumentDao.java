@@ -18,7 +18,6 @@ package com.dreameddeath.core.business.dao;
 
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
@@ -26,14 +25,12 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 
 import java.util.Set;
 
-@DaoForClass(BusinessDocument.class)
 public abstract class BusinessCouchbaseDocumentDao<T extends BusinessDocument> extends CouchbaseDocumentWithKeyPatternDao<T> {
 
     protected  void updateRevision(ICouchbaseSession session,T obj){
         obj.incDocRevision(session);
         obj.updateDocLastModDate(session);
     }
-
 
     @Override
     public T create(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{

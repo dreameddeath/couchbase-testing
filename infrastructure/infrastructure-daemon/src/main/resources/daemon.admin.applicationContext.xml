@@ -31,9 +31,7 @@
     <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
         <property name="propertySources" ref="propertySources" />
     </bean>
-
-
-
+    
     <bean id="serviceDiscovererManager" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="serviceDiscovererManager" />
     </bean>

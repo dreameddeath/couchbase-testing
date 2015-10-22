@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 12/12/2014.
  */
 public class ReadParams {
+    private String keyPrefix=null;
     private ReadReplicateMode readMode=ReadReplicateMode.FROM_MASTER;
     private long timeOut=0;
     private TimeUnit timeOutUnit=null;
@@ -47,10 +48,19 @@ public class ReadParams {
         this.timeOutUnit = timeOutUnit;
     }
 
+    public String getKeyPrefix() {
+        return keyPrefix;
+    }
+
+    public void setKeyPrefix(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
+    }
+
     public static ReadParams create(){return new ReadParams();}
 
-    public ReadParams with(ReadReplicateMode mode){readMode = mode;return this;}
-    public ReadParams with(long timeout,TimeUnit unit){ timeOut = timeout;timeOutUnit = unit;return this;}
+    public ReadParams with(ReadReplicateMode mode){this.readMode = mode;return this;}
+    public ReadParams with(long timeout,TimeUnit unit){ this.timeOut = timeout;this.timeOutUnit = unit;return this;}
+    public ReadParams with(String keyPrefix){ this.keyPrefix = keyPrefix;return this;}
 
     public enum ReadReplicateMode {
         FROM_MASTER,

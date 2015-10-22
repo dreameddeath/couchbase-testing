@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.couchbase;
 
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
@@ -24,6 +25,7 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.model.view.*;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.Utils;
@@ -41,6 +43,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ViewTest {
 
+    @DocumentDef(domain="testView")
     public static class TestDoc extends CouchbaseDocument{
         @DocumentProperty("strVal")
         public String strVal;
@@ -99,6 +102,7 @@ public class ViewTest {
             @Override public IViewKeyTranscoder<String> getKeyTranscoder() {return IViewTranscoder.Utils.stringKeyTranscoder();}
         }
 
+        @BucketDocumentForClass(TestDoc.class)
         public static class LocalBucketDocument extends BucketDocument<TestDoc> {
             public LocalBucketDocument(TestDoc obj){super(obj);}
         }
@@ -113,6 +117,11 @@ public class ViewTest {
             return Arrays.asList(
                 new TestViewDao(this)
             );
+        }
+
+        @Override
+        protected Class<TestDoc> getBaseClass() {
+            return TestDoc.class;
         }
 
         @Override

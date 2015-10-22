@@ -88,7 +88,7 @@ public class ViewDef {
         } else if ((viewAnnot.contentFilename() != null) && (!viewAnnot.contentFilename().equals(""))) {
             contentFilename = viewAnnot.contentFilename();
             contentSource = ContentSource.FILE;
-            InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(contentFilename);
+            InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(contentFilename);
             if (inputStream == null) {
                 throw new RuntimeException("Cannot find the requested file <" + contentFilename + ">");
             } else {

@@ -18,8 +18,9 @@ package com.dreameddeath.core.dao.document;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
-import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
 import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.impl.ReadParams;
+import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -41,7 +42,6 @@ import java.util.List;
 @DaoForClass(CouchbaseDocument.class)
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private ICouchbaseBucket client;
-    private ICouchbaseTranscoder<T> transcoder;
     private List<CouchbaseViewDao> daoViews=null;
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
     public abstract T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException;
@@ -49,6 +49,8 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
     public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder(){return Collections.emptyList();}
     protected List<CouchbaseViewDao> generateViewDaos(){ return Collections.emptyList();}
+
+    abstract protected Class<T> getBaseClass();
 
     synchronized public List<CouchbaseViewDao> getViewDaos(){
         if(daoViews==null){
@@ -68,22 +70,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public CouchbaseDocumentDao<T> setClient(ICouchbaseBucket client){
         this.client = client;
-        if(getTranscoder()!=null){
-            client.addTranscoder(getTranscoder());
-        }
         return this;
     }
     public ICouchbaseBucket getClient(){ return client; }
-
-    public ICouchbaseTranscoder<T> getTranscoder(){return transcoder;}
-
-    public CouchbaseDocumentDao<T> setTranscoder(ICouchbaseTranscoder<T> transcoder){
-        this.transcoder=transcoder;
-        if(getClient()!=null){
-            getClient().addTranscoder(transcoder);
-        }
-        return this;
-    }
 
 
     //May be overriden to improve (bulk key attribution)
@@ -94,8 +83,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             }
         }
     }
-
-
 
     public void checkUpdatableState(T obj) throws InconsistentStateException {
         if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
@@ -135,12 +122,19 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public T create(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
         checkCreatableState(obj);
         //Precreate the key perform the validation with all target data
-        if(obj.getBaseMeta().getKey()==null){buildKey(session,obj); }
+        if(obj.getBaseMeta().getKey()==null){
+            buildKey(session,obj);
+        }
         session.validate(obj);
 
         if(!isCalcOnly) {
-            getClient().add(obj,getTranscoder());
-            //getClient().add(getTranscoder().newDocument(obj));
+            String keyPrefix = session.getKeyPrefix();
+            if(keyPrefix!=null){
+                getClient().add(obj, WriteParams.create().with(keyPrefix));
+            }
+            else{
+                getClient().add(obj);
+            }
         }
 
         obj.getBaseMeta().setStateSync();
@@ -148,8 +142,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
 
 
-    public T get(String key) throws DaoException,StorageException{
-        T result=getClient().get(key, getTranscoder());
+    public T get(ICouchbaseSession session,String key) throws DaoException,StorageException{
+        T result;
+        if(session.getKeyPrefix()!=null) {
+            result = getClient().get(key, getBaseClass(), ReadParams.create().with(session.getKeyPrefix()));
+        }
+        else{
+            result = getClient().get(key, getBaseClass());
+        }
         if(result.getBaseMeta().hasFlag(DocumentFlag.Deleted)){
             result.getBaseMeta().setStateDeleted();
         }
@@ -163,7 +163,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         checkUpdatableState(obj);
         session.validate(obj);
         if(!isCalcOnly) {
-            getClient().replace(obj,getTranscoder());
+            getClient().replace(obj);
         }
         obj.getBaseMeta().setStateSync();
         return obj;
@@ -174,10 +174,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         checkDeletableState(doc);
         doc.getBaseMeta().addFlag(DocumentFlag.Deleted);
         if(!isCalcOnly) {
-            getClient().delete(doc,getTranscoder());
+            getClient().delete(doc);
         }
         doc.getBaseMeta().setStateDeleted();
         return doc;
     }
-
 }

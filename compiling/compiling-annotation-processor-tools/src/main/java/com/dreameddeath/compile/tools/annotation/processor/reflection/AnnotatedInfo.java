@@ -17,8 +17,6 @@
 package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -32,8 +30,6 @@ import java.util.List;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class AnnotatedInfo {
-    private static Logger LOG = LoggerFactory.getLogger(AnnotatedInfo.class);
-
     private AnnotatedElement annotElt=null;
     private Element element=null;
     private String javaDoc = null;
@@ -82,12 +78,6 @@ public class AnnotatedInfo {
             return annotations.toArray(new Annotation[annotations.size()]);
         }
     }
-
-    /*public AnnotationInfo getAnnotationsInfo(){
-
-    }
-
-    public*/
 
     public String getJavaDoc() {
         return javaDoc;

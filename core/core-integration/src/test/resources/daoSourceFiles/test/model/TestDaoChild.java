@@ -24,7 +24,7 @@ import com.dreameddeath.core.helper.annotation.dao.ParentEntity;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.business.model.BusinessDocument;
 
-@DocumentDef(domain="test",name="daoProccessorChild",version = "1.0.0")
+@DocumentDef(domain="testGeneration",name="daoProccessorChild",version = "1.0.0")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "child/",idFormat = "%010d",idPattern = "\\d{10}")
 @ParentEntity(c=TestDao.class,keyPath = "parent.key",separator = "/")
 @Counter(name="cnt",dbName = "cnt",isKeyGen = true)

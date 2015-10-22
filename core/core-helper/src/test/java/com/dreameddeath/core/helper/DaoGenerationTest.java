@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.helper;
 
+import com.dreameddeath.core.couchbase.annotation.processor.CouchbaseAnnotationProcessor;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.model.view.IViewQuery;
 import com.dreameddeath.core.dao.model.view.IViewQueryResult;
@@ -29,11 +30,8 @@ import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.model.annotation.processor.DocumentDefAnnotationProcessor;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentIntrospector;
-import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
-import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.dreameddeath.testing.service.TestingRestServer;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -56,7 +54,6 @@ import java.util.List;
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 public class DaoGenerationTest extends Assert {
-    CouchbaseBucketSimulator couchbaseClient;
     AnnotationProcessorTestingWrapper.Result compiledEnv;
 
     private Utils.TestEnvironment env;
@@ -66,26 +63,22 @@ public class DaoGenerationTest extends Assert {
     public void initService(String className,String serviceName) throws Exception{
         AbstractDaoRestService service = (AbstractDaoRestService)compiledEnv.getClass(className).newInstance();
         service.setSessionFactory(env.getSessionFactory());
-        service.setUserFactory(new IUserFactory() {
-            @Override
-            public IUser validateFromToken(String token) {
-                return null;
-            }
-        });
+        service.setUserFactory(token -> null);
         server.registerService(serviceName, service);
     }
 
     @Before
     public void initTest() throws  Exception{
-        couchbaseClient = new CouchbaseBucketSimulator("test","test");
+        //couchbaseClient = new CouchbaseBucketSimulator("test");
+        //couchbaseClient.start();
         AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
         annotTester.
                 withAnnotationProcessor(new DaoGeneratorAnnotationProcessor()).
                 withAnnotationProcessor(new DocumentDefAnnotationProcessor()).
+                withAnnotationProcessor(new CouchbaseAnnotationProcessor()).
                 withTempDirectoryPrefix("DaoAnnotationProcessorTest");
         compiledEnv= annotTester.run(this.getClass().getClassLoader().getResource("daoSourceFiles").getPath());
         assertTrue(compiledEnv.getResult());
-
         compiledEnv.updateSystemClassLoader();
         Constructor method = compiledEnv.getConstructor(Utils.TestEnvironment.class.getName(), String.class, Utils.TestEnvironment.TestEnvType.class);
         env = (Utils.TestEnvironment)method.newInstance("GeneratedDaoAndViewTests", Utils.TestEnvironment.TestEnvType.COUCHBASE);
@@ -227,9 +220,9 @@ public class DaoGenerationTest extends Assert {
         if(compiledEnv!=null) {
             compiledEnv.cleanUp();
         }
-        if(couchbaseClient!=null) {
-            couchbaseClient.shutdown();
-        }
+        //if(couchbaseClient!=null) {
+        //    couchbaseClient.shutdown();
+        //}
         if(testUtils!=null){
             testUtils.stop();
         }

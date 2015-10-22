@@ -24,5 +24,5 @@ import java.util.Map;
  */
 public interface GenericsTestExistingClass<TREQ,TRES extends Map<String,String> & Closeable> {
     void methodVoid();
-
+    TREQ result();
 }

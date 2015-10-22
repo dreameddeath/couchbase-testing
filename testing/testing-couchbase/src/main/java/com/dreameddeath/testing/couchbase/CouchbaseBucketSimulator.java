@@ -40,6 +40,8 @@ import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.couchbase.exception.ViewCompileException;
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketWrapper;
+import com.dreameddeath.core.couchbase.impl.ReadParams;
+import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -89,15 +91,9 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
     public CouchbaseBucketSimulator(String bucketName){
         super(null, bucketName, null);
-        initTranscoders();
+        //initTranscoders();
     }
-
-    public CouchbaseBucketSimulator(String bucketName,String prefix){
-        super(null,bucketName,null,prefix);
-        initTranscoders();
-    }
-
-
+    
     public ScriptEngine getJavaScriptEngine(){
         return engine;
     }
@@ -105,9 +101,19 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public void start(long timeout,TimeUnit unit){}
+    public void start(long timeout,TimeUnit unit){
+        initTranscoders();
+        for(Transcoder transcoder:getTranscoders()){
+            if(transcoder instanceof  ICouchbaseTranscoder) {
+                transcoderMap.put(transcoder.documentType(), transcoder);
+            }
+        }
+    }
+
     @Override
-    public void start(){}
+    public void start(){
+        start(0, null);
+    }
 
     @Override
     public boolean shutdown(long timeout,TimeUnit unit){return true; }
@@ -117,7 +123,6 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     @Override
     public ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder) {
         super.addTranscoder(transcoder);
-        transcoderMap.put(transcoder.documentType(),transcoder);
         return this;
     }
 
@@ -178,7 +183,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             throw new DocumentAccessException(key,"Error during document access attempt of <"+key+">");
         }
 
-        return transcoder.decode(foundDoc.getKey(),foundDoc.getData(),foundDoc.getCas(),foundDoc.getExpiry(),foundDoc.getFlags(), ResponseStatus.SUCCESS);
+        return transcoder.decode(foundDoc.getKey(), foundDoc.getData(), foundDoc.getCas(), foundDoc.getExpiry(), foundDoc.getFlags(), ResponseStatus.SUCCESS);
     }
 
     public enum ImpactMode {
@@ -247,22 +252,38 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGet(String id, ICouchbaseTranscoder<T> transcoder) {
+    public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,Class<T> entity) {
+        return asyncGet(id,entity,null);
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,Class<T> entity,ReadParams params) {
         try{
-            id=ICouchbaseBucket.Utils.buildKey(keyPrefix,id);
-            return Observable.just((T)(getFromCache(id,transcoder.documentType()).content()));
+            if((params!=null) && (params.getKeyPrefix()!=null)){
+                id = ICouchbaseBucket.Utils.buildKey(params.getKeyPrefix(),id);
+            }
+            BucketDocument<T> result=(BucketDocument<T>)getFromCache(id,getTranscoder(entity).documentType());
+            if((params!=null) && (params.getKeyPrefix()!=null)) {
+                result.setKeyPrefix(params.getKeyPrefix());
+            }
+            return Observable.just(result.content());
         }
         catch(Throwable e){
             return Observable.error(e);
         }
     }
 
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc) throws StorageException {
+        return asyncAdd(doc,null);
+    }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc,WriteParams params) throws StorageException {
         try{
-            final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
-            return (Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.ADD, 0)).map(new DocumentResync(bucketDoc)));
+            final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
+            final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
+            return (Observable.just((BucketDocument<T>) performImpact(bucketDoc,transcoder.documentType(), ImpactMode.ADD, 0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
             return Observable.error(e);
@@ -270,9 +291,15 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc) throws StorageException {
+        return asyncSet(doc,null);
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc,WriteParams params) throws StorageException {
         try{
-            final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
+            final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
+            final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
             return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.UPDATE, 0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
@@ -280,10 +307,17 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
     }
 
+
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc) throws StorageException {
+        return asyncReplace(doc, null);
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc,WriteParams params) throws StorageException {
         try{
-            final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
+            final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
+            final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
             return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.REPLACE, 0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
@@ -293,9 +327,15 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc) throws StorageException {
+        return asyncDelete(doc,null);
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc,WriteParams params) throws StorageException {
         try{
-            final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
+            final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
+            final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
             return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.DELETE, 0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
@@ -305,9 +345,10 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc,WriteParams params) throws StorageException {
         try{
-            final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
+            final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
+            final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
             return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.APPEND, 0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
@@ -316,10 +357,22 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
 
+        @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc) throws StorageException {
+        return asyncAppend(doc, null);
+    }
+
+
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc, ICouchbaseTranscoder<T> transcoder) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc) throws StorageException {
+        return asyncPrepend(doc,null);
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc,WriteParams params) throws StorageException {
         try{
-            final BucketDocument<T> bucketDoc = transcoder.newDocument(doc);
+            final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
+            final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
             return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.PREPEND, 0)).map(new DocumentResync(bucketDoc)));
         }
         catch(Exception e){
@@ -329,20 +382,29 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException {
+    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration,WriteParams params) throws StorageException {
         try{
-            key = ICouchbaseBucket.Utils.buildKey(keyPrefix,key);
+            if((params!=null)&& (params.getKeyPrefix()!=null)) {
+                key=ICouchbaseBucket.Utils.buildKey(params.getKeyPrefix(), key);
+            }
             return Observable.just(updateCacheCounter(key,by,defaultValue,expiration));
         }
         catch(Exception e){
-             return Observable.error(e);
+            return Observable.error(e);
         }
+
+
+    }
+
+    @Override
+    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException {
+        return asyncCounter(key,by,defaultValue,expiration,null);
     }
 
 
     @Override
     public void createOrUpdateView(String designDoc,Map<String,String> viewList) throws StorageException{
-        designDoc = ICouchbaseBucket.Utils.buildDesignDoc(keyPrefix,designDoc);
+        //designDoc = ICouchbaseBucket.Utils.buildDesignDoc(keyPrefix,designDoc);
 
         LOG.debug("Attempt to create design Doc {}",designDoc);
 

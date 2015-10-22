@@ -17,13 +17,14 @@
 package com.dreameddeath.core.elasticsearch;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.dcp.impl.DefaultCouchbaseDCPEnvironment;
-import com.dreameddeath.core.couchbase.impl.GenericCouchbaseTranscoder;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchDao;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResultHit;
 import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
@@ -116,6 +117,7 @@ public class ElasticSearchClientTest {
         }
     }
 
+    @DocumentDef(domain = "test")
     public static class TestDoc extends CouchbaseDocument {
         @DocumentProperty("lastName")
         public String lastName;
@@ -127,6 +129,7 @@ public class ElasticSearchClientTest {
         public List<TestAddress> addresses=new ArrayList<>();
     }
 
+    @BucketDocumentForClass(TestDoc.class)
     public static class LocalBucketDocument extends BucketDocument<TestDoc> {
         public LocalBucketDocument(TestDoc obj){super(obj);}
     }
@@ -190,16 +193,14 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testDcpFlow()throws Exception{
-        GenericCouchbaseTranscoder<TestDoc> transcoder =new GenericCouchbaseTranscoder<>(TestDoc.class,LocalBucketDocument.class);
-        transcoder.setTranscoder(new GenericJacksonTranscoder<>(TestDoc.class));
         ElasticSearchClient client = new ElasticSearchClient(server.getClient(),GenericJacksonTranscoder.MAPPER);
         CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
-        cbSimulator.addTranscoder(transcoder);
+        cbSimulator.start();
         Map<String,ITranscoder> transcoderMap = new HashMap<>();
-        transcoderMap.put("/test/\\d+",transcoder.getTranscoder());
+        transcoderMap.put("/test/\\d+",new GenericJacksonTranscoder<>(TestDoc.class));
         transcoderMap.put("/test/cnt",new CounterTranscoder());
         ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
-        ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(), transcoderMap,true);
+        ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoderMap,true);
         CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Arrays.asList("localhost:8091"),"test","",dcpFlowHandler,cbSimulator);
 
 
@@ -212,17 +213,17 @@ public class ElasticSearchClientTest {
         doc.addresses.add(TestAddress.newAddress("road 2", 67890, "City2"));
         doc.getBaseMeta().setKey("/test/1");
 
-        cbSimulator.add(doc, transcoder);
+        cbSimulator.add(doc);
         doc.addresses.add(TestAddress.newAddress("road 2", 12345, "City3"));
-        cbSimulator.replace(doc, transcoder);
+        cbSimulator.replace(doc);
         doc.firstName="firstName2";
         doc.getBaseMeta().setKey("/test/2");
-        cbSimulator.add(doc, transcoder);
+        cbSimulator.add(doc);
         doc.firstName="firstName3 firstName2";
         doc.lastName="lastName2";
         doc.addresses.remove(1);
         doc.getBaseMeta().setKey("/test/3");
-        cbSimulator.add(doc, transcoder);
+        cbSimulator.add(doc);
 
         cbSimulator.counter("/test/cnt",1L,1L);
         //Wait for indexing
@@ -240,7 +241,7 @@ public class ElasticSearchClientTest {
 
 
         //ElasticSearchDao testing
-        ElasticSearchDao<TestDoc> dao = new ElasticSearchDao<>("test",client,new ElasticSearchMapper(),transcoder.getTranscoder());
+        ElasticSearchDao<TestDoc> dao = new ElasticSearchDao<>("test",client,new ElasticSearchMapper(),TestDoc.class);
         TestDoc esDocFound = dao.get("/test/1");
         assertEquals("firstName1",esDocFound.firstName);
         assertEquals("lastName1", esDocFound.lastName);

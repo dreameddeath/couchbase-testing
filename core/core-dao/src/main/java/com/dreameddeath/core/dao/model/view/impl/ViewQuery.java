@@ -28,8 +28,8 @@ import java.util.Collection;
  * Created by Christophe Jeunesse on 19/12/2014.
  */
 public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IViewQuery<TKEY,TVALUE,TDOC> {
-    private CouchbaseViewDao<TKEY,TVALUE,TDOC> dao;
-
+    private final CouchbaseViewDao<TKEY,TVALUE,TDOC> dao;
+    private final String keyPrefix;
     private TKEY key;
     private Collection<TKEY> keys;
     private TKEY startKey;
@@ -40,13 +40,14 @@ public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IV
     private int limit=10;
     private boolean syncWithDoc;
 
-
-    public ViewQuery(CouchbaseViewDao<TKEY,TVALUE,TDOC> dao){
+    public ViewQuery(CouchbaseViewDao<TKEY,TVALUE,TDOC> dao,String keyPrefix){
         this.dao = dao;
+        this.keyPrefix = keyPrefix;
     }
 
     public ViewQuery(ViewQuery<TKEY,TVALUE,TDOC> src, int offset){
         dao = src.dao;
+        keyPrefix = src.keyPrefix;
         startKey= src.startKey;
         endKey = src.endKey;
         key = src.key;
@@ -69,7 +70,7 @@ public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IV
 
     @Override
     public com.couchbase.client.java.view.ViewQuery toCouchbaseQuery(){
-        String designDoc = ICouchbaseBucket.Utils.buildDesignDoc(dao.getClient().getPrefix(), dao.getDesignDoc());
+        String designDoc = ICouchbaseBucket.Utils.buildDesignDoc(keyPrefix, dao.getDesignDoc());
         com.couchbase.client.java.view.ViewQuery result = com.couchbase.client.java.view.ViewQuery.from(designDoc,dao.getViewName());
         if(key!=null) {
             dao.getKeyTranscoder().key(result,key);

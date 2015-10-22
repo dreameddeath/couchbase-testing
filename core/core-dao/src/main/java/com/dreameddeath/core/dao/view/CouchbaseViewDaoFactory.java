@@ -21,6 +21,7 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.dao.exception.DuplicateDaoException;
+import com.dreameddeath.core.dao.factory.IDaoFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 18/12/2014.
  */
-public class CouchbaseViewDaoFactory {
+public class CouchbaseViewDaoFactory implements IDaoFactory {
     private Map<Class<? extends CouchbaseDocument>, List<CouchbaseViewDao<?,? extends CouchbaseDocument,?>>> daosMap
             = new ConcurrentHashMap<>();
     private Map<String,CouchbaseViewDao> perClassNameAndNameCacheMap=new ConcurrentHashMap<>();
@@ -43,7 +44,7 @@ public class CouchbaseViewDaoFactory {
     }
 
 
-    public <T extends CouchbaseDocument> void addDao(CouchbaseViewDao dao){
+    public void addDao(CouchbaseViewDao dao){
         DaoForClass annotation = dao.getParentDao().getClass().getAnnotation(DaoForClass.class);
         if(annotation==null){
             throw new NullPointerException("Annotation DaoForClass not defined for dao <"+dao.getParentDao().getClass().getName()+">");
@@ -51,7 +52,7 @@ public class CouchbaseViewDaoFactory {
         addDaoFor(annotation.value(), dao);
     }
 
-    public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClazz,CouchbaseViewDao dao){
+    public synchronized <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClazz,CouchbaseViewDao dao){
         if(!daosMap.containsKey(entityClazz)){
             daosMap.put(entityClazz,new ArrayList<>());
         }
@@ -62,7 +63,6 @@ public class CouchbaseViewDaoFactory {
             }
         }
         daosMap.get(entityClazz).add(dao);
-        //_perClassNameAndNameCacheMap.computeIfAbsent(entityClazz.getName()+dao.getViewName(),)
     }
 
     public <T extends CouchbaseDocument> List<CouchbaseViewDao> getViewListDaoFor(Class<T> entityClass){
@@ -127,10 +127,22 @@ public class CouchbaseViewDaoFactory {
         }
     }
 
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public synchronized void cleanup() {
+        daosMap.clear();
+        perClassNameAndNameCacheMap.clear();
+    }
+
 
     public static Builder builder(){
         return new Builder();
     }
+
 
     public static class Builder{
         public CouchbaseViewDaoFactory build(){

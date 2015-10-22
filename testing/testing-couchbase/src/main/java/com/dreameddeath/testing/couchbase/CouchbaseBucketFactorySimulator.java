@@ -18,25 +18,35 @@ package com.dreameddeath.testing.couchbase;
 
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
-import com.dreameddeath.core.couchbase.ICouchbaseBucketFactory;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.dreameddeath.core.couchbase.config.CouchbaseConfigProperties;
+import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
+import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
 
 /**
  * Created by Christophe Jeunesse on 11/10/2015.
  */
-public class CouchbaseBucketFactorySimulator implements ICouchbaseBucketFactory {
-    private Map<String,ICouchbaseBucket> couchbaseBucketMap = new HashMap<>();
-    @Override
-    synchronized  public ICouchbaseBucket getBucket(String name) throws ConfigPropertyValueNotFoundException {
-        return getBucket(name,null);
+public class CouchbaseBucketFactorySimulator extends CouchbaseBucketFactory{
+    public CouchbaseBucketFactorySimulator(){
+        super(null);
     }
 
-    @Override
-    synchronized  public ICouchbaseBucket getBucket(String name, String prefix) throws ConfigPropertyValueNotFoundException {
-        return couchbaseBucketMap.computeIfAbsent(name+((prefix==null)?"":("#"+prefix)),name1->
-                new CouchbaseBucketSimulator(name,prefix));
+    public CouchbaseBucketFactorySimulator(CouchbaseClusterFactory factory){
+        super(factory);
+    }
 
+
+    @Override
+    protected ICouchbaseBucket buildCouchbaseBucket(final String name){
+        if(getClusterFactory()!=null){
+            try {
+                String clusterName = CouchbaseConfigProperties.COUCHBASE_BUCKET_CLUSTER_NAME.getProperty(name).getMandatoryValue("Cannot find cluster name for bucket <{}>", name);
+                getClusterFactory().getCluster(clusterName);
+            }
+            catch (ConfigPropertyValueNotFoundException e) {
+                throw new RuntimeException("Cannot init bucket", e);
+            }
+        }
+
+        return new CouchbaseBucketSimulator(name);
     }
 }

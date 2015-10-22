@@ -21,6 +21,7 @@ import com.dreameddeath.core.config.exception.ConfigPropertyTemplateConstructorN
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 
 /**
@@ -46,10 +47,31 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
         this.template = sb.toString();
     }
 
+    private static Class getDefaultClass(Class clazz,String template,Object defaultValue){
+        if(defaultValue!=null){
+            return defaultValue.getClass();
+        }
+        else{
+            ParameterizedType parentClazz = ((ParameterizedType) clazz.getGenericSuperclass());
+            do{
+                if(AbstractConfigListProperty.class.isAssignableFrom((Class) parentClazz.getRawType())){
+                    return (Class)parentClazz.getActualTypeArguments()[0];
+                }
+                else if(AbstractConfigProperty.class.isAssignableFrom((Class) parentClazz.getRawType())){
+                    return (Class)parentClazz.getActualTypeArguments()[0];
+                }
+                parentClazz = ((ParameterizedType)((Class) parentClazz.getRawType()).getGenericSuperclass());
+            }while(parentClazz!=null);
+
+        }
+        throw new RuntimeException("Cannot find default value class for parameter template <"+template+">");
+    }
+
+
     public ConfigPropertyWithTemplateName(Class<PTYPE> clazz, String nameTemplate, final T defaultValue){
         compileTemplate(nameTemplate);
         try {
-            final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, defaultValue.getClass());
+            final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, getDefaultClass(clazz,nameTemplate,defaultValue));
             builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -70,7 +92,7 @@ public class ConfigPropertyWithTemplateName<T,PTYPE extends IConfigProperty> {
     public ConfigPropertyWithTemplateName(Class<PTYPE> clazz, String nameTemplate, final IConfigProperty<T> defaultValue){
         compileTemplate(nameTemplate);
         try {
-            final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, defaultValue.getClass());
+            final Constructor<PTYPE> constructor = clazz.getConstructor(String.class, IConfigProperty.class);
             builder = new IConfigPropertyBuilder<PTYPE>(){
                 @Override
                 public PTYPE build(String name, String... params) throws IllegalAccessException, InvocationTargetException, InstantiationException {

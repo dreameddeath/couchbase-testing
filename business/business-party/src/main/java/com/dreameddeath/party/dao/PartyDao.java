@@ -18,6 +18,7 @@ package com.dreameddeath.party.dao;
 
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
@@ -37,10 +38,15 @@ public class PartyDao extends BusinessCouchbaseDocumentDaoWithUID<Party> {
     public static final String PARTY_KEY_PATTERN="party/\\d{10}";
     public static final String PARTY_CNT_KEY_PATTERN="party/cnt";
 
+    @BucketDocumentForClass(Party.class)
     public static class LocalBucketDocument extends BucketDocument<Party>{
         public LocalBucketDocument(Party party){super(party);}
     }
 
+    @Override
+    protected Class<Party> getBaseClass(){
+        return Party.class;
+    }
 
     @Override
     public Class<? extends BucketDocument<Party>> getBucketDocumentClass() {

@@ -31,6 +31,15 @@
         <property name="attributeName" value="serviceDiscovererManager" />
     </bean>
 
+    <bean id="couchbaseDaoFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="couchbaseDaoFactory" />
+    </bean>
+
+    <bean id="testDocDao" factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
+        <constructor-arg value="test" />
+        <constructor-arg value="testdoc" />
+    </bean>
+
     <bean id="endPoint" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="endPointInfo" />
     </bean>

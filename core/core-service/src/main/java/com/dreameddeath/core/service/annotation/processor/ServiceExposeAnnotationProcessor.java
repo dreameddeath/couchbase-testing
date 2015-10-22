@@ -17,6 +17,7 @@
 package com.dreameddeath.core.service.annotation.processor;
 
 
+import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessorVelocityEngine;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
@@ -25,11 +26,9 @@ import org.apache.velocity.VelocityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
@@ -41,7 +40,7 @@ import java.util.Set;
 @SupportedAnnotationTypes(
         {"com.dreameddeath.core.service.annotation.ExposeService"}
 )
-public class ServiceExposeAnnotationProcessor extends AbstractProcessor {
+public class ServiceExposeAnnotationProcessor extends AbstractAnnotationProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceExposeAnnotationProcessor.class);
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -70,9 +69,5 @@ public class ServiceExposeAnnotationProcessor extends AbstractProcessor {
 
         }
         return true;
-    }
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
     }
 }

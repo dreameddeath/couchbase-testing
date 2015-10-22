@@ -47,7 +47,7 @@ public class DefaultCouchbaseDCPEnvironment extends DefaultCoreEnvironment imple
             String gitVersion = null;
             try {
                 Properties versionProp = new Properties();
-                versionProp.load(DefaultCoreEnvironment.class.getClassLoader().getResourceAsStream(VERSION_PROPERTIES));
+                versionProp.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(VERSION_PROPERTIES));
                 version = versionProp.getProperty("specificationVersion");
                 gitVersion = versionProp.getProperty("implementationVersion");
             } catch (Exception e) {

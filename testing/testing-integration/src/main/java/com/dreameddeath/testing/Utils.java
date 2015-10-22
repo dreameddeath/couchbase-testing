@@ -39,7 +39,6 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
-import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.session.impl.ElasticSearchSessionFactory;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
@@ -137,21 +136,20 @@ public class Utils {
                             (System.getenv(COUCHBASE_DB_URL_ENV_VAR) != null)
                     ) {
                 bucketFactory = new CouchbaseBucketFactory(new CouchbaseClusterFactory());
-                client = new CouchbaseBucketWrapper(CouchbaseCluster.create(System.getenv(COUCHBASE_DB_URL_ENV_VAR)), System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR), System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR), prefix);
+                client = new CouchbaseBucketWrapper(CouchbaseCluster.create(System.getenv(COUCHBASE_DB_URL_ENV_VAR)), System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR), System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR));
                 couchbaseConnectionList = Arrays.asList(System.getenv(COUCHBASE_DB_URL_ENV_VAR).split(","));
                 bucketName = System.getenv(COUCHBASE_BUCKET_NAME_ENV_VAR);
                 bucketPassword = System.getenv(COUCHBASE_BUCKET_PASSWORD_ENV_VAR);
             }
             else {
                 bucketFactory = new CouchbaseBucketFactorySimulator();
-                client = new CouchbaseBucketSimulator(prefix+"test", prefix);
+                client = new CouchbaseBucketSimulator(prefix+"test");
                 couchbaseConnectionList = Arrays.asList("localhost:8091");
                 bucketName = client.getBucketName();
                 bucketPassword = "dummy";
             }
 
             CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
-            sessionBuilder.getDocumentDaoFactoryBuilder().withBucketFactory(bucketFactory).getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
             sessionFactory = sessionBuilder.build();
 
             if(type.hasElasticSearch()){
@@ -175,7 +173,7 @@ public class Utils {
         }
 
         public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao dao,Class<TOBJ> objClass) throws DuplicateMappedEntryInfoException{
-            sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(client), new GenericJacksonTranscoder<>(objClass));
+            sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(client));
             if(esSessionFactory!=null){
                 ElasticSearchDao<TOBJ> elasticSearchDao = new ElasticSearchDao<>(client.getBucketName(),esClient ,esMapper,new GenericJacksonTranscoder<>(objClass));
                 esSessionFactory.getElasticSearchDaoFactory().addDaoForClass(objClass,elasticSearchDao);
@@ -242,7 +240,7 @@ public class Utils {
 
         public void shutdown(boolean cleanUp){
             if(cleanUp && client.getClass().equals(CouchbaseBucketWrapper.class)){
-                ViewQuery listQuery = ViewQuery.from(TESTING_DESIGN_DOC,VIEW_PER_PREFIX).key(client.getPrefix());
+                ViewQuery listQuery = ViewQuery.from(TESTING_DESIGN_DOC,VIEW_PER_PREFIX);//.key(client.getPrefix());
                 listQuery.stale(Stale.FALSE);
                 final Bucket bucket=((CouchbaseBucketWrapper) client).getBucket();
                 bucket.async().query(listQuery).

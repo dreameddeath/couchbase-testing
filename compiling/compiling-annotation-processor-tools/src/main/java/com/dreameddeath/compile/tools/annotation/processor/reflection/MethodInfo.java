@@ -17,9 +17,11 @@
 package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,11 @@ import java.util.List;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class MethodInfo extends MemberInfo {
+    public static MethodInfo getMethodInfo(ExecutableElement elt){
+        AbstractClassInfo classInfo = ClassInfo.getClassInfo((TypeElement) elt.getEnclosingElement());
+        return new MethodInfo(classInfo,elt);
+    }
+
     private String name;
     private AbstractClassInfo parent;
     private Method method=null;
@@ -39,20 +46,19 @@ public class MethodInfo extends MemberInfo {
         if(elementMethod!=null){
             name = elementMethod.getSimpleName().toString();
             for(VariableElement parameter:elementMethod.getParameters()) {
-                ParameterizedTypeInfo paramInfo = new ParameterizedTypeInfo(parameter.asType());
-                paramInfo.setName(parameter.getSimpleName().toString());
-                methodParameters.add(paramInfo);
+                ParameterizedTypeInfo paramInfo = ParameterizedTypeInfo.getParameterizedTypeInfo(parameter.asType());
+
+                methodParameters.add(new ParameterizedTypeInfo(paramInfo,parameter.getSimpleName().toString()));
 
             }
             TypeMirror methodReturnType = elementMethod.getReturnType();
-            returnType=new ParameterizedTypeInfo(methodReturnType);
+            returnType=ParameterizedTypeInfo.getParameterizedTypeInfo(methodReturnType);
         }
         else{
             name = method.getName();
-            for(Type parameter:method.getGenericParameterTypes()){
-                ParameterizedTypeInfo paramInfo = new ParameterizedTypeInfo(parameter);
-                paramInfo.setName(parameter.getTypeName());
-                methodParameters.add(paramInfo);
+            for(Parameter parameter:method.getParameters()){//method.getGenericParameterTypes()){
+                ParameterizedTypeInfo paramInfo = new ParameterizedTypeInfo(parameter.getParameterizedType());
+                methodParameters.add(new ParameterizedTypeInfo(paramInfo,parameter.getName()));
             }
             Type methodGenericReturnType=method.getGenericReturnType();
             returnType = new ParameterizedTypeInfo(methodGenericReturnType);

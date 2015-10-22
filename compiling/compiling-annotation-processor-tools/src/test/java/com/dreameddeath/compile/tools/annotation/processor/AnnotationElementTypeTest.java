@@ -31,7 +31,7 @@ public class AnnotationElementTypeTest extends Assert {
                 withTempDirectoryPrefix("AnnotationElementTypeTest");
         AnnotationProcessorTestingWrapper.Result result = annotTester.run(this.getClass().getClassLoader().getResource("sourceFiles").getPath());
         assertTrue(result.getResult());
-        assertEquals(2,processor.getNbProcessedClasses());
+        assertEquals(3,processor.getNbProcessedClasses());
         result.cleanUp();
     }
 }

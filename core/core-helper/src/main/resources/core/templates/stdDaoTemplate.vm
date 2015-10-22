@@ -4,6 +4,9 @@ package ${daoDef.packageName};
 import org.apache.commons.io.IOUtils;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
@@ -14,8 +17,7 @@ import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.couchbase.BucketDocument;
-import com.dreameddeath.core.couchbase.exception.StorageException;
+
 
 #if($daoDef.needGenerateRestLayer())
 import com.dreameddeath.core.helper.annotation.service.RestDao;
@@ -53,9 +55,16 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
     public static final String CNT_${counter.name.toUpperCase()}_PATTERN="$esc.java($counter.fullPattern)";
 #end
 
+    @BucketDocumentForClass(${entity.simpleName}.class)
     public static class LocalBucketDocument extends BucketDocument<${entity.simpleName}> {
         public LocalBucketDocument(${entity.simpleName} obj){super(obj);}
     }
+
+    @Override
+    protected Class<${entity.simpleName}> getBaseClass() {
+        return ${entity.simpleName}.class;
+    }
+
 
     @Override
     public Class<? extends BucketDocument<${entity.simpleName}>> getBucketDocumentClass() {

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.transcoder.json;
+package com.dreameddeath.core.dao.transcoder;
 
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.transcoder.JacksonTransformers;
 import com.dreameddeath.core.dao.exception.view.ViewDecodingException;
 import com.dreameddeath.core.dao.exception.view.ViewEncodingException;
 import com.dreameddeath.core.dao.model.view.IViewTranscoder;
+import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.io.IOException;

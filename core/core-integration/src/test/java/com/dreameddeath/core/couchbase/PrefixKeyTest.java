@@ -17,6 +17,7 @@
 package com.dreameddeath.core.couchbase;
 
 import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
@@ -25,9 +26,7 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import org.junit.Test;
 
@@ -55,6 +54,7 @@ public class PrefixKeyTest {
         public static final String TEST_CNT_KEY_PATTERN="test/cnt";
         public static final String TEST_KEY_FMT="test/%010d";
 
+        @BucketDocumentForClass(TestPrefixKey.class)
         public static class LocalBucketDocument extends BucketDocument<TestPrefixKey> {
             public LocalBucketDocument(TestPrefixKey obj){super(obj);}
         }
@@ -71,6 +71,12 @@ public class PrefixKeyTest {
                     new CouchbaseCounterDao.Builder().withKeyPattern(TEST_CNT_KEY_PATTERN).withDefaultValue(1L).withBaseDao(this)
             );
         }
+
+        @Override
+        protected Class<TestPrefixKey> getBaseClass() {
+            return TestPrefixKey.class;
+        }
+
         @Override
         public TestPrefixKey buildKey(ICouchbaseSession session, TestPrefixKey newObject) throws DaoException, StorageException {
             long result = session.incrCounter(TEST_CNT_KEY, 1);
@@ -83,12 +89,12 @@ public class PrefixKeyTest {
     private final static CouchbaseSessionFactory sessionFactory ;
     private final static CouchbaseBucketSimulator client ;
     static {
-        client = new CouchbaseBucketSimulator("test","user1");
+        client = new CouchbaseBucketSimulator("test");
         CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
-        sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
+        //sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder().withDefaultTranscoder(new GenericJacksonTranscoder<>(CouchbaseUniqueKey.class));
         sessionFactory = sessionBuilder.build();
         try {
-            sessionFactory.getDocumentDaoFactory().addDao(new TestPrefixKeyDao().setClient(client), new GenericJacksonTranscoder<>(TestPrefixKey.class));
+            sessionFactory.getDocumentDaoFactory().addDao(new TestPrefixKeyDao().setClient(client));
         }
         catch(Exception e){
             throw new RuntimeException(e);
@@ -99,7 +105,7 @@ public class PrefixKeyTest {
 
     @Test
     public void testPrefixKey()throws Exception{
-        ICouchbaseSession session = sessionFactory.newReadWriteSession(null);
+        ICouchbaseSession session = sessionFactory.newReadWriteSession(null,"user1");
         TestPrefixKey testClass = session.newEntity(TestPrefixKey.class);
         testClass.value = "simple Test";
 

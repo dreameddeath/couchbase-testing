@@ -25,12 +25,14 @@ import com.dreameddeath.core.model.mapper.IKeyMappingInfo;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Created by Christophe Jeunesse on 08/06/2015.
  */
 public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
+    public static final String KEY_PREFIX_PATTERN_STR = "(?:(\\w+)\\$)?";
     private Map<Class<? extends CouchbaseDocument>, IDocumentClassMappingInfo> perClassInfoMap
             = new ConcurrentHashMap<>();
     private Map<Pattern,IDocumentClassMappingInfo> keyInfoMap
@@ -71,11 +73,17 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
         if (keyPattern == null) {
             keyPattern = ".*";
         }
-        if (!keyPattern.startsWith("^")) {
-            keyPattern = "^" + keyPattern;
+        if(keyPattern.startsWith("^")){
+            keyPattern = keyPattern.substring(1);
         }
+
+        keyPattern="^"+KEY_PREFIX_PATTERN_STR+"("+keyPattern;
+
         if (!keyPattern.endsWith("$")) {
-            keyPattern += "$";
+            keyPattern += ")$";
+        }
+        else{
+            keyPattern=keyPattern.substring(0,keyPattern.length())+")$";
         }
 
 
@@ -99,17 +107,18 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
     }
 
     @Override
+    public synchronized void cleanup() {
+        perClassInfoMap.clear();
+        keyInfoMap.clear();
+    }
+
+    @Override
     public IKeyMappingInfo getMappingFromKey(String key) throws MappingNotFoundException{
         String effectiveKey = key;
-        String prefix =null;
-        if(key.contains("$")){
-            int pos=key.indexOf("$");
-            prefix = key.substring(0,pos);
-            effectiveKey = key.substring(pos+1);
-        }
         for(Map.Entry<Pattern,IDocumentClassMappingInfo> entry:keyInfoMap.entrySet()){
-            if(entry.getKey().matcher(effectiveKey).matches()){
-                return new KeyMappingInfo(prefix,effectiveKey,key,entry.getValue());
+            Matcher matcher = entry.getKey().matcher(effectiveKey);
+            if(matcher.matches()){
+                return new KeyMappingInfo(matcher.group(1),matcher.group(2),key,entry.getValue());
             }
         }
         throw new MappingNotFoundException("The key <"+key+"> hasn't been found");
