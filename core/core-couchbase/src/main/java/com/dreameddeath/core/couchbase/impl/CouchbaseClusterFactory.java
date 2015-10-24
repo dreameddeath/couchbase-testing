@@ -35,17 +35,25 @@ public class CouchbaseClusterFactory implements ICouchbaseClusterFactory,AutoClo
     private final CouchbaseEnvironment env;
     private Map<String,CouchbaseCluster> couchbaseClusterMap = new HashMap<>();
 
-    private CouchbaseClusterFactory(CouchbaseEnvironment env,Boolean autoCreatedEnv){
-        this.env = env;
-        this.autoCreatedEnv = autoCreatedEnv;
-    }
 
     public CouchbaseClusterFactory(CouchbaseEnvironment env){
-        this(env,false);
+        this(builder().withCouchbaseEnv(env));
     }
 
+    public CouchbaseClusterFactory(Builder builder){
+        if(builder.couchbaseEnv==null){
+            this.env = DefaultCouchbaseEnvironment.create();
+            this.autoCreatedEnv = true;
+        }
+        else{
+            this.env = builder.couchbaseEnv;
+            this.autoCreatedEnv=false;
+        }
+    }
+
+
     public CouchbaseClusterFactory(){
-        this(DefaultCouchbaseEnvironment.create(),true);
+        this(builder());
     }
 
     @Override
@@ -70,14 +78,34 @@ public class CouchbaseClusterFactory implements ICouchbaseClusterFactory,AutoClo
             }
     }
 
-    @Override
-    synchronized public void close(){
+    synchronized public void stop(){
         for(CouchbaseCluster cluster:couchbaseClusterMap.values()){
             cluster.disconnect();
         }
+    }
+
+    @Override
+    synchronized public void close(){
+        stop();
         if(autoCreatedEnv){
             env.shutdown();
         }
     }
 
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder{
+        private CouchbaseEnvironment couchbaseEnv =null;
+
+        public Builder withCouchbaseEnv(CouchbaseEnvironment couchbaseEnv) {
+            this.couchbaseEnv = couchbaseEnv;
+            return this;
+        }
+
+        public CouchbaseClusterFactory build(){
+            return new CouchbaseClusterFactory(this);
+        }
+    }
 }

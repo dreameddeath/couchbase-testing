@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -58,8 +59,14 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
         throw e;
     }
 
+    private void sortListener(boolean reverse){
+        final int coef = (reverse)?-1:1;
+        Collections.sort(listeners, (l1, l2) -> coef *Integer.compare(l1.getRank(), l2.getRank()));
+    }
+
     @Override
     synchronized public void start() throws Exception {
+        sortListener(false);
         try {
             if (status == Status.STOPPED ||
                     status == Status.STARTING) {
@@ -84,6 +91,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void halt() throws Exception {
+        sortListener(true);
         try {
 
             if (status == Status.STARTED) {
@@ -102,6 +110,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void stop() throws Exception {
+        sortListener(true);
         try {
             if (status == Status.STARTED) {
                 status = Status.STOPPING;
@@ -123,19 +132,6 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
         }
     }
 
-    @Override
-    synchronized public void reload() throws Exception {
-        try {
-            if (status == Status.STARTED) {
-                for (Listener listener : listeners) {
-                    listener.lifeCycleReload(this);
-                }
-            }
-        }
-        catch(Exception e){
-            manageException(e,"reload");
-        }
-    }
 
     @Override
     synchronized public void join() throws Exception{

@@ -150,13 +150,30 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     @Override
+    public boolean isStarted() {
+        return bucket!=null;
+    }
+
+    @Override
     public boolean shutdown(long timeout,TimeUnit unit){
-        return bucket.close(timeout,unit);
+        if(bucket!=null) {
+            boolean result = bucket.close(timeout, unit);
+            if (result) {
+                bucket = null;
+            }
+            return result;
+        }
+        else{
+            return false;
+        }
     }
 
     @Override
     public void shutdown(){
-        bucket.close();
+        if(bucket!=null) {
+            bucket.close();
+            bucket = null;
+        }
     }
 
     @Override

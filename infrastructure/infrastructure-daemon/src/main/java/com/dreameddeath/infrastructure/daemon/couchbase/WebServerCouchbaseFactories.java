@@ -16,22 +16,31 @@
 
 package com.dreameddeath.infrastructure.daemon.couchbase;
 
-import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
-import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 
 /**
  * Created by Christophe Jeunesse on 13/10/2015.
  */
-public class WebServerCouchbaseFactories extends DaemonCouchbaseFactories{
+public class WebServerCouchbaseFactories{
     private final CouchbaseDocumentDaoFactory documentDaoFactory;
+    private final CouchbaseSessionFactory couchbaseSessionFactory;
 
-    public WebServerCouchbaseFactories(CouchbaseClusterFactory clusterFactory, CouchbaseBucketFactory bucketFactory, CouchbaseDocumentDaoFactory documentDaoFactory) {
-        super(clusterFactory, bucketFactory);
+    public WebServerCouchbaseFactories(CouchbaseSessionFactory sessionFactory,CouchbaseDocumentDaoFactory documentDaoFactory) {
+        //super(clusterFactory, bucketFactory);
         this.documentDaoFactory = documentDaoFactory;
+        this.couchbaseSessionFactory=sessionFactory;
     }
 
     public CouchbaseDocumentDaoFactory getDocumentDaoFactory() {
         return documentDaoFactory;
+    }
+
+    public CouchbaseSessionFactory getCouchbaseSessionFactory() {
+        return couchbaseSessionFactory;
+    }
+
+    public void close(){
+        documentDaoFactory.cleanup();
     }
 }

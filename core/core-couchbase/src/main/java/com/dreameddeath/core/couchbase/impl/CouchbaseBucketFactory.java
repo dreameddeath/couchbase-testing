@@ -29,25 +29,33 @@ import java.util.Map;
 /**
  * Created by Christophe Jeunesse on 10/10/2015.
  */
-public class CouchbaseBucketFactory implements ICouchbaseBucketFactory {
+public class CouchbaseBucketFactory implements ICouchbaseBucketFactory,AutoCloseable {
     private final ICouchbaseClusterFactory clusterFactory;
     private final Map<String,ICouchbaseBucket> couchbaseBucketMap = new HashMap<>();
+    private boolean autoStart;
 
     public CouchbaseBucketFactory(ICouchbaseClusterFactory clusterFactory){
         this.clusterFactory=clusterFactory;
+        autoStart=false;
     }
+
+    public CouchbaseBucketFactory(Builder builder){
+        this.clusterFactory=builder.clusterFactory;
+        autoStart=false;
+    }
+
 
     public ICouchbaseClusterFactory getClusterFactory(){
         return clusterFactory;
     }
-
 
     protected ICouchbaseBucket buildCouchbaseBucket(final String name){
         try {
             String clusterName = CouchbaseConfigProperties.COUCHBASE_BUCKET_CLUSTER_NAME.getProperty(name).getMandatoryValue("Cannot find cluster name for bucket <{}>", name);
             String password = CouchbaseConfigProperties.COUCHBASE_BUCKET_PASSWORD_NAME.getProperty(name).getMandatoryValue("Cannot find password for bucket <{}>", name);
             CouchbaseCluster cluster = clusterFactory.getCluster(clusterName);
-            return new CouchbaseBucketWrapper(cluster, name, password);
+            ICouchbaseBucket bucket = new CouchbaseBucketWrapper(cluster, name, password);
+            return bucket;
         }
         catch (ConfigPropertyValueNotFoundException e) {
             throw new RuntimeException("Cannot init bucket", e);
@@ -58,13 +66,60 @@ public class CouchbaseBucketFactory implements ICouchbaseBucketFactory {
     @Override
     synchronized public ICouchbaseBucket getBucket(final String name) throws ConfigPropertyValueNotFoundException{
         try {
-            return couchbaseBucketMap.computeIfAbsent(name, name1 -> buildCouchbaseBucket(name));
+            ICouchbaseBucket bucket = couchbaseBucketMap.computeIfAbsent(name, name1 -> buildCouchbaseBucket(name));
+            if(autoStart && !bucket.isStarted()){
+                bucket.start();
+            }
+            return bucket;
         }
         catch(RuntimeException e){
             if(e.getCause() instanceof ConfigPropertyValueNotFoundException){
                 throw (ConfigPropertyValueNotFoundException)e.getCause();
             }
             throw e;
+        }
+    }
+
+    synchronized public void start() throws Exception {
+        for(ICouchbaseBucket bucket : couchbaseBucketMap.values()){
+            if(!bucket.isStarted()) {
+                bucket.start();
+            }
+        }
+    }
+
+
+
+    @Override
+    synchronized public void close() throws Exception {
+        for(ICouchbaseBucket bucket : couchbaseBucketMap.values()){
+            bucket.shutdown();
+        }
+        couchbaseBucketMap.clear();
+    }
+
+    public void setAutoStart(boolean autoStart) {
+        this.autoStart = autoStart;
+    }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder{
+        private ICouchbaseClusterFactory clusterFactory;
+
+        public Builder(){
+            clusterFactory = new CouchbaseClusterFactory();
+        }
+
+        public Builder withClusterFactory(ICouchbaseClusterFactory clusterFactory) {
+            this.clusterFactory = clusterFactory;
+            return this;
+        }
+
+        public CouchbaseBucketFactory build(){
+            return new CouchbaseBucketFactory(this);
         }
     }
 }

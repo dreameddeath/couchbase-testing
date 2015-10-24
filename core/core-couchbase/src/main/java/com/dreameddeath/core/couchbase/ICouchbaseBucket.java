@@ -99,7 +99,7 @@ public interface ICouchbaseBucket {
 
     void start(long timeout, TimeUnit unit);
     void start();
-
+    boolean isStarted();
     boolean shutdown(long timeout, TimeUnit unit);
     void shutdown();
 

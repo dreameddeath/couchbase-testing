@@ -17,9 +17,24 @@
 package com.dreameddeath.core.user;
 
 /**
- * Created by Christophe Jeunesse on 14/04/2015.
+ * Created by Christophe Jeunesse on 23/10/2015.
  */
-public interface IUserFactory {
-    IUser validateFromToken(String token);
+public class AuthorizeAllUser implements IUser {
+    public static final AuthorizeAllUser INSTANCE = new AuthorizeAllUser();
 
+    private AuthorizeAllUser(){}
+    @Override
+    public String getUserId() {
+        return "<AllGranted>";
+    }
+
+    @Override
+    public Boolean hasRight(String name) {
+        return true;
+    }
+
+    @Override
+    public String getProperty(String name) {
+        return null;
+    }
 }

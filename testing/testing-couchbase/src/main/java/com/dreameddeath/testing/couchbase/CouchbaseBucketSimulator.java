@@ -67,6 +67,7 @@ import java.util.stream.Stream;
 public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     private static Logger LOG = LoggerFactory.getLogger(CouchbaseBucketSimulator.class);
 
+    private boolean isStarted=false;
     private final JsonTranscoder couchbaseJsonTranscoder=new JsonTranscoder();
     private final ScriptEngineManager enginefactory = new ScriptEngineManager();
     // create a JavaScript engine
@@ -108,6 +109,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 transcoderMap.put(transcoder.documentType(), transcoder);
             }
         }
+        isStarted=true;
     }
 
     @Override
@@ -116,9 +118,19 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     @Override
-    public boolean shutdown(long timeout,TimeUnit unit){return true; }
+    public boolean isStarted() {
+        return isStarted;
+    }
+
     @Override
-    public void shutdown(){}
+    public boolean shutdown(long timeout,TimeUnit unit){
+        isStarted=false;
+        return true;
+    }
+    @Override
+    public void shutdown(){
+        shutdown(0,null);
+    }
 
     @Override
     public ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder) {

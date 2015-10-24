@@ -27,10 +27,24 @@ import java.util.concurrent.ConcurrentMap;
  * Created by Christophe Jeunesse on 09/10/2015.
  */
 public class ConfigPropertySource extends PropertySource {
+    public static final Object LOCK=new Object();
+    public static boolean classesPreloaded=false;
+
+    public static void preloadConfigClasses(){
+        synchronized (LOCK) {
+            if (!classesPreloaded) {
+                ConfigPropertyFactory.preloadConfigClasses();
+                classesPreloaded = true;
+            }
+        }
+    }
     private ConcurrentMap<String,IConfigProperty<String>> propertyMap = new ConcurrentHashMap<>();
+
+
 
     public ConfigPropertySource(String name) {
         super(name);
+        preloadConfigClasses();
     }
 
     @Override

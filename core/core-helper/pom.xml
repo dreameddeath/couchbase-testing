@@ -47,7 +47,10 @@
                             <source>${java.version}</source>
                             <target>${java.version}</target>
                             <!-- Disable annotation processing for ourselves. -->
-                            <compilerArgument>-proc:none</compilerArgument>
+                            <compilerArgs>
+                                <arg>-processor</arg>
+                                <arg>com.dreameddeath.core.config.annotation.processor.ConfigAnnotationProcessor</arg>
+                            </compilerArgs>
                         </configuration>
                     </execution>
                     <execution>

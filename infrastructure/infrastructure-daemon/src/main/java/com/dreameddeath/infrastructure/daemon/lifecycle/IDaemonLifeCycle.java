@@ -29,7 +29,6 @@ public interface IDaemonLifeCycle {
     void start() throws Exception;
     void halt() throws Exception;
     void stop() throws Exception;
-    void reload() throws Exception;
     void join() throws Exception;
     void join(long timeout) throws Exception;
 
@@ -71,18 +70,47 @@ public interface IDaemonLifeCycle {
     }
 
     interface Listener extends EventListener {
+        int getRank();
         void lifeCycleStarting(IDaemonLifeCycle lifeCycle);
 
         void lifeCycleStarted(IDaemonLifeCycle lifeCycle);
 
         void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception);
 
-        void lifeCycleReload(IDaemonLifeCycle lifeCycle);
-
         void lifeCycleHalt(IDaemonLifeCycle lifeCycle);
 
         void lifeCycleStopping(IDaemonLifeCycle lifeCycle);
 
         void lifeCycleStopped(IDaemonLifeCycle lifeCycle);
+    }
+
+    class DefaultListener implements Listener{
+        private final int rank;
+
+        public DefaultListener(int rank){
+            this.rank =rank;
+        }
+        @Override
+        public int getRank() {
+            return rank;
+        }
+
+        @Override
+        public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {}
+
+        @Override
+        public void lifeCycleStarted(IDaemonLifeCycle lifeCycle) {}
+
+        @Override
+        public void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception) {}
+
+        @Override
+        public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {}
+
+        @Override
+        public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {}
+
+        @Override
+        public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {}
     }
 }

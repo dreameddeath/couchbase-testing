@@ -17,27 +17,35 @@
 package com.dreameddeath.infrastructure.daemon.webserver;
 
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Christophe Jeunesse on 18/08/2015.
  */
 public class WebServerDaemonLifeCycleListener implements IDaemonLifeCycle.Listener {
-    private final AbstractWebServer standardWebServer;
+    private final static Logger LOG = LoggerFactory.getLogger(WebServerDaemonLifeCycleListener.class);
+    private final AbstractWebServer webServer;
     private final boolean isRootWebServer;
 
-    public WebServerDaemonLifeCycleListener(AbstractWebServer standardWebServer, boolean isRootWebServer) {
-        this.standardWebServer = standardWebServer;
+    public WebServerDaemonLifeCycleListener(AbstractWebServer webServer, boolean isRootWebServer) {
+        this.webServer = webServer;
         this.isRootWebServer = isRootWebServer;
+    }
+
+    @Override
+    public int getRank() {
+        return 1000;
     }
 
     @Override
     public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
         if(isRootWebServer){
             try {
-                standardWebServer.start();
+                webServer.start();
             }
             catch(Exception e){
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error during starting of "+webServer.getName(), e);
             }
         }
     }
@@ -46,7 +54,7 @@ public class WebServerDaemonLifeCycleListener implements IDaemonLifeCycle.Listen
     public void lifeCycleStarted(IDaemonLifeCycle lifeCycle) {
         if(!isRootWebServer){
             try {
-                standardWebServer.start();
+                webServer.start();
             }
             catch(Exception e){
                 throw new RuntimeException(e);
@@ -56,19 +64,11 @@ public class WebServerDaemonLifeCycleListener implements IDaemonLifeCycle.Listen
 
     @Override
     public void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception) {
-
-    }
-
-    @Override
-    public void lifeCycleReload(IDaemonLifeCycle lifeCycle) {
-        if(!isRootWebServer){
-            try {
-                standardWebServer.stop();
-                standardWebServer.start();
-            }
-            catch(Exception e){
-                throw new RuntimeException(e);
-            }
+        try {
+            webServer.stop();
+        }
+        catch (Exception e){
+            LOG.error("Error during failure stop of "+webServer.getName(),e);
         }
     }
 
@@ -76,10 +76,10 @@ public class WebServerDaemonLifeCycleListener implements IDaemonLifeCycle.Listen
     public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
         if(!isRootWebServer){
             try {
-                standardWebServer.stop();
+                webServer.stop();
             }
             catch(Exception e){
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error during halting of "+webServer.getName(),e);
             }
         }
     }
@@ -88,10 +88,10 @@ public class WebServerDaemonLifeCycleListener implements IDaemonLifeCycle.Listen
     public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
         if(!isRootWebServer){
             try {
-                standardWebServer.stop();
+                webServer.stop();
             }
             catch(Exception e){
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error during stopping of "+webServer.getName(),e);
             }
         }
     }
@@ -100,10 +100,10 @@ public class WebServerDaemonLifeCycleListener implements IDaemonLifeCycle.Listen
     public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
         if(isRootWebServer){
             try {
-                standardWebServer.stop();
+                webServer.stop();
             }
             catch(Exception e){
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error during stopping of root webserver "+webServer.getName(),e);
             }
         }
     }

@@ -59,7 +59,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
             @QueryParam("token") String token, @QueryParam("nb") Integer nbMore
     ) throws Exception
     {
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDoc.class,"all_test");
 
@@ -105,7 +105,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response create(@HeaderParam("USER_TOKEN") String userToken, @HeaderParam("DOC_FLAGS")Integer flags,TestDoc documentToCreate) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         session.attachEntity(documentToCreate);
         if(flags!=null){
@@ -125,7 +125,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
     @Path("{id}")
     public Response read(@HeaderParam("USER_TOKEN") String userToken,
                          @PathParam("id") String id) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
@@ -141,7 +141,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
     @Path("{id}")
     public Response delete(@HeaderParam("USER_TOKEN") String userToken,
                          @PathParam("id") String id) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
         session.delete(doc);
@@ -162,7 +162,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
                            @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS) Integer flags,
                            @PathParam("id") String id,
                            TestDoc updatedDocument) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         updatedDocument.getBaseMeta().setKey(String.format("test/%s", id));
         updatedDocument.getBaseMeta().setCas(casData);
@@ -200,7 +200,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
                 @QueryParam("token") String token, @QueryParam("nb") Integer nbMore
         ) throws Exception
     {
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         IViewQuery<String,String,TestDoc> query  = session.initViewQuery(TestDoc.class,"testView");
 

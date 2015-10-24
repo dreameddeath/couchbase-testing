@@ -18,8 +18,10 @@ package com.dreameddeath.infrastructure.daemon.webserver;
 
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
+import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.couchbase.CouchbaseWebServerLifeCycle;
 import com.dreameddeath.infrastructure.daemon.couchbase.WebServerCouchbaseFactories;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -38,6 +40,8 @@ public abstract class AbstractWebServer {
     public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
     public static final String GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME = "propertySources";
     public static final String GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME = "couchbaseDaoFactory";
+    public static final String GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME = "couchbaseSessionFactory";
+    public static final String GLOBAL_USER_FACTORY_PARAM_NAME = "userFactory";
 
     private final AbstractDaemon parentDaemon;
     private final String name;
@@ -99,7 +103,11 @@ public abstract class AbstractWebServer {
             if(builder.documentDaoFactory==null){
                 builder.documentDaoFactory=CouchbaseDocumentDaoFactory.builder().withBucketFactory(parentDaemon.getDaemonCouchbaseFactories().getBucketFactory()).build();
             }
-            couchbaseFactories = new WebServerCouchbaseFactories(parentDaemon.getDaemonCouchbaseFactories().getClusterFactory(),parentDaemon.getDaemonCouchbaseFactories().getBucketFactory(),builder.documentDaoFactory);
+            if(builder.couchbaseSessionFactory==null){
+                builder.couchbaseSessionFactory =CouchbaseSessionFactory.builder().withDocumentDaoFactory(builder.documentDaoFactory).build();
+            }
+            couchbaseFactories = new WebServerCouchbaseFactories(builder.couchbaseSessionFactory,builder.documentDaoFactory);
+            webServer.addLifeCycleListener(new CouchbaseWebServerLifeCycle(couchbaseFactories));
         }
         else{
             couchbaseFactories=null;
@@ -186,7 +194,8 @@ public abstract class AbstractWebServer {
         private boolean isRoot=false;
         private int port=0;
         private boolean withCouchbase=false;
-        private CouchbaseDocumentDaoFactory documentDaoFactory;
+        private CouchbaseDocumentDaoFactory documentDaoFactory=null;
+        private CouchbaseSessionFactory couchbaseSessionFactory=null;
 
         public T withAddress(String address) {
             this.address = address;
@@ -230,6 +239,11 @@ public abstract class AbstractWebServer {
 
         public Builder withPropertySources(PropertySources propertySources) {
             this.propertySources = propertySources;
+            return this;
+        }
+
+        public Builder withCouchbaseSessionFactory(CouchbaseSessionFactory couchbaseSessionFactory) {
+            this.couchbaseSessionFactory = couchbaseSessionFactory;
             return this;
         }
     }

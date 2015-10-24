@@ -30,6 +30,11 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
     }
 
     @Override
+    public int getRank() {
+        return 10000;
+    }
+
+    @Override
     public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
         try {
             daemonDiscovery.register(lifeCycle.getDaemon());
@@ -51,16 +56,6 @@ public class DaemonRegisterLifeCycleListener implements IDaemonLifeCycle.Listene
 
     @Override
     public void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception) {
-        try {
-            daemonDiscovery.update(lifeCycle.getDaemon());
-        }
-        catch(Exception e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void lifeCycleReload(IDaemonLifeCycle lifeCycle) {
         try {
             daemonDiscovery.update(lifeCycle.getDaemon());
         }

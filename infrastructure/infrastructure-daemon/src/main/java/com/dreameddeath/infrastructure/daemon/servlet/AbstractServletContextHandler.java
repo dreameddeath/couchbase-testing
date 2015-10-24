@@ -23,17 +23,26 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
  * Created by Christophe Jeunesse on 10/10/2015.
  */
 public class AbstractServletContextHandler extends ServletContextHandler {
+    public static final String GLOBAL_WEBSERVER_PARAM_NAME = "parentWebServer";
+
     private final AbstractWebServer webServer;
     public AbstractServletContextHandler(AbstractWebServer parentServer){
         super(parentServer.getWebServer(),null);
         webServer = parentServer;
-
+        this.setAttribute(GLOBAL_WEBSERVER_PARAM_NAME,webServer);
         this.setAttribute(AbstractWebServer.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME, parentServer.getParentDaemon().getCuratorClient());
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PARAM_NAME, parentServer.getParentDaemon());
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, parentServer.getParentDaemon().getDaemonLifeCycle());
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME,parentServer.getPropertySources());
+        this.setAttribute(AbstractWebServer.GLOBAL_USER_FACTORY_PARAM_NAME,parentServer.getParentDaemon().getUserFactory());
+
         if(parentServer.getCouchbaseFactories()!=null){
             this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME,parentServer.getCouchbaseFactories().getDocumentDaoFactory());
+            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME,parentServer.getCouchbaseFactories().getCouchbaseSessionFactory());
+        }
+        else{
+            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME,null);
+            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME,null);
         }
     }
 

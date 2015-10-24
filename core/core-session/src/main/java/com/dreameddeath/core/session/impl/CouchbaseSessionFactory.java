@@ -36,7 +36,7 @@ public class CouchbaseSessionFactory {
     private final ValidatorFactory validatorFactory;
 
     public CouchbaseSessionFactory(Builder builder){
-        documentDaoFactory =  builder.daoDocFactoryBuilder.build();
+        documentDaoFactory =  builder.daoDocumentFactory;
         counterDaoFactory = documentDaoFactory.getCounterDaoFactory();
         uniqueKeyDaoFactory = documentDaoFactory.getUniqueKeyDaoFactory();
         dateTimeServiceFactory = builder.getDateTimeServiceFactory();
@@ -68,24 +68,28 @@ public class CouchbaseSessionFactory {
 
 
 
+    public static Builder builder(){
+        return new Builder();
+    }
+
     public static class Builder{
-        private CouchbaseDocumentDaoFactory.Builder daoDocFactoryBuilder;
+        private CouchbaseDocumentDaoFactory daoDocumentFactory=null;
         private DateTimeServiceFactory dateTimeServiceFactory;
         private ValidatorFactory validatorFactory;
 
         public Builder(){
-            daoDocFactoryBuilder = CouchbaseDocumentDaoFactory.builder();
+            daoDocumentFactory = CouchbaseDocumentDaoFactory.builder().build();
             dateTimeServiceFactory = new DateTimeServiceFactory();
             validatorFactory = new ValidatorFactory();
         }
 
-        public CouchbaseDocumentDaoFactory.Builder getDocumentDaoFactoryBuilder(){ return daoDocFactoryBuilder;}
+        public CouchbaseDocumentDaoFactory getDocumentDaoFactory(){ return daoDocumentFactory;}
         public DateTimeServiceFactory getDateTimeServiceFactory(){ return dateTimeServiceFactory;}
         public ValidatorFactory getValidatorFactory(){ return validatorFactory;}
 
-        public Builder setDocumentDaoFactoryBuilder(CouchbaseDocumentDaoFactory.Builder daoDocFactoryBuilder){ this.daoDocFactoryBuilder = daoDocFactoryBuilder;return this;}
-        public Builder setDateTimeServiceFactory(DateTimeServiceFactory serviceFactory){ dateTimeServiceFactory=serviceFactory;return this;}
-        public Builder setValidatorFactory(ValidatorFactory validatorFactory){ this.validatorFactory=validatorFactory;return this;}
+        public Builder withDocumentDaoFactory(CouchbaseDocumentDaoFactory daoDocFactory){ this.daoDocumentFactory = daoDocFactory;return this;}
+        public Builder withDateTimeServiceFactory(DateTimeServiceFactory serviceFactory){ dateTimeServiceFactory=serviceFactory;return this;}
+        public Builder withValidatorFactory(ValidatorFactory validatorFactory){ this.validatorFactory=validatorFactory;return this;}
 
         public CouchbaseSessionFactory build(){
             return new CouchbaseSessionFactory(this);

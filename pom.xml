@@ -203,6 +203,7 @@
         <spring.core.version>4.2.1.RELEASE</spring.core.version>
         <spring.context.version>4.2.1.RELEASE</spring.context.version>
         <spring.web.version>4.2.1.RELEASE</spring.web.version>
+        <spring.security.version>4.0.2.RELEASE</spring.security.version>
 
         <!--netflix lib reuse -->
         <curator.version>2.9.0</curator.version>

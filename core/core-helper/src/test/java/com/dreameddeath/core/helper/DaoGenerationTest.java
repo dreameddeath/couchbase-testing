@@ -30,6 +30,7 @@ import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.model.annotation.processor.DocumentDefAnnotationProcessor;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentIntrospector;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
@@ -63,7 +64,7 @@ public class DaoGenerationTest extends Assert {
     public void initService(String className,String serviceName) throws Exception{
         AbstractDaoRestService service = (AbstractDaoRestService)compiledEnv.getClass(className).newInstance();
         service.setSessionFactory(env.getSessionFactory());
-        service.setUserFactory(token -> null);
+        service.setUserFactory(new StandardMockUserFactory());
         server.registerService(serviceName, service);
     }
 

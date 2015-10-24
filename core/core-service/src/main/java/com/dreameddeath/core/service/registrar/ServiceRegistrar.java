@@ -98,9 +98,10 @@ public class ServiceRegistrar {
                     .build();
 
             serviceDiscovery.registerService(newServiceDef);
+            LOG.info("Service {} registred with id {} within domain {}", newServiceDef.getName(),newServiceDef.getId(),basePath);
         }
 
-        LOG.info("Services :" + serviceDiscovery.queryForNames().toString());
+        //LOG.info("Services Regi: " + serviceDiscovery.queryForNames().toString());
     }
 
     public void stop() throws IOException{

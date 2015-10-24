@@ -21,6 +21,7 @@ import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundExcepti
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.ICouchbaseBucketFactory;
 import com.dreameddeath.core.couchbase.exception.TranscoderNotFoundException;
+import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
 import com.dreameddeath.core.couchbase.utils.CouchbaseUtils;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
@@ -33,7 +34,6 @@ import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDaoFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
@@ -51,11 +51,14 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
     private final CouchbaseUniqueKeyDaoFactory uniqueKeyDaoFactory;
     private final CouchbaseViewDaoFactory viewDaoFactory;
     private final IDocumentInfoMapper documentInfoMapper;
-    private final EntityDefinitionManager entityDefinitionManager;
 
     public CouchbaseDocumentDaoFactory(Builder builder){
-        entityDefinitionManager = builder.entityDefinitionManager;
-        bucketFactory = builder.couchbaseBucketFactory;
+        if(builder.couchbaseBucketFactory==null){
+            bucketFactory = CouchbaseBucketFactory.builder().build();
+        }
+        else {
+            bucketFactory = builder.couchbaseBucketFactory;
+        }
         documentInfoMapper = builder.documentInfoMapper;
         counterDaoFactory = builder.counterDaoFactoryBuilder.build();
         uniqueKeyDaoFactory = builder.uniqueKeyDaoFactoryBuilder.build();
@@ -72,6 +75,14 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
 
     public CouchbaseUniqueKeyDaoFactory getUniqueKeyDaoFactory(){
         return uniqueKeyDaoFactory;
+    }
+
+    public ICouchbaseBucketFactory getBucketFactory() {
+        return bucketFactory;
+    }
+
+    public IDocumentInfoMapper getDocumentInfoMapper() {
+        return documentInfoMapper;
     }
 
     public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClass,CouchbaseDocumentDao<T> dao) throws DuplicateMappedEntryInfoException{
@@ -197,10 +208,9 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         private CouchbaseUniqueKeyDaoFactory.Builder uniqueKeyDaoFactoryBuilder;
         private CouchbaseViewDaoFactory.Builder viewDaoFactoryBuilder;
         private IDocumentInfoMapper documentInfoMapper;
-        private EntityDefinitionManager entityDefinitionManager;
 
         public Builder(){
-            entityDefinitionManager = new EntityDefinitionManager();
+            couchbaseBucketFactory= null;
             documentInfoMapper = new DefaultDocumentMapperInfo();
             counterDaoFactoryBuilder = CouchbaseCounterDaoFactory.builder().withDocumentInfoMapper(documentInfoMapper);
             uniqueKeyDaoFactoryBuilder = CouchbaseUniqueKeyDaoFactory.builder().withDocumentInfoMapper(documentInfoMapper);
@@ -219,10 +229,6 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             return this;
         }
 
-        public Builder withEntityDefinitionManager(EntityDefinitionManager entityDefinitionManager) {
-            this.entityDefinitionManager = entityDefinitionManager;
-            return this;
-        }
 
         public CouchbaseCounterDaoFactory.Builder getCounterDaoFactoryBuilder() {
             return counterDaoFactoryBuilder;

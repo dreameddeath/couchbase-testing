@@ -81,7 +81,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
             @QueryParam("token") String token, @QueryParam("nb") Integer nbMore
     ) throws Exception
     {
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         IViewQuery<String,String,TestDocChild> query  = session.initViewQuery(TestDocChild.class,"all_testChild");
 
@@ -137,7 +137,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                            @HeaderParam("DOC_FLAGS")Integer flags,
                            @PathParam("testDocId") String testDocId,
                            TestDocChild documentToCreate) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         session.attachEntity(documentToCreate);
         documentToCreate.parent= new TestDocLink();
@@ -161,7 +161,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
     public Response read(@HeaderParam("USER_TOKEN") String userToken,
                          @PathParam("testDocId") String testDocId,
                          @PathParam("id") String id) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDocChild doc = session.get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
@@ -178,7 +178,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
     public Response delete(@HeaderParam("USER_TOKEN") String userToken,
                            @PathParam("testDocId") String testDocId,
                            @PathParam("id") String id) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDocChild doc = session.get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         session.delete(doc);
@@ -200,7 +200,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                             @PathParam("testDocId") String testDocId,
                             @PathParam("id") String id,
                             TestDocChild updatedDocument) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         updatedDocument.getBaseMeta().setKey(String.format("test/%s/child/%s", testDocId,id));
         updatedDocument.getBaseMeta().setCas(casData);

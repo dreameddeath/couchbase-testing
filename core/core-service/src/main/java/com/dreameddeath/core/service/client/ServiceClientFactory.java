@@ -21,7 +21,6 @@ import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
 import com.dreameddeath.core.service.model.ServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.UriSpec;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -45,11 +44,10 @@ public class ServiceClientFactory {
 
     public static String buildUri(ServiceInstance<ServiceDescription> serviceDescr){
         Map<String,Object> params = new TreeMap<>();
-        for(UriSpec.Part part:serviceDescr.getUriSpec().getParts()){
-            if(part.isVariable() && !VARIABLE_TO_IGNORE.contains(part.getValue())){
-                params.put(part.getValue(),"{"+part.getValue()+"}");
-            }
-        }
+        serviceDescr.getUriSpec().getParts().stream()
+                .filter(part -> part.isVariable() && !VARIABLE_TO_IGNORE.contains(part.getValue()))
+                .forEach(part -> params.put(part.getValue(), "{" + part.getValue() + "}")
+                );
         return serviceDescr.buildUriSpec(params);
     }
 
@@ -76,7 +74,6 @@ public class ServiceClientFactory {
         }
         catch(ServiceDiscoveryException e){
             throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
-            //Todo throw an error
         }
     }
 

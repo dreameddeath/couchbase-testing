@@ -20,8 +20,10 @@ import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundExcepti
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
 import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
 import com.dreameddeath.core.curator.CuratorFrameworkFactory;
+import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.couchbase.CouchbaseDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.couchbase.DaemonCouchbaseFactories;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonRegisterLifeCycleListener;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
@@ -30,6 +32,7 @@ import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.WebAppWebServer;
+import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
@@ -48,6 +51,7 @@ public class AbstractDaemon {
     private final UUID uuid = UUID.randomUUID();
     private final IDaemonLifeCycle daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework curatorClient;
+    private final IUserFactory userFactory;
     private final DaemonCouchbaseFactories daemonCouchbaseFactories;
     private final RestWebServer adminWebServer;
     private final List<AbstractWebServer> additionalWebServers = new ArrayList<>();
@@ -78,14 +82,19 @@ public class AbstractDaemon {
         if(builder.getCuratorFramework()==null){
             builder.withCuratorFramework(setupDefaultCuratorClient());
         }
+        //TODO improve user management
+        Preconditions.checkNotNull(builder.userFactory,"Please give a user factory");
+        userFactory = builder.userFactory;
+
         if(builder.getWithCouchbase()){
             if(builder.getWithCouchbaseClusterFactory()==null){
                 builder.withWithCouchbaseClusterFactory(new CouchbaseClusterFactory());
             }
             if(builder.getWithCouchbaseBucketFactory()==null){
-                builder.withWithCouchbaseBucketFactory(new CouchbaseBucketFactory(builder.getWithCouchbaseClusterFactory()));
+                builder.withWithCouchbaseBucketFactory(CouchbaseBucketFactory.builder().withClusterFactory(builder.getWithCouchbaseClusterFactory()).build());
             }
             daemonCouchbaseFactories = new DaemonCouchbaseFactories(builder.getWithCouchbaseClusterFactory(),builder.getWithCouchbaseBucketFactory());
+            daemonLifeCycle.addLifeCycleListener(new CouchbaseDaemonLifeCycle(daemonCouchbaseFactories));
         }
         else {
             daemonCouchbaseFactories = null;
@@ -165,6 +174,9 @@ public class AbstractDaemon {
     }
 
 
+    public IUserFactory getUserFactory() {
+        return userFactory;
+    }
 
     public void startAndJoin() throws Exception{
         //Starting using the status manager
@@ -189,10 +201,11 @@ public class AbstractDaemon {
     }
 
     public static class Builder{
+        private IUserFactory userFactory=null;
         private String name=null;
         private boolean registerDaemon=true;
         private CuratorFramework curatorFramework=null;
-        private String adminApplicationContextName="daemon.admin.applicationContext.xml";
+        private String adminApplicationContextName="META-INF/spring/daemon.admin.applicationContext.xml";
         private String adminWebServerName="admin";
         private boolean withCouchbase=false;
         private CouchbaseClusterFactory withCouchbaseClusterFactory=null;
@@ -267,6 +280,11 @@ public class AbstractDaemon {
 
         public Builder withWithCouchbaseBucketFactory(CouchbaseBucketFactory withCouchbaseBucketFactory) {
             this.withCouchbaseBucketFactory = withCouchbaseBucketFactory;
+            return this;
+        }
+
+        public Builder withUserFactory(IUserFactory userFactory) {
+            this.userFactory = userFactory;
             return this;
         }
 

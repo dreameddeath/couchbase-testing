@@ -208,7 +208,6 @@ public class UpgraderTest {
         CouchbaseBucketSimulator client = new CouchbaseBucketSimulator("test");
 
         CouchbaseSessionFactory.Builder sessionBuilder = new CouchbaseSessionFactory.Builder();
-        sessionBuilder.getDocumentDaoFactoryBuilder().getUniqueKeyDaoFactoryBuilder();
         sessionFactory = sessionBuilder.build();
         try {
             sessionFactory.getDocumentDaoFactory().addDaoFor(TestModel.class,new TestDaoV1().setClient(client));

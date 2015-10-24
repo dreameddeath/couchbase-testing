@@ -32,27 +32,5 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
-  
-  <dependencies>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-dao</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-model</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-validation</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-          <version>${jackson.version}</version>
-      </dependency>
-  </dependencies>
+
 </project>

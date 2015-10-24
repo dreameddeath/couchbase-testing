@@ -18,7 +18,13 @@ package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
+import com.dreameddeath.core.helper.config.DaoHelperConfigProperties;
+import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
+import com.dreameddeath.core.helper.service.DaoServiceJacksonObjectMapper;
+import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentIntrospector;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
@@ -42,7 +48,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -66,10 +74,11 @@ public class AbstractDaemonTest extends Assert {
         String connectionString = testUtils.getCluster().getConnectString();
 
         ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
-        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test","testdoc").getName(),"testBucketName");
+        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
         final AbstractDaemon daemon=AbstractDaemon.builder()
                 .withName("testing Daemon")
                 .withWithCouchbase(true)
+                .withUserFactory(new StandardMockUserFactory())
                 .withWithCouchbaseBucketFactory(couchbaseBucketFactory)
                 .build();
 
@@ -90,6 +99,37 @@ public class AbstractDaemonTest extends Assert {
                 catch(Exception e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during daemon registered info read", e);
+                }
+                try{
+                    TestDoc newDoc = new TestDoc();
+                    newDoc.name="testInit";
+
+                    ServiceClientFactory daoReadClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_READ_SERVICES_DOMAIN.get());
+                    ServiceClientFactory daoWriteClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_WRITE_SERVICES_DOMAIN.get());
+                    Response response = daoWriteClientFactory.getClient("dao#test#testdoc$write", "1.0.0")
+                            .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)))
+                                    .request()
+                                    .post(Entity.json(newDoc));
+                    TestDoc createdTestDoc = response.readEntity(new GenericType<>(TestDoc.class));
+                    DaoHelperServiceUtils.finalizeFromResponse(response,createdTestDoc);
+                    assertEquals(newDoc.name, createdTestDoc.name);
+
+                    String[] keyParts = createdTestDoc.getMeta().getKey().split("/");
+                    Response readDocResponse = daoReadClientFactory.getClient("dao#test#testdoc$read", "1.0.0")
+                            .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)))
+                                    .path(keyParts[keyParts.length-1])
+                                    .request()
+                                    .get();
+
+                    TestDoc readDoc = readDocResponse.readEntity(new GenericType<>(TestDoc.class));
+                    DaoHelperServiceUtils.finalizeFromResponse(readDocResponse,readDoc);
+                    assertEquals(createdTestDoc.name, readDoc.name);
+                    assertEquals(createdTestDoc.getMeta().getKey(),readDoc.getMeta().getKey());
+
+                }
+                catch(Exception e){
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
                 try{
                     Integer response =ClientBuilder.newClient()
@@ -208,7 +248,7 @@ public class AbstractDaemonTest extends Assert {
                 fail("Shoudn't have to call stop");
             }
         });
-        daemon.getDaemonLifeCycle().addLifeCycleListener(new IDaemonLifeCycle.Listener() {
+        daemon.getDaemonLifeCycle().addLifeCycleListener(new IDaemonLifeCycle.DefaultListener(1000000) {
             @Override
             public void lifeCycleStarting(IDaemonLifeCycle lifeCycle) {
                 try {
@@ -246,12 +286,10 @@ public class AbstractDaemonTest extends Assert {
                 nbErrors.getAndIncrement();
                 LOG.error("!!!!! ERROR !!!!!Error with failure", exception);
             }
+        });
 
-            @Override
-            public void lifeCycleReload(IDaemonLifeCycle lifeCycle) {
 
-            }
-
+        daemon.getDaemonLifeCycle().addLifeCycleListener(new IDaemonLifeCycle.DefaultListener(1) {
             @Override
             public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
                 try {
@@ -294,19 +332,20 @@ public class AbstractDaemonTest extends Assert {
                 }
             }
         });
+
         daemon.startAndJoin();
         LOG.warn("Going to stop");
         stopping_thread.join();
         assertEquals(0L, nbErrors.get());
         {
             DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
-            assertEquals(0L,daemonDiscovery.registeredDaemonInfoList().size());
+            assertEquals(0L, daemonDiscovery.registeredDaemonInfoList().size());
         }
 
     }
 
     @After
-    public void close() throws Exception{
-        if(testUtils!=null) testUtils.stop();
+    public void close() throws Exception {
+        if (testUtils != null) testUtils.stop();
     }
 }

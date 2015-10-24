@@ -24,8 +24,7 @@ import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.DaoServiceJacksonObjectMapper;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentIntrospector;
-import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.user.IUserFactory;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.dreameddeath.testing.service.TestingRestServer;
@@ -65,28 +64,15 @@ public class ViewTest {
         server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"),DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE));
         TestDaoRestService service = new TestDaoRestService();
         service.setSessionFactory(env.getSessionFactory());
-        service.setUserFactory(new IUserFactory() {
-            @Override
-            public IUser validateFromToken(String token) {
-                return null;
-            }
-        });
+        service.setUserFactory(new StandardMockUserFactory());
         server.registerService("TestDaoRestService", service);
-
 
         TestChildDaoRestService childService = new TestChildDaoRestService();
         childService.setSessionFactory(env.getSessionFactory());
-        childService.setUserFactory(new IUserFactory() {
-            @Override
-            public IUser validateFromToken(String token) {
-                return null;
-            }
-        });
+        childService.setUserFactory(new StandardMockUserFactory());
         server.registerService("TestChildDaoRestService", childService);
 
-
         server.start();
-
     }
 
     @Test

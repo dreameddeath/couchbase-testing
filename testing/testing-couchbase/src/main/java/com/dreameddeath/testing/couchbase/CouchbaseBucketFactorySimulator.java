@@ -18,20 +18,24 @@ package com.dreameddeath.testing.couchbase;
 
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.ICouchbaseClusterFactory;
 import com.dreameddeath.core.couchbase.config.CouchbaseConfigProperties;
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
-import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
 
 /**
  * Created by Christophe Jeunesse on 11/10/2015.
  */
 public class CouchbaseBucketFactorySimulator extends CouchbaseBucketFactory{
     public CouchbaseBucketFactorySimulator(){
-        super(null);
+        this((ICouchbaseClusterFactory)null);
     }
 
-    public CouchbaseBucketFactorySimulator(CouchbaseClusterFactory factory){
+    public CouchbaseBucketFactorySimulator(ICouchbaseClusterFactory factory){
         super(factory);
+    }
+
+    public CouchbaseBucketFactorySimulator(Builder builder){
+        super(builder);
     }
 
 

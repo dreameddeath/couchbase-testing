@@ -48,6 +48,11 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-user</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-validation</artifactId>
           <version>${project.version}</version>
       </dependency>

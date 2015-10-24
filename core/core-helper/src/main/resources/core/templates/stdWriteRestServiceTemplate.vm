@@ -63,7 +63,7 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
              @ApiParam("${parentAttributeInfo.descr}") @PathParam("${parentAttributeInfo.name}") ${parentAttributeInfo.type} ${parentAttributeInfo.name},
              #end
             ${service.classSimpleName} documentToCreate) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         session.attachEntity(documentToCreate);
         if(flags!=null){
@@ -89,7 +89,7 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
                              @ApiParam("${parentAttributeInfo.descr}") @PathParam("${parentAttributeInfo.name}") ${parentAttributeInfo.type} ${parentAttributeInfo.name},
                              #end
                              @ApiParam("The requested id") @PathParam("${service.defaultAttributeName}") String ${service.defaultAttributeName}) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         ${service.classSimpleName} doc = session.get(
                         String.format("$esc.java($service.fullDbKeyPattern)"
@@ -119,7 +119,7 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
                            #end
                            @ApiParam("The requested id") @PathParam("${service.defaultAttributeName}") String ${service.defaultAttributeName},
                            ${service.classSimpleName} updatedDocument) throws Exception{
-        IUser user = getUserFactory().validateFromToken(userToken);
+        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         updatedDocument.getBaseMeta().setKey(
                             String.format("$esc.java($service.fullDbKeyPattern)"

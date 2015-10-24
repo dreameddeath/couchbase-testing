@@ -154,14 +154,14 @@ public class Utils {
 
             if(type.hasElasticSearch()){
                 esServer = new ElasticSearchServer(prefix+"ES");
-                esSessionFactory = ElasticSearchSessionFactory.builder().withDocumentInfoMappper(sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper()).build();
-                esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper());
+                esSessionFactory = ElasticSearchSessionFactory.builder().withDocumentInfoMappper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper()).build();
+                esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper());
                 esClient = new ElasticSearchClient(esServer.getClient(),GenericJacksonTranscoder.MAPPER);
                 ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
                 ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(
                         esClient,
                         esMapper,
-                        sessionBuilder.getDocumentDaoFactoryBuilder().getDocumentInfoMapper(),
+                        sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper(),
                         true);
                 if(client instanceof CouchbaseBucketSimulator) {
                     connector = new CouchbaseDCPConnectorSimulator(env,couchbaseConnectionList ,bucketName, bucketPassword, dcpFlowHandler, (CouchbaseBucketSimulator)client);
