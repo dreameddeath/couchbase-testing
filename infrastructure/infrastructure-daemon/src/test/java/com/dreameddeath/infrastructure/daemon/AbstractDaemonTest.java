@@ -91,7 +91,8 @@ public class AbstractDaemonTest extends Assert {
             public void run() {
                 DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
                 try {
-                    List<DaemonInfo> daemonInfoList = daemonDiscovery.registeredDaemonInfoList();
+                    daemonDiscovery.start();
+                    List<DaemonInfo> daemonInfoList = daemonDiscovery.getList();
                     assertEquals(1, daemonInfoList.size());
                     assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
                     assertEquals(daemon.getAdditionalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());
@@ -339,7 +340,7 @@ public class AbstractDaemonTest extends Assert {
         assertEquals(0L, nbErrors.get());
         {
             DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
-            assertEquals(0L, daemonDiscovery.registeredDaemonInfoList().size());
+            assertEquals(0L, daemonDiscovery.getList().size());
         }
 
     }

@@ -16,10 +16,12 @@
 
 package com.dreameddeath.infrastructure.daemon.model;
 
+import com.dreameddeath.core.curator.model.IRegisterable;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 16/09/2015.
  */
-public class DaemonInfo {
+public class DaemonInfo implements IRegisterable{
     @JsonProperty("uuid")
     private UUID uuid;
     @JsonProperty("name")
@@ -134,5 +136,10 @@ public class DaemonInfo {
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    @Override @JsonIgnore
+    public String getUid() {
+        return uuid.toString();
     }
 }

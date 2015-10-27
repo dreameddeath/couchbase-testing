@@ -18,13 +18,14 @@ package com.dreameddeath.infrastructure.daemon.services;
 
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
-import com.dreameddeath.infrastructure.daemon.discovery.IDaemonDiscovery;
+import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
 import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import io.swagger.annotations.Api;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
@@ -38,10 +39,12 @@ import java.util.List;
 @Path("/daemons")
 @Api(value = "/daemons", description = "Daemons Discovery And Administration service")
 public class RestDaemonsDiscoveryAndAdminService {
-    private IDaemonDiscovery daemonDiscovery;
+    @Autowired(required = true)
+    private DaemonDiscovery daemonDiscovery;
+    @Autowired(required = true)
     private ServiceClientFactory serviceFactory;
 
-    public void setDaemonDiscovery(IDaemonDiscovery daemonDiscovery){
+    public void setDaemonDiscovery(DaemonDiscovery daemonDiscovery){
         this.daemonDiscovery = daemonDiscovery;
     }
 
@@ -53,7 +56,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<DaemonInfo> getDaemons() throws Exception{
-        return daemonDiscovery.registeredDaemonInfoList();
+        return daemonDiscovery.getList();
     }
 
     @GET

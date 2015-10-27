@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.discovery;
+package com.dreameddeath.core.curator.registrar;
 
-import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
-import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
-
-import java.util.List;
+import com.dreameddeath.core.curator.model.IRegisterable;
 
 /**
- * Created by Christophe Jeunesse on 17/09/2015.
+ * Created by Christophe Jeunesse on 26/10/2015.
  */
-public interface IDaemonDiscovery {
-    void register(AbstractDaemon daemon) throws Exception;
-    void unregister(AbstractDaemon daemon)throws Exception;
-    void update(AbstractDaemon daemon)throws Exception;
-
-    List<DaemonInfo> registeredDaemonInfoList()throws Exception;
-    DaemonInfo registeredDaemonInfo(String id) throws Exception;
+public interface ICuratorRegistrar<T extends IRegisterable> {
+    void register(T obj) throws Exception;
+    void update(T obj)throws Exception;
+    void deregister(T obj)throws Exception;
+    void close() throws Exception;
 }

@@ -16,98 +16,31 @@
 
 package com.dreameddeath.infrastructure.daemon.discovery;
 
-import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
-import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
+import com.dreameddeath.infrastructure.daemon.registrar.DaemonRegistrar;
 import com.dreameddeath.infrastructure.daemon.utils.DaemonJacksonMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.nodes.PersistentEphemeralNode;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.io.IOException;
 
 /**
  * Created by Christophe Jeunesse on 17/09/2015.
  */
-public class DaemonDiscovery implements IDaemonDiscovery {
-    private final CuratorFramework curatorFramework;
-    private PersistentEphemeralNode currDaemonNode = null;
+public class DaemonDiscovery extends CuratorDiscoveryImpl<DaemonInfo> {
+    //private final CuratorFramework curatorFramework;
 
     public DaemonDiscovery(CuratorFramework curatorFramework) {
-        this.curatorFramework = curatorFramework;
-    }
-
-    private String getAndCreateRootPath() throws Exception {
-        String path = DaemonConfigProperties.DAEMON_REGISTER_PATH.getMandatoryValue("The daemon registering path isn't set");
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-        if (curatorFramework.checkExists().forPath(path) == null) {
-            curatorFramework.create().creatingParentsIfNeeded().forPath(path);
-        }
-        return path;
-    }
-
-
-    private String getAndDaemonPath(AbstractDaemon daemon) throws Exception {
-        return getAndCreateRootPath() + "/" + daemon.getUuid().toString();
-    }
-
-    private PersistentEphemeralNode setupNode(AbstractDaemon daemon) throws Exception {
-        PersistentEphemeralNode node = new PersistentEphemeralNode(curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL, getAndDaemonPath(daemon), serializeDaemonInfo(daemon));
-        node.start();
-        node.waitForInitialCreate(1, TimeUnit.SECONDS);
-        return node;
-    }
-
-
-    private byte[] serializeDaemonInfo(AbstractDaemon daemon) throws JsonProcessingException {
-        DaemonInfo info = new DaemonInfo(daemon);
-        return DaemonJacksonMapper.getInstance().writeValueAsBytes(info);
+        super(curatorFramework, DaemonRegistrar.getRootPath());
     }
 
     @Override
-    synchronized public void register(AbstractDaemon daemon) throws Exception {
-        currDaemonNode = setupNode(daemon);
-    }
-
-    @Override
-    synchronized public void unregister(AbstractDaemon daemon) throws Exception {
-        if (currDaemonNode != null) {
-            currDaemonNode.close();
-            currDaemonNode = null;
+    protected DaemonInfo deserialize(String uid, byte[] element) {
+        try {
+            return DaemonJacksonMapper.getInstance().readValue(element, DaemonInfo.class);
         }
-    }
-
-    @Override
-    synchronized public void update(AbstractDaemon daemon) throws Exception {
-        if (currDaemonNode == null) {
-            currDaemonNode = setupNode(daemon);
+        catch(IOException e){
+            throw new RuntimeException(e);
         }
-        else {
-            currDaemonNode.setData(serializeDaemonInfo(daemon));
-        }
-    }
-
-    @Override
-    public List<DaemonInfo> registeredDaemonInfoList() throws Exception {
-        String rootPath = getAndCreateRootPath();
-        List<String> childrenPathList = curatorFramework.getChildren().forPath(rootPath);
-        List<DaemonInfo> result = new ArrayList<>(childrenPathList.size());
-        for (String childrenPath : childrenPathList) {
-            byte[] childrenData = curatorFramework.getData().forPath(rootPath + "/" + childrenPath);
-            DaemonInfo info = DaemonJacksonMapper.getInstance().readValue(childrenData, DaemonInfo.class);
-            result.add(info);
-        }
-        return result;
-    }
-
-    @Override
-    public DaemonInfo registeredDaemonInfo(String id) throws Exception {
-        String rootPath = getAndCreateRootPath();
-        byte[] childrenData = curatorFramework.getData().forPath(rootPath + "/" + id);
-        return DaemonJacksonMapper.getInstance().readValue(childrenData, DaemonInfo.class);
     }
 }

@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -39,6 +40,7 @@ import java.util.List;
 @Path("/")
 public class RestLocalWebServerAdminService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalWebServerAdminService.class);
+    @Autowired
     private AbstractDaemon daemon;
 
     public void setDaemon(AbstractDaemon daemon){
