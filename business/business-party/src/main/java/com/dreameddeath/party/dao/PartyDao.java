@@ -44,7 +44,7 @@ public class PartyDao extends BusinessCouchbaseDocumentDaoWithUID<Party> {
     }
 
     @Override
-    protected Class<Party> getBaseClass(){
+    public Class<Party> getBaseClass(){
         return Party.class;
     }
 

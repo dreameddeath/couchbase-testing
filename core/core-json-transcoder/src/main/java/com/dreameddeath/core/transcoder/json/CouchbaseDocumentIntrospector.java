@@ -20,6 +20,7 @@ import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractCl
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
+import com.dreameddeath.core.json.DefaultGetterSetterIntrospector;
 import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.core.Version;
@@ -29,10 +30,9 @@ import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 
-public class CouchbaseDocumentIntrospector extends JacksonAnnotationIntrospector implements
+public class CouchbaseDocumentIntrospector extends DefaultGetterSetterIntrospector implements
         Versioned {
 
     public enum Domain{

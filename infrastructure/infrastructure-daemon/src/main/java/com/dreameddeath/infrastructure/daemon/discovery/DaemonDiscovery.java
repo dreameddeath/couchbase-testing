@@ -17,9 +17,10 @@
 package com.dreameddeath.infrastructure.daemon.discovery;
 
 import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
 import com.dreameddeath.infrastructure.daemon.registrar.DaemonRegistrar;
-import com.dreameddeath.infrastructure.daemon.utils.DaemonJacksonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ import java.io.IOException;
  * Created by Christophe Jeunesse on 17/09/2015.
  */
 public class DaemonDiscovery extends CuratorDiscoveryImpl<DaemonInfo> {
-    //private final CuratorFramework curatorFramework;
+    private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
 
     public DaemonDiscovery(CuratorFramework curatorFramework) {
         super(curatorFramework, DaemonRegistrar.getRootPath());
@@ -37,7 +38,7 @@ public class DaemonDiscovery extends CuratorDiscoveryImpl<DaemonInfo> {
     @Override
     protected DaemonInfo deserialize(String uid, byte[] element) {
         try {
-            return DaemonJacksonMapper.getInstance().readValue(element, DaemonInfo.class);
+            return mapper.readValue(element, DaemonInfo.class);
         }
         catch(IOException e){
             throw new RuntimeException(e);

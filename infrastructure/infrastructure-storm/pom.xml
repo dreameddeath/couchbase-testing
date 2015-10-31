@@ -45,6 +45,11 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-curator</artifactId>
             <version>${project.version}</version>
         </dependency>

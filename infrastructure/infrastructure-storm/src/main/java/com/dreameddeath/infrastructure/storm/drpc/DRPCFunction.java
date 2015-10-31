@@ -20,6 +20,7 @@ package com.dreameddeath.infrastructure.storm.drpc;
 import backtype.storm.generated.DistributedRPC;
 import backtype.storm.utils.DRPCClient;
 import backtype.storm.utils.ServiceRegistry;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -36,16 +37,19 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 02/12/2014.
  */
 public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
-    private static ObjectMapper MAPPER = new ObjectMapper();
 
     private static Logger LOG = LoggerFactory.getLogger(DRPCFunction.class);
-    private DistributedRPC.Iface drpcClient;
+
+    private transient DistributedRPC.Iface drpcClient=null;
+    private transient ObjectMapper MAPPER=null;
     private String drpcServerName;
     private String drpcFunctionName;
+
 
     public DRPCFunction(String drpcServerName, String drpcFunctionName){
         this.drpcServerName = drpcServerName;
         this.drpcFunctionName = drpcFunctionName;
+        this.MAPPER = ObjectMapperFactory.BASE_INSTANCE.getMapper();
     }
 
     @Override
@@ -63,6 +67,7 @@ public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
         else{
             drpcClient = new DRPCClient(serverHost,serverPort);
         }
+        MAPPER = ObjectMapperFactory.BASE_INSTANCE.getMapper();
     }
 
     public abstract TIN DRPCInputPrepareProcess(TridentTuple tridentTuple,ObjectMapper mapper);

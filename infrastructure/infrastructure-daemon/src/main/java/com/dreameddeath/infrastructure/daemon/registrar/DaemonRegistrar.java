@@ -18,15 +18,17 @@ package com.dreameddeath.infrastructure.daemon.registrar;
 
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.curator.registrar.impl.CuratorRegistrarImpl;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
-import com.dreameddeath.infrastructure.daemon.utils.DaemonJacksonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 
 /**
  * Created by Christophe Jeunesse on 27/10/2015.
  */
 public class DaemonRegistrar extends CuratorRegistrarImpl<DaemonInfo> {
+    private ObjectMapper objectMapper= ObjectMapperFactory.BASE_INSTANCE.getMapper();
     public static String getRootPath(){
         try {
             return DaemonConfigProperties.DAEMON_REGISTER_PATH.getMandatoryValue("The daemon registering path isn't set");
@@ -34,14 +36,14 @@ public class DaemonRegistrar extends CuratorRegistrarImpl<DaemonInfo> {
         catch (ConfigPropertyValueNotFoundException e){
             throw new RuntimeException(e);
         }
-
     }
+
     public DaemonRegistrar(CuratorFramework curatorFramework) {
         super(curatorFramework, getRootPath());
     }
 
     @Override
     protected byte[] serialize(DaemonInfo obj) throws Exception {
-        return DaemonJacksonMapper.getInstance().writeValueAsBytes(obj);
+        return objectMapper.writeValueAsBytes(obj);
     }
 }

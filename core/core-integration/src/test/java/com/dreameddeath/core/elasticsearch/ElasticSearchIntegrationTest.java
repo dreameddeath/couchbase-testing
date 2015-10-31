@@ -125,7 +125,7 @@ public class ElasticSearchIntegrationTest {
         }
 
         @Override
-        protected Class<TestDoc> getBaseClass() {
+        public Class<TestDoc> getBaseClass() {
             return TestDoc.class;
         }
 

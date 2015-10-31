@@ -35,22 +35,27 @@ import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 12/10/2014.
  */
 @DaoForClass(CouchbaseDocument.class)
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
+    private final UUID uuid = UUID.randomUUID();
     private ICouchbaseBucket client;
     private List<CouchbaseViewDao> daoViews=null;
+    private boolean isReadOnly=false;
+
+
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
     public abstract T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException;
+    public abstract Class<T> getBaseClass();
 
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
     public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder(){return Collections.emptyList();}
     protected List<CouchbaseViewDao> generateViewDaos(){ return Collections.emptyList();}
 
-    abstract protected Class<T> getBaseClass();
 
     synchronized public List<CouchbaseViewDao> getViewDaos(){
         if(daoViews==null){
@@ -72,8 +77,12 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         this.client = client;
         return this;
     }
+
     public ICouchbaseBucket getClient(){ return client; }
 
+    public UUID getUuid() {
+        return uuid;
+    }
 
     //May be overriden to improve (bulk key attribution)
     protected void buildKeys(ICouchbaseSession session,Collection<T> newObjects) throws DaoException,StorageException{
@@ -95,11 +104,17 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
             throw new InconsistentStateException(obj,"The document is in deletion and then cannot be modified");
         }
+        if(isReadOnly){
+            throw new InconsistentStateException(obj,"Cannot update document in readonly mode");
+        }
     }
 
     public T checkCreatableState(T obj) throws InconsistentStateException{
         if(!obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
             throw new InconsistentStateException(obj,"The document is not new and then cannot be create");
+        }
+        if(isReadOnly){
+            throw new InconsistentStateException(obj,"Cannot update document in readonly mode");
         }
         return obj;
     }
@@ -114,6 +129,9 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         if(obj.getBaseMeta().hasFlag(DocumentFlag.Deleted) ||
                 obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
             throw new InconsistentStateException(obj,"The document is already in deletion and then cannot be deleted");
+        }
+        if(isReadOnly){
+            throw new InconsistentStateException(obj,"Cannot update document in readonly mode");
         }
         return obj;
     }
@@ -179,4 +197,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         doc.getBaseMeta().setStateDeleted();
         return doc;
     }
+
+    public boolean isReadOnly() {
+        return isReadOnly;
+    }
+
+    public void isReadOnly(boolean isReadOnly) {
+        this.isReadOnly=isReadOnly;
+    }
+
+
 }

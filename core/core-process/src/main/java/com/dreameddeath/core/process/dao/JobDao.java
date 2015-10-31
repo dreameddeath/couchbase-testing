@@ -40,7 +40,7 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
 
 
     @Override
-    protected Class<AbstractJob> getBaseClass(){
+    public Class<AbstractJob> getBaseClass(){
         return AbstractJob.class;
     }
 

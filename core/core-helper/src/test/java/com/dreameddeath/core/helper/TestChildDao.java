@@ -86,7 +86,7 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
     }
 
     @Override
-    protected Class<TestDocChild> getBaseClass() {
+    public Class<TestDocChild> getBaseClass() {
         return TestDocChild.class;
     }
 

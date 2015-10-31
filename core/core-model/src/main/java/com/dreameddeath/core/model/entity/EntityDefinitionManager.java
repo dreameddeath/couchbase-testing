@@ -16,12 +16,11 @@
 
 package com.dreameddeath.core.model.entity;
 
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -33,7 +32,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -45,24 +43,13 @@ public class EntityDefinitionManager {
     public static final String ROOT_PATH="META-INF/core-model";
     public static final String DOCUMENT_DEF_PATH="DocumentDef";
 
-    public final static ObjectMapper MAPPER = new ObjectMapper();
-    static {
-        MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        MAPPER.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false);
-        MAPPER.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        MAPPER.setTimeZone(TimeZone.getDefault());
-        //MAPPER.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-    }
-
+    private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
     private Map<String,Class> versionClassMap=new ConcurrentHashMap<>();
 
     public EntityDefinitionManager(){}
 
     public void buildEntityDefinitionFile(Writer writer,CouchbaseDocumentReflection documentDef) throws IOException{
-        MAPPER.writeValue(writer,EntityDef.build(documentDef.getStructure()));
+        mapper.writeValue(writer,EntityDef.build(documentDef.getStructure()));
     }
 
     public String getDocumentEntityFilename(EntityModelId modelId){
@@ -82,7 +69,7 @@ public class EntityDefinitionManager {
                 throw new RuntimeException("Cannot find/read file <" + filename + "> for id <" + modelId.toString() + ">");
             }
             try {
-                EntityDef def = MAPPER.readValue(is, EntityDef.class);
+                EntityDef def = mapper.readValue(is, EntityDef.class);
                 result = Thread.currentThread().getContextClassLoader().loadClass(def.getClassName());
                 versionClassMap.putIfAbsent(modelId.getClassUnivoqueModelId(), result);
             } catch (ClassNotFoundException | IOException e) {
@@ -104,7 +91,7 @@ public class EntityDefinitionManager {
             List<EntityDef> result = new ArrayList<>(resultResources.length);
             for(Resource entityResource:resultResources){
                 try {
-                    result.add(MAPPER.readValue(entityResource.getInputStream(), EntityDef.class));
+                    result.add(mapper.readValue(entityResource.getInputStream(), EntityDef.class));
                 }
                 catch(Throwable e){
                     LOG.error("Cannot read entity file <"+entityResource.getFile().getAbsolutePath()+">",e);

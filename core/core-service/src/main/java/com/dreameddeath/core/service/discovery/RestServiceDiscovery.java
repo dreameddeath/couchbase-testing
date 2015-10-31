@@ -20,6 +20,7 @@ import com.dreameddeath.core.service.model.ServiceInfoDescription;
 import com.dreameddeath.core.service.model.ServiceInstanceDescription;
 import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.model.ServicesListInstanceDescription;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -35,6 +36,7 @@ import java.util.List;
  */
 @Path("/services")
 public class RestServiceDiscovery {
+    @Autowired
     private ServiceDiscoverer serviceDiscoverer;
 
     public void setServiceDiscoverer(ServiceDiscoverer serviceDiscoverer){

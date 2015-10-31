@@ -20,12 +20,13 @@ import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractCl
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.model.utils.DaoInfo;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.annotation.DocumentDef;
-import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,8 @@ import java.io.Writer;
 public class DaoUtils {
     public static String ROOT_FILENAME_PER_CLASS = "META-INF/core-dao/perClassRegistering";
     public static String ROOT_FILENAME_PER_MODEL = "META-INF/core-dao/perModel";
+
+    private static ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
 
     public static String getTargetDaoPerClassRegisteringFilename(DaoForClass annot){
         AbstractClassInfo classInfo = AbstractClassInfo.getClassInfoFromAnnot(annot,DaoForClass::value);
@@ -67,7 +70,7 @@ public class DaoUtils {
         DaoInfo daoInfo = new DaoInfo();
         daoInfo.setClassName(daoClassInfo.getName());
         daoInfo.setEntityDef(EntityDef.build(CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) classInfo)));
-        EntityDefinitionManager.MAPPER.writeValue(writer,daoInfo);
+        mapper.writeValue(writer,daoInfo);
     }
 
     public static DaoInfo getDaoInfo(String domain, String name) {
@@ -75,7 +78,7 @@ public class DaoUtils {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
         if (is != null) {
             try {
-                return EntityDefinitionManager.MAPPER.readValue(is, DaoInfo.class);
+                return mapper.readValue(is, DaoInfo.class);
             }
             catch(Throwable e){
                 throw new RuntimeException("Cannot read dao info file <"+filename+">",e);
@@ -99,7 +102,7 @@ public class DaoUtils {
         }
         else {
             try {
-                return EntityDefinitionManager.MAPPER.readValue(is, DaoInfo.class);
+                return mapper.readValue(is, DaoInfo.class);
             }
             catch(Throwable e){
                 throw new RuntimeException("Cannot read entity file <"+filename+">",e);
@@ -129,7 +132,6 @@ public class DaoUtils {
             }
             catch (ClassNotFoundException e) {
                 throw new RuntimeException("Cannot load classInfo from className <" + daoInfo.getClassName() + "> for clazz <" + docReflexion.getClassInfo().getCompiledFileName() + ">", e);
-
             }
         }
         return null;

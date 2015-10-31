@@ -75,7 +75,17 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-json</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-couchbase</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-curator</artifactId>
           <version>${project.version}</version>
       </dependency>
       <!--<dependency>

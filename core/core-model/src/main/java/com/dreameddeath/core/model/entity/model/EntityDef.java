@@ -39,7 +39,7 @@ public class EntityDef {
     @JsonProperty("className")
     private String className;
     @JsonProperty("parents")
-    private List<String> parentClasses=new ArrayList<>();
+    private List<EntityModelId> parentEntities=new ArrayList<>();
 
     public EntityModelId getModelId() {
         return modelId;
@@ -57,13 +57,13 @@ public class EntityDef {
         this.className = className;
     }
 
-    public List<String> getParentClasses() {
-        return Collections.unmodifiableList(parentClasses);
+    public List<EntityModelId> getParentEntities() {
+        return Collections.unmodifiableList(parentEntities);
     }
 
-    public void setParentClasses(List<String> parentClasses) {
-        this.parentClasses.clear();
-        this.parentClasses.addAll(parentClasses);
+    public void setParentEntities(List<EntityModelId> parentClasses) {
+        this.parentEntities.clear();
+        this.parentEntities.addAll(parentClasses);
     }
 
     public static EntityDef build(CouchbaseDocumentStructureReflection documentDef){
@@ -73,8 +73,23 @@ public class EntityDef {
         CouchbaseDocumentStructureReflection currDocReflection = documentDef;
         while(currDocReflection.getSuperclassReflexion()!=null){
             currDocReflection = currDocReflection.getSuperclassReflexion();
-            result.parentClasses.add(currDocReflection.getClassInfo().getFullName());
+            result.parentEntities.add(currDocReflection.getEntityModelId());
         }
         return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EntityDef entityDef = (EntityDef) o;
+
+        return modelId.equals(entityDef.modelId);
+    }
+
+    @Override
+    public int hashCode() {
+        return modelId.hashCode();
     }
 }

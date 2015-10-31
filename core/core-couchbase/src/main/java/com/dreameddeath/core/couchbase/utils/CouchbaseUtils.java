@@ -104,7 +104,7 @@ public class CouchbaseUtils {
             EntityModelId modelId = entityDocInfo.getStructure().getEntityModelId();
             String transcoderClassName = CouchbaseConfigProperties.COUCHBASE_TRANSCODER_CLASS_NAME.getProperty(modelId.getDomain(), modelId.getName()).get();
             if (transcoderClassName == null) {
-                return new GenericJacksonTranscoder(entityDocInfo.getClassInfo().getCurrentClass());
+                return new GenericJacksonTranscoder(GenericJacksonTranscoder.Flavor.STORAGE,entityDocInfo.getClassInfo().getCurrentClass());
             }
             else {
                 Class<? extends ITranscoder> transcoderClass = (Class<? extends ITranscoder>) Thread.currentThread().getContextClassLoader().loadClass(transcoderClassName);

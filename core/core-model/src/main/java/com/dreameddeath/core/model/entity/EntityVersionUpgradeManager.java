@@ -17,9 +17,11 @@
 package com.dreameddeath.core.model.entity;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.model.*;
 import com.esotericsoftware.reflectasm.MethodAccess;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +40,16 @@ public class EntityVersionUpgradeManager {
     private Set<String> discardUpgrades=new HashSet<>();
     private EntityDefinitionManager entityDefinitionManager = new EntityDefinitionManager();
     private Map<String,UpgradeMethodWrapper> versionUpgraderMap = new HashMap<>();
+    private final ObjectMapper mapper;
+
+    public EntityVersionUpgradeManager(){
+        mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
+    }
+
+    public EntityVersionUpgradeManager(ObjectMapper mapper){
+        this.mapper = mapper;
+    }
+
 
     public void addVersionToDiscard(String domain,String name,String version){
         discardUpgrades.add(EntityModelId.build(domain, name, version).toString());
@@ -60,8 +72,7 @@ public class EntityVersionUpgradeManager {
         DocumentVersionUpgrader upgraderAnnot= methodInfo.getAnnotation(DocumentVersionUpgrader.class);
         VersionUpgradeDef def = new VersionUpgradeDef();
         def.setClassName(methodInfo.getDeclaringClassInfo().getName());
-        def.setMethodName(methodInfo.getName());
-        def.setModel(EntityModelId.buildPartial(upgraderAnnot.domain(), upgraderAnnot.name()));
+        def.setMethod(methodInfo.getName());
         EntityDef source = new EntityDef();
         source.setClassName(methodInfo.getMethodParameters().get(0).getMainType().getName());
         source.setModelId(EntityModelId.build(upgraderAnnot.domain(), upgraderAnnot.name(), upgraderAnnot.from()));
@@ -70,7 +81,7 @@ public class EntityVersionUpgradeManager {
         target.setClassName(methodInfo.getReturnType().getMainType().getName());
         target.setModelId(EntityModelId.build(upgraderAnnot.domain(),upgraderAnnot.name(),upgraderAnnot.to()));
         def.setTargetEntity(target);
-        EntityDefinitionManager.MAPPER.writeValue(writer, def);
+        mapper.writeValue(writer, def);
     }
 
     public String getFilename(DocumentVersionUpgrader annotation){
@@ -93,14 +104,12 @@ public class EntityVersionUpgradeManager {
             }
             else{
                 InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
-                //BufferedReader fileReader = new BufferedReader(new InputStreamReader(is));
                 try {
-                    VersionUpgradeDef versionUpgraderDef = EntityDefinitionManager.MAPPER.readValue(is, VersionUpgradeDef.class);
-
+                    VersionUpgradeDef versionUpgraderDef = mapper.readValue(is, VersionUpgradeDef.class);
                     versionUpgraderMap.put(typeId,
                                 new UpgradeMethodWrapper(
                                         Thread.currentThread().getContextClassLoader().loadClass(versionUpgraderDef.getClassName()),
-                                        versionUpgraderDef.getMethodName(),
+                                        versionUpgraderDef.getMethod(),
                                         getUpgraderReference(versionUpgraderDef.getTargetEntity().getModelId()),
                                         typeId,
                                         entityDefinitionManager.findClassFromVersionnedTypeId(typeId),

@@ -21,10 +21,7 @@ import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DocumentNotFoundException;
-import com.dreameddeath.core.dao.exception.DuplicateDocumentKeyException;
-import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyStorageException;
+import com.dreameddeath.core.dao.exception.*;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
@@ -59,7 +56,6 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
 
     public void setBaseDocumentDao(CouchbaseDocumentDao dao){refDocumentDao = dao;}
     public CouchbaseDocumentDao getBaseDocumentDao(){return refDocumentDao;}
-
 
 
     @Override
@@ -116,7 +112,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     }
 
     @Override
-    protected Class<CouchbaseUniqueKey> getBaseClass() {
+    public Class<CouchbaseUniqueKey> getBaseClass() {
         return CouchbaseUniqueKey.class;
     }
 
@@ -131,6 +127,9 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     private CouchbaseUniqueKey create(ICouchbaseSession session,CouchbaseDocument doc,String internalKey,boolean isCalcOnly) throws DaoException,StorageException,ValidationException {
         if(doc.getBaseMeta().getKey()==null){
             throw new DaoException("The key object doesn't have a key before unique key setup. The doc was :"+doc);
+        }
+        if(refDocumentDao.isReadOnly()){
+            throw new InconsistentStateException(doc,"Cannot update unique key <"+internalKey+"> in readonly mode");
         }
         CouchbaseUniqueKey keyDoc = new CouchbaseUniqueKey();
         keyDoc.getBaseMeta().setKey(buildKey(internalKey));
@@ -153,7 +152,6 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         else{
             super.create(session,keyDoc,isCalcOnly); //getClient().add(getTranscoder().newDocument(keyDoc));
         }
-        //keyDoc.getBaseMeta().setStateSync();
         if(doc instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
         return keyDoc;
     }
@@ -174,8 +172,10 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         if(doc.getBaseMeta().getKey()==null){
             session.buildKey(doc);
         }
-
         String internalKey= buildInternalKey(nameSpace, value);
+        if(refDocumentDao.isReadOnly()){
+            throw new InconsistentStateException(doc,"Cannot update unique key <"+internalKey+"> in readonly mode");
+        }
         try{
             CouchbaseUniqueKey result=create(session,doc,internalKey,isCalcOnly);
             if(doc instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}

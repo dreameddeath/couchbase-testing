@@ -31,12 +31,10 @@ public class VersionUpgradeDef {
     @JsonProperty("class")
     private String className;
     @JsonProperty("method")
-    private String methodName;
-    @JsonProperty("entityModel")
-    private EntityModelId model;
-    @JsonProperty("sourceEntity")
+    private String method;
+    @JsonProperty("source")
     private EntityDef sourceEntity;
-    @JsonProperty("targetEntity")
+    @JsonProperty("target")
     private EntityDef targetEntity;
 
     public String getClassName() {
@@ -47,21 +45,14 @@ public class VersionUpgradeDef {
         this.className = className;
     }
 
-    public String getMethodName() {
-        return methodName;
+    public String getMethod() {
+        return method;
     }
 
-    public void setMethodName(String methodName) {
-        this.methodName = methodName;
+    public void setMethod(String method) {
+        this.method = method;
     }
 
-    public EntityModelId getModel() {
-        return model;
-    }
-
-    public void setModel(EntityModelId model) {
-        this.model = model;
-    }
 
     public EntityDef getSourceEntity() {
         return sourceEntity;

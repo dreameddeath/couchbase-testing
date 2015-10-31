@@ -40,6 +40,7 @@
         <module>core-session</module>
         <module>core-date</module>
         <module>core-user</module>
+        <module>core-json</module>
         <module>core-json-transcoder</module>
         <module>core-helper</module>
         <module>core-integration</module>

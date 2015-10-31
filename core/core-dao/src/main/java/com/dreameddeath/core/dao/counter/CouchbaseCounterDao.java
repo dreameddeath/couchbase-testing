@@ -21,6 +21,8 @@ import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.InconsistentStateException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 
 /**
@@ -68,12 +70,15 @@ public class CouchbaseCounterDao{
         return keyPattern;
     }
 
-    public Long getCounter(ICouchbaseSession session,String key,boolean isCalcOnly) throws StorageException {
+    public Long getCounter(ICouchbaseSession session,String key,boolean isCalcOnly) throws DaoException,StorageException {
         return incrCounter(session,key,0,isCalcOnly);
     }
 
-    public long incrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws StorageException {
+    public long incrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
         long result;
+        if(baseDao.isReadOnly() && by!=0){
+            throw new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode");
+        }
 
         if(isCalcOny){
                 if(session.getKeyPrefix()!=null){
@@ -121,7 +126,10 @@ public class CouchbaseCounterDao{
         }
     }
 
-    public long decrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws StorageException {
+    public long decrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
+        if(baseDao.isReadOnly() && by!=0){
+            throw new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode");
+        }
         if(isCalcOny){
             long result;
             if(session.getKeyPrefix()!=null) {

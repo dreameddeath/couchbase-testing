@@ -69,6 +69,15 @@ public class CouchbaseDocumentStructureReflection {
         return false;
     }
 
+    public static CouchbaseDocumentStructureReflection getClassInfo(String name) throws ClassNotFoundException{
+        AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo(name);
+        if((classInfo instanceof ClassInfo) && isReflexible((ClassInfo)classInfo)){
+            return getReflectionFromClassInfo((ClassInfo)classInfo);
+        }
+        else{
+            return null;
+        }
+    }
     public static CouchbaseDocumentStructureReflection getReflectionFromClassInfo(Class<? extends CouchbaseDocumentElement> docEltclass) {
         ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(docEltclass);
         return getReflectionFromClassInfo(classInfo);

@@ -18,6 +18,8 @@ package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 import com.dreameddeath.compile.tools.annotation.exception.AnnotationProcessorException;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
@@ -32,6 +34,7 @@ import java.util.*;
  * Created by Christophe Jeunesse on 15/03/2015.
  */
 public abstract class AbstractClassInfo extends AnnotatedInfo {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractClassInfo.class);
     private static Map<TypeElement,AbstractClassInfo> typeElementToInfoMap = new HashMap<>();
     private static Map<Class,AbstractClassInfo> classToInfoMap = new HashMap<>();
 
@@ -124,14 +127,18 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
         try{
             return Thread.currentThread().getContextClassLoader().loadClass(getClassName(element));
         }
-        catch (Exception e) {
+        catch (ClassNotFoundException e) {
             //System.out.println(e);
         }
         try {
             return Class.forName(getClassName(element));
         }
-        catch (Exception e) {
+        catch (ClassNotFoundException e) {
+            //LOG.warn("Cannot find class for ")
             //System.out.println(e);
+        }
+        catch(Throwable e){
+            LOG.error("Unexpected error ",e);
         }
         return null;
     }

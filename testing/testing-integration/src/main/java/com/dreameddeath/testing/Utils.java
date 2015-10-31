@@ -34,6 +34,7 @@ import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
 import com.dreameddeath.core.elasticsearch.IElasticSearchMapper;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchDao;
 import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
@@ -41,6 +42,7 @@ import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.session.impl.ElasticSearchSessionFactory;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentConfigurator;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -156,7 +158,7 @@ public class Utils {
                 esServer = new ElasticSearchServer(prefix+"ES");
                 esSessionFactory = ElasticSearchSessionFactory.builder().withDocumentInfoMappper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper()).build();
                 esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper());
-                esClient = new ElasticSearchClient(esServer.getClient(),GenericJacksonTranscoder.MAPPER);
+                esClient = new ElasticSearchClient(esServer.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE));
                 ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
                 ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(
                         esClient,
@@ -175,7 +177,7 @@ public class Utils {
         public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao dao,Class<TOBJ> objClass) throws DuplicateMappedEntryInfoException{
             sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(client));
             if(esSessionFactory!=null){
-                ElasticSearchDao<TOBJ> elasticSearchDao = new ElasticSearchDao<>(client.getBucketName(),esClient ,esMapper,new GenericJacksonTranscoder<>(objClass));
+                ElasticSearchDao<TOBJ> elasticSearchDao = new ElasticSearchDao<>(client.getBucketName(),esClient ,esMapper,new GenericJacksonTranscoder<>(GenericJacksonTranscoder.Flavor.STORAGE,objClass));
                 esSessionFactory.getElasticSearchDaoFactory().addDaoForClass(objClass,elasticSearchDao);
             }
 

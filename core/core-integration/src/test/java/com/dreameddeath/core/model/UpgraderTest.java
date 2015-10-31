@@ -26,12 +26,13 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentConfigurator;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import org.junit.Test;
 
@@ -114,7 +115,7 @@ public class UpgraderTest {
         }
 
         @Override
-        protected Class<TestModel> getBaseClass() {
+        public Class<TestModel> getBaseClass() {
             return TestModel.class;
         }
 
@@ -151,7 +152,7 @@ public class UpgraderTest {
         }
 
         @Override
-        protected Class<TestModelV2> getBaseClass() {
+        public Class<TestModelV2> getBaseClass() {
             return TestModelV2.class;
         }
     }
@@ -222,7 +223,7 @@ public class UpgraderTest {
 
     @Test
     public void upgradeUnitTests() throws Exception{
-        EntityVersionUpgradeManager upgradeManager = (EntityVersionUpgradeManager)GenericJacksonTranscoder.MAPPER.getDeserializationConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
+        EntityVersionUpgradeManager upgradeManager = (EntityVersionUpgradeManager) ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE).getDeserializationConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
         ICouchbaseSession session = sessionFactory.newReadWriteSession(null);
         TestModel v1 =session.newEntity(TestModel.class);
         String refValue = "A first Value";

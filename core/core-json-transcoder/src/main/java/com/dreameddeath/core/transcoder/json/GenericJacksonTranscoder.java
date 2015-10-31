@@ -17,19 +17,16 @@
 package com.dreameddeath.core.transcoder.json;
 
 
+import com.dreameddeath.core.json.IObjectMapperConfigurator;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingException;
 import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,33 +35,26 @@ import java.lang.annotation.Annotation;
 
 
 public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements ITranscoder<T> {
-    private final static Logger logger = LoggerFactory.getLogger(GenericJacksonTranscoder.class);
+    private final static Logger LOG = LoggerFactory.getLogger(GenericJacksonTranscoder.class);
 
-    public static final ObjectMapper MAPPER;
-    static {
-        MAPPER = new ObjectMapper();
-        MAPPER.setConfig(MAPPER.getDeserializationConfig().withAttribute(EntityVersionUpgradeManager.class,new EntityVersionUpgradeManager()));
-        MAPPER.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        MAPPER.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
-        MAPPER.registerModule(new JodaModule());
-        MAPPER.registerModule(new SimpleModule() {
-            protected CouchbaseBusinessDocumentDeserializerModifier modifier = new CouchbaseBusinessDocumentDeserializerModifier();
+    public enum Flavor{
+        STORAGE(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE),
+        PUBLIC(CouchbaseDocumentConfigurator.BASE_COUCHBASE_PUBLIC),
+        PRIVATE(CouchbaseDocumentConfigurator.BASE_COUCHBASE_INTERNAL);
 
-            @Override
-            public void setupModule(SetupContext context) {
-                super.setupModule(context);
-                if (modifier != null) {
-                    context.addBeanDeserializerModifier(modifier);
-                }
-            }
-        });
+        private IObjectMapperConfigurator.ConfiguratorType type;
+
+        Flavor(IObjectMapperConfigurator.ConfiguratorType type){
+            this.type=type;
+        }
 
     }
 
-
     private final Class<T> dummyClass;
     private final Class rootClass;
+    private final ObjectMapper mapper;
+
+
 
     public static Class findRootClass(Class clazz) {
         Class currentClass = clazz;
@@ -92,7 +82,8 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
         return currentClass;
     }
 
-    public GenericJacksonTranscoder(Class<T> clazz){
+    public GenericJacksonTranscoder(Flavor flavor,Class<T> clazz){
+        mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(flavor.type);
         dummyClass = clazz;
         rootClass = findRootClass(clazz);
     }
@@ -104,7 +95,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     @Override
     public T decode(byte[] content) throws DocumentDecodingException{
         try {
-            T result = (T) MAPPER.readValue(content, getRootClass());
+            T result = (T) mapper.readValue(content, getRootClass());
             result.getBaseMeta().setDbSize(content.length);
             return result;
         }
@@ -118,7 +109,7 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     @Override
     public byte[] encode(T doc) throws DocumentEncodingException{
         try {
-            return MAPPER.writeValueAsBytes(doc);
+            return mapper.writeValueAsBytes(doc);
         }
         catch (JsonProcessingException e){
             throw new DocumentEncodingException(doc,"Error during encoding of data using GenericJacksonCouchbaseTranscoder<"+getBaseClass().getName()+">",e);

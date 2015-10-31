@@ -61,7 +61,7 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
     }
 
     @Override
-    protected Class<${entity.simpleName}> getBaseClass() {
+    public Class<${entity.simpleName}> getBaseClass() {
         return ${entity.simpleName}.class;
     }
 

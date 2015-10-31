@@ -73,7 +73,7 @@ public class PrefixKeyTest {
         }
 
         @Override
-        protected Class<TestPrefixKey> getBaseClass() {
+        public Class<TestPrefixKey> getBaseClass() {
             return TestPrefixKey.class;
         }
 

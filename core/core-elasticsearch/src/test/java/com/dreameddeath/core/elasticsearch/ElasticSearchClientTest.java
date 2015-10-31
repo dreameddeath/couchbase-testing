@@ -24,12 +24,14 @@ import com.dreameddeath.core.elasticsearch.dao.ElasticSearchDao;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResultHit;
 import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.core.model.transcoder.impl.CounterTranscoder;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentConfigurator;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
@@ -148,7 +150,7 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testIndexingDocument() throws Exception{
-        ElasticSearchClient client = new ElasticSearchClient(server.getClient(), GenericJacksonTranscoder.MAPPER);
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE));
         TestDoc doc = new TestDoc();
         doc.firstName = "firstName1";
         doc.lastName = "lastName1";
@@ -193,11 +195,11 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testDcpFlow()throws Exception{
-        ElasticSearchClient client = new ElasticSearchClient(server.getClient(),GenericJacksonTranscoder.MAPPER);
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(),ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE));
         CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         Map<String,ITranscoder> transcoderMap = new HashMap<>();
-        transcoderMap.put("/test/\\d+",new GenericJacksonTranscoder<>(TestDoc.class));
+        transcoderMap.put("/test/\\d+",new GenericJacksonTranscoder<>(GenericJacksonTranscoder.Flavor.STORAGE,TestDoc.class));
         transcoderMap.put("/test/cnt",new CounterTranscoder());
         ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
         ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoderMap,true);

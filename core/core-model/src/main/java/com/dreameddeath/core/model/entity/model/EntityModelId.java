@@ -52,7 +52,7 @@ public class EntityModelId {
 
 
     @JsonCreator
-    public EntityModelId(@JsonProperty("domain") String domain,@JsonProperty("name") String name,@JsonProperty("verion") EntityVersion version){
+    public EntityModelId(@JsonProperty("domain") String domain,@JsonProperty("name") String name,@JsonProperty("version") EntityVersion version){
         this.domain = domain;
         this.name = name;
         entityVersion = version;
@@ -122,6 +122,28 @@ public class EntityModelId {
 
     public String getClassUnivoqueModelId(){
         return domain+"/"+name+"/"+entityVersion.getMajor().toString();
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EntityModelId modelId = (EntityModelId) o;
+
+        if (!domain.equals(modelId.domain)) return false;
+        if (!name.equals(modelId.name)) return false;
+        return !(entityVersion != null ? !entityVersion.equals(modelId.entityVersion) : modelId.entityVersion != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = domain.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + (entityVersion != null ? entityVersion.hashCode() : 0);
+        return result;
     }
 
     public static EntityModelId build(String fullIdString){

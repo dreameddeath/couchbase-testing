@@ -34,28 +34,13 @@ public class CouchbaseDaoConfigProperties {
     )
     public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_DOMAIN_BUCKET_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.bucket", (String) null);
 
-
-
     @ConfigPropertyDoc(
             name="core.couchbase.dao.{domain}.{name}.bucket",
             descr = "defines the attached couchbase bucket name for given domain/name",
+            defaultValue = "@Ref{core.couchbase.dao.{domain}.bucket,dao}",
             examples = {"default bucket"}
     )
-    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_BUCKET_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.bucket", (String) null);
-
-    @ConfigPropertyDoc(
-            name="core.couchbase.dao.{domain}.{name}.entity.class",
-            descr = "defines the attached couchbase class for given domain/name",
-            examples = {"com.project.business.model.Party","com.project.business.model.BillingAccount"}
-    )
-    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_ENTITY_CLASS_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.entity.class", (String) null);
-
-    @ConfigPropertyDoc(
-            name="core.couchbase.dao.{domain}.{name}.class",
-            descr = "defines the attached dao class for given domain/name",
-            examples = {"com.project.business.dao.PartyDao","com.project.business.dao.BillingAccount"}
-    )
-    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_CLASS_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.class", (String) null);
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_BUCKET_NAME = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.bucket", COUCHBASE_DAO_DOMAIN_BUCKET_NAME);
 
     @ConfigPropertyDoc(
             name="core.couchbase.dao.{domain}.{name}.{flavor}.bucket",
@@ -67,19 +52,12 @@ public class CouchbaseDaoConfigProperties {
 
 
     @ConfigPropertyDoc(
-            name="core.couchbase.dao.{domain}.{name}.{flavor}.entity.class",
-            descr = "defines the attached couchbase class for given domain/name",
-            defaultValue = "@Ref{core.couchbase.dao.{domain}.{name}.entity.class,dao}",
-            examples = {"com.project.business.model.Party","com.project.business.model.BillingAccount"}
+            name="core.couchbase.dao.register.path",
+            descr = "defines the zookeeper registering path",
+            defaultValue = "daos/instances",
+            examples = {"daos/lists"}
     )
-    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_ENTITY_CLASS_NAME_FOR_FLAVOR = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.{flavor}.entity.class", COUCHBASE_DAO_ENTITY_CLASS_NAME);
+    public static final StringConfigProperty DAO_REGISTER_PATH = ConfigPropertyFactory.getStringProperty("core.couchbase.dao.register.path","daos/instances");
 
-    @ConfigPropertyDoc(
-            name="core.couchbase.dao.{domain}.{name}.{flavor}.class",
-            descr = "defines the attached dao class for given domain/name",
-            defaultValue = "@Ref{core.couchbase.dao.{domain}.{name}.class,dao}",
-            examples = {"com.project.business.dao.PartyDao","com.project.business.dao.BillingAccount"}
-    )
-    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> COUCHBASE_DAO_CLASS_NAME_FOR_FLAVOR = ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class, "core.couchbase.dao.{domain}.{name}.{flavor}.class", COUCHBASE_DAO_CLASS_NAME);
 
 }
