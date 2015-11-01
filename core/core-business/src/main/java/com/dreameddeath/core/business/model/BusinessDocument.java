@@ -19,6 +19,7 @@ package com.dreameddeath.core.business.model;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -42,7 +43,7 @@ import java.util.Set;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
-public abstract class BusinessDocument extends com.dreameddeath.core.model.document.CouchbaseDocument implements IHasUniqueKeysRef,IVersionedEntity,IDocumentWithLinkedTasks{
+public abstract class BusinessDocument extends CouchbaseDocument implements IHasUniqueKeysRef,IVersionedEntity,IDocumentWithLinkedTasks{
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){

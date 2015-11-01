@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -44,14 +45,19 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
     public static final String DAEMON_SERVICE_NAME ="daemon#admin#status";
     public static final String DAEMON_SERVICE_VERSION ="1.0";
 
-    private final RestLocalWebServerAdminService webServerAdminResource=new RestLocalWebServerAdminService();
+    private RestLocalWebServerAdminService webServerAdminResource;
 
     @Autowired
     private AbstractDaemon daemon;
 
     public void setDaemon(AbstractDaemon daemon){
         this.daemon = daemon;
-        webServerAdminResource.setDaemon(daemon);
+        //webServerAdminResource.setDaemon(daemon);
+    }
+
+    @Required
+    public void setWebServerAdminResource(RestLocalWebServerAdminService resource){
+        this.webServerAdminResource = resource;
     }
 
     @Override

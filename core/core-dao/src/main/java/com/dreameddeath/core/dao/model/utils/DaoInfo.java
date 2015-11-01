@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.dao.model.utils;
 
-import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonProperty;
 import com.dreameddeath.core.model.entity.model.EntityDef;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Created by Christophe Jeunesse on 22/10/2015.

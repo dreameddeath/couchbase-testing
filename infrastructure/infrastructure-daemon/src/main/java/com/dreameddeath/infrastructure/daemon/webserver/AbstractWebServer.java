@@ -100,13 +100,13 @@ public abstract class AbstractWebServer {
         this.propertySources = propertySources;
 
         if(builder.withCouchbase){
-            if(builder.documentDaoFactory==null){
-                builder.documentDaoFactory=CouchbaseDocumentDaoFactory.builder().withBucketFactory(parentDaemon.getDaemonCouchbaseFactories().getBucketFactory()).build();
-            }
-            if(builder.couchbaseSessionFactory==null){
-                builder.couchbaseSessionFactory =CouchbaseSessionFactory.builder().withDocumentDaoFactory(builder.documentDaoFactory).build();
-            }
-            couchbaseFactories = new WebServerCouchbaseFactories(builder.couchbaseSessionFactory,builder.documentDaoFactory);
+            CouchbaseDocumentDaoFactory documentDaoFactory=CouchbaseDocumentDaoFactory.builder()
+                        .withBucketFactory(parentDaemon.getDaemonCouchbaseFactories().getBucketFactory())
+                        .withCuratorFramework(parentDaemon.getCuratorClient())
+                        .build();
+
+            CouchbaseSessionFactory sessionFactory=CouchbaseSessionFactory.builder().withDocumentDaoFactory(documentDaoFactory).build();
+            couchbaseFactories = new WebServerCouchbaseFactories(sessionFactory,documentDaoFactory);
             webServer.addLifeCycleListener(new CouchbaseWebServerLifeCycle(couchbaseFactories));
         }
         else{
@@ -194,8 +194,6 @@ public abstract class AbstractWebServer {
         private boolean isRoot=false;
         private int port=0;
         private boolean withCouchbase=false;
-        private CouchbaseDocumentDaoFactory documentDaoFactory=null;
-        private CouchbaseSessionFactory couchbaseSessionFactory=null;
 
         public T withAddress(String address) {
             this.address = address;
@@ -232,19 +230,12 @@ public abstract class AbstractWebServer {
             return (T)this;
         }
 
-        public T withDocumentDaoFactory(CouchbaseDocumentDaoFactory documentDaoFactory) {
-            this.documentDaoFactory = documentDaoFactory;
-            return (T)this;
-        }
 
         public Builder withPropertySources(PropertySources propertySources) {
             this.propertySources = propertySources;
             return this;
         }
 
-        public Builder withCouchbaseSessionFactory(CouchbaseSessionFactory couchbaseSessionFactory) {
-            this.couchbaseSessionFactory = couchbaseSessionFactory;
-            return this;
-        }
+
     }
 }

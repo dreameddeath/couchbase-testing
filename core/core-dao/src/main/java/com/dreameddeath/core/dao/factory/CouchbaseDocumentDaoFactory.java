@@ -29,7 +29,9 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
+import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
 import com.dreameddeath.core.dao.model.utils.DaoInfo;
+import com.dreameddeath.core.dao.registrar.DaoRegistrar;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDaoFactory;
@@ -41,16 +43,21 @@ import com.dreameddeath.core.model.mapper.IDocumentClassMappingInfo;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.mapper.impl.DefaultDocumentMapperInfo;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CouchbaseDocumentDaoFactory implements IDaoFactory {
+    private static final Logger LOG= LoggerFactory.getLogger(CouchbaseDocumentDaoFactory.class);
     private final ICouchbaseBucketFactory bucketFactory;
     private final CouchbaseCounterDaoFactory counterDaoFactory;
     private final CouchbaseUniqueKeyDaoFactory uniqueKeyDaoFactory;
     private final CouchbaseViewDaoFactory viewDaoFactory;
     private final IDocumentInfoMapper documentInfoMapper;
+    private final DaoRegistrar daoRegistrar;
 
     public CouchbaseDocumentDaoFactory(Builder builder){
         if(builder.couchbaseBucketFactory==null){
@@ -63,6 +70,12 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         counterDaoFactory = builder.counterDaoFactoryBuilder.build();
         uniqueKeyDaoFactory = builder.uniqueKeyDaoFactoryBuilder.build();
         viewDaoFactory = builder.viewDaoFactoryBuilder.build();
+        if(builder.curatorFramework!=null) {
+            daoRegistrar = new DaoRegistrar(builder.curatorFramework);
+        }
+        else{
+            daoRegistrar=null;
+        }
     }
 
     public CouchbaseViewDaoFactory getViewDaoFactory() {
@@ -108,6 +121,14 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         }
         for(CouchbaseViewDao daoView:dao.getViewDaos()){
             viewDaoFactory.addDaoFor(entityClass, daoView);
+        }
+        if(daoRegistrar!=null){
+            try {
+                daoRegistrar.register(new DaoInstanceInfo(dao));
+            }
+            catch(Exception e){
+                LOG.error("Cannot register dao <"+dao.getClass().getName()+">",e);
+            }
         }
     }
 
@@ -196,6 +217,9 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         counterDaoFactory.cleanup();
         viewDaoFactory.cleanup();
         documentInfoMapper.cleanup();
+        if(daoRegistrar!=null){
+            daoRegistrar.close();
+        }
     }
 
     public static Builder builder(){
@@ -208,6 +232,7 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         private CouchbaseUniqueKeyDaoFactory.Builder uniqueKeyDaoFactoryBuilder;
         private CouchbaseViewDaoFactory.Builder viewDaoFactoryBuilder;
         private IDocumentInfoMapper documentInfoMapper;
+        private CuratorFramework curatorFramework;
 
         public Builder(){
             couchbaseBucketFactory= null;
@@ -229,6 +254,10 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             return this;
         }
 
+        public Builder withCuratorFramework(CuratorFramework curatorFramework){
+            this.curatorFramework=curatorFramework;
+            return this;
+        }
 
         public CouchbaseCounterDaoFactory.Builder getCounterDaoFactoryBuilder() {
             return counterDaoFactoryBuilder;

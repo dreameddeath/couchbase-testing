@@ -18,6 +18,8 @@ package com.dreameddeath.core.service.model;
 
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 
 import java.util.UUID;
 
@@ -32,19 +34,23 @@ public abstract class AbstractExposableService {
 
     public String getId(){return UUID.randomUUID().toString();}
 
+    @Required
+    public void setAddress(String address) {
+        this.address = address;
+    }
     public String getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    @Autowired
     public void setEndPoint(IRestEndPointDescription obj){
         endPoint = obj;
     }
     public IRestEndPointDescription getEndPoint() {
         return endPoint;
     }
+
+    @Autowired
     public void setServiceRegistrar(ServiceRegistrar serviceRegistrar){
         this.serviceRegistrar = serviceRegistrar;
         serviceRegistrar.addService(this);

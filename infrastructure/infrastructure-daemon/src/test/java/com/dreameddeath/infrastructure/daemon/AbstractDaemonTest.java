@@ -18,6 +18,8 @@ package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
+import com.dreameddeath.core.dao.discovery.DaoDiscovery;
+import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
 import com.dreameddeath.core.helper.config.DaoHelperConfigProperties;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.DaoServiceJacksonObjectMapper;
@@ -97,7 +99,7 @@ public class AbstractDaemonTest extends Assert {
                     assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
                     assertEquals(daemon.getAdditionalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during daemon registered info read", e);
                 }
@@ -128,7 +130,21 @@ public class AbstractDaemonTest extends Assert {
                     assertEquals(createdTestDoc.getMeta().getKey(),readDoc.getMeta().getKey());
 
                 }
-                catch(Exception e){
+                catch(Throwable e){
+                    nbErrors.incrementAndGet();
+                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+                }
+                try{
+                    DaoDiscovery discovery = new DaoDiscovery(daemon.getCuratorClient());
+                    discovery.start();
+                    List<DaoInstanceInfo> daos =discovery.getList();
+                    assertEquals(1, daos.size());
+                    DaoInstanceInfo instanceInfo = daos.get(0);
+                    assertEquals(TestDoc.class.getName(), instanceInfo.getMainEntity().getClassName());
+                    assertEquals(1,daos.get(0).getChildEntities().size());
+                    assertEquals(TestDocEnhanced.class.getName(),daos.get(0).getChildEntities().get(0).getClassName());
+                }
+                catch (Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
@@ -150,7 +166,7 @@ public class AbstractDaemonTest extends Assert {
                             .get(Integer.class);
                     assertEquals(12L+23+3,responseQuery.longValue());
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
@@ -164,7 +180,7 @@ public class AbstractDaemonTest extends Assert {
                             .get(Integer.class);
                     assertEquals(12L,response.longValue());
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
@@ -179,7 +195,7 @@ public class AbstractDaemonTest extends Assert {
                             .get(WebServerInfo.class);
                     assertEquals(AbstractWebServer.Status.STARTED,response.getStatus());
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
@@ -194,7 +210,7 @@ public class AbstractDaemonTest extends Assert {
                             .get(StatusResponse.class);
                     assertEquals(IDaemonLifeCycle.Status.STARTED,response.getStatus());
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during status read", e);
                 }
@@ -212,7 +228,7 @@ public class AbstractDaemonTest extends Assert {
 
                     assertEquals(IDaemonLifeCycle.Status.HALTED, response.getStatus());
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Cannot call halt", e);
                 }
@@ -231,7 +247,7 @@ public class AbstractDaemonTest extends Assert {
                     assertEquals(IDaemonLifeCycle.Status.STOPPING, response.getStatus());
                     return;
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Cannot call stop", e);
                 }
@@ -240,7 +256,7 @@ public class AbstractDaemonTest extends Assert {
                     nbErrors.incrementAndGet();
                     daemon.getDaemonLifeCycle().stop();
                 }
-                catch(Exception e){
+                catch(Throwable e){
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Cannot stop", e);
                 }
@@ -259,7 +275,7 @@ public class AbstractDaemonTest extends Assert {
                         assertEquals(true, server.getLifeCycle().isStopped());
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during starting", e);
                 }
@@ -275,7 +291,7 @@ public class AbstractDaemonTest extends Assert {
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
                     stopping_thread.start();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during starting", e);
                 }
@@ -299,7 +315,7 @@ public class AbstractDaemonTest extends Assert {
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
                     assertEquals(IDaemonLifeCycle.Status.STARTED, lifeCycle.getDaemon().getStatus());
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during Halting", e);
                 }
@@ -313,7 +329,7 @@ public class AbstractDaemonTest extends Assert {
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStarted());
                     assertEquals(IDaemonLifeCycle.Status.STOPPING, lifeCycle.getDaemon().getStatus());
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during stopping", e);
                 }
@@ -327,7 +343,7 @@ public class AbstractDaemonTest extends Assert {
                     }
                     assertEquals(true, daemon.getAdminWebServer().getLifeCycle().isStopped());
                     assertEquals(IDaemonLifeCycle.Status.HALTED, lifeCycle.getDaemon().getStatus());
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during stopped", e);
                 }

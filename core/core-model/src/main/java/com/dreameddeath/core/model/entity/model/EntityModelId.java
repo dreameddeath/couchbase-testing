@@ -65,7 +65,7 @@ public class EntityModelId {
     }
 
     public EntityModelId(DocumentDef documentDef,Element elt) {
-        this(documentDef.domain(),StringUtils.isEmpty(documentDef.name())?elt.getSimpleName().toString().toLowerCase():documentDef.name(),documentDef.version());
+        this(documentDef.domain(), StringUtils.isEmpty(documentDef.name()) ? elt.getSimpleName().toString().toLowerCase() : documentDef.name(), documentDef.version());
     }
 
     public EntityModelId(DocumentDef documentDef,Class<?> clazz){
@@ -132,16 +132,16 @@ public class EntityModelId {
 
         EntityModelId modelId = (EntityModelId) o;
 
-        if (!domain.equals(modelId.domain)) return false;
-        if (!name.equals(modelId.name)) return false;
+        if (domain != null ? !domain.equals(modelId.domain) : modelId.domain != null) return false;
+        if (name != null ? !name.equals(modelId.name) : modelId.name != null) return false;
         return !(entityVersion != null ? !entityVersion.equals(modelId.entityVersion) : modelId.entityVersion != null);
 
     }
 
     @Override
     public int hashCode() {
-        int result = domain.hashCode();
-        result = 31 * result + name.hashCode();
+        int result = domain != null ? domain.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (entityVersion != null ? entityVersion.hashCode() : 0);
         return result;
     }

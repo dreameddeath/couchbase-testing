@@ -16,13 +16,14 @@
 
 package com.dreameddeath.core.dao.model.discovery;
 
-import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonIgnore;
-import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.dreameddeath.core.curator.model.IRegisterable;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,7 +64,7 @@ public class DaoInstanceInfo implements IRegisterable {
 
         this.mainEntity = EntityDef.build(structureReflection);
         for(EntityDef entity: new EntityDefinitionManager().getEntities()){
-            if(entity.getParentEntities().contains(this.mainEntity)){
+            if(entity.getParentEntities().contains(this.mainEntity.getModelId())){
                 this.childEntities.add(entity);
             }
         }

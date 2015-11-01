@@ -20,6 +20,8 @@ import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundExcepti
 import com.dreameddeath.core.curator.registrar.impl.CuratorRegistrarImpl;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
+import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 
 /**
@@ -35,12 +37,14 @@ public class DaoRegistrar extends CuratorRegistrarImpl<DaoInstanceInfo> {
         }
     }
 
+    private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
+
     public DaoRegistrar(CuratorFramework curatorFramework) {
         super(curatorFramework, getRootPath());
     }
 
     @Override
     protected byte[] serialize(DaoInstanceInfo obj) throws Exception {
-        return new byte[0];
+        return mapper.writeValueAsBytes(obj);
     }
 }

@@ -19,18 +19,29 @@ package com.dreameddeath.core.dao.discovery;
 import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
 import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
 import com.dreameddeath.core.dao.registrar.DaoRegistrar;
+import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
+
+import java.io.IOException;
 
 /**
  * Created by Christophe Jeunesse on 28/10/2015.
  */
 public class DaoDiscovery extends CuratorDiscoveryImpl<DaoInstanceInfo> {
+    private ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper();
+
     public DaoDiscovery(CuratorFramework curatorFramework) {
         super(curatorFramework, DaoRegistrar.getRootPath());
     }
 
     @Override
     protected DaoInstanceInfo deserialize(String uid, byte[] element) {
-        return null;
+        try {
+            return mapper.readValue(element, DaoInstanceInfo.class);
+        }
+        catch(IOException e){
+            throw new RuntimeException(e);
+        }
     }
 }

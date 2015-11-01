@@ -17,7 +17,7 @@
 package com.dreameddeath.core.elasticsearch.dcp;
 
 import com.couchbase.client.core.message.dcp.SnapshotMarkerMessage;
-import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
 /**

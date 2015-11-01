@@ -40,9 +40,9 @@ import java.util.List;
 @Path("/")
 public class RestLocalWebServerAdminService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalWebServerAdminService.class);
-    @Autowired
     private AbstractDaemon daemon;
 
+    @Autowired
     public void setDaemon(AbstractDaemon daemon){
         this.daemon = daemon;
     }

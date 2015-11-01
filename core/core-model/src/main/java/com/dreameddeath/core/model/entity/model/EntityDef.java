@@ -68,12 +68,19 @@ public class EntityDef {
 
     public static EntityDef build(CouchbaseDocumentStructureReflection documentDef){
         EntityDef result = new EntityDef();
-        result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentDef.class), documentDef.getClassInfo().getTypeElement()));
+        if(documentDef.getClassInfo().getTypeElement()!=null) {
+            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentDef.class), documentDef.getClassInfo().getTypeElement()));
+        }
+        else{
+            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentDef.class), documentDef.getClassInfo().getCurrentClass()));
+        }
         result.setClassName(documentDef.getClassInfo().getFullName());
         CouchbaseDocumentStructureReflection currDocReflection = documentDef;
         while(currDocReflection.getSuperclassReflexion()!=null){
             currDocReflection = currDocReflection.getSuperclassReflexion();
-            result.parentEntities.add(currDocReflection.getEntityModelId());
+            if(currDocReflection.getEntityModelId()!=null && !currDocReflection.getEntityModelId().equals(EntityModelId.EMPTY_MODEL_ID)) {
+                result.parentEntities.add(currDocReflection.getEntityModelId());
+            }
         }
         return result;
     }
