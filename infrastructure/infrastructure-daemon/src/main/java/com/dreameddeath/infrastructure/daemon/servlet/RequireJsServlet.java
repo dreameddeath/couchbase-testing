@@ -109,7 +109,7 @@ public class RequireJsServlet extends HttpServlet {
         }
         else {
             response.setContentType("application/javascript");
-            response.getWriter().println(response);
+            response.getWriter().println(this.response);
         }
     }
 }

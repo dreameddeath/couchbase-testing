@@ -16,29 +16,67 @@
 
 package com.dreameddeath.infrastructure.daemon.model;
 
+import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
+import com.dreameddeath.core.service.model.ServiceDescription;
+import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
+import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.curator.x.discovery.ServiceInstance;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 19/09/2015.
  */
 public class WebServerInfo {
+    @JsonProperty("uid")
+    private UUID uid;
+    @JsonProperty("name")
     private String name;
+    @JsonProperty("className")
     private String className;
+    @JsonProperty("address")
     private String address;
+    @JsonProperty("port")
     private Integer port;
+    @JsonProperty("status")
     private AbstractWebServer.Status status;
+    @JsonProperty("daos")
+    private List<DaoInstanceInfo> daoInfo=new ArrayList<>();
+    @JsonProperty("services")
+    private List<ServiceInstance<ServiceDescription>> services=new ArrayList<>();
 
     public WebServerInfo(AbstractWebServer server){
+        uid = server.getUuid();
         name = server.getName();
         className = server.getClass().getName();
         address = ServerConnectorUtils.getConnectorHost(server.getServerConnector());
         port = ServerConnectorUtils.getConnectorPort(server.getServerConnector());
         status = server.getStatus();
+        if(server.getCouchbaseFactories()!=null){
+            daoInfo=server.getCouchbaseFactories().getDocumentDaoFactory().getRegisteredDaoInstancesInfo();
+        }
+        if(server instanceof RestWebServer){
+            for(ServiceRegistrar registrar:((RestWebServer)server).getServiceDiscoveryManager().getRegistrars()){
+                services.addAll(registrar.getServicesInstanceDescription());
+            }
+        }
     }
 
     public WebServerInfo(){
 
+    }
+
+    public UUID getUid() {
+        return uid;
+    }
+
+    public void setUid(UUID uid) {
+        this.uid = uid;
     }
 
     public String getName() {
@@ -79,5 +117,21 @@ public class WebServerInfo {
 
     public void setStatus(AbstractWebServer.Status status) {
         this.status = status;
+    }
+
+    public List<DaoInstanceInfo> getDaoInfo() {
+        return daoInfo;
+    }
+
+    public void setDaoInfo(List<DaoInstanceInfo> daoInfo) {
+        this.daoInfo = daoInfo;
+    }
+
+    public List<ServiceInstance<ServiceDescription>> getServices() {
+        return services;
+    }
+
+    public void setServices(List<ServiceInstance<ServiceDescription>> services) {
+        this.services = services;
     }
 }

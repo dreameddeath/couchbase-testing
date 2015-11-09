@@ -16,7 +16,6 @@
 
 package com.dreameddeath.core.service.model;
 
-import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.models.Swagger;
 import org.apache.curator.x.discovery.ServiceInstance;
@@ -25,8 +24,6 @@ import org.apache.curator.x.discovery.ServiceInstance;
  * Created by Christophe Jeunesse on 04/03/2015.
  */
 public class ServiceInstanceDescription{
-    private static ServiceJacksonObjectMapper OBJECT_MAPPER = ServiceJacksonObjectMapper.getInstance();
-
     @JsonProperty("name")
     private String name;
     @JsonProperty("address")

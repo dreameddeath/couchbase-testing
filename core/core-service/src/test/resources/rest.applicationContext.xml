@@ -49,10 +49,8 @@
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-                <constructor-arg>
-                    <bean class="com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper" factory-method="getInstance" />
-                </constructor-arg>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="service" />
             </bean>
         </jaxrs:providers>
     </jaxrs:server>

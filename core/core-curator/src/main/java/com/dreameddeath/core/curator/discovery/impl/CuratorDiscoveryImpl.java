@@ -19,6 +19,7 @@ package com.dreameddeath.core.curator.discovery.impl;
 import com.dreameddeath.core.curator.discovery.ICuratorDiscovery;
 import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
 import com.dreameddeath.core.curator.model.IRegisterable;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.curator.framework.CuratorFramework;
@@ -27,6 +28,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +44,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     private final static Logger LOG = LoggerFactory.getLogger(CuratorDiscoveryImpl.class);
     private final CuratorFramework curatorFramework;
     private final String basePath;
-    private PathChildrenCache pathCache;
+    private PathChildrenCache pathCache=null;
     private List<ICuratorDiscoveryListener<T>> listeners =new ArrayList<>();
     private Map<String,T> instanceCache =  Maps.newConcurrentMap();
 
@@ -55,6 +58,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
 
     protected abstract T deserialize(String uid,byte[] element);
 
+    @PostConstruct
     public final void start() throws Exception{
         pathCache = new PathChildrenCache(curatorFramework,basePath,true);
         pathCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
@@ -94,8 +98,12 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         started.await(10, TimeUnit.SECONDS);//TODO be parametizable
     }
 
+    @PreDestroy
     public final void stop() throws Exception{
-        pathCache.close();
+        if(pathCache!=null) {
+            pathCache.close();
+        }
+        instanceCache.clear();
     }
 
     protected void resync(String uid,final T newObj){
@@ -141,16 +149,19 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
 
     @Override
     public List<T> getList(){
+        Preconditions.checkNotNull(pathCache);
         return Lists.newArrayList(instanceCache.values());
     }
 
     @Override
     public T get(String uid) {
+        Preconditions.checkNotNull(pathCache);
         return  instanceCache.get(uid);
     }
 
     @Override
     public void refresh() throws Exception{
+        Preconditions.checkNotNull(pathCache);
         pathCache.clearAndRefresh();
     }
 

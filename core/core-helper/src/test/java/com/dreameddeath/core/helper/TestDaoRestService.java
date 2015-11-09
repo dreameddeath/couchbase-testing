@@ -37,7 +37,7 @@ import java.util.Collection;
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 @Path("testDomain/v1.0/test") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
-@ServiceDef(name="dao$testDomain$test",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain="test",name="dao$testDomain$test",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "testDomain/v1.0/test", description = "Basic resource")
 public class TestDaoRestService extends AbstractDaoRestService {
 

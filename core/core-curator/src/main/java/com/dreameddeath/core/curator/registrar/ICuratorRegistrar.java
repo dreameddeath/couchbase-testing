@@ -18,6 +18,8 @@ package com.dreameddeath.core.curator.registrar;
 
 import com.dreameddeath.core.curator.model.IRegisterable;
 
+import java.util.List;
+
 /**
  * Created by Christophe Jeunesse on 26/10/2015.
  */
@@ -25,5 +27,6 @@ public interface ICuratorRegistrar<T extends IRegisterable> {
     void register(T obj) throws Exception;
     void update(T obj)throws Exception;
     void deregister(T obj)throws Exception;
+    List<T> registeredList();
     void close() throws Exception;
 }

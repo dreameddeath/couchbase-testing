@@ -17,9 +17,10 @@
 package com.dreameddeath.core.service.swagger;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
+import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.JavaType;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
@@ -44,7 +45,7 @@ public class CouchbaseDocumentModelConverter extends AbstractModelConverter {
     private static Logger LOG = LoggerFactory.getLogger(CouchbaseDocumentModelConverter.class);
 
     public CouchbaseDocumentModelConverter() {
-        super(ServiceInstanceJacksonMapper.getInstance());
+        super(ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
     }
 
 

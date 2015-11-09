@@ -21,7 +21,9 @@ import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import org.apache.curator.framework.CuratorFramework;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -107,6 +109,11 @@ public class ServiceDiscoveryManager {
             registrar.stop();
         }
     }
+
+    synchronized public List<ServiceRegistrar> getRegistrars(){
+        return new ArrayList<>(serviceRegistrarMap.values());
+    }
+
     synchronized private void startDiscoverers() throws Exception {
         for(ServiceDiscoverer discoverer:serviceDiscovererMap.values()){
             discoverer.start();

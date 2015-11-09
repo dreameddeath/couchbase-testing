@@ -30,6 +30,7 @@ import org.springframework.core.env.PropertySources;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 21/08/2015.
@@ -45,6 +46,7 @@ public abstract class AbstractWebServer {
 
     private final AbstractDaemon parentDaemon;
     private final String name;
+    private final UUID uuid;
     private final Server webServer;
     private final WebServerCouchbaseFactories couchbaseFactories;
     private final ServerConnector serverConnector;
@@ -70,6 +72,7 @@ public abstract class AbstractWebServer {
     }
 
     public AbstractWebServer(Builder builder) {
+        uuid = UUID.randomUUID();
         parentDaemon = builder.daemon;
         name = builder.name;
         parentDaemon.getDaemonLifeCycle().addLifeCycleListener(new WebServerDaemonLifeCycleListener(this,builder.isRoot));
@@ -124,6 +127,11 @@ public abstract class AbstractWebServer {
 
     public String getName() {
         return name;
+    }
+
+
+    public UUID getUuid() {
+        return uuid;
     }
 
     public ServerConnector getServerConnector() {

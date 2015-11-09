@@ -29,7 +29,7 @@ import javax.ws.rs.core.MediaType;
  * Created by Christophe Jeunesse on 20/08/2015.
  */
 @Path("/")
-@ServiceDef(name="tests#tests#tests",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain = "test",name="tests#tests#tests",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "/", description = "testing services")
 public class TestRestService extends AbstractExposableService {
     @GET

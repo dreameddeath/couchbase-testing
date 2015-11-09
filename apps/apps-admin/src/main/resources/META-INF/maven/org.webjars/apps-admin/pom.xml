@@ -20,15 +20,11 @@
         <requirejs>
             {
                 "paths": {
-                    "domReady": "domReady",
                     "apps-admin": "apps-admin",
-                    "apps-admin-daemon-details": "apps-admin-daemon-details",
-                    "apps-admin-resource": "apps-admin-resource",
-                    "apps-admin-view": "apps-admin-view",
-                    "ocLazyLoad": "ocLazyLoad.require"
-                },
-                "shim": {
-                    "ocLazyLoad": [ "angular" ]
+                    "apps-admin-daemon": "daemon/apps-admin-daemon",
+                    "apps-admin-daemon-details": "daemon/apps-admin-daemon-details",
+                    "apps-admin-daemon-resource": "daemon/apps-admin-daemon-resource",
+                    "apps-admin-daemon-view": "daemon/apps-admin-daemon-view"
                 }
             }
         </requirejs>

@@ -1,7 +1,7 @@
 "use strict";
 
 define(['angular','angular-resource'],function(angular){
-    var appsAdminResourceModule = angular.module('apps-admin-resource', ['ngResource']);
+    var appsAdminResourceModule = angular.module('apps-admin-daemon-resource', ['ngResource']);
     appsAdminResourceModule.factory('DaemonsListService', ['$resource', function ($resource) {
         return $resource("/apis/apps-admin/daemons", null, { 'get':  {method:'GET',isArray:true}});
     }]);

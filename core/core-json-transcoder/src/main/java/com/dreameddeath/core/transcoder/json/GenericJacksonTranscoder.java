@@ -38,9 +38,9 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     private final static Logger LOG = LoggerFactory.getLogger(GenericJacksonTranscoder.class);
 
     public enum Flavor{
-        STORAGE(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE),
-        PUBLIC(CouchbaseDocumentConfigurator.BASE_COUCHBASE_PUBLIC),
-        PRIVATE(CouchbaseDocumentConfigurator.BASE_COUCHBASE_INTERNAL);
+        STORAGE(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE),
+        PUBLIC(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC),
+        PRIVATE(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_INTERNAL);
 
         private IObjectMapperConfigurator.ConfiguratorType type;
 

@@ -21,8 +21,6 @@ import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.util.UUID;
-
 /**
  * Created by Christophe Jeunesse on 15/01/2015.
  */
@@ -32,7 +30,7 @@ public abstract class AbstractExposableService {
     private ServiceRegistrar serviceRegistrar;
 
 
-    public String getId(){return UUID.randomUUID().toString();}
+    public String getId(){return IRestEndPointDescription.Utils.buildUid(getEndPoint());}
 
     @Required
     public void setAddress(String address) {

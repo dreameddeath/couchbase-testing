@@ -34,7 +34,7 @@ import javax.ws.rs.core.MediaType;
  * Created by Christophe Jeunesse on 17/03/2015.
  */
 @Path("/TestService")
-@ServiceDef(name="testService",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain = "test",name="testService",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractExposableService {
     private TestServiceImpl testService=new TestServiceImpl();

@@ -22,7 +22,7 @@ import com.dreameddeath.core.dao.exception.view.ViewDecodingException;
 import com.dreameddeath.core.dao.exception.view.ViewEncodingException;
 import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.transcoder.json.CouchbaseDocumentConfigurator;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +34,7 @@ import java.io.IOException;
  */
 public abstract class ViewJsonObjectTranscoder<T> implements IViewTranscoder<T> {
     private final Class rootClass;
-    private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE);
+    private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE);
     protected abstract Class<T> getBaseClass();
 
     protected Class getRootClass(){ return rootClass;}

@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.transcoder.json;
 
-import com.dreameddeath.core.json.BaseConfigurator;
+import com.dreameddeath.core.json.BaseObjectMapperConfigurator;
 import com.dreameddeath.core.json.IObjectMapperConfigurator;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,13 +27,19 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 29/10/2015.
  */
-public class CouchbaseDocumentConfigurator implements IObjectMapperConfigurator {
-    public static final ConfiguratorType BASE_COUCHBASE_TYPE = ConfiguratorType.build("couchbase", BaseConfigurator.BASE_TYPE);
+public class CouchbaseDocumentObjectMapperConfigurator implements IObjectMapperConfigurator {
+    public static final ConfiguratorType BASE_COUCHBASE_TYPE = ConfiguratorType.build("couchbase", BaseObjectMapperConfigurator.BASE_TYPE);
     public static final ConfiguratorType BASE_COUCHBASE_STORAGE = ConfiguratorType.build("couchbase-storage", BASE_COUCHBASE_TYPE);
     public static final ConfiguratorType BASE_COUCHBASE_INTERNAL = ConfiguratorType.build("couchbase-internal", BASE_COUCHBASE_TYPE);
     public static final ConfiguratorType BASE_COUCHBASE_PUBLIC = ConfiguratorType.build("couchbase-public", BASE_COUCHBASE_TYPE);
 
-    private static final List<Class<? extends IObjectMapperConfigurator>> prerequisites = Arrays.asList(BaseConfigurator.class);
+    private static final List<Class<? extends IObjectMapperConfigurator>> prerequisites = Arrays.asList(BaseObjectMapperConfigurator.class);
+
+    @Override
+    public List<ConfiguratorType> managedTypes() {
+        return Arrays.asList(BASE_COUCHBASE_TYPE,BASE_COUCHBASE_INTERNAL,BASE_COUCHBASE_PUBLIC,BASE_COUCHBASE_STORAGE);
+    }
+
 
     @Override
     public List<Class<? extends IObjectMapperConfigurator>> after() {

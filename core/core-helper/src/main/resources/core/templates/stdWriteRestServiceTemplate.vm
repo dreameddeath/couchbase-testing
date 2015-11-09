@@ -50,7 +50,7 @@ import ${import};
     comments = "${generator.comment}"
 )
 @Path("${service.rootRestPath}")
-@ServiceDef(name="${service.registeringName}$write",version="${service.version}",status = VersionStatus.${service.status})
+@ServiceDef(domain="${service.domain}",name="${service.registeringName}$write",version="${service.version}",status = VersionStatus.${service.status})
 @Api(value = "${service.rootRestPath}", description = "${service.descr}")
 public class ${service.targetWriteName} extends AbstractDaoRestService {
 

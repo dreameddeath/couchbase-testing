@@ -16,12 +16,13 @@
 
 package com.dreameddeath.testing.service;
 
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
-import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.cxf.transport.servlet.CXFServlet;
@@ -34,6 +35,7 @@ import org.springframework.web.context.ContextLoaderListener;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 10/04/2015.
@@ -67,6 +69,19 @@ public class TestingRestServer {
         contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
+            private final UUID daemon = UUID.randomUUID();
+            private final UUID server = UUID.randomUUID();
+
+            @Override
+            public String daemonUid() {
+                return daemon.toString();
+            }
+
+            @Override
+            public String webserverUid() {
+                return server.toString();
+            }
+
             @Override
             public int port() {
                 return connector.getLocalPort();
@@ -96,7 +111,7 @@ public class TestingRestServer {
 
 
     public TestingRestServer(String testName,CuratorFramework curatorClient) throws Exception{
-        this(testName,curatorClient,ServiceJacksonObjectMapper.getInstance());
+        this(testName,curatorClient, ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
     }
 
     public void registerService(String name,AbstractExposableService service){

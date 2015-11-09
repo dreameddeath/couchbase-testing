@@ -21,14 +21,14 @@ import com.dreameddeath.core.dao.model.view.IViewQueryResult;
 import com.dreameddeath.core.dao.model.view.IViewQueryRow;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
-import com.dreameddeath.core.helper.service.DaoServiceJacksonObjectMapper;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
-import com.dreameddeath.core.transcoder.json.CouchbaseDocumentIntrospector;
+import com.dreameddeath.core.json.JsonProviderFactory;
+import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.dreameddeath.testing.service.TestingRestServer;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +61,7 @@ public class ViewTest {
         env.start();
 
         testUtils = new CuratorTestUtils().prepare(1);
-        server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"),DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE));
+        server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
         TestDaoRestService service = new TestDaoRestService();
         service.setSessionFactory(env.getSessionFactory());
         service.setUserFactory(new StandardMockUserFactory());
@@ -108,10 +108,10 @@ public class ViewTest {
         assertEquals(3, rows.size());
 
         WebTarget target = server.getClientFactory().getClient("dao$testDomain$test", "1.0")
-                .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
+                .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 
         WebTarget childTarget = server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
-                .register(new JacksonJsonProvider(DaoServiceJacksonObjectMapper.getInstance(CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE)));
+                .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 
 
         for(IViewQueryRow<String,String,TestDoc> row:rows){

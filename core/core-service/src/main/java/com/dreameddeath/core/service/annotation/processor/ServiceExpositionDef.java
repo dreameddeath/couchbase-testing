@@ -59,6 +59,7 @@ public class ServiceExpositionDef {
     private List<String> interfaces = new ArrayList<>();
     private AbstractClassInfo classInfo;
     private String path;
+    private String domain;
     private String name;
     private String version;
     private VersionStatus status;
@@ -76,6 +77,7 @@ public class ServiceExpositionDef {
             interfaces.add(it.getSimpleName());
         });
         path = serviceInfosAnnot.path();
+        domain=serviceInfosAnnot.domain();
         name = serviceInfosAnnot.name();
         version = serviceInfosAnnot.version();
         status = serviceInfosAnnot.status();
@@ -94,6 +96,10 @@ public class ServiceExpositionDef {
 
     public String getPath(){
         return path;
+    }
+
+    public String getDomain() {
+        return domain;
     }
 
     public String getPackage() {

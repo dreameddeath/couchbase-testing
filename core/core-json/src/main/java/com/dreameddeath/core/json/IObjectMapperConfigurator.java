@@ -29,6 +29,8 @@ public interface IObjectMapperConfigurator {
     List<Class<? extends IObjectMapperConfigurator>> after();
     boolean applicable(ConfiguratorType type);
     void configure(ObjectMapper mapper,ConfiguratorType type);
+    List<ConfiguratorType> managedTypes();
+
 
     class ConfiguratorType{
         private final Set<ConfiguratorType> parents=new HashSet<>();
@@ -40,6 +42,10 @@ public interface IObjectMapperConfigurator {
                 this.parents.add(parent);
                 this.parents.addAll(parent.parents);
             }
+        }
+
+        public String getName() {
+            return name;
         }
 
         public boolean contains(ConfiguratorType type){

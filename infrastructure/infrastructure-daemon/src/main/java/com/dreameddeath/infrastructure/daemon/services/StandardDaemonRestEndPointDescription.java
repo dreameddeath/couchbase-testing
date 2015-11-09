@@ -18,22 +18,25 @@ package com.dreameddeath.infrastructure.daemon.services;
 
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
+import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.eclipse.jetty.server.ServerConnector;
 
 /**
  * Created by Christophe Jeunesse on 18/08/2015.
  */
 public class StandardDaemonRestEndPointDescription implements IRestEndPointDescription {
+    private final AbstractWebServer server;
     private final ServerConnector connector;
     private final String path;
 
-    public StandardDaemonRestEndPointDescription(ServerConnector connector,String path) {
+    public StandardDaemonRestEndPointDescription(AbstractWebServer server,ServerConnector connector,String path) {
+        this.server = server;
         this.connector = connector;
         this.path = path;
     }
 
-    public StandardDaemonRestEndPointDescription(ServerConnector connector) {
-        this(connector,"");
+    public StandardDaemonRestEndPointDescription(AbstractWebServer server,ServerConnector connector) {
+        this(server,connector,"");
     }
 
     @Override
@@ -49,5 +52,15 @@ public class StandardDaemonRestEndPointDescription implements IRestEndPointDescr
     @Override
     public String host() {
         return ServerConnectorUtils.getConnectorHost(connector);
+    }
+
+    @Override
+    public String daemonUid() {
+        return server.getParentDaemon().getUuid().toString();
+    }
+
+    @Override
+    public String webserverUid() {
+        return server.getUuid().toString();
     }
 }

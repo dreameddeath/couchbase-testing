@@ -40,7 +40,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 @Path("testDomain/v1.0/test/{testDocId}/child") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
-@ServiceDef(name="dao$testDomain$testChild",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain="test",name="dao$testDomain$testChild",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "testDomain/v1.0/test/{testDocId}/child", description = "Basic Sub resource")
 public class TestChildDaoRestService extends AbstractDaoRestService {
 

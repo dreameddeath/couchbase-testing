@@ -34,6 +34,17 @@ public class ObjectMapperFactory {
         configurators=ServiceLoader.load(IObjectMapperConfigurator.class,Thread.currentThread().getContextClassLoader());
     }
 
+    private IObjectMapperConfigurator.ConfiguratorType getType(String name){
+        for (IObjectMapperConfigurator configurator : configurators){
+            for(IObjectMapperConfigurator.ConfiguratorType cfgType: configurator.managedTypes()){
+                if(cfgType.getName().equals(name)){
+                    return cfgType;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Cannot find configurator type :"+name);
+    }
+
     private ObjectMapper build(IObjectMapperConfigurator.ConfiguratorType type){
         synchronized (this.objectMapperMap) {
             ObjectMapper mapper = new ObjectMapper();
@@ -71,12 +82,18 @@ public class ObjectMapperFactory {
     }
 
     public ObjectMapper getMapper(){
-        return getMapper(BaseConfigurator.BASE_TYPE);
+        return getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
+    }
+
+    public ObjectMapper getMapper(String name){
+        return getMapper(getType(name));
     }
 
     public ObjectMapper getMapper(IObjectMapperConfigurator.ConfiguratorType type){
         return objectMapperMap.computeIfAbsent(type,this::build);
     }
+
+
 
     public void reload(){
         configurators.reload();

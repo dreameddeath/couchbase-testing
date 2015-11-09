@@ -45,6 +45,6 @@ public class RestServicesServletContextHandler extends AbstractServletContextHan
 
         //Setup standardized elements
         this.setAttribute(SERVICE_DISCOVERER_MANAGER_PARAM_NAME, serviceDiscoveryManager);
-        this.setAttribute(END_POINT_INFO_SERVLET_PARAM_NAME, new StandardDaemonRestEndPointDescription(parentServer.getServerConnector(),path));
+        this.setAttribute(END_POINT_INFO_SERVLET_PARAM_NAME, new StandardDaemonRestEndPointDescription(parentServer,parentServer.getServerConnector(),path));
     }
 }

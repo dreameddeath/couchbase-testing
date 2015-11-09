@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 28/10/2015.
@@ -63,11 +64,7 @@ public class DaoInstanceInfo implements IRegisterable {
         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(dao.getBaseClass());
 
         this.mainEntity = EntityDef.build(structureReflection);
-        for(EntityDef entity: new EntityDefinitionManager().getEntities()){
-            if(entity.getParentEntities().contains(this.mainEntity.getModelId())){
-                this.childEntities.add(entity);
-            }
-        }
+        this.childEntities.addAll(new EntityDefinitionManager().getEntities().stream().filter(entity -> entity.getParentEntities().contains(this.mainEntity.getModelId())).collect(Collectors.toList()));
     }
 
     public UUID getUuid() {

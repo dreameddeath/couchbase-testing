@@ -18,9 +18,10 @@ package ${service.package};
 
 
 import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper;
+import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.service.model.HasServiceClientFactory;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.dreameddeath.core.json.JsonProviderFactory;
+
 import rx.Observable;
 
 import javax.ws.rs.client.Entity;
@@ -65,7 +66,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
     @Override
     public Observable<${method.returnClassName}> ${method.name}(#foreach($param in $method.methodParamsDefinition)#if($foreach.index>0),#end $param.className $param.name #end){
         WebTarget target = _serviceClientFactory.getClient("${service.name}", "${service.version}")
-                                                .register(new JacksonJsonProvider(ServiceJacksonObjectMapper.getInstance()));
+                                                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
         target = target.path(
                 String.format(
                     "$esc.java($method.pathInfo.jaxRsPattern).substring(1)"

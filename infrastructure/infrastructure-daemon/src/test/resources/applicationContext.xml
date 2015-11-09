@@ -60,10 +60,8 @@
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-                <constructor-arg>
-                    <bean class="com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper" />
-                </constructor-arg>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="service" />
             </bean>
         </jaxrs:providers>
     </jaxrs:server>
@@ -86,12 +84,8 @@
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-                <constructor-arg>
-                    <bean class="com.dreameddeath.core.helper.service.DaoServiceJacksonObjectMapper" factory-method="getInstance">
-                        <constructor-arg><value type="com.dreameddeath.core.transcoder.json.CouchbaseDocumentIntrospector.Domain">PUBLIC_SERVICE</value></constructor-arg>
-                    </bean>
-                </constructor-arg>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="couchbase-public" />
             </bean>
         </jaxrs:providers>
     </jaxrs:server>

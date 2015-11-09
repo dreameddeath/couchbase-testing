@@ -32,7 +32,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
-import com.dreameddeath.core.transcoder.json.CouchbaseDocumentConfigurator;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import org.junit.Test;
 
@@ -223,7 +223,7 @@ public class UpgraderTest {
 
     @Test
     public void upgradeUnitTests() throws Exception{
-        EntityVersionUpgradeManager upgradeManager = (EntityVersionUpgradeManager) ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE).getDeserializationConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
+        EntityVersionUpgradeManager upgradeManager = (EntityVersionUpgradeManager) ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE).getDeserializationConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
         ICouchbaseSession session = sessionFactory.newReadWriteSession(null);
         TestModel v1 =session.newEntity(TestModel.class);
         String refValue = "A first Value";

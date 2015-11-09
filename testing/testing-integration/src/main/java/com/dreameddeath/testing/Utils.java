@@ -42,7 +42,7 @@ import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.session.impl.ElasticSearchSessionFactory;
-import com.dreameddeath.core.transcoder.json.CouchbaseDocumentConfigurator;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -158,7 +158,7 @@ public class Utils {
                 esServer = new ElasticSearchServer(prefix+"ES");
                 esSessionFactory = ElasticSearchSessionFactory.builder().withDocumentInfoMappper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper()).build();
                 esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper());
-                esClient = new ElasticSearchClient(esServer.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE));
+                esClient = new ElasticSearchClient(esServer.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE));
                 ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
                 ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(
                         esClient,

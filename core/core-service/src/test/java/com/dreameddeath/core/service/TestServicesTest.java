@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.service;
 
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotationProcessor;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
@@ -25,7 +26,7 @@ import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
-import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
+import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -52,6 +53,7 @@ import javax.ws.rs.core.Response;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -107,6 +109,19 @@ public class TestServicesTest extends Assert{
         contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
+            private final UUID daemon = UUID.randomUUID();
+            private final UUID server = UUID.randomUUID();
+
+            @Override
+            public String daemonUid() {
+                return daemon.toString();
+            }
+
+            @Override
+            public String webserverUid() {
+                return server.toString();
+            }
+
             @Override
             public int port() {
                 return connector.getLocalPort();
@@ -145,7 +160,7 @@ public class TestServicesTest extends Assert{
         String connectionString = "http://localhost:"+connector.getLocalPort();
         Response response = ClientBuilder.newBuilder().build()
                 .target(connectionString)
-                .register(new JacksonJsonProvider(ServiceInstanceJacksonMapper.getInstance()))
+                .register(new JacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR)))
                 .path("/listing/services/instances")
                 .request(MediaType.APPLICATION_JSON_TYPE).get();
         LOG.debug("Response {}", response.getStatus());

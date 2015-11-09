@@ -17,11 +17,11 @@
 package com.dreameddeath.core.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
@@ -29,8 +29,14 @@ import java.util.TimeZone;
 /**
  * Created by Christophe Jeunesse on 29/10/2015.
  */
-public class BaseConfigurator implements IObjectMapperConfigurator{
+public class BaseObjectMapperConfigurator implements IObjectMapperConfigurator{
     public static final ConfiguratorType BASE_TYPE=ConfiguratorType.build("default-type");
+
+
+    @Override
+    public List<ConfiguratorType> managedTypes() {
+        return Arrays.asList(BASE_TYPE);
+    }
 
     @Override
     public List<Class<? extends IObjectMapperConfigurator>> after() {
@@ -49,7 +55,7 @@ public class BaseConfigurator implements IObjectMapperConfigurator{
         mapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false);
         mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        //mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         mapper.setTimeZone(TimeZone.getDefault());
         mapper.registerModule(new JodaModule());
         mapper.setAnnotationIntrospector(new DefaultGetterSetterIntrospector());

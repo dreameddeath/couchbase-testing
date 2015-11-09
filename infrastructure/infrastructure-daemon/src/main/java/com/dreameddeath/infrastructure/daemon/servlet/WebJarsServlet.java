@@ -69,7 +69,6 @@ public class WebJarsServlet extends DefaultServlet {
                     throw new RuntimeException("Cannot load local file <"+srcFile.getAbsolutePath()+">",e);
                 }
             }
-
         }
         return Resource.newClassPathResource(pathInContext);
     }

@@ -28,6 +28,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExposeService {
     String path();
+    String domain();
     String name();
     String version();
     VersionStatus status();

@@ -16,13 +16,14 @@
 
 package com.dreameddeath.testing.service;
 
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
-import com.dreameddeath.core.service.utils.ServiceInstanceJacksonMapper;
+import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.curator.framework.CuratorFramework;
@@ -38,10 +39,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.web.context.ServletContextAware;
 
 import javax.servlet.ServletContext;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 24/03/2015.
@@ -83,7 +81,7 @@ public class TestSpringConfig implements ServletContextAware
         factory.setAddress("/apis");
         ObjectMapper mapper =(ObjectMapper)servletContext.getAttribute("jacksonObjectMapper");
         if(mapper==null){
-            mapper = ServiceInstanceJacksonMapper.getInstance();
+            mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR);
         }
         factory.setProviders(Arrays.asList(new JacksonJsonProvider(mapper)));
 
@@ -93,6 +91,19 @@ public class TestSpringConfig implements ServletContextAware
         for(Map.Entry<String,AbstractExposableService> serviceDef:servicesMap.entrySet()){
             serviceDef.getValue().setServiceRegistrar((ServiceRegistrar)servletContext.getAttribute("serviceRegistrar"));
             serviceDef.getValue().setEndPoint(new IRestEndPointDescription() {
+                private final UUID daemon = UUID.randomUUID();
+                private final UUID server = UUID.randomUUID();
+
+                @Override
+                public String daemonUid() {
+                    return daemon.toString();
+                }
+
+                @Override
+                public String webserverUid() {
+                    return server.toString();
+                }
+
                 @Override
                 public int port() {
                     return endPointDescr.port();
@@ -107,6 +118,7 @@ public class TestSpringConfig implements ServletContextAware
                 public String host() {
                     return endPointDescr.host();
                 }
+
             });
             ctxt.getBeanFactory().registerSingleton(serviceDef.getKey(), serviceDef.getValue());
             SpringResourceFactory factoryResource = new SpringResourceFactory(serviceDef.getKey());

@@ -38,18 +38,19 @@ import javax.ws.rs.core.MediaType;
  * Created by Christophe Jeunesse on 14/08/2015.
  */
 @Path("/daemon")
-@ServiceDef(name= RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,status = VersionStatus.STABLE)
+@ServiceDef(domain=RestLocalDaemonAdminService.DAEMON_SERVICE_DOMAIN,name=RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,status = VersionStatus.STABLE)
 @Api(value = "/daemon", description = "Daemon Administration service")
 public class RestLocalDaemonAdminService extends AbstractExposableService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalDaemonAdminService.class);
+    public static final String DAEMON_SERVICE_DOMAIN ="admin";
     public static final String DAEMON_SERVICE_NAME ="daemon#admin#status";
     public static final String DAEMON_SERVICE_VERSION ="1.0";
 
     private RestLocalWebServerAdminService webServerAdminResource;
 
-    @Autowired
     private AbstractDaemon daemon;
 
+    @Autowired
     public void setDaemon(AbstractDaemon daemon){
         this.daemon = daemon;
         //webServerAdminResource.setDaemon(daemon);

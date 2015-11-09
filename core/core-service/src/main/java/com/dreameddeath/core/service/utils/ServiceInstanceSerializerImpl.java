@@ -16,8 +16,10 @@
 
 package com.dreameddeath.core.service.utils;
 
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.model.ServiceDescription;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.details.InstanceSerializer;
 
@@ -25,16 +27,16 @@ import org.apache.curator.x.discovery.details.InstanceSerializer;
  * Created by Christophe Jeunesse on 31/03/2015.
  */
 public class ServiceInstanceSerializerImpl implements  InstanceSerializer<ServiceDescription> {
-    private ServiceInstanceJacksonMapper MAPPER = ServiceInstanceJacksonMapper.getInstance();
+    private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR);
 
 
     @Override
     public byte[] serialize(ServiceInstance<ServiceDescription> serviceInstance) throws Exception {
-        return MAPPER.writeValueAsBytes(serviceInstance);
+        return mapper.writeValueAsBytes(serviceInstance);
     }
 
     @Override
     public ServiceInstance<ServiceDescription> deserialize(byte[] bytes) throws Exception {
-        return MAPPER.readValue(bytes, new TypeReference<ServiceInstance<ServiceDescription>>(){});
+        return mapper.readValue(bytes, new TypeReference<ServiceInstance<ServiceDescription>>(){});
     }
 }

@@ -16,11 +16,10 @@
 
 package com.dreameddeath.core.service.utils;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.dreameddeath.core.json.BaseObjectMapperConfigurator;
+import com.dreameddeath.core.json.IObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 import io.swagger.models.Model;
 import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.models.parameters.Parameter;
@@ -30,37 +29,38 @@ import io.swagger.util.ParameterDeserializer;
 import io.swagger.util.PropertyDeserializer;
 import io.swagger.util.SecurityDefinitionDeserializer;
 
-import java.util.TimeZone;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Created by Christophe Jeunesse on 31/03/2015.
+ * Created by Christophe Jeunesse on 02/11/2015.
  */
-public class ServiceInstanceJacksonMapper extends ObjectMapper {
-    private static ServiceInstanceJacksonMapper OBJECT_MAPPER=null;
+public class ServiceObjectMapperConfigurator implements IObjectMapperConfigurator {
+    public static ConfiguratorType SERVICE_MAPPER_CONFIGURATOR=ConfiguratorType.build("service", BaseObjectMapperConfigurator.BASE_TYPE);
 
-    synchronized public static ServiceInstanceJacksonMapper getInstance(){
-        if(OBJECT_MAPPER==null){
-            OBJECT_MAPPER = new ServiceInstanceJacksonMapper();
-        }
-        return OBJECT_MAPPER;
+    @Override
+    public List<ConfiguratorType> managedTypes() {
+        return Arrays.asList(SERVICE_MAPPER_CONFIGURATOR);
     }
 
+    @Override
+    public List<Class<? extends IObjectMapperConfigurator>> after() {
+        return Collections.emptyList();
+    }
 
-    private ServiceInstanceJacksonMapper(){
-        super();
-        configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,false);
-        configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-        setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        setTimeZone(TimeZone.getDefault());
-        //disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        registerModule(new JodaModule());
+    @Override
+    public boolean applicable(ConfiguratorType type) {
+        return type.contains(SERVICE_MAPPER_CONFIGURATOR);
+    }
+
+    @Override
+    public void configure(ObjectMapper mapper, ConfiguratorType type) {
         SimpleModule swaggerModule = new SimpleModule();
         swaggerModule.addDeserializer(Property.class, new PropertyDeserializer());
         swaggerModule.addDeserializer(Model.class, new ModelDeserializer());
         swaggerModule.addDeserializer(Parameter.class, new ParameterDeserializer());
         swaggerModule.addDeserializer(SecuritySchemeDefinition.class, new SecurityDefinitionDeserializer());
-        registerModule(swaggerModule);
+        mapper.registerModule(swaggerModule);
     }
 }

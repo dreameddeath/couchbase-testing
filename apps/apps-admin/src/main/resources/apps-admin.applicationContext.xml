@@ -19,8 +19,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
             http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+
+    <context:annotation-config/>
 
     <bean id="propertySources" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="propertySources" />
@@ -29,8 +34,6 @@
     <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
         <property name="propertySources" ref="propertySources" />
     </bean>
-
-
 
     <bean id="serviceDiscovererManager" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="serviceDiscovererManager" />
@@ -43,11 +46,11 @@
 
     <bean id="adminDaemonDiscovery"
           factory-bean="serviceDiscovererManager"
-          factory-method="getServiceDiscoverer">
+          factory-method="getServiceDiscoverer" init-method="start">
         <constructor-arg type="java.lang.String" value="${daemon.admin.services.domain}" />
     </bean>
 
-    <bean id="clientFactory" class=" com.dreameddeath.core.service.client.ServiceClientFactory">
+    <bean id="daemonAdminClientFactory" class=" com.dreameddeath.core.service.client.ServiceClientFactory">
         <constructor-arg type="com.dreameddeath.core.service.discovery.ServiceDiscoverer" ref="adminDaemonDiscovery" />
     </bean>
 
@@ -60,14 +63,12 @@
         <jaxrs:serviceBeans>
             <bean id="daemons" class="com.dreameddeath.infrastructure.daemon.services.RestDaemonsDiscoveryAndAdminService">
                 <property name="daemonDiscovery" ref="daemonDiscoverer" />
-                <property name="clientFactory" ref="clientFactory"/>
+                <property name="clientFactory" ref="daemonAdminClientFactory"/>
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider">
-                <constructor-arg>
-                    <bean class="com.dreameddeath.core.service.utils.ServiceJacksonObjectMapper" />
-                </constructor-arg>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="service" />
             </bean>
         </jaxrs:providers>
     </jaxrs:server>

@@ -25,7 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +39,7 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
     private final CuratorFramework curatorFramework;
     private final String basePath;
     private final Map<String,PersistentEphemeralNode> registered = new HashMap<>();
+    private final Map<String,T> registeredValues = new HashMap<>();
 
     public CuratorRegistrarImpl(CuratorFramework curatorFramework,String basePath) {
         this.curatorFramework = curatorFramework;
@@ -68,6 +71,7 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
     @Override
     public synchronized final void register(T obj) throws Exception{
         registered.put(obj.getUid(), setupNode(obj));
+        registeredValues.put(obj.getUid(),obj);
     }
 
     @Override
@@ -78,6 +82,7 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
         else{
             registered.put(obj.getUid(),setupNode(obj));
         }
+        registeredValues.put(obj.getUid(),obj);
     }
 
     @Override
@@ -88,8 +93,14 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
             }
             finally {
                 registered.remove(obj.getUid());
+                registeredValues.remove(obj.getUid());
             }
         }
+    }
+
+    @Override
+    public synchronized final List<T> registeredList(){
+        return new ArrayList<>(registeredValues.values());
     }
 
 }

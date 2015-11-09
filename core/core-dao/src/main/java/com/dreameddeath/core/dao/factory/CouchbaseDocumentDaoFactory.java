@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CouchbaseDocumentDaoFactory implements IDaoFactory {
@@ -129,6 +130,15 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             catch(Exception e){
                 LOG.error("Cannot register dao <"+dao.getClass().getName()+">",e);
             }
+        }
+    }
+
+    public List<DaoInstanceInfo> getRegisteredDaoInstancesInfo(){
+        if(daoRegistrar!=null){
+            return daoRegistrar.registeredList();
+        }
+        else{
+            return Collections.emptyList();
         }
     }
 

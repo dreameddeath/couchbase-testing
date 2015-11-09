@@ -17,6 +17,7 @@
 package com.dreameddeath.core.service.registrar;
 
 import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.dreameddeath.core.service.annotation.ServiceDefTag;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.model.ServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
@@ -34,10 +35,11 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.Path;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
-
+import java.util.stream.Collectors;
 
 
 /**
@@ -47,6 +49,7 @@ public class ServiceRegistrar {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRegistrar.class);
     private final CuratorFramework curatorClient;
     private final String basePath;
+    private boolean isStarted=false;
     private Set<AbstractExposableService> services = new CopyOnWriteArraySet<>();
     private ServiceDiscovery<ServiceDescription> serviceDiscovery;
 
@@ -59,7 +62,7 @@ public class ServiceRegistrar {
         this.basePath = basePath;
     }
 
-    public void start() throws Exception{
+    public synchronized void start() throws Exception{
         curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
         ServiceNamingUtils.createBaseServiceName(curatorClient, basePath);
 
@@ -71,41 +74,69 @@ public class ServiceRegistrar {
         serviceDiscovery.start();
 
         for(AbstractExposableService foundService:services) {
-            ServiceDef annotDef = foundService.getClass().getAnnotation(ServiceDef.class);
-            Swagger swagger = new Swagger();
-            Path pathAnnot = foundService.getClass().getAnnotation(Path.class);
-            swagger.setBasePath((foundService.getEndPoint().path()+"/"+foundService.getAddress()+"/"+pathAnnot.value()).replaceAll("/{2,}","/"));
-            swagger.setHost(foundService.getEndPoint().host());
-
-            Reader reader=new Reader(swagger);
-
-            reader.read(foundService.getClass());
-
-            ServiceDescription serviceDescr = new ServiceDescription();
-            serviceDescr.setState(annotDef.status().name());
-            serviceDescr.setVersion(annotDef.version());
-            serviceDescr.setSwagger(reader.getSwagger());
-
-            String uriStr = "{scheme}://{address}:{port}"+("/"+swagger.getBasePath()).replaceAll("/{2,}","/");
-            UriSpec uriSpec = new UriSpec(uriStr);
-
-            ServiceInstance<ServiceDescription> newServiceDef = ServiceInstance.<ServiceDescription>builder().name(ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()))
-                    .id(foundService.getId())
-                    .uriSpec(uriSpec)
-                    .address(foundService.getEndPoint().host())
-                    .port(foundService.getEndPoint().port())
-                    .payload(serviceDescr)
-                    .build();
-
+            ServiceInstance<ServiceDescription> newServiceDef = buildServiceInstanceDescription(foundService);
             serviceDiscovery.registerService(newServiceDef);
             LOG.info("Service {} registred with id {} within domain {}", newServiceDef.getName(),newServiceDef.getId(),basePath);
         }
 
+        isStarted=true;
         //LOG.info("Services Regi: " + serviceDiscovery.queryForNames().toString());
     }
 
-    public void stop() throws IOException{
+    public synchronized void stop() throws IOException{
+        isStarted=false;
         serviceDiscovery.close();
+    }
+
+    public List<ServiceInstance<ServiceDescription>> getServicesInstanceDescription(){
+        return services.stream()
+                .map(this::buildServiceInstanceDescription)
+                .collect(Collectors.toList());
+    }
+
+    protected ServiceInstance<ServiceDescription> buildServiceInstanceDescription(AbstractExposableService service) {
+        ServiceDef annotDef = service.getClass().getAnnotation(ServiceDef.class);
+        Path pathAnnot = service.getClass().getAnnotation(Path.class);
+
+        Swagger swagger = new Swagger();
+        swagger.setBasePath((service.getEndPoint().path()+"/"+service.getAddress()+"/"+pathAnnot.value()).replaceAll("/{2,}","/"));
+        swagger.setHost(service.getEndPoint().host());
+
+        Reader reader=new Reader(swagger);
+        reader.read(service.getClass());
+
+        ServiceDescription serviceDescr = new ServiceDescription();
+        serviceDescr.setDomain(annotDef.domain());
+        serviceDescr.setState(annotDef.status().name());
+        serviceDescr.setVersion(annotDef.version());
+        serviceDescr.setSwagger(reader.getSwagger());
+        for(ServiceDefTag tag : annotDef.tags()){
+            serviceDescr.addTag(tag.value());
+        }
+
+        String uriStr = "{scheme}://{address}:{port}"+("/"+swagger.getBasePath()).replaceAll("/{2,}","/");
+        UriSpec uriSpec = new UriSpec(uriStr);
+
+        return new ServiceInstance<>(
+                ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()),
+                service.getId(),
+                service.getEndPoint().host(),
+                service.getEndPoint().port(),
+                null,
+                serviceDescr,
+                System.currentTimeMillis(),
+                null,
+                uriSpec
+                );
+
+                /*ServiceInstance.<ServiceDescription>builder().name()
+                .id(service.getId())
+                .uriSpec(uriSpec)
+                .address()
+                .port(service.getEndPoint().port())
+                .payload(serviceDescr)
+                .build();*/
+
     }
 
     public Set<AbstractExposableService> getServices(){

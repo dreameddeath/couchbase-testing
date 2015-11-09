@@ -26,7 +26,7 @@ import javax.ws.rs.HttpMethod;
 /**
  * Created by Christophe Jeunesse on 11/04/2015.
  */
-@ExposeService(path = "/TestService", name = "testService", version = "1.0", status = VersionStatus.STABLE)
+@ExposeService(path = "/TestService",domain = "test",name = "testService", version = "1.0", status = VersionStatus.STABLE)
 public class TestServerImpl implements TestingRestServerTest.ITestServer {
     @Override
     @ExposeMethod(

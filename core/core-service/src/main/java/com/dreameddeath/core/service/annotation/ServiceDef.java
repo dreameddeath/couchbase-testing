@@ -27,7 +27,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceDef {
+    String domain();
     String name();
     String version();
     VersionStatus status() default VersionStatus.STABLE;
+    ServiceDefTag[] tags() default {};
 }

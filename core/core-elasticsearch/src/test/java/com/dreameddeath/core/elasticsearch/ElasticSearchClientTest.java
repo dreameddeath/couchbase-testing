@@ -31,7 +31,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.core.model.transcoder.impl.CounterTranscoder;
-import com.dreameddeath.core.transcoder.json.CouchbaseDocumentConfigurator;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
@@ -150,7 +150,7 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testIndexingDocument() throws Exception{
-        ElasticSearchClient client = new ElasticSearchClient(server.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE));
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE));
         TestDoc doc = new TestDoc();
         doc.firstName = "firstName1";
         doc.lastName = "lastName1";
@@ -195,7 +195,7 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testDcpFlow()throws Exception{
-        ElasticSearchClient client = new ElasticSearchClient(server.getClient(),ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentConfigurator.BASE_COUCHBASE_STORAGE));
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(),ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE));
         CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         Map<String,ITranscoder> transcoderMap = new HashMap<>();

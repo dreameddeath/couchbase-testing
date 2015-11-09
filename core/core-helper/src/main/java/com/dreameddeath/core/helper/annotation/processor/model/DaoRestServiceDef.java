@@ -114,6 +114,9 @@ public class DaoRestServiceDef {
         return name;
     }
 
+    public String getDomain() {
+        return domain;
+    }
 
     public String getClassSimpleName(){
         return rootClassInfo.getSimpleName();
