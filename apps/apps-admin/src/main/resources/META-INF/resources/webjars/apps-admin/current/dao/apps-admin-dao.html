@@ -14,6 +14,29 @@
   ~ limitations under the License.
   -->
 
-<div ng-controller="apps-admin-dao">
-
+<div ng-controller="apps-admin-dao-ctrl">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th class="text-center"><button ng-click="refresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></th>
+            <th>uuid</th>
+            <th>bucket Name</th>
+            <th>type</th>
+            <th>main entity</th>
+            <th>nb entities</th>
+            <th>read-only</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="dao in daos | orderBy:'type'">
+            <td class="text-center"><button type="button" class="btn btn-primary btn-xs" ng-click="dao.viewDetails()" aria-label="show details"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button></td>
+            <td>{{dao.uuid}}</td>
+            <td>{{dao.bucketName}}</td>
+            <td>{{dao.type}}</td>
+            <td>{{dao.mainEntityStr}}</td>
+            <td>{{dao.entities.length}}</td>
+            <td>{{dao.readOnly}}</td>
+        </tr>
+        </tbody>
+    </table>
 </div>

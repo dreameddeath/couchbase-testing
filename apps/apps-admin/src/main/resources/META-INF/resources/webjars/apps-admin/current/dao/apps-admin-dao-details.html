@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright Christophe Jeunesse
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="ok()"><span aria-hidden="true">&times;</span></button>
+    <h3 class="modal-title">Details of daemon</h3>
+</div>
+<div class="modal-body">
+    <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{dao.uuid}}</div></div>
+    <div class="row"><div class="col-md-3">Type</div><div class="col-md-9">{{dao.type}}</div></div>
+    <div class="row"><div class="col-md-3">class</div><div class="col-md-9">{{dao.className}}</div></div>
+    <div class="row"><div class="col-md-3">bucketName</div><div class="col-md-9">{{dao.bucketName}}</div></div>
+    <div class="row"><div class="col-md-3">readOnly</div><div class="col-md-9">{{dao.readOnly}}</div></div>
+    <div class="row"><div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">Entities</div>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>domain</th>
+                    <th>name</th>
+                    <th>className</th>
+                    <th>version</th>
+                    <th>extends</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="entity in dao.entities | orderBy:['domain','name']">
+                    <td>{{entity.modelId.domain}}</td>
+                    <td>{{entity.modelId.name}}</td>
+                    <td>{{entity.className}}</td>
+                    <td>{{entity.modelId.version}}</td>
+                    <td>{{(entity.parents!=null)?(entity.parents[0].domain + '/' +entity.parents[0].name):""}} </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div></div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" type="button" ng-click="ok()">OK</button>
+</div>

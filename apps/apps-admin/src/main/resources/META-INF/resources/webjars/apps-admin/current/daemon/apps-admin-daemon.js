@@ -6,10 +6,10 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
         'template/modal/window.html'
         ]
     );
-    appsAdminModule.controller('apps-admin-daemon-ctrl',['$scope','$modal',
+    appsAdminModule.controller('apps-admin-daemon-ctrl',['$scope','$uibModal',
             'DaemonsListService','DaemonInfoService','DaemonStatusService',
             'DaemonWebServersListService','DaemonWebServerStatusService',
-            function($scope,$modal,DaemonsListService,DaemonInfoService,DaemonStatusService,DaemonWebServersListService,DaemonWebServerStatusService){
+            function($scope,$uibModal,DaemonsListService,DaemonInfoService,DaemonStatusService,DaemonWebServersListService,DaemonWebServerStatusService){
                 var WebServer = function(daemonUid,serverInfo){
                     var self=this;
                     for(var attr in serverInfo){
@@ -64,7 +64,7 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
                     this.isStopped=function(){return self.status.toLowerCase()=="stopped";};
                     this.isOtherStatus=function(){return !self.isStarted() && !self.isStopped();};
 
-                    this.viewDetails = function(){$modal.open({
+                    this.viewDetails = function(){$uibModal.open({
                                  animation: true,
                                  templateUrl: requirejs.toUrl("apps-admin-daemon-details.html"),
                                  controller: 'apps-admin-daemon-details-ctrl',
@@ -121,11 +121,11 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
             }]
         );
 
-    appsAdminModule.controller('apps-admin-daemon-details-ctrl',['$scope','$modalInstance','daemonInfo',
-                function($scope,$modalInstance,daemonInfo){
+    appsAdminModule.controller('apps-admin-daemon-details-ctrl',['$scope','$uibModalInstance','daemonInfo',
+                function($scope,$uibModalInstance,daemonInfo){
                     $scope.daemonInfo = daemonInfo;
                     $scope.ok=function(){
-                        $modalInstance.dismiss('ok');
+                        $uibModalInstance.dismiss('ok');
                     }
                 }]
             );

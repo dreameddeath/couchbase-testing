@@ -1,7 +1,9 @@
 'use strict';
 
-define(['angular','angular-route','angular-animate','apps-admin-daemon','ui-bootstrap-tpls','ui-router-tabs','angular-ui-router'],function(angular){
-    var appsAdminModule = angular.module('apps-admin',['apps-admin-daemon','ngRoute','ui.router','ui.router.tabs'
+define(['angular','angular-route','angular-animate',
+        'apps-admin-daemon','apps-admin-dao',
+        'ui-bootstrap-tpls','ui-router-tabs','angular-ui-router'],function(angular){
+    var appsAdminModule = angular.module('apps-admin',['apps-admin-daemon','apps-admin-dao','ngRoute','ui.router','ui.router.tabs'
     ,'ui.bootstrap.tabs',"template/tabs/tabset.html","template/tabs/tab.html"]
     );
 
@@ -14,9 +16,12 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon','ui-boot
                              })
                              .state('admin.daemons', {
                                 url:         '/daemons',
-                                //controller:  'apps-admin-daemon-ctrl',
                                 templateUrl: requirejs.toUrl('apps-admin-daemon.html')
                              })
+                             .state('admin.daos', {
+                                 url:         '/daos',
+                                 templateUrl: requirejs.toUrl('apps-admin-dao.html')
+                              })
                  }]);
 
     appsAdminModule.controller('apps-admin-ctrl',['$scope','$state','$stateParams',
@@ -30,20 +35,14 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon','ui-boot
                       {
                         heading: 'Daemons',
                         route:   'admin.daemons'
-                      }/*,
+                      },
                       {
-                        heading: 'Accounts',
-                        route:   'user.accounts'
-                      }*/
+                        heading: 'Daos',
+                        route:   'admin.daos'
+                      }
                     ];
                 }
                 $scope.initialize();
             }]
         )
-        /*.config(['$routeProvider',function($routeProvider) {
-          $routeProvider
-           .when('/', {
-            templateUrl: requirejs.toUrl('apps-admin.html'),
-            controller: 'apps-admin-ctrl'
-          })}])*/;
 });

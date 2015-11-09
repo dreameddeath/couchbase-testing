@@ -17,11 +17,13 @@
 package com.dreameddeath.apps.admin;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
+import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.WebAppWebServer;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.After;
@@ -42,6 +44,8 @@ public class AppsAdminsTest {
 
     @Before
     public void runServer() throws Exception{
+        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "root").getName(), "testBucketName");
+        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "other").getName(), "otherBucketName");
         testUtils = new CuratorTestUtils();
         testUtils.prepare(1);
         String connectionString = testUtils.getCluster().getConnectString();
@@ -53,8 +57,14 @@ public class AppsAdminsTest {
         daemon.addWebServer(WebAppWebServer.builder().withName("apps-admin-tests").withApplicationContextConfig("testadmin.applicationContext.xml").withApiPath("/apis").withForTesting(MANUAL_TEST_MODE));
         daemons.add(daemon);
         daemon.getDaemonLifeCycle().start();
-        final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client).withUserFactory(new StandardMockUserFactory()).build();
-        daemon2.addWebServer(RestWebServer.builder().withName("testing-rest").withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
+        final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client)
+                .withUserFactory(new StandardMockUserFactory())
+                .withWithCouchbase(true)
+                .withWithCouchbaseBucketFactory(new CouchbaseBucketFactorySimulator())
+                .build();
+        daemon2.addWebServer(RestWebServer.builder().withName("testing-rest")
+                .withWithCouchbase(true)
+                .withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
         daemons.add(daemon2);
         daemon2.getDaemonLifeCycle().start();
     }

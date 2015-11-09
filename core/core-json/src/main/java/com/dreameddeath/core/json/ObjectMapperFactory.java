@@ -61,7 +61,6 @@ public class ObjectMapperFactory {
                     boolean toSkip=false;
                     for(Class<? extends IObjectMapperConfigurator> prerequisite:configurator.after()){
                         if(!configuratorRunned.contains((prerequisite))){
-                            listPostponedConfigurator.add(configurator);
                             toSkip=true;
                             break;
                         }

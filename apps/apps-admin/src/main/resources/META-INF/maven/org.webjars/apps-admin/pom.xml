@@ -21,10 +21,17 @@
             {
                 "paths": {
                     "apps-admin": "apps-admin",
+
                     "apps-admin-daemon": "daemon/apps-admin-daemon",
                     "apps-admin-daemon-details": "daemon/apps-admin-daemon-details",
                     "apps-admin-daemon-resource": "daemon/apps-admin-daemon-resource",
-                    "apps-admin-daemon-view": "daemon/apps-admin-daemon-view"
+                    "apps-admin-daemon-view": "daemon/apps-admin-daemon-view",
+
+                    "apps-admin-dao": "dao/apps-admin-dao",
+                    "apps-admin-dao-details": "dao/apps-admin-dao-details",
+                    "apps-admin-dao-resource": "dao/apps-admin-dao-resource",
+                    "apps-admin-dao-view": "dao/apps-admin-dao-view"
+                    
                 }
             }
         </requirejs>

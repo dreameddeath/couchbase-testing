@@ -43,6 +43,9 @@
         <property name="attributeName" value="globalCuratorClient" />
     </bean>
 
+    <bean id="daoDiscovery" class="com.dreameddeath.core.dao.discovery.DaoDiscovery">
+        <constructor-arg ref="curatorClient" />
+    </bean>
 
     <bean id="adminDaemonDiscovery"
           factory-bean="serviceDiscovererManager"
@@ -64,6 +67,8 @@
             <bean id="daemons" class="com.dreameddeath.infrastructure.daemon.services.RestDaemonsDiscoveryAndAdminService">
                 <property name="daemonDiscovery" ref="daemonDiscoverer" />
                 <property name="clientFactory" ref="daemonAdminClientFactory"/>
+            </bean>
+            <bean id="daos" class="com.dreameddeath.core.dao.discovery.DaoDiscoveryRestService">
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
