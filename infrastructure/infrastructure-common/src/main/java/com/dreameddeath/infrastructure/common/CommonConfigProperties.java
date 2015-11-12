@@ -21,7 +21,7 @@ import com.dreameddeath.core.config.annotation.ConfigPropertyDoc;
 import com.dreameddeath.core.config.annotation.ConfigPropertyPackage;
 import com.dreameddeath.core.config.impl.IntConfigProperty;
 import com.dreameddeath.core.config.impl.StringConfigProperty;
-import com.dreameddeath.core.curator.CuratorConfigProperties;
+import com.dreameddeath.core.curator.config.CuratorConfigProperties;
 
 /**
  * Created by Christophe Jeunesse on 12/08/2015.

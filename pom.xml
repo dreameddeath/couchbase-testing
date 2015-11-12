@@ -208,7 +208,7 @@
         <!--netflix lib reuse -->
         <curator.version>2.9.0</curator.version>
         <archaius.version>0.7.1</archaius.version>
-
+        <archaius.zookeeper.version>0.7.1</archaius.zookeeper.version>
         <!--elasticsearch / kibana -->
         <elasticsearch.version>1.7.2</elasticsearch.version>
 

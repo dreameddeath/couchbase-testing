@@ -32,6 +32,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 03/10/2015.
@@ -69,6 +70,48 @@ public class RestDaemonsDiscoveryAndAdminService {
                 .request(MediaType.APPLICATION_JSON)
                 .get(DaemonInfo.class);
     }
+
+    @GET
+    @Path("/{id}/config")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Map<String,String> getDaemonConfig(@PathParam("id") String uid) throws Exception{
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/config")
+                .request(MediaType.APPLICATION_JSON)
+                .get(Map.class);
+    }
+
+
+    @GET
+    @Path("/{id}/config/{domain}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Map<String,String> getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain) throws Exception{
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/config/{domain}")
+                .resolveTemplate("domain",domain)
+                .request(MediaType.APPLICATION_JSON)
+                .get(Map.class);
+    }
+
+    @GET
+    @Path("/{id}/config/{domain}/{key}")
+    @Produces({ MediaType.TEXT_PLAIN })
+    public Map<String,String> getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/config/{domain}/{key}")
+                .resolveTemplate("domain",domain)
+                .resolveTemplate("key",key)
+                .request(MediaType.APPLICATION_JSON)
+                .get(Map.class);
+    }
+
+
 
     @GET
     @Path("/{id}/status")

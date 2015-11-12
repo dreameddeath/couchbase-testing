@@ -92,5 +92,11 @@
           <artifactId>core-config</artifactId>
           <version>${project.version}</version>
       </dependency>
+      <dependency>
+          <groupId>com.netflix.archaius</groupId>
+          <artifactId>archaius-zookeeper</artifactId>
+          <version>${archaius.zookeeper.version}</version>
+      </dependency>
+
   </dependencies>
 </project>

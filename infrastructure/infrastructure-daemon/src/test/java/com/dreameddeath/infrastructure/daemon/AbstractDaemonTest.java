@@ -74,8 +74,8 @@ public class AbstractDaemonTest extends Assert {
         final AtomicInteger nbErrors=new AtomicInteger(0);
         String connectionString = testUtils.getCluster().getConnectString();
 
-        ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
-        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
         final AbstractDaemon daemon=AbstractDaemon.builder()
                 .withName("testing Daemon")
                 .withWithCouchbase(true)

@@ -20,6 +20,7 @@ import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundExcepti
 import com.dreameddeath.core.config.impl.*;
 import com.dreameddeath.core.config.spring.ConfigPropertySource;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.env.PropertySource;
 
@@ -36,6 +37,10 @@ public class ConfigPropertyFactoryTest {
     private static double delta=0.0000001d;
 
 
+    @Before
+    public void setup(){
+        ConfigManagerFactory.cleanLocalProperty();
+    }
 
     @Test
     public void testConfigPropertySource(){
@@ -44,7 +49,7 @@ public class ConfigPropertyFactoryTest {
         PropertySource source = new ConfigPropertySource("core-config");
         assertTrue(source.containsProperty("test.default.for.property.source"));
         assertEquals("defaultValue for Property Source", source.getProperty("test.default.for.property.source"));
-        ConfigManagerFactory.addConfigurationEntry("test.default.for.property.source", "overriden property");
+        ConfigManagerFactory.addPersistentConfigurationEntry("test.default.for.property.source", "overriden property");
         assertEquals("overriden property", source.getProperty("test.default.for.property.source"));
     }
 
@@ -55,7 +60,7 @@ public class ConfigPropertyFactoryTest {
         assertEquals(10, prop.get());
         Assert.assertEquals("prop.add", prop.getName());
 
-        ConfigManagerFactory.addConfigurationEntry("prop.add", 1);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.add", 1);
         assertEquals(1, prop.get());
     }
 
@@ -68,8 +73,8 @@ public class ConfigPropertyFactoryTest {
         Map<String,String> paramHash = new HashMap<String,String>(){{
             put("coreName","hashParamName");
         }};
-        ConfigManagerFactory.addConfigurationEntry("prop.template.int.base.core-default.value", 1);
-        ConfigManagerFactory.addConfigurationEntry("prop.template.int.base.core-overriden.value", 2);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.template.int.base.core-default.value", 1);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.template.int.base.core-overriden.value", 2);
 
         assertEquals("prop.template.int.base.simple.value", propTemplate.getProperty("simple").getName());
         assertEquals("prop.template.int.simple.value", propTemplateWithRef.getProperty("simple").getName());
@@ -82,7 +87,7 @@ public class ConfigPropertyFactoryTest {
         assertEquals(1, propTemplateWithRef.getProperty("core-default").get());
         IntConfigProperty overridenProp = propTemplateWithRef.getProperty("core-overriden");
         assertEquals(2, overridenProp.get());
-        ConfigManagerFactory.addConfigurationEntry("prop.template.int.core-overriden.value", 3);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.template.int.core-overriden.value", 3);
         assertEquals(3, overridenProp.get());
 
     }
@@ -113,21 +118,21 @@ public class ConfigPropertyFactoryTest {
         assertEquals(10, propCallback.get());
 
         //Set default Value of ref
-        ConfigManagerFactory.addConfigurationEntry("prop.ref", 20);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.ref", 20);
         assertEquals(20, prop.get());
         assertEquals(20, propCallback.get());
         assertEquals(1,  nbCallbackCalled.get());
 
 
         //Set default Value of ref
-        ConfigManagerFactory.addConfigurationEntry("prop.withRef", 30);
-        ConfigManagerFactory.addConfigurationEntry("prop.withRefAndCallback", 30);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.withRef", 30);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.withRefAndCallback", 30);
         assertEquals(30, prop.get());
         assertEquals(30, propCallback.get());
         assertEquals(2, nbCallbackCalled.get());
 
         //Set default Value of ref but shouldn't change anything/call any callback
-        ConfigManagerFactory.addConfigurationEntry("prop.ref", 25);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.ref", 25);
         assertEquals(30, prop.get());
         assertEquals(30, propCallback.get());
         assertEquals(2,  nbCallbackCalled.get());
@@ -148,7 +153,7 @@ public class ConfigPropertyFactoryTest {
         ConfigPropertyFactory.getStringProperty("toto.not_found", (String)null).getMandatoryValue("Normal error");
     }
 
-        @Test
+    @Test
     public void testGetBooleanProperty() throws Exception {
         final AtomicBoolean callbackCalled=new AtomicBoolean(false);
         final boolean firstValue=true;
@@ -170,10 +175,10 @@ public class ConfigPropertyFactoryTest {
         assertEquals(firstValue, callBackProp.get());
         assertFalse(callbackCalled.get());
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.boolean", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.boolean", secondValue);
         assertEquals(secondValue, prop.get());
         //Set and Check Overridden Property with callbacks
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.boolean", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.boolean", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
     }
@@ -202,10 +207,10 @@ public class ConfigPropertyFactoryTest {
 
 
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.int", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.int", secondValue);
         assertEquals(secondValue, prop.get());
         //Set and Check Overridden Property with callbacks
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.int", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.int", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
     }
@@ -233,10 +238,10 @@ public class ConfigPropertyFactoryTest {
         assertFalse(callbackCalled.get());
 
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.long", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.long", secondValue);
         assertEquals(secondValue, prop.get());
         //Set and Check Overridden Property with callbacks
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.long", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.long", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
     }
@@ -266,10 +271,10 @@ public class ConfigPropertyFactoryTest {
 
 
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.string", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.string", secondValue);
         assertEquals(secondValue, prop.get());
         //Set and Check Overridden Property with callbacks
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.string", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.string", secondValue);
         assertEquals(secondValue, callBackProp.get());
         assertTrue(callbackCalled.get());
     }
@@ -297,10 +302,10 @@ public class ConfigPropertyFactoryTest {
         assertEquals(firstValueList, callBackProp.get());
         assertEquals(0,callbackCalled.get());
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.stringlist", secondValueString);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.stringlist", secondValueString);
         assertEquals(secondValue, prop.get());
         //Set and Check Overridden Property with callbacks
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.stringlist", secondValueString);
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.stringlist", secondValueString);
         assertEquals(secondValue, callBackProp.get());
         assertEquals(1, callbackCalled.get());
     }
@@ -327,10 +332,10 @@ public class ConfigPropertyFactoryTest {
         assertEquals(firstValue, callBackProp.get(),delta);
         assertFalse(callbackCalled.get());
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.float", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.float", secondValue);
         assertEquals(secondValue, prop.get(), delta);
         //Set and Check Overridden Property with callbacks
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.float", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.float", secondValue);
         assertEquals(secondValue, callBackProp.get(),delta);
         assertTrue(callbackCalled.get());
     }
@@ -358,10 +363,10 @@ public class ConfigPropertyFactoryTest {
         assertFalse(callbackCalled.get());
 
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.double", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.double", secondValue);
         assertEquals(secondValue, prop.get(), delta);
         //Set and Check Overridden Property with callbacks
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.double", secondValue);
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.double", secondValue);
         assertEquals(secondValue, callBackProp.get(),delta);
         assertTrue(callbackCalled.get());
     }
@@ -427,12 +432,12 @@ public class ConfigPropertyFactoryTest {
 
 
         //Set and Check Overridden Property
-        ConfigManagerFactory.addConfigurationEntry("prop.customclass", buildJson(secondValue));
+        ConfigManagerFactory.addPersistentConfigurationEntry("prop.customclass", buildJson(secondValue));
         ConfigManagerFactory.addRawConfigurationEntry("prop.customclass", buildJson(secondRawValue));
         assertEquals(secondValue, prop.getValue());
         assertEquals(secondRawValue, rawProp.getValue());
         //Set and Check Overridden Property with callbacks 
-        ConfigManagerFactory.addConfigurationEntry("callback.prop.customclass", buildJson(secondValue));
+        ConfigManagerFactory.addPersistentConfigurationEntry("callback.prop.customclass", buildJson(secondValue));
         assertEquals(secondValue, callBackProp.getValue());
         assertTrue(callbackCalled.get());
         ConfigManagerFactory.addRawConfigurationEntry("callback.prop.customclass", buildJson(secondRawValue));
@@ -440,7 +445,7 @@ public class ConfigPropertyFactoryTest {
         assertTrue(callbackRawCalled.get());
 
         //check context parameter with full
-        ConfigManagerFactory.addConfigurationEntry("@domain", "preprod");
+        ConfigManagerFactory.addPersistentConfigurationEntry("@domain", "preprod");
         assertEquals(secondValue+ DYNAMIC_FOR_PREPROD_SUFFIX_STRING, prop.getValue());
         assertEquals(secondRawValue+ DYNAMIC_FOR_PREPROD_SUFFIX_STRING, rawProp.getValue());
         assertEquals(secondValue+ DYNAMIC_FOR_PREPROD_SUFFIX_STRING, callBackProp.getValue());

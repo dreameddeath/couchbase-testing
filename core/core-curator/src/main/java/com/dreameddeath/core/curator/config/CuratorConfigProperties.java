@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.curator;
+package com.dreameddeath.core.curator.config;
 
+import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.config.ConfigPropertyFactory;
 import com.dreameddeath.core.config.annotation.ConfigPropertyDoc;
 import com.dreameddeath.core.config.annotation.ConfigPropertyPackage;
 import com.dreameddeath.core.config.impl.IntConfigProperty;
 import com.dreameddeath.core.config.impl.StringConfigProperty;
+import com.netflix.config.DynamicWatchedConfiguration;
+import com.netflix.config.source.ZooKeeperConfigurationSource;
+import org.apache.curator.framework.CuratorFramework;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2015.
@@ -68,5 +72,16 @@ public class CuratorConfigProperties {
     )
     public static final IntConfigProperty CURATOR_CONNECTION_TIMEOUT =
             ConfigPropertyFactory.getIntProperty("curator.connection.timeout", Integer.getInteger("curator-default-connection-timeout", 15000).intValue());
+
+
+    public static class Utils{
+        public static void registerZookeeperConfigSource(CuratorFramework client,String basePath,String name) throws Exception{
+            ZooKeeperConfigurationSource zkConfigSource = new ZooKeeperConfigurationSource(client, basePath);
+            zkConfigSource.start();
+            DynamicWatchedConfiguration zkDynamicConfig = new DynamicWatchedConfiguration(zkConfigSource);
+            ConfigManagerFactory.addConfiguration(zkDynamicConfig,"zk-"+name, ConfigManagerFactory.PriorityDomain.CENTRALIZED);
+        }
+
+    }
 
 }

@@ -44,12 +44,12 @@ public class AppsAdminsTest {
 
     @Before
     public void runServer() throws Exception{
-        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "root").getName(), "testBucketName");
-        ConfigManagerFactory.addConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "other").getName(), "otherBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "root").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "other").getName(), "otherBucketName");
         testUtils = new CuratorTestUtils();
         testUtils.prepare(1);
         String connectionString = testUtils.getCluster().getConnectString();
-        ConfigManagerFactory.addConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
+        ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         CuratorFramework client = testUtils.getClient("testingDaemons");
         AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client)
                 .withUserFactory(new StandardMockUserFactory())

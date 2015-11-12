@@ -46,14 +46,13 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
     public static final String DAEMON_SERVICE_NAME ="daemon#admin#status";
     public static final String DAEMON_SERVICE_VERSION ="1.0";
 
+    private final RestLocalConfigAdminService configAdminService=new RestLocalConfigAdminService();
     private RestLocalWebServerAdminService webServerAdminResource;
-
     private AbstractDaemon daemon;
 
     @Autowired
     public void setDaemon(AbstractDaemon daemon){
         this.daemon = daemon;
-        //webServerAdminResource.setDaemon(daemon);
     }
 
     @Required
@@ -133,5 +132,10 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
     @Path("webservers")
     public RestLocalWebServerAdminService getWebServerItemResource(){
         return webServerAdminResource;
+    }
+
+    @Path("config")
+    public RestLocalConfigAdminService getConfigWebService(){
+        return configAdminService;
     }
 }
