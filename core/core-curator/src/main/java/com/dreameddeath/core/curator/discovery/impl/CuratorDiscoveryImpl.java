@@ -96,6 +96,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
             }
         });
         started.await(10, TimeUnit.SECONDS);//TODO be parametizable
+        LOG.info("Discoverer started on path "+basePath);
     }
 
     @PreDestroy
@@ -168,6 +169,14 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     @Override
     public void addListener(ICuratorDiscoveryListener<T> listener) {
         listeners.add(listener);
+        for(Map.Entry<String,T> entry:instanceCache.entrySet()){
+            listener.onRegister(entry.getKey(),entry.getValue());
+        }
+    }
+
+    @Override
+    final public CuratorFramework getClient(){
+        return curatorFramework;
     }
 
 }

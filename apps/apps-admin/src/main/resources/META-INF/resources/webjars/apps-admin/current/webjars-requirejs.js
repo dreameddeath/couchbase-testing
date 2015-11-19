@@ -10,5 +10,10 @@ requirejs.config({
         'apps-admin-dao': webjars.path('apps-admin', 'dao/apps-admin-dao'),
         'apps-admin-dao-resource': webjars.path('apps-admin', 'dao/apps-admin-dao-resource'),
         'apps-admin-dao-view': webjars.path('apps-admin', 'daos/apps-admin-dao-view'),
+
+        'apps-admin-config-list': webjars.path('apps-admin', 'config/apps-admin-config-list'),
+        'apps-admin-config-list-view': webjars.path('apps-admin', 'config/apps-admin-config-list-view'),
+        'apps-admin-config-resource': webjars.path('apps-admin', 'config/apps-admin-config-resource'),
+
     }
 });

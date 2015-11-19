@@ -190,7 +190,7 @@
         <clojure.version>1.5.1</clojure.version>
 
         <!-- Infrastructure - Kafka -->
-        <apache.kafka.version>0.8.2.1</apache.kafka.version>
+        <apache.kafka.version>0.9.0.0</apache.kafka.version>
 
 
         <!-- Templating/Grammar -->
@@ -300,4 +300,13 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>apache.staging</id>
+            <url>https://repository.apache.org/content/groups/staging/</url>
+        </repository>
+    </repositories>
 </project>

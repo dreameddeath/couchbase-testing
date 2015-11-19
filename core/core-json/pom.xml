@@ -24,7 +24,7 @@
     </parent>
     <artifactId>core-json</artifactId>
     <packaging>jar</packaging>
-
+    
     <name>core-json</name>
     <url>https://github.com/dreameddeath/couchbase-testing</url>
 

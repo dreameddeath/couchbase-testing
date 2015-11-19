@@ -16,15 +16,12 @@
 
 package com.dreameddeath.core.curator.config;
 
-import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.config.ConfigPropertyFactory;
+import com.dreameddeath.core.config.ConfigPropertyWithTemplateName;
 import com.dreameddeath.core.config.annotation.ConfigPropertyDoc;
 import com.dreameddeath.core.config.annotation.ConfigPropertyPackage;
 import com.dreameddeath.core.config.impl.IntConfigProperty;
 import com.dreameddeath.core.config.impl.StringConfigProperty;
-import com.netflix.config.DynamicWatchedConfiguration;
-import com.netflix.config.source.ZooKeeperConfigurationSource;
-import org.apache.curator.framework.CuratorFramework;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2015.
@@ -74,14 +71,30 @@ public class CuratorConfigProperties {
             ConfigPropertyFactory.getIntProperty("curator.connection.timeout", Integer.getInteger("curator-default-connection-timeout", 15000).intValue());
 
 
-    public static class Utils{
-        public static void registerZookeeperConfigSource(CuratorFramework client,String basePath,String name) throws Exception{
-            ZooKeeperConfigurationSource zkConfigSource = new ZooKeeperConfigurationSource(client, basePath);
-            zkConfigSource.start();
-            DynamicWatchedConfiguration zkDynamicConfig = new DynamicWatchedConfiguration(zkConfigSource);
-            ConfigManagerFactory.addConfiguration(zkDynamicConfig,"zk-"+name, ConfigManagerFactory.PriorityDomain.CENTRALIZED);
-        }
+    @ConfigPropertyDoc(
+            name="curator.config.shared.root.path",
+            descr = "defines the root path for all shared configuration entries",
+            defaultValue = "/config/shared",
+            examples = {"/config/shared"}
+    )
+    public static final StringConfigProperty CURATOR_SHARED_CONFIG_ROOT_PATH =
+            ConfigPropertyFactory.getStringProperty("curator.config.shared.root.path","/config/shared");
 
-    }
+
+    @ConfigPropertyDoc(
+            name="curator.config.shared.{name}.descr",
+            descr = "defines the description of the shared config entry"
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> CURATOR_SHARED_CONFIG_DESCR_FOR_NAME =
+            ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class,"curator.config.shared.{name}.descr",(String)null);
+
+    @ConfigPropertyDoc(
+            name="curator.config.shared.{name}.path",
+            descr = "defines the relative path of the shared config entry",
+            examples = {"/toto"}
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> CURATOR_SHARED_CONFIG_PATH_FOR_NAME =
+            ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class,"curator.config.shared.{name}.path",(String)null);
+
 
 }

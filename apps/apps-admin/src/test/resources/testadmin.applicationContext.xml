@@ -27,12 +27,4 @@
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
     <import resource="classpath:apps-admin.applicationContext.xml" />
-    <!--<jaxrs:server id="testing" transportId="http://cxf.apache.org/transports/http" address="/" >
-        <jaxrs:serviceBeans>
-            <bean id="serviceDiscovery" class="com.dreameddeath.apps.admin.TestRest" />
-        </jaxrs:serviceBeans>
-        <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
-        </jaxrs:providers>
-   </jaxrs:server>-->
 </beans>

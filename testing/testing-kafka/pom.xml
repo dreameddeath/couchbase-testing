@@ -36,14 +36,12 @@
             <artifactId>kafka_2.10</artifactId>
             <version>${apache.kafka.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.10</artifactId>
             <version>${apache.kafka.version}</version>
             <classifier>test</classifier>
         </dependency>
-
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>

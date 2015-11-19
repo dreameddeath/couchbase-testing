@@ -23,16 +23,21 @@
                     "apps-admin": "apps-admin",
 
                     "apps-admin-daemon": "daemon/apps-admin-daemon",
-                    "apps-admin-daemon-details": "daemon/apps-admin-daemon-details",
+                    "apps-admin-daemon-list": "daemon/apps-admin-daemon-list",
+                    "apps-admin-daemon-detail": "daemon/apps-admin-daemon-detail",
                     "apps-admin-daemon-resource": "daemon/apps-admin-daemon-resource",
                     "apps-admin-daemon-view": "daemon/apps-admin-daemon-view",
 
                     "apps-admin-dao": "dao/apps-admin-dao",
                     "apps-admin-dao-details": "dao/apps-admin-dao-details",
                     "apps-admin-dao-resource": "dao/apps-admin-dao-resource",
-                    "apps-admin-dao-view": "dao/apps-admin-dao-view"
-                    
-                }
+                    "apps-admin-dao-view": "dao/apps-admin-dao-view",
+
+                    "apps-admin-config-list": "config/apps-admin-config-list",
+                    "apps-admin-config-resource": "config/apps-admin-config-resource",
+                    "apps-admin-config-shared": "config/apps-admin-config-shared"
+
+            }
             }
         </requirejs>
     </properties>

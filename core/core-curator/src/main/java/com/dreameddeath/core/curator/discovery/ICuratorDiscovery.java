@@ -17,6 +17,7 @@
 package com.dreameddeath.core.curator.discovery;
 
 import com.dreameddeath.core.curator.model.IRegisterable;
+import org.apache.curator.framework.CuratorFramework;
 
 import java.util.List;
 
@@ -30,4 +31,5 @@ public interface ICuratorDiscovery<T extends IRegisterable> {
     void stop() throws Exception;
     void refresh() throws Exception;
     void addListener(ICuratorDiscoveryListener<T> listener);
+    CuratorFramework getClient();
 }

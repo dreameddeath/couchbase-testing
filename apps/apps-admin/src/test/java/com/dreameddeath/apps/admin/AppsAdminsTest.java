@@ -17,6 +17,8 @@
 package com.dreameddeath.apps.admin;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
+import com.dreameddeath.core.curator.config.CuratorConfigProperties;
+import com.dreameddeath.core.curator.config.SharedConfigurationUtils;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
@@ -46,11 +48,21 @@ public class AppsAdminsTest {
     public void runServer() throws Exception{
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "root").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "other").getName(), "otherBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CuratorConfigProperties.CURATOR_SHARED_CONFIG_PATH_FOR_NAME.getProperty("test1").getName(), "/test1-path");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CuratorConfigProperties.CURATOR_SHARED_CONFIG_DESCR_FOR_NAME.getProperty("test1").getName(), "A first testing path");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CuratorConfigProperties.CURATOR_SHARED_CONFIG_PATH_FOR_NAME.getProperty("test2").getName(), "/test2-path");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CuratorConfigProperties.CURATOR_SHARED_CONFIG_DESCR_FOR_NAME.getProperty("test2").getName(), "A second testing");
+
         testUtils = new CuratorTestUtils();
         testUtils.prepare(1);
         String connectionString = testUtils.getCluster().getConnectString();
         ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         CuratorFramework client = testUtils.getClient("testingDaemons");
+
+        SharedConfigurationUtils.setupZookeeperConfigSource(client,"test1");
+        SharedConfigurationUtils.setupZookeeperConfigSource(client,"test2");
+        SharedConfigurationUtils.registerZookeeperConfigSource(client,"test1");
+
         AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client)
                 .withUserFactory(new StandardMockUserFactory())
                 .build();

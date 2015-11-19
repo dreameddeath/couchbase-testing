@@ -40,6 +40,11 @@
           <version>${google.guava.version}</version>
       </dependency>
       <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-json</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-x-discovery</artifactId>
           <version>${curator.version}</version>

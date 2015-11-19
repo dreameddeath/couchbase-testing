@@ -23,10 +23,23 @@ import org.apache.curator.framework.CuratorFramework;
  * Created by Christophe Jeunesse on 26/10/2015.
  */
 public class CuratorUtils {
+    public interface DefaultDataBuilder{
+        byte[] getData();
+    }
+
     public static void createPathIfNeeded(CuratorFramework curatorFramework, String path){
+        createPathIfNeeded(curatorFramework,path,new byte[0]);
+    }
+
+    public static void createPathIfNeeded(CuratorFramework curatorFramework, String path,final byte[] data){
+        createPathIfNeeded(curatorFramework, path, () -> data);
+    }
+
+    public static void createPathIfNeeded(CuratorFramework curatorFramework, String path,DefaultDataBuilder dataBuilder){
         if (!path.startsWith("/")) {
             path = "/" + path;
         }
+        path = path.replaceAll("/{2,}","/");
         //boolean exists = false;
         try {
             if((curatorFramework.checkExists().forPath(path))!=null){
@@ -37,7 +50,7 @@ public class CuratorUtils {
             throw new RuntimeException("Cannot stat path <"+path+">",e);
         }
         try{
-            curatorFramework.create().creatingParentsIfNeeded().forPath(path);
+            curatorFramework.create().creatingParentsIfNeeded().forPath(path,dataBuilder.getData());
             return; //Successfull creation
         }
         catch(Exception e){
@@ -55,6 +68,7 @@ public class CuratorUtils {
 
         throw new RuntimeException("Cannot create path <"+path+">");
     }
+
 
     public static String buildPath(String basePath,IRegisterable obj){
         if (!basePath.startsWith("/")) {

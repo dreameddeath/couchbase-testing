@@ -14,14 +14,20 @@ define(['angular','angular-route','angular-animate',
                                 controller:  'apps-admin-ctrl',
                                 templateUrl: requirejs.toUrl('apps-admin.html')
                              })
-                             .state('admin.daemons', {
+                             .state('admin.daemon', {
                                 url:         '/daemons',
                                 templateUrl: requirejs.toUrl('apps-admin-daemon.html')
                              })
-                             .state('admin.daos', {
+                             .state('admin.dao', {
                                  url:         '/daos',
                                  templateUrl: requirejs.toUrl('apps-admin-dao.html')
                               })
+                              .state('admin.config', {
+                                  url:         '/config',
+                                  controller:  'apps-admin-config-shared-ctrl',
+                                  templateUrl: requirejs.toUrl('apps-admin-config-shared-view.html')
+                               })
+
                  }]);
 
     appsAdminModule.controller('apps-admin-ctrl',['$scope','$state','$stateParams',
@@ -34,11 +40,11 @@ define(['angular','angular-route','angular-animate',
                     $scope.adminTabs   = [
                       {
                         heading: 'Daemons',
-                        route:   'admin.daemons'
+                        route:   'admin.daemon'
                       },
                       {
                         heading: 'Daos',
-                        route:   'admin.daos'
+                        route:   'admin.dao'
                       }
                     ];
                 }

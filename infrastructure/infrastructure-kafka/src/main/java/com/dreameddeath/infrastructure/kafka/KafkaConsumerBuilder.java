@@ -18,7 +18,6 @@ package com.dreameddeath.infrastructure.kafka;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceCallback;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Deserializer;
 
@@ -32,7 +31,6 @@ public class KafkaConsumerBuilder<K,V> {
     private String clientId=null;
     private Deserializer<K> keyDeserializer;
     private Deserializer<V> valueDeserializer;
-    private ConsumerRebalanceCallback consumerRebalanceCallback = null;
     private Class<Deserializer<K>> keyDeserializerClass;
     private Class<Deserializer<V>> valueDeserializerClass;
 
@@ -67,11 +65,7 @@ public class KafkaConsumerBuilder<K,V> {
         return this;
     }
 
-    public KafkaConsumerBuilder <K,V> withRebalanceCallback(ConsumerRebalanceCallback consumerRebalanceCallback){
-        this.consumerRebalanceCallback = consumerRebalanceCallback;
-        return this;
-    }
-
+    
     public Consumer<K,V> build() throws Exception{
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerCnxString);
@@ -81,12 +75,12 @@ public class KafkaConsumerBuilder<K,V> {
         }
 
         if((keyDeserializer !=null) && (valueDeserializer !=null)){
-            return new KafkaConsumer<>(props,consumerRebalanceCallback, keyDeserializer, valueDeserializer);
+            return new KafkaConsumer<>(props, keyDeserializer, valueDeserializer);
         }
         else if((keyDeserializerClass !=null) && (valueDeserializerClass !=null)){
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClass.getName());
             props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClass.getName());
-            return new KafkaConsumer<>(props,consumerRebalanceCallback);
+            return new KafkaConsumer<>(props);
         }
         else{
             throw new IllegalArgumentException("At least one of the deserializers are missing");

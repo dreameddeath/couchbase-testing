@@ -61,6 +61,10 @@
         <constructor-arg ref="curatorClient"/>
     </bean>
 
+    <bean id="configCuratorDiscovery" class="com.dreameddeath.core.curator.config.ConfigCuratorDiscovery">
+        <constructor-arg ref="curatorClient"/>
+        <constructor-arg value="${curator.config.shared.root.path}"/>
+    </bean>
 
     <jaxrs:server id="apps-admin" transportId="http://cxf.apache.org/transports/http" address="/apps-admin" >
         <jaxrs:serviceBeans>
@@ -69,6 +73,8 @@
                 <property name="clientFactory" ref="daemonAdminClientFactory"/>
             </bean>
             <bean id="daos" class="com.dreameddeath.core.dao.discovery.DaoDiscoveryRestService">
+            </bean>
+            <bean id="config-shared" class="com.dreameddeath.core.service.config.SharedConfigManagementService">
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>

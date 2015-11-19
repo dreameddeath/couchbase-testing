@@ -26,7 +26,7 @@
     <context:annotation-config />
 
     <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
-    <!--class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"-->
+
     <bean id="daos"
           factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntities">
         <constructor-arg>
