@@ -128,4 +128,21 @@ public class ConfigManagementService {
         config.addProperty(key,value);
         return value;
     }
+
+    @DELETE
+    @Path("/{key}")
+    @Produces({MediaType.TEXT_PLAIN})
+    public String deleteProperty(@PathParam("key") String key){
+        if(readOnly){
+            throw new NotAuthorizedException("The configuration is read only");
+        }
+        if(!config.containsKey(key)){
+            throw new NotAuthorizedException("The configuration <"+key+"> isn't existing ");
+        }
+        String value = config.getString(key);
+        config.clearProperty(key);
+        return value;
+    }
+
+
 }

@@ -24,6 +24,7 @@ import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.config.DynamicWatchedConfiguration;
 import com.netflix.config.source.ZooKeeperConfigurationSource;
+import com.netflix.config.source.ZooKeeperUpdatableConfigurationSource;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.curator.framework.CuratorFramework;
 import org.joda.time.DateTime;
@@ -65,23 +66,34 @@ public class SharedConfigurationUtils {
     }
 
     public static void registerZookeeperConfigSource(CuratorFramework client, String name) throws Exception {
-        ConfigManagerFactory.addConfiguration(buildSharedConfiguration(client,name), "zk-" + name, ConfigManagerFactory.PriorityDomain.CENTRALIZED);
+        ConfigManagerFactory.addConfiguration(buildSharedConfiguration(client,name,false), "zk-" + name, ConfigManagerFactory.PriorityDomain.CENTRALIZED);
         LOG.info("Shared configuration {} registered",name);
     }
 
 
-    private static AbstractConfiguration buildSharedConfigurationFromPath(CuratorFramework client, String path) throws Exception{
+    private static AbstractConfiguration buildSharedConfigurationFromPath(CuratorFramework client, String path,boolean isUpdatable) throws Exception{
         path = path.replaceAll("/{2,}","/");
-        ZooKeeperConfigurationSource zkConfigSource = new ZooKeeperConfigurationSource(client, path);
-        zkConfigSource.start();
-        return new DynamicWatchedConfiguration(zkConfigSource);
+        ZooKeeperConfigurationSource zkConfigSource;
+        AbstractConfiguration result;
+        if(isUpdatable){
+            zkConfigSource = new ZooKeeperUpdatableConfigurationSource(client, path);
+            zkConfigSource.start();
+            result = new ZookeeperUpdatableConfiguration((ZooKeeperUpdatableConfigurationSource)zkConfigSource);
+        }
+        else{
+            zkConfigSource = new ZooKeeperConfigurationSource(client, path);
+            zkConfigSource.start();
+            result = new DynamicWatchedConfiguration(zkConfigSource);
+        }
+
+        return result;
     }
 
-    public static AbstractConfiguration buildSharedConfiguration(CuratorFramework client, String name) throws Exception{
-        return buildSharedConfigurationFromPath(client, buildPath(name));
+    public static AbstractConfiguration buildSharedConfiguration(CuratorFramework client, String name,boolean isUpdatable) throws Exception{
+        return buildSharedConfigurationFromPath(client, buildPath(name),isUpdatable);
     }
 
-    public static AbstractConfiguration buildSharedConfiguration(CuratorFramework client, SharedConfigDefinition config) throws Exception{
-        return buildSharedConfigurationFromPath(client,config.getFullPath());
+    public static AbstractConfiguration buildSharedConfiguration(CuratorFramework client, SharedConfigDefinition config,boolean isUpdatable) throws Exception{
+        return buildSharedConfigurationFromPath(client,config.getFullPath(),isUpdatable);
     }
 }

@@ -49,7 +49,7 @@ public class SharedConfigManagementService {
             public void onRegister(String uid, SharedConfigDefinition obj) {
                 try {
                     ConfigManagementService service = new ConfigManagementService();
-                    service.setConfig(SharedConfigurationUtils.buildSharedConfiguration(discovery.getClient(), obj));
+                    service.setConfig(SharedConfigurationUtils.buildSharedConfiguration(discovery.getClient(), obj,true));
                     sharedConfigServices.put(uid,service);
                     LOG.info("Registering shared config <{}>",uid);
                 }

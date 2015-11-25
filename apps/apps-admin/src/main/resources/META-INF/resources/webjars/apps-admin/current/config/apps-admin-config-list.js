@@ -9,17 +9,20 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
         function($uibModal){
             return {
                 open :function($state,configDomainDef){
-                    $uibModal.open(
-                        {
+                    $uibModal.open({
                             templateUrl: requirejs.toUrl('apps-admin-config-list-add.html'),
                             controller: 'apps-admin-config-list-add-ctrl',
                             resolve:{
                                 "configDomainDef":configDomainDef
                             }
-                        }).result.finally(function() {
-                            $state.go('^');
-                        }
-                    )
+                        }).result.then(
+                            function() {
+                                $state.go('^',null,{reload:true});
+                            },
+                            function(){
+                                $state.go('^');
+                            }
+                        )
                 }
             }
         }
@@ -46,7 +49,9 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                     this.manageLocalUpdateResponse=function(response){
                         self.updateValue(response.newValue);
                     }
-
+                    this.manageLocalDeleteResponse=function(response){
+                        $scope.deleteKey(self.name);
+                    }
                     if(self.domainDef.type=='daemon'){
                         var queryParamDef = {
                             uid:self.domainDef.uuid,
@@ -59,6 +64,9 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                         this.refresh=function(){
                             DaemonConfigItem.get(queryParamDef,self.manageLocalGetResponse);
                         }
+                        this.remove=function(){
+                            DaemonConfigItem.delete(queryParamDef,null,self.manageLocalDeleteResponse);
+                        }
                     }
                     else{
                         var queryParamDef = {
@@ -70,6 +78,9 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                         };
                         this.refresh=function(){
                             SharedConfigItem.get(queryParamDef,self.manageLocalGetResponse);
+                        }
+                        this.remove=function(){
+                            SharedConfigItem.delete(queryParamDef,null,self.manageLocalDeleteResponse);
                         }
                     }
                     this.isModified=function(){
@@ -121,6 +132,10 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                 $scope.partialRefresh(partialRefreshData);
             }
 
+            $scope.deleteKey=function(key){
+                delete $scope.configEntries[key];
+            }
+
             $scope.fullRefresh=function(newValues){
                 $scope.configEntries={};
                 $scope.partialRefresh(newValues.toJSON());
@@ -166,18 +181,27 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                 $state.go('^');
             }
 
+            $scope.isDaemon=function(){
+                return configDomainDef.type == 'daemon';
+            }
             $scope.add=function(){
                 $state.go(".add");
             }
     }]);//end of apps-admin-config-list-ctrl
 
     appsConfigModule.controller("apps-admin-config-list-add-ctrl",['$scope',
-        'configDomainDef','$state','$uibModalInstance',
+        'configDomainDef','$state','$uibModal','$uibModalInstance',
         'DaemonConfigItem','SharedConfigItem',
-        function($scope,configDomainDef,$state,$uibModalInstance,DaemonConfigItem,SharedConfigItem){
+        function($scope,configDomainDef,$state,$uibModal,$uibModalInstance,DaemonConfigItem,SharedConfigItem){
             $scope.close=function(){
-                $uibModalInstance.dismiss('Ok');
+                $uibModalInstance.close();
             }
+            $scope.dismiss=function(){
+                $uibModalInstance.dismiss();
+            }
+            $scope.error=function(){
+                window.alert("Error occurs");
+            };
             $scope.add=function(){
                 if(configDomainDef.type=='daemon'){
                     DaemonConfigItem.add(
@@ -187,7 +211,8 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                             'key':$scope.key
                         },
                         $scope.value,
-                        $scope.close
+                        $scope.close,
+                        $scope.error
                     );
                 }
                 else{
@@ -197,7 +222,8 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                             'key':$scope.key
                         },
                         $scope.value,
-                        $scope.close
+                        $scope.close,
+                        $scope.error
                     );
                 }
             }

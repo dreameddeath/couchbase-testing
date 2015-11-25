@@ -14,7 +14,19 @@
   ~ limitations under the License.
   -->
 
-<div ng-controller="apps-admin-list-shared-ctrl">
-    <tabs data="adminConfigTabs"></tabs>
-    <ui-view autoscroll></ui-view>
+<div ng-controller="apps-admin-config-shared-ctrl" class="row">
+    <div class="col-md-2">
+        <div class="well">
+            <ul class="nav nav-pills nav-stacked">
+                <li ng-repeat="config in adminSharedConfig"
+                    role="presentation"
+                    ng-class="{'active':config.isActive()}">
+                    <a ng-click="go(config.domain);">{{config.domain}}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <ui-view autoscroll></ui-view>
+    </div>
 </div>

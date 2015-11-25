@@ -102,7 +102,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Path("/{id}/config/{domain}")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
-    public List<UpdateKeyResult> getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,Map<String,String> updateRequest) throws Exception{
+    public List<UpdateKeyResult> updateDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,Map<String,String> updateRequest) throws Exception{
         return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
                 .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
@@ -157,6 +157,21 @@ public class RestDaemonsDiscoveryAndAdminService {
                 .put(Entity.text(value),UpdateKeyResult.class);
     }
 
+
+
+    @DELETE
+    @Path("/{id}/config/{domain}/{key}")
+    @Produces({ MediaType.TEXT_PLAIN })
+    public String deleteDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/config/{domain}/{key}")
+                .resolveTemplate("domain",domain)
+                .resolveTemplate("key",key)
+                .request(MediaType.TEXT_PLAIN)
+                .delete(String.class);
+    }
 
 
 

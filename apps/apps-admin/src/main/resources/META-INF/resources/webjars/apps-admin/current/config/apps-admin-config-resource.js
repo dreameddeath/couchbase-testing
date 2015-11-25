@@ -22,15 +22,21 @@ define(['angular','angular-resource'],function(angular){
             });
         }]);
 
+    appsConfigResourceModule.factory('SharedConfigs', ['$resource', function ($resource) {
+                return $resource("/apis/apps-admin/shared-config", null,
+                {'get':  {method:'GET',isArray:true}
+                });
+            }]);
+
     appsConfigResourceModule.factory('SharedConfigList', ['$resource', function ($resource) {
-            return $resource("/apis/apps-admin/config/:domain",  {domain:"@domain"},
+            return $resource("/apis/apps-admin/shared-config/:domain",  {domain:"@domain"},
             { 'get':  {method:'GET'},
               'update':  {method:'PUT'},
               'delete':  {method:'DELETE'}
             });
         }]);
     appsConfigResourceModule.factory('SharedConfigItem', ['$resource', function ($resource) {
-            return $resource("/apis/apps-admin/config/:domain/:key", {domain:"@domain",key:"@key"},
+            return $resource("/apis/apps-admin/shared-config/:domain/:key", {domain:"@domain",key:"@key"},
             { 'get':  {method:'GET',headers:{'Content-Type':'text/plain'},transformResponse:transformResponsePlainText},
               'add':  {method:'POST',headers:{'Content-Type':'text/plain'}/*transformResponse:transformResponsePlainText*/},
               'update':  {method:'PUT',headers:{'Content-Type':'text/plain'}/*transformResponse:transformResponsePlainText*/},
