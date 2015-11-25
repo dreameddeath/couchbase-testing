@@ -10,7 +10,6 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
         $stateProvider.state('admin.daemon.list', {
             url:         '/list',
             templateUrl: requirejs.toUrl('apps-admin-daemon-list.html'),
-
         })
         .state('admin.daemon.detail', {
             url:         '/detail/:uid',
@@ -30,15 +29,27 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
             } ,
             controller:"apps-admin-config-list-ctrl"
         })
+        .state('admin.daemon.detail.config.add', {
+            url:        '/add',
+            onEnter: ['AppsAdminConfigListAddModal','$state','$stateParams',
+            function(AppsAdminConfigListAddModal,$state,$stateParams){
+                    AppsAdminConfigListAddModal.open($state,{
+                            'type':'daemon',
+                            'uuid':$stateParams.uid,
+                            'domain':$stateParams.domain
+                    });
+                }
+            ]
+        })
     }]);
 
     appsAdminModule.factory('WebServerBuilder', ['DaemonWebServerStatusService',
             function(DaemonWebServerStatusService){
-                return function(parentUid,webServerInfo){
-                    var WebServer=function(daemonUid,infos){
+                return function(parentUid,infos){
+                    var WebServer=function(daemonUid,webServerInfo){
                         var self=this;
-                        for(var attr in infos){
-                            this[attr] = infos[attr];
+                        for(var attr in webServerInfo){
+                            this[attr] = webServerInfo[attr];
                         }
                         this.type = this['className'].substring(this['className'].lastIndexOf('.')+1);
                         this.isStarted=function(){return this.status.toLowerCase()=="started" || this.status.toLowerCase()=="running" ;};
@@ -71,7 +82,7 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
                         return this;
                     };
 
-                    return new WebServer(parentUid,webServerInfo);
+                    return new WebServer(parentUid,infos);
                 }
             }
         ] );
@@ -79,16 +90,16 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
         appsAdminModule.factory('DaemonBuilder',
             ['$state','DaemonWebServersListService','DaemonStatusService','WebServerBuilder',
             function($state,DaemonWebServersListService,DaemonStatusService,WebServerBuilder){
-                return function(daemonInfo){
-                    var DaemonInfo = function(infos){
+                return function(infos){
+                    var DaemonInfo = function(daemonInfo){
                         var self=this;
                         this.webServers=[];
-                        DaemonWebServersListService.get({uid:infos.uuid},function(data){
+                        DaemonWebServersListService.get({uid:daemonInfo.uuid},function(data){
                             for(var webServerPos=0;webServerPos<data.length;++webServerPos){
                                 self.webServers.push(WebServerBuilder(self.uuid,data[webServerPos].toJSON()));
                             }
                         });
-                        for(var attr in infos){
+                        for(var attr in daemonInfo){
                             if(attr=="webServerList") continue;
                             this[attr] = daemonInfo[attr];
                         }
@@ -133,7 +144,7 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
                         return this;
                     };
 
-                    return new DaemonInfo(daemonInfo);
+                    return new DaemonInfo(infos);
                 }
             }
 
@@ -167,15 +178,14 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
 
     appsAdminModule.controller('apps-admin-daemon-detail-ctrl',['$scope','$state','$stateParams','DaemonInfoService','DaemonBuilder',
                 function($scope,$state,$stateParams,DaemonInfoService,DaemonBuilder){
-                    if($state.data==null || $state.data.daemonInfo==null){
-                        DaemonInfoService.get({uid:$stateParams.uid},function(daemonInfo){
-                            $scope.daemonInfo=DaemonBuilder(daemonInfo);
-                            $state.data.daemonInfo = daemonInfo;
-                        });
-                    }
-                    else{
-                        $scope.daemonInfo = $state.data.daemonInfo;
-                    }
+                    DaemonInfoService.get({uid:$stateParams.uid},function(daemonInfo){
+                        $scope.daemonInfo=DaemonBuilder(daemonInfo);
+                        if($state.data==null){
+                            $state.data={};
+                        }
+                        $state.data.daemonInfo = daemonInfo;
+                    });
+
                     $scope.close=function(){
                         $state.go('^.list');
                     };

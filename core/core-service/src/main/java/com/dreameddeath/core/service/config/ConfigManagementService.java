@@ -16,14 +16,13 @@
 
 package com.dreameddeath.core.service.config;
 
+import com.dreameddeath.core.service.config.model.UpdateKeyResult;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.springframework.beans.factory.annotation.Required;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 11/11/2015.
@@ -61,21 +60,23 @@ public class ConfigManagementService {
     @Path("/")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public Map<String,String> setProperties(Map<String,String> properties){
+    public List<UpdateKeyResult> setProperties(Map<String,String> properties){
         if(readOnly){
             throw new NotAuthorizedException("The configuration is read only");
         }
-        Map<String,String> previousValue = new TreeMap<>();
+        List<UpdateKeyResult> updateKeyResults=new ArrayList<>(properties.keySet().size());
+        //Map<String,String> previousValue = new TreeMap<>();
         for(String key:properties.keySet()){
+            UpdateKeyResult result=new UpdateKeyResult();
+            updateKeyResults.add(result);
+            result.setKey(key);
+            result.setNewValue(properties.get(key));
             if(config.containsKey(key)){
-                previousValue.put(key,config.getString(key));
+                result.setOldValue(config.getString(key));
             }
-            else{
-                previousValue.put(key,null);
-            }
-            config.setProperty(key,properties.get(key));
+            config.setProperty(key,result.getNewValue());
         }
-        return previousValue;
+        return updateKeyResults;
     }
 
 
@@ -94,16 +95,37 @@ public class ConfigManagementService {
     @PUT
     @Path("/{key}")
     @Consumes({MediaType.TEXT_PLAIN})
-    @Produces({MediaType.TEXT_PLAIN})
-    public String getProperty(@PathParam("key") String key,String value){
+    @Produces({MediaType.APPLICATION_JSON})
+    public UpdateKeyResult updateProperty(@PathParam("key") String key,String value){
         if(readOnly){
             throw new NotAuthorizedException("The configuration is read only");
         }
-        String oldValue="";
-        if(config.containsKey(key)){
-            oldValue = config.getProperty(key).toString();
+        if(!config.containsKey(key)){
+            throw new NotFoundException("The configuration entry <"+key+"> is not existing");
+
         }
+        UpdateKeyResult result = new UpdateKeyResult();
+        result.setKey(key);
+        result.setOldValue(config.getString(key));
+        result.setNewValue(value);
+        //String oldValue = config.getProperty(key).toString();
         config.setProperty(key,value);
-        return oldValue;
+        return result;
+    }
+
+
+    @POST
+    @Path("/{key}")
+    @Consumes({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.TEXT_PLAIN})
+    public String createProperty(@PathParam("key") String key,String value){
+        if(readOnly){
+            throw new NotAuthorizedException("The configuration is read only");
+        }
+        if(config.containsKey(key)){
+            throw new NotAuthorizedException("The configuration <"+key+"> is already existing ");
+        }
+        config.addProperty(key,value);
+        return value;
     }
 }

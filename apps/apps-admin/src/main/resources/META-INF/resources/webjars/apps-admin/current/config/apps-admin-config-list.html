@@ -27,8 +27,9 @@
         <thead>
             <tr>
                 <th class="text-center">
-                    <button ng-click="refresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
-                    <button ng-click="save()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></button>
+                    <button ng-click="refresh()" class="btn btn-primary btn-xs" aria-label="refresh config entries"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
+                    <button ng-click="save()" class="btn btn-primary btn-xs" aria-label="save modified entries"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></button>
+                    <button ng-click="add()" class="btn btn-primary btn-xs" aria-label="add config entry"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
                 </th>
                 <th>name</th>
                 <th>value</th>
@@ -38,8 +39,9 @@
         <tbody>
             <tr ng-repeat="cfgEntry in configEntriesArray() | orderBy:'name'">
                 <td class="text-center">
-                    <button ng-click="refresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
-                    <button ng-click="save()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></button>
+                    <button ng-click="cfgEntry.refresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
+                    <button ng-click="cfgEntry.save()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></button>
+                    <button ng-click="cfgEntry.remove()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
                 </td>
                 <td>{{cfgEntry.name}}</td>
                 <td>{{cfgEntry.value}}</td>

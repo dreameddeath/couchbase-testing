@@ -39,12 +39,12 @@ public class RestLocalConfigAdminService {
         persistentConfigService.setConfig(ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE));
     }
 
-    @Path("/local-temp")
+    @Path("/local-temporary")
     public ConfigManagementService getTempConfig(){
         return tempConfigService;
     }
 
-    @Path("/local-persistant")
+    @Path("/local-persistent")
     public ConfigManagementService getPersistentConfig(){
         return persistentConfigService;
     }

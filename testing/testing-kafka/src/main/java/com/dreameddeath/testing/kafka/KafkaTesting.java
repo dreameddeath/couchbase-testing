@@ -19,7 +19,6 @@ package com.dreameddeath.testing.kafka;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServerStartable;
-import kafka.utils.TestUtils;
 
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -32,9 +31,10 @@ import java.util.concurrent.Future;
  */
 public class KafkaTesting {
     private static KafkaConfig getKafkaConfig(final String zkConnectString) {
-        scala.collection.Iterator<Properties> propsI = TestUtils.createBrokerConfigs(1,true).iterator();
-        assert propsI.hasNext();
-        Properties props = propsI.next();
+        //scala.collection.Iterator<Properties> propsI = TestUtils.createBrokerConfigs(1,zkConnectString,true).iterator();
+        //assert propsI.hasNext();
+        //Properties props = propsI.next();
+        Properties props = new Properties();
         props.put("zookeeper.connect", zkConnectString);
         return new KafkaConfig(props);
     }

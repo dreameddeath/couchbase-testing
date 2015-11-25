@@ -5,6 +5,25 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
         ['apps-admin-config-resource','ngResource','ngRoute','ui.router'
     ]);
 
+    appsConfigModule.factory('AppsAdminConfigListAddModal', ['$uibModal',
+        function($uibModal){
+            return {
+                open :function($state,configDomainDef){
+                    $uibModal.open(
+                        {
+                            templateUrl: requirejs.toUrl('apps-admin-config-list-add.html'),
+                            controller: 'apps-admin-config-list-add-ctrl',
+                            resolve:{
+                                "configDomainDef":configDomainDef
+                            }
+                        }).result.finally(function() {
+                            $state.go('^');
+                        }
+                    )
+                }
+            }
+        }
+    ]);
 
     appsConfigModule.controller("apps-admin-config-list-ctrl",['$scope',
         'configDomainDef','$state',
@@ -18,20 +37,27 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                     this.value=value;
                     this.newValue=null;
                     this.updateValue=function(updatedValue){
-                        self.value=value;
+                        self.value=updatedValue;
                         self.newValue=null;
                     }
-                    if(self.type=='daemon'){
+                    this.manageLocalGetResponse=function(response){
+                        self.updateValue(response.content);
+                    }
+                    this.manageLocalUpdateResponse=function(response){
+                        self.updateValue(response.newValue);
+                    }
+
+                    if(self.domainDef.type=='daemon'){
                         var queryParamDef = {
                             uid:self.domainDef.uuid,
                             domain:self.domainDef.domain,
                             key:self.name
                         };
                         this.save=function(){
-                            DaemonConfigItem.put(queryParamDef,self.newValue,self.updateValue);
+                            DaemonConfigItem.update(queryParamDef,self.newValue,self.manageLocalUpdateResponse);
                         };
                         this.refresh=function(){
-                            DaemonConfigItem.get(queryParamDef,self.updateValue);
+                            DaemonConfigItem.get(queryParamDef,self.manageLocalGetResponse);
                         }
                     }
                     else{
@@ -40,10 +66,10 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                             key:self.name
                         };
                         this.save=function(){
-                            SharedConfigItem.put(queryParamDef,self.newValue,self.updateValue);
+                            SharedConfigItem.update(queryParamDef,self.newValue,self.manageLocalUpdateResponse);
                         };
                         this.refresh=function(){
-                            SharedConfigItem.get(queryParamDef,self.updateValue);
+                            SharedConfigItem.get(queryParamDef,self.manageLocalGetResponse);
                         }
                     }
                     this.isModified=function(){
@@ -60,15 +86,15 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
             $scope.configEntries = {};
             $scope.modifiedEntriesForUpdate=function(){
                 var result=[];
-                for(var key of $scope.configEntries){
+                for(var key in $scope.configEntries){
                     if($scope.configEntries[key].isModified()){
                         result[key]=$scope.configEntries[key].newValue;
                     }
                 }
                 return result;
             }
-            $scope.partialRefresh=function(newValuesRaw){
-                 var newValues = newValuesRaw.toJSON();
+            $scope.partialRefresh=function(newValues){
+                 //var newValues = newValuesRaw.toJSON();
                  for(var key in newValues){
                     if($scope.configEntries[key] !=null){
                         $scope.configEntries[key].updateValue(newValues[key]);
@@ -83,10 +109,21 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                 return Object.keys($scope.configEntries).map(function (key) {
                     return $scope.configEntries[key];
                 });
+            };
+
+            $scope.updateResultRefresh=function(updateResultRaw){
+                var updateResult = updateResultRaw.toJSON();
+                $scope.configEntries={};
+                var partialRefreshData={};
+                for(var pos=0;pos<updateResult.length;++pos){
+                    partialRefreshData[updateResult[pos].key]=partialRefreshData[pos].newValue;
+                }
+                $scope.partialRefresh(partialRefreshData);
             }
+
             $scope.fullRefresh=function(newValues){
                 $scope.configEntries={};
-                $scope.partialRefresh(newValues);
+                $scope.partialRefresh(newValues.toJSON());
             }
             if(configDomainDef.type == 'shared'){
                 var queryParamDef = {
@@ -97,11 +134,14 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                 };
                 $scope.save=function(){
                     var updateRequest = $scope.modifiedEntriesForUpdate();
-                    SharedConfigList.put(queryParamDef,updateRequest,function(){
+                    SharedConfigList.update(queryParamDef,updateRequest,function(){
                             this.partialRefresh(updateRequest);
                         }
                     );
                 };
+                $scope.add=function(){
+                    $state.go(".add");
+                }
             }
             else if(configDomainDef.type == 'daemon'){
                 var queryParamDef = {
@@ -114,7 +154,7 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
 
                 $scope.save=function(){
                     var updateRequest = $scope.modifiedEntriesForUpdate();
-                        DaemonConfigList.put(queryParamDef,updateRequest,function(){
+                        DaemonConfigList.update(queryParamDef,updateRequest,function(){
                                 this.partialRefresh(updateRequest);
                             }
                     );
@@ -125,7 +165,43 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
             $scope.closeConfig=function(){
                 $state.go('^');
             }
+
+            $scope.add=function(){
+                $state.go(".add");
+            }
     }]);//end of apps-admin-config-list-ctrl
 
+    appsConfigModule.controller("apps-admin-config-list-add-ctrl",['$scope',
+        'configDomainDef','$state','$uibModalInstance',
+        'DaemonConfigItem','SharedConfigItem',
+        function($scope,configDomainDef,$state,$uibModalInstance,DaemonConfigItem,SharedConfigItem){
+            $scope.close=function(){
+                $uibModalInstance.dismiss('Ok');
+            }
+            $scope.add=function(){
+                if(configDomainDef.type=='daemon'){
+                    DaemonConfigItem.add(
+                        {
+                            'domain':configDomainDef.domain,
+                            'uid':configDomainDef.uuid,
+                            'key':$scope.key
+                        },
+                        $scope.value,
+                        $scope.close
+                    );
+                }
+                else{
+                    SharedConfigItem.add(
+                        {
+                            'domain':configDomainDef.domain,
+                            'key':$scope.key
+                        },
+                        $scope.value,
+                        $scope.close
+                    );
+                }
+            }
 
+        }
+    ]);
 });

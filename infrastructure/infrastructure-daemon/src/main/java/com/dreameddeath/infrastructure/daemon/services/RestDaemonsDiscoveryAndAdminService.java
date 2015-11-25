@@ -18,6 +18,7 @@ package com.dreameddeath.infrastructure.daemon.services;
 
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.config.model.UpdateKeyResult;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
@@ -97,10 +98,55 @@ public class RestDaemonsDiscoveryAndAdminService {
                 .get(Map.class);
     }
 
+    @PUT
+    @Path("/{id}/config/{domain}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({ MediaType.APPLICATION_JSON })
+    public List<UpdateKeyResult> getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,Map<String,String> updateRequest) throws Exception{
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/config/{domain}")
+                .resolveTemplate("domain",domain)
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(updateRequest,MediaType.APPLICATION_JSON), new GenericType<List<UpdateKeyResult>>(){});
+    }
+
+
     @GET
     @Path("/{id}/config/{domain}/{key}")
     @Produces({ MediaType.TEXT_PLAIN })
-    public Map<String,String> getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
+    public String getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/config/{domain}/{key}")
+                .resolveTemplate("domain",domain)
+                .resolveTemplate("key",key)
+                .request(MediaType.TEXT_PLAIN)
+                .get(String.class);
+    }
+
+    @POST
+    @Path("/{id}/config/{domain}/{key}")
+    @Produces({ MediaType.TEXT_PLAIN })
+    @Consumes({ MediaType.TEXT_PLAIN })
+    public String addDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key,String value) throws Exception{
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/config/{domain}/{key}")
+                .resolveTemplate("domain",domain)
+                .resolveTemplate("key",key)
+                .request(MediaType.TEXT_PLAIN)
+                .post(Entity.text(value),String.class);
+    }
+
+    @PUT
+    @Path("/{id}/config/{domain}/{key}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({ MediaType.TEXT_PLAIN })
+    public UpdateKeyResult updateDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key,String value) throws Exception{
         return serviceFactory
                 .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
                 .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
@@ -108,8 +154,9 @@ public class RestDaemonsDiscoveryAndAdminService {
                 .resolveTemplate("domain",domain)
                 .resolveTemplate("key",key)
                 .request(MediaType.APPLICATION_JSON)
-                .get(Map.class);
+                .put(Entity.text(value),UpdateKeyResult.class);
     }
+
 
 
 
@@ -147,8 +194,7 @@ public class RestDaemonsDiscoveryAndAdminService {
                 .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
                 .path("/webservers")
                 .request(MediaType.APPLICATION_JSON)
-                .get(new GenericType<List<WebServerInfo>>() {
-                });
+                .get(new GenericType<List<WebServerInfo>>() {});
     }
 
     @GET

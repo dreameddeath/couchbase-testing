@@ -34,6 +34,7 @@
                     "apps-admin-dao-view": "dao/apps-admin-dao-view",
 
                     "apps-admin-config-list": "config/apps-admin-config-list",
+                    "apps-admin-config-list-add": "config/apps-admin-config-list-add",
                     "apps-admin-config-resource": "config/apps-admin-config-resource",
                     "apps-admin-config-shared": "config/apps-admin-config-shared"
 
