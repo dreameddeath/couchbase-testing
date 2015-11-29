@@ -20,6 +20,7 @@ TODO
 - Reflexion around href links for services (HATEOS)
 - Management of stats (metrics, ...) around the registered services
 - helpers around spring service scans
+- self discovery of services should be based on path cache 
 
 ###testing
 - ~~test the swagger api exposure~~
