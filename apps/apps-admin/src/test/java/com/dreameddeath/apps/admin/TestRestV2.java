@@ -18,7 +18,6 @@ package com.dreameddeath.apps.admin;
 
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -31,28 +30,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Christophe Jeunesse on 24/08/2015.
+ * Created by Christophe Jeunesse on 27/11/2015.
  */
-@Path("/tests")
-@ServiceDef(domain = "test",name="test",version="1.0",status = VersionStatus.STABLE)
+@Path("/tests/v2")
+@ServiceDef(domain = "test",name="test",version="2.0",status = VersionStatus.TESTING)
 @Api
-public class TestRest extends AbstractExposableService{
-    @GET
-    @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation("get standardized message")
-    public Map<String, Object> genericGet(){
-        Map<String,Object> result = new HashMap<>();
-        result.put("message","anonymous");
-        return result;
-    }
-
+public class TestRestV2 extends TestRest {
+    @Override
     @GET
     @Path("{id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation("get standard generated message")
+    @ApiOperation("get enhanced generated message")
     public Map<String, Object> genericGet(@PathParam("id") String id){
         Map<String,Object> result = new HashMap<>();
-        result.put("message","Welcome to you : "+id);
+        result.put("message","A warm Welcome to you : "+id);
         return result;
     }
 }

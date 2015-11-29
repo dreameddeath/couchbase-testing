@@ -40,7 +40,7 @@ public class ServicesListInstanceDescription {
     }
 
     @JsonGetter("services")
-    public List<ServiceInstanceDescription> setServiceInstanceList(){
+    public List<ServiceInstanceDescription> getServiceInstanceList(){
         return Collections.unmodifiableList(instanceDescriptions);
     }
 

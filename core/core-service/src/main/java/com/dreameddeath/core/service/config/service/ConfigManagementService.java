@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.service.config;
+package com.dreameddeath.core.service.config.service;
 
 import com.dreameddeath.core.service.config.model.UpdateKeyResult;
 import org.apache.commons.configuration.AbstractConfiguration;

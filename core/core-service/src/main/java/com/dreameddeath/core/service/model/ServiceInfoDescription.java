@@ -49,6 +49,12 @@ public class ServiceInfoDescription {
     }
 
     public ServiceInfoVersionDescription addIfNeededServiceVersionInfoDescriptionMap(String version, ServiceInfoVersionDescription serviceVersionInfoDescription) {
-        return serviceVersionInfoDescriptionMap.putIfAbsent(version, serviceVersionInfoDescription);
+        ServiceInfoVersionDescription result = serviceVersionInfoDescriptionMap.putIfAbsent(version, serviceVersionInfoDescription);
+        if(result==null){
+            return serviceVersionInfoDescription;
+        }
+        else {
+            return result;
+        }
     }
 }

@@ -17,7 +17,7 @@
 package com.dreameddeath.infrastructure.daemon.services;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
-import com.dreameddeath.core.service.config.ConfigManagementService;
+import com.dreameddeath.core.service.config.service.ConfigManagementService;
 
 import javax.ws.rs.Path;
 

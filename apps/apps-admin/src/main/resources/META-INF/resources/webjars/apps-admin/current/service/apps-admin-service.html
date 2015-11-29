@@ -14,6 +14,24 @@
   ~ limitations under the License.
   -->
 
-<div ng-controller="apps-admin-service">
-
+<div ng-controller="apps-admin-service-ctrl">
+    <div class="col-md-2">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">Domains</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="nav nav-pills nav-stacked">
+                    <li ng-repeat="serviceDomain in serviceDomains"
+                        role="presentation"
+                        ng-class="{'active':serviceDomain.isActive()}">
+                        <a ng-click="go(serviceDomain.name);">{{serviceDomain.name}}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <ui-view autoscroll></ui-view>
+    </div>
 </div>

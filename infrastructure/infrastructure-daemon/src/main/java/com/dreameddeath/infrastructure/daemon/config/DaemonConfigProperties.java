@@ -90,9 +90,9 @@ public class DaemonConfigProperties {
     @ConfigPropertyDoc(
             name="daemon.admin.services.domain",
             descr = "defines the domain of admin services for Service Discovery Register",
-            defaultValue = "admin/services",
-            examples = {"admin/services"}
+            defaultValue = "admin",
+            examples = {"admin"}
     )
-    public static final StringConfigProperty DAEMON_ADMIN_SERVICES_DOMAIN = ConfigPropertyFactory.getStringProperty("daemon.admin.services.domain","admin/services");
+    public static final StringConfigProperty DAEMON_ADMIN_SERVICES_DOMAIN = ConfigPropertyFactory.getStringProperty("daemon.admin.services.domain","admin");
 
 }

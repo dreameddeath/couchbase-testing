@@ -17,8 +17,10 @@
 package com.dreameddeath.core.service.discovery;
 
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
 import com.dreameddeath.core.service.model.*;
+import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -38,18 +40,15 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 18/01/2015.
  */
 public class ServiceDiscoverer {
-    private final String basePath;
+    private final String domain;
     private final CuratorFramework client;
     private ServiceDiscovery<ServiceDescription> serviceDiscovery;
     private final ConcurrentMap<String,ServiceProvider<ServiceDescription>> serviceProviderMap=new ConcurrentHashMap<>();
 
 
-    public ServiceDiscoverer(CuratorFramework client,String basePath){
+    public ServiceDiscoverer(CuratorFramework client,String domain){
         this.client = client;
-        if(!basePath.startsWith("/")){
-            basePath="/"+basePath;
-        }
-        this.basePath = basePath;
+        this.domain = domain;
     }
 
     public void start() throws ServiceDiscoveryException {
@@ -60,11 +59,11 @@ public class ServiceDiscoverer {
             throw new ServiceDiscoveryException("Cannot connect to Zookeeper",e);
         }
 
-        ServiceNamingUtils.createBaseServiceName(client,basePath);
+        String fullPath = ServiceNamingUtils.buildServiceDomain(client,domain);
         serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
                 .serializer(new ServiceInstanceSerializerImpl())
                 .client(client)
-                .basePath(basePath).build();
+                .basePath(fullPath).build();
         try {
             serviceDiscovery.start();
         }
@@ -198,7 +197,9 @@ public class ServiceDiscoverer {
                     ServiceInfoVersionInstanceDescription instanceDescr = new ServiceInfoVersionInstanceDescription();
                     instanceDescr.setAddress(instance.getAddress());
                     instanceDescr.setPort(instance.getPort());
-                    instanceDescr.setUriSpec(instance.getUriSpec().toString());
+                    instanceDescr.setDaemonUid(IRestEndPointDescription.Utils.getDaemonUid(instance.getId()));
+                    instanceDescr.setWebServerUid(IRestEndPointDescription.Utils.getServerUid(instance.getId()));
+                    instanceDescr.setUriSpec(ServiceClientFactory.buildUri(instance));
                     instanceDescr.setUid(instance.getId());
                     foundServiceVersionInfoDescription.addInstance(instanceDescr);
                 }

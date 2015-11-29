@@ -16,14 +16,19 @@
 
 <div ng-controller="apps-admin-config-shared-ctrl" class="row">
     <div class="col-md-2">
-        <div class="well">
-            <ul class="nav nav-pills nav-stacked">
-                <li ng-repeat="config in adminSharedConfig"
-                    role="presentation"
-                    ng-class="{'active':config.isActive()}">
-                    <a ng-click="go(config.domain);">{{config.domain}}</a>
-                </li>
-            </ul>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">Domains</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="nav nav-pills nav-stacked">
+                    <li ng-repeat="config in adminSharedConfig"
+                        role="presentation"
+                        ng-class="{'active':config.isActive()}">
+                        <a ng-click="go(config.domain);">{{config.domain}}</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
     <div class="col-md-10">

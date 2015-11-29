@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.service.config;
+package com.dreameddeath.core.service.config.service;
 
 import com.dreameddeath.core.curator.config.ConfigCuratorDiscovery;
 import com.dreameddeath.core.curator.config.SharedConfigurationUtils;
@@ -36,8 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 18/11/2015.
  */
 @Path("/shared-config")
-public class SharedConfigManagementService {
-    private static final Logger LOG= LoggerFactory.getLogger(SharedConfigManagementService.class);
+public class RestSharedConfigManagementService {
+    private static final Logger LOG= LoggerFactory.getLogger(RestSharedConfigManagementService.class);
     private ConfigCuratorDiscovery discovery;
     final private Map<String,ConfigManagementService> sharedConfigServices=new ConcurrentHashMap<>();
 
@@ -81,7 +81,9 @@ public class SharedConfigManagementService {
         return result;
     }
 
+    @GET
     @Path("/{name}")
+    @Produces({MediaType.APPLICATION_JSON})
     public ConfigManagementService getSharedConfig(@PathParam("name")String sharedName){
         ConfigManagementService service = sharedConfigServices.get(sharedName);
         if(service==null){

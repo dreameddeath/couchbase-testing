@@ -29,17 +29,17 @@ public class DaoHelperConfigProperties {
     @ConfigPropertyDoc(
             name="core.helper.dao.services.read.domain",
             descr = "defines the domain of dao services for Service Discovery Register",
-            defaultValue = "dao/services/read",
-            examples = {"dao/services/read"}
+            defaultValue = "dao.read",
+            examples = {"dao.read"}
     )
-    public static final StringConfigProperty DAO_READ_SERVICES_DOMAIN = ConfigPropertyFactory.getStringProperty("core.helper.dao.services.read.domain", "dao/services/read");
+    public static final StringConfigProperty DAO_READ_SERVICES_DOMAIN = ConfigPropertyFactory.getStringProperty("core.helper.dao.services.read.domain", "dao.read");
 
     @ConfigPropertyDoc(
             name="core.helper.dao.services.write.domain",
             descr = "defines the domain of dao services for Service Discovery Register",
-            defaultValue = "dao/services/write",
-            examples = {"dao/services/write"}
+            defaultValue = "dao.write",
+            examples = {"dao.write"}
     )
-    public static final StringConfigProperty DAO_WRITE_SERVICES_DOMAIN = ConfigPropertyFactory.getStringProperty("core.helper.dao.services.write.domain", "dao/services/write");
+    public static final StringConfigProperty DAO_WRITE_SERVICES_DOMAIN = ConfigPropertyFactory.getStringProperty("core.helper.dao.services.write.domain", "dao.write");
 
 }

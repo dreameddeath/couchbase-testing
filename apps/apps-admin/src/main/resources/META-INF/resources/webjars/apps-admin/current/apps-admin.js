@@ -1,9 +1,11 @@
 'use strict';
 
 define(['angular','angular-route','angular-animate',
-        'apps-admin-daemon','apps-admin-dao','apps-admin-config-shared',
+        'apps-admin-daemon','apps-admin-dao','apps-admin-config-shared','apps-admin-service',
         'ui-bootstrap-tpls','ui-router-tabs','angular-ui-router'],function(angular){
-    var appsAdminModule = angular.module('apps-admin',['apps-admin-daemon','apps-admin-dao','apps-admin-config-shared','ngRoute','ui.router','ui.router.tabs'
+    var appsAdminModule = angular.module('apps-admin',[
+        'apps-admin-daemon','apps-admin-dao','apps-admin-config-shared','apps-admin-service',
+        'ngRoute','ui.router','ui.router.tabs'
     ,'ui.bootstrap.tabs',"template/tabs/tabset.html","template/tabs/tab.html"]
     );
 
@@ -26,6 +28,10 @@ define(['angular','angular-route','angular-animate',
                                   url:         '/config',
                                   templateUrl: requirejs.toUrl('apps-admin-config-shared.html')
                                })
+                               .state('admin.service', {
+                                 url:         '/service',
+                                 templateUrl: requirejs.toUrl('apps-admin-service.html')
+                              })
 
                  }]);
 
@@ -48,7 +54,11 @@ define(['angular','angular-route','angular-animate',
                       {
                         heading: 'Shared Config',
                         route:   'admin.config'
-                      }
+                      },
+                       {
+                          heading: 'Services',
+                          route:   'admin.service'
+                        }
                     ];
                 }
                 $scope.initialize();

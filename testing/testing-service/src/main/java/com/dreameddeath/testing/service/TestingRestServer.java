@@ -41,7 +41,7 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class TestingRestServer {
-    private static final String BASE_PATH = "/services";
+    private static final String DOMAIN = "services";
     private Server server;
     private CuratorFramework curatorClient;
     private ServiceDiscoverer serviceDiscoverer;
@@ -60,8 +60,8 @@ public class TestingRestServer {
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
         cxfHolder.setInitOrder(1);
         contextHandler.addServlet(cxfHolder, "/*");
-        serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
-        serviceRegistrar = new ServiceRegistrar(curatorClient, BASE_PATH);
+        serviceDiscoverer = new ServiceDiscoverer(curatorClient, DOMAIN);
+        serviceRegistrar = new ServiceRegistrar(curatorClient, DOMAIN);
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar, serviceDiscoverer));
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.test.applicationContext.xml");
         contextHandler.setAttribute("jacksonObjectMapper", jacksonMapper);
@@ -99,6 +99,11 @@ public class TestingRestServer {
                 } catch (Exception e) {
                     return "localhost";
                 }
+            }
+
+            @Override
+            public String buildInstanceUid() {
+                return UUID.randomUUID().toString();
             }
         });
 

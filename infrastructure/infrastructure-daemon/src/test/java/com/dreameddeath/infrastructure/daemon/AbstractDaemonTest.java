@@ -86,7 +86,7 @@ public class AbstractDaemonTest extends Assert {
         daemon.addWebServer(RestWebServer.builder().withName("tests")
                 .withApplicationContextConfig("applicationContext.xml")
                 .withWithCouchbase(true));
-        daemon.addWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverPath("tests/services"));
+        daemon.addWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverDomain("tests"));
         Thread stopping_thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -171,7 +171,7 @@ public class AbstractDaemonTest extends Assert {
                 }
                 try {
 
-                    Integer response = ((RestWebServer)daemon.getAdditionalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests/services")
+                    Integer response = ((RestWebServer)daemon.getAdditionalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests")
                             .getClient("tests#tests#tests", "1.0")
                             .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
                             //.path("/status")
@@ -186,7 +186,7 @@ public class AbstractDaemonTest extends Assert {
 
 
                 try {
-                    WebServerInfo response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin/services")
+                    WebServerInfo response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin")
                             .getClient("daemon#admin#status", "1.0")
                             .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
                             .path("/webservers/tests")

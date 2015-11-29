@@ -1,119 +1,43 @@
 'use strict';
 
 define(['angular','angular-route','angular-animate','apps-admin-service-resource','ui-bootstrap-tpls'],function(angular){
-    var appsAdminModule = angular.module('apps-admin-service',['apps-admin-service-resource','ngResource','ngRoute','ui.bootstrap.modal',
+    var appsServiceModule = angular.module('apps-admin-service',['apps-admin-service-resource','ngResource','ngRoute','ui.bootstrap.modal',
         'template/modal/backdrop.html',
         'template/modal/window.html'
         ]
     );
-    appsAdminModule.controller('apps-admin-service-ctrl',['$scope','$modal',
-            'DaemonsListService','DaemonInfoService','DaemonStatusService',
-            'DaemonWebServersListService','DaemonWebServerStatusService',
-            function($scope,$modal,DaemonsListService,DaemonInfoService,DaemonStatusService,DaemonWebServersListService,DaemonWebServerStatusService){
-                var WebServer = function(daemonUid,serverInfo){
-                    var self=this;
-                    for(var attr in serverInfo){
-                        this[attr] = serverInfo[attr];
-                    }
-                    this.type = this['className'].substring(this['className'].lastIndexOf('.')+1);
-                    this.isStarted=function(){return this.status.toLowerCase()=="started" || this.status.toLowerCase()=="running" ;};
-                    this.isStopped=function(){return this.status.toLowerCase()=="stopped";};
-                    this.updateFromStatusResponse=function(statusResponse){
-                        this.address = statusResponse.address;
-                        this.status = statusResponse.status;
-                        this.port = statusResponse.port;
-                    };
-                    this.start=function(){
-                        DaemonWebServerStatusService.put({uid:daemonUid,wid:this.name},{action:"START"},function(statusResult){
-                            self.updateFromStatusResponse(statusResult);
-                        });
-                    };
-                    this.stop=function(){
-                        DaemonWebServerStatusService.put({uid:daemonUid,wid:this.name},{action:"STOP"},function(statusResult){
-                            self.updateFromStatusResponse(statusResult);
-                        });
-                    };
-                    this.restart=function(){
-                        DaemonWebServerStatusService.put({uid:daemonUid,wid:this.name},{action:"RESTART"},function(statusResult){
-                            self.updateFromStatusResponse(statusResult);
-                        });
-                    };
-                    this.refreshStatus=function(){
-                        DaemonWebServerStatusService.get({uid:daemonUid,wid:this.name},function(statusResult){
-                            self.updateFromStatusResponse(statusResult);
-                        });
-                    }
-                    return this;
-                };
+    appsServiceModule.config(['$stateProvider', function($stateProvider) {
+                $stateProvider
+                     .state('admin.service.domain', {
+                        url:         '/:domain',
+                        templateUrl: requirejs.toUrl('apps-admin-service-domain.html'),
+                        controller:"apps-admin-service-domain-ctrl"
+                     })
+                      .state('admin.service.domain.version', {
+                         url:         '/:fullName',
+                         templateUrl: requirejs.toUrl('apps-admin-service-version.html'),
+                         controller:"apps-admin-service-version-ctrl"
+                      });
+         }]);
 
-                var Daemon = function(daemonInfo){
-                    var self=this;
-                    this.webServers=[];
-                    DaemonWebServersListService.get({uid:daemonInfo.uuid},function(data){
-                        for(var webServerPos=0;webServerPos<data.length;++webServerPos){
-                            self.webServers.push(new WebServer(self.uuid,data[webServerPos].toJSON()));
-                        }
-                    });
-                    for(var attr in daemonInfo){
-                        if(attr=="webServerList") continue;
-                        this[attr] = daemonInfo[attr];
-                    }
-                    this.type = this['className'].substring(this['className'].lastIndexOf('.')+1);
 
-                    this.isStarted=function(){return self.status.toLowerCase()=="started";};
-                    this.isStopped=function(){return self.status.toLowerCase()=="stopped";};
-                    this.isOtherStatus=function(){return !self.isStarted() && !self.isStopped();};
-
-                    this.viewDetails = function(){$modal.open({
-                                 animation: true,
-                                 templateUrl: requirejs.toUrl("apps-admin-daemon-details.html"),
-                                 controller: 'apps-admin-daemon-details-ctrl',
-                                 size: 'lg',
-                                 resolve: {
-                                   daemonInfo: function () {
-                                     return self;
-                                   }
-                                 }
-                               })};
-                    this.refreshWebServers=function(){
-                        for(var serverId=0;serverId<this.webServers.length;++serverId){
-                            this.webServers[serverId].refreshStatus();
-                        }
-                    }
-                    this.refreshStatusFromResponse=function(statusResponse){
-                        this.status=statusResponse.status;
-                        this.refreshWebServers()
-                    };
-                    this.start=function(){
-                        DaemonStatusService.put({uid:this.uuid},{action:"START"},function(statusResult){
-                            self.refreshStatusFromResponse(statusResult);
-                        });
-                    }
-                    this.halt=function(){
-                        DaemonStatusService.put({uid:this.uuid},{action:"HALT"},function(statusResult){
-                            self.refreshStatusFromResponse(statusResult);
-                        });
-                    }
-                    this.stop=function(){
-                        DaemonStatusService.put({uid:this.uuid},{action:"STOP"},function(statusResult){
-                            self.refreshStatusFromResponse(statusResult);
-                        });
-                    }
-                    this.refreshStatus=function(){
-                        DaemonStatusService.get({uid:this.uuid},function(statusResult){
-                            self.refreshStatusFromResponse(statusResult);
-                        });
-                    }
-                    return this;
+    appsServiceModule.controller('apps-admin-service-ctrl',['$scope','$state',
+            'ServicesDomains',
+            function($scope,$state,ServicesDomains){
+                $scope.go=function(domainName){
+                    $state.go("admin.service.domain",{domain:domainName});
                 }
                 $scope.refresh=function(){
-                    DaemonsListService.get(function(data){
-                        $scope.daemons = [];
-                        var daemonPos=0;
-                        for(var daemonPos=0;daemonPos<data.length;++daemonPos){
-                            DaemonInfoService.get({uid:data[daemonPos].uuid},function(daemonInfo){
-                                $scope.daemons.push(new Daemon(daemonInfo.toJSON()));
-                            })
+                    ServicesDomains.get(function(data){
+                        $scope.serviceDomains = [];
+                        var domainPos=0;
+                        for(var domainPos=0;domainPos<data.length;++domainPos){
+                            $scope.serviceDomains.push({
+                                name:data[domainPos],
+                                isActive:function(){
+                                    return $state.includes('admin.service.domain',{domain:this.name});
+                                }
+                            });
                         }
                     });
                 }
@@ -121,14 +45,67 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
             }]
         );
 
-    appsAdminModule.controller('apps-admin-daemon-details-ctrl',['$scope','$modalInstance','daemonInfo',
-                function($scope,$modalInstance,daemonInfo){
-                    $scope.daemonInfo = daemonInfo;
-                    $scope.ok=function(){
-                        $modalInstance.dismiss('ok');
+    appsServiceModule.controller('apps-admin-service-domain-ctrl',['$scope','$state','$stateParams','ServicesDomainServiceInfo',
+                function($scope,$state,$stateParams,ServicesDomainServiceInfo){
+                    $scope.close=function(){
+                            $state.go("^");
+                       };
+                    $scope.showDetails=function(fullName){
+                        $state.go("admin.service.domain.version",{"fullName":fullName});
                     }
+
+                    $scope.currServiceVersionInfo={};
+                    $scope.setCurrVersion=function(fullName){
+                        $scope.currVersionFullName=fullName;
+                        $scope.updateCurrServiceVersion();
+                    }
+                    $scope.updateCurrServiceVersion=function(){
+                        $scope.currServiceVersionInfo={};
+                        for(var pos=0;pos<$scope.services.length;++pos){
+                            var currService = $scope.services[pos];
+                            for(var version in currService.versions){
+                                var currVersion = currService.versions[version];
+                                if(currVersion.fullName==$scope.currVersionFullName){
+                                    $scope.currServiceVersionInfo={
+                                            serviceName:currService.name,
+                                            "version":version,
+                                            swaggerUrl:encodeURIComponent("/apis/apps-admin/domains/"+encodeURIComponent($stateParams.domain)+"/swagger/"+encodeURIComponent($scope.currVersionFullName))
+                                    };
+                                    for(var key in currVersion){
+                                        $scope.currServiceVersionInfo[key]=currVersion[key];
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    $scope.refresh=function(){
+                        $scope.services=[];
+                        $scope.name=$stateParams.domain;
+                        ServicesDomainServiceInfo.list({domain:$stateParams.domain},function(data){
+                            for(var pos=0;pos<data.length;++pos){
+                                var currService = data[pos];
+                                $scope.services.push({
+                                    name:currService.name,
+                                    versions:currService.versions,
+                                    nbVersions:function(){
+                                        return Object.keys(this.versions).length;
+                                    }
+                                });
+                            }
+                            $scope.updateCurrServiceVersion();
+                        });
+                    };
+                    $scope.refresh();
                 }]
             );
+
+    appsServiceModule.controller('apps-admin-service-version-ctrl',['$scope','$state','$stateParams',
+                    function($scope,$state,$stateParams){
+                        $scope.$parent.setCurrVersion($stateParams.fullName);
+                        //$scope.serviceInfo = $scope.$parent.getServiceVersionInfo($scope.fullName);
+                    }]
+                );
 
 }
 );

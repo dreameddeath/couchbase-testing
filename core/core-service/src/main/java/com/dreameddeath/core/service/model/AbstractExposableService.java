@@ -30,7 +30,9 @@ public abstract class AbstractExposableService {
     private ServiceRegistrar serviceRegistrar;
 
 
-    public String getId(){return IRestEndPointDescription.Utils.buildUid(getEndPoint());}
+    public String getId(){
+        return endPoint.buildInstanceUid();
+    }
 
     @Required
     public void setAddress(String address) {

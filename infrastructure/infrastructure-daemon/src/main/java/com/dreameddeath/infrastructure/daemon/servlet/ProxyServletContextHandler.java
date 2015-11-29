@@ -26,7 +26,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 28/08/2015.
  */
 public class ProxyServletContextHandler extends AbstractServletContextHandler {
-    public ProxyServletContextHandler(AbstractWebServer parentServer,List<String> pathsToSelfDiscover){
+    public ProxyServletContextHandler(AbstractWebServer parentServer,List<String> domainsToSelfDiscover){
         super(parentServer);
 
         String proxyPath = DaemonConfigProperties.DAEMON_WEBSERVER_PROXY_API_PATH_PREFIX.get();
@@ -42,6 +42,6 @@ public class ProxyServletContextHandler extends AbstractServletContextHandler {
 
         //Setup standardized elements
         this.setAttribute(ProxyServlet.PROXY_PREFIX_PARAM_NAME, proxyPath);
-        this.setAttribute(ProxyServlet.SERVICE_DISCOVERER_PATHES_PARAM_NAME, pathsToSelfDiscover);
+        this.setAttribute(ProxyServlet.SERVICE_DISCOVERER_DOMAINS_PARAM_NAME, domainsToSelfDiscover);
     }
 }

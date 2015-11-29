@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentMap;
  * Created by Christophe Jeunesse on 21/08/2015.
  */
 public class ProxyServlet extends AsyncProxyServlet {
-    public static String SERVICE_DISCOVERER_PATHES_PARAM_NAME = "discoverer-base-pathes";
+    public static String SERVICE_DISCOVERER_DOMAINS_PARAM_NAME = "discoverer-base-pathes";
     public static String PROXY_PREFIX_PARAM_NAME = "proxy-url-prefix";
     private static Logger LOG = LoggerFactory.getLogger(ProxyServlet.class);
 
@@ -58,9 +58,9 @@ public class ProxyServlet extends AsyncProxyServlet {
         CuratorFramework curatorClient = (CuratorFramework) config.getServletContext().getAttribute(AbstractDaemon.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME);
         prefix = ServletUtils.normalizePath((String)config.getServletContext().getAttribute(PROXY_PREFIX_PARAM_NAME),false);
 
-        List<String> basePathsList = (List<String>)config.getServletContext().getAttribute(SERVICE_DISCOVERER_PATHES_PARAM_NAME);
-        for(String basePath:basePathsList){
-            ServiceDiscoverer newService = new ServiceDiscoverer(curatorClient, basePath);
+        List<String> domainsList = (List<String>)config.getServletContext().getAttribute(SERVICE_DISCOVERER_DOMAINS_PARAM_NAME);
+        for(String domain:domainsList){
+            ServiceDiscoverer newService = new ServiceDiscoverer(curatorClient, domain);
             try {
                 newService.start();
             }

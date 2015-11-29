@@ -48,44 +48,41 @@ import java.util.stream.Collectors;
 public class ServiceRegistrar {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRegistrar.class);
     private final CuratorFramework curatorClient;
-    private final String basePath;
+    private final String domain;
     private boolean isStarted=false;
     private Set<AbstractExposableService> services = new CopyOnWriteArraySet<>();
     private ServiceDiscovery<ServiceDescription> serviceDiscovery;
 
 
-    public ServiceRegistrar(CuratorFramework curatorClient,String basePath){
+    public ServiceRegistrar(CuratorFramework curatorClient,String domain){
         this.curatorClient = curatorClient;
-        if(!basePath.startsWith("/")){
-            basePath="/"+basePath;
-        }
-        this.basePath = basePath;
+        this.domain = domain;
     }
 
     public synchronized void start() throws Exception{
         curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
-        ServiceNamingUtils.createBaseServiceName(curatorClient, basePath);
+        String fullPath = ServiceNamingUtils.buildServiceDomain(curatorClient, domain);
 
         serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
                 .serializer(new ServiceInstanceSerializerImpl())
                 .client(curatorClient)
-                .basePath(basePath).build();
+                .basePath(fullPath).build();
 
         serviceDiscovery.start();
 
         for(AbstractExposableService foundService:services) {
             ServiceInstance<ServiceDescription> newServiceDef = buildServiceInstanceDescription(foundService);
             serviceDiscovery.registerService(newServiceDef);
-            LOG.info("Service {} registred with id {} within domain {}", newServiceDef.getName(),newServiceDef.getId(),basePath);
+            LOG.info("Service {} registred with id {} within domain {}", newServiceDef.getName(),newServiceDef.getId(),domain);
         }
 
         isStarted=true;
-        //LOG.info("Services Regi: " + serviceDiscovery.queryForNames().toString());
     }
 
     public synchronized void stop() throws IOException{
         isStarted=false;
         serviceDiscovery.close();
+        services.clear();
     }
 
     public List<ServiceInstance<ServiceDescription>> getServicesInstanceDescription(){
@@ -128,15 +125,6 @@ public class ServiceRegistrar {
                 null,
                 uriSpec
                 );
-
-                /*ServiceInstance.<ServiceDescription>builder().name()
-                .id(service.getId())
-                .uriSpec(uriSpec)
-                .address()
-                .port(service.getEndPoint().port())
-                .payload(serviceDescr)
-                .build();*/
-
     }
 
     public Set<AbstractExposableService> getServices(){

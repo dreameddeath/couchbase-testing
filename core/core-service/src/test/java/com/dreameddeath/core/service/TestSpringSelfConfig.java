@@ -111,6 +111,11 @@ public class TestSpringSelfConfig implements ServletContextAware
                 public String host() {
                     return endPointDescr.host();
                 }
+
+                @Override
+                public String buildInstanceUid() {
+                    return UUID.randomUUID().toString();
+                }
             });
             ctxt.getBeanFactory().registerSingleton(serviceDef.getKey(), serviceDef.getValue());
             SpringResourceFactory factoryResource = new SpringResourceFactory(serviceDef.getKey());

@@ -63,7 +63,7 @@ import java.util.UUID;
 public class TestServicesTest extends Assert{
     private static final Logger LOG = LoggerFactory.getLogger(TestServicesTest.class);
 
-    private static final String BASE_PATH = "/services";
+    private static final String DOMAIN = "services";
     private static Server server;
     private static ServiceDiscoverer serviceDiscoverer;
     private static ServerConnector connector;
@@ -101,8 +101,8 @@ public class TestServicesTest extends Assert{
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
         cxfHolder.setInitOrder(1);
         contextHandler.addServlet(cxfHolder, "/*");
-        serviceDiscoverer = new ServiceDiscoverer(curatorClient, BASE_PATH);
-        ServiceRegistrar serviceRegistrar = new ServiceRegistrar(curatorClient, BASE_PATH);
+        serviceDiscoverer = new ServiceDiscoverer(curatorClient, DOMAIN);
+        ServiceRegistrar serviceRegistrar = new ServiceRegistrar(curatorClient, DOMAIN);
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar , serviceDiscoverer));
 
         contextHandler.setAttribute("serviceRegistrar", serviceRegistrar);
@@ -139,6 +139,10 @@ public class TestServicesTest extends Assert{
                 } catch (Exception e) {
                     return "localhost";
                 }
+            }
+            @Override
+            public String buildInstanceUid() {
+                return UUID.randomUUID().toString();
             }
         });
 

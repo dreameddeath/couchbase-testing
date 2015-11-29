@@ -21,10 +21,14 @@ import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.eclipse.jetty.server.ServerConnector;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Created by Christophe Jeunesse on 18/08/2015.
  */
 public class StandardDaemonRestEndPointDescription implements IRestEndPointDescription {
+    private final AtomicInteger instanceCounter=new AtomicInteger();
+
     private final AbstractWebServer server;
     private final ServerConnector connector;
     private final String path;
@@ -62,5 +66,10 @@ public class StandardDaemonRestEndPointDescription implements IRestEndPointDescr
     @Override
     public String webserverUid() {
         return server.getUuid().toString();
+    }
+
+    @Override
+    public String buildInstanceUid(){
+        return IRestEndPointDescription.Utils.buildUid(this,instanceCounter.incrementAndGet());
     }
 }

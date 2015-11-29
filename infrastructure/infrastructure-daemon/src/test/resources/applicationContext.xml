@@ -34,7 +34,7 @@
           class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
           factory-bean="serviceDiscovererManager"
           factory-method="getServiceRegistrar">
-        <constructor-arg type="java.lang.String" value="tests/services" />
+        <constructor-arg type="java.lang.String" value="tests" />
     </bean>
 
     <bean id="daoReadServiceRegistrar"

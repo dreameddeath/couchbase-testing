@@ -36,8 +36,12 @@
                     "apps-admin-config-list": "config/apps-admin-config-list",
                     "apps-admin-config-list-add": "config/apps-admin-config-list-add",
                     "apps-admin-config-resource": "config/apps-admin-config-resource",
-                    "apps-admin-config-shared": "config/apps-admin-config-shared"
+                    "apps-admin-config-shared": "config/apps-admin-config-shared",
 
+                    "apps-admin-service": "service/apps-admin-service",
+                    "apps-admin-service-resource": "service/apps-admin-service-resource",
+                    "apps-admin-service-version": "service/apps-admin-service-version",
+                    "apps-admin-service-domain": "service/apps-admin-service-domain"
             }
             }
         </requirejs>

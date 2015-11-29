@@ -44,7 +44,6 @@ public class RestWebServer extends AbstractWebServer {
         return serviceDiscoveryManager;
     }
 
-
     public static class Builder extends AbstractWebServer.Builder<Builder>{
         private String apiPath=null;
         private String applicationContextConfig;

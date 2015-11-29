@@ -30,6 +30,11 @@ public class ServiceInfoVersionInstanceDescription {
     private Integer port;
     @JsonProperty("uriSpec")
     private String uriSpec;
+    @JsonProperty("daemonUid")
+    private String daemonUid;
+    @JsonProperty("webServerUid")
+    private String webServerUid;
+
 
     public String getUid() {
         return uid;
@@ -61,5 +66,21 @@ public class ServiceInfoVersionInstanceDescription {
 
     public void setUriSpec(String uriSpec) {
         this.uriSpec = uriSpec;
+    }
+
+    public String getDaemonUid() {
+        return daemonUid;
+    }
+
+    public void setDaemonUid(String daemonUid) {
+        this.daemonUid = daemonUid;
+    }
+
+    public String getWebServerUid() {
+        return webServerUid;
+    }
+
+    public void setWebServerUid(String webServerUid) {
+        this.webServerUid = webServerUid;
     }
 }

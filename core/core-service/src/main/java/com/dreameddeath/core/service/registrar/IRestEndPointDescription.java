@@ -25,19 +25,21 @@ public interface IRestEndPointDescription {
     int port();
     String path();
     String host();
+    String buildInstanceUid();
 
     class Utils{
-        public static String buildUid(IRestEndPointDescription description){
-            return description.daemonUid()+"#"+description.webserverUid();
+        private static final String SEPARATOR="#";
+        public static String buildUid(IRestEndPointDescription description, Integer instanceRank){
+            return description.daemonUid()+SEPARATOR+description.webserverUid()+SEPARATOR+instanceRank;
         }
 
         public static String getDaemonUid(String fullUid){
-            String parts[] = fullUid.split("#");
+            String parts[] = fullUid.split(SEPARATOR);
             return parts[0];
         }
 
         public static String getServerUid(String fullUid){
-            String parts[] = fullUid.split("#");
+            String parts[] = fullUid.split(SEPARATOR);
             return (parts.length>1)?parts[1]:"";
         }
 

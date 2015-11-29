@@ -41,7 +41,7 @@ public class TestingRestServerTest extends Assert{
     public void initServer() throws Exception{
         testUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"));
-        server.registerService("TestService",ServiceExpositionDef.newRestServerIntance(new TestServerImpl()));
+        server.registerService("TestService",ServiceExpositionDef.newRestServerInstance(new TestServerImpl()));
         server.start();
     }
 

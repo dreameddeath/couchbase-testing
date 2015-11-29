@@ -87,12 +87,15 @@ define(['angular','angular-route','angular-animate','apps-admin-config-resource'
                         return self.newValue!=null && self.newValue!="" && self.value==self.newValue;
                     }
             };
+            $scope.domainType=configDomainDef.type;
+            $scope.domainName=configDomainDef.domain;
             if(configDomainDef.type=='daemon'){
+                $scope.daemonUuid=configDomainDef.uuid;
                 //var daemonInfo = $state.data.daemonInfo;
-                $scope.title="Config for daemon " +configDomainDef.uuid+ " and domain "+configDomainDef.domain;
+                //$scope.title="Config for daemon " +configDomainDef.uuid+ " and domain "+configDomainDef.domain;
             }
             else{
-                $scope.title="Config for domain "+configDomainDef.domain;
+                //$scope.title="Config for domain "+configDomainDef.domain;
             }
             $scope.configEntries = {};
             $scope.modifiedEntriesForUpdate=function(){

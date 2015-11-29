@@ -38,7 +38,7 @@ public class ServiceExpositionDef {
         return (Class<GeneratedRestImpl<T>>)Thread.currentThread().getContextClassLoader().loadClass(serviceClass.getName()+REST_SERVICE_SUFFIX);
     }
 
-    public static <T> GeneratedRestImpl<T> newRestServerIntance(T serviceImpl) throws ClassNotFoundException,InstantiationException,IllegalAccessException{
+    public static <T> GeneratedRestImpl<T> newRestServerInstance(T serviceImpl) throws ClassNotFoundException,InstantiationException,IllegalAccessException{
         GeneratedRestImpl<T> result = getRestServerClass((Class<T>)serviceImpl.getClass()).newInstance();
         result.setServiceImplementation(serviceImpl);
         return result;

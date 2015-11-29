@@ -20,12 +20,10 @@ import com.dreameddeath.core.service.model.ServiceInfoDescription;
 import com.dreameddeath.core.service.model.ServiceInstanceDescription;
 import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.model.ServicesListInstanceDescription;
+import io.swagger.models.Swagger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,6 +71,19 @@ public class RestServiceDiscovery {
             return null;
         }
         return filteredList.iterator().next();
+    }
+
+    @GET
+    @Path("/swagger/{fullName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Swagger getSwagger(@PathParam("fullName") String fullName) throws Exception{
+        ServicesListInstanceDescription instances = serviceDiscoverer.getInstancesDescriptionByFullName(fullName);
+        if(instances.getServiceInstanceList().size()>0){
+            return instances.getServiceInstanceList().get(0).getSwagger();
+        }
+        else{
+            throw new NotFoundException("Cannot retrieve swagger for <"+fullName+">");
+        }
     }
 
     @GET
