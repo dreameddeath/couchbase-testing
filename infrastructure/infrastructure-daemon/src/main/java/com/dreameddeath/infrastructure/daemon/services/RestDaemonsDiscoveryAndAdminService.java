@@ -32,6 +32,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +72,20 @@ public class RestDaemonsDiscoveryAndAdminService {
                 .request(MediaType.APPLICATION_JSON)
                 .get(DaemonInfo.class);
     }
+
+
+    @GET
+    @Path("/{id}/metrics")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getDaemonMetrics(@PathParam("id") String uid, @PathParam("wid") String webServerId) {
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/metrics")
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+    }
+
 
     @GET
     @Path("/{id}/config")
@@ -238,7 +253,21 @@ public class RestDaemonsDiscoveryAndAdminService {
                 .get(com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse.class);
     }
 
-    @PUT
+    @GET
+    @Path("/{id}/webservers/{wid}/metrics")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getWebserverMetrics(@PathParam("id") String uid, @PathParam("wid") String webServerId) {
+        return serviceFactory
+                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
+                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                .path("/webservers/{wid}/metrics")
+                .resolveTemplate("wid", webServerId)
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+    }
+
+
+        @PUT
     @Path("/{id}/webservers/{wid}/status")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })

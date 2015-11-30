@@ -16,6 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.services;
 
+import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.model.AbstractExposableService;
@@ -137,5 +138,14 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
     @Path("config")
     public RestLocalConfigAdminService getConfigWebService(){
         return configAdminService;
+    }
+
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("{name}/metrics")
+    @ApiOperation(value = "give metrics on a given daemon",
+            response = MetricRegistry.class)
+    public MetricRegistry getMetrics(){
+        return daemon.getDaemonMetrics().getMetricRegistry();
     }
 }

@@ -27,7 +27,7 @@ import java.util.List;
 public class ProxyWebServer extends AbstractWebServer {
     public ProxyWebServer(Builder builder){
         super(builder);
-        getWebServer().setHandler(new ProxyServletContextHandler(this,builder.discoverDomains));
+        setHandler(new ProxyServletContextHandler(this,builder.discoverDomains));
     }
 
     public static Builder builder(){

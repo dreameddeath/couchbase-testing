@@ -62,7 +62,7 @@ public class WebAppWebServer extends AbstractWebServer {
         }
         contexts.setHandlers(handlersArray);
 
-        getWebServer().setHandler(contexts);
+        setHandler(contexts);
     }
 
     public static Builder builder(){

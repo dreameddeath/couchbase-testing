@@ -27,6 +27,7 @@ import com.dreameddeath.infrastructure.daemon.couchbase.CouchbaseDaemonLifeCycle
 import com.dreameddeath.infrastructure.daemon.couchbase.DaemonCouchbaseFactories;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
+import com.dreameddeath.infrastructure.daemon.metrics.DaemonMetrics;
 import com.dreameddeath.infrastructure.daemon.registrar.DaemonRegisterLifeCycleListener;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
@@ -48,6 +49,7 @@ public class AbstractDaemon {
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
 
     private final String name;
+    private final DaemonMetrics daemonMetrics=new DaemonMetrics();
     private final UUID uuid = UUID.randomUUID();
     private final IDaemonLifeCycle daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework curatorClient;
@@ -195,6 +197,9 @@ public class AbstractDaemon {
     }
 
 
+    public DaemonMetrics getDaemonMetrics() {
+        return daemonMetrics;
+    }
 
     public static Builder builder(){
         return new Builder();

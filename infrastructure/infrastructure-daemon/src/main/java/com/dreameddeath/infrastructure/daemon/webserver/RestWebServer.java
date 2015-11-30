@@ -36,7 +36,7 @@ public class RestWebServer extends AbstractWebServer {
         if(path ==null){
             path = DaemonConfigProperties.DAEMON_WEBSERVER_API_PATH_PREFIX.get();
         }
-        getWebServer().setHandler(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,serviceDiscoveryManager));
+        setHandler(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,serviceDiscoveryManager));
     }
 
 

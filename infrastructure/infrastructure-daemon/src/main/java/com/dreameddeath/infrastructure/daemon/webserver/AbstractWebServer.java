@@ -16,6 +16,9 @@
 
 package com.dreameddeath.infrastructure.daemon.webserver;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jetty9.InstrumentedHandler;
+import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
@@ -23,6 +26,9 @@ import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.couchbase.CouchbaseWebServerLifeCycle;
 import com.dreameddeath.infrastructure.daemon.couchbase.WebServerCouchbaseFactories;
+import com.dreameddeath.infrastructure.daemon.metrics.InstrumentedConnectionFactory;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.component.LifeCycle;
@@ -36,6 +42,7 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 21/08/2015.
  */
 public abstract class AbstractWebServer {
+
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
     public static final String GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME = "daemonLifeCycle";
     public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
@@ -43,8 +50,10 @@ public abstract class AbstractWebServer {
     public static final String GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME = "couchbaseDaoFactory";
     public static final String GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME = "couchbaseSessionFactory";
     public static final String GLOBAL_USER_FACTORY_PARAM_NAME = "userFactory";
+    public static final String GLOBAL_METRICS_REGISTRY_PARAM_NAME = "metricsRegistry";
 
     private final AbstractDaemon parentDaemon;
+    private final MetricRegistry metricRegistry = new MetricRegistry();
     private final String name;
     private final UUID uuid;
     private final Server webServer;
@@ -76,8 +85,12 @@ public abstract class AbstractWebServer {
         parentDaemon = builder.daemon;
         name = builder.name;
         parentDaemon.getDaemonLifeCycle().addLifeCycleListener(new WebServerDaemonLifeCycleListener(this,builder.isRoot));
-        webServer = new Server();
-        serverConnector = new ServerConnector(webServer);
+        webServer = new Server(new
+                InstrumentedQueuedThreadPool(metricRegistry)
+        );
+        serverConnector = new ServerConnector(webServer,
+                    new InstrumentedConnectionFactory(new HttpConnectionFactory(), metricRegistry.timer("http.connections"))
+                );
 
         String address = getAddress(builder.address, builder.interfaceName);
         if(address==null){
@@ -162,6 +175,15 @@ public abstract class AbstractWebServer {
         return propertySources;
     }
 
+    public void setHandler(Handler handler){
+        InstrumentedHandler monitoredHandler=new InstrumentedHandler(getMetricRegistry());
+        monitoredHandler.setHandler(handler);
+        webServer.setHandler(monitoredHandler);
+    }
+
+    public MetricRegistry getMetricRegistry(){
+        return metricRegistry;
+    }
     public enum Status{
         UNKNOWN,
         FAILED,

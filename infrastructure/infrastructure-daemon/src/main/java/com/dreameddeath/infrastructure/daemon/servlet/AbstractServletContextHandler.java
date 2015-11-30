@@ -26,6 +26,7 @@ public class AbstractServletContextHandler extends ServletContextHandler {
     public static final String GLOBAL_WEBSERVER_PARAM_NAME = "parentWebServer";
 
     private final AbstractWebServer webServer;
+
     public AbstractServletContextHandler(AbstractWebServer parentServer){
         super(parentServer.getWebServer(),null);
         webServer = parentServer;
@@ -35,6 +36,7 @@ public class AbstractServletContextHandler extends ServletContextHandler {
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME, parentServer.getParentDaemon().getDaemonLifeCycle());
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME,parentServer.getPropertySources());
         this.setAttribute(AbstractWebServer.GLOBAL_USER_FACTORY_PARAM_NAME,parentServer.getParentDaemon().getUserFactory());
+        this.setAttribute(AbstractWebServer.GLOBAL_METRICS_REGISTRY_PARAM_NAME,parentServer.getMetricRegistry());
 
         if(parentServer.getCouchbaseFactories()!=null){
             this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME,parentServer.getCouchbaseFactories().getDocumentDaoFactory());

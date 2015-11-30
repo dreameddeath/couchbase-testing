@@ -16,6 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.services;
 
+import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
 import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse;
@@ -115,6 +116,16 @@ public class RestLocalWebServerAdminService {
 
 
         return buildStatus(webServer);
+    }
+
+
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("{name}/metrics")
+    @ApiOperation(value = "give metrics on a given webserver",
+            response = MetricRegistry.class)
+    public MetricRegistry getMetrics(@PathParam("name") String name){
+        return findByName(name).getMetricRegistry();
     }
 
 

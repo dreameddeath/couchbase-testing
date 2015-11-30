@@ -17,41 +17,62 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:cxf="http://cxf.apache.org/core"
        xsi:schemaLocation="
+            http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
        ">
 
+    <cxf:bus>
+        <cxf:features>
+            <bean class="org.apache.cxf.metrics.MetricsFeature" lazy-init="true">
+                <constructor-arg>
+                    <bean class="com.dreameddeath.infrastructure.daemon.metrics.CxfMetricsProvider" lazy-init="true">
+                        <constructor-arg ref="cxf" />
+                        <constructor-arg ref="metricsRegistry"/>
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </cxf:features>
+    </cxf:bus>
+
+    <bean id="metricsRegistry" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="metricsRegistry"/>
+    </bean>
+
+
     <bean id="daemon" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="daemon" />
+        <property name="attributeName" value="daemon"/>
     </bean>
 
     <bean id="webServer" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="parentWebServer" />
+        <property name="attributeName" value="parentWebServer"/>
     </bean>
 
 
     <bean id="propertySources" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="propertySources" />
+        <property name="attributeName" value="propertySources"/>
     </bean>
 
     <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-        <property name="propertySources" ref="propertySources" />
+        <property name="propertySources" ref="propertySources"/>
     </bean>
 
-    <bean id="serviceDiscovererManager" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="serviceDiscovererManager" />
+    <bean id="serviceDiscovererManager"
+          class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="serviceDiscovererManager"/>
     </bean>
 
     <bean id="daemonLifeCycle" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="daemonLifeCycle" />
+        <property name="attributeName" value="daemonLifeCycle"/>
     </bean>
 
     <bean id="curatorClient" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="globalCuratorClient" />
+        <property name="attributeName" value="globalCuratorClient"/>
     </bean>
 
     <bean id="userFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="userFactory" />
+        <property name="attributeName" value="userFactory"/>
     </bean>
 
 
