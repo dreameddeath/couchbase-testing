@@ -21,13 +21,12 @@ import com.dreameddeath.core.json.IObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.swagger.models.Model;
+import io.swagger.models.Path;
+import io.swagger.models.Response;
 import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.Property;
-import io.swagger.util.ModelDeserializer;
-import io.swagger.util.ParameterDeserializer;
-import io.swagger.util.PropertyDeserializer;
-import io.swagger.util.SecurityDefinitionDeserializer;
+import io.swagger.util.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,6 +56,8 @@ public class ServiceObjectMapperConfigurator implements IObjectMapperConfigurato
     @Override
     public void configure(ObjectMapper mapper, ConfiguratorType type) {
         SimpleModule swaggerModule = new SimpleModule();
+        swaggerModule.addDeserializer(Path.class, new PathDeserializer());
+        swaggerModule.addDeserializer(Response.class, new ResponseDeserializer());
         swaggerModule.addDeserializer(Property.class, new PropertyDeserializer());
         swaggerModule.addDeserializer(Model.class, new ModelDeserializer());
         swaggerModule.addDeserializer(Parameter.class, new ParameterDeserializer());

@@ -16,6 +16,8 @@
 
 package com.dreameddeath.apps.admin;
 
+import com.dreameddeath.core.config.ConfigPropertyFactory;
+import com.dreameddeath.core.config.impl.StringConfigProperty;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import io.swagger.annotations.Api;
@@ -36,6 +38,8 @@ import java.util.Map;
 @ServiceDef(domain = "test",name="test",version="2.0",status = VersionStatus.TESTING)
 @Api
 public class TestRestV2 extends TestRest {
+    private final StringConfigProperty property = ConfigPropertyFactory.getStringProperty("test.message.prefix","a warm welcome");
+
     @Override
     @GET
     @Path("{id}")
@@ -43,7 +47,8 @@ public class TestRestV2 extends TestRest {
     @ApiOperation("get enhanced generated message")
     public Map<String, Object> genericGet(@PathParam("id") String id){
         Map<String,Object> result = new HashMap<>();
-        result.put("message","A warm Welcome to you : "+id);
+
+        result.put("message",property.get()+" to you : "+id);
         return result;
     }
 }

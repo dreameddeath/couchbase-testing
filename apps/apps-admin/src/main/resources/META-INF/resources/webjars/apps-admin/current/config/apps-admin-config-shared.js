@@ -8,6 +8,10 @@ define(['angular','angular-route','angular-animate','apps-admin-config-list','ui
 
     appsConfigModule.config(['$stateProvider', function($stateProvider) {
                  $stateProvider
+                  .state('admin.config', {
+                   url:         '/config',
+                   templateUrl: requirejs.toUrl('apps-admin-config-shared.html')
+                })
                  .state('admin.config.domain', {
                     url:         '/:domain',
                     templateUrl: requirejs.toUrl('apps-admin-config-list.html'),

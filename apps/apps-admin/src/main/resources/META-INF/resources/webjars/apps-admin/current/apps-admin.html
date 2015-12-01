@@ -14,7 +14,12 @@
   ~ limitations under the License.
   -->
 
-<div ng-controller="apps-admin-ctrl">
-    <tabs data="adminTabs"></tabs>
-    <div class="tab-content" ui-view autoscroll></div>
+<div ng-controller="apps-admin-ctrl" class="row" ng-css-files="['bootstrap-css.css']" >
+    <div class="center-block" style="width:95%">
+        <tabs data="adminTabs"></tabs>
+        <div class="panel panel-default" style="border-top: none;border-top-left-radius:0%;border-top-right-radius:0%">
+            <div class="panel-body"  ui-view autoscroll>
+            </div>
+        </div>
+    </div>
 </div>

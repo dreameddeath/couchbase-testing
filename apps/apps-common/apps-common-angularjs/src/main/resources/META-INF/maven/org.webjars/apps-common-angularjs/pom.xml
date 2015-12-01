@@ -21,12 +21,17 @@
             {
                 "paths": {
                     "domReady": "domReady",
+                    "loadcss": "loadcss",
+                    "angular-js-css-file":"angular-js-css-file",
                     "ocLazyLoad": "ocLazyLoad.require",
-                    "ui-router-tabs": "ui-router-tabs"
+                    "ui-router-tabs": "ui-router-tabs",
+                    "ui-router-extras":"ct-ui-router-extras",
+                    "ui-router-lazy-load":"ui-router-lazy-load"
                 },
                 "shim": {
                     "ocLazyLoad": [ "angular" ],
-                    "ui-router-tabs" :  ["angular"]
+                    "ui-router-tabs" :  ["angular","angular-ui-router"],
+                    "ui-router-extras" :  ["angular","angular-ui-router","ocLazyLoad"]
                 }
             }
         </requirejs>

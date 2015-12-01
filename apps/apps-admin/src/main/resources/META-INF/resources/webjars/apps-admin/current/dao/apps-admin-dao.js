@@ -6,6 +6,14 @@ define(['angular','angular-route','angular-animate','apps-admin-dao-resource','u
         'template/modal/window.html'
         ]
     );
+
+    appsDaosModule.config(['$stateProvider', function($stateProvider) {
+                    $stateProvider.state('admin.dao', {
+                       url:         '/daos',
+                       templateUrl: requirejs.toUrl('apps-admin-dao.html')
+                    })
+    }]);
+
     appsDaosModule.controller('apps-admin-dao-ctrl',['$scope','$uibModal',
             'DaoListService','DaoInfoService',
             function($scope,$uibModal,DaoListService,DaoInfoService){
@@ -53,7 +61,7 @@ define(['angular','angular-route','angular-animate','apps-admin-dao-resource','u
                 function($scope,$uibModalInstance,daoInfo){
                     $scope.dao = daoInfo;
                     $scope.ok=function(){
-                        $uibModalInstance.dismiss('ok');
+                        $uibModalInstance.close();
                     }
                 }]
             );

@@ -1,13 +1,15 @@
 'use strict';
 
-define(['angular','angular-route','angular-animate',
-        'apps-admin-daemon','apps-admin-dao','apps-admin-config-shared','apps-admin-service',
+define(['angular','ui-router-lazy-load','angular-js-css-file',
         'ui-bootstrap-tpls','ui-router-tabs','angular-ui-router'],function(angular){
+
     var appsAdminModule = angular.module('apps-admin',[
-        'apps-admin-daemon','apps-admin-dao','apps-admin-config-shared','apps-admin-service',
-        'ngRoute','ui.router','ui.router.tabs'
+        'ui-router-lazy-load','angular-js-css-file',
+      'ui.router','ui.router.tabs'
     ,'ui.bootstrap.tabs',"template/tabs/tabset.html","template/tabs/tab.html"]
     );
+
+
 
     appsAdminModule.config(['$stateProvider', function($stateProvider) {
                              $stateProvider
@@ -16,24 +18,56 @@ define(['angular','angular-route','angular-animate',
                                 controller:  'apps-admin-ctrl',
                                 templateUrl: requirejs.toUrl('apps-admin.html')
                              })
-                             .state('admin.daemon', {
-                                url:         '/daemons',
-                                templateUrl: requirejs.toUrl('apps-admin-daemon.html')
-                             })
-                             .state('admin.dao', {
-                                 url:         '/daos',
-                                 templateUrl: requirejs.toUrl('apps-admin-dao.html')
-                              })
-                              .state('admin.config', {
-                                  url:         '/config',
-                                  templateUrl: requirejs.toUrl('apps-admin-config-shared.html')
-                               })
-                               .state('admin.service', {
+
+                               /*.state('admin.service', {
                                  url:         '/service',
                                  templateUrl: requirejs.toUrl('apps-admin-service.html')
-                              })
+                              })*/
 
                  }]);
+
+    appsAdminModule.config(['$futureStateProvider', function($futureStateProvider) {
+        $futureStateProvider.futureState({
+            'stateName': 'admin.service',
+            'urlPrefix': '/services',
+            'type': 'ocLazyLoad',
+            'moduleDef':{
+                reconfig: true,
+                name: 'apps-admin-service',
+                files: ['apps-admin-service']
+            }
+        });
+        $futureStateProvider.futureState({
+            'stateName': 'admin.daemon',
+            'urlPrefix': '/daemons',
+            'type': 'ocLazyLoad',
+            'moduleDef':{
+                reconfig: true,
+                name: 'apps-admin-daemon',
+                files: ['apps-admin-daemon']
+            }
+        });
+        $futureStateProvider.futureState({
+            'stateName': 'admin.dao',
+            'urlPrefix': '/daos',
+            'type': 'ocLazyLoad',
+            'moduleDef':{
+                reconfig: true,
+                name: 'apps-admin-dao',
+                files: ['apps-admin-dao']
+            }
+        });
+        $futureStateProvider.futureState({
+            'stateName': 'admin.config',
+            'urlPrefix': '/configs',
+            'type': 'ocLazyLoad',
+            'moduleDef':{
+                reconfig: true,
+                name: 'apps-admin-config-shared',
+                files: ['apps-admin-config-shared']
+            }
+        });
+    }]);
 
     appsAdminModule.controller('apps-admin-ctrl',['$scope','$state','$stateParams',
             function($scope,$state,$stateParams){

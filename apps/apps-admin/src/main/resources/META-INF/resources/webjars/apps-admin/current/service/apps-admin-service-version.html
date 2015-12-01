@@ -42,7 +42,7 @@
                                 <th>address</th>
                                 <th>port</th>
                                 <th>uriSpec</th>
-                                <th>uid</th>
+                                <th>server</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -50,7 +50,18 @@
                                 <td>{{instance.address}}</td>
                                 <td>{{instance.port}}</td>
                                 <td>{{instance.uriSpec}}</td>
-                                <td>{{instance.daemonUid}}<br/>{{instance.webServerUid}}</td>
+                                <td>
+                                    <div class="row">
+                                        <div class="col-xs-1"><button type="button" class="btn btn-xs btn-primary" ng-click="showDaemon(instance.daemonUid)" aria-label="go to deamon details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button></div>
+                                        <div class="col-xs-2">daemon</div>
+                                        <div class="col-xs-9">{{instance.daemonUid}}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-1"></div>
+                                        <div class="col-xs-2">webserver</div>
+                                        <div class="col-xs-9">{{instance.webServerUid}}</div>
+                                    </div>
+                                </td>
                             </tr>
                             </tbody>
                         </table>

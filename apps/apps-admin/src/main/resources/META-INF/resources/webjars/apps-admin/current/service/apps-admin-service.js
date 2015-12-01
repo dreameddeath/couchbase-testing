@@ -8,6 +8,10 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
     );
     appsServiceModule.config(['$stateProvider', function($stateProvider) {
                 $stateProvider
+                     .state('admin.service', {
+                          url:         '/service',
+                          templateUrl: requirejs.toUrl('apps-admin-service.html')
+                       })
                      .state('admin.service.domain', {
                         url:         '/:domain',
                         templateUrl: requirejs.toUrl('apps-admin-service-domain.html'),
@@ -103,6 +107,9 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
     appsServiceModule.controller('apps-admin-service-version-ctrl',['$scope','$state','$stateParams',
                     function($scope,$state,$stateParams){
                         $scope.$parent.setCurrVersion($stateParams.fullName);
+                        $scope.showDaemon = function(daemonUid){
+                            $state.go("admin.daemon.detail",{uid:daemonUid});
+                        }
                         //$scope.serviceInfo = $scope.$parent.getServiceVersionInfo($scope.fullName);
                     }]
                 );

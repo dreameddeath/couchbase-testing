@@ -81,9 +81,7 @@ public class RestSharedConfigManagementService {
         return result;
     }
 
-    @GET
     @Path("/{name}")
-    @Produces({MediaType.APPLICATION_JSON})
     public ConfigManagementService getSharedConfig(@PathParam("name")String sharedName){
         ConfigManagementService service = sharedConfigServices.get(sharedName);
         if(service==null){

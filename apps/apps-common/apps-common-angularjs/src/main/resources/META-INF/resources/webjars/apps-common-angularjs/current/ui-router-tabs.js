@@ -77,7 +77,7 @@ angular.module('ui.router.tabs').directive(
         $scope.active = function(tab) {
 
           var isAncestorOfCurrentRoute = $state.includes(tab.route, tab.params, tab.options);
-          return isAncestorOfCurrentRoute;
+          return isAncestorOfCurrentRoute===true;
         };
 
         $scope.update_tabs = function() {

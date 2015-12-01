@@ -17,27 +17,29 @@
 <div ng-controller="apps-admin-daemon-detail-ctrl">
     <div ui-view />
     <div ng-show="isCurrent()">
-        <div class="row">
-            <div class="col-md-2">
-                <button class="btn btn-sm btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button>
-            </div>
-            <div class="col-md-10">
-                <h4 class="modal-title">Details of daemon {{daemonInfo.name}}</h4>
-            </div>
-        </div>
 
-        <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{daemonInfo.uuid}}</div></div>
-        <div class="row"><div class="col-md-3">Name</div><div class="col-md-9">{{daemonInfo.name}}</div></div>
-        <div class="row"><div class="col-md-3">Type</div><div class="col-md-9">{{daemonInfo.type}}</div></div>
-        <div class="row"><div class="col-md-3">Class</div><div class="col-md-9">{{daemonInfo.className}}</div></div>
-        <div class="row"><div class="col-md-3">Address</div><div class="col-md-9">{{daemonInfo.address}}</div></div>
-        <div class="row"><div class="col-md-3">Port</div><div class="col-md-9">{{daemonInfo.port}}</div></div>
-        <div class="row"><div class="col-md-3">Status</div><div class="col-md-9">{{daemonInfo.status}}</div></div>
-        <div class="row"><div class="col-md-3">Config</div>
-            <div class="col-md-9">
-                <button type="button" class="btn btn-info btn-xs" ng-click="viewConfig('all')" aria-label="show all config entries">All</button>
-                <button type="button" class="btn btn-info btn-xs" ng-click="viewConfig('local-temporary')" aria-label="show temp config entries">Temp</button>
-                <button type="button" class="btn btn-info btn-xs" ng-click="viewConfig('local-persistent')" aria-label="show persistent config entries">Persistent</button>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <span class="label"><button class="btn btn-sm btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button></span>
+                    <span>Details of daemon {{daemonInfo.name}}</span>
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{daemonInfo.uuid}}</div></div>
+                <div class="row"><div class="col-md-3">Name</div><div class="col-md-9">{{daemonInfo.name}}</div></div>
+                <div class="row"><div class="col-md-3">Type</div><div class="col-md-9">{{daemonInfo.type}}</div></div>
+                <div class="row"><div class="col-md-3">Class</div><div class="col-md-9">{{daemonInfo.className}}</div></div>
+                <div class="row"><div class="col-md-3">Address</div><div class="col-md-9">{{daemonInfo.address}}</div></div>
+                <div class="row"><div class="col-md-3">Port</div><div class="col-md-9">{{daemonInfo.port}}</div></div>
+                <div class="row"><div class="col-md-3">Status</div><div class="col-md-9">{{daemonInfo.status}}</div></div>
+                <div class="row"><div class="col-md-3">Config</div>
+                    <div class="col-md-9">
+                        <button type="button" class="btn btn-info btn-xs" ng-click="viewConfig('all')" aria-label="show all config entries">All</button>
+                        <button type="button" class="btn btn-info btn-xs" ng-click="viewConfig('local-temporary')" aria-label="show temp config entries">Temp</button>
+                        <button type="button" class="btn btn-info btn-xs" ng-click="viewConfig('local-persistent')" aria-label="show persistent config entries">Persistent</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="row"><div class="col-md-12">

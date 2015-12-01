@@ -7,7 +7,12 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
     );
 
     appsAdminModule.config(['$stateProvider', function($stateProvider) {
-        $stateProvider.state('admin.daemon.list', {
+        $stateProvider
+        .state('admin.daemon', {
+            url:         '/daemons',
+            templateUrl: requirejs.toUrl('apps-admin-daemon.html')
+         })
+        .state('admin.daemon.list', {
             url:         '/list',
             templateUrl: requirejs.toUrl('apps-admin-daemon-list.html'),
         })

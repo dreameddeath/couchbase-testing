@@ -1,4 +1,4 @@
-requirejs(['require','angular','apps-admin'], function (require,angular) {
+requirejs(['require','angular','apps-admin','angular-js-css-file'], function (require,angular) {
     'use strict';
 
     /*
@@ -9,5 +9,4 @@ requirejs(['require','angular','apps-admin'], function (require,angular) {
     require(['domReady!'], function (document) {
         angular.bootstrap(document, ['apps-admin']);
     });
-
 });
