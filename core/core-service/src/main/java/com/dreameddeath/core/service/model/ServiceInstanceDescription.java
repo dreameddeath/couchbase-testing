@@ -39,7 +39,7 @@ public class ServiceInstanceDescription{
     @JsonProperty("state")
     private String state;
 
-    public ServiceInstanceDescription(ServiceInstance<ServiceDescription> instance){
+    public ServiceInstanceDescription(ServiceInstance<CuratorDiscoveryServiceDescription> instance){
         name =instance.getName();
         address = instance.getAddress();
         uid = instance.getId();

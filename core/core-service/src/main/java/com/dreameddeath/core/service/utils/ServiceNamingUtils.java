@@ -19,6 +19,8 @@ package com.dreameddeath.core.service.utils;
 import com.dreameddeath.core.curator.utils.CuratorUtils;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.config.ServiceConfigProperties;
+import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.model.ServiceDescription;
 import com.dreameddeath.core.service.model.ServiceDomainDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.curator.framework.CuratorFramework;
@@ -63,12 +65,19 @@ public class ServiceNamingUtils {
         }
     }
 
-    public static String buildServiceDomain(CuratorFramework client,String domain){
+
+
+    public static String buildServiceDomainPathName(String domain) {
         String basePath = ServiceConfigProperties.SERVICES_DISCOVERY_ROOT_PATH.get();
         if(!domain.matches("(?:\\w|\\.)+")){
             throw new IllegalArgumentException("The domain <"+domain+"> is not valid");
         }
-        String fullPath = ("/"+basePath+"/"+domain).replaceAll("/{2,}","/");
+        return ("/"+basePath+"/"+domain).replaceAll("/{2,}","/");
+
+    }
+
+    public static String buildServiceDomain(CuratorFramework client,String domain){
+        String fullPath = buildServiceDomainPathName(domain);
         ServiceDomainDefinition definition = new ServiceDomainDefinition();
         definition.setCreationDate(DateTime.now());
         definition.setName(domain);
@@ -78,6 +87,32 @@ public class ServiceNamingUtils {
             CuratorUtils.createPathIfNeeded(client,fullPath , () -> {
                 try {
                     LOG.info("Path <{}> created for domain <{}>",fullPath,domain);
+                    return ObjectMapperFactory.BASE_INSTANCE.getMapper().writeValueAsBytes(definition);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        catch(Exception e){
+            throw new RuntimeException("Unexpected issue",e);
+        }
+        return fullPath;
+    }
+
+    public static String buildServicePath(CuratorFramework client,String registrarDomain,CuratorDiscoveryServiceDescription service){
+        String domainPathName = buildServiceDomainPathName(registrarDomain);
+        String serviceFullName = ServiceNamingUtils.buildServiceFullName(service.getName(),service.getVersion());
+        String fullPath = (domainPathName+"/"+serviceFullName).replaceAll("/{2,}","/");
+        ServiceDescription definition = new ServiceDescription();
+        definition.setCreationDate(DateTime.now());
+        definition.setName(service.getName());
+        definition.setVersion(service.getVersion());
+        definition.setFullName(serviceFullName);
+        definition.setDescription(ServiceConfigProperties.SERVICE_INSTANCE_DESCRIPTION.getProperty(service.getName(),service.getVersion()).get());
+        try {
+            CuratorUtils.createPathIfNeeded(client,fullPath , () -> {
+                try {
+                    LOG.info("Path <{}> created for service <{}/{}> in domain {}",fullPath,service.getName(),service.getVersion(),service.getDomain());
                     return ObjectMapperFactory.BASE_INSTANCE.getMapper().writeValueAsBytes(definition);
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);

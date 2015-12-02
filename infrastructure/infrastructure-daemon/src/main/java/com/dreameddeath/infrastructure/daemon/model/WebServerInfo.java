@@ -17,7 +17,7 @@
 package com.dreameddeath.infrastructure.daemon.model;
 
 import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
-import com.dreameddeath.core.service.model.ServiceDescription;
+import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
@@ -48,7 +48,7 @@ public class WebServerInfo {
     @JsonProperty("daos")
     private List<DaoInstanceInfo> daoInfo=new ArrayList<>();
     @JsonProperty("services")
-    private List<ServiceInstance<ServiceDescription>> services=new ArrayList<>();
+    private List<ServiceInstance<CuratorDiscoveryServiceDescription>> services=new ArrayList<>();
 
     public WebServerInfo(AbstractWebServer server){
         uid = server.getUuid();
@@ -127,11 +127,11 @@ public class WebServerInfo {
         this.daoInfo = daoInfo;
     }
 
-    public List<ServiceInstance<ServiceDescription>> getServices() {
+    public List<ServiceInstance<CuratorDiscoveryServiceDescription>> getServices() {
         return services;
     }
 
-    public void setServices(List<ServiceInstance<ServiceDescription>> services) {
+    public void setServices(List<ServiceInstance<CuratorDiscoveryServiceDescription>> services) {
         this.services = services;
     }
 }

@@ -18,12 +18,6 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
                                 controller:  'apps-admin-ctrl',
                                 templateUrl: requirejs.toUrl('apps-admin.html')
                              })
-
-                               /*.state('admin.service', {
-                                 url:         '/service',
-                                 templateUrl: requirejs.toUrl('apps-admin-service.html')
-                              })*/
-
                  }]);
 
     appsAdminModule.config(['$futureStateProvider', function($futureStateProvider) {
@@ -32,7 +26,6 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
             'urlPrefix': '/services',
             'type': 'ocLazyLoad',
             'moduleDef':{
-                reconfig: true,
                 name: 'apps-admin-service',
                 files: ['apps-admin-service']
             }
@@ -42,7 +35,6 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
             'urlPrefix': '/daemons',
             'type': 'ocLazyLoad',
             'moduleDef':{
-                reconfig: true,
                 name: 'apps-admin-daemon',
                 files: ['apps-admin-daemon']
             }
@@ -52,7 +44,6 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
             'urlPrefix': '/daos',
             'type': 'ocLazyLoad',
             'moduleDef':{
-                reconfig: true,
                 name: 'apps-admin-dao',
                 files: ['apps-admin-dao']
             }
@@ -62,7 +53,6 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
             'urlPrefix': '/configs',
             'type': 'ocLazyLoad',
             'moduleDef':{
-                reconfig: true,
                 name: 'apps-admin-config-shared',
                 files: ['apps-admin-config-shared']
             }

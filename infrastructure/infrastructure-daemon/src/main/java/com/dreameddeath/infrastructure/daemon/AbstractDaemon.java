@@ -186,6 +186,13 @@ public class AbstractDaemon {
         daemonLifeCycle.join();
     }
 
+    public void startHaltedAndJoin() throws Exception{
+        //Starting using the status manager
+        daemonLifeCycle.halt();
+        daemonLifeCycle.join();
+    }
+
+
     private void stopForShutdownHook(){
         try{
             getDaemonLifeCycle().stop();

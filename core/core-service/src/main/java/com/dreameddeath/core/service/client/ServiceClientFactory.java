@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.client;
 
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
-import com.dreameddeath.core.service.model.ServiceDescription;
+import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import org.apache.curator.x.discovery.ServiceInstance;
 
@@ -42,7 +42,7 @@ public class ServiceClientFactory {
         }
     };
 
-    public static String buildUri(ServiceInstance<ServiceDescription> serviceDescr){
+    public static String buildUri(ServiceInstance<CuratorDiscoveryServiceDescription> serviceDescr){
         Map<String,Object> params = new TreeMap<>();
         serviceDescr.getUriSpec().getParts().stream()
                 .filter(part -> part.isVariable() && !VARIABLE_TO_IGNORE.contains(part.getValue()))
@@ -75,7 +75,7 @@ public class ServiceClientFactory {
         }
     }
 
-    public WebTarget getClient(final ServiceInstance<ServiceDescription> serviceInstance){
+    public WebTarget getClient(final ServiceInstance<CuratorDiscoveryServiceDescription> serviceInstance){
         final String uri = buildUri(serviceInstance);
         return clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
     }

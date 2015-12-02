@@ -16,38 +16,41 @@
 
 package com.dreameddeath.core.service.model;
 
-import com.dreameddeath.core.curator.model.IRegisterable;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.joda.time.DateTime;
+import io.swagger.models.Swagger;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
- * Created by Christophe Jeunesse on 02/12/2015.
+ * Created by Christophe Jeunesse on 17/01/2015.
  */
-public class ServiceDescription implements IRegisterable {
-    @JsonProperty("fullName")
-    private String fullName;
+public class CuratorDiscoveryServiceDescription {
+    @JsonProperty("domain")
+    private String domain;
     @JsonProperty("name")
     private String name;
     @JsonProperty("version")
     private String version;
-    @JsonProperty("creationDate")
-    DateTime creationDate;
-    @JsonProperty("description")
-    private String description;
+    @JsonProperty("tags")
+    private Set<String> tags=new TreeSet<>();
+    @JsonProperty("state")
+    private String state;
+    @JsonProperty("swagger")
+    private Swagger swagger;
 
-    public String getFullName() {
-        return fullName;
+    public String getDomain() {
+        return domain;
     }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -55,29 +58,33 @@ public class ServiceDescription implements IRegisterable {
     public String getVersion() {
         return version;
     }
-
     public void setVersion(String version) {
         this.version = version;
     }
 
-    public DateTime getCreationDate() {
-        return creationDate;
+    public String getState() {
+        return state;
+    }
+    public void setState(String state) {
+        this.state = state;
     }
 
-    public void setCreationDate(DateTime creationDate) {
-        this.creationDate = creationDate;
+    public Swagger getSwagger() {
+        return swagger;
+    }
+    public void setSwagger(Swagger swagger) {
+        this.swagger = swagger;
     }
 
-    public String getDescription() {
-        return description;
+    public Set<String> getTags() {
+        return Collections.unmodifiableSet(tags);
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTags(Collection<String> tags) {
+        this.tags.clear();tags.addAll(tags);
     }
 
-    @Override @JsonIgnore
-    public String getUid() {
-        return fullName;
+    public void addTag(String tag){
+        this.tags.add(tag);
     }
 }

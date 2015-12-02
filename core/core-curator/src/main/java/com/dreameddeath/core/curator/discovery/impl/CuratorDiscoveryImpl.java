@@ -17,6 +17,7 @@
 package com.dreameddeath.core.curator.discovery.impl;
 
 import com.dreameddeath.core.curator.discovery.ICuratorDiscovery;
+import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryLifeCycleListener;
 import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
 import com.dreameddeath.core.curator.model.IRegisterable;
 import com.google.common.base.Preconditions;
@@ -46,6 +47,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     private final String basePath;
     private PathChildrenCache pathCache=null;
     private List<ICuratorDiscoveryListener<T>> listeners =new ArrayList<>();
+    private List<ICuratorDiscoveryLifeCycleListener> lifeCycleListeners =new ArrayList<>();
     private Map<String,T> instanceCache =  Maps.newConcurrentMap();
 
     public CuratorDiscoveryImpl(CuratorFramework curatorFramework, String basePath) {
@@ -60,6 +62,9 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
 
     @PostConstruct
     public final void start() throws Exception{
+        for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
+            listener.onStart(this,true);
+        }
         pathCache = new PathChildrenCache(curatorFramework,basePath,true);
         pathCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
         CountDownLatch started=new CountDownLatch(1);
@@ -96,15 +101,24 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
             }
         });
         started.await(10, TimeUnit.SECONDS);//TODO be parametizable
+        for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
+            listener.onStart(this,false);
+        }
         LOG.info("Discoverer started on path "+basePath);
     }
 
     @PreDestroy
     public final void stop() throws Exception{
+        for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
+            listener.onStop(this, true);
+        }
         if(pathCache!=null) {
             pathCache.close();
         }
         instanceCache.clear();
+        for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
+            listener.onStop(this,false);
+        }
     }
 
     protected void resync(String uid,final T newObj){
@@ -173,6 +187,12 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
             listener.onRegister(entry.getKey(),entry.getValue());
         }
     }
+
+    @Override
+    public void addLifeCycleListener(ICuratorDiscoveryLifeCycleListener listener){
+        lifeCycleListeners.add(listener);
+    }
+
 
     @Override
     final public CuratorFramework getClient(){

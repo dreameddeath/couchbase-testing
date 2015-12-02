@@ -16,21 +16,10 @@
 
 package com.dreameddeath.core.curator.discovery;
 
-import com.dreameddeath.core.curator.model.IRegisterable;
-import org.apache.curator.framework.CuratorFramework;
-
-import java.util.List;
-
 /**
- * Created by Christophe Jeunesse on 26/10/2015.
+ * Created by Christophe Jeunesse on 02/12/2015.
  */
-public interface ICuratorDiscovery<T extends IRegisterable> {
-    List<T> getList();
-    T get(String uid);
-    void start() throws Exception;
-    void stop() throws Exception;
-    void refresh() throws Exception;
-    void addListener(ICuratorDiscoveryListener<T> listener);
-    void addLifeCycleListener(ICuratorDiscoveryLifeCycleListener listener);
-    CuratorFramework getClient();
+public interface ICuratorDiscoveryLifeCycleListener {
+    void onStart(ICuratorDiscovery discoverer,boolean isBefore);
+    void onStop(ICuratorDiscovery discoverer,boolean isBefore);
 }

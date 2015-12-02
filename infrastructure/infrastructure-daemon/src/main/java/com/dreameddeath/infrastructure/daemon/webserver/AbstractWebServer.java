@@ -16,6 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.webserver;
 
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
@@ -37,6 +38,7 @@ import org.springframework.core.env.PropertySources;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Christophe Jeunesse on 21/08/2015.
@@ -57,6 +59,7 @@ public abstract class AbstractWebServer {
     private final String name;
     private final UUID uuid;
     private final Server webServer;
+    private final AtomicInteger startCounter=new AtomicInteger(0);
     private final WebServerCouchbaseFactories couchbaseFactories;
     private final ServerConnector serverConnector;
     private final PropertySources propertySources;
@@ -156,6 +159,7 @@ public abstract class AbstractWebServer {
     }
 
     public void start() throws Exception{
+        getMetricRegistry().removeMatching(MetricFilter.ALL);
         webServer.start();
     }
 

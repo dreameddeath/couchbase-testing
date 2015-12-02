@@ -91,16 +91,21 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     @Override
     synchronized public void halt() throws Exception {
-        sortListener(true);
         try {
-
             if (status == Status.STARTED) {
+                sortListener(true);
                 for (Listener listener : listeners) {
                     listener.lifeCycleHalt(this);
                 }
-                status = Status.HALTED;
-                lastHaltStartDate = new DateTime();
             }
+            else if(status==Status.STOPPED){
+                sortListener(false);
+                for(Listener listener:listeners){
+                    listener.lifeCycleStarting(this);
+                }
+            }
+            status = Status.HALTED;
+            lastHaltStartDate = new DateTime();
         }
         catch(Exception e){
             manageException(e, "halt");

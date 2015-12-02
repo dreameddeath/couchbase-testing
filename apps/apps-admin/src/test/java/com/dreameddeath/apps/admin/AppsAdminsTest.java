@@ -78,7 +78,7 @@ public class AppsAdminsTest {
                 .withWithCouchbase(true)
                 .withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
         daemons.add(daemon2);
-        daemon2.getDaemonLifeCycle().start();
+        daemon2.getDaemonLifeCycle().halt();//Start halted
     }
 
     @Test @Ignore

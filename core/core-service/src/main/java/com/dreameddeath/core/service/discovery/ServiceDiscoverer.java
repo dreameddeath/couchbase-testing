@@ -16,19 +16,29 @@
 
 package com.dreameddeath.core.service.discovery;
 
+import com.dreameddeath.core.curator.discovery.ICuratorDiscovery;
+import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryLifeCycleListener;
+import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
+import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.json.BaseObjectMapperConfigurator;
+import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
 import com.dreameddeath.core.service.model.*;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,61 +49,110 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Christophe Jeunesse on 18/01/2015.
  */
-public class ServiceDiscoverer {
-    private final String domain;
-    private final CuratorFramework client;
-    private ServiceDiscovery<ServiceDescription> serviceDiscovery;
-    private final ConcurrentMap<String,ServiceProvider<ServiceDescription>> serviceProviderMap=new ConcurrentHashMap<>();
+public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
+    private final static Logger LOG = LoggerFactory.getLogger(ServiceDiscoverer.class);
+    private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
+    private ServiceDiscovery<CuratorDiscoveryServiceDescription> serviceDiscovery;
+    private final ConcurrentMap<String,ServiceProvider<CuratorDiscoveryServiceDescription>> serviceProviderMap=new ConcurrentHashMap<>();
 
+    public ServiceDiscoverer(final CuratorFramework client,final String domain){
+        super(client,ServiceNamingUtils.buildServiceDomainPathName(domain));
+        /*this.client = client;
+        this.domain = domain;*/
+        this.addLifeCycleListener(new ICuratorDiscoveryLifeCycleListener() {
+            @Override
+            public void onStart(ICuratorDiscovery discoverer, boolean isBefore) {
+                if(!isBefore){
+                    return;
+                }
+                try {
+                    client.blockUntilConnected(10, TimeUnit.SECONDS);
+                }
+                catch(InterruptedException e){
+                    LOG.error("Cannot connect to zookeeper",e);
+                    throw new RuntimeException("Cannot connect to Zookeeper",e);
+                }
 
-    public ServiceDiscoverer(CuratorFramework client,String domain){
-        this.client = client;
-        this.domain = domain;
+                String fullPath = ServiceNamingUtils.buildServiceDomain(client,domain);
+                serviceDiscovery = ServiceDiscoveryBuilder.builder(CuratorDiscoveryServiceDescription.class)
+                        .serializer(new ServiceInstanceSerializerImpl())
+                        .client(client)
+                        .basePath(fullPath).build();
+                try{
+                    serviceDiscovery.start();
+                }
+                catch(Exception e){
+                    LOG.error("Cannot connect to zookeeper",e);
+                    throw new RuntimeException("Cannot start service discovery",e);
+                }
+            }
+
+            @Override
+            public void onStop(ICuratorDiscovery discoverer, boolean isBefore) {
+                if(isBefore){
+                    return;
+                }
+                try{
+                    serviceDiscovery.close();
+                }
+                catch(Exception e){
+                    throw new RuntimeException("Cannot stop service discovery",e);
+                }
+                serviceDiscovery=null;
+            }
+        });
+
+        addListener(new ICuratorDiscoveryListener<ServiceDescription>() {
+            @Override
+            public void onRegister(String uid, ServiceDescription obj) {
+                try {
+                    ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceDiscovery.serviceProviderBuilder().serviceName(obj.getFullName()).build();
+                    provider.start();
+                    serviceProviderMap.putIfAbsent(obj.getFullName(), provider);
+                } catch (Exception e) {
+                    LOG.error("Cannot register service " + obj.getFullName(), e);
+                }
+            }
+
+            @Override
+            public void onUnregister(String uid, ServiceDescription oldObj) {
+                try {
+                    ServiceProvider<CuratorDiscoveryServiceDescription> provider=serviceProviderMap.remove(oldObj.getFullName());
+                    if(provider!=null){
+                        provider.close();
+                    }
+                }
+                catch(Exception e){
+                    LOG.error("Cannot stop service "+oldObj.getFullName(),e);
+                }
+            }
+
+            @Override
+            public void onUpdate(String uid, ServiceDescription obj, ServiceDescription newObj) {
+                onRegister(uid,obj);
+            }
+        });
     }
 
-    public void start() throws ServiceDiscoveryException {
-        try {
-            client.blockUntilConnected(10, TimeUnit.SECONDS);
-        }
-        catch(InterruptedException e){
-            throw new ServiceDiscoveryException("Cannot connect to Zookeeper",e);
-        }
-
-        String fullPath = ServiceNamingUtils.buildServiceDomain(client,domain);
-        serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
-                .serializer(new ServiceInstanceSerializerImpl())
-                .client(client)
-                .basePath(fullPath).build();
-        try {
-            serviceDiscovery.start();
-        }
-        catch(Exception e){
-            throw new ServiceDiscoveryException("Cannot start service discovery",e);
-        }
-
-        resyncAllServices();
-    }
-
-
-    public  ServiceProvider<ServiceDescription> getServiceProvider(String name) throws ServiceDiscoveryException{
-        if(!serviceProviderMap.containsKey(name)){
+    public  ServiceProvider<CuratorDiscoveryServiceDescription> getServiceProvider(String name) throws ServiceDiscoveryException{
+        /*if(!serviceProviderMap.containsKey(name)){
             loadService(name);
-        }
+        }*/
         return serviceProviderMap.get(name);
     }
 
-    synchronized public void loadService(String name) throws ServiceDiscoveryException {
+    /*synchronized public void loadService(String name) throws ServiceDiscoveryException {
         try {
-            ServiceProvider<ServiceDescription> provider = serviceDiscovery.serviceProviderBuilder().serviceName(name).build();
+            ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceDiscovery.serviceProviderBuilder().serviceName(name).build();
             provider.start();
             serviceProviderMap.putIfAbsent(name, provider);
         }
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot start service provider for service "+name,e);
         }
-    }
+    }*/
 
-    public void resyncAllServices() throws ServiceDiscoveryException{
+    /*public void resyncAllServices() throws ServiceDiscoveryException{
         try {
             for (String name : serviceDiscovery.queryForNames()) {
                 loadService(name);
@@ -105,12 +164,12 @@ public class ServiceDiscoverer {
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot request existing service names",e);
         }
-    }
+    }*/
 
-    public ServiceInstance<ServiceDescription> getInstance(String fullName) throws ServiceDiscoveryException{
-        if(!serviceProviderMap.containsKey(fullName)){
+    public ServiceInstance<CuratorDiscoveryServiceDescription> getInstance(String fullName) throws ServiceDiscoveryException{
+        /*if(!serviceProviderMap.containsKey(fullName)){
             loadService(fullName);
-        }
+        }*/
         try {
             return serviceProviderMap.get(fullName).getInstance();
         }
@@ -119,13 +178,13 @@ public class ServiceDiscoverer {
         }
     }
 
-    public ServiceInstance<ServiceDescription> getInstance(String fullName,String uid) throws ServiceDiscoveryException{
-        if(!serviceProviderMap.containsKey(fullName)){
+    public ServiceInstance<CuratorDiscoveryServiceDescription> getInstance(String fullName, String uid) throws ServiceDiscoveryException{
+        /*if(!serviceProviderMap.containsKey(fullName)){
             loadService(fullName);
-        }
+        }*/
         try {
-            ServiceProvider<ServiceDescription> provider = serviceProviderMap.get(fullName);
-            for(ServiceInstance<ServiceDescription> instance : provider.getAllInstances()){
+            ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceProviderMap.get(fullName);
+            for(ServiceInstance<CuratorDiscoveryServiceDescription> instance : provider.getAllInstances()){
                 if(instance.getId().equals(uid)){
                     return instance;
                 }
@@ -139,11 +198,11 @@ public class ServiceDiscoverer {
 
 
     public ServicesByNameInstanceDescription getInstancesDescription() throws ServiceDiscoveryException{
-        resyncAllServices();
+        //resyncAllServices();
         ServicesByNameInstanceDescription desc = new ServicesByNameInstanceDescription();
-        for(Map.Entry<String,ServiceProvider<ServiceDescription>> entry:serviceProviderMap.entrySet()){
+        for(Map.Entry<String,ServiceProvider<CuratorDiscoveryServiceDescription>> entry:serviceProviderMap.entrySet()){
             try {
-                for (ServiceInstance<ServiceDescription> instance : entry.getValue().getAllInstances()) {
+                for (ServiceInstance<CuratorDiscoveryServiceDescription> instance : entry.getValue().getAllInstances()) {
                     desc.addServiceInstance(new ServiceInstanceDescription(instance));
                 }
             }
@@ -155,10 +214,10 @@ public class ServiceDiscoverer {
     }
 
     public ServicesListInstanceDescription getInstancesDescriptionByFullName(String fullName) throws ServiceDiscoveryException{
-        resyncAllServices();
+        //resyncAllServices();
         ServicesListInstanceDescription result = new ServicesListInstanceDescription();
         try {
-            for (ServiceInstance<ServiceDescription> instance : serviceProviderMap.get(fullName).getAllInstances()) {
+            for (ServiceInstance<CuratorDiscoveryServiceDescription> instance : serviceProviderMap.get(fullName).getAllInstances()) {
                 result.addServiceInstance(new ServiceInstanceDescription(instance));
             }
         }
@@ -170,9 +229,9 @@ public class ServiceDiscoverer {
 
 
     public Collection<ServiceInfoDescription> getInstancesInfo(String filterName) throws ServiceDiscoveryException {
-        resyncAllServices();
+        //resyncAllServices();
         Map<String,ServiceInfoDescription> mapServiceByName = new TreeMap<>();
-        for(Map.Entry<String,ServiceProvider<ServiceDescription>> entry:serviceProviderMap.entrySet()){
+        for(Map.Entry<String,ServiceProvider<CuratorDiscoveryServiceDescription>> entry:serviceProviderMap.entrySet()){
             String fullName = entry.getKey();
             String name = ServiceNamingUtils.getNameFromServiceFullName(fullName);
             if(StringUtils.isNotEmpty(filterName) && !filterName.equals(name)){
@@ -188,7 +247,7 @@ public class ServiceDiscoverer {
             String version = ServiceNamingUtils.getVersionFromServiceFullName(fullName);
             ServiceInfoVersionDescription foundServiceVersionInfoDescription = foundServiceInfoDescription.addIfNeededServiceVersionInfoDescriptionMap(version, new ServiceInfoVersionDescription());
             try {
-                for (ServiceInstance<ServiceDescription> instance : entry.getValue().getAllInstances()) {
+                for (ServiceInstance<CuratorDiscoveryServiceDescription> instance : entry.getValue().getAllInstances()) {
                     if(foundServiceVersionInfoDescription.getFullName()==null){
                         foundServiceVersionInfoDescription.setFullName(fullName);
                         foundServiceVersionInfoDescription.setState(instance.getPayload().getState());
@@ -209,5 +268,16 @@ public class ServiceDiscoverer {
             }
         }
         return mapServiceByName.values();
+    }
+
+    @Override
+    protected ServiceDescription deserialize(String uid, byte[] element) {
+        try {
+            return mapper.readValue(element, ServiceDescription.class);
+        }
+        catch(IOException e){
+            LOG.error("Cannot deserialize service node "+uid,e);
+            throw new RuntimeException("Cannot deserialize service node "+uid,e);
+        }
     }
 }

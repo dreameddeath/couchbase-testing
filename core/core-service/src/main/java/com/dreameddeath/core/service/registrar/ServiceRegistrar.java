@@ -19,7 +19,7 @@ package com.dreameddeath.core.service.registrar;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.ServiceDefTag;
 import com.dreameddeath.core.service.model.AbstractExposableService;
-import com.dreameddeath.core.service.model.ServiceDescription;
+import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import io.swagger.jaxrs.Reader;
@@ -51,7 +51,7 @@ public class ServiceRegistrar {
     private final String domain;
     private boolean isStarted=false;
     private Set<AbstractExposableService> services = new CopyOnWriteArraySet<>();
-    private ServiceDiscovery<ServiceDescription> serviceDiscovery;
+    private ServiceDiscovery<CuratorDiscoveryServiceDescription> serviceDiscovery;
 
 
     public ServiceRegistrar(CuratorFramework curatorClient,String domain){
@@ -63,7 +63,7 @@ public class ServiceRegistrar {
         curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
         String fullPath = ServiceNamingUtils.buildServiceDomain(curatorClient, domain);
 
-        serviceDiscovery = ServiceDiscoveryBuilder.builder(ServiceDescription.class)
+        serviceDiscovery = ServiceDiscoveryBuilder.builder(CuratorDiscoveryServiceDescription.class)
                 .serializer(new ServiceInstanceSerializerImpl())
                 .client(curatorClient)
                 .basePath(fullPath).build();
@@ -71,9 +71,7 @@ public class ServiceRegistrar {
         serviceDiscovery.start();
 
         for(AbstractExposableService foundService:services) {
-            ServiceInstance<ServiceDescription> newServiceDef = buildServiceInstanceDescription(foundService);
-            serviceDiscovery.registerService(newServiceDef);
-            LOG.info("Service {} registred with id {} within domain {}", newServiceDef.getName(),newServiceDef.getId(),domain);
+            registerService(foundService);
         }
 
         isStarted=true;
@@ -85,13 +83,13 @@ public class ServiceRegistrar {
         services.clear();
     }
 
-    public List<ServiceInstance<ServiceDescription>> getServicesInstanceDescription(){
+    public List<ServiceInstance<CuratorDiscoveryServiceDescription>> getServicesInstanceDescription(){
         return services.stream()
                 .map(this::buildServiceInstanceDescription)
                 .collect(Collectors.toList());
     }
 
-    protected ServiceInstance<ServiceDescription> buildServiceInstanceDescription(AbstractExposableService service) {
+    protected ServiceInstance<CuratorDiscoveryServiceDescription> buildServiceInstanceDescription(AbstractExposableService service) {
         ServiceDef annotDef = service.getClass().getAnnotation(ServiceDef.class);
         Path pathAnnot = service.getClass().getAnnotation(Path.class);
 
@@ -102,8 +100,9 @@ public class ServiceRegistrar {
         Reader reader=new Reader(swagger);
         reader.read(service.getClass());
 
-        ServiceDescription serviceDescr = new ServiceDescription();
+        CuratorDiscoveryServiceDescription serviceDescr = new CuratorDiscoveryServiceDescription();
         serviceDescr.setDomain(annotDef.domain());
+        serviceDescr.setName(annotDef.name());
         serviceDescr.setState(annotDef.status().name());
         serviceDescr.setVersion(annotDef.version());
         serviceDescr.setSwagger(reader.getSwagger());
@@ -133,6 +132,21 @@ public class ServiceRegistrar {
 
     public void addService(AbstractExposableService service){
         services.add(service);
+        if(isStarted){
+            try {
+                registerService(service);
+            }
+            catch(Exception e){
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    protected void registerService(AbstractExposableService service)throws Exception{
+        ServiceInstance<CuratorDiscoveryServiceDescription> newServiceDef = buildServiceInstanceDescription(service);
+        String servicePath= ServiceNamingUtils.buildServicePath(curatorClient,domain, newServiceDef.getPayload());
+        serviceDiscovery.registerService(newServiceDef);
+        LOG.info("Service {} registred with id {} within domain {} in path {}", newServiceDef.getName(), newServiceDef.getId(), domain,servicePath);
     }
 
 }

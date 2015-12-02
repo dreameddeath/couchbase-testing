@@ -18,8 +18,7 @@ package com.dreameddeath.infrastructure.daemon.servlet;
 
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
-import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
-import com.dreameddeath.core.service.model.ServiceDescription;
+import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import org.apache.curator.framework.CuratorFramework;
@@ -49,7 +48,7 @@ public class ProxyServlet extends AsyncProxyServlet {
 
     private String prefix;
     private List<ServiceDiscoverer> serviceDiscoverers=new ArrayList<>();
-    private ConcurrentMap<ServiceUid,ServiceProvider<ServiceDescription>> serviceMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<ServiceUid,ServiceProvider<CuratorDiscoveryServiceDescription>> serviceMap = new ConcurrentHashMap<>();
 
 
     @Override
@@ -64,7 +63,7 @@ public class ProxyServlet extends AsyncProxyServlet {
             try {
                 newService.start();
             }
-            catch (ServiceDiscoveryException e){
+            catch (Exception e){
                 throw new ServletException(e);
             }
             serviceDiscoverers.add(newService);
@@ -73,11 +72,11 @@ public class ProxyServlet extends AsyncProxyServlet {
 
 
 
-    private ServiceProvider<ServiceDescription> findServiceProvider(ServiceUid suid){
+    private ServiceProvider<CuratorDiscoveryServiceDescription> findServiceProvider(ServiceUid suid){
         String name = ServiceNamingUtils.buildServiceFullName(suid.getServiceId(),suid.getVersion());
         for(ServiceDiscoverer discoverer:serviceDiscoverers){
             try {
-                discoverer.resyncAllServices();
+                //discoverer.resyncAllServices();
                 return discoverer.getServiceProvider(name);
             }
             catch(Exception e){
@@ -110,8 +109,8 @@ public class ProxyServlet extends AsyncProxyServlet {
 
         try {
             serviceId = URLDecoder.decode(serviceId, "UTF-8");
-            ServiceProvider<ServiceDescription> provider = serviceMap.computeIfAbsent(new ServiceUid(serviceId,version), suid -> findServiceProvider(suid));
-            ServiceInstance<ServiceDescription> instance=provider.getInstance();
+            ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceMap.computeIfAbsent(new ServiceUid(serviceId,version), suid -> findServiceProvider(suid));
+            ServiceInstance<CuratorDiscoveryServiceDescription> instance=provider.getInstance();
             if(instance==null){
 
             }
