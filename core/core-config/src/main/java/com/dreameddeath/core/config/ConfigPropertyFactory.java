@@ -38,7 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ConfigPropertyFactory {
     public static final String LISTING_CONFIG_FILE="META-INF/core-config/configClasses";
     private static ConfigPropertyFactory INSTANCE=null;
-    private static ConcurrentMap<String, List<IConfigProperty>> mapCallbackPerProperty = new ConcurrentHashMap<>();
+    private final static ConcurrentMap<String, List<IConfigProperty>> mapCallbackPerProperty = new ConcurrentHashMap<>();
 
     public static synchronized ConfigPropertyFactory getInstance(){
         if(INSTANCE==null){
@@ -170,6 +170,9 @@ public class ConfigPropertyFactory {
     }
 
     public static void fireCallback(String name, Object value) {
+        if(name==null){
+            return;
+        }
         if (ConfigPropertyFactory.mapCallbackPerProperty.containsKey(name)) {
             for (IConfigProperty<?> prop : ConfigPropertyFactory.mapCallbackPerProperty.get(name)) {
                 for (ConfigPropertyChangedCallback callback : prop.getCallbacks()) {

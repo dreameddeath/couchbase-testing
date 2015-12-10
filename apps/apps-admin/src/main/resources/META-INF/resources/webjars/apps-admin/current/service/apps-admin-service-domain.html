@@ -31,6 +31,7 @@
                     <th>version</th>
                     <th>state</th>
                     <th>instances</th>
+                    <th>clients</th>
                 </tr>
                 </thead>
                 <tbody ng-repeat="service in services | orderBy:'name'">
@@ -44,6 +45,7 @@
                     <td>{{version}}</td>
                     <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[versionInfo.state]">{{versionInfo.state}}</span></td>
                     <td>{{versionInfo.instances.length}}</td>
+                    <td>{{versionInfo.clients.length}}</td>
                 </tr>
                 </tbody>
             </table>

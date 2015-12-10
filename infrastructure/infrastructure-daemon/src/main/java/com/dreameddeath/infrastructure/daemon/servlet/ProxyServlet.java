@@ -16,7 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.servlet;
 
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.ServiceClientImpl;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
@@ -114,7 +114,7 @@ public class ProxyServlet extends AsyncProxyServlet {
             if(instance==null){
 
             }
-            String uriStr = ServiceClientFactory.buildUri(instance);
+            String uriStr = ServiceClientImpl.buildUri(instance);
             if(!uriStr.endsWith("/")){
                 uriStr += "/";
             }

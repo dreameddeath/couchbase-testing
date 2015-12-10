@@ -48,13 +48,13 @@ public class CouchbaseDocumentObjectMapperConfigurator implements IObjectMapperC
 
     @Override
     public boolean applicable(ConfiguratorType type) {
-        return type.contains(BASE_COUCHBASE_TYPE);
+        return type.contains(BaseObjectMapperConfigurator.BASE_TYPE);
     }
 
     @Override
     public void configure(ObjectMapper mapper, ConfiguratorType type) {
-        CouchbaseDocumentIntrospector.Domain domain=CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE;
-        if(type.contains(BASE_COUCHBASE_STORAGE)){
+        //CouchbaseDocumentIntrospector.Domain domain=CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE;
+        /*if(type.contains(BASE_COUCHBASE_STORAGE)){
             domain =CouchbaseDocumentIntrospector.Domain.STORAGE;
         }
         else if(type.contains(BASE_COUCHBASE_PUBLIC)){
@@ -62,10 +62,10 @@ public class CouchbaseDocumentObjectMapperConfigurator implements IObjectMapperC
         }
         else if(type.contains(BASE_COUCHBASE_INTERNAL)){
             domain= CouchbaseDocumentIntrospector.Domain.INTERNAL_SERVICE;
-        }
+        }*/
 
         mapper.setConfig(mapper.getDeserializationConfig().withAttribute(EntityVersionUpgradeManager.class, new EntityVersionUpgradeManager()));
-        mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector(domain));
-        mapper.registerModule(new CouchbaseDocumentModule(domain));
+        mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
+        mapper.registerModule(new CouchbaseDocumentModule());
     }
 }

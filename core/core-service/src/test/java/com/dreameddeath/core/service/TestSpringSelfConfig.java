@@ -19,8 +19,10 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
@@ -69,6 +71,17 @@ public class TestSpringSelfConfig implements ServletContextAware
     @Bean(name="serviceDiscoverer")
     public ServiceDiscoverer getDiscoverer(){
         return (ServiceDiscoverer)servletContext.getAttribute("serviceDiscoverer");
+    }
+
+    @Bean(name="clientRegistrar")
+    public ClientRegistrar getClientRegistrar(){
+        return (ClientRegistrar) servletContext.getAttribute("clientRegistrar");
+    }
+
+
+    @Bean(name="clientDiscoverer")
+    public ClientDiscoverer getClientDiscoverer(){
+        return (ClientDiscoverer) servletContext.getAttribute("clientDiscoverer");
     }
 
     @Bean(name="testingJaxRsServer")

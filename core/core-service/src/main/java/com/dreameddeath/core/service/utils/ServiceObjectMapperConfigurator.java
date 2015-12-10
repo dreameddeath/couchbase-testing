@@ -50,7 +50,7 @@ public class ServiceObjectMapperConfigurator implements IObjectMapperConfigurato
 
     @Override
     public boolean applicable(ConfiguratorType type) {
-        return type.contains(SERVICE_MAPPER_CONFIGURATOR);
+        return type.contains(BaseObjectMapperConfigurator.BASE_TYPE);
     }
 
     @Override

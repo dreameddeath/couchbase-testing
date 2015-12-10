@@ -25,6 +25,6 @@
     <context:annotation-config />
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
-
+    <import resource="classpath:META-INF/spring/webserver.base.applicationContext.xml" />
     <import resource="classpath:apps-admin.applicationContext.xml" />
 </beans>

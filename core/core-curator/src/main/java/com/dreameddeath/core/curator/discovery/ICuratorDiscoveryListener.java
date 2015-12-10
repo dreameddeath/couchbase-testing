@@ -24,5 +24,5 @@ import com.dreameddeath.core.curator.model.IRegisterable;
 public interface ICuratorDiscoveryListener <T extends IRegisterable> {
     void onRegister(String uid,T obj);
     void onUnregister(String uid,T oldObj);
-    void onUpdate(String uid,T obj,T newObj);
+    void onUpdate(String uid,T oldObj,T newObj);
 }

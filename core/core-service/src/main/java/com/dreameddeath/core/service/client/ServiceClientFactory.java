@@ -18,14 +18,16 @@ package com.dreameddeath.core.service.client;
 
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
-import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.model.ClientInstanceInfo;
+import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
-import org.apache.curator.x.discovery.ServiceInstance;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.UriBuilder;
-import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 //import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
@@ -34,50 +36,50 @@ import java.util.*;
  * Created by Christophe Jeunesse on 04/03/2015.
  */
 public class ServiceClientFactory {
-    private static final Set<String> VARIABLE_TO_IGNORE = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("scheme","port","address")));
+    private final static Logger LOG = LoggerFactory.getLogger(ServiceClientFactory.class);
     private final ServiceDiscoverer serviceDiscoverer;
-    private final ThreadLocal<Map<String,WebTarget>> clientPerUri = new ThreadLocal<Map<String,WebTarget>>() {
-        protected Map<String,WebTarget> initialValue() {
-            return new HashMap<>();
-        }
-    };
-
-    public static String buildUri(ServiceInstance<CuratorDiscoveryServiceDescription> serviceDescr){
-        Map<String,Object> params = new TreeMap<>();
-        serviceDescr.getUriSpec().getParts().stream()
-                .filter(part -> part.isVariable() && !VARIABLE_TO_IGNORE.contains(part.getValue()))
-                .forEach(part -> params.put(part.getValue(), "{" + part.getValue() + "}")
-                );
-        return serviceDescr.buildUriSpec(params);
-    }
+    private final ClientRegistrar clientRegistrar;
+    private final ConcurrentMap<String,IServiceClient> serviceClientMap = new ConcurrentHashMap<>();
 
     public ServiceClientFactory(ServiceDiscoverer serviceDiscoverer){
+        this(serviceDiscoverer,null);
+    }
+
+    public ServiceClientFactory(ServiceDiscoverer serviceDiscoverer, ClientRegistrar registrar){
         this.serviceDiscoverer = serviceDiscoverer;
+        this.clientRegistrar = registrar;
     }
 
-    public WebTarget getClient(String serviceName,String serviceVersion){
-        try{
-            return getClient(serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion)));
+    public void registarClient(IServiceClient client){
+        ClientInstanceInfo instanceInfo = new ClientInstanceInfo();
+        clientRegistrar.enrich(instanceInfo);
+        instanceInfo.setCreationDate(DateTime.now());
+        instanceInfo.setServiceName(client.getFullName());
+        instanceInfo.setUid(client.getUuid().toString());
+        try {
+            clientRegistrar.register(instanceInfo);
         }
-        catch(ServiceDiscoveryException e){
-            throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
-            //Todo throw an error
-        }
-    }
-
-
-    public WebTarget getClient(String serviceName,String serviceVersion,String uid){
-        try{
-            return getClient(serviceDiscoverer.getInstance(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion),uid));
-        }
-        catch(ServiceDiscoveryException e){
-            throw new RuntimeException("Error during discovery of "+serviceName+"/"+serviceVersion,e);
+        catch(Exception e){
+            LOG.error("Cannot register client for service "+client.getFullName(),e);
         }
     }
 
-    public WebTarget getClient(final ServiceInstance<CuratorDiscoveryServiceDescription> serviceInstance){
-        final String uri = buildUri(serviceInstance);
-        return clientPerUri.get().computeIfAbsent(uri, s -> ClientBuilder.newBuilder().build().target(UriBuilder.fromUri(s)));
+    public IServiceClient getClient(final String serviceName, final String serviceVersion){
+        return serviceClientMap.computeIfAbsent(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion), new Function<String, IServiceClient>() {
+            @Override
+            public IServiceClient apply(String s) {
+                try {
+                    IServiceClient client = new ServiceClientImpl(serviceDiscoverer.getServiceProvider(s),s);
+                    if(clientRegistrar!=null){
+                        registarClient(client);
+                    }
+                    return client;
+                }
+                catch(ServiceDiscoveryException e){
+                    LOG.error("Cannot find service "+serviceName+" "+serviceVersion,e);
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
-
 }

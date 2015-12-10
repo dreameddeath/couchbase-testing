@@ -49,8 +49,9 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
             }]
         );
 
-    appsServiceModule.controller('apps-admin-service-domain-ctrl',['$scope','$state','$stateParams','ServicesDomainServiceInfo',
-                function($scope,$state,$stateParams,ServicesDomainServiceInfo){
+    appsServiceModule.controller('apps-admin-service-domain-ctrl',['$scope','$state','$stateParams'
+                ,'ServicesDomainServiceInfo','ServicesDomainClientInstances',
+                function($scope,$state,$stateParams,ServicesDomainServiceInfo,ServicesDomainClientInstances){
                     $scope.close=function(){
                             $state.go("^");
                        };
@@ -89,6 +90,17 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                         ServicesDomainServiceInfo.list({domain:$stateParams.domain},function(data){
                             for(var pos=0;pos<data.length;++pos){
                                 var currService = data[pos];
+                                for(var version in currService.versions){
+                                    var currServiceVersion = currService.versions[version];
+                                    currServiceVersion.clients=[];
+                                    currServiceVersion.refreshClients=function(){
+                                        //currServiceVersion.clients=[];
+                                        ServicesDomainClientInstances.list({domain:$stateParams.domain,fullname:currServiceVersion.fullName},function(data){
+                                            currServiceVersion.clients=data;
+                                        })
+                                    };
+                                    currServiceVersion.refreshClients();
+                                }
                                 $scope.services.push({
                                     name:currService.name,
                                     versions:currService.versions,

@@ -48,8 +48,20 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
 
     protected abstract byte[] serialize(T obj) throws Exception;
 
-    private PersistentEphemeralNode setupNode(T obj) throws Exception {
+    final public CuratorFramework getCuratorFramework() {
+        return curatorFramework;
+    }
+
+    final public String getBasePath() {
+        return basePath;
+    }
+
+    protected void preparePath(){
         CuratorUtils.createPathIfNeeded(curatorFramework, basePath);
+    }
+
+    private PersistentEphemeralNode setupNode(T obj) throws Exception {
+        preparePath();
         PersistentEphemeralNode node = new PersistentEphemeralNode(curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL,
                 CuratorUtils.buildPath(basePath,obj), serialize(obj));
         node.start();

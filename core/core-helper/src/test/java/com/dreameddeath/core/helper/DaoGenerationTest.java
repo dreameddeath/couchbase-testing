@@ -126,13 +126,17 @@ public class DaoGenerationTest extends Assert {
         assertEquals(3, rows.size());
 
         WebTarget readTarget = server.getClientFactory().getClient("dao#test#daoProccessor$read", "1.0.0")
+                .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
         WebTarget writeTarget = server.getClientFactory().getClient("dao#test#daoProccessor$write", "1.0.0")
+                .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 
         WebTarget childReadTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$read", "1.0.0")
+                .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
         WebTarget childWriteTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$write", "1.0.0")
+                .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 
         for(IViewQueryRow<String,String,CouchbaseDocument> row:rows){

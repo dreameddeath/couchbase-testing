@@ -45,7 +45,7 @@ public class ServiceDomainDiscovery extends CuratorDiscoveryImpl<ServiceDomainDe
             return mapper.readValue(element, ServiceDomainDefinition.class);
         }
         catch(IOException e){
-            throw new RuntimeException("Cannot deserialize ",e);
+            throw new RuntimeException("Cannot deserialize domain <"+uid+">",e);
         }
     }
 }

@@ -39,28 +39,20 @@
                         <table class="table table-striped">
                             <thead>
                             <tr>
-                                <th>address</th>
-                                <th>port</th>
                                 <th>uriSpec</th>
+                                <th>daemon</th>
                                 <th>server</th>
                             </tr>
                             </thead>
                             <tbody>
                             <tr ng-repeat="instance in currServiceVersionInfo.instances | orderBy:'daemonId'">
-                                <td>{{instance.address}}</td>
-                                <td>{{instance.port}}</td>
                                 <td>{{instance.uriSpec}}</td>
                                 <td>
-                                    <div class="row">
-                                        <div class="col-xs-1"><button type="button" class="btn btn-xs btn-primary" ng-click="showDaemon(instance.daemonUid)" aria-label="go to deamon details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button></div>
-                                        <div class="col-xs-2">daemon</div>
-                                        <div class="col-xs-9">{{instance.daemonUid}}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-xs-1"></div>
-                                        <div class="col-xs-2">webserver</div>
-                                        <div class="col-xs-9">{{instance.webServerUid}}</div>
-                                    </div>
+                                    <button type="button" class="btn btn-xs btn-primary" ng-click="showDaemon(instance.daemonUid)" aria-label="go to deamon details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                                    {{instance.daemonUid}}
+                                </td>
+                                <td>
+                                    {{instance.webServerUid}}
                                 </td>
                             </tr>
                             </tbody>
@@ -69,5 +61,36 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <span>Clients</span>
+                        </h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>uid</th>
+                                <th>daemon</th>
+                                <th>webserver</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="client in currServiceVersionInfo.clients | orderBy:'daemonId'">
+                                <td>{{client.uid}}</td>
+                                <td><button type="button" class="btn btn-xs btn-primary" ng-click="showDaemon(client.daemonUid)" aria-label="go to deamon details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                                    {{client.daemonUid}}</td>
+                                <td>{{client.webServerUid}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

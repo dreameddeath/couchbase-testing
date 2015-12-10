@@ -46,7 +46,7 @@ public class WebAppWebServer extends AbstractWebServer {
 
         if(builder.withApis){
             String path = builder.apiPath;
-            serviceDiscoveryManager = new ServiceDiscoveryManager(getParentDaemon().getCuratorClient());
+            serviceDiscoveryManager = new ServiceDiscoveryManager(this);
             getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(serviceDiscoveryManager));
 
             if(path ==null){

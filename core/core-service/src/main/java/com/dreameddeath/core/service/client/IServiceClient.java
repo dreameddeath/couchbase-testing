@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.service.model;
+package com.dreameddeath.core.service.client;
 
-import com.dreameddeath.core.service.client.IServiceClient;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import javax.ws.rs.client.WebTarget;
+import java.util.UUID;
 
 /**
- * Created by Christophe Jeunesse on 11/04/2015.
+ * Created by Christophe Jeunesse on 04/12/2015.
  */
-public interface HasServiceClientFactory {
-    IServiceClient getServiceClient();
-    void setServiceClientFactory(ServiceClientFactory serviceClientFactory);
+public interface IServiceClient {
+    UUID getUuid();
+
+    String getFullName();
+    WebTarget getInstance();
+    WebTarget getInstance(String instanceId);
+    String getUriInstance();
 }

@@ -48,9 +48,12 @@ public class RestServiceDomainDiscovery {
             public void onRegister(String uid, ServiceDomainDefinition obj) {
                 try {
                     RestServiceDiscovery service = new RestServiceDiscovery();
-                    ServiceDiscoverer discoverer = new ServiceDiscoverer(discovery.getClient(),obj.getName());
-                    service.setServiceDiscoverer(discoverer);
-                    discoverer.start();
+                    ServiceDiscoverer serviceDiscoverer = new ServiceDiscoverer(discovery.getClient(),obj.getName());
+                    serviceDiscoverer.start();
+                    ClientDiscoverer clientDiscoverer = new ClientDiscoverer(discovery.getClient(),obj.getName());
+                    clientDiscoverer.start();
+                    service.setServiceDiscoverer(serviceDiscoverer);
+                    service.setClientDiscoverer(clientDiscoverer);
                     serviceDomainsMap.put(uid,service);
                     LOG.info("Registering service domain <{}>",uid);
                 }
@@ -63,7 +66,17 @@ public class RestServiceDomainDiscovery {
             @Override
             public void onUnregister(String uid, ServiceDomainDefinition oldObj) {
                 LOG.info("Removing service domain <{}>",uid);
-                serviceDomainsMap.remove(uid);
+                RestServiceDiscovery removedEntry = serviceDomainsMap.remove(uid);
+                if(removedEntry!=null){
+                    try {
+                        removedEntry.getClientDiscoverer().stop();
+                    }
+                    catch(Exception e){}
+                    try {
+                        removedEntry.getServiceDiscoverer().stop();
+                    }
+                    catch(Exception e){}
+                }
             }
 
             @Override

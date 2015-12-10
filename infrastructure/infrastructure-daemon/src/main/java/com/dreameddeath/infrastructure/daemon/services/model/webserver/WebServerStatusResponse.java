@@ -22,7 +22,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 14/08/2015.
  */
-public class StatusResponse {
+public class WebServerStatusResponse {
     private AbstractWebServer.Status status;
 
     public String getAddress() {

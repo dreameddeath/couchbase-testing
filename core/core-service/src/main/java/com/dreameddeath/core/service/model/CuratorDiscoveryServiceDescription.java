@@ -40,6 +40,8 @@ public class CuratorDiscoveryServiceDescription {
     private String state;
     @JsonProperty("swagger")
     private Swagger swagger;
+    @JsonProperty("jsonProvider")
+    private String jsonProvider;
 
     public String getDomain() {
         return domain;
@@ -86,5 +88,13 @@ public class CuratorDiscoveryServiceDescription {
 
     public void addTag(String tag){
         this.tags.add(tag);
+    }
+
+    public String getJsonProvider() {
+        return jsonProvider;
+    }
+
+    public void setJsonProvider(String jsonProvider) {
+        this.jsonProvider = jsonProvider;
     }
 }

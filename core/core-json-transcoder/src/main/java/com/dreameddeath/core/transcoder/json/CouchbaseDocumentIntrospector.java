@@ -35,16 +35,16 @@ import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 public class CouchbaseDocumentIntrospector extends DefaultGetterSetterIntrospector implements
         Versioned {
 
-    public enum Domain{
+    /*public enum Domain{
         STORAGE,
         PUBLIC_SERVICE,
         INTERNAL_SERVICE
     }
 
-    private Domain domain = Domain.STORAGE;
+    private Domain domain = Domain.STORAGE;*/
 
     public CouchbaseDocumentIntrospector(){}
-    public CouchbaseDocumentIntrospector(Domain domain){this.domain = domain;}
+    //public CouchbaseDocumentIntrospector(Domain domain){this.domain = domain;}
 
     @Override
     public Version version() {

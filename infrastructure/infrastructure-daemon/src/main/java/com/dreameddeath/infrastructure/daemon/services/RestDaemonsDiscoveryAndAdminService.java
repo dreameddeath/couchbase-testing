@@ -16,23 +16,19 @@
 
 package com.dreameddeath.infrastructure.daemon.services;
 
-import com.dreameddeath.core.json.JsonProviderFactory;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.config.model.UpdateKeyResult;
-import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
+
+import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
-import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
-import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusResponse;
-import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 
 import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -44,15 +40,15 @@ import java.util.Map;
 public class RestDaemonsDiscoveryAndAdminService {
     @Autowired(required = true)
     private DaemonDiscovery daemonDiscovery;
-    @Autowired(required = true)
-    private ServiceClientFactory serviceFactory;
+    private IServiceClient daemonAdminClient;
 
     public void setDaemonDiscovery(DaemonDiscovery daemonDiscovery){
         this.daemonDiscovery = daemonDiscovery;
     }
 
-    public void setClientFactory(ServiceClientFactory factory){
-        serviceFactory = factory;
+    @Required
+    public void setDaemonAdminClient(IServiceClient factory){
+        daemonAdminClient = factory;
     }
 
     @GET
@@ -65,12 +61,10 @@ public class RestDaemonsDiscoveryAndAdminService {
     @GET
     @Path("/{id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public DaemonInfo getDaemon(@PathParam("id") String uid) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getDaemon(@PathParam("id") String uid) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .request(MediaType.APPLICATION_JSON)
-                .get(DaemonInfo.class);
+                .get();
     }
 
 
@@ -78,9 +72,7 @@ public class RestDaemonsDiscoveryAndAdminService {
     @Path("/{id}/metrics")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getDaemonMetrics(@PathParam("id") String uid, @PathParam("wid") String webServerId) {
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+        return daemonAdminClient.getInstance(uid)
                 .path("/metrics")
                 .request(MediaType.APPLICATION_JSON)
                 .get();
@@ -90,86 +82,74 @@ public class RestDaemonsDiscoveryAndAdminService {
     @GET
     @Path("/{id}/config")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Map<String,String> getDaemonConfig(@PathParam("id") String uid) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getDaemonConfig(@PathParam("id") String uid) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/config")
                 .request(MediaType.APPLICATION_JSON)
-                .get(Map.class);
+                .get();
     }
 
 
     @GET
     @Path("/{id}/config/{domain}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Map<String,String> getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/config/{domain}")
                 .resolveTemplate("domain",domain)
                 .request(MediaType.APPLICATION_JSON)
-                .get(Map.class);
+                .get();
     }
 
     @PUT
     @Path("/{id}/config/{domain}")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
-    public List<UpdateKeyResult> updateDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,Map<String,String> updateRequest) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response updateDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,Map<String,String> updateRequest) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/config/{domain}")
                 .resolveTemplate("domain",domain)
                 .request(MediaType.APPLICATION_JSON)
-                .put(Entity.entity(updateRequest,MediaType.APPLICATION_JSON), new GenericType<List<UpdateKeyResult>>(){});
+                .put(Entity.entity(updateRequest,MediaType.APPLICATION_JSON));
     }
 
 
     @GET
     @Path("/{id}/config/{domain}/{key}")
     @Produces({ MediaType.TEXT_PLAIN })
-    public String getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/config/{domain}/{key}")
                 .resolveTemplate("domain",domain)
                 .resolveTemplate("key",key)
                 .request(MediaType.TEXT_PLAIN)
-                .get(String.class);
+                .get();
     }
 
     @POST
     @Path("/{id}/config/{domain}/{key}")
     @Produces({ MediaType.TEXT_PLAIN })
     @Consumes({ MediaType.TEXT_PLAIN })
-    public String addDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key,String value) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response addDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key,String value) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/config/{domain}/{key}")
                 .resolveTemplate("domain",domain)
                 .resolveTemplate("key",key)
                 .request(MediaType.TEXT_PLAIN)
-                .post(Entity.text(value),String.class);
+                .post(Entity.text(value));
     }
 
     @PUT
     @Path("/{id}/config/{domain}/{key}")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.TEXT_PLAIN })
-    public UpdateKeyResult updateDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key,String value) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response updateDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key,String value) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/config/{domain}/{key}")
                 .resolveTemplate("domain",domain)
                 .resolveTemplate("key",key)
                 .request(MediaType.APPLICATION_JSON)
-                .put(Entity.text(value),UpdateKeyResult.class);
+                .put(Entity.text(value));
     }
 
 
@@ -177,15 +157,13 @@ public class RestDaemonsDiscoveryAndAdminService {
     @DELETE
     @Path("/{id}/config/{domain}/{key}")
     @Produces({ MediaType.TEXT_PLAIN })
-    public String deleteDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response deleteDaemonConfigDomain(@PathParam("id") String uid,@PathParam("domain")String domain,@PathParam("key")String key) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/config/{domain}/{key}")
                 .resolveTemplate("domain",domain)
                 .resolveTemplate("key",key)
                 .request(MediaType.TEXT_PLAIN)
-                .delete(String.class);
+                .delete();
     }
 
 
@@ -193,73 +171,61 @@ public class RestDaemonsDiscoveryAndAdminService {
     @GET
     @Path("/{id}/status")
     @Produces({ MediaType.APPLICATION_JSON })
-    public StatusResponse getDaemonStatus(@PathParam("id") String uid) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getDaemonStatus(@PathParam("id") String uid) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/status")
                 .request(MediaType.APPLICATION_JSON)
-                .get(StatusResponse.class);
+                .get();
     }
 
     @PUT
     @Path("/{id}/status")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
-    public StatusResponse updateDaemonStatus(@PathParam("id") String uid,StatusUpdateRequest statusUpdateRequest) throws Exception{
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response updateDaemonStatus(@PathParam("id") String uid,InputStream statusUpdateRequest) throws Exception{
+        return daemonAdminClient.getInstance(uid)
                 .path("/status")
                 .request(MediaType.APPLICATION_JSON)
-                .put(Entity.json(statusUpdateRequest), StatusResponse.class);
+                .put(Entity.json(statusUpdateRequest));
     }
 
     @GET
     @Path("/{id}/webservers")
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<WebServerInfo> getWebservers(@PathParam("id") String uid){
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getWebservers(@PathParam("id") String uid){
+        return daemonAdminClient.getInstance(uid)
                 .path("/webservers")
                 .request(MediaType.APPLICATION_JSON)
-                .get(new GenericType<List<WebServerInfo>>() {});
+                .get();
     }
 
     @GET
     @Path("/{id}/webservers/{wid}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public WebServerInfo getWebserverInfo(@PathParam("id") String uid,@PathParam("wid") String webServerId){
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getWebserverInfo(@PathParam("id") String uid,@PathParam("wid") String webServerId){
+        return daemonAdminClient.getInstance(uid)
                 .path("/webservers/{wid}")
                 .resolveTemplate("wid", webServerId)
                 .request(MediaType.APPLICATION_JSON)
-                .get(WebServerInfo.class);
+                .get();
     }
 
     @GET
     @Path("/{id}/webservers/{wid}/status")
     @Produces({ MediaType.APPLICATION_JSON })
-    public com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse getWebserverStatus(@PathParam("id") String uid,@PathParam("wid") String webServerId){
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response getWebserverStatus(@PathParam("id") String uid,@PathParam("wid") String webServerId){
+        return daemonAdminClient.getInstance(uid)
                 .path("/webservers/{wid}/status")
                 .resolveTemplate("wid", webServerId)
                 .request(MediaType.APPLICATION_JSON)
-                .get(com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse.class);
+                .get();
     }
 
     @GET
     @Path("/{id}/webservers/{wid}/metrics")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getWebserverMetrics(@PathParam("id") String uid, @PathParam("wid") String webServerId) {
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+        return daemonAdminClient.getInstance(uid)
                 .path("/webservers/{wid}/metrics")
                 .resolveTemplate("wid", webServerId)
                 .request(MediaType.APPLICATION_JSON)
@@ -267,17 +233,15 @@ public class RestDaemonsDiscoveryAndAdminService {
     }
 
 
-        @PUT
+    @PUT
     @Path("/{id}/webservers/{wid}/status")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
-    public com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse updateWebserverStatus(@PathParam("id") String uid,@PathParam("wid") String webServerId,com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusUpdateRequest updateRequest){
-        return serviceFactory
-                .getClient(RestLocalDaemonAdminService.DAEMON_SERVICE_NAME, RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION, uid)
-                .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+    public Response updateWebserverStatus(@PathParam("id") String uid,@PathParam("wid") String webServerId,InputStream updateRequest){
+        return daemonAdminClient.getInstance(uid)
                 .path("/webservers/{wid}/status")
                 .resolveTemplate("wid", webServerId)
                 .request(MediaType.APPLICATION_JSON)
-                .put(Entity.json(updateRequest), com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse.class);
+                .put(Entity.json(updateRequest));
     }
 }

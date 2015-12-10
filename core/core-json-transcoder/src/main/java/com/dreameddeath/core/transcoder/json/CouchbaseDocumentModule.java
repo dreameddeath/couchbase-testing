@@ -22,18 +22,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  * Created by Christophe Jeunesse on 29/10/2015.
  */
 public class CouchbaseDocumentModule extends SimpleModule {
-    private final CouchbaseDocumentIntrospector.Domain domain;
-    public CouchbaseDocumentModule(CouchbaseDocumentIntrospector.Domain domain){
-        this.domain = domain;
+
+    public CouchbaseDocumentModule(){
         this.setDeserializerModifier(new CouchbaseBusinessDocumentDeserializerModifier());
-        /*for(EntityDef entityDef: new EntityDefinitionManager().getEntities()){
-            try{
-                CouchbaseDocumentStructureReflection reflection = CouchbaseDocumentStructureReflection.getClassInfo(entityDef.getClassName());
-                if(reflection.getClassInfo().isInstanceOf(IVersionedEntity.class)) {
-                    this.addDeserializer(reflection.getClassInfo().getCurrentClass(),new CouchbaseBusinessDocumentDeserializer())
-                }
-            }
-        }*/
     }
 
     @Override

@@ -18,13 +18,16 @@ package com.dreameddeath.testing.service;
 
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -36,6 +39,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Christophe Jeunesse on 10/04/2015.
@@ -43,10 +47,15 @@ import java.util.UUID;
 public class TestingRestServer {
     private static final String DOMAIN = "services";
     private Server server;
+    private final UUID daemonUid = UUID.randomUUID();
+    private final UUID serverUid = UUID.randomUUID();
+
     private CuratorFramework curatorClient;
     private ServiceDiscoverer serviceDiscoverer;
     private ServiceClientFactory serviceClientFactory;
     private ServiceRegistrar serviceRegistrar;
+    private ClientRegistrar clientRegistrar;
+    private ClientDiscoverer clientDiscoverer;
     private ServerConnector connector;
     private Map<String,AbstractExposableService> servicesMap = new HashMap<>();
 
@@ -62,24 +71,26 @@ public class TestingRestServer {
         contextHandler.addServlet(cxfHolder, "/*");
         serviceDiscoverer = new ServiceDiscoverer(curatorClient, DOMAIN);
         serviceRegistrar = new ServiceRegistrar(curatorClient, DOMAIN);
+        clientRegistrar = new ClientRegistrar(curatorClient, DOMAIN,daemonUid.toString(),serverUid.toString());
+        clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN);
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar, serviceDiscoverer));
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.test.applicationContext.xml");
         contextHandler.setAttribute("jacksonObjectMapper", jacksonMapper);
         contextHandler.setAttribute("serviceRegistrar", serviceRegistrar);
         contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
+        contextHandler.setAttribute("clientRegistrar", clientRegistrar);
+        contextHandler.setAttribute("clientDiscoverer", clientDiscoverer);
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
-            private final UUID daemon = UUID.randomUUID();
-            private final UUID server = UUID.randomUUID();
 
             @Override
             public String daemonUid() {
-                return daemon.toString();
+                return daemonUid.toString();
             }
 
             @Override
             public String webserverUid() {
-                return server.toString();
+                return serverUid.toString();
             }
 
             @Override
@@ -105,12 +116,13 @@ public class TestingRestServer {
             public String buildInstanceUid() {
                 return UUID.randomUUID().toString();
             }
+
         });
 
         contextHandler.setAttribute("servicesMap",servicesMap);
         contextHandler.addEventListener(new ContextLoaderListener());
 
-        serviceClientFactory = new ServiceClientFactory(serviceDiscoverer);
+        serviceClientFactory = new ServiceClientFactory(serviceDiscoverer,clientRegistrar);
     }
 
 
@@ -130,12 +142,19 @@ public class TestingRestServer {
 
 
     public void start() throws Exception{
+        if(!curatorClient.getState().equals(CuratorFrameworkState.STARTED)) {
+            curatorClient.start();
+        }
+        curatorClient.blockUntilConnected(1, TimeUnit.MINUTES);
         server.start();
     }
 
     public void stop()throws Exception{
         if((server!=null) && !server.isStopped()) {
             server.stop();
+        }
+        if(curatorClient!=null){
+            curatorClient.close();
         }
     }
 }

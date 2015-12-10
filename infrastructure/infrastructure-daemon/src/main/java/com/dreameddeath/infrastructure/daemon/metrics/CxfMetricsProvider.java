@@ -29,9 +29,8 @@ public class CxfMetricsProvider extends CodahaleMetricsProvider {
         bus.setExtension(registry,MetricRegistry.class);
         return bus;
     }
+
     public CxfMetricsProvider(Bus bus, MetricRegistry registry){
         super(updateBus(bus,registry));
-        //this.registry = registry;
-        //setupJMXReporter();
     }
 }

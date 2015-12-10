@@ -18,12 +18,16 @@ package com.dreameddeath.infrastructure.daemon.services;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.service.config.service.ConfigManagementService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.ws.rs.Path;
 
 /**
  * Created by Christophe Jeunesse on 11/11/2015.
  */
+@Api(value = "/", description = "Daemon Config Entries Administration service",tags = {"Temporary config","Persistant config","Full config"})
+@Path("/")
 public class RestLocalConfigAdminService {
     private final ConfigManagementService allConfigService;
     private final ConfigManagementService tempConfigService;
@@ -40,16 +44,19 @@ public class RestLocalConfigAdminService {
     }
 
     @Path("/local-temporary")
+    @ApiOperation(value = "Manage the temporary local config" ,tags = {"Temporary config"})
     public ConfigManagementService getTempConfig(){
         return tempConfigService;
     }
 
     @Path("/local-persistent")
+    @ApiOperation(value = "Manage the persistent local config",tags = {"Persistant config"} )
     public ConfigManagementService getPersistentConfig(){
         return persistentConfigService;
     }
 
     @Path("/all")
+    @ApiOperation(value = "Manage the overall config",tags={"Full config"} )
     public ConfigManagementService getAll(){
         return allConfigService;
     }

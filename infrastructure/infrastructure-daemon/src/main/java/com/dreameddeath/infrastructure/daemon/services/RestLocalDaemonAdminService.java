@@ -44,7 +44,7 @@ import javax.ws.rs.core.MediaType;
 public class RestLocalDaemonAdminService extends AbstractExposableService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalDaemonAdminService.class);
     public static final String DAEMON_SERVICE_DOMAIN ="admin";
-    public static final String DAEMON_SERVICE_NAME ="daemon#admin#status";
+    public static final String DAEMON_SERVICE_NAME ="daemon#admin";
     public static final String DAEMON_SERVICE_VERSION ="1.0";
 
     private final RestLocalConfigAdminService configAdminService=new RestLocalConfigAdminService();
@@ -80,7 +80,7 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
     @Path("status")
     @ApiOperation(value = "give the status of the daemon",
             response = StatusResponse.class,
-            position = 0)
+            position = 1)
     public StatusResponse getStatus(){
         return buildStatus(daemon.getStatus());
     }
@@ -92,7 +92,7 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
     @Path("status")
     @ApiOperation(value = "set the status of the daemon",
             response = StatusResponse.class,
-            position = 1)
+            position = 2)
     public StatusResponse setStatus(StatusUpdateRequest statusUpdateRequest){
         try{
             if (statusUpdateRequest.getAction() == StatusUpdateRequest.Action.START) {
@@ -124,10 +124,14 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
         return getStatus();
     }
 
-    protected StatusResponse buildStatus(IDaemonLifeCycle.Status status){
-        StatusResponse result = new StatusResponse();
-        result.setStatus(status);
-        return result;
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("{name}/metrics")
+    @ApiOperation(value = "give metrics on a given daemon",
+            response = MetricRegistry.class,
+    position = 3)
+    public MetricRegistry getMetrics(){
+        return daemon.getDaemonMetrics().getMetricRegistry();
     }
 
     @Path("webservers")
@@ -140,12 +144,11 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
         return configAdminService;
     }
 
-    @GET
-    @Produces({ MediaType.APPLICATION_JSON })
-    @Path("{name}/metrics")
-    @ApiOperation(value = "give metrics on a given daemon",
-            response = MetricRegistry.class)
-    public MetricRegistry getMetrics(){
-        return daemon.getDaemonMetrics().getMetricRegistry();
+    protected StatusResponse buildStatus(IDaemonLifeCycle.Status status){
+        StatusResponse result = new StatusResponse();
+        result.setStatus(status);
+        return result;
     }
+
+
 }

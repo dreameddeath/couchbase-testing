@@ -23,6 +23,10 @@
             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
        ">
 
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+
+
     <cxf:bus>
         <cxf:features>
             <bean class="org.apache.cxf.metrics.MetricsFeature" lazy-init="true">
@@ -74,6 +78,5 @@
     <bean id="userFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="userFactory"/>
     </bean>
-
 
 </beans>

@@ -19,7 +19,6 @@ package com.dreameddeath.core.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Christophe Jeunesse on 29/10/2015.
@@ -28,7 +27,8 @@ public class ObjectMapperFactory {
     public final static ObjectMapperFactory BASE_INSTANCE=new ObjectMapperFactory();
 
     private final ServiceLoader<IObjectMapperConfigurator> configurators;
-    private final Map<IObjectMapperConfigurator.ConfiguratorType,ObjectMapper> objectMapperMap = new ConcurrentHashMap<>();
+    private final Map<IObjectMapperConfigurator.ConfiguratorType,ObjectMapper> objectMapperMap = new HashMap<>();
+
 
     public ObjectMapperFactory(){
         configurators=ServiceLoader.load(IObjectMapperConfigurator.class,Thread.currentThread().getContextClassLoader());
@@ -45,38 +45,32 @@ public class ObjectMapperFactory {
         throw new IllegalArgumentException("Cannot find configurator type :"+name);
     }
 
-    private ObjectMapper build(IObjectMapperConfigurator.ConfiguratorType type){
-        synchronized (this.objectMapperMap) {
-            ObjectMapper mapper = new ObjectMapper();
-
-            List<Class<? extends IObjectMapperConfigurator>> configuratorRunned=new LinkedList<>();
-            List<IObjectMapperConfigurator> listPostponedConfigurator=new LinkedList<>();
-            for (IObjectMapperConfigurator configurator : configurators){
-                listPostponedConfigurator.add(configurator);
-            }
-            while(listPostponedConfigurator.size()>0){
-                Iterator<IObjectMapperConfigurator> iterator=listPostponedConfigurator.iterator();
-                while(iterator.hasNext()){
-                    IObjectMapperConfigurator configurator = iterator.next();
-                    boolean toSkip=false;
-                    for(Class<? extends IObjectMapperConfigurator> prerequisite:configurator.after()){
-                        if(!configuratorRunned.contains((prerequisite))){
-                            toSkip=true;
-                            break;
-                        }
+    private void configure(ObjectMapper mapper,IObjectMapperConfigurator.ConfiguratorType type){
+        List<Class<? extends IObjectMapperConfigurator>> configuratorRunned=new LinkedList<>();
+        List<IObjectMapperConfigurator> listPostponedConfigurator=new LinkedList<>();
+        for (IObjectMapperConfigurator configurator : configurators){
+            listPostponedConfigurator.add(configurator);
+        }
+        while(listPostponedConfigurator.size()>0){
+            Iterator<IObjectMapperConfigurator> iterator=listPostponedConfigurator.iterator();
+            while(iterator.hasNext()){
+                IObjectMapperConfigurator configurator = iterator.next();
+                boolean toSkip=false;
+                for(Class<? extends IObjectMapperConfigurator> prerequisite:configurator.after()){
+                    if(!configuratorRunned.contains((prerequisite))){
+                        toSkip=true;
+                        break;
                     }
-                    if(toSkip){
-                        continue;
-                    }
-                    if (configurator.applicable(type)) {
-                        configurator.configure(mapper, type);
-                    }
-                    configuratorRunned.add(configurator.getClass());
-                    iterator.remove();
                 }
+                if(toSkip){
+                    continue;
+                }
+                if (configurator.applicable(type)) {
+                    configurator.configure(mapper, type);
+                }
+                configuratorRunned.add(configurator.getClass());
+                iterator.remove();
             }
-
-            return mapper;
         }
     }
 
@@ -89,7 +83,17 @@ public class ObjectMapperFactory {
     }
 
     public ObjectMapper getMapper(IObjectMapperConfigurator.ConfiguratorType type){
-        return objectMapperMap.computeIfAbsent(type,this::build);
+        ObjectMapper result = objectMapperMap.get(type);
+        if(result==null){
+            synchronized (objectMapperMap){
+                if(!objectMapperMap.containsKey(type)){
+                    ObjectMapper mapper = new ObjectMapper();
+                    objectMapperMap.put(type,mapper);
+                    configure(mapper,type);
+                }
+            }
+        }
+        return objectMapperMap.get(type);
     }
 
 

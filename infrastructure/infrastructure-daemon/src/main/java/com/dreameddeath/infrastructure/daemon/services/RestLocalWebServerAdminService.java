@@ -19,8 +19,8 @@ package com.dreameddeath.infrastructure.daemon.services;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
-import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusResponse;
-import com.dreameddeath.infrastructure.daemon.services.model.webserver.StatusUpdateRequest;
+import com.dreameddeath.infrastructure.daemon.services.model.webserver.WebServerStatusResponse;
+import com.dreameddeath.infrastructure.daemon.services.model.webserver.WebServerStatusUpdateRequest;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import io.swagger.annotations.Api;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 19/09/2015.
  */
-@Api(value = "/", description = "Daemon Webservers Administration service")
+@Api(value = "/", description = "Daemon Webservers Administration service",tags = {"webServers"})
 @Path("/")
 public class RestLocalWebServerAdminService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalWebServerAdminService.class);
@@ -78,9 +78,9 @@ public class RestLocalWebServerAdminService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Path("{name}/status")
     @ApiOperation(value = "give info on a given webserver",
-            response = StatusResponse.class,
+            response = WebServerStatusResponse.class,
             position = 2)
-    public StatusResponse getStatus(@PathParam("name") String name){
+    public WebServerStatusResponse getStatus(@PathParam("name") String name){
         return buildStatus(findByName(name));
     }
 
@@ -88,10 +88,10 @@ public class RestLocalWebServerAdminService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
     @Path("{name}/status")
-    @ApiOperation(value = "give info on a given webserver",
+    @ApiOperation(value = "give status info on a given webserver",
             response = WebServerInfo.class,
             position = 3)
-    public StatusResponse putStatus(@PathParam("name") String name, StatusUpdateRequest statusUpdateRequest){
+    public WebServerStatusResponse putStatus(@PathParam("name") String name, WebServerStatusUpdateRequest statusUpdateRequest){
         AbstractWebServer webServer = findByName(name);
         try{
             switch (statusUpdateRequest.getAction()){
@@ -129,8 +129,8 @@ public class RestLocalWebServerAdminService {
     }
 
 
-    protected StatusResponse buildStatus(AbstractWebServer webServer){
-        StatusResponse result = new StatusResponse();
+    protected WebServerStatusResponse buildStatus(AbstractWebServer webServer){
+        WebServerStatusResponse result = new WebServerStatusResponse();
         result.setAddress(ServerConnectorUtils.getConnectorHost(webServer.getServerConnector()));
         result.setPort(ServerConnectorUtils.getConnectorPortString(webServer.getServerConnector()));
         result.setStatus(webServer.getStatus());

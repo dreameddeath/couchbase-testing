@@ -25,7 +25,9 @@
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
             http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
 
-    <context:annotation-config/>
+    <context:annotation-config />
+    <import resource="classpath:META-INF/spring/webserver.base.applicationContext.xml" />
+
 
     <bean id="propertySources" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="propertySources" />
@@ -53,8 +55,15 @@
         <constructor-arg type="java.lang.String" value="${daemon.admin.services.domain}" />
     </bean>
 
-    <bean id="daemonAdminClientFactory" class=" com.dreameddeath.core.service.client.ServiceClientFactory">
-        <constructor-arg type="com.dreameddeath.core.service.discovery.ServiceDiscoverer" ref="adminDaemonDiscovery" />
+    <bean id="daemonAdminClientFactory"
+          factory-bean="serviceDiscovererManager"
+          factory-method="getClientFactory">
+        <constructor-arg type="java.lang.String" value="${daemon.admin.services.domain}" />
+    </bean>
+
+    <bean id="daemonAdminClient" factory-bean="daemonAdminClientFactory" factory-method="getClient">
+        <constructor-arg value="daemon#admin" />
+        <constructor-arg value="1.0" />
     </bean>
 
     <bean id="daemonDiscoverer" class="com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery">
@@ -75,7 +84,7 @@
         <jaxrs:serviceBeans>
             <bean id="daemons" class="com.dreameddeath.infrastructure.daemon.services.RestDaemonsDiscoveryAndAdminService">
                 <property name="daemonDiscovery" ref="daemonDiscoverer" />
-                <property name="clientFactory" ref="daemonAdminClientFactory"/>
+                <property name="daemonAdminClient" ref="daemonAdminClient"/>
             </bean>
             <bean id="daos" class="com.dreameddeath.core.dao.discovery.DaoDiscoveryRestService">
             </bean>

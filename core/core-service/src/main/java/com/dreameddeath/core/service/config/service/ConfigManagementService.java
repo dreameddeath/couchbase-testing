@@ -17,6 +17,8 @@
 package com.dreameddeath.core.service.config.service;
 
 import com.dreameddeath.core.service.config.model.UpdateKeyResult;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.springframework.beans.factory.annotation.Required;
 
@@ -28,6 +30,7 @@ import java.util.*;
  * Created by Christophe Jeunesse on 11/11/2015.
  */
 @Path("/")
+@Api(value = "/", description = "Configuration Entries Management Service")
 public class ConfigManagementService {
     private boolean readOnly=false;
 
@@ -45,6 +48,10 @@ public class ConfigManagementService {
     @GET
     @Path("/")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Get all config entries",
+            response = String.class,
+            responseContainer = "Map[String,String]"
+        )
     public Map<String,String> getProperties(){
         Map<String,String> result = new TreeMap<>();
         Iterator<String> keysIterator=config.getKeys();
@@ -60,6 +67,10 @@ public class ConfigManagementService {
     @Path("/")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Update a set of config entries",
+            response = UpdateKeyResult.class,
+            responseContainer = "List"
+    )
     public List<UpdateKeyResult> setProperties(Map<String,String> properties){
         if(readOnly){
             throw new NotAuthorizedException("The configuration is read only");
@@ -83,6 +94,7 @@ public class ConfigManagementService {
     @GET
     @Path("/{key}")
     @Produces({MediaType.TEXT_PLAIN})
+    @ApiOperation("Get a specific config entry" )
     public String getProperty(@PathParam("key") String key){
         if(config.containsKey(key)){
             return config.getProperty(key).toString();
@@ -96,6 +108,7 @@ public class ConfigManagementService {
     @Path("/{key}")
     @Consumes({MediaType.TEXT_PLAIN})
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation("Updates a specific config entry" )
     public UpdateKeyResult updateProperty(@PathParam("key") String key,String value){
         if(readOnly){
             throw new NotAuthorizedException("The configuration is read only");
@@ -118,6 +131,7 @@ public class ConfigManagementService {
     @Path("/{key}")
     @Consumes({MediaType.TEXT_PLAIN})
     @Produces({MediaType.TEXT_PLAIN})
+    @ApiOperation("create a specific entry" )
     public String createProperty(@PathParam("key") String key,String value){
         if(readOnly){
             throw new NotAuthorizedException("The configuration is read only");
@@ -132,6 +146,7 @@ public class ConfigManagementService {
     @DELETE
     @Path("/{key}")
     @Produces({MediaType.TEXT_PLAIN})
+    @ApiOperation("Delete a specific config entry" )
     public String deleteProperty(@PathParam("key") String key){
         if(readOnly){
             throw new NotAuthorizedException("The configuration is read only");

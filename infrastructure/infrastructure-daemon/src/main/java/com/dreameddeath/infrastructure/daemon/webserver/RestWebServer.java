@@ -29,7 +29,7 @@ public class RestWebServer extends AbstractWebServer {
 
     public RestWebServer(Builder builder){
         super(builder);
-        serviceDiscoveryManager = new ServiceDiscoveryManager(getParentDaemon().getCuratorClient());
+        serviceDiscoveryManager = new ServiceDiscoveryManager(this);
         getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(serviceDiscoveryManager));
 
         String path = builder.apiPath;

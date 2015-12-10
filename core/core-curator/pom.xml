@@ -45,6 +45,11 @@
           <version>${project.version}</version>
       </dependency>
       <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+          <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-x-discovery</artifactId>
           <version>${curator.version}</version>
@@ -80,6 +85,12 @@
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-client</artifactId>
           <version>${curator.version}</version>
+          <exclusions>
+              <exclusion>
+                  <groupId>log4j</groupId>
+                  <artifactId>log4j</artifactId>
+              </exclusion>
+          </exclusions>
       </dependency>
       <dependency>
           <groupId>org.apache.curator</groupId>

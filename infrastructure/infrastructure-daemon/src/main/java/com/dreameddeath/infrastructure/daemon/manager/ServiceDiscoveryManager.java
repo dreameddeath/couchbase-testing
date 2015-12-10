@@ -18,7 +18,9 @@ package com.dreameddeath.infrastructure.daemon.manager;
 
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
+import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.apache.curator.framework.CuratorFramework;
 
 import java.util.ArrayList;
@@ -39,13 +41,16 @@ public class ServiceDiscoveryManager {
 
     private final CuratorFramework curatorClient;
     private Status status = Status.STOPPED;
-    private Map<String,ServiceRegistrar> serviceRegistrarMap = new HashMap<>();
-    private Map<String,ServiceDiscoverer> serviceDiscovererMap = new HashMap<>();
-    private Map<String,ServiceClientFactory> serviceClientFactoryMap = new HashMap<>();
+    private final AbstractWebServer parentWebServer;
+    private final Map<String,ServiceRegistrar> serviceRegistrarMap = new HashMap<>();
+    private final Map<String,ServiceDiscoverer> serviceDiscovererMap = new HashMap<>();
+    private final Map<String,ServiceClientFactory> serviceClientFactoryMap = new HashMap<>();
 
-    public ServiceDiscoveryManager(CuratorFramework curatorClient){
-        this.curatorClient = curatorClient;
+    public ServiceDiscoveryManager(AbstractWebServer server){
+        this.parentWebServer = server;
+        this.curatorClient = server.getParentDaemon().getCuratorClient();
     }
+
 
     synchronized public ServiceRegistrar getServiceRegistrar(String domain) throws Exception{
         if(!serviceRegistrarMap.containsKey(domain)){
@@ -72,7 +77,8 @@ public class ServiceDiscoveryManager {
 
     synchronized public ServiceClientFactory getClientFactory(String domain) throws Exception{
         if(!serviceClientFactoryMap.containsKey(domain)){
-            ServiceClientFactory newServiceClientFactory = new ServiceClientFactory(getServiceDiscoverer(domain));
+            ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient,domain,parentWebServer.getParentDaemon().getUuid().toString(),parentWebServer.getUuid().toString());
+            ServiceClientFactory newServiceClientFactory = new ServiceClientFactory(getServiceDiscoverer(domain),clientRegistrar);
             serviceClientFactoryMap.put(domain,newServiceClientFactory);
         }
         return serviceClientFactoryMap.get(domain);
@@ -92,7 +98,7 @@ public class ServiceDiscoveryManager {
         }
 
         if((status!=Status.STOPPED)&& (newStatus!=Status.STARTED)){
-            stopRegistrars();
+            stopDiscoverers();
         }
         this.status=newStatus;
     }
@@ -109,6 +115,7 @@ public class ServiceDiscoveryManager {
             registrar.stop();
         }
     }
+
 
     synchronized public List<ServiceRegistrar> getRegistrars(){
         return new ArrayList<>(serviceRegistrarMap.values());

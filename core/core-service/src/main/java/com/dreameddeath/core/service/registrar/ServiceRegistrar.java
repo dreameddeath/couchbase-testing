@@ -61,7 +61,7 @@ public class ServiceRegistrar {
 
     public synchronized void start() throws Exception{
         curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
-        String fullPath = ServiceNamingUtils.buildServiceDomain(curatorClient, domain);
+        String fullPath = ServiceNamingUtils.buildServiceDiscovererDomain(curatorClient,domain);
 
         serviceDiscovery = ServiceDiscoveryBuilder.builder(CuratorDiscoveryServiceDescription.class)
                 .serializer(new ServiceInstanceSerializerImpl())
@@ -106,6 +106,7 @@ public class ServiceRegistrar {
         serviceDescr.setState(annotDef.status().name());
         serviceDescr.setVersion(annotDef.version());
         serviceDescr.setSwagger(reader.getSwagger());
+        //serviceDescr.setJsonProvider(service.getEndPoint().jsonProvider());
         for(ServiceDefTag tag : annotDef.tags()){
             serviceDescr.addTag(tag.value());
         }
@@ -144,7 +145,7 @@ public class ServiceRegistrar {
 
     protected void registerService(AbstractExposableService service)throws Exception{
         ServiceInstance<CuratorDiscoveryServiceDescription> newServiceDef = buildServiceInstanceDescription(service);
-        String servicePath= ServiceNamingUtils.buildServicePath(curatorClient,domain, newServiceDef.getPayload());
+        String servicePath= ServiceNamingUtils.buildServerServicePath(curatorClient,domain, newServiceDef.getPayload());
         serviceDiscovery.registerService(newServiceDef);
         LOG.info("Service {} registred with id {} within domain {} in path {}", newServiceDef.getName(), newServiceDef.getId(), domain,servicePath);
     }

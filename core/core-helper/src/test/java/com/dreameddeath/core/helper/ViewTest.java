@@ -22,7 +22,6 @@ import com.dreameddeath.core.dao.model.view.IViewQueryRow;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
-import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.user.StandardMockUserFactory;
@@ -108,11 +107,10 @@ public class ViewTest {
         assertEquals(3, rows.size());
 
         WebTarget target = server.getClientFactory().getClient("dao$testDomain$test", "1.0")
-                .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
+                .getInstance();
 
         WebTarget childTarget = server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
-                .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
-
+                .getInstance();
 
         for(IViewQueryRow<String,String,TestDoc> row:rows){
             String id = row.getDocKey().split("/")[1];

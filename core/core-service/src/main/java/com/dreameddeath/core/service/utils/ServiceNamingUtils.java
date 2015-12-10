@@ -65,19 +65,34 @@ public class ServiceNamingUtils {
         }
     }
 
+    public enum DomainPathType{
+        ROOT,
+        SERVER,
+        CLIENT;
+    }
 
 
-    public static String buildServiceDomainPathName(String domain) {
+
+    public static String buildServiceDomainPathName(String domain,DomainPathType pathType) {
         String basePath = ServiceConfigProperties.SERVICES_DISCOVERY_ROOT_PATH.get();
         if(!domain.matches("(?:\\w|\\.)+")){
             throw new IllegalArgumentException("The domain <"+domain+"> is not valid");
         }
-        return ("/"+basePath+"/"+domain).replaceAll("/{2,}","/");
+
+        String subPath="";
+        if(pathType.equals(DomainPathType.SERVER)){
+            subPath="/servers";
+        }
+        else if(pathType.equals(DomainPathType.CLIENT)){
+            subPath="/clients";
+        }
+
+        return ("/"+basePath+"/"+domain+subPath).replaceAll("/{2,}","/");
 
     }
 
     public static String buildServiceDomain(CuratorFramework client,String domain){
-        String fullPath = buildServiceDomainPathName(domain);
+        String fullPath = buildServiceDomainPathName(domain,DomainPathType.ROOT);
         ServiceDomainDefinition definition = new ServiceDomainDefinition();
         definition.setCreationDate(DateTime.now());
         definition.setName(domain);
@@ -99,8 +114,18 @@ public class ServiceNamingUtils {
         return fullPath;
     }
 
-    public static String buildServicePath(CuratorFramework client,String registrarDomain,CuratorDiscoveryServiceDescription service){
-        String domainPathName = buildServiceDomainPathName(registrarDomain);
+
+    public static String buildServiceDiscovererDomain(CuratorFramework client,String domain){
+        buildServiceDomain(client,domain);
+        return buildServiceDomainPathName(domain,DomainPathType.SERVER);
+    }
+
+    public static String buildClientDiscovererDomain(CuratorFramework client,String domain){
+        buildServiceDomain(client,domain);
+        return buildServiceDomainPathName(domain,DomainPathType.CLIENT);
+    }
+    public static String buildServerServicePath(CuratorFramework client, String registrarDomain, CuratorDiscoveryServiceDescription service){
+        String domainPathName = buildServiceDomainPathName(registrarDomain,DomainPathType.SERVER);
         String serviceFullName = ServiceNamingUtils.buildServiceFullName(service.getName(),service.getVersion());
         String fullPath = (domainPathName+"/"+serviceFullName).replaceAll("/{2,}","/");
         ServiceDescription definition = new ServiceDescription();

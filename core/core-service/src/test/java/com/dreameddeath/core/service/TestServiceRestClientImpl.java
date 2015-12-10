@@ -17,12 +17,10 @@
 package com.dreameddeath.core.service;
 
 
-import com.dreameddeath.core.json.JsonProviderFactory;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.swagger.TestingDocument;
-import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import rx.Observable;
 
 import javax.annotation.Generated;
@@ -41,20 +39,19 @@ import javax.ws.rs.core.MediaType;
 )
 public class TestServiceRestClientImpl implements ITestService {
     private IGlobalContextTranscoder transcoder;
-    private ServiceClientFactory serviceClientFactory;
+    private IServiceClient serviceClient;
 
     public void setContextTranscoder(IGlobalContextTranscoder transcoder){
         this.transcoder = transcoder;
     }
 
-    public void setServiceClientFactory(ServiceClientFactory clientFactory){
-        serviceClientFactory = clientFactory;
+    public void setServiceClient(IServiceClient serviceClient){
+        this.serviceClient = serviceClient;
     }
 
     @Override
     public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
-        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
-        target = target.register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
+        WebTarget target = serviceClient.getInstance();
         target = target.path(String.format("toto/%s/tuto/%s", input.rootId, input.id));
 
         return Observable.from(
@@ -68,9 +65,9 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<Result> getWithRes(String rootId, String id) {
-        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
-        target = target.register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
-        target = target.path(String.format("toto/%s/tuto/%s", rootId, id));
+        WebTarget target = serviceClient
+                .getInstance()
+                .path(String.format("toto/%s/tuto/%s", rootId, id));
 
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)
@@ -82,8 +79,7 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<Result> putWithQuery(String rootId, String id) {
-        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
-        target = target.register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
+        WebTarget target = serviceClient.getInstance();
         target = target.path(String.format("toto/%s", rootId));
         target = target.queryParam("id",id);
         return Observable.from(
@@ -97,8 +93,7 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
-        WebTarget target = serviceClientFactory.getClient("testService", "1.0");
-        target = target.register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
+        WebTarget target = serviceClient.getInstance();
         target = target.path(String.format("testingDocument"));
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)

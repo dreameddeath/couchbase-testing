@@ -20,6 +20,7 @@ import com.dreameddeath.core.curator.discovery.ICuratorDiscovery;
 import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryLifeCycleListener;
 import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
 import com.dreameddeath.core.curator.model.IRegisterable;
+import com.dreameddeath.core.curator.utils.CuratorUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -60,11 +61,16 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
 
     protected abstract T deserialize(String uid,byte[] element);
 
+    protected void preparePath(){
+        CuratorUtils.createPathIfNeeded(curatorFramework, basePath);
+    }
+
     @PostConstruct
     public final void start() throws Exception{
         for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
             listener.onStart(this,true);
         }
+        preparePath();
         pathCache = new PathChildrenCache(curatorFramework,basePath,true);
         pathCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
         CountDownLatch started=new CountDownLatch(1);
@@ -197,6 +203,10 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     @Override
     final public CuratorFramework getClient(){
         return curatorFramework;
+    }
+
+    final public String getBasePath(){
+        return basePath;
     }
 
 }

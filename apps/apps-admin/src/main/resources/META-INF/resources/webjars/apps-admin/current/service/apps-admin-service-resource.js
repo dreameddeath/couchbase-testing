@@ -18,4 +18,11 @@ define(['angular','angular-resource'],function(angular){
                   'instance':{method:'GET'}
                 });
         }]);
+
+     resourceModule.factory('ServicesDomainClientInstances', ['$resource', function ($resource) {
+                 return $resource("/apis/apps-admin/domains/:domain/clients/:fullname/:id", {domain:"@domain",fullname:"@fullname",id:"@id"},
+                     { 'list':  {method:'GET',isArray:true},
+                       'instance':{method:'GET'}
+                     });
+             }]);
 });

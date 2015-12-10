@@ -24,8 +24,6 @@ import com.dreameddeath.core.helper.config.DaoHelperConfigProperties;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
-import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
@@ -109,7 +107,7 @@ public class AbstractDaemonTest extends Assert {
                     ServiceClientFactory daoReadClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_READ_SERVICES_DOMAIN.get());
                     ServiceClientFactory daoWriteClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_WRITE_SERVICES_DOMAIN.get());
                     Response response = daoWriteClientFactory.getClient("dao#test#testdoc$write", "1.0.0")
-                            .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC))
+                            .getInstance()
                             .request()
                                     .post(Entity.json(newDoc));
                     TestDoc createdTestDoc = response.readEntity(new GenericType<>(TestDoc.class));
@@ -118,7 +116,7 @@ public class AbstractDaemonTest extends Assert {
 
                     String[] keyParts = createdTestDoc.getMeta().getKey().split("/");
                     Response readDocResponse = daoReadClientFactory.getClient("dao#test#testdoc$read", "1.0.0")
-                            .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC))
+                            .getInstance()
                                     .path(keyParts[keyParts.length-1])
                                     .request()
                                     .get();
@@ -173,7 +171,7 @@ public class AbstractDaemonTest extends Assert {
 
                     Integer response = ((RestWebServer)daemon.getAdditionalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests")
                             .getClient("tests#tests#tests", "1.0")
-                            .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                            .getInstance()
                             //.path("/status")
                             .request(MediaType.APPLICATION_JSON)
                             .get(Integer.class);
@@ -187,8 +185,8 @@ public class AbstractDaemonTest extends Assert {
 
                 try {
                     WebServerInfo response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin")
-                            .getClient("daemon#admin#status", "1.0")
-                            .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                            .getClient("daemon#admin", "1.0")
+                            .getInstance()
                             .path("/webservers/tests")
                             .request(MediaType.APPLICATION_JSON)
                             .get(WebServerInfo.class);
@@ -202,8 +200,8 @@ public class AbstractDaemonTest extends Assert {
 
                 try {
                     StatusResponse response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                            .getClient("daemon#admin#status", "1.0")
-                            .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                            .getClient("daemon#admin", "1.0")
+                            .getInstance()
                             .path("/status")
                             .request(MediaType.APPLICATION_JSON)
                             .get(StatusResponse.class);
@@ -219,8 +217,8 @@ public class AbstractDaemonTest extends Assert {
                     StatusUpdateRequest request = new StatusUpdateRequest();
                     request.setAction(StatusUpdateRequest.Action.HALT);
                     StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                            .getClient("daemon#admin#status", "1.0")
-                            .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                            .getClient("daemon#admin", "1.0")
+                            .getInstance()
                             .path("/status")
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.json(request), StatusResponse.class);
@@ -237,8 +235,8 @@ public class AbstractDaemonTest extends Assert {
                     StatusUpdateRequest request = new StatusUpdateRequest();
                     request.setAction(StatusUpdateRequest.Action.STOP);
                     StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                            .getClient("daemon#admin#status", "1.0")
-                            .register(JsonProviderFactory.getProvider(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR))
+                            .getClient("daemon#admin", "1.0")
+                            .getInstance()
                             .path("/status")
                             .request(MediaType.APPLICATION_JSON)
                             .put(Entity.json(request),StatusResponse.class);

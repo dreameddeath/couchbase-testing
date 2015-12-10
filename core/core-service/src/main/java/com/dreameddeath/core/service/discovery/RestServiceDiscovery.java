@@ -16,10 +16,7 @@
 
 package com.dreameddeath.core.service.discovery;
 
-import com.dreameddeath.core.service.model.ServiceInfoDescription;
-import com.dreameddeath.core.service.model.ServiceInstanceDescription;
-import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
-import com.dreameddeath.core.service.model.ServicesListInstanceDescription;
+import com.dreameddeath.core.service.model.*;
 import io.swagger.models.Swagger;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -27,6 +24,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,8 +35,23 @@ public class RestServiceDiscovery {
     @Autowired
     private ServiceDiscoverer serviceDiscoverer;
 
+    @Autowired
+    private ClientDiscoverer clientDiscoverer;
+
     public void setServiceDiscoverer(ServiceDiscoverer serviceDiscoverer){
         this.serviceDiscoverer = serviceDiscoverer;
+    }
+
+    public void setClientDiscoverer(ClientDiscoverer clientDiscoverer) {
+        this.clientDiscoverer = clientDiscoverer;
+    }
+
+    public ClientDiscoverer getClientDiscoverer() {
+        return clientDiscoverer;
+    }
+
+    public ServiceDiscoverer getServiceDiscoverer() {
+        return serviceDiscoverer;
     }
 
     @GET
@@ -94,5 +107,27 @@ public class RestServiceDiscovery {
         List<ServiceInfoDescription> result = new ArrayList<>(services.size());
         result.addAll(services);
         return result;
+    }
+
+
+    @GET
+    @Path("/clients/{fullName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ClientInstanceInfo> getClientsInfosByFullName(@PathParam("fullName") String fullName) throws Exception{
+        if(clientDiscoverer!=null){
+            return clientDiscoverer.getInstances(fullName);
+        }
+        return Collections.emptyList();
+    }
+
+
+    @GET
+    @Path("/clients")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ClientInstanceInfo> getClientsInfos() throws Exception{
+        if(clientDiscoverer!=null){
+            return clientDiscoverer.getInstances();
+        }
+        return Collections.emptyList();
     }
 }

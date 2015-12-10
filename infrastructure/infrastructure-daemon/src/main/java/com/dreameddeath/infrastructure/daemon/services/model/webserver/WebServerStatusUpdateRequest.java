@@ -19,7 +19,7 @@ package com.dreameddeath.infrastructure.daemon.services.model.webserver;
 /**
  * Created by Christophe Jeunesse on 14/08/2015.
  */
-public class StatusUpdateRequest {
+public class WebServerStatusUpdateRequest {
     private Action action;
 
     public Action getAction() {
