@@ -131,7 +131,7 @@
         <module>business</module>
         <module>infrastructure</module>
         <module>testing</module>
-        <module>apps</module>
+        <module>ui</module>
         <!--<module>minimal-rating-engine</module>-->
     </modules>
 

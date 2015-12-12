@@ -17,6 +17,7 @@
 package com.dreameddeath.core.couchbase.impl;
 
 
+import com.codahale.metrics.MetricRegistry;
 import com.couchbase.client.java.*;
 import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonLongDocument;
@@ -58,6 +59,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     private final Cluster cluster;
     private final String bucketName;
     private final String bucketPassword;
+    private final MetricRegistry metricRegistry;
     private final List<Transcoder<? extends Document, ?>> transcoders = new ArrayList<>();
     private final Map<Class<? extends CouchbaseDocument>,ICouchbaseTranscoder<?>> transcoderMap =new HashMap<>();
 
@@ -126,9 +128,15 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
 
     public CouchbaseBucketWrapper(CouchbaseCluster cluster, String bucketName, String bucketPassword){
+        this(cluster,bucketName,bucketPassword,null);
+    }
+
+
+    public CouchbaseBucketWrapper(CouchbaseCluster cluster, String bucketName, String bucketPassword, MetricRegistry registry){
         this.cluster = cluster;
         this.bucketName = bucketName;
         this.bucketPassword = bucketPassword;
+        this.metricRegistry = registry;
         buildTranscoders(bucketName);
     }
 
@@ -252,7 +260,6 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,Class<T> entity){
-        //id = ICouchbaseBucket.Utils.buildKey(keyPrefix,id);
         return bucket.async().get(id,getTranscoder(entity).documentType()).map(BucketDocument::content);
     }
 

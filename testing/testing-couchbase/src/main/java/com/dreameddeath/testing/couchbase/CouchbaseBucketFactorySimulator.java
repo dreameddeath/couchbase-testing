@@ -51,6 +51,6 @@ public class CouchbaseBucketFactorySimulator extends CouchbaseBucketFactory{
             }
         }
 
-        return new CouchbaseBucketSimulator(name);
+        return new CouchbaseBucketSimulator(name,getMetricRegistry());
     }
 }

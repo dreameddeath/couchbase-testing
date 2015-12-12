@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.couchbase.impl;
 
+import com.codahale.metrics.MetricRegistry;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
@@ -31,19 +32,25 @@ import java.util.Map;
  */
 public class CouchbaseBucketFactory implements ICouchbaseBucketFactory,AutoCloseable {
     private final ICouchbaseClusterFactory clusterFactory;
+    private final MetricRegistry metricRegistry;
     private final Map<String,ICouchbaseBucket> couchbaseBucketMap = new HashMap<>();
     private boolean autoStart;
 
     public CouchbaseBucketFactory(ICouchbaseClusterFactory clusterFactory){
         this.clusterFactory=clusterFactory;
+        this.metricRegistry=null;
         autoStart=false;
     }
 
     public CouchbaseBucketFactory(Builder builder){
         this.clusterFactory=builder.clusterFactory;
+        this.metricRegistry = builder.metricRegistry;
         autoStart=false;
     }
 
+    protected MetricRegistry getMetricRegistry(){
+        return metricRegistry;
+    }
 
     public ICouchbaseClusterFactory getClusterFactory(){
         return clusterFactory;
@@ -108,6 +115,7 @@ public class CouchbaseBucketFactory implements ICouchbaseBucketFactory,AutoClose
 
     public static class Builder{
         private ICouchbaseClusterFactory clusterFactory;
+        private MetricRegistry metricRegistry=null;
 
         public Builder(){
             clusterFactory = new CouchbaseClusterFactory();
@@ -115,6 +123,11 @@ public class CouchbaseBucketFactory implements ICouchbaseBucketFactory,AutoClose
 
         public Builder withClusterFactory(ICouchbaseClusterFactory clusterFactory) {
             this.clusterFactory = clusterFactory;
+            return this;
+        }
+
+        public Builder withMetricRegistry(MetricRegistry metricRegistry) {
+            this.metricRegistry = metricRegistry;
             return this;
         }
 

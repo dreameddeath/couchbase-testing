@@ -16,6 +16,7 @@
 
 package com.dreameddeath.testing.couchbase;
 
+import com.codahale.metrics.MetricRegistry;
 import com.couchbase.client.core.lang.Tuple2;
 import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
@@ -90,11 +91,16 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         transcoderMap.put(CouchbaseAsyncBucket.STRING_TRANSCODER.documentType(), CouchbaseAsyncBucket.STRING_TRANSCODER);
         transcoderMap.put(CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER.documentType(), CouchbaseAsyncBucket.SERIALIZABLE_TRANSCODER);
     }
+
     public CouchbaseBucketSimulator(String bucketName){
-        super(null, bucketName, null);
-        //initTranscoders();
+        this(bucketName,null);
     }
-    
+
+    public CouchbaseBucketSimulator(String bucketName, MetricRegistry registry){
+        super(null, bucketName, null,registry);
+    }
+
+
     public ScriptEngine getJavaScriptEngine(){
         return engine;
     }
