@@ -90,10 +90,15 @@ public class AbstractDaemon {
 
         if(builder.getWithCouchbase()){
             if(builder.getWithCouchbaseClusterFactory()==null){
-                builder.withWithCouchbaseClusterFactory(new CouchbaseClusterFactory());
+                builder.withWithCouchbaseClusterFactory(CouchbaseClusterFactory.builder().withMetricSubscriber(daemonMetrics.getMetricEventSubscriber()).build());
             }
             if(builder.getWithCouchbaseBucketFactory()==null){
-                builder.withWithCouchbaseBucketFactory(CouchbaseBucketFactory.builder().withClusterFactory(builder.getWithCouchbaseClusterFactory()).build());
+                builder.withWithCouchbaseBucketFactory(
+                            CouchbaseBucketFactory.builder()
+                                .withClusterFactory(builder.getWithCouchbaseClusterFactory())
+                                .withMetricRegistry(daemonMetrics.getMetricRegistry())
+                                .build()
+                        );
             }
             daemonCouchbaseFactories = new DaemonCouchbaseFactories(builder.getWithCouchbaseClusterFactory(),builder.getWithCouchbaseBucketFactory());
             daemonLifeCycle.addLifeCycleListener(new CouchbaseDaemonLifeCycle(daemonCouchbaseFactories));

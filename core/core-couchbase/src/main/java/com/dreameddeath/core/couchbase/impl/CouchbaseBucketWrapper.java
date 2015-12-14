@@ -32,6 +32,7 @@ import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
 import com.dreameddeath.core.couchbase.config.CouchbaseConfigProperties;
 import com.dreameddeath.core.couchbase.exception.*;
+import com.dreameddeath.core.couchbase.metrics.CouchbaseMetricsContext;
 import com.dreameddeath.core.couchbase.utils.CouchbaseUtils;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
@@ -59,7 +60,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     private final Cluster cluster;
     private final String bucketName;
     private final String bucketPassword;
-    private final MetricRegistry metricRegistry;
+    protected final CouchbaseMetricsContext getContext;
+    protected final CouchbaseMetricsContext updateContext;
+    protected final CouchbaseMetricsContext createContext;
+    protected final CouchbaseMetricsContext deleteContext;
+    protected final CouchbaseMetricsContext deltaContext;
+    protected final CouchbaseMetricsContext counterContext;
+
     private final List<Transcoder<? extends Document, ?>> transcoders = new ArrayList<>();
     private final Map<Class<? extends CouchbaseDocument>,ICouchbaseTranscoder<?>> transcoderMap =new HashMap<>();
 
@@ -136,7 +143,12 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         this.cluster = cluster;
         this.bucketName = bucketName;
         this.bucketPassword = bucketPassword;
-        this.metricRegistry = registry;
+        getContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"GET\"", registry);
+        updateContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"UPDATE\"", registry);
+        createContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"CREATE\"", registry);
+        deleteContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"DELETE\"", registry);
+        deltaContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"DELTA\"", registry);
+        counterContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"COUNTER\"", registry);
         buildTranscoders(bucketName);
     }
 
@@ -182,6 +194,12 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
             bucket.close();
             bucket = null;
         }
+        getContext.close();
+        updateContext.close();
+        deleteContext.close();
+        createContext.close();
+        deltaContext.close();
+        counterContext.close();
     }
 
     @Override
@@ -260,13 +278,18 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,Class<T> entity){
-        return bucket.async().get(id,getTranscoder(entity).documentType()).map(BucketDocument::content);
+        CouchbaseMetricsContext.MetricsContext mCtxt = getContext.start();
+        return bucket.async().get(id,getTranscoder(entity).documentType())
+                .doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(BucketDocument::content);
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,Class<T>entity, ReadParams params) {
         id = ICouchbaseBucket.Utils.buildKey(params.getKeyPrefix(),id);
         Observable<BucketDocument<T>> result;
+        CouchbaseMetricsContext.MetricsContext mCtxt = getContext.start();
         switch (params.getReadMode()){
             case FROM_REPLICATE:result=bucket.async().getFromReplica(id, getReplicat(),getTranscoder(entity).documentType());break;
             case FROM_MASTER_THEN_REPLICATE:
@@ -285,7 +308,9 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
             result.map(doc->doc.withKeyPrefix(params.getKeyPrefix()));
         }
 
-        return result.map(BucketDocument::content);
+        return result.doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(BucketDocument::content);
     }
 
     protected PersistTo getPersistToFromParam(WriteParams params){
@@ -303,11 +328,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         }
     }
 
-    protected <T extends CouchbaseDocument> Observable<T> asyncWritePostProcess(Observable<BucketDocument<T>> obs,final BucketDocument<T> bucketDoc,WriteParams params){
+    protected <T extends CouchbaseDocument> Observable<T> asyncWritePostProcess(Observable<BucketDocument<T>> obs, CouchbaseMetricsContext.MetricsContext mCtxt, final BucketDocument<T> bucketDoc, WriteParams params){
         if(params.getTimeOutUnit()!=null){
             obs = obs.timeout(params.getTimeOut(),params.getTimeOutUnit());
         }
-        return obs.map(new DocumentResync<>(bucketDoc));
+        return obs.doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(new DocumentResync<>(bucketDoc));
     }
 
     protected <T extends CouchbaseDocument> T syncObserverManage(final T doc,Observable<T> obj) throws StorageException{
@@ -346,14 +373,19 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc) throws StorageException{
         BucketDocument<T> bucketDoc = buildBucketDocument(doc);
-        return bucket.async().insert(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        CouchbaseMetricsContext.MetricsContext mCtxt = createContext.start();
+        return bucket.async().insert(bucketDoc).doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc , WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc,params.getKeyPrefix());
+        CouchbaseMetricsContext.MetricsContext mCtxt = createContext.start();
         return asyncWritePostProcess(
                 bucket.async().insert(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                mCtxt,
                 bucketDoc,
                 params);
     }
@@ -371,14 +403,20 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc) throws StorageException{
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
-        return bucket.async().upsert(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
+        return bucket.async().upsert(bucketDoc)
+                .doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc,params.getKeyPrefix());
+        CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
         return asyncWritePostProcess(
                 bucket.async().upsert(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                mCtxt,
                 bucketDoc,
                 params);
     }
@@ -396,14 +434,20 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc) throws StorageException{
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
-        return bucket.async().replace(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
+        return bucket.async().replace(bucketDoc)
+                .doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc,params.getKeyPrefix());
+        CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
         return asyncWritePostProcess(
                 bucket.async().replace(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                mCtxt,
                 bucketDoc,
                 params);
     }
@@ -433,14 +477,20 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc) throws StorageException{
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
-        return bucket.async().remove(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        CouchbaseMetricsContext.MetricsContext mCtxt = deleteContext.start();
+        return bucket.async().remove(bucketDoc)
+                .doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc,params.getKeyPrefix());
+        CouchbaseMetricsContext.MetricsContext mCtxt = deleteContext.start();
         return asyncWritePostProcess(
                 bucket.async().remove(bucketDoc, getPersistToFromParam(params), getReplicateToFromParam(params)),
+                mCtxt,
                 bucketDoc,
                 params);
     }
@@ -459,13 +509,19 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc) throws StorageException{
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
-        return bucket.async().append(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
+        return bucket.async().append(bucketDoc)
+                .doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc,params.getKeyPrefix());
+        CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
         return asyncWritePostProcess(bucket.async().append(bucketDoc),
+                mCtxt,
                 bucketDoc,
                 params);
     }
@@ -483,14 +539,20 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc) throws StorageException{
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
-        return bucket.async().prepend(bucketDoc).map(new DocumentResync<>(bucketDoc));
+        CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
+        return bucket.async().prepend(bucketDoc)
+                .doOnEach(mCtxt::stop)
+                .doOnError(mCtxt::stop)
+                .map(new DocumentResync<>(bucketDoc));
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc, WriteParams params) throws StorageException {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc,params.getKeyPrefix());
+        CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
         return  asyncWritePostProcess(
                 bucket.async().prepend(bucketDoc),
+                mCtxt,
                 bucketDoc,
                 params);
     }
@@ -521,11 +583,16 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiry)throws StorageException{
-        return bucket.async().counter(key, by, defaultValue, expiry).map(JsonLongDocument::content);
+        CouchbaseMetricsContext.MetricsContext mCtxt = counterContext.start();
+        return bucket.async().counter(key, by, defaultValue, expiry).doOnEach(mCtxt::stopCounter)
+                .doOnError(mCtxt::stop)
+                .map(JsonLongDocument::content);
     }
 
     @Override
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) throws StorageException {
+        CouchbaseMetricsContext.MetricsContext mCtxt = counterContext.start();
+
         key = ICouchbaseBucket.Utils.buildKey(params.getKeyPrefix(),key);
         Observable<JsonLongDocument> result = bucket.async().counter(key, by, defaultValue, expiration);
 
@@ -533,7 +600,9 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
             result = result.timeout(params.getTimeOut(),params.getTimeOutUnit());
         }
 
-        return result.map(JsonLongDocument::content);
+        return result.doOnEach(mCtxt::stopCounter)
+                .doOnError(mCtxt::stop)
+                .map(JsonLongDocument::content);
     }
 
     @Override

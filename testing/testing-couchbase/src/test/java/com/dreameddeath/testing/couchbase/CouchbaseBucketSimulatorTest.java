@@ -16,6 +16,7 @@
 
 package com.dreameddeath.testing.couchbase;
 
+import com.codahale.metrics.MetricRegistry;
 import com.couchbase.client.core.message.dcp.MutationMessage;
 import com.couchbase.client.core.message.dcp.RemoveMessage;
 import com.couchbase.client.core.message.dcp.SnapshotMarkerMessage;
@@ -56,8 +57,8 @@ public class CouchbaseBucketSimulatorTest {
         private int mutations = 0;
         private int deletions = 0;
 
-        public TestDCPFlowHandler(ITranscoder<TestDoc> transcoder) {
-            super(transcoder);
+        public TestDCPFlowHandler(ITranscoder<TestDoc> transcoder,MetricRegistry registry) {
+            super(new Builder(){}.withGenericTranscoder(transcoder).withHandlerName("TestBucketSimulator").withRegistry(registry));
         }
 
         @Override
@@ -192,13 +193,15 @@ public class CouchbaseBucketSimulatorTest {
     @Test
     public void testCouchbaseDCPSimulator()throws Exception{
         ConfigPropertyFactory.preloadConfigClasses();
+        MetricRegistry registry = new MetricRegistry();
         //GenericCouchbaseTranscoder<TestDoc> transcoder =new GenericCouchbaseTranscoder<>(TestDoc.class,LocalBucketDocument.class);
         //transcoder.setTranscoder(new
-        CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
+        CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test",registry);
         cbSimulator.start();
         //cbSimulator.addTranscoder(transcoder);
         ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
-        TestDCPFlowHandler handler = new TestDCPFlowHandler(new TestDocTranscoder(TestDoc.class));
+        //MetricRegistry metricRegistry = new MetricRegistry();
+        TestDCPFlowHandler handler = new TestDCPFlowHandler(new TestDocTranscoder(TestDoc.class),registry);
         CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Arrays.asList("localhost:8091"),"default","",handler,cbSimulator);
         connector.run();
         TestDoc testDoc = new TestDoc();
@@ -224,6 +227,9 @@ public class CouchbaseBucketSimulatorTest {
         assertEquals(6,handler.mutations);
         assertEquals(1,handler.deletions);
 
+        assertEquals(6,registry.getTimers().get("DcpFlowHandler=\"TestBucketSimulator\", Event=\"Mutation\",Attribute=Totals").getCount());
+        assertEquals(1,registry.getTimers().get("DcpFlowHandler=\"TestBucketSimulator\", Event=\"Deletion\",Attribute=Totals").getCount());
+        //assertEquals(1,counters.get(0).getCount());
     }
 
 }

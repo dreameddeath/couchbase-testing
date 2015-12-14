@@ -25,13 +25,11 @@ import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
 import com.dreameddeath.core.elasticsearch.IElasticSearchMapper;
 import com.dreameddeath.core.elasticsearch.exception.JsonEncodingException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
-import com.dreameddeath.core.model.transcoder.ITranscoder;
+import com.google.common.base.Preconditions;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -46,37 +44,17 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
     private final Set<String> checkedIndexes = new TreeSet<>();
     private IElasticSearchMapper mapper;
 
-    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder transcoder){
-        this(client,mapper,transcoder,false);
+    public static Builder builder(){
+        return new Builder();
     }
 
-    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,Map<String,ITranscoder> transcodersMap){
-        this(client,mapper,transcodersMap,false);
-    }
-
-    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,IDocumentInfoMapper docMapper){
-        this(client,mapper,docMapper,false);
-    }
-
-    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,ITranscoder transcoder,boolean autoCreateIndexes){
-        super(transcoder);
-        this.client = client;
-        this.mapper = mapper;
-        this.autoCreateIndexes = autoCreateIndexes;
-    }
-
-    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,Map<String,ITranscoder> transcodersMap,boolean autoCreateIndexes){
-        super(transcodersMap);
-        this.client = client;
-        this.mapper = mapper;
-        this.autoCreateIndexes = autoCreateIndexes;
-    }
-
-    public ElasticSearchDcpFlowHandler(ElasticSearchClient client,IElasticSearchMapper mapper,IDocumentInfoMapper docMapper,boolean autoCreateIndexes){
-        super(docMapper);
-        this.client = client;
-        this.mapper = mapper;
-        this.autoCreateIndexes = autoCreateIndexes;
+    public ElasticSearchDcpFlowHandler(Builder builder){
+        super(builder);
+        Preconditions.checkNotNull(builder.client,"A client must be given");
+        Preconditions.checkNotNull(builder.mapper,"A mapper must be given");
+        this.client = builder.client;
+        this.autoCreateIndexes = builder.autoCreateIndex;
+        this.mapper = builder.mapper;
     }
 
     protected void createIndexIfNeeded(String indexName){
@@ -162,5 +140,30 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
     @Override
     public void manageException(HandlerException message) {
 
+    }
+
+    public static class Builder extends AbstractDCPFlowHandler.Builder<Builder>{
+        private ElasticSearchClient client;
+        private IElasticSearchMapper mapper;
+        private boolean autoCreateIndex = false;
+
+        public Builder withClient(ElasticSearchClient client) {
+            this.client = client;
+            return this;
+        }
+
+        public Builder withMapper(IElasticSearchMapper mapper) {
+            this.mapper = mapper;
+            return this;
+        }
+
+        public Builder withAutoCreateIndex(boolean autoCreateIndex) {
+            this.autoCreateIndex = autoCreateIndex;
+            return this;
+        }
+
+        public ElasticSearchDcpFlowHandler build(){
+            return new ElasticSearchDcpFlowHandler(this);
+        }
     }
 }

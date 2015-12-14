@@ -23,6 +23,7 @@ import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
+import com.dreameddeath.infrastructure.daemon.model.DaemonMetricsInfo;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdateRequest;
 import io.swagger.annotations.Api;
@@ -130,8 +131,8 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
     @ApiOperation(value = "give metrics on a given daemon",
             response = MetricRegistry.class,
     position = 3)
-    public MetricRegistry getMetrics(){
-        return daemon.getDaemonMetrics().getMetricRegistry();
+    public DaemonMetricsInfo getMetrics(){
+        return daemon.getDaemonMetrics().getMetrics();
     }
 
     @Path("webservers")

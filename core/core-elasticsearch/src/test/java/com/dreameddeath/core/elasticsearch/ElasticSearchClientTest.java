@@ -202,7 +202,15 @@ public class ElasticSearchClientTest {
         transcoderMap.put("/test/\\d+",new GenericJacksonTranscoder<>(GenericJacksonTranscoder.Flavor.STORAGE,TestDoc.class));
         transcoderMap.put("/test/cnt",new CounterTranscoder());
         ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
-        ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoderMap,true);
+        ElasticSearchDcpFlowHandler dcpFlowHandler = ElasticSearchDcpFlowHandler.builder()
+                .withHandlerName("EsFlowHanderDcp")
+                .withAutoCreateIndex(true)
+                .withKeyPatternsMap(transcoderMap)
+                .withClient(client)
+                .withMapper(new ElasticSearchMapper())
+                .build();
+
+                //new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoderMap,true);
         CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Arrays.asList("localhost:8091"),"test","",dcpFlowHandler,cbSimulator);
 
 

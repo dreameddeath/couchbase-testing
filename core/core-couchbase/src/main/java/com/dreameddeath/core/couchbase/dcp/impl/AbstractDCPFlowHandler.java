@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.couchbase.dcp.impl;
 
+import com.codahale.metrics.MetricRegistry;
 import com.couchbase.client.core.message.dcp.MutationMessage;
 import com.couchbase.client.core.message.dcp.RemoveMessage;
 import com.couchbase.client.core.message.dcp.SnapshotMarkerMessage;
@@ -23,10 +24,12 @@ import com.couchbase.client.deps.com.lmax.disruptor.EventHandler;
 import com.couchbase.client.deps.com.lmax.disruptor.ExceptionHandler;
 import com.dreameddeath.core.couchbase.dcp.DCPEvent;
 import com.dreameddeath.core.couchbase.dcp.exception.HandlerException;
+import com.dreameddeath.core.couchbase.metrics.DcpFlowHandlerMetrics;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
+import com.google.common.base.Preconditions;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,35 +41,35 @@ import java.util.regex.Pattern;
 public abstract class AbstractDCPFlowHandler {
     private final Handler handler;
     private final MappingMode mappingMode;
-    private Map<Pattern,ITranscoder<?>> keyPatternsMap = new ConcurrentHashMap<>();
-    private ITranscoder<?> genericTranscoder=null;
-    private IDocumentInfoMapper documentInfoMapper=null;
+    //private final Counter eventCounter;
+    private final Map<Pattern,ITranscoder> keyPatternsMap=new ConcurrentHashMap<>();
+    private final ITranscoder genericTranscoder;
+    private final IDocumentInfoMapper documentInfoMapper;
+    private final DcpFlowHandlerMetrics mutationMetrics;
+    private final DcpFlowHandlerMetrics deletionMetrics;
+    private final DcpFlowHandlerMetrics snapshotMetrics;
 
-    public AbstractDCPFlowHandler(ITranscoder transcoder){
-        mappingMode = MappingMode.GENERIC_TRANSCODER;
-        genericTranscoder = transcoder;
-        handler = new Handler();
-    }
+    public AbstractDCPFlowHandler(Builder builder) {
+        Preconditions.checkNotNull(builder.handlerName,"An handler name must be given");
+        Preconditions.checkNotNull(builder.mappingMode,"A mapping mode must be given");
 
-    public AbstractDCPFlowHandler(IDocumentInfoMapper mapper){
-        mappingMode = MappingMode.DOCUMENT_MAPPER;
-        documentInfoMapper = mapper;
-        handler = new Handler();
-    }
-
-    public AbstractDCPFlowHandler(Map<String,ITranscoder> keyPatternMap){
-        mappingMode = MappingMode.KEY_PATTERN;
-        if(keyPatternMap!=null) {
-            addKeyPatternsMap(keyPatternMap);
+        this.mappingMode = builder.mappingMode;
+        switch(this.mappingMode){
+            case DOCUMENT_MAPPER: Preconditions.checkNotNull(builder.documentInfoMapper,"A document Mapper must be given");break;
+            case GENERIC_TRANSCODER: Preconditions.checkNotNull(builder.genericTranscoder,"A transcoder must be given");break;
+            case KEY_PATTERN: Preconditions.checkNotNull(builder.keyPatternsMap,"A transcoder must be given");break;
         }
+        addKeyPatternsMap(builder.keyPatternsMap);
+        this.genericTranscoder = builder.genericTranscoder;
+        this.documentInfoMapper = builder.documentInfoMapper;
+        this.mutationMetrics = new DcpFlowHandlerMetrics("DcpFlowHandler=\""+builder.handlerName+"\", Event=\"Mutation\"", builder.registry);
+        this.deletionMetrics = new DcpFlowHandlerMetrics("DcpFlowHandler=\""+builder.handlerName+"\", Event=\"Deletion\"", builder.registry);
+        this.snapshotMetrics = new DcpFlowHandlerMetrics("DcpFlowHandler=\""+builder.handlerName+"\", Event=\"Snapshot\"", builder.registry);
         handler = new Handler();
     }
-
-    /*public AbstractDCPFlowHandler(){
-        this((Map<String,ITranscoder>) null);
-    }*/
 
     public void addKeyPatternsMap(Map<String,ITranscoder> keyPatternMap){
+        if(keyPatternMap==null) return;
         for(Map.Entry<String,ITranscoder> entry:keyPatternMap.entrySet()){
             this.addKeyPatternEntry(entry.getKey(),entry.getValue());
         }
@@ -152,25 +155,41 @@ public abstract class AbstractDCPFlowHandler {
     public class Handler implements EventHandler<DCPEvent>,ExceptionHandler{
         @Override
         public void onEvent(DCPEvent event, long sequence, boolean endOfBatch) throws Exception{
-            switch(event.getType()){
-                case MUTATION:
-                    MutationMessage message = event.asMutationMessage();
-                    ITranscoder transcoder = findTranscoder(message);
-                    byte[] messageContent = message.content().array();
-                    CouchbaseDocument doc = transcoder.decode(messageContent);
-                    doc.getBaseMeta().setKey(message.key());
-                    doc.getBaseMeta().setCas(message.cas());
-                    doc.getBaseMeta().setEncodedFlags(message.flags());
-                    doc.getBaseMeta().setDbSize(messageContent.length);
-                    manageMutationMessage(event.asMutationMessage(),doc);
-                    break;
-                case DELETION:
-                    manageDeletionMessage(event.asDeletionMessage());
-                    break;
-                case SNAPSHOT:
-                    manageSnapshotMessage(event.asSnapshotMessage());
-                    break;
-                default:
+            //registry.timer("toto").update(10, TimeUnit.NANOSECONDS);
+            DcpFlowHandlerMetrics.Context metricContext=null;
+            try {
+                switch (event.getType()) {
+                    case MUTATION:
+                        MutationMessage message = event.asMutationMessage();
+                        byte[] messageContent = message.content().array();
+                        metricContext = mutationMetrics.start((long) messageContent.length);
+                        ITranscoder transcoder = findTranscoder(message);
+                        CouchbaseDocument doc = transcoder.decode(messageContent);
+                        doc.getBaseMeta().setKey(message.key());
+                        doc.getBaseMeta().setCas(message.cas());
+                        doc.getBaseMeta().setEncodedFlags(message.flags());
+                        doc.getBaseMeta().setDbSize(messageContent.length);
+                        manageMutationMessage(event.asMutationMessage(), doc);
+                        break;
+                    case DELETION:
+                        metricContext = deletionMetrics.start();
+                        manageDeletionMessage(event.asDeletionMessage());
+                        break;
+                    case SNAPSHOT:
+                        metricContext = snapshotMetrics.start();
+                        manageSnapshotMessage(event.asSnapshotMessage());
+                        break;
+                    default:
+                }
+                if(metricContext!=null){
+                    metricContext.stop();
+                }
+            }
+            catch(Throwable e){
+                if(metricContext!=null){
+                    metricContext.stop(e);
+                }
+                throw e;
             }
         }
 
@@ -187,6 +206,43 @@ public abstract class AbstractDCPFlowHandler {
         @Override
         public void handleOnShutdownException(Throwable ex){
             manageException(new HandlerException(ex));
+        }
+    }
+
+    public abstract static class Builder<T extends Builder<T>>{
+        private String handlerName=null;
+        private MappingMode mappingMode=null;
+        private MetricRegistry registry=null;
+        private Map<String,ITranscoder> keyPatternsMap=null;
+        private ITranscoder genericTranscoder=null;
+        private IDocumentInfoMapper documentInfoMapper=null;
+
+        public T withRegistry(MetricRegistry registry) {
+            this.registry = registry;
+            return (T)this;
+        }
+
+        public T withKeyPatternsMap(Map<String, ITranscoder> keyPatternsMap) {
+            this.keyPatternsMap = keyPatternsMap;
+            this.mappingMode = MappingMode.KEY_PATTERN;
+            return (T)this;
+        }
+
+        public T withGenericTranscoder(ITranscoder genericTranscoder) {
+            this.genericTranscoder = genericTranscoder;
+            this.mappingMode = MappingMode.GENERIC_TRANSCODER;
+            return (T)this;
+        }
+
+        public T withDocumentInfoMapper(IDocumentInfoMapper documentInfoMapper) {
+            this.documentInfoMapper = documentInfoMapper;
+            this.mappingMode = MappingMode.DOCUMENT_MAPPER;
+            return (T)this;
+        }
+
+        public T withHandlerName(String handlerName) {
+            this.handlerName = handlerName;
+            return (T)this;
         }
     }
 }

@@ -160,11 +160,14 @@ public class Utils {
                 esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper());
                 esClient = new ElasticSearchClient(esServer.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE));
                 ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
-                ElasticSearchDcpFlowHandler dcpFlowHandler = new ElasticSearchDcpFlowHandler(
-                        esClient,
-                        esMapper,
-                        sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper(),
-                        true);
+                ElasticSearchDcpFlowHandler dcpFlowHandler = ElasticSearchDcpFlowHandler.builder()
+                        .withHandlerName(prefix+"TestEsFlowHander")
+                        .withClient(esClient)
+                        .withMapper(esMapper)
+                        .withDocumentInfoMapper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper())
+                        .withAutoCreateIndex(true)
+                        .build();
+
                 if(client instanceof CouchbaseBucketSimulator) {
                     connector = new CouchbaseDCPConnectorSimulator(env,couchbaseConnectionList ,bucketName, bucketPassword, dcpFlowHandler, (CouchbaseBucketSimulator)client);
                 }

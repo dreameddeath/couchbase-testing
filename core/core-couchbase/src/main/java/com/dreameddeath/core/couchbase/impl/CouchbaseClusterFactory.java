@@ -16,16 +16,24 @@
 
 package com.dreameddeath.core.couchbase.impl;
 
+import com.couchbase.client.core.event.CouchbaseEvent;
+import com.couchbase.client.core.event.EventType;
+import com.couchbase.client.core.event.consumers.LoggingConsumer;
+import com.couchbase.client.core.logging.CouchbaseLogLevel;
+import com.couchbase.client.core.metrics.DefaultLatencyMetricsCollectorConfig;
+import com.couchbase.client.core.metrics.DefaultMetricsCollectorConfig;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.couchbase.ICouchbaseClusterFactory;
 import com.dreameddeath.core.couchbase.config.CouchbaseConfigProperties;
+import rx.Subscriber;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Christophe Jeunesse on 10/10/2015.
@@ -42,12 +50,27 @@ public class CouchbaseClusterFactory implements ICouchbaseClusterFactory,AutoClo
 
     public CouchbaseClusterFactory(Builder builder){
         if(builder.couchbaseEnv==null){
-            this.env = DefaultCouchbaseEnvironment.create();
+            this.env = DefaultCouchbaseEnvironment.builder()
+                    .runtimeMetricsCollectorConfig(DefaultMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
+                    .networkLatencyMetricsCollectorConfig(DefaultLatencyMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
+                    .build();
             this.autoCreatedEnv = true;
         }
         else{
             this.env = builder.couchbaseEnv;
             this.autoCreatedEnv=false;
+        }
+
+        //Log Metrics
+        env.eventBus().get()
+                .filter(ev -> ev.type().equals(EventType.METRIC))
+                .subscribe(LoggingConsumer.create(CouchbaseLogLevel.INFO, LoggingConsumer.OutputFormat.JSON));
+
+
+        if(builder.metricSubscriber!=null) {
+            env.eventBus().get()
+                    .filter(ev -> ev.type().equals(EventType.METRIC))
+                    .subscribe(builder.metricSubscriber);
         }
     }
 
@@ -98,9 +121,14 @@ public class CouchbaseClusterFactory implements ICouchbaseClusterFactory,AutoClo
 
     public static class Builder{
         private CouchbaseEnvironment couchbaseEnv =null;
-
+        private Subscriber<CouchbaseEvent> metricSubscriber=null;
         public Builder withCouchbaseEnv(CouchbaseEnvironment couchbaseEnv) {
             this.couchbaseEnv = couchbaseEnv;
+            return this;
+        }
+
+        public Builder withMetricSubscriber(Subscriber<CouchbaseEvent> metricSubscriber) {
+            this.metricSubscriber = metricSubscriber;
             return this;
         }
 
