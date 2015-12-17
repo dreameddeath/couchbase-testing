@@ -16,79 +16,9 @@
 
 package com.dreameddeath.core.service.model;
 
-import com.dreameddeath.core.curator.model.IRegisterable;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.joda.time.DateTime;
-
 /**
  * Created by Christophe Jeunesse on 09/12/2015.
  */
-public class ClientInstanceInfo implements IRegisterable {
-    @JsonProperty("serviceName")
-    private String serviceName;
-    @JsonProperty("uid")
-    private String uid;
-    @JsonProperty("daemonUid")
-    private String daemonUid;
-    @JsonProperty("webServerUid")
-    private String webServerUid;
-    @JsonProperty("creationDate")
-    private DateTime creationDate;
+public class ClientInstanceInfo extends AbstractClientInstanceInfo{
 
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    @Override
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    public String getDaemonUid() {
-        return daemonUid;
-    }
-
-    public void setDaemonUid(String daemonUid) {
-        this.daemonUid = daemonUid;
-    }
-
-    public String getWebServerUid() {
-        return webServerUid;
-    }
-
-    public void setWebServerUid(String webServerUid) {
-        this.webServerUid = webServerUid;
-    }
-
-    public DateTime getCreationDate() {
-        return creationDate;
-    }
-
-    public void setCreationDate(DateTime creationDate) {
-        this.creationDate = creationDate;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ClientInstanceInfo that = (ClientInstanceInfo) o;
-
-        return uid.equals(that.uid);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return uid.hashCode();
-    }
 }

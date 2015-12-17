@@ -42,8 +42,8 @@ public class DcpFlowHandlerMetrics implements Closeable {
 
         if(registry!=null) {
             totals = registry.timer(baseName + ",Attribute=Totals");
-            inRequests = registry.counter(baseName + ",Attribute=In Requests");
-            exchangedData = registry.meter(baseName + ",Attribute=Data Exchanged");
+            inRequests = registry.counter(baseName + ",Attribute=InEvent");
+            exchangedData = registry.meter(baseName + ",Attribute=DataExchanged");
             errors = registry.timer(baseName + ",Attribute=Errors");
         }
         else{
@@ -59,8 +59,8 @@ public class DcpFlowHandlerMetrics implements Closeable {
     public void close(){
         if(registry!=null) {
             registry.remove(baseName + ",Attribute=Totals");
-            registry.remove(baseName + ",Attribute=In Event");
-            registry.remove(baseName + ",Attribute=Data Exchanged");
+            registry.remove(baseName + ",Attribute=InEvent");
+            registry.remove(baseName + ",Attribute=DataExchanged");
             registry.remove(baseName + ",Attribute=Errors");
         }
     }

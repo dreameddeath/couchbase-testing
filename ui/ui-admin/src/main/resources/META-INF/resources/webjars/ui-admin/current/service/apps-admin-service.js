@@ -50,11 +50,13 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
         );
 
     appsServiceModule.controller('apps-admin-service-domain-ctrl',['$scope','$state','$stateParams'
-                ,'ServicesDomainServiceInfo','ServicesDomainClientInstances',
-                function($scope,$state,$stateParams,ServicesDomainServiceInfo,ServicesDomainClientInstances){
+                ,'ServicesDomainServiceInfo','ServicesDomainClientInstances','ServicesDomainProxyInstances',
+                function($scope,$state,$stateParams,ServicesDomainServiceInfo,
+                        ServicesDomainClientInstances,ServicesDomainProxyInstances)
+                {
                     $scope.close=function(){
-                            $state.go("^");
-                       };
+                        $state.go("^");
+                    };
                     $scope.showDetails=function(fullName){
                         $state.go("admin.service.domain.version",{"fullName":fullName});
                     }
@@ -93,11 +95,16 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                                 for(var version in currService.versions){
                                     var currServiceVersion = currService.versions[version];
                                     currServiceVersion.clients=[];
+                                    currServiceVersion.proxies=[];
                                     currServiceVersion.refreshClients=function(){
                                         //currServiceVersion.clients=[];
                                         ServicesDomainClientInstances.list({domain:$stateParams.domain,fullname:currServiceVersion.fullName},function(data){
                                             currServiceVersion.clients=data;
                                         })
+
+                                        ServicesDomainProxyInstances.list({domain:$stateParams.domain,fullname:currServiceVersion.fullName},function(data){
+                                            currServiceVersion.proxies=data;
+                                        });
                                     };
                                     currServiceVersion.refreshClients();
                                 }

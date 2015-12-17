@@ -39,9 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -53,6 +51,7 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
     private ServiceDiscovery<CuratorDiscoveryServiceDescription> serviceDiscovery;
     private final ConcurrentMap<String,ServiceProvider<CuratorDiscoveryServiceDescription>> serviceProviderMap=new ConcurrentHashMap<>();
+    private final List<IServiceDiscovererListener> listeners=new ArrayList<>();
     private final String domain;
 
     @Override
@@ -99,8 +98,12 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
             public void onRegister(String uid, ServiceDescription obj) {
                 try {
                     ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceDiscovery.serviceProviderBuilder().serviceName(obj.getFullName()).build();
-                    provider.start();
-                    serviceProviderMap.putIfAbsent(obj.getFullName(), provider);
+                    if(serviceProviderMap.putIfAbsent(obj.getFullName(), provider)==null){
+                        provider.start();
+                        for(IServiceDiscovererListener listener:listeners){
+                            listener.onProviderRegister(ServiceDiscoverer.this,provider,obj);
+                        }
+                    }
                 } catch (Exception e) {
                     LOG.error("Cannot register service " + obj.getFullName(), e);
                 }
@@ -112,6 +115,9 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
                     ServiceProvider<CuratorDiscoveryServiceDescription> provider=serviceProviderMap.remove(oldObj.getFullName());
                     if(provider!=null){
                         provider.close();
+                        for(IServiceDiscovererListener listener:listeners){
+                            listener.onProviderRegister(ServiceDiscoverer.this,provider,oldObj);
+                        }
                     }
                 }
                 catch(Exception e){
@@ -235,5 +241,14 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
             LOG.error("Cannot deserialize service node "+uid,e);
             throw new RuntimeException("Cannot deserialize service node "+uid,e);
         }
+    }
+
+    public void addListener(IServiceDiscovererListener listener){
+        listeners.add(listener);
+    }
+
+
+    public String getDomain() {
+        return domain;
     }
 }

@@ -23,6 +23,8 @@ import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.WebAppWebServer;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
@@ -77,6 +79,9 @@ public class UiAdminsTest {
         daemon2.addWebServer(RestWebServer.builder().withName("testing-rest")
                 .withWithCouchbase(true)
                 .withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
+        daemon2.addWebServer(ProxyWebServer.builder().withName("testing-rest-proxy")
+                .withDiscoverDomain(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
+                .withDiscoverDomain("tests"));
         daemons.add(daemon2);
         daemon2.getDaemonLifeCycle().halt();//Start halted
     }

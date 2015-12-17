@@ -5,5 +5,5 @@ TODO
 * ~~Merge core-annotation-processor with core-model~~
 * add a core error (to setup dictionary of errors)
 * add a core log ? (for MDC, ...)
-* add a metrics management
+* ~~add a metrics management~~
 * add even aware bus

@@ -24,6 +24,8 @@ import org.apache.curator.framework.recipes.nodes.PersistentEphemeralNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PreDestroy;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Christophe Jeunesse on 26/10/2015.
  */
-public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements ICuratorRegistrar<T> {
+public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements ICuratorRegistrar<T>,Closeable {
     private final static Logger LOG = LoggerFactory.getLogger(CuratorRegistrarImpl.class);
     private final CuratorFramework curatorFramework;
     private final String basePath;
@@ -66,13 +68,15 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
                 CuratorUtils.buildPath(basePath,obj), serialize(obj));
         node.start();
         node.waitForInitialCreate(1, TimeUnit.SECONDS);
+        LOG.info("Registering path {}",node.getActualPath());
         return node;
     }
 
-    @Override
+    @Override @PreDestroy
     public synchronized final void close() {
         registered.values().forEach(node -> {
             try {
+                LOG.info("Un-registring path {}",node.getActualPath());
                 node.close();
             } catch (IOException e) {
                 LOG.error("Cannot close node "+node.getActualPath());

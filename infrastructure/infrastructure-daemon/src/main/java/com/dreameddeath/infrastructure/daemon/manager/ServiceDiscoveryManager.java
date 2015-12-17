@@ -99,6 +99,7 @@ public class ServiceDiscoveryManager {
 
         if((status!=Status.STOPPED)&& (newStatus!=Status.STARTED)){
             stopDiscoverers();
+            stopClientRegistrar();
         }
         this.status=newStatus;
     }
@@ -116,6 +117,11 @@ public class ServiceDiscoveryManager {
         }
     }
 
+    synchronized private void stopClientRegistrar() throws Exception{
+        for(ServiceClientFactory factory:serviceClientFactoryMap.values()){
+            factory.stop();
+        }
+    }
 
     synchronized public List<ServiceRegistrar> getRegistrars(){
         return new ArrayList<>(serviceRegistrarMap.values());

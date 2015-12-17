@@ -16,18 +16,25 @@
 
 package com.dreameddeath.infrastructure.daemon.servlet;
 
+import com.dreameddeath.infrastructure.daemon.springboot.JarFileResourceSpringBoot;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.util.Loader;
 import org.eclipse.jetty.util.resource.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Created by Christophe Jeunesse on 27/08/2015.
  */
 public class WebJarsServlet extends DefaultServlet {
+    private static final String JARFILE_SEPARATOR="!/";
+    private final static Logger LOG = LoggerFactory.getLogger(WebJarsServlet.class);
     public static final String PREFIX_WEBJARS_PARAM_NAME="pathPrefix";
     public static final String DEFAULT_CACHE_SIZE =  Integer.toString(5 * 1024 * 1024);
     private boolean manualTesting=false;
@@ -57,8 +64,9 @@ public class WebJarsServlet extends DefaultServlet {
 
     @Override
     public Resource getResource(String pathInContext) {
+        String originPath = pathInContext;
         pathInContext = pathInContext.replace(prefix,"/webjars/");
-        pathInContext = "/META-INF/resources" + pathInContext;
+        pathInContext = "META-INF/resources" + pathInContext;
         if(manualTesting){
             File srcFile = new File(ServletUtils.LOCAL_WEBAPP_SRC + "/" + pathInContext);
             if (srcFile.exists()) {
@@ -70,6 +78,22 @@ public class WebJarsServlet extends DefaultServlet {
                 }
             }
         }
-        return Resource.newClassPathResource(pathInContext);
+
+        URL resource = Resource.class.getResource(pathInContext);
+        if(resource==null){
+            resource = Loader.getResource(this.getClass(), pathInContext);
+        }
+        if ((resource != null)) {
+            String externalForm = resource.toExternalForm();
+            if (externalForm.startsWith("jar:file:") && (externalForm.contains(JARFILE_SEPARATOR) && (externalForm.indexOf(JARFILE_SEPARATOR) != externalForm.lastIndexOf(JARFILE_SEPARATOR)))) {
+                return new JarFileResourceSpringBoot(resource);
+            }
+            else {
+                return Resource.newResource(resource);
+            }
+        }
+        else{
+            return null;
+        }
     }
 }

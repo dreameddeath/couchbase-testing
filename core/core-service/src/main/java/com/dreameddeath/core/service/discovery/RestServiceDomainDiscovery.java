@@ -52,8 +52,11 @@ public class RestServiceDomainDiscovery {
                     serviceDiscoverer.start();
                     ClientDiscoverer clientDiscoverer = new ClientDiscoverer(discovery.getClient(),obj.getName());
                     clientDiscoverer.start();
+                    ProxyClientDiscoverer proxyClientDiscoverer = new ProxyClientDiscoverer(discovery.getClient(),obj.getName());
+                    proxyClientDiscoverer.start();
                     service.setServiceDiscoverer(serviceDiscoverer);
                     service.setClientDiscoverer(clientDiscoverer);
+                    service.setProxyClientDiscoverer(proxyClientDiscoverer);
                     serviceDomainsMap.put(uid,service);
                     LOG.info("Registering service domain <{}>",uid);
                 }

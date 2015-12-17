@@ -38,6 +38,10 @@ public class RestServiceDiscovery {
     @Autowired
     private ClientDiscoverer clientDiscoverer;
 
+    @Autowired
+    private ProxyClientDiscoverer proxyClientDiscoverer;
+
+
     public void setServiceDiscoverer(ServiceDiscoverer serviceDiscoverer){
         this.serviceDiscoverer = serviceDiscoverer;
     }
@@ -46,12 +50,20 @@ public class RestServiceDiscovery {
         this.clientDiscoverer = clientDiscoverer;
     }
 
+    public void setProxyClientDiscoverer(ProxyClientDiscoverer proxyClientDiscoverer) {
+        this.proxyClientDiscoverer = proxyClientDiscoverer;
+    }
+
     public ClientDiscoverer getClientDiscoverer() {
         return clientDiscoverer;
     }
 
     public ServiceDiscoverer getServiceDiscoverer() {
         return serviceDiscoverer;
+    }
+
+    public ProxyClientDiscoverer getProxyClientDiscoverer() {
+        return proxyClientDiscoverer;
     }
 
     @GET
@@ -127,6 +139,27 @@ public class RestServiceDiscovery {
     public List<ClientInstanceInfo> getClientsInfos() throws Exception{
         if(clientDiscoverer!=null){
             return clientDiscoverer.getInstances();
+        }
+        return Collections.emptyList();
+    }
+
+    @GET
+    @Path("/proxies/{fullName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ProxyClientInstanceInfo> getProxyClientsInfosByFullName(@PathParam("fullName") String fullName) throws Exception{
+        if(proxyClientDiscoverer!=null){
+            return proxyClientDiscoverer.getInstances(fullName);
+        }
+        return Collections.emptyList();
+    }
+
+
+    @GET
+    @Path("/proxies")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ProxyClientInstanceInfo> getProxyClientsInfos() throws Exception{
+        if(proxyClientDiscoverer!=null){
+            return proxyClientDiscoverer.getInstances();
         }
         return Collections.emptyList();
     }

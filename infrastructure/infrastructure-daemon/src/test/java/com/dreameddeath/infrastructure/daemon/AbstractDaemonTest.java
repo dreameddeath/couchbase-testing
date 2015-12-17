@@ -60,6 +60,7 @@ public class AbstractDaemonTest extends Assert {
     private static final Logger LOG =  LoggerFactory.getLogger(AbstractDaemonTest.class);
     private CuratorTestUtils testUtils;
     private CouchbaseBucketFactorySimulator couchbaseBucketFactory;
+
     @Before
     public void setup() throws Exception{
         testUtils = new CuratorTestUtils();

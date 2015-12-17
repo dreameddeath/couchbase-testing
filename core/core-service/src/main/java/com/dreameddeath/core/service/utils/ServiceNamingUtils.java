@@ -68,6 +68,7 @@ public class ServiceNamingUtils {
     public enum DomainPathType{
         ROOT,
         SERVER,
+        PROXY,
         CLIENT;
     }
 
@@ -86,6 +87,10 @@ public class ServiceNamingUtils {
         else if(pathType.equals(DomainPathType.CLIENT)){
             subPath="/clients";
         }
+        else if(pathType.equals(DomainPathType.PROXY)){
+            subPath="/proxys";
+        }
+
 
         return ("/"+basePath+"/"+domain+subPath).replaceAll("/{2,}","/");
 

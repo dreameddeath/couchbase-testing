@@ -115,6 +115,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
 
     @PreDestroy
     public final void stop() throws Exception{
+        LOG.info("Stopping discovery on path {}",basePath);
         for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
             listener.onStop(this, true);
         }

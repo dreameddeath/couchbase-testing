@@ -82,4 +82,10 @@ public class ServiceClientFactory {
             }
         });
     }
+
+    public void stop() throws Exception{
+        if(clientRegistrar!=null){
+            clientRegistrar.close();
+        }
+    }
 }

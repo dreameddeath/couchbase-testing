@@ -19,15 +19,16 @@ package com.dreameddeath.infrastructure.daemon.couchbase;
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 
+import java.io.Closeable;
+
 /**
  * Created by Christophe Jeunesse on 13/10/2015.
  */
-public class WebServerCouchbaseFactories{
+public class WebServerCouchbaseFactories implements Closeable{
     private final CouchbaseDocumentDaoFactory documentDaoFactory;
     private final CouchbaseSessionFactory couchbaseSessionFactory;
 
     public WebServerCouchbaseFactories(CouchbaseSessionFactory sessionFactory,CouchbaseDocumentDaoFactory documentDaoFactory) {
-        //super(clusterFactory, bucketFactory);
         this.documentDaoFactory = documentDaoFactory;
         this.couchbaseSessionFactory=sessionFactory;
     }
@@ -40,6 +41,7 @@ public class WebServerCouchbaseFactories{
         return couchbaseSessionFactory;
     }
 
+    @Override
     public void close(){
         documentDaoFactory.cleanup();
     }

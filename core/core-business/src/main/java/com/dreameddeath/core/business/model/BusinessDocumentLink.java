@@ -21,6 +21,7 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
@@ -29,9 +30,9 @@ import com.dreameddeath.core.validation.annotation.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BusinessDocumentLink<T extends com.dreameddeath.core.model.document.CouchbaseDocument> extends CouchbaseDocumentElement {
-    private List<SynchronizedLinkProperty> childLinks=new ArrayList<SynchronizedLinkProperty>();
-    private Property<T>            docObject=new ImmutableProperty<T>(null);
+public abstract class BusinessDocumentLink<T extends CouchbaseDocument> extends CouchbaseDocumentElement {
+    private List<SynchronizedLinkProperty> childLinks=new ArrayList<>();
+    private Property<T>            docObject=new ImmutableProperty<>(null);
     @DocumentProperty("key") @NotNull
     private Property<String> key=new SynchronizedLinkProperty<String,T>(BusinessDocumentLink.this){
         @Override

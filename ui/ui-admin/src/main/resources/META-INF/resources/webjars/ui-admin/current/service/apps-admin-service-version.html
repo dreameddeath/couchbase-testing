@@ -91,6 +91,36 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <span>Proxies</span>
+                        </h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>uid</th>
+                                <th>daemon</th>
+                                <th>webserver</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="proxy in currServiceVersionInfo.proxies | orderBy:'daemonId'">
+                                <td>{{proxy.uid}}</td>
+                                <td><button type="button" class="btn btn-xs btn-primary" ng-click="showDaemon(proxy.daemonUid)" aria-label="go to deamon details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                                    {{proxy.daemonUid}}</td>
+                                <td>{{proxy.webServerUid}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </div>
 </div>
