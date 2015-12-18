@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Christophe Jeunesse on 18/01/2015.
@@ -53,6 +54,7 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
     private final ConcurrentMap<String,ServiceProvider<CuratorDiscoveryServiceDescription>> serviceProviderMap=new ConcurrentHashMap<>();
     private final List<IServiceDiscovererListener> listeners=new ArrayList<>();
     private final String domain;
+    private final CountDownLatch started = new CountDownLatch(1);
 
     @Override
     protected void preparePath() {
@@ -78,6 +80,9 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
                         LOG.error("Cannot start discovery for domain "+domain, e);
                         throw new RuntimeException("Cannot start service discovery", e);
                     }
+                }
+                else{
+                    started.countDown();
                 }
             }
 
@@ -133,13 +138,28 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
     }
 
     public  ServiceProvider<CuratorDiscoveryServiceDescription> getServiceProvider(String name) throws ServiceDiscoveryException{
-        return serviceProviderMap.get(name);
+        try {
+            waitStarted();
+        }
+        catch(InterruptedException e){
+            throw new ServiceDiscoveryException("Not yet started",e);
+        }
+
+        ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceProviderMap.get(name);
+        if(provider==null){
+            LOG.error("Cannot find provider for service name {}",name);
+            throw new ServiceDiscoveryException("Cannot find provider for service name "+name);
+        }
+        return provider;
     }
 
 
     public ServiceInstance<CuratorDiscoveryServiceDescription> getInstance(String fullName) throws ServiceDiscoveryException{
         try {
-            return serviceProviderMap.get(fullName).getInstance();
+            return getServiceProvider(fullName).getInstance();
+        }
+        catch(ServiceDiscoveryException e){
+            throw e;
         }
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot get instance for service "+fullName,e);
@@ -148,12 +168,15 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
 
     public ServiceInstance<CuratorDiscoveryServiceDescription> getInstance(String fullName, String uid) throws ServiceDiscoveryException{
         try {
-            ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceProviderMap.get(fullName);
+            ServiceProvider<CuratorDiscoveryServiceDescription> provider = getServiceProvider(fullName);
             for(ServiceInstance<CuratorDiscoveryServiceDescription> instance : provider.getAllInstances()){
                 if(instance.getId().equals(uid)){
                     return instance;
                 }
             }
+        }
+        catch(ServiceDiscoveryException e){
+            throw e;
         }
         catch(Exception e){
             throw new ServiceDiscoveryException("Cannot get instance for service "+fullName+" and uid <"+uid+">",e);
@@ -180,9 +203,12 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
     public ServicesListInstanceDescription getInstancesDescriptionByFullName(String fullName) throws ServiceDiscoveryException{
         ServicesListInstanceDescription result = new ServicesListInstanceDescription();
         try {
-            for (ServiceInstance<CuratorDiscoveryServiceDescription> instance : serviceProviderMap.get(fullName).getAllInstances()) {
+            for (ServiceInstance<CuratorDiscoveryServiceDescription> instance : getServiceProvider(fullName).getAllInstances()) {
                 result.addServiceInstance(new ServiceInstanceDescription(instance));
             }
+        }
+        catch(ServiceDiscoveryException e){
+            throw e;
         }
         catch (Exception e){
             throw new ServiceDiscoveryException("Cannot find all service instances for service "+fullName,e);

@@ -50,6 +50,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     private List<ICuratorDiscoveryListener<T>> listeners =new ArrayList<>();
     private List<ICuratorDiscoveryLifeCycleListener> lifeCycleListeners =new ArrayList<>();
     private Map<String,T> instanceCache =  Maps.newConcurrentMap();
+    private CountDownLatch started;
 
     public CuratorDiscoveryImpl(CuratorFramework curatorFramework, String basePath) {
         this.curatorFramework = curatorFramework;
@@ -73,7 +74,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         preparePath();
         pathCache = new PathChildrenCache(curatorFramework,basePath,true);
         pathCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
-        CountDownLatch started=new CountDownLatch(1);
+        started=new CountDownLatch(1);
         pathCache.getListenable().addListener((client, event) -> {
             synchronized (CuratorDiscoveryImpl.this) {
                 String uid;
@@ -106,7 +107,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                 }
             }
         });
-        started.await(10, TimeUnit.SECONDS);//TODO be parametizable
+        waitStarted();
         for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
             listener.onStart(this,false);
         }
@@ -126,6 +127,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
             listener.onStop(this,false);
         }
+        started=null;
     }
 
     protected void resync(String uid,final T newObj){
@@ -210,4 +212,12 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         return basePath;
     }
 
+    public void waitStarted() throws InterruptedException{
+        if(started!=null){
+            started.await(10,TimeUnit.SECONDS);//TODO be parameterizable
+        }
+        else{
+            throw new IllegalStateException("The module hasn't reached start phase");
+        }
+    }
 }
