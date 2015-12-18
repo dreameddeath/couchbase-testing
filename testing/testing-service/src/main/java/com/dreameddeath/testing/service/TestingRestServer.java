@@ -19,6 +19,7 @@ package com.dreameddeath.testing.service;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
+import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
@@ -56,6 +57,8 @@ public class TestingRestServer {
     private ServiceRegistrar serviceRegistrar;
     private ClientRegistrar clientRegistrar;
     private ClientDiscoverer clientDiscoverer;
+    private ProxyClientDiscoverer proxyClientDiscoverer;
+
     private ServerConnector connector;
     private Map<String,AbstractExposableService> servicesMap = new HashMap<>();
 
@@ -73,6 +76,8 @@ public class TestingRestServer {
         serviceRegistrar = new ServiceRegistrar(curatorClient, DOMAIN);
         clientRegistrar = new ClientRegistrar(curatorClient, DOMAIN,daemonUid.toString(),serverUid.toString());
         clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN);
+        proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN);
+
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar, serviceDiscoverer));
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.test.applicationContext.xml");
         contextHandler.setAttribute("jacksonObjectMapper", jacksonMapper);
@@ -80,6 +85,8 @@ public class TestingRestServer {
         contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
         contextHandler.setAttribute("clientRegistrar", clientRegistrar);
         contextHandler.setAttribute("clientDiscoverer", clientDiscoverer);
+        contextHandler.setAttribute("proxyClientDiscoverer", proxyClientDiscoverer);
+
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
 

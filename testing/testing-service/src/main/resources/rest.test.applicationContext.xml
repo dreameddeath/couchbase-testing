@@ -47,6 +47,7 @@
             <bean id="serviceDiscovery" class="com.dreameddeath.core.service.discovery.RestServiceDiscovery" >
                 <property name="serviceDiscoverer" ref="serviceDiscoverer"/>
                 <property name="clientDiscoverer" ref="clientDiscoverer"/>
+                <property name="proxyClientDiscoverer" ref="proxyClientDiscoverer"/>
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>

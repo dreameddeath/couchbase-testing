@@ -20,6 +20,7 @@ import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
+import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
@@ -83,6 +84,13 @@ public class TestSpringSelfConfig implements ServletContextAware
     public ClientDiscoverer getClientDiscoverer(){
         return (ClientDiscoverer) servletContext.getAttribute("clientDiscoverer");
     }
+
+
+    @Bean(name="proxyClientDiscoverer")
+    public ProxyClientDiscoverer getProxyClientDiscoverer(){
+        return (ProxyClientDiscoverer) servletContext.getAttribute("proxyClientDiscoverer");
+    }
+
 
     @Bean(name="testingJaxRsServer")
     public Server buildJaxRsServer() {

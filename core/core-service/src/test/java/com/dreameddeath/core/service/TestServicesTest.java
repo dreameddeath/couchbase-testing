@@ -23,6 +23,7 @@ import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
+import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.model.ClientInstanceInfo;
@@ -77,6 +78,8 @@ public class TestServicesTest extends Assert{
     private static CuratorFramework curatorClient;
     private static ServiceDiscoverer serviceDiscoverer;
     private static ClientDiscoverer clientDiscoverer;
+    private static ProxyClientDiscoverer proxyClientDiscoverer;
+
     private static ServerConnector connector;
     private static AnnotationProcessorTestingWrapper.Result generatorResult;
     private static CuratorTestUtils curatorUtils;
@@ -115,7 +118,7 @@ public class TestServicesTest extends Assert{
         serviceDiscoverer = new ServiceDiscoverer(curatorClient, DOMAIN);
         ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient, DOMAIN,daemonUid.toString(),serverUid.toString());
         clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN);
-
+        proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN);
         ServiceRegistrar serviceRegistrar = new ServiceRegistrar(curatorClient, DOMAIN);
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar , serviceDiscoverer));
 
@@ -123,6 +126,7 @@ public class TestServicesTest extends Assert{
         contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
         contextHandler.setAttribute("clientRegistrar", clientRegistrar);
         contextHandler.setAttribute("clientDiscoverer", clientDiscoverer);
+        contextHandler.setAttribute("proxyClientDiscoverer", proxyClientDiscoverer);
 
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
