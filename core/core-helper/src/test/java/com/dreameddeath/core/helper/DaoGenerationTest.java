@@ -23,19 +23,18 @@ import com.dreameddeath.core.dao.model.view.IViewQueryResult;
 import com.dreameddeath.core.dao.model.view.IViewQueryRow;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.helper.annotation.processor.DaoGeneratorAnnotationProcessor;
-import com.dreameddeath.core.helper.service.AbstractDaoRestService;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.annotation.processor.DocumentDefAnnotationProcessor;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
-import com.dreameddeath.testing.service.TestingRestServer;
 import model.ITestDao;
 import model.ITestDaoChild;
 import org.junit.After;
@@ -61,12 +60,12 @@ public class DaoGenerationTest extends Assert {
     private TestingRestServer server;
     private CuratorTestUtils testUtils;
 
-    public void initService(String className,String serviceName) throws Exception{
+    /*public void initService(String className,String serviceName) throws Exception{
         AbstractDaoRestService service = (AbstractDaoRestService)compiledEnv.getClass(className).newInstance();
         service.setSessionFactory(env.getSessionFactory());
         service.setUserFactory(new StandardMockUserFactory());
         server.registerService(serviceName, service);
-    }
+    }*/
 
     @Before
     public void initTest() throws  Exception{
@@ -91,11 +90,12 @@ public class DaoGenerationTest extends Assert {
 
         testUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
-
-        initService("service.TestGeneratedDaoReadRestService", "TestGeneratedDaoReadRestService");
-        initService("service.TestGeneratedDaoWriteRestService", "TestGeneratedDaoWriteRestService");
-        initService("service.TestGeneratedDaoChildReadRestService", "TestGeneratedDaoChildReadRestService");
-        initService("service.TestGeneratedDaoChildWriteRestService", "TestGeneratedDaoChildWriteRestService");
+        server.registerBeanObject("couchbaseSessionFactory",env.getSessionFactory());
+        server.registerBeanObject("userFactory",new StandardMockUserFactory());
+        server.registerBeanClass("TestGeneratedDaoReadRestService",compiledEnv.getClass("service.TestGeneratedDaoReadRestService"));
+        server.registerBeanClass("TestGeneratedDaoWriteRestService",compiledEnv.getClass("service.TestGeneratedDaoWriteRestService"));
+        server.registerBeanClass("TestGeneratedDaoChildReadRestService",compiledEnv.getClass("service.TestGeneratedDaoChildReadRestService"));
+        server.registerBeanClass("TestGeneratedDaoChildWriteRestService",compiledEnv.getClass("service.TestGeneratedDaoChildWriteRestService"));
 
         server.start();
 

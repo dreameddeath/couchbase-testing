@@ -22,26 +22,15 @@ import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
-import com.dreameddeath.core.service.discovery.ClientDiscoverer;
-import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
-import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.model.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
-import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
-import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import io.swagger.models.Model;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.cxf.transport.servlet.CXFServlet;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.joda.time.DateTime;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -49,18 +38,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.context.ContextLoaderListener;
 import rx.Observable;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.InetAddress;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 
 /**
@@ -70,17 +55,8 @@ import java.util.UUID;
 public class TestServicesTest extends Assert{
     private static final Logger LOG = LoggerFactory.getLogger(TestServicesTest.class);
 
-    private static final String DOMAIN = "services";
-    private static Server server;
-    private static final UUID daemonUid = UUID.randomUUID();
-    private static final UUID serverUid = UUID.randomUUID();
+    private static TestingRestServer server;
 
-    private static CuratorFramework curatorClient;
-    private static ServiceDiscoverer serviceDiscoverer;
-    private static ClientDiscoverer clientDiscoverer;
-    private static ProxyClientDiscoverer proxyClientDiscoverer;
-
-    private static ServerConnector connector;
     private static AnnotationProcessorTestingWrapper.Result generatorResult;
     private static CuratorTestUtils curatorUtils;
 
@@ -91,98 +67,25 @@ public class TestServicesTest extends Assert{
                 withTempDirectoryPrefix("ServiceGeneratorTest");
         generatorResult = annotTester.run(TestServicesTest.class.getClassLoader().getResource("testingServiceGen").getPath());
         assertTrue(generatorResult.getResult());
-        //result.cleanUp();
-    }
-
-    public static AbstractExposableService newGeneratedService() throws Exception{
-        AbstractExposableService genRestService = (AbstractExposableService)generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestService").newInstance();
-        Class implClass = generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImpl");
-        genRestService.getClass().getMethod("setServiceImplementation",implClass).invoke(genRestService,generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImpl").newInstance());
-        return genRestService;
     }
 
     @BeforeClass
     public static void initialise() throws Exception{
         compileTestServiceGen();
-        curatorUtils = new CuratorTestUtils();
-        curatorUtils.prepare(1);
-        curatorClient = curatorUtils.getClient("TestServicesTest");
-        server = new Server();
-        connector = new ServerConnector(server);
-        server.addConnector(connector);
-        ServletContextHandler contextHandler = new ServletContextHandler();
-        server.setHandler(contextHandler);
-        ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
-        cxfHolder.setInitOrder(1);
-        contextHandler.addServlet(cxfHolder, "/*");
-        serviceDiscoverer = new ServiceDiscoverer(curatorClient, DOMAIN);
-        ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient, DOMAIN,daemonUid.toString(),serverUid.toString());
-        clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN);
-        proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN);
-        ServiceRegistrar serviceRegistrar = new ServiceRegistrar(curatorClient, DOMAIN);
-        server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar , serviceDiscoverer));
+        curatorUtils = new CuratorTestUtils().prepare(1);
+        server = new TestingRestServer("serverTesting", curatorUtils.getClient("TestServicesTest"));
 
-        contextHandler.setAttribute("serviceRegistrar", serviceRegistrar);
-        contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
-        contextHandler.setAttribute("clientRegistrar", clientRegistrar);
-        contextHandler.setAttribute("clientDiscoverer", clientDiscoverer);
-        contextHandler.setAttribute("proxyClientDiscoverer", proxyClientDiscoverer);
-
-        contextHandler.setAttribute("curatorClient", curatorClient);
-        contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
-
-            @Override
-            public String daemonUid() {
-                return daemonUid.toString();
-            }
-
-            @Override
-            public String webserverUid() {
-                return serverUid.toString();
-            }
-
-            @Override
-            public int port() {
-                return connector.getLocalPort();
-            }
-
-            @Override
-            public String path() {
-                return "";
-            }
-
-            @Override
-            public String host() {
-                try {
-                    return InetAddress.getLocalHost().getHostAddress();
-                } catch (Exception e) {
-                    return "localhost";
-                }
-            }
-
-            @Override
-            public String buildInstanceUid() {
-                return UUID.randomUUID().toString();
-            }
-        });
-
-        contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
-        Map<String,AbstractExposableService> servicesMap = new HashMap<>();
-
-        TestServiceRestService service = new TestServiceRestService();
-        servicesMap.put("test",service);
-        servicesMap.put("testGen",newGeneratedService());
-        contextHandler.setAttribute("servicesMap",servicesMap);
-        contextHandler.addEventListener(new ContextLoaderListener());
-
+        server.registerBeanClass("test",TestServiceRestService.class);
+        server.registerBeanClass("testGenImpl",generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImpl"));
+        server.registerBeanClass("testGen",generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestService"));
         server.start();
     }
 
 
     @Test
     public void testServiceRegister() throws Exception {
-        LOG.debug("Connector port {}", connector.getLocalPort());
-        String connectionString = "http://localhost:"+connector.getLocalPort();
+        LOG.debug("Connector port {}", server.getLocalPort());
+        String connectionString = "http://localhost:"+server.getLocalPort();
         Response response = ClientBuilder.newBuilder().build()
                 .target(connectionString)
                 .register(new JacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR)))
@@ -198,14 +101,12 @@ public class TestServicesTest extends Assert{
 
     @Test
     public void testClientRegister() throws Exception {
-        ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient,DOMAIN,daemonUid.toString(),serverUid.toString());
-        //ClientDiscoverer clientDiscoverer = new ClientDiscoverer(curatorClient,DOMAIN);
-        //clientDiscoverer.start();
-        ServiceClientFactory clientFactory = new ServiceClientFactory(serviceDiscoverer,clientRegistrar);
+        ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN,server.getDaemonUid().toString(),server.getServerUid().toString());
+        ServiceClientFactory clientFactory = new ServiceClientFactory(server.getServiceDiscoverer(),clientRegistrar);
         IServiceClient client = clientFactory.getClient("testService","1.0");
         Thread.sleep(100);
-        assertEquals(1L,clientDiscoverer.getNbInstances("testService","1.0"));
-        String connectionString = "http://localhost:"+connector.getLocalPort();
+        assertEquals(1L,server.getClientDiscoverer().getNbInstances("testService","1.0"));
+        String connectionString = "http://localhost:"+server.getLocalPort();
         List<ClientInstanceInfo> response = ClientBuilder.newBuilder().build()
                 .target(connectionString)
                 .register(new JacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR)))
@@ -214,13 +115,13 @@ public class TestServicesTest extends Assert{
                 .get(new GenericType<List<ClientInstanceInfo>>(){});
 
         assertEquals(1L,response.size());
-        assertEquals(daemonUid.toString(),response.get(0).getDaemonUid());
-        assertEquals(serverUid.toString(),response.get(0).getWebServerUid());
+        assertEquals(server.getDaemonUid().toString(),response.get(0).getDaemonUid());
+        assertEquals(server.getServerUid().toString(),response.get(0).getWebServerUid());
         assertEquals(client.getFullName(),response.get(0).getServiceName());
         assertEquals(client.getUuid().toString(),response.get(0).getUid());
         clientRegistrar.close();
         Thread.sleep(500);
-        assertEquals(0L,clientDiscoverer.getNbInstances("testService","1.0"));
+        assertEquals(0L,server.getClientDiscoverer().getNbInstances("testService","1.0"));
 
         List<ClientInstanceInfo> responseAfter = ClientBuilder.newBuilder().build()
                 .target(connectionString)
@@ -235,8 +136,8 @@ public class TestServicesTest extends Assert{
 
     @Test
     public void testService() throws Exception{
-        LOG.debug("Connector port {}", connector.getLocalPort());
-        ServiceClientFactory clientFactory = new ServiceClientFactory(serviceDiscoverer);
+        LOG.debug("Connector port {}", server.getLocalPort());
+        ServiceClientFactory clientFactory = new ServiceClientFactory(server.getServiceDiscoverer());
         IGlobalContextTranscoder transcoder = new IGlobalContextTranscoder() {
             @Override
             public String encode(IGlobalContext ctxt) {
@@ -319,15 +220,7 @@ public class TestServicesTest extends Assert{
     @AfterClass
     public static void stopServer()throws Exception{
         if(server!=null) {
-            try {
-                if (!server.isStopped()) {
-                    server.stop();
-                }
-                server.destroy();
-            }
-            catch (Throwable e){
-                LOG.warn("failed to stop",e);
-            }
+            server.stop();
         }
         if(curatorUtils!=null){
             try {

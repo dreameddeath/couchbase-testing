@@ -23,11 +23,11 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
-import com.dreameddeath.testing.service.TestingRestServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,15 +61,20 @@ public class ViewTest {
 
         testUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
-        TestDaoRestService service = new TestDaoRestService();
+        server.registerBeanObject("couchbaseSessionFactory",env.getSessionFactory());
+        server.registerBeanObject("userFactory",new StandardMockUserFactory());
+
+        server.registerBeanClass("TestDaoRestService",TestDaoRestService.class);
+        server.registerBeanClass("TestChildDaoRestService",TestChildDaoRestService.class);
+        /*TestDaoRestService service = new TestDaoRestService();
         service.setSessionFactory(env.getSessionFactory());
         service.setUserFactory(new StandardMockUserFactory());
-        server.registerService("TestDaoRestService", service);
+        server.registerService("TestDaoRestService", service);*/
 
-        TestChildDaoRestService childService = new TestChildDaoRestService();
+        /*TestChildDaoRestService childService = new TestChildDaoRestService();
         childService.setSessionFactory(env.getSessionFactory());
         childService.setUserFactory(new StandardMockUserFactory());
-        server.registerService("TestChildDaoRestService", childService);
+        server.registerService("TestChildDaoRestService", childService);*/
 
         server.start();
     }

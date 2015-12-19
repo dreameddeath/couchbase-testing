@@ -30,6 +30,10 @@ import javax.annotation.Generated;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.beans.factory.annotation.Autowired;
+
+
 #foreach($import in $service.imports)
 import ${import};
 #end
@@ -44,7 +48,7 @@ import ${import};
 @Api(value = "$esc.java($service.path)", description = "$esc.java($service.description)")
 public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${service.className}> {
     private ${service.className} _serviceImpl;
-    @Override
+    @Override @Autowired
     public void setServiceImplementation(${service.className} serviceImpl){
         _serviceImpl = serviceImpl;
     }
@@ -56,6 +60,7 @@ public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${servic
 #if($service.hasGlobalContextTranscoder())
     private IGlobalContextTranscoder _transcoder;
 
+    @Autowired
     public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
         _transcoder = transcoder;
     }

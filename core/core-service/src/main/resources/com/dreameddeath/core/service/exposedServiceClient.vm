@@ -33,6 +33,8 @@ import javax.ws.rs.client.WebTarget;
 
 import javax.annotation.Generated;
 
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.beans.factory.annotation.Autowired;
 
 #foreach($import in $service.imports)
 import ${import};
@@ -50,11 +52,12 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
     private IServiceClient serviceClient;
 
 #if($service.hasGlobalContextTranscoder())
+    @Autowired
     public void setContextTranscoder(IGlobalContextTranscoder transcoder){
         this.transcoder = transcoder;
     }
 #end
-    @Override
+    @Override @Autowired
     public void setServiceClientFactory(ServiceClientFactory serviceClientFactory){
         this.serviceClient = serviceClientFactory.getClient("${service.name}", "${service.version}");
     }

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.testing.service;
+package com.dreameddeath.core.service.testing;
 
 import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.dreameddeath.core.service.annotation.processor.ServiceExpositionDef;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class TestingRestServer {
-    private static final String DOMAIN = "services";
+    public static final String DOMAIN = "services";
     private Server server;
     private final UUID daemonUid = UUID.randomUUID();
     private final UUID serverUid = UUID.randomUUID();
@@ -60,7 +60,9 @@ public class TestingRestServer {
     private ProxyClientDiscoverer proxyClientDiscoverer;
 
     private ServerConnector connector;
-    private Map<String,AbstractExposableService> servicesMap = new HashMap<>();
+    private Map<String,Class> beanClassNameMap = new HashMap<>();
+    private Map<String,Object> beanObjMap = new HashMap<>();
+
 
     public TestingRestServer(String testName,CuratorFramework curatorClient,ObjectMapper jacksonMapper) throws Exception{
         this.curatorClient = curatorClient;
@@ -79,7 +81,7 @@ public class TestingRestServer {
         proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN);
 
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar, serviceDiscoverer));
-        contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.test.applicationContext.xml");
+        contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
         contextHandler.setAttribute("jacksonObjectMapper", jacksonMapper);
         contextHandler.setAttribute("serviceRegistrar", serviceRegistrar);
         contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
@@ -126,7 +128,8 @@ public class TestingRestServer {
 
         });
 
-        contextHandler.setAttribute("servicesMap",servicesMap);
+        contextHandler.setAttribute("beanClassNameMap", beanClassNameMap);
+        contextHandler.setAttribute("beanObjMap",beanObjMap);
         contextHandler.addEventListener(new ContextLoaderListener());
 
         serviceClientFactory = new ServiceClientFactory(serviceDiscoverer,clientRegistrar);
@@ -138,8 +141,24 @@ public class TestingRestServer {
         this(testName,curatorClient, ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
     }
 
-    public void registerService(String name,AbstractExposableService service){
-        servicesMap.put(name,service);
+
+    public void registerBeanClass(String name, Class beanClass){
+        beanClassNameMap.put(name,beanClass);
+    }
+
+    public void registerBeanObject(String name,Object beanClass){
+        beanObjMap.put(name,beanClass);
+    }
+
+
+    public void registerWrapperServerBean(String name, Class beanClass){
+        beanClassNameMap.put(name+"Impl",beanClass);
+        try{
+            beanClassNameMap.put(name,ServiceExpositionDef.getRestServerClass(beanClass));
+        }
+        catch(ClassNotFoundException e){
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -164,4 +183,29 @@ public class TestingRestServer {
             curatorClient.close();
         }
     }
+
+    public int getLocalPort(){
+        return connector.getLocalPort();
+    }
+
+    public CuratorFramework getCuratorClient() {
+        return curatorClient;
+    }
+
+    public UUID getDaemonUid() {
+        return daemonUid;
+    }
+
+    public UUID getServerUid() {
+        return serverUid;
+    }
+
+    public ServiceDiscoverer getServiceDiscoverer() {
+        return serviceDiscoverer;
+    }
+
+    public ClientDiscoverer getClientDiscoverer() {
+        return clientDiscoverer;
+    }
 }
+

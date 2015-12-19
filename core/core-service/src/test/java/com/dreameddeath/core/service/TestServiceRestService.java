@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -40,6 +41,7 @@ public class TestServiceRestService extends AbstractExposableService {
     private TestServiceImpl testService=new TestServiceImpl();
     private IGlobalContextTranscoder transcoder;
 
+    @Autowired
     public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
         this.transcoder = transcoder;
     }

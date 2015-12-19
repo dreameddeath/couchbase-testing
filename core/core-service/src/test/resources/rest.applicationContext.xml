@@ -22,9 +22,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
             http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
-
     <context:annotation-config />
-    <bean class="com.dreameddeath.core.service.TestSpringSelfConfig" name="__CONFIG_TEST_BEAN" />
+    <bean class="com.dreameddeath.core.service.testing.TestSpringConfig" name="__CONFIG_TEST_BEAN" />
     <bean id="propertyConfigurer"
           class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="ignoreResourceNotFound" value="true"></property>
@@ -32,8 +31,8 @@
         <property name="systemPropertiesMode" value="2"></property>
         <property name="locations">
             <list>
-                <value>classpath:local.rest.application.properties</value>
-                <value>classpath:rest.application.properties</value>
+                <value>classpath:local.rest.test.application.properties</value>
+                <value>classpath:rest.test.application.properties</value>
             </list>
         </property>
     </bean>
@@ -42,10 +41,13 @@
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
+
     <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >
         <jaxrs:serviceBeans>
             <bean id="serviceDiscovery" class="com.dreameddeath.core.service.discovery.RestServiceDiscovery" >
                 <property name="serviceDiscoverer" ref="serviceDiscoverer"/>
+                <property name="clientDiscoverer" ref="clientDiscoverer"/>
+                <property name="proxyClientDiscoverer" ref="proxyClientDiscoverer"/>
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>

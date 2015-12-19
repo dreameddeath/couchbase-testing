@@ -38,6 +38,12 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-service</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-curator</artifactId>
             <version>${project.version}</version>
         </dependency>

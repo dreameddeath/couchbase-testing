@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.testing.service;
+package com.dreameddeath.core.service.testing;
 
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
