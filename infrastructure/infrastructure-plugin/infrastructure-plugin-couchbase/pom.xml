@@ -13,38 +13,57 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>couchbase-testing</artifactId>
+        <artifactId>infrastructure-plugin</artifactId>
         <version>0.1</version>
     </parent>
-    <artifactId>infrastructure</artifactId>
-    <packaging>pom</packaging>
-    <name>infrastructure</name>
+    <artifactId>infrastructure-plugin-couchbase</artifactId>
+    <packaging>jar</packaging>
+    <name>infrastructure-plugin-couchbase</name>
     <url>https://github.com/dreameddeath/couchbase-testing</url>
-    <modules>
-        <module>infrastructure-storm</module>
-        <module>infrastructure-daemon</module>
-        <module>infrastructure-common</module>
-        <module>infrastructure-kafka</module>
-        <module>infrastructure-agent</module>
-        <module>infrastructure-plugin</module>
-    </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-json-transcoder</artifactId>
+            <artifactId>infrastructure-daemon</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-session</artifactId>
+            <artifactId>core-couchbase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-dao</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-helper</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-curator</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-couchbase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-user</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

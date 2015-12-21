@@ -25,7 +25,9 @@ import com.codahale.metrics.logback.InstrumentedAppender;
 import com.couchbase.client.core.event.CouchbaseEvent;
 import com.couchbase.client.core.event.metrics.NetworkLatencyMetricsEvent;
 import com.couchbase.client.core.event.metrics.RuntimeMetricsEvent;
+import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.model.DaemonMetricsInfo;
+import com.dreameddeath.infrastructure.daemon.plugin.AbstractDaemonPlugin;
 import org.slf4j.LoggerFactory;
 import rx.Subscriber;
 
@@ -38,11 +40,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class DaemonMetrics {
     private final MetricRegistry metricRegistry = new MetricRegistry();
+    private final AbstractDaemon parentDaemon;
     private NetworkLatencyMetricsEvent lastCouchbaseLatencyMetricEvent=null;
     private RuntimeMetricsEvent lastCouchbaseRuntimeMetricEvent=null;
     private CouchbaseMetricSubscriber metricSubscriber=null;
 
-    public DaemonMetrics() {
+    public DaemonMetrics(AbstractDaemon daemon) {
+        parentDaemon = daemon;
         final LoggerContext factory = (LoggerContext) LoggerFactory.getILoggerFactory();
         final Logger root = factory.getLogger(Logger.ROOT_LOGGER_NAME);
 
@@ -84,6 +88,11 @@ public class DaemonMetrics {
                 couchbaseMetrics.setRuntime(lastCouchbaseRuntimeMetricEvent.toMap());
             }
         }
+
+        for(AbstractDaemonPlugin plugin:parentDaemon.getPlugins()){
+            plugin.enrichMetrics(infos);
+        }
+
         return infos;
     }
 

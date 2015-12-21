@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.couchbase;
+package com.dreameddeath.infrastructure.plugin.couchbase.lifecycle;
 
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
+import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseDaemonPlugin;
 
 /**
  * Created by Christophe Jeunesse on 22/10/2015.
  */
 public class CouchbaseDaemonLifeCycle implements IDaemonLifeCycle.Listener {
-    private final DaemonCouchbaseFactories daemonCouchbaseFactories;
+    private final CouchbaseDaemonPlugin plugin;
 
-    public CouchbaseDaemonLifeCycle(DaemonCouchbaseFactories daemonCouchbaseFactories){
-        this.daemonCouchbaseFactories = daemonCouchbaseFactories;
+    public CouchbaseDaemonLifeCycle(CouchbaseDaemonPlugin plugin){
+        this.plugin = plugin;
     }
 
     @Override
@@ -41,42 +42,40 @@ public class CouchbaseDaemonLifeCycle implements IDaemonLifeCycle.Listener {
     @Override
     public void lifeCycleStarted(IDaemonLifeCycle lifeCycle) {
         try {
-            daemonCouchbaseFactories.getBucketFactory().start();
+            plugin.getBucketFactory().start();
         }
         catch (Exception e){
             throw new RuntimeException(e);
         }
-        daemonCouchbaseFactories.getBucketFactory().setAutoStart(true);
+        plugin.getBucketFactory().setAutoStart(true);
     }
 
     @Override
     public void lifeCycleFailure(IDaemonLifeCycle lifeCycle, Throwable exception) {
         try {
-            this.daemonCouchbaseFactories.getBucketFactory().close();
+            plugin.getBucketFactory().close();
         }
         catch (Exception e){
             //
         }
         finally {
-            this.daemonCouchbaseFactories.getClusterFactory().close();
+            plugin.getClusterFactory().close();
         }
 
     }
 
-
     @Override
     public void lifeCycleHalt(IDaemonLifeCycle lifeCycle) {
-        daemonCouchbaseFactories.getBucketFactory().setAutoStart(false);
-
+        plugin.getBucketFactory().setAutoStart(false);
     }
 
     @Override
     public void lifeCycleStopping(IDaemonLifeCycle lifeCycle) {
-        daemonCouchbaseFactories.getBucketFactory().setAutoStart(false);
+        plugin.getBucketFactory().setAutoStart(false);
     }
 
     @Override
     public void lifeCycleStopped(IDaemonLifeCycle lifeCycle) {
-        this.daemonCouchbaseFactories.getClusterFactory().close();
+        plugin.getClusterFactory().close();
     }
 }

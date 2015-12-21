@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon;
+package com.dreameddeath.infrastructure.daemon.plugin;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 
 /**
- * Created by Christophe Jeunesse on 01/11/2015.
+ * Created by Christophe Jeunesse on 19/12/2015.
  */
-@DocumentDef(domain = "test")
-public class TestDocEnhanced extends TestDoc {
+public interface IWebServerPluginBuilder<T extends AbstractWebServerPlugin> {
+    T build(AbstractWebServer parent);
 }

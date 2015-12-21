@@ -17,17 +17,15 @@
 package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
-import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
-import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;
 import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
-import com.dreameddeath.infrastructure.daemon.couchbase.CouchbaseDaemonLifeCycle;
-import com.dreameddeath.infrastructure.daemon.couchbase.DaemonCouchbaseFactories;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.metrics.DaemonMetrics;
+import com.dreameddeath.infrastructure.daemon.plugin.AbstractDaemonPlugin;
+import com.dreameddeath.infrastructure.daemon.plugin.IDaemonPluginBuilder;
 import com.dreameddeath.infrastructure.daemon.registrar.DaemonRegisterLifeCycleListener;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
@@ -49,14 +47,14 @@ public class AbstractDaemon {
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
 
     private final String name;
-    private final DaemonMetrics daemonMetrics=new DaemonMetrics();
+    private final DaemonMetrics daemonMetrics=new DaemonMetrics(AbstractDaemon.this);
     private final UUID uuid = UUID.randomUUID();
     private final IDaemonLifeCycle daemonLifeCycle=new DaemonLifeCycle(AbstractDaemon.this);
     private final CuratorFramework curatorClient;
     private final IUserFactory userFactory;
-    private final DaemonCouchbaseFactories daemonCouchbaseFactories;
     private final RestWebServer adminWebServer;
     private final List<AbstractWebServer> additionalWebServers = new ArrayList<>();
+    private final List<AbstractDaemonPlugin> plugins = new ArrayList<>();
 
     protected static CuratorFramework setupDefaultCuratorClient(){
         try {
@@ -88,25 +86,6 @@ public class AbstractDaemon {
         Preconditions.checkNotNull(builder.userFactory,"Please give a user factory");
         userFactory = builder.userFactory;
 
-        if(builder.getWithCouchbase()){
-            if(builder.getWithCouchbaseClusterFactory()==null){
-                builder.withWithCouchbaseClusterFactory(CouchbaseClusterFactory.builder().withMetricSubscriber(daemonMetrics.getMetricEventSubscriber()).build());
-            }
-            if(builder.getWithCouchbaseBucketFactory()==null){
-                builder.withWithCouchbaseBucketFactory(
-                            CouchbaseBucketFactory.builder()
-                                .withClusterFactory(builder.getWithCouchbaseClusterFactory())
-                                .withMetricRegistry(daemonMetrics.getMetricRegistry())
-                                .build()
-                        );
-            }
-            daemonCouchbaseFactories = new DaemonCouchbaseFactories(builder.getWithCouchbaseClusterFactory(),builder.getWithCouchbaseBucketFactory());
-            daemonLifeCycle.addLifeCycleListener(new CouchbaseDaemonLifeCycle(daemonCouchbaseFactories));
-        }
-        else {
-            daemonCouchbaseFactories = null;
-        }
-
         if(builder.getName()==null){
             try {
                 builder.withName(DaemonConfigProperties.DAEMON_NAME.getMandatoryValue("The name must be given"));
@@ -118,15 +97,21 @@ public class AbstractDaemon {
         name = builder.getName();
         curatorClient = builder.getCuratorFramework();
         adminWebServer = new RestWebServer(
-                    RestWebServer.builder().withDaemon(this)
-                            .withName(builder.getAdminWebServerName())
-                            .withApplicationContextConfig(builder.getAdminApplicationContextName())
-                            .withIsRoot(true)
-                );
+                RestWebServer.builder().withDaemon(this)
+                        .withName(builder.getAdminWebServerName())
+                        .withApplicationContextConfig(builder.getAdminApplicationContextName())
+                        .withIsRoot(true)
+        );
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::stopForShutdownHook));
+
         if(builder.getRegisterDaemon()){
             daemonLifeCycle.addLifeCycleListener(new DaemonRegisterLifeCycleListener(curatorClient));
+        }
+
+        for(IDaemonPluginBuilder pluginBuilder:builder.pluginBuilderList){
+            AbstractDaemonPlugin plugin = pluginBuilder.build(this);
+            this.plugins.add(plugin);
         }
     }
 
@@ -168,10 +153,6 @@ public class AbstractDaemon {
         return newWebServer;
     }
 
-    public DaemonCouchbaseFactories getDaemonCouchbaseFactories() {
-        return daemonCouchbaseFactories;
-    }
-
     public IDaemonLifeCycle getDaemonLifeCycle() {
         return daemonLifeCycle;
     }
@@ -180,9 +161,21 @@ public class AbstractDaemon {
         return daemonLifeCycle.getStatus();
     }
 
+    public List<AbstractDaemonPlugin> getPlugins() {
+        return Collections.unmodifiableList(plugins);
+    }
 
     public IUserFactory getUserFactory() {
         return userFactory;
+    }
+
+    public <T extends AbstractDaemonPlugin> T getPlugin(Class<T> type){
+        for(AbstractDaemonPlugin plugin:plugins){
+            if(type.isAssignableFrom(plugin.getClass())){
+                return (T)plugin;
+            }
+        }
+        return null;
     }
 
     public void startAndJoin() throws Exception{
@@ -224,9 +217,7 @@ public class AbstractDaemon {
         private CuratorFramework curatorFramework=null;
         private String adminApplicationContextName="META-INF/spring/daemon.admin.applicationContext.xml";
         private String adminWebServerName="admin";
-        private boolean withCouchbase=false;
-        private CouchbaseClusterFactory withCouchbaseClusterFactory=null;
-        private CouchbaseBucketFactory withCouchbaseBucketFactory=null;
+        private List<IDaemonPluginBuilder> pluginBuilderList=new ArrayList<>();
 
         public String getName() {
             return name;
@@ -273,35 +264,14 @@ public class AbstractDaemon {
             return this;
         }
 
-        public boolean getWithCouchbase() {
-            return withCouchbase;
-        }
-
-        public Builder withWithCouchbase(boolean withCouchbase) {
-            this.withCouchbase = withCouchbase;
-            return this;
-        }
-
-        public CouchbaseClusterFactory getWithCouchbaseClusterFactory() {
-            return withCouchbaseClusterFactory;
-        }
-
-        public Builder withWithCouchbaseClusterFactory(CouchbaseClusterFactory withCouchbaseClusterFactory) {
-            this.withCouchbaseClusterFactory = withCouchbaseClusterFactory;
-            return this;
-        }
-
-        public CouchbaseBucketFactory getWithCouchbaseBucketFactory() {
-            return withCouchbaseBucketFactory;
-        }
-
-        public Builder withWithCouchbaseBucketFactory(CouchbaseBucketFactory withCouchbaseBucketFactory) {
-            this.withCouchbaseBucketFactory = withCouchbaseBucketFactory;
-            return this;
-        }
 
         public Builder withUserFactory(IUserFactory userFactory) {
             this.userFactory = userFactory;
+            return this;
+        }
+
+        public Builder withPlugin(IDaemonPluginBuilder plugin){
+            this.pluginBuilderList.add(plugin);
             return this;
         }
 

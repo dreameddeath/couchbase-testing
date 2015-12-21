@@ -21,13 +21,11 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
-import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
-import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
-import com.dreameddeath.infrastructure.daemon.couchbase.CouchbaseWebServerLifeCycle;
-import com.dreameddeath.infrastructure.daemon.couchbase.WebServerCouchbaseFactories;
 import com.dreameddeath.infrastructure.daemon.metrics.InstrumentedConnectionFactory;
+import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
+import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -37,20 +35,19 @@ import org.springframework.core.env.PropertySources;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Christophe Jeunesse on 21/08/2015.
  */
 public abstract class AbstractWebServer {
-
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
     public static final String GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME = "daemonLifeCycle";
     public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
     public static final String GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME = "propertySources";
-    public static final String GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME = "couchbaseDaoFactory";
-    public static final String GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME = "couchbaseSessionFactory";
     public static final String GLOBAL_USER_FACTORY_PARAM_NAME = "userFactory";
     public static final String GLOBAL_METRICS_REGISTRY_PARAM_NAME = "metricsRegistry";
 
@@ -59,10 +56,9 @@ public abstract class AbstractWebServer {
     private final String name;
     private final UUID uuid;
     private final Server webServer;
-    private final AtomicInteger startCounter=new AtomicInteger(0);
-    private final WebServerCouchbaseFactories couchbaseFactories;
     private final ServerConnector serverConnector;
     private final PropertySources propertySources;
+    private final List<AbstractWebServerPlugin> plugins = new ArrayList<>();
 
     private String getAddress(String address,String networkInterfaceName){
         if(address!=null){
@@ -83,7 +79,7 @@ public abstract class AbstractWebServer {
         return null;
     }
 
-    public AbstractWebServer(Builder builder) {
+    public AbstractWebServer(Builder<?> builder) {
         uuid = UUID.randomUUID();
         parentDaemon = builder.daemon;
         name = builder.name;
@@ -118,20 +114,17 @@ public abstract class AbstractWebServer {
         }
         this.propertySources = propertySources;
 
-        if(builder.withCouchbase){
-            CouchbaseDocumentDaoFactory documentDaoFactory=CouchbaseDocumentDaoFactory.builder()
-                        .withBucketFactory(parentDaemon.getDaemonCouchbaseFactories().getBucketFactory())
-                        .withCuratorFramework(parentDaemon.getCuratorClient())
-                        .build();
-
-            CouchbaseSessionFactory sessionFactory=CouchbaseSessionFactory.builder().withDocumentDaoFactory(documentDaoFactory).build();
-            couchbaseFactories = new WebServerCouchbaseFactories(sessionFactory,documentDaoFactory);
-            webServer.addLifeCycleListener(new CouchbaseWebServerLifeCycle(couchbaseFactories));
-        }
-        else{
-            couchbaseFactories=null;
+        for(IWebServerPluginBuilder pluginBuilder : builder.pluginBuilders){
+            AbstractWebServerPlugin plugin = pluginBuilder.build(this);
+            this.plugins.add(plugin);
         }
     }
+
+
+    public List<AbstractWebServerPlugin> getPlugins(){
+        return Collections.unmodifiableList(plugins);
+    }
+
 
     public AbstractDaemon getParentDaemon() {
         return parentDaemon;
@@ -145,17 +138,12 @@ public abstract class AbstractWebServer {
         return name;
     }
 
-
     public UUID getUuid() {
         return uuid;
     }
 
     public ServerConnector getServerConnector() {
         return serverConnector;
-    }
-
-    public WebServerCouchbaseFactories getCouchbaseFactories() {
-        return couchbaseFactories;
     }
 
     public void start() throws Exception{
@@ -227,7 +215,7 @@ public abstract class AbstractWebServer {
         private String interfaceName=null;
         private boolean isRoot=false;
         private int port=0;
-        private boolean withCouchbase=false;
+        private List<IWebServerPluginBuilder> pluginBuilders = new ArrayList<>();
 
         public T withAddress(String address) {
             this.address = address;
@@ -259,17 +247,14 @@ public abstract class AbstractWebServer {
             return (T)this;
         }
 
-        public T withWithCouchbase(boolean withCouchbase) {
-            this.withCouchbase = withCouchbase;
+        public T withPropertySources(PropertySources propertySources) {
+            this.propertySources = propertySources;
             return (T)this;
         }
 
-
-        public Builder withPropertySources(PropertySources propertySources) {
-            this.propertySources = propertySources;
-            return this;
+        public T withPlugin(IWebServerPluginBuilder pluginBuilder){
+            this.pluginBuilders.add(pluginBuilder);
+            return (T)this;
         }
-
-
     }
 }

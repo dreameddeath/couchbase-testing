@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.couchbase;
+package com.dreameddeath.infrastructure.plugin.couchbase.lifecycle;
 
+import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseWebServerPlugin;
 import org.eclipse.jetty.util.component.LifeCycle;
 
 /**
  * Created by Christophe Jeunesse on 22/10/2015.
  */
 public class CouchbaseWebServerLifeCycle implements LifeCycle.Listener {
-    private final WebServerCouchbaseFactories couchbaseFactories;
+    private final CouchbaseWebServerPlugin plugin;
 
-    public CouchbaseWebServerLifeCycle(WebServerCouchbaseFactories couchbaseFactories) {
-        this.couchbaseFactories = couchbaseFactories;
+    public CouchbaseWebServerLifeCycle(CouchbaseWebServerPlugin parentPlugin) {
+        this.plugin = parentPlugin;
     }
 
     @Override
@@ -40,7 +41,7 @@ public class CouchbaseWebServerLifeCycle implements LifeCycle.Listener {
 
     @Override
     public void lifeCycleFailure(LifeCycle event, Throwable cause) {
-        couchbaseFactories.close();
+        plugin.getDocumentDaoFactory().cleanup();
     }
 
     @Override
@@ -50,6 +51,6 @@ public class CouchbaseWebServerLifeCycle implements LifeCycle.Listener {
 
     @Override
     public void lifeCycleStopped(LifeCycle event) {
-        couchbaseFactories.close();
+        plugin.getDocumentDaoFactory().cleanup();
     }
 }

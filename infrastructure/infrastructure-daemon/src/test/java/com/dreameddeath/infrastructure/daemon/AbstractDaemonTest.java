@@ -18,12 +18,7 @@ package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
-import com.dreameddeath.core.dao.discovery.DaoDiscovery;
-import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
-import com.dreameddeath.core.helper.config.DaoHelperConfigProperties;
-import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.json.JsonProviderFactory;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
@@ -47,9 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -77,191 +70,140 @@ public class AbstractDaemonTest extends Assert {
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
         final AbstractDaemon daemon=AbstractDaemon.builder()
                 .withName("testing Daemon")
-                .withWithCouchbase(true)
                 .withUserFactory(new StandardMockUserFactory())
-                .withWithCouchbaseBucketFactory(couchbaseBucketFactory)
                 .build();
 
         daemon.addWebServer(RestWebServer.builder().withName("tests")
-                .withApplicationContextConfig("applicationContext.xml")
-                .withWithCouchbase(true));
+                .withApplicationContextConfig("applicationContext.xml"));
         daemon.addWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverDomain("tests"));
-        Thread stopping_thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
-                try {
-                    daemonDiscovery.start();
-                    List<DaemonInfo> daemonInfoList = daemonDiscovery.getList();
-                    assertEquals(1, daemonInfoList.size());
-                    assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
-                    assertEquals(daemon.getAdditionalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during daemon registered info read", e);
-                }
-                try{
-                    TestDoc newDoc = new TestDoc();
-                    newDoc.name="testInit";
-
-                    ServiceClientFactory daoReadClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_READ_SERVICES_DOMAIN.get());
-                    ServiceClientFactory daoWriteClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_WRITE_SERVICES_DOMAIN.get());
-                    Response response = daoWriteClientFactory.getClient("dao#test#testdoc$write", "1.0.0")
-                            .getInstance()
-                            .request()
-                                    .post(Entity.json(newDoc));
-                    TestDoc createdTestDoc = response.readEntity(new GenericType<>(TestDoc.class));
-                    DaoHelperServiceUtils.finalizeFromResponse(response,createdTestDoc);
-                    assertEquals(newDoc.name, createdTestDoc.name);
-
-                    String[] keyParts = createdTestDoc.getMeta().getKey().split("/");
-                    Response readDocResponse = daoReadClientFactory.getClient("dao#test#testdoc$read", "1.0.0")
-                            .getInstance()
-                                    .path(keyParts[keyParts.length-1])
-                                    .request()
-                                    .get();
-
-                    TestDoc readDoc = readDocResponse.readEntity(new GenericType<>(TestDoc.class));
-                    DaoHelperServiceUtils.finalizeFromResponse(readDocResponse,readDoc);
-                    assertEquals(createdTestDoc.name, readDoc.name);
-                    assertEquals(createdTestDoc.getMeta().getKey(),readDoc.getMeta().getKey());
-
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
-                }
-                try{
-                    DaoDiscovery discovery = new DaoDiscovery(daemon.getCuratorClient());
-                    discovery.start();
-                    List<DaoInstanceInfo> daos =discovery.getList();
-                    assertEquals(1, daos.size());
-                    DaoInstanceInfo instanceInfo = daos.get(0);
-                    assertEquals(TestDoc.class.getName(), instanceInfo.getMainEntity().getClassName());
-                    assertEquals(1,daos.get(0).getChildEntities().size());
-                    assertEquals(TestDocEnhanced.class.getName(),daos.get(0).getChildEntities().get(0).getClassName());
-                }
-                catch (Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
-                }
-                try{
-                    Integer response =ClientBuilder.newClient()
-                            .register(JsonProviderFactory.getProvider("service"))
-                            .target("http://127.0.0.1:8080")
-                            .path("/proxy-apis/tests#tests#tests/1.0")
-                            .request()
-                            .get(Integer.class);
-                    assertEquals(12L, response.longValue());
-
-                    Integer responseQuery =ClientBuilder.newClient()
-                            .register(JsonProviderFactory.getProvider("service"))
-                            .target("http://127.0.0.1:8080")
-                            .path("/proxy-apis/tests#tests#tests/1.0/23")
-                            .queryParam("qnb","3")
-                            .request()
-                            .get(Integer.class);
-                    assertEquals(12L+23+3,responseQuery.longValue());
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
-                }
-                try {
-
-                    Integer response = ((RestWebServer)daemon.getAdditionalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests")
-                            .getClient("tests#tests#tests", "1.0")
-                            .getInstance()
-                            //.path("/status")
-                            .request(MediaType.APPLICATION_JSON)
-                            .get(Integer.class);
-                    assertEquals(12L,response.longValue());
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
-                }
-
-
-                try {
-                    WebServerInfo response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin")
-                            .getClient("daemon#admin", "1.0")
-                            .getInstance()
-                            .path("/webservers/tests")
-                            .request(MediaType.APPLICATION_JSON)
-                            .get(WebServerInfo.class);
-                    assertEquals(AbstractWebServer.Status.STARTED,response.getStatus());
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
-                }
-
-
-                try {
-                    StatusResponse response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                            .getClient("daemon#admin", "1.0")
-                            .getInstance()
-                            .path("/status")
-                            .request(MediaType.APPLICATION_JSON)
-                            .get(StatusResponse.class);
-                    assertEquals(IDaemonLifeCycle.Status.STARTED,response.getStatus());
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
-                }
-                try {
-                    LOG.info("Request halting the web server");
-
-                    StatusUpdateRequest request = new StatusUpdateRequest();
-                    request.setAction(StatusUpdateRequest.Action.HALT);
-                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                            .getClient("daemon#admin", "1.0")
-                            .getInstance()
-                            .path("/status")
-                            .request(MediaType.APPLICATION_JSON)
-                            .put(Entity.json(request), StatusResponse.class);
-
-                    assertEquals(IDaemonLifeCycle.Status.HALTED, response.getStatus());
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Cannot call halt", e);
-                }
-
-                try {
-                    LOG.info("Request stopping the web server");
-                    StatusUpdateRequest request = new StatusUpdateRequest();
-                    request.setAction(StatusUpdateRequest.Action.STOP);
-                    StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                            .getClient("daemon#admin", "1.0")
-                            .getInstance()
-                            .path("/status")
-                            .request(MediaType.APPLICATION_JSON)
-                            .put(Entity.json(request),StatusResponse.class);
-
-                    assertEquals(IDaemonLifeCycle.Status.STOPPING, response.getStatus());
-                    return;
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Cannot call stop", e);
-                }
-
-                try {
-                    nbErrors.incrementAndGet();
-                    daemon.getDaemonLifeCycle().stop();
-                }
-                catch(Throwable e){
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Cannot stop", e);
-                }
-
-                nbErrors.incrementAndGet();
-                fail("Shoudn't have to call stop");
+        Thread stopping_thread = new Thread(() -> {
+            DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
+            try {
+                daemonDiscovery.start();
+                List<DaemonInfo> daemonInfoList = daemonDiscovery.getList();
+                assertEquals(1, daemonInfoList.size());
+                assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
+                assertEquals(daemon.getAdditionalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());
             }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Error during daemon registered info read", e);
+            }
+            try{
+                Integer response =ClientBuilder.newClient()
+                        .register(JsonProviderFactory.getProvider("service"))
+                        .target("http://127.0.0.1:8080")
+                        .path("/proxy-apis/tests#tests#tests/1.0")
+                        .request()
+                        .get(Integer.class);
+                assertEquals(12L, response.longValue());
+
+                Integer responseQuery =ClientBuilder.newClient()
+                        .register(JsonProviderFactory.getProvider("service"))
+                        .target("http://127.0.0.1:8080")
+                        .path("/proxy-apis/tests#tests#tests/1.0/23")
+                        .queryParam("qnb","3")
+                        .request()
+                        .get(Integer.class);
+                assertEquals(12L+23+3,responseQuery.longValue());
+            }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+            }
+            try {
+
+                Integer response = ((RestWebServer)daemon.getAdditionalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests")
+                        .getClient("tests#tests#tests", "1.0")
+                        .getInstance()
+                        //.path("/status")
+                        .request(MediaType.APPLICATION_JSON)
+                        .get(Integer.class);
+                assertEquals(12L,response.longValue());
+            }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+            }
+
+
+            try {
+                WebServerInfo response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin")
+                        .getClient("daemon#admin", "1.0")
+                        .getInstance()
+                        .path("/webservers/tests")
+                        .request(MediaType.APPLICATION_JSON)
+                        .get(WebServerInfo.class);
+                assertEquals(AbstractWebServer.Status.STARTED,response.getStatus());
+            }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+            }
+
+
+            try {
+                StatusResponse response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
+                        .getClient("daemon#admin", "1.0")
+                        .getInstance()
+                        .path("/status")
+                        .request(MediaType.APPLICATION_JSON)
+                        .get(StatusResponse.class);
+                assertEquals(IDaemonLifeCycle.Status.STARTED,response.getStatus());
+            }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+            }
+            try {
+                LOG.info("Request halting the web server");
+
+                StatusUpdateRequest request = new StatusUpdateRequest();
+                request.setAction(StatusUpdateRequest.Action.HALT);
+                StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
+                        .getClient("daemon#admin", "1.0")
+                        .getInstance()
+                        .path("/status")
+                        .request(MediaType.APPLICATION_JSON)
+                        .put(Entity.json(request), StatusResponse.class);
+
+                assertEquals(IDaemonLifeCycle.Status.HALTED, response.getStatus());
+            }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Cannot call halt", e);
+            }
+
+            try {
+                LOG.info("Request stopping the web server");
+                StatusUpdateRequest request = new StatusUpdateRequest();
+                request.setAction(StatusUpdateRequest.Action.STOP);
+                StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
+                        .getClient("daemon#admin", "1.0")
+                        .getInstance()
+                        .path("/status")
+                        .request(MediaType.APPLICATION_JSON)
+                        .put(Entity.json(request),StatusResponse.class);
+
+                assertEquals(IDaemonLifeCycle.Status.STOPPING, response.getStatus());
+                return;
+            }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Cannot call stop", e);
+            }
+
+            try {
+                nbErrors.incrementAndGet();
+                daemon.getDaemonLifeCycle().stop();
+            }
+            catch(Throwable e){
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Cannot stop", e);
+            }
+
+            nbErrors.incrementAndGet();
+            fail("Shoudn't have to call stop");
         });
         daemon.getDaemonLifeCycle().addLifeCycleListener(new IDaemonLifeCycle.DefaultListener(1000000) {
             @Override

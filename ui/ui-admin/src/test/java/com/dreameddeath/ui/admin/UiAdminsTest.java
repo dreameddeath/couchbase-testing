@@ -27,6 +27,8 @@ import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.WebAppWebServer;
+import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseDaemonPlugin;
+import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseWebServerPlugin;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -73,11 +75,10 @@ public class UiAdminsTest {
         daemon.getDaemonLifeCycle().start();
         final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client)
                 .withUserFactory(new StandardMockUserFactory())
-                .withWithCouchbase(true)
-                .withWithCouchbaseBucketFactory(new CouchbaseBucketFactorySimulator())
+                .withPlugin(CouchbaseDaemonPlugin.builder().withBucketFactory(new CouchbaseBucketFactorySimulator()))
                 .build();
         daemon2.addWebServer(RestWebServer.builder().withName("testing-rest")
-                .withWithCouchbase(true)
+                .withPlugin(CouchbaseWebServerPlugin.builder())
                 .withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
         daemon2.addWebServer(ProxyWebServer.builder().withName("testing-rest-proxy")
                 .withDiscoverDomain(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())

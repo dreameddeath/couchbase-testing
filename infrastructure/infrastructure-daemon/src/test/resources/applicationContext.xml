@@ -22,13 +22,6 @@
             http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
 
     <import resource="classpath:META-INF/spring/webserver.rest.applicationContext.xml" />
-    <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
-
-    <bean id="testDocDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
-          factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
-        <constructor-arg value="test" />
-        <constructor-arg value="testdoc" />
-    </bean>
 
     <bean id="serviceRegistrar"
           class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
@@ -37,19 +30,6 @@
         <constructor-arg type="java.lang.String" value="tests" />
     </bean>
 
-    <bean id="daoReadServiceRegistrar"
-          class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
-          factory-bean="serviceDiscovererManager"
-          factory-method="getServiceRegistrar">
-        <constructor-arg type="java.lang.String" value="${core.helper.dao.services.read.domain}" />
-    </bean>
-
-    <bean id="daoWriteServiceRegistrar"
-          class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
-          factory-bean="serviceDiscovererManager"
-          factory-method="getServiceRegistrar">
-        <constructor-arg type="java.lang.String" value="${core.helper.dao.services.write.domain}" />
-    </bean>
 
     <jaxrs:server id="tests" transportId="http://cxf.apache.org/transports/http" address="/tests" >
         <jaxrs:serviceBeans>
@@ -66,27 +46,4 @@
         </jaxrs:providers>
     </jaxrs:server>
 
-    <jaxrs:server id="dao" transportId="http://cxf.apache.org/transports/http" address="/daos" >
-        <jaxrs:serviceBeans>
-            <bean id="testDao" class="com.dreameddeath.infrastructure.daemon.TestDocWriteRestService" >
-                <property name="address" value="/daos"/>
-                <property name="endPoint" ref="endPoint"/>
-                <property name="serviceRegistrar" ref="daoWriteServiceRegistrar" />
-                <property name="sessionFactory" ref="couchbaseSessionFactory" />
-                <property name="userFactory" ref="userFactory" />
-            </bean>
-            <bean id="testDaoRead" class="com.dreameddeath.infrastructure.daemon.TestDocReadRestService" >
-                <property name="address" value="/daos"/>
-                <property name="endPoint" ref="endPoint"/>
-                <property name="serviceRegistrar" ref="daoReadServiceRegistrar" />
-                <property name="sessionFactory" ref="couchbaseSessionFactory" />
-                <property name="userFactory" ref="userFactory" />
-            </bean>
-        </jaxrs:serviceBeans>
-        <jaxrs:providers>
-            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
-                <constructor-arg value="couchbase-public" />
-            </bean>
-        </jaxrs:providers>
-    </jaxrs:server>
 </beans>

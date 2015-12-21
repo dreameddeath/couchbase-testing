@@ -19,6 +19,8 @@ package com.dreameddeath.infrastructure.daemon.model;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,6 +31,10 @@ public class DaemonMetricsInfo {
     private MetricRegistry metricRegistry;
     @JsonProperty("couchbase")
     private CouchbaseMetrics couchbaseMetrics=null;
+    @JsonProperty("plugins")
+    private Map<String,Object> pluginsMetrics=new HashMap<>();
+
+
 
     public MetricRegistry getMetricRegistry() {
         return metricRegistry;
@@ -44,6 +50,19 @@ public class DaemonMetricsInfo {
 
     public void setCouchbaseMetrics(CouchbaseMetrics couchbaseMetrics) {
         this.couchbaseMetrics = couchbaseMetrics;
+    }
+
+    public void setPluginsMetrics(Map<String,Object> metrics){
+        pluginsMetrics.clear();;
+        pluginsMetrics.putAll(metrics);
+    }
+
+    public void putPluginMetrics(String plugin,Object metrics){
+        pluginsMetrics.put(plugin,metrics);
+    }
+
+    public Map<String,Object> getPluginsMetrics(){
+        return Collections.unmodifiableMap(pluginsMetrics);
     }
 
     public static class CouchbaseMetrics{

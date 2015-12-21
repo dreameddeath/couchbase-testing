@@ -16,6 +16,8 @@
 
 package com.dreameddeath.infrastructure.daemon.servlet;
 
+import com.dreameddeath.infrastructure.daemon.plugin.AbstractDaemonPlugin;
+import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -38,13 +40,12 @@ public class AbstractServletContextHandler extends ServletContextHandler {
         this.setAttribute(AbstractWebServer.GLOBAL_USER_FACTORY_PARAM_NAME,parentServer.getParentDaemon().getUserFactory());
         this.setAttribute(AbstractWebServer.GLOBAL_METRICS_REGISTRY_PARAM_NAME,parentServer.getMetricRegistry());
 
-        if(parentServer.getCouchbaseFactories()!=null){
-            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME,parentServer.getCouchbaseFactories().getDocumentDaoFactory());
-            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME,parentServer.getCouchbaseFactories().getCouchbaseSessionFactory());
+        for(AbstractDaemonPlugin plugin:parentServer.getParentDaemon().getPlugins()){
+            plugin.enrich(this);
         }
-        else{
-            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME,null);
-            this.setAttribute(AbstractWebServer.GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME,null);
+
+        for(AbstractWebServerPlugin plugin:parentServer.getPlugins()){
+            plugin.enrich(this);
         }
     }
 

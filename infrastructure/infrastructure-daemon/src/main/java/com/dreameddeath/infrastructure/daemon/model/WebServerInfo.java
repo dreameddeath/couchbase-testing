@@ -16,7 +16,6 @@
 
 package com.dreameddeath.infrastructure.daemon.model;
 
-import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
 import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
@@ -45,8 +44,6 @@ public class WebServerInfo {
     private Integer port;
     @JsonProperty("status")
     private AbstractWebServer.Status status;
-    @JsonProperty("daos")
-    private List<DaoInstanceInfo> daoInfo=new ArrayList<>();
     @JsonProperty("services")
     private List<ServiceInstance<CuratorDiscoveryServiceDescription>> services=new ArrayList<>();
 
@@ -57,9 +54,6 @@ public class WebServerInfo {
         address = ServerConnectorUtils.getConnectorHost(server.getServerConnector());
         port = ServerConnectorUtils.getConnectorPort(server.getServerConnector());
         status = server.getStatus();
-        if(server.getCouchbaseFactories()!=null){
-            daoInfo=server.getCouchbaseFactories().getDocumentDaoFactory().getRegisteredDaoInstancesInfo();
-        }
         if(server instanceof RestWebServer){
             for(ServiceRegistrar registrar:((RestWebServer)server).getServiceDiscoveryManager().getRegistrars()){
                 services.addAll(registrar.getServicesInstanceDescription());
@@ -117,14 +111,6 @@ public class WebServerInfo {
 
     public void setStatus(AbstractWebServer.Status status) {
         this.status = status;
-    }
-
-    public List<DaoInstanceInfo> getDaoInfo() {
-        return daoInfo;
-    }
-
-    public void setDaoInfo(List<DaoInstanceInfo> daoInfo) {
-        this.daoInfo = daoInfo;
     }
 
     public List<ServiceInstance<CuratorDiscoveryServiceDescription>> getServices() {

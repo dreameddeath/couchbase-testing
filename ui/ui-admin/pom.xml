@@ -55,6 +55,11 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>infrastructure-plugin-couchbase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-user</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
