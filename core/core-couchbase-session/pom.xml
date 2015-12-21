@@ -22,10 +22,10 @@
         <artifactId>core</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>core-session</artifactId>
+  <artifactId>core-couchbase-session</artifactId>
   <packaging>jar</packaging>
 
-  <name>core-session</name>
+  <name>core-couchbase-session</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -54,11 +54,6 @@
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>core-validation</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-elasticsearch</artifactId>
           <version>${project.version}</version>
       </dependency>
       <dependency>

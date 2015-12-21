@@ -50,17 +50,16 @@ public class CuratorFrameworkFactoryTest extends Assert{
     public void prepare() throws Exception{
         System.setProperty("zookeeper.jmx.log4j.disable","true");
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<TestingCluster> future = executor.submit(new Callable<TestingCluster>() {
-            @Override
-            public TestingCluster call() {
-                try {
-                    TestingCluster cluster= new TestingCluster(3);
-                    cluster.start();
-                    return cluster;
-                }
-                catch(Exception e){
-                    return null;
-                }
+        Future<TestingCluster> future = executor.submit(() -> {
+            try {
+                TestingCluster cluster= new TestingCluster(3);
+                cluster.start();
+                return cluster;
+            }
+            catch(Exception e){
+                LOG.error("Cannot start",e);
+                throw new RuntimeException(e);
+                //return null;
             }
         });
         testingCluster = future.get(1,TimeUnit.MINUTES);

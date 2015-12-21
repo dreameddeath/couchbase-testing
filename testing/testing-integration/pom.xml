@@ -69,7 +69,12 @@
         
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-session</artifactId>
+            <artifactId>core-couchbase-session</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-elasticsearch-session</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

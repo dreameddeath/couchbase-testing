@@ -19,37 +19,37 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>couchbase-testing</artifactId>
+        <artifactId>core</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>core</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>core-elasticsearch-session</artifactId>
+  <packaging>jar</packaging>
 
-  <name>core</name>
+  <name>core-elasticsearch-session</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
-    <modules>
-        <module>core-java-utils</module>
-        <module>core-curator</module>
-        <module>core-config</module>
-        <module>core-validation</module>
-        <module>core-model</module>
-        <module>core-business</module>
-        <module>core-process</module>
-        <module>core-couchbase</module>
-        <module>core-couchbase-session</module>
-        <module>core-dao</module>
-        <module>core-date</module>
-        <module>core-user</module>
-        <module>core-json</module>
-        <module>core-json-transcoder</module>
-        <module>core-helper</module>
-        <module>core-integration</module>
-        <module>core-service</module>
-        <module>core-elasticsearch</module>
-        <module>core-elasticsearch-session</module>
-    </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
+  <dependencies>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-date</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-model</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-user</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-elasticsearch</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+  </dependencies>
 </project>

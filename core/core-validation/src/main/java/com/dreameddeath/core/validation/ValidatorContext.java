@@ -27,7 +27,7 @@ import java.util.List;
  */
 public class ValidatorContext {
     private ICouchbaseSession session;
-    private List<HasParent> stack = new LinkedList<HasParent>();
+    private List<HasParent> stack = new LinkedList<>();
 
     public ICouchbaseSession getSession(){return session;}
     public void setSession(ICouchbaseSession session){ this.session = session;}

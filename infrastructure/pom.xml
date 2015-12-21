@@ -36,16 +36,4 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <dependencies>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-json-transcoder</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-session</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>

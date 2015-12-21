@@ -31,12 +31,23 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
     <dependencies>
-
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>infrastructure-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-user</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -212,11 +223,6 @@
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-curator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-service</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

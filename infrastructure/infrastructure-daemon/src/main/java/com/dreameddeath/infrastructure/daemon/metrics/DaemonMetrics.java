@@ -22,14 +22,10 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.jvm.*;
 import com.codahale.metrics.logback.InstrumentedAppender;
-import com.couchbase.client.core.event.CouchbaseEvent;
-import com.couchbase.client.core.event.metrics.NetworkLatencyMetricsEvent;
-import com.couchbase.client.core.event.metrics.RuntimeMetricsEvent;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.model.DaemonMetricsInfo;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractDaemonPlugin;
 import org.slf4j.LoggerFactory;
-import rx.Subscriber;
 
 import javax.management.MBeanServer;
 import java.lang.management.ManagementFactory;
@@ -41,9 +37,6 @@ import java.util.concurrent.TimeUnit;
 public class DaemonMetrics {
     private final MetricRegistry metricRegistry = new MetricRegistry();
     private final AbstractDaemon parentDaemon;
-    private NetworkLatencyMetricsEvent lastCouchbaseLatencyMetricEvent=null;
-    private RuntimeMetricsEvent lastCouchbaseRuntimeMetricEvent=null;
-    private CouchbaseMetricSubscriber metricSubscriber=null;
 
     public DaemonMetrics(AbstractDaemon daemon) {
         parentDaemon = daemon;
@@ -78,16 +71,6 @@ public class DaemonMetrics {
     public DaemonMetricsInfo getMetrics(){
         DaemonMetricsInfo infos = new DaemonMetricsInfo();
         infos.setMetricRegistry(metricRegistry);
-        if((lastCouchbaseLatencyMetricEvent!=null)||(lastCouchbaseRuntimeMetricEvent!=null)){
-            DaemonMetricsInfo.CouchbaseMetrics couchbaseMetrics = new DaemonMetricsInfo.CouchbaseMetrics();
-            infos.setCouchbaseMetrics(couchbaseMetrics);
-            if(lastCouchbaseLatencyMetricEvent!=null){
-                couchbaseMetrics.setLatency(lastCouchbaseLatencyMetricEvent.toMap());
-            }
-            if(lastCouchbaseRuntimeMetricEvent!=null){
-                couchbaseMetrics.setRuntime(lastCouchbaseRuntimeMetricEvent.toMap());
-            }
-        }
 
         for(AbstractDaemonPlugin plugin:parentDaemon.getPlugins()){
             plugin.enrichMetrics(infos);
@@ -96,41 +79,4 @@ public class DaemonMetrics {
         return infos;
     }
 
-    public NetworkLatencyMetricsEvent getLastCouchbaseLatencyMetricEvent() {
-        return lastCouchbaseLatencyMetricEvent;
-    }
-
-    public RuntimeMetricsEvent getLastCouchbaseRuntimeMetricEvent() {
-        return lastCouchbaseRuntimeMetricEvent;
-    }
-
-    public Subscriber<CouchbaseEvent> getMetricEventSubscriber(){
-        if(metricSubscriber==null){
-            synchronized (this){
-                if(metricSubscriber==null){
-                    metricSubscriber = new CouchbaseMetricSubscriber();
-                }
-            }
-        }
-        return metricSubscriber;
-    }
-
-    public class CouchbaseMetricSubscriber extends Subscriber<CouchbaseEvent>{
-
-        @Override
-        public void onCompleted() {}
-
-        @Override
-        public void onError(Throwable throwable) {}
-
-        @Override
-        public void onNext(CouchbaseEvent couchbaseEvent) {
-            if(couchbaseEvent instanceof NetworkLatencyMetricsEvent){
-                lastCouchbaseLatencyMetricEvent = (NetworkLatencyMetricsEvent) couchbaseEvent;
-            }
-            else if(couchbaseEvent instanceof RuntimeMetricsEvent){
-                lastCouchbaseRuntimeMetricEvent = (RuntimeMetricsEvent) couchbaseEvent;
-            }
-        }
-    };
 }
