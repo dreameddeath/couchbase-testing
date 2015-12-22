@@ -18,6 +18,7 @@ package com.dreameddeath.core.elasticsearch.search;
 
 import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
 import org.elasticsearch.action.ListenableActionFuture;
+import org.elasticsearch.action.search.SearchAction;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import rx.Observable;
@@ -29,7 +30,7 @@ public class ElasticSearchSearchQueryBuilder extends SearchRequestBuilder {
     private final ElasticSearchClient client;
 
     public ElasticSearchSearchQueryBuilder(ElasticSearchClient client) {
-        super(client.getInternalClient());
+        super(client.getInternalClient(), SearchAction.INSTANCE);
         this.client = client;
     }
 

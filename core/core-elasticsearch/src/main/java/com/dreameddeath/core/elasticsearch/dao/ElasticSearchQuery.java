@@ -19,7 +19,6 @@ package com.dreameddeath.core.elasticsearch.dao;
 import com.dreameddeath.core.elasticsearch.search.ElasticSearchSearchQueryBuilder;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import rx.Observable;
 
@@ -63,7 +62,7 @@ public class ElasticSearchQuery<T extends CouchbaseDocument> {
     }
 
 
-    public ElasticSearchQuery<T> setPostFilter(FilterBuilder builder) {
+    public ElasticSearchQuery<T> setPostFilter(QueryBuilder builder) {
         query.setPostFilter(builder);
         return this;
     }

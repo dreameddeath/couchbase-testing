@@ -213,7 +213,6 @@ public class ElasticSearchClientTest {
                 //new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoderMap,true);
         CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Arrays.asList("localhost:8091"),"test","",dcpFlowHandler,cbSimulator);
 
-
         connector.run();
 
         TestDoc doc = new TestDoc();
@@ -258,11 +257,21 @@ public class ElasticSearchClientTest {
 
         ElasticSearchResult<TestDoc> resultDaoSearch = dao.search(dao.newQuery().setQuery(QueryBuilders.matchQuery("firstName", "firstName2")));
         assertEquals(2, resultDaoSearch.getTotalHitCount());
-        ElasticSearchResultHit<TestDoc> resultHit = resultDaoSearch.getList().get(0);
-        assertEquals("/test/2",resultHit.getKey());
-        assertEquals(0.3f,resultHit.getScore(),0.1f);
-        assertEquals("lastName1",resultHit.get().lastName);
-        assertEquals(3,resultHit.get().addresses.size());
+
+        ElasticSearchResultHit<TestDoc> firstResultHit = resultDaoSearch.getList().get(0);
+        assertEquals("/test/3",firstResultHit.getKey());
+        assertEquals(0.8f,firstResultHit.getScore(),0.1f);
+        assertEquals("firstName3 firstName2",firstResultHit.get().firstName);
+        assertEquals("lastName2",firstResultHit.get().lastName);
+        assertEquals(2,firstResultHit.get().addresses.size());
+
+
+        ElasticSearchResultHit<TestDoc> secondResultHit = resultDaoSearch.getList().get(1);
+        assertEquals("/test/2",secondResultHit.getKey());
+        assertEquals(0.3f,secondResultHit.getScore(),0.1f);
+        assertEquals("firstName2",secondResultHit.get().firstName);
+        assertEquals("lastName1",secondResultHit.get().lastName);
+        assertEquals(3,secondResultHit.get().addresses.size());
 
     }
 

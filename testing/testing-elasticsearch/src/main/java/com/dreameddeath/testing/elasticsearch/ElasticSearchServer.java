@@ -19,7 +19,6 @@ package com.dreameddeath.testing.elasticsearch;
 
 import org.apache.commons.io.FileUtils;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
@@ -35,15 +34,16 @@ import java.nio.file.Files;
  */
 public class ElasticSearchServer {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchServer.class);
-    private final File dataDir;
+    private final File esHomeDir;
     private final Settings settings;
     private Node node=null;
     private Client client=null;
 
     public ElasticSearchServer(String clusterName) throws Exception{
-        dataDir = Files.createTempDirectory("elasticsearch_data_"+clusterName).toFile();
-        settings = ImmutableSettings.settingsBuilder()
-                .put("path.data", dataDir.toString())
+        esHomeDir = Files.createTempDirectory("elasticsearch_home_"+clusterName).toFile();
+        settings = Settings.builder()
+                .put("path.home", esHomeDir.toString())
+                .put("path.data", new File(esHomeDir,"data").toString())
                 .put("cluster.name", clusterName)
                 .build();
     }
@@ -72,7 +72,7 @@ public class ElasticSearchServer {
             node=null;
         }
         try{
-            FileUtils.forceDelete(dataDir);
+            FileUtils.forceDelete(esHomeDir);
         }
         catch(IOException e){
             LOG.warn("Cannot cleanup",e);

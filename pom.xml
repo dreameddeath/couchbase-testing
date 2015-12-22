@@ -172,7 +172,7 @@
         <aspectj-mvn.version>1.8</aspectj-mvn.version>
 
         <!-- Data Mapper -->
-        <jackson.version>2.5.1</jackson.version>
+        <jackson.version>2.6.4</jackson.version>
         <google.protobuf.version>2.6.2</google.protobuf.version>
 
         <!-- utilities library -->
@@ -225,12 +225,12 @@
         <spring.boot.loader.version>1.3.0.RELEASE</spring.boot.loader.version>
 
         <!--netflix lib reuse -->
-        <curator.version>2.9.0</curator.version>
-        <archaius.version>0.7.1</archaius.version>
-        <archaius.zookeeper.version>0.7.1</archaius.zookeeper.version>
+        <curator.version>2.9.1</curator.version>
+        <archaius.version>0.7.3</archaius.version>
+        <archaius.zookeeper.version>0.7.3</archaius.zookeeper.version>
 
         <!--elasticsearch / kibana -->
-        <elasticsearch.version>1.7.2</elasticsearch.version>
+        <elasticsearch.version>2.1.1</elasticsearch.version>
 
         <!-- webjars -->
         <webjars.locator.version>0.28</webjars.locator.version>
@@ -259,6 +259,7 @@
         <!-- testing only -->
         <groovy.version>2.3.2</groovy.version>
         <lucene.version>4.10.4</lucene.version>
+        <jna.version>4.2.1</jna.version>
     </properties>
 
 
