@@ -34,9 +34,9 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
     @DocumentProperty("requestDate")
     public DateTime requestDate;
     @DocumentProperty("contracts")
-    public List<Contract> contracts=new ArrayList<Contract>();
+    public List<Contract> contracts=new ArrayList<>();
     @DocumentProperty("offers")
-    public List<Offer> offers = new ArrayList<Offer>();
+    public List<Offer> offers = new ArrayList<>();
 
     public abstract class Item {
         @DocumentProperty("status")

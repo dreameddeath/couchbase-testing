@@ -88,11 +88,6 @@
           <artifactId>core-curator</artifactId>
           <version>${project.version}</version>
       </dependency>
-      <!--<dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>core-elasticsearch</artifactId>
-          <version>${project.version}</version>
-      </dependency>-->
       <dependency>
           <groupId>commons-codec</groupId>
           <artifactId>commons-codec</artifactId>
@@ -112,6 +107,11 @@
           <groupId>io.swagger</groupId>
           <artifactId>swagger-annotations</artifactId>
           <version>${swagger.jaxrs.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-couchbase</artifactId>
+          <version>${project.version}</version>
       </dependency>
   </dependencies>
 </project>

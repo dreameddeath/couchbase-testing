@@ -296,20 +296,20 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc)  {
         return asyncAdd(doc,null);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc,WriteParams params) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAdd(T doc,WriteParams params){
         CouchbaseMetricsContext.MetricsContext mCtxt = createContext.start();
         try{
             final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
-           return (Observable.just((BucketDocument<T>) performImpact(bucketDoc,transcoder.documentType(), ImpactMode.ADD, 0))
+           return Observable.just((BucketDocument<T>) performImpact(bucketDoc,transcoder.documentType(), ImpactMode.ADD, 0))
                    .doOnEach(mCtxt::stop)
                    .doOnError(mCtxt::stop)
-                   .map(new DocumentResync(bucketDoc)));
+                   .map(new DocumentResync<>(bucketDoc));
         }
         catch(Exception e){
             mCtxt.stop(false,null);
@@ -318,20 +318,20 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc){
         return asyncSet(doc,null);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc,WriteParams params) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncSet(T doc,WriteParams params) {
         CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
         try{
             final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
-            return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.UPDATE, 0))
+            return Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.UPDATE, 0))
                     .doOnEach(mCtxt::stop)
                     .doOnError(mCtxt::stop)
-                    .map(new DocumentResync(bucketDoc)));
+                    .map(new DocumentResync<>(bucketDoc));
         }
         catch(Exception e){
             mCtxt.stop(false,null);
@@ -341,20 +341,20 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc){
         return asyncReplace(doc, null);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc,WriteParams params) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncReplace(T doc,WriteParams params) {
         CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
         try{
             final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
-            return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.REPLACE, 0))
+            return Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.REPLACE, 0))
                     .doOnEach(mCtxt::stop)
                     .doOnError(mCtxt::stop)
-                    .map(new DocumentResync(bucketDoc)));
+                    .map(new DocumentResync<>(bucketDoc));
         }
         catch(Exception e){
             mCtxt.stop(false,null);
@@ -364,19 +364,19 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc) {
         return asyncDelete(doc,null);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc,WriteParams params) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T doc,WriteParams params) {
         CouchbaseMetricsContext.MetricsContext mCtxt = deleteContext.start();
         try{
             final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
-            return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.DELETE, 0))
+            return Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.DELETE, 0))
                     .doOnEach(mCtxt::stop)
-                    .doOnError(mCtxt::stop).map(new DocumentResync(bucketDoc)));
+                    .doOnError(mCtxt::stop).map(new DocumentResync<>(bucketDoc));
         }
         catch(Exception e){
             mCtxt.stop(false,null);
@@ -386,14 +386,14 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc,WriteParams params) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc,WriteParams params){
         CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
         try{
             final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
-            return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.APPEND, 0))
+            return (Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.APPEND, 0))
                     .doOnEach(mCtxt::stop)
-                    .doOnError(mCtxt::stop).map(new DocumentResync(bucketDoc)));
+                    .doOnError(mCtxt::stop).map(new DocumentResync<>(bucketDoc)));
         }
         catch(Exception e){
             mCtxt.stop(false,null);
@@ -403,25 +403,25 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
         @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncAppend(T doc){
         return asyncAppend(doc, null);
     }
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc) {
         return asyncPrepend(doc,null);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc,WriteParams params) throws StorageException {
+    public <T extends CouchbaseDocument> Observable<T> asyncPrepend(T doc,WriteParams params) {
         CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
         try{
             final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
-            return (Observable<T>)(Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.PREPEND, 0))
+            return (Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.PREPEND, 0))
                     .doOnEach(mCtxt::stop)
-                    .doOnError(mCtxt::stop).map(new DocumentResync(bucketDoc)));
+                    .doOnError(mCtxt::stop).map(new DocumentResync<>(bucketDoc)));
         }
         catch(Exception e){
             mCtxt.stop(false,null);
@@ -431,7 +431,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
 
     @Override
-    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration,WriteParams params) throws StorageException {
+    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration,WriteParams params)  {
         CouchbaseMetricsContext.MetricsContext mCtxt = counterContext.start();
 
         try{
@@ -451,7 +451,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     @Override
-    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException {
+    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration){
         return asyncCounter(key,by,defaultValue,expiration,null);
     }
 

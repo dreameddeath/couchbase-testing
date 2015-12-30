@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
-
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+package com.dreameddeath.core.dao.exception;
 
 /**
- * Created by Christophe Jeunesse on 22/09/2014.
+ * Created by Christophe Jeunesse on 28/12/2015.
  */
-public class DocumentDeleteResponse extends CouchbaseDocumentElement {
+public class DaoObservableException extends RuntimeException {
+    public DaoObservableException(DaoException e){
+        super(e);
+    }
 }

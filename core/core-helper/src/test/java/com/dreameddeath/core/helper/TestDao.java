@@ -18,7 +18,6 @@ package com.dreameddeath.core.helper;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
@@ -29,6 +28,7 @@ import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import rx.Observable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,10 +41,10 @@ public class TestDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
     public static final String TEST_CNT_KEY = "test/cnt";
     public static final String TEST_CNT_KEY_PATTERN = "test/cnt";
     public static final String TEST_KEY_FMT = "test/%010d";
-    public static final String TEST_KEY_PATTERN = "test/\\d{10}";
+    public static final String TEST_KEY_PATTERN = "test/{uid:\\d{10}}";
 
     @Override
-    public String getKeyPattern() {
+    public String getKeyRawPattern() {
         return TEST_KEY_PATTERN;
     }
 
@@ -81,11 +81,14 @@ public class TestDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
     }
 
     @Override
-    public TestDoc buildKey(ICouchbaseSession session, TestDoc newObject) throws DaoException, StorageException {
-        long result = session.incrCounter(TEST_CNT_KEY, 1);
-        newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, result));
+    public String getKeyFromParams(Object... params) {
+        return String.format(TEST_KEY_FMT, (Long)params[0]);
+    }
 
-        return newObject;
+    @Override
+    public Observable<TestDoc> asyncBuildKey(ICouchbaseSession session, TestDoc newObject) throws DaoException {
+        return session.asyncIncrCounter(TEST_CNT_KEY, 1)
+                .map(new BuildKeyFromCounterFunc(newObject));
     }
 
     public static class AllElementsViewDao extends CouchbaseViewDao<String,String,TestDoc>{

@@ -18,6 +18,7 @@ package com.dreameddeath.core.dao.unique;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
@@ -29,6 +30,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import org.apache.commons.codec.digest.DigestUtils;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 06/08/2014.
@@ -65,6 +67,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         else return refDocumentDao.getClient();
     }
 
+    @BucketDocumentForClass(CouchbaseUniqueKey.class)
     public static class LocalBucketDocument extends BucketDocument<CouchbaseUniqueKey> {
         public LocalBucketDocument(CouchbaseUniqueKey obj){super(obj);}
     }
@@ -106,8 +109,9 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         return String.format(UNIQ_FMT_KEY, getHashKey(internalKey));
     }
 
+
     @Override
-    public CouchbaseUniqueKey buildKey(ICouchbaseSession session,CouchbaseUniqueKey obj){
+    public Observable<CouchbaseUniqueKey> asyncBuildKey(ICouchbaseSession session, CouchbaseUniqueKey newObject) throws DaoException {
         throw new RuntimeException("Shouldn't append");
     }
 
@@ -156,7 +160,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         return keyDoc;
     }
 
-    public void removeUniqueKey(ICouchbaseSession session,CouchbaseUniqueKey doc,String internalKey,boolean isCalcOnly) throws StorageException,DaoException,ValidationException {
+    public void removeUniqueKey(ICouchbaseSession session,CouchbaseUniqueKey doc,String internalKey,boolean isCalcOnly) throws DaoException,ValidationException,StorageException {
         doc.removeKey(internalKey);
         if(doc.isEmpty()){
             delete(session,doc,isCalcOnly);//TODO manage expiration for timed removed document
@@ -188,7 +192,6 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             return existingKeyDoc;
         }
     }
-
 
     public String getKeyPattern(){
         return "^"+UNIQ_KEY_PATTERN+"$";

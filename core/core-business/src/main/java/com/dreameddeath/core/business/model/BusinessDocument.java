@@ -36,10 +36,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import org.joda.time.DateTime;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
@@ -110,9 +107,9 @@ public abstract class BusinessDocument extends CouchbaseDocument implements IHas
         attachedTasks.set(tasks);
     }
 
-    public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(String jobKey,String taskId){
+    public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, Integer taskId){
         for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks) {
-            if (jobKey.equals(taskRef.getJobKey()) && (taskId.equals(taskRef.getTaskId()))) {
+            if (jobKey.equals(taskRef.getJobUid()) && (taskId.equals(taskRef.getTaskId()))) {
                 return taskRef;
             }
         }
@@ -120,8 +117,8 @@ public abstract class BusinessDocument extends CouchbaseDocument implements IHas
     }
 
     public void addAttachedTaskRef(CouchbaseDocumentAttachedTaskRef task)throws DuplicateAttachedTaskException{
-        if(getAttachedTaskRef(task.getJobKey(), task.getTaskId())!=null){
-            throw new DuplicateAttachedTaskException(this,task.getJobKey(),task.getTaskId());
+        if(getAttachedTaskRef(task.getJobUid(), task.getTaskId())!=null){
+            throw new DuplicateAttachedTaskException(this,task.getJobUid().toString(),task.getTaskId());
         }
         attachedTasks.add(task);
     }

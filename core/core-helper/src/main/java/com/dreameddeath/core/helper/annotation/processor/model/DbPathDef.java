@@ -16,25 +16,40 @@
 
 package com.dreameddeath.core.helper.annotation.processor.model;
 
+import com.dreameddeath.core.dao.utils.KeyPattern;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.ParentEntity;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class DbPathDef {
+    private static final Logger LOG = LoggerFactory.getLogger(DbPathDef.class);
+    private final static String FORMAT_PATTERN_STR= "%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])";
+    private final static Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_PATTERN_STR);
+
     private String basePath;
     private String idFormat;
     private String idPattern;
     private String formatPrefix = "";
     private String patternPrefix = "";
+    private KeyPattern keyPattern;
+    private List<FormatType> formatTypes = new ArrayList<>();
 
     public DbPathDef(CouchbaseDocumentReflection docReflection) {
         DaoEntity annot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
         basePath = annot.dbPath();
         idFormat = annot.idFormat();
         idPattern = annot.idPattern();
+
         DbPathDef parentDbPath = null;
         ParentEntity parentAnnot = docReflection.getClassInfo().getAnnotation(ParentEntity.class);
         if(parentAnnot!=null) {
@@ -46,6 +61,28 @@ public class DbPathDef {
             formatPrefix = "%s" + parentAnnot.separator();
             patternPrefix = parentDbPath.getFullPattern() + parentAnnot.separator();
         }
+        keyPattern = new KeyPattern(patternPrefix);
+        Matcher matcher = FORMAT_PATTERN.matcher(getFullFormat());
+        while(matcher.find()){
+            String result = matcher.group();
+            char lastChar = result.charAt(result.length()-1);
+            if("sS".indexOf(lastChar)>=0){
+                formatTypes.add(FormatType.STRING);
+            }
+            else if("doXx".indexOf(lastChar)>=0){
+                formatTypes.add(FormatType.LONG);
+            }
+            else if("eEfgGaA".indexOf(lastChar)>=0){
+                formatTypes.add(FormatType.FLOAT);
+            }
+            else if("tT".indexOf(lastChar)>=0){
+                formatTypes.add(FormatType.DATETIME);
+            }
+            else if("bBhH".indexOf(lastChar)>=0){
+                formatTypes.add(FormatType.RAW);
+            }
+        }
+        LOG.error("Parsing result {}",formatTypes);
     }
 
 
@@ -76,4 +113,37 @@ public class DbPathDef {
     public String getBasePath() {
         return basePath;
     }
+
+    public KeyPattern getKeyPattern() {
+        return keyPattern;
+    }
+
+    public List<FormatType> getFormatTypes() {
+        return formatTypes;
+    }
+
+    public enum FormatType{
+
+        LONG(true,"NumberUtils.asLong"),
+        FLOAT(true,"NumberUtils.asFloat"),
+        STRING(false,null),
+        DATETIME(true,"DateUtils.asDate"),
+        RAW(false,null);
+
+        private final String formatter;
+        private final boolean needFormat;
+
+        private FormatType(boolean needFormat,String formatter){
+            this.needFormat=needFormat;
+            this.formatter = formatter;
+        }
+
+        public String getFormatter() {
+            return formatter;
+        }
+
+        public boolean needFormat() {
+            return needFormat;
+        }
+    };
 }

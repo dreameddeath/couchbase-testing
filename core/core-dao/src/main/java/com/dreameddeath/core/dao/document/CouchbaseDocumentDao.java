@@ -24,18 +24,22 @@ import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.InconsistentStateException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
+import rx.Observable;
+import rx.functions.Func1;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
 
 /**
  * Created by Christophe Jeunesse on 12/10/2014.
@@ -47,9 +51,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private List<CouchbaseViewDao> daoViews=null;
     private boolean isReadOnly=false;
 
-
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
-    public abstract T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException;
+
+    public final T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException{
+        return asyncBuildKey(session,newObject).toBlocking().first();
+    }
+
+    public abstract Observable<T> asyncBuildKey(ICouchbaseSession session,T newObject) throws DaoException;
+
     public abstract Class<T> getBaseClass();
 
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
@@ -57,15 +66,16 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     protected List<CouchbaseViewDao> generateViewDaos(){ return Collections.emptyList();}
 
 
-    synchronized public List<CouchbaseViewDao> getViewDaos(){
-        if(daoViews==null){
-            daoViews = generateViewDaos();
-        }
+    public void init(){
+        daoViews = generateViewDaos();
+    }
+
+    public List<CouchbaseViewDao> getViewDaos(){
         return Collections.unmodifiableList(daoViews);
     }
 
     public CouchbaseViewDao getViewDao(String name){
-        for(CouchbaseViewDao viewDao:getViewDaos()){
+        for(CouchbaseViewDao viewDao:daoViews){
             if(viewDao.getViewName().equals(name)){
                 return viewDao;
             }
@@ -82,15 +92,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public UUID getUuid() {
         return uuid;
-    }
-
-    //May be overriden to improve (bulk key attribution)
-    protected void buildKeys(ICouchbaseSession session,Collection<T> newObjects) throws DaoException,StorageException{
-        for(T newObject:newObjects){
-            if(newObject.getBaseMeta().getKey()==null){
-                buildKey(session,newObject);
-            }
-        }
     }
 
     public void checkUpdatableState(T obj) throws InconsistentStateException {
@@ -136,66 +137,230 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return obj;
     }
 
-
-    public T create(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
-        checkCreatableState(obj);
-        //Precreate the key perform the validation with all target data
-        if(obj.getBaseMeta().getKey()==null){
-            buildKey(session,obj);
+    public class FuncUpdateStateSync implements Func1<T,T> {
+        @Override
+        public T call(T t) {
+            t.getBaseMeta().setStateSync();
+            return t;
         }
-        session.validate(obj);
+    }
 
-        if(!isCalcOnly) {
-            String keyPrefix = session.getKeyPrefix();
-            if(keyPrefix!=null){
-                getClient().add(obj, WriteParams.create().with(keyPrefix));
+    public class FuncCheckCreatable implements Func1<T,T> {
+        @Override
+        public T call(T t) {
+            try{
+                checkCreatableState(t);
+                return t;
             }
-            else{
-                getClient().add(obj);
+            catch (InconsistentStateException e){
+                throw new DaoObservableException(e);
             }
         }
-
-        obj.getBaseMeta().setStateSync();
-        return obj;
     }
 
 
-    public T get(ICouchbaseSession session,String key) throws DaoException,StorageException{
-        T result;
-        if(session.getKeyPrefix()!=null) {
-            result = getClient().get(key, getBaseClass(), ReadParams.create().with(session.getKeyPrefix()));
+    public class FuncCheckUpdatable implements Func1<T,T> {
+        @Override
+        public T call(T t) {
+            try{
+                checkUpdatableState(t);
+                return t;
+            }
+            catch (InconsistentStateException e){
+                throw new DaoObservableException(e);
+            }
         }
-        else{
-            result = getClient().get(key, getBaseClass());
+    }
+
+    public class FuncCheckDeletable implements Func1<T,T> {
+        @Override
+        public T call(T t) {
+            try{
+                checkDeletableState(t);
+                return t;
+            }
+            catch (InconsistentStateException e){
+                throw new DaoObservableException(e);
+            }
+
         }
-        if(result.getBaseMeta().hasFlag(DocumentFlag.Deleted)){
-            result.getBaseMeta().setStateDeleted();
+    }
+
+
+    public class FuncValidate implements Func1<T,T> {
+        private final ICouchbaseSession session;
+
+        public FuncValidate(ICouchbaseSession session){
+            this.session  = session;
         }
-        else {
-            result.getBaseMeta().setStateSync();
+        @Override
+        public T call(T t) {
+            try {
+                session.validate(t);
+                return t;
+            }
+            catch(ValidationException e){
+                throw new ValidationObservableException(e);
+            }
         }
+    }
+
+    public Observable<T> asyncCreate(ICouchbaseSession session, T obj, boolean isCalcOnly){
+        Observable<T> result=Observable.just(obj);
+        result = result.map(new FuncCheckCreatable());
+        if(obj.getBaseMeta().getKey()==null) {
+            result = result.flatMap(val -> {
+                        try {
+                            return asyncBuildKey(session, val);
+                        } catch (DaoException e) {
+                            throw new DaoObservableException(e);
+                        }
+                    }
+            );
+        }
+        result = result.map(new FuncValidate(session));
+        if(!isCalcOnly) {
+            final String keyPrefix = session.getKeyPrefix();
+            if(session.getKeyPrefix()!=null) {
+                result = result.flatMap(val -> getClient().asyncAdd(val, WriteParams.create().with(keyPrefix)));
+            }
+            else {
+                result = result.flatMap(val -> getClient().asyncAdd(val));
+            }
+        }
+        result = result.map(new FuncUpdateStateSync());
         return result;
     }
 
-    public T update(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
-        checkUpdatableState(obj);
-        session.validate(obj);
-        if(!isCalcOnly) {
-            getClient().replace(obj);
+    public T create(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+        try {
+            return asyncCreate(session, obj, isCalcOnly).toBlocking().first();
         }
-        obj.getBaseMeta().setStateSync();
-        return obj;
+        catch(DaoObservableException e){
+            throw (DaoException) e.getCause();
+        }
+        catch(ValidationObservableException e){
+            throw (ValidationException) e.getCause();
+        }
+        catch(Throwable e){
+            throw ICouchbaseBucket.Utils.mapStorageException(obj,e);
+        }
+    }
+
+    public T get(ICouchbaseSession session,String key) throws DaoException,StorageException{
+        try{
+            return asyncGet(session,key).toBlocking().first();
+        }
+        catch (Throwable e) {
+            throw ICouchbaseBucket.Utils.mapAccessException(key, e);
+        }
+    }
+
+    public Observable<T> asyncGet(ICouchbaseSession session,String key) throws DaoException{
+        try {
+            Observable<T> result;
+            if (session.getKeyPrefix() != null) {
+                result = getClient().asyncGet(key, getBaseClass(), ReadParams.create().with(session.getKeyPrefix()));
+            }
+            else {
+                result = getClient().asyncGet(key, getBaseClass());
+            }
+            result = result.map(val -> {
+                        if (val.getBaseMeta().hasFlag(DocumentFlag.Deleted)) {
+                            val.getBaseMeta().setStateDeleted();
+                        }
+                        else {
+                            val.getBaseMeta().setStateSync();
+                        }
+                        return val;
+                    }
+            );
+
+            return result;
+        }
+        catch(Throwable e){
+            throw new DaoException("Unexpected exception",e);
+        }
+    }
+
+    public T update(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+        try {
+            return asyncUpdate(session, obj, isCalcOnly).toBlocking().first();
+        }
+        catch (DaoException e){
+            throw e;
+        }
+        catch(DaoObservableException e){
+            throw (DaoException) e.getCause();
+        }
+        catch(ValidationObservableException e){
+            throw (ValidationException) e.getCause();
+        }
+        catch (Throwable e){
+            throw ICouchbaseBucket.Utils.mapStorageException(obj,e);
+        }
+    }
+
+    public Observable<T> asyncUpdate(ICouchbaseSession session,T obj,boolean isCalcOnly) throws DaoException{
+        try {
+            Observable<T> result = Observable.just(obj);
+            result = result.map(new FuncCheckUpdatable());
+            result = result.map(new FuncValidate(session));
+            if (!isCalcOnly) {
+                final String keyPrefix = session.getKeyPrefix();
+                if (keyPrefix != null) {
+                    result = result.flatMap(val -> getClient().asyncReplace(val, WriteParams.create().with(keyPrefix)));
+                }
+                else {
+                    result = result.flatMap(val -> getClient().asyncReplace(val));
+                }
+            }
+            return result.map(new FuncUpdateStateSync());
+        }
+        catch(Throwable e){
+            throw new DaoException("Unexpected exception",e);
+        }
+    }
+
+    public Observable<T> asyncDelete(ICouchbaseSession session,T obj,boolean isCalcOnly) throws DaoException{
+        try {
+            Observable<T> result = Observable.just(obj);
+            result = result.map(new FuncCheckDeletable());
+            result = result.map(val -> {
+                val.getBaseMeta().addFlag(DocumentFlag.Deleted);
+                return val;
+            });
+            if (!isCalcOnly) {
+                result = result.flatMap(val -> getClient().asyncDelete(val));
+            }
+            result = result.map(val -> {
+                val.getBaseMeta().setStateDeleted();
+                return val;
+            });
+            return result;
+        }
+        catch(Throwable e){
+            throw new DaoException("Unexpected exception",e);
+        }
     }
 
     //Should only be used through DeletionJob
-    public T delete(ICouchbaseSession session,T doc,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
-        checkDeletableState(doc);
-        doc.getBaseMeta().addFlag(DocumentFlag.Deleted);
-        if(!isCalcOnly) {
-            getClient().delete(doc);
+    public T delete(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+        try {
+            return asyncDelete(session, obj, isCalcOnly).toBlocking().first();
         }
-        doc.getBaseMeta().setStateDeleted();
-        return doc;
+        catch(DaoException e){
+            throw e;
+        }
+        catch(DaoObservableException e){
+            throw (DaoException) e.getCause();
+        }
+        catch(ValidationObservableException e){
+            throw (ValidationException) e.getCause();
+        }
+        catch(Throwable e){
+            throw ICouchbaseBucket.Utils.mapStorageException(obj,e);
+        }
     }
 
     public boolean isReadOnly() {

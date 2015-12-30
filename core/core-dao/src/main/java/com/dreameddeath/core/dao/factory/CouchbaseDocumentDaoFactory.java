@@ -100,7 +100,8 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
     }
 
     public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClass,CouchbaseDocumentDao<T> dao) throws DuplicateMappedEntryInfoException{
-        String pattern = (dao instanceof CouchbaseDocumentWithKeyPatternDao)?((CouchbaseDocumentWithKeyPatternDao) dao).getKeyPattern():".*";
+        dao.init();
+        String pattern = (dao instanceof CouchbaseDocumentWithKeyPatternDao)?((CouchbaseDocumentWithKeyPatternDao) dao).getKeyPattern().getKeyPatternStr():".*";
 
         if(!documentInfoMapper.contains(entityClass)){
             documentInfoMapper.addDocument(entityClass,pattern);

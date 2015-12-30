@@ -27,6 +27,4 @@ public interface InstalledBaseVisitor {
      * @return false to stop the processing immediately
      */
     boolean visit(InstalledItem item);
-
-
 }

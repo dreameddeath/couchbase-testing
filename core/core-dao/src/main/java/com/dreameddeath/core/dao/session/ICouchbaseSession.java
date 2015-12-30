@@ -36,31 +36,53 @@ public interface ICouchbaseSession {
     long incrCounter(String key, long byVal) throws DaoException,StorageException;
     long decrCounter(String key, long byVal) throws DaoException,StorageException;
 
+    Observable<Long> asyncGetCounter(String key) throws DaoException;
+    Observable<Long> asyncIncrCounter(String key, long byVal)throws DaoException;
+    Observable<Long> asyncDecrCounter(String key, long byVal)throws DaoException;
+
+
     CouchbaseDocument get(String key) throws DaoException,StorageException;
+    Observable<CouchbaseDocument> asyncGet(String key)throws DaoException;
     <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncGet(String key, Class<T> targetClass)throws DaoException;
+
+
     <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException;
     <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException;
+    <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass,Object ...params) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncGetFromKeyParams(Class<T> targetClass,Object ...params) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> String getKeyFromKeyParams(Class<T> targetClass,Object ...params) throws DaoException;
+
+
 
     <T extends CouchbaseDocument> T newEntity(Class<T> clazz);
     <T extends CouchbaseDocument> T attachEntity(T entity);
-    <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException;
+
     <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncBuildKey(T obj)throws DaoException;
+
+    <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncCreate(T obj)throws DaoException;
     <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncSave(T obj)throws DaoException;
 
     <T extends CouchbaseDocument> T update(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncUpdate(T obj)throws DaoException;
     <T extends CouchbaseDocument> T delete(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncDelete(T obj)throws DaoException;
 
     void validate(CouchbaseDocument doc) throws ValidationException;
 
     CouchbaseUniqueKey getUniqueKey(String internalKey) throws DaoException,StorageException;
     void addOrUpdateUniqueKey(CouchbaseDocument doc, Object value, String nameSpace) throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException;
-    void removeUniqueKey(String internalKey) throws DaoException,StorageException,ValidationException;
+    void removeUniqueKey(String internalKey) throws DaoException,ValidationException,StorageException;
 
     DateTime getCurrentDate();
 
     String getKeyPrefix();
 
-    <T extends CouchbaseDocument> IViewQuery initViewQuery(Class<T> forClass, String viewName) throws DaoException;
+    <TKEY,TVALUE,T extends CouchbaseDocument> IViewQuery<TKEY,TVALUE,T> initViewQuery(Class<T> forClass, String viewName) throws DaoException;
     <TKEY,TVALUE,T extends CouchbaseDocument> IViewQueryResult<TKEY,TVALUE,T> executeQuery(IViewQuery<TKEY, TVALUE, T> query) throws DaoException,StorageException;
     <TKEY,TVALUE,T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY,TVALUE,T>> executeAsyncQuery(IViewQuery<TKEY, TVALUE, T> query) throws DaoException,StorageException;
 

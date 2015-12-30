@@ -16,10 +16,14 @@
 
 package com.dreameddeath.core.process.service.impl;
 
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.AbstractJob.State;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.ProcessState;
+import com.dreameddeath.core.process.model.ProcessState.State;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.TaskContext;
@@ -28,97 +32,91 @@ import com.dreameddeath.core.process.service.TaskContext;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
-public class BasicJobExecutorServiceImpl implements IJobExecutorService<AbstractJob> {
+public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobExecutorService<T> {
 
-    public void onSave(AbstractJob job,AbstractJob.State state){}
-    public void onEndProcessing(AbstractJob job,State state){}
+    public void onSave(JobContext<T> ctxt,ProcessState.State state){}
+    public void onEndProcessing(JobContext<T> ctxt,ProcessState.State state){}
 
     @Override
-    public void execute(JobContext ctxt,AbstractJob job) throws JobExecutionException{
-        job.setLastRunError(null);
+    public void manageStateExecutionEnd(JobContext<T> ctxt, ProcessState.State newState, boolean needSave) throws DaoException,ValidationException,StorageException{
+        ctxt.getJobState().setState(newState);
+        if(needSave) {
+            onSave(ctxt, newState);
+            ctxt.save();
+        }
+        onEndProcessing(ctxt, newState);
+    }
+
+    @Override
+    public void execute(JobContext ctxt) throws JobExecutionException{
+        final ProcessState jobState=ctxt.getJobState();
+        final AbstractJob job = ctxt.getJob();
+        jobState.setLastRunError(null);
         try {
-            if (!job.isInitialized()) {
+            if (!jobState.isInitialized()) {
                 try {
                     boolean saveAsked;
-                    saveAsked=ctxt.getProcessingFactory().init(ctxt,job);
-                    job.setJobState(State.INITIALIZED);
-                    if(saveAsked){
-                        onSave(job, State.INITIALIZED);
-                        ctxt.getSession().save(job);
-                    }
-                    onEndProcessing(job, State.INITIALIZED);
+                    saveAsked=ctxt.getProcessingFactory().init(ctxt);
+                    manageStateExecutionEnd(ctxt,State.INITIALIZED,saveAsked);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.INITIALIZED, e);
                 }
             }
 
-            if (!job.isPrepared()) {
+            if (!jobState.isPrepared()) {
                 try {
                     boolean saveAsked;
-                    saveAsked=ctxt.getProcessingFactory().preprocess(ctxt,job);
-                    job.setJobState(State.PREPROCESSED);
-                    if(saveAsked){
-                        onSave(job, State.PREPROCESSED);
-                        ctxt.getSession().save(job);
-                    }
-                    onEndProcessing(job, State.PREPROCESSED);
+                    saveAsked=ctxt.getProcessingFactory().preprocess(ctxt);
+                    manageStateExecutionEnd(ctxt,State.PREPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.PREPROCESSED, e);
                 }
             }
 
-            if (!job.isProcessed()) {
+            if (!jobState.isProcessed()) {
                 try {
-                    AbstractTask task;
-                    while ((task = job.getNextExecutableTask()) != null) {
-                        task.setLastRunError(null);
-                        ctxt.getExecutorFactory().execute(TaskContext.newContext(ctxt), task);
+                    TaskContext taskCtxt;
+                    while ((taskCtxt = ctxt.getNextExecutableTask()) != null) {
+                        if(job.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
+                            ctxt.save();
+                        }
+                        taskCtxt.getTaskState().setLastRunError(null);
+                        ctxt.getExecutorFactory().execute(taskCtxt);
                     }
-                    if(job.getPendingTasks().size()>0){
+                    if(ctxt.getPendingTasks(true).size()>0){
                         //TODO throw an error
                     }
-                    onSave(job, State.PROCESSED);
-                    job.setJobState(State.PROCESSED);
-                    ctxt.getSession().save(job);
-                    onEndProcessing(job, State.PROCESSED);
+                    manageStateExecutionEnd(ctxt,State.PROCESSED,true);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.PROCESSED, e);
                 }
             }
 
-            if (!job.isFinalized()) {
+            if (!jobState.isFinalized()) {
                 try {
                     boolean saveAsked;
                     saveAsked=ctxt.getProcessingFactory().postprocess(ctxt,job);
-                    job.setJobState(State.POSTPROCESSED);
-                    if(saveAsked){
-                        onSave(job, State.POSTPROCESSED);
-                        ctxt.getSession().save(job);
-                    }
-                    onEndProcessing(job, State.POSTPROCESSED);
+                    manageStateExecutionEnd(ctxt,State.POSTPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.POSTPROCESSED, e);
                 }
             }
 
-            if (!job.isDone()) {
+            if (!jobState.isDone()) {
                 try {
                     ctxt.getProcessingFactory().cleanup(ctxt, job);
-                    job.setJobState(State.DONE);
-                    onSave(job,State.DONE);
-                    ctxt.getSession().save(job);
-                    onEndProcessing(job,State.DONE);
+                    manageStateExecutionEnd(ctxt,State.DONE,true);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.DONE, e);
                 }
             }
         }
         catch(JobExecutionException e){
-            job.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
+            jobState.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
             throw e;
         }
         catch(Throwable e){
-            job.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
+            jobState.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
             throw new JobExecutionException(job,State.UNKNOWN,e);
         }
     }

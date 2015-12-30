@@ -27,17 +27,17 @@ import com.dreameddeath.core.process.service.JobContext;
 public abstract class StandardJobProcessingService<T extends AbstractJob> implements IJobProcessingService<T> {
 
     @Override
-    public boolean preprocess(JobContext context, T job) throws JobExecutionException {
+    public boolean preprocess(JobContext<T> context) throws JobExecutionException {
         return false;
     }
 
     @Override
-    public boolean postprocess(JobContext context, T job) throws JobExecutionException {
+    public boolean postprocess(JobContext<T> context) throws JobExecutionException {
         return false;
     }
 
     @Override
-    public boolean cleanup(JobContext context, T job) throws JobExecutionException {
+    public boolean cleanup(JobContext<T> context) throws JobExecutionException {
         return false;
     }
 }

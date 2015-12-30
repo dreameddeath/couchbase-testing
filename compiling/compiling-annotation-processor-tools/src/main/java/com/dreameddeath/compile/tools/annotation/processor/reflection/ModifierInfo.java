@@ -20,12 +20,15 @@ package com.dreameddeath.compile.tools.annotation.processor.reflection;
  * Created by Christophe Jeunesse on 16/03/2015.
  */
 public enum ModifierInfo {
+    TRANSIENT,
     PUBLIC,
     PRIVATE,
     PROTECTED;
 
     public static ModifierInfo valueOf(javax.lang.model.element.Modifier modifier){
         switch(modifier){
+            case TRANSIENT:
+                return TRANSIENT;
             case PUBLIC:
                 return PUBLIC;
             case PRIVATE:

@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
-
-import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+package com.dreameddeath.core.couchbase.exception;
 
 /**
- * Created by Christophe Jeunesse on 22/09/2014.
+ * Created by Christophe Jeunesse on 28/12/2015.
  */
-public class DocumentDeleteRequest extends CouchbaseDocumentElement {
-    @DocumentProperty("key")
-    public String key;
-    @DocumentProperty("expiration")
-    public Integer expiration;
-    @DocumentProperty("withChildren")
-    public Boolean withChildren;
+public class StorageObservableException extends RuntimeException {
+    public StorageObservableException(StorageException e){
+        super(e);
+    }
 }

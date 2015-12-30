@@ -16,9 +16,18 @@
 
 package com.dreameddeath.core.dao.document;
 
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.dao.utils.KeyPattern;
+import rx.Observable;
+
 /**
  * Created by Christophe Jeunesse on 17/05/2015.
  */
-public interface IDaoWithKeyPattern {
-    String getKeyPattern();
+public interface IDaoWithKeyPattern<T> {
+    KeyPattern getKeyPattern();
+    String getKeyFromParams(Object ...params);
+    T getFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException;
+    Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException;
 }

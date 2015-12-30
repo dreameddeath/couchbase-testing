@@ -18,7 +18,6 @@ package com.dreameddeath.core.couchbase;
 
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
@@ -29,6 +28,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import org.junit.Test;
+import rx.Observable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -78,11 +78,9 @@ public class PrefixKeyTest {
         }
 
         @Override
-        public TestPrefixKey buildKey(ICouchbaseSession session, TestPrefixKey newObject) throws DaoException, StorageException {
-            long result = session.incrCounter(TEST_CNT_KEY, 1);
-            newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, result));
-
-            return newObject;
+        public Observable<TestPrefixKey> asyncBuildKey(ICouchbaseSession session, TestPrefixKey newObject) throws DaoException {
+            return session.asyncIncrCounter(TEST_CNT_KEY, 1)
+                    .map(cntVal->{newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, cntVal));return newObject;});
         }
     }
 

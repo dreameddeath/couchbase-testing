@@ -21,6 +21,7 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.model.SubJobProcessTask;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.TaskContext;
@@ -28,60 +29,60 @@ import com.dreameddeath.core.process.service.TaskContext;
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
  */
-public abstract class StandardSubJobProcessTaskProcessingService<TJOB extends AbstractJob,TTASK extends SubJobProcessTask<TJOB>> implements ITaskProcessingService<TTASK> {
+public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB extends AbstractJob,TJOB extends AbstractJob,TTASK extends SubJobProcessTask<TJOB>> implements ITaskProcessingService<TPARENTJOB,TTASK> {
     @Override
-    public boolean init(TaskContext ctxt, TTASK task) throws TaskExecutionException {
+    public boolean init(TaskContext<TPARENTJOB,TTASK> ctxt) throws TaskExecutionException {
+        TTASK task = ctxt.getTask();
         try {
-            if(task.getJobId()!=null){
+            if(task.getSubJobId()!=null){
                 if(task.getJob(ctxt.getSession())!=null) return false;
             }
 
-            TJOB job=buildSubJob(ctxt,task);
+            TJOB job=buildSubJob(ctxt);
             //Retrieve UID
-            task.setJobId(job.getUid());
+            task.setSubJobId(job.getUid());
             //Save task to allow retries without creation duplicates
-            ctxt.getSession().save(task.getParentJob());
+            ctxt.save();
             //Save job (should be a creation)
             ctxt.getSession().save(job);
         }
         catch(ValidationException e){
-            throw new TaskExecutionException(task,task.getState(),"Validation of job or parent job failed",e);
+            throw new TaskExecutionException(task, ProcessState.State.INITIALIZED,"Validation of job or parent job failed",e);
         }
         catch(DaoException e){
-            throw new TaskExecutionException(task,task.getState(),"Dao error",e);
+            throw new TaskExecutionException(task, ProcessState.State.INITIALIZED,"Dao error",e);
         }
         catch(StorageException e){
-            throw new TaskExecutionException(task,task.getState(),"Storage error",e);
+            throw new TaskExecutionException(task, ProcessState.State.INITIALIZED,"Storage error",e);
         }
 
         return false;
     }
 
     @Override
-    public boolean preprocess(TaskContext ctxt, TTASK task) throws TaskExecutionException {
+    public boolean preprocess(TaskContext ctxt) throws TaskExecutionException {
         return false;
     }
 
     @Override
-    public boolean process(TaskContext ctxt, TTASK task) throws TaskExecutionException {
-        throw new TaskExecutionException(task,task.getState(),"Cannot process at this level this type of task : must be handled at TaskProcessService level");
+    public boolean process(TaskContext ctxt) throws TaskExecutionException {
+        throw new TaskExecutionException(ctxt.getTask(), ProcessState.State.PROCESSED,"Cannot process at this level this type of task : must be handled at TaskProcessService level");
     }
 
     @Override
-    public boolean postprocess(TaskContext ctxt, TTASK task) throws TaskExecutionException {
+    public boolean postprocess(TaskContext ctxt) throws TaskExecutionException {
         return false;
     }
 
     @Override
-    public boolean finish(TaskContext ctxt, TTASK task) throws TaskExecutionException {
+    public boolean finish(TaskContext ctxt) throws TaskExecutionException {
         return false;
     }
 
     @Override
-    public boolean cleanup(TaskContext ctxt, TTASK task) throws TaskExecutionException {
+    public boolean cleanup(TaskContext ctxt) throws TaskExecutionException {
         return false;
     }
 
-    protected abstract TJOB buildSubJob(TaskContext ctxt, TTASK task) throws DaoException,StorageException;
-
+    protected abstract TJOB buildSubJob(TaskContext<TPARENTJOB,TTASK> ctxt) throws DaoException,StorageException;
 }

@@ -60,8 +60,6 @@ public class DaoGeneratorAnnotationProcessor extends AbstractAnnotationProcessor
      */
     private Map<ClassInfo,DaoDef> daoClassMap=new HashMap<>();
 
-
-
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();

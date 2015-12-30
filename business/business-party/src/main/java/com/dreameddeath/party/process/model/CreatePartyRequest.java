@@ -16,13 +16,16 @@
 
 package com.dreameddeath.party.process.model;
 
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.process.model.AbstractJob;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-public class CreatePartyRequest extends CouchbaseDocumentElement {
+@DocumentDef(domain = "party",version="1.0.0")
+public class CreatePartyRequest extends AbstractJob {
     @DocumentProperty("type")
     public Type type;
     @DocumentProperty("person")
@@ -47,4 +50,5 @@ public class CreatePartyRequest extends CouchbaseDocumentElement {
     public enum Type{
         person, organization
     }
+
 }

@@ -53,17 +53,6 @@ public class CouchbaseDocumentObjectMapperConfigurator implements IObjectMapperC
 
     @Override
     public void configure(ObjectMapper mapper, ConfiguratorType type) {
-        //CouchbaseDocumentIntrospector.Domain domain=CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE;
-        /*if(type.contains(BASE_COUCHBASE_STORAGE)){
-            domain =CouchbaseDocumentIntrospector.Domain.STORAGE;
-        }
-        else if(type.contains(BASE_COUCHBASE_PUBLIC)){
-            domain= CouchbaseDocumentIntrospector.Domain.PUBLIC_SERVICE;
-        }
-        else if(type.contains(BASE_COUCHBASE_INTERNAL)){
-            domain= CouchbaseDocumentIntrospector.Domain.INTERNAL_SERVICE;
-        }*/
-
         mapper.setConfig(mapper.getDeserializationConfig().withAttribute(EntityVersionUpgradeManager.class, new EntityVersionUpgradeManager()));
         mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
         mapper.registerModule(new CouchbaseDocumentModule());

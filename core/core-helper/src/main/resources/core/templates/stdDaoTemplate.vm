@@ -17,11 +17,14 @@ import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-
+import com.dreameddeath.core.java.utils.NumberUtils;
+import com.dreameddeath.core.java.utils.DateUtils;
 
 #if($daoDef.needGenerateRestLayer())
 import com.dreameddeath.core.helper.annotation.service.RestDao;
 #end
+
+import rx.Observable;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -71,33 +74,44 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
         return LocalBucketDocument.class;
     }
 
+
     @Override
-    public ${entity.simpleName} buildKey(ICouchbaseSession session,${entity.simpleName} obj) throws DaoException,StorageException{
-        long result = session.incrCounter(String.format(CNT_${keyCounter.name.toUpperCase()}#if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end),1);
-#if($daoDef.type.hasUid())
-        #if($daoDef.isUidTypeLong())
-            #set($uidInput="result")
-        #else
-            #set($uidInput="String.format(""${esc.java(${dbPath.idFormat})}"",result)")
-        #end
-        obj${daoDef.buildUidSetter($uidInput)};
-#end
-        obj.getBaseMeta().setKey(
-                String.format(FMT_KEY,#if("$!{entity.parentKeyAccessor}"!="")obj${entity.parentKeyAccessor},#end result));
-        return obj;
+    public Observable<${entity.simpleName}> asyncBuildKey(ICouchbaseSession session,final ${entity.simpleName} obj) throws DaoException{
+        return session.asyncIncrCounter(String.format(CNT_${keyCounter.name.toUpperCase()}#if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end),1)
+                        .map(new BuildKeyFromCounterFunc(obj #if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end))
+                        ;
     }
 
 #if(${daoDef.type.hasPattern()})
     @Override
-    public String getKeyPattern(){
+    protected String getKeyRawPattern(){
         return PATTERN_KEY;
     }
-#end
 
-#if(${daoDef.type.hasUid()})
     @Override
-    public String getKeyFromUID(String uid){
+    public String getKeyFromParams(Object... params) {
+        return String.format(FMT_KEY
+        #foreach($formatType in $dbPath.formatTypes)
+            ,#if($formatType.needFormat())${formatType.formatter}(#end params[$foreach.index]#if($formatType.needFormat()) )#end
+        #end );
+    }
+
+   /* @Override
+    public String getKeyFromParams(Object ... params){
         return String.format(FMT_KEY,#if($daoDef.isUidTypeLong()) Long.parseLong(uid) #else uid #end );
+    }*/
+
+    @Override
+    protected ${entity.simpleName} updateTransientFromKeyPattern(${entity.simpleName} obj,String ... keyParams){
+#if($daoDef.type.hasUid())
+        #if($daoDef.isUidTypeLong())
+            #set($uidInput="Long.parseLong(keyParams[keyParams.length-1])")
+        #else
+            #set($uidInput="keyParams[keyParams.length-1]")
+        #end
+        obj${daoDef.buildUidSetter($uidInput)};
+#end
+        return obj;
     }
 #end
 

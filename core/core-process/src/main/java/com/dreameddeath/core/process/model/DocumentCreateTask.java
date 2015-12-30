@@ -29,8 +29,9 @@ import com.dreameddeath.core.model.property.impl.ImmutableProperty;
  */
 public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends AbstractTask {
     @DocumentProperty("docKey")
-    private Property<String> docKey=new ImmutableProperty<String>(DocumentCreateTask.this);
+    private Property<String> docKey=new ImmutableProperty<>(DocumentCreateTask.this);
 
+    // docKey accessors
     public String getDocKey(){return docKey.get(); }
     public void setDocKey(String docKey){this.docKey.set(docKey); }
 

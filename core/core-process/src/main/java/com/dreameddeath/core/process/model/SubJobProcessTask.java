@@ -29,11 +29,11 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 01/08/2014.
  */
 public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractTask {
-    @DocumentProperty("jobId")
-    private Property<UUID> jobId =new StandardProperty<UUID>(SubJobProcessTask.this);
+    @DocumentProperty("subJobId")
+    private Property<UUID> subJobId =new StandardProperty<UUID>(SubJobProcessTask.this);
 
-    public UUID getJobId(){ return jobId.get(); }
-    public void setJobId(UUID jobId){this.jobId.set(jobId);}
+    public UUID getSubJobId(){ return subJobId.get(); }
+    public void setSubJobId(UUID subJobId){this.subJobId.set(subJobId);}
 
-    public T getJob(ICouchbaseSession session) throws DaoException,StorageException{return (T)session.getFromUID(getJobId().toString(),AbstractJob.class);}
+    public T getJob(ICouchbaseSession session) throws DaoException,StorageException{return (T)session.getFromUID(getSubJobId().toString(),AbstractJob.class);}
 }

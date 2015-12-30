@@ -20,16 +20,22 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 17/05/2015.
  */
 public abstract class CouchbaseDocumentDaoWithUID<T extends CouchbaseDocument> extends CouchbaseDocumentWithKeyPatternDao<T> implements IDaoForDocumentWithUID<T> {
-    public abstract String getKeyFromUID(String uid);
+    public final String getKeyFromUID(String uid){
+        return getKeyFromParams(uid);
+    }
 
     public T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException {
-        T result= get(session,getKeyFromUID(uid));
-        result.getBaseMeta().setStateSync();
-        return result;
+        return get(session, getKeyFromUID(uid));
+    }
+
+    @Override
+    public Observable<T> asyncGetFromUid(ICouchbaseSession session, String uid) throws DaoException {
+        return asyncGet(session,getKeyFromParams(uid));
     }
 }

@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.installedbase.model.common;
+package com.dreameddeath.installedbase.model;
 
 import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.helper.annotation.dao.Counter;
+import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
+import com.dreameddeath.core.helper.annotation.dao.UidDef;
+import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -33,6 +38,10 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 10/08/2014.
  */
+@DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "instBase/",idPattern = "\\d{10}",idFormat = "%010d")
+@Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
+@UidDef(fieldName = "uid")
+@DocumentDef(domain = "installedbase")
 public class InstalledBase extends BusinessDocument {
     /**
      *  uid : The unique id of the installed base

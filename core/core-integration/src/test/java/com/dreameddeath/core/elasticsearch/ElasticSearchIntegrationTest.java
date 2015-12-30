@@ -18,7 +18,6 @@ package com.dreameddeath.core.elasticsearch;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
@@ -28,6 +27,7 @@ import com.dreameddeath.core.dao.model.view.IViewTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
+import com.dreameddeath.core.java.utils.NumberUtils;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -36,6 +36,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import rx.Observable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,8 +83,13 @@ public class ElasticSearchIntegrationTest {
         public static final String TEST_KEY_PATTERN="test/\\d{10}";
 
         @Override
-        public String getKeyPattern() {
+        public String getKeyRawPattern() {
             return TEST_KEY_PATTERN;
+        }
+
+        @Override
+        public String getKeyFromParams(Object... params) {
+            return String.format(TEST_KEY_FMT, NumberUtils.asInt(params[0]));
         }
 
         public static class TestViewDao extends CouchbaseViewDao<String,String,TestDoc> {
@@ -136,11 +142,9 @@ public class ElasticSearchIntegrationTest {
             );
         }
         @Override
-        public TestDoc buildKey(ICouchbaseSession session, TestDoc newObject) throws DaoException, StorageException {
-            long result = session.incrCounter(TEST_CNT_KEY, 1);
-            newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, result));
-
-            return newObject;
+        public Observable<TestDoc> asyncBuildKey(ICouchbaseSession session, TestDoc newObject) throws DaoException {
+            return session.asyncIncrCounter(TEST_CNT_KEY, 1)
+                    .map(cntVal->{newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, cntVal));return newObject;});
         }
     }
 

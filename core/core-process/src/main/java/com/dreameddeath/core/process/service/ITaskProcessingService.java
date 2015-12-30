@@ -17,16 +17,17 @@
 package com.dreameddeath.core.process.service;
 
 import com.dreameddeath.core.process.exception.TaskExecutionException;
+import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
  */
-public interface ITaskProcessingService<T extends AbstractTask> {
-    boolean init(TaskContext ctxt, T task) throws TaskExecutionException;
-    boolean preprocess(TaskContext ctxt, T task) throws TaskExecutionException;
-    boolean process(TaskContext ctxt, T task) throws TaskExecutionException;
-    boolean postprocess(TaskContext ctxt, T task) throws TaskExecutionException;
-    boolean finish(TaskContext ctxt, T task) throws TaskExecutionException;
-    boolean cleanup(TaskContext ctxt, T task) throws TaskExecutionException;
+public interface ITaskProcessingService<TJOB extends AbstractJob,T extends AbstractTask> {
+    boolean init(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
+    boolean preprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
+    boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
+    boolean postprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
+    boolean finish(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
+    boolean cleanup(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
 }

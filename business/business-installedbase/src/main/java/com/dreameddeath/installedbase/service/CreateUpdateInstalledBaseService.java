@@ -17,7 +17,7 @@
 package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.process.service.TaskContext;
-import com.dreameddeath.installedbase.model.common.InstalledBase;
+import com.dreameddeath.installedbase.model.InstalledBase;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
 import com.dreameddeath.installedbase.model.common.InstalledStatus;
@@ -54,8 +54,6 @@ public class CreateUpdateInstalledBaseService {
         newItemDefaultStatus.setCode(InstalledStatus.Code.INITIALIZED);
         newItemDefaultStatus.setStartDate(ctxt.getSession().getCurrentDate());
         targetItem.setStatus(newItemDefaultStatus);
-
-
     }
 
     public InstalledContract createContract(TaskContext ctxt,CreateUpdateInstalledBaseResponse res, InstalledBase ref, CreateUpdateInstalledBaseRequest.Contract refContract  ){
@@ -67,12 +65,13 @@ public class CreateUpdateInstalledBaseService {
         newContractDefaultStatus.setStartDate(ctxt.getSession().getCurrentDate());
         newContract.setStatus(newContractDefaultStatus);
 
-
         resContract.id = newContract.getId();
         resContract.tempId =  refContract.tempId;
 
         //Add contract to response
-        if(res.contracts==null){res.contracts=new ArrayList<CreateUpdateInstalledBaseResponse.Contract>();}
+        if(res.contracts==null){
+            res.contracts=new ArrayList<>();
+        }
         res.contracts.add(resContract);
 
         ref.setContract(newContract);

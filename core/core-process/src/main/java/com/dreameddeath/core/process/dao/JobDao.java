@@ -21,8 +21,12 @@ import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
+import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.model.AbstractJob;
+import rx.Observable;
+
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
@@ -30,14 +34,23 @@ import com.dreameddeath.core.process.model.AbstractJob;
 @DaoForClass(AbstractJob.class)
 public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
     public static final String JOB_FMT_KEY="job/%s";
-    public static final String JOB_KEY_PATTERN="job/[^/]+";
-
+    public static final String JOB_KEY_PATTERN="job/{uid}";
 
     @BucketDocumentForClass(AbstractJob.class)
     public static class LocalBucketDocument extends BucketDocument<AbstractJob> {
         public LocalBucketDocument(AbstractJob obj){super(obj);}
     }
 
+    @Override
+    protected AbstractJob updateTransientFromKeyPattern(AbstractJob obj, String... keyParams) {
+        obj.setUid(UUID.fromString(keyParams[0]));
+        return obj;
+    }
+
+    @Override
+    public String getKeyFromParams(Object... params) {
+        return String.format(JOB_FMT_KEY, params[0].toString());
+    }
 
     @Override
     public Class<AbstractJob> getBaseClass(){
@@ -47,20 +60,16 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
     @Override
     public Class<? extends BucketDocument<AbstractJob>> getBucketDocumentClass() { return LocalBucketDocument.class; }
 
+
     @Override
-    public AbstractJob buildKey(ICouchbaseSession session,AbstractJob obj){
-        obj.getBaseMeta().setKey(String.format(JOB_FMT_KEY, obj.getUid().toString()));
-        return obj;
+    public Observable<AbstractJob> asyncBuildKey(ICouchbaseSession session, AbstractJob newObject) throws DaoException {
+        newObject.getBaseMeta().setKey(getKeyFromParams(newObject.getUid()));
+        return Observable.just(newObject);
     }
 
     @Override
-    public String getKeyPattern(){
+    public String getKeyRawPattern(){
         return JOB_KEY_PATTERN;
-    }
-
-    @Override
-    public String getKeyFromUID(String uid) {
-        return String.format(JOB_FMT_KEY,uid);
     }
 
 }

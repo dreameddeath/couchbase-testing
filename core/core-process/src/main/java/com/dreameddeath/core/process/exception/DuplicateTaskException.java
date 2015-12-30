@@ -27,12 +27,12 @@ public class DuplicateTaskException extends JobExecutionException {
     AbstractTask task;
 
     public DuplicateTaskException(AbstractTask task, AbstractJob job){
-        super(job,job.getJobState(),"The task <"+task.getUid()+"> is already existing in job <"+job.getBaseMeta().getKey()+">");
+        super(job,job.getStateInfo().getState(),"The task <"+task.getId()+"> is already existing in job <"+job.getBaseMeta().getKey()+">");
         this.task = task;
     }
 
     public DuplicateTaskException(AbstractTask task, AbstractJob job,String message){
-        super(job,job.getJobState(),message);
+        super(job,job.getStateInfo().getState(),message);
         this.job = job;
         this.task = task;
     }

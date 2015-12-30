@@ -90,11 +90,9 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
         return query.search();
     }
 
-
     public Observable<ElasticSearchResult<T>> asyncSearch(ElasticSearchQuery<T> query){
         return query.asyncSearch();
     }
-
 
     public static class Builder<T extends CouchbaseDocument>{
         private String bucketName;

@@ -20,6 +20,7 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 17/05/2015.
@@ -27,4 +28,5 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 public interface IDaoForDocumentWithUID<T extends CouchbaseDocument> {
     String getKeyFromUID(String uid);
     T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException;
+    Observable<T> asyncGetFromUid(ICouchbaseSession session,String uid) throws DaoException;
 }

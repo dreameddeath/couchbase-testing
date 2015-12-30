@@ -21,23 +21,18 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.DocumentCreateTask;
-import com.dreameddeath.core.process.service.ITaskProcessingService;
+import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.service.TaskContext;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
  */
-public abstract class DocumentCreateTaskProcessingService<TDOC extends CouchbaseDocument,T extends DocumentCreateTask<TDOC>> implements ITaskProcessingService<T> {
+public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJob,TDOC extends CouchbaseDocument,T extends DocumentCreateTask<TDOC>> extends StandardTaskProcessingService<TJOB,T> {
     @Override
-    public boolean init(TaskContext ctxt, T task) throws TaskExecutionException {return false;}
-
-    @Override
-    public boolean preprocess(TaskContext ctxt, T task) throws TaskExecutionException {return false;}
-
-    @Override
-    public boolean process(TaskContext ctxt, T task) throws TaskExecutionException {
+    public boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
+        T task = ctxt.getTask();
         try {
             //Recovery mode
             if(task.getDocKey()!=null){
@@ -46,38 +41,26 @@ public abstract class DocumentCreateTaskProcessingService<TDOC extends Couchbase
                 }
             }
 
-            TDOC doc = buildDocument(ctxt,task);
+            TDOC doc = buildDocument(ctxt);
             //Prebuild key
             task.setDocKey(ctxt.getSession().buildKey(doc).getBaseMeta().getKey());
             //Attach it to the document
-            ctxt.getSession().save(task.getParentJob());
+            ctxt.save();
             //Save Document afterwards
             ctxt.getSession().save(doc);
         }
         catch(ValidationException e){
-            throw new TaskExecutionException(task, AbstractTask.State.PROCESSED,"Validation error", e);
+            throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Validation error", e);
         }
         catch(DaoException e){
-            throw new TaskExecutionException(task, AbstractTask.State.PROCESSED,"Dao error", e);
+            throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Dao error", e);
         }
         catch(StorageException e){
-            throw new TaskExecutionException(task, AbstractTask.State.PROCESSED,"Storage error", e);
+            throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Storage error", e);
         }
         return false; //No need to save (retry allowed)
     }
 
-    protected abstract TDOC buildDocument(TaskContext ctxt,T task) throws DaoException,StorageException;
+    protected abstract TDOC buildDocument(TaskContext<TJOB,T> ctxt) throws DaoException,StorageException;
 
-    @Override
-    public boolean postprocess(TaskContext ctxt, T task) throws TaskExecutionException {return false;}
-
-    @Override
-    public boolean finish(TaskContext ctxt, T task) throws TaskExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean cleanup(TaskContext ctxt, T task) throws TaskExecutionException {
-        return false;
-    }
 }

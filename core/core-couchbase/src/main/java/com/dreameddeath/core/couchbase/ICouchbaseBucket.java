@@ -16,10 +16,13 @@
 
 package com.dreameddeath.core.couchbase;
 
+import com.couchbase.client.java.error.CASMismatchException;
+import com.couchbase.client.java.error.DocumentAlreadyExistsException;
+import com.couchbase.client.java.error.DocumentDoesNotExistException;
 import com.couchbase.client.java.view.AsyncViewResult;
 import com.couchbase.client.java.view.ViewQuery;
 import com.couchbase.client.java.view.ViewResult;
-import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.exception.*;
 import com.dreameddeath.core.couchbase.impl.ReadParams;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -49,48 +52,48 @@ public interface ICouchbaseBucket {
 
     <T extends CouchbaseDocument> T add(final T doc) throws StorageException;
     <T extends CouchbaseDocument> T add(final T doc, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc);
+    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, WriteParams params);
 
 
     <T extends CouchbaseDocument> T set(final T doc) throws StorageException;
     <T extends CouchbaseDocument> T set(final T doc, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc);
+    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, WriteParams params);
 
     <T extends CouchbaseDocument> T replace(final T doc) throws StorageException;
     <T extends CouchbaseDocument> T replace(final T doc, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc);
+    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, WriteParams params);
 
     <T extends CouchbaseDocument> T delete(T bucketDoc) throws StorageException;
     <T extends CouchbaseDocument> T delete(T bucketDoc, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc);
+    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, WriteParams params);
 
     <T extends CouchbaseDocument> T append(final T doc) throws StorageException;
     <T extends CouchbaseDocument> T append(final T doc, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc);
+    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, WriteParams params);
 
     <T extends CouchbaseDocument> T prepend(final T doc) throws StorageException;
     <T extends CouchbaseDocument> T prepend(final T doc, WriteParams params) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, WriteParams params) throws StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc);
+    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, WriteParams params);
 
     Long counter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException;
     Long counter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) throws StorageException;
 
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration)throws StorageException;
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params)throws StorageException;
+    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration);
+    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params);
     Long counter(String key, Long by, Long defaultValue) throws StorageException;
     Long counter(String key, Long by, Long defaultValue, WriteParams params) throws StorageException;
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue)throws StorageException;
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, WriteParams params)throws StorageException;
+    Observable<Long> asyncCounter(String key, Long by, Long defaultValue);
+    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, WriteParams params);
     Long counter(String key, Long by) throws StorageException;
     Long counter(String key, Long by, WriteParams params) throws StorageException;
-    Observable<Long> asyncCounter(String key, Long by)throws StorageException;
-    Observable<Long> asyncCounter(String key, Long by, WriteParams params)throws StorageException;
+    Observable<Long> asyncCounter(String key, Long by);
+    Observable<Long> asyncCounter(String key, Long by, WriteParams params);
 
     void createOrUpdateView(String designDoc, Map<String, String> viewMap) throws StorageException;
 
@@ -142,6 +145,68 @@ public interface ICouchbaseBucket {
             }
             return doc;
         }
+
+        public static <T extends CouchbaseDocument> StorageException mapStorageException(T doc,Throwable e){
+            if(e instanceof StorageException){
+                return (StorageException)e;
+            }
+            else if(e instanceof StorageObservableException){
+                return (StorageException)e.getCause();
+            }
+            Throwable rootException =e.getCause();
+            if(rootException instanceof InterruptedException){
+                return new DocumentStorageTimeOutException(doc,"Interruption occurs",rootException);
+            }
+            else if(rootException instanceof CASMismatchException){
+                return new DocumentConcurrentUpdateException(doc,"Concurrent access append",rootException);
+            }
+            else if(rootException instanceof DocumentAlreadyExistsException){
+                return new DuplicateDocumentKeyException(doc,rootException);
+            }
+            else if(rootException instanceof DocumentDoesNotExistException){
+                return new DocumentNotFoundException(doc,rootException);
+            }
+            return new DocumentStorageException(doc,"Error during storage attempt execution",e);
+        }
+
+        public static StorageException mapStorageException(String key,Throwable e){
+            if(e instanceof StorageException){
+                return (StorageException)e;
+            }
+            else if(e instanceof StorageObservableException){
+                return (StorageException)e.getCause();
+            }
+            Throwable rootException =e.getCause();
+            if(rootException instanceof InterruptedException){
+                return new DocumentStorageTimeOutException(key,"Interruption occurs",rootException);
+            }
+            else if(rootException instanceof CASMismatchException){
+                return new DocumentConcurrentUpdateException(key,"Concurrent access append",rootException);
+            }
+            else if(rootException instanceof DocumentDoesNotExistException){
+                return new DocumentNotFoundException(key,rootException);
+            }
+            return new DocumentStorageException(key,"Error during storage attempt execution",e);
+        }
+
+        public static StorageException mapAccessException(String key,Throwable e){
+            Throwable rootException =e.getCause();
+            if(e instanceof StorageException){
+                return (StorageException)e;
+            }
+            else if(e instanceof StorageObservableException){
+                return (StorageException)e.getCause();
+            }
+            else if(rootException instanceof InterruptedException){
+                return new DocumentStorageTimeOutException(key,"Interruption occurs",rootException);
+            }
+            else if(rootException instanceof DocumentDoesNotExistException){
+                return new DocumentNotFoundException(key,rootException);
+            }
+            return new DocumentAccessException(key,"Error during storage attempt execution",e);
+        }
+
+
     }
 
 }

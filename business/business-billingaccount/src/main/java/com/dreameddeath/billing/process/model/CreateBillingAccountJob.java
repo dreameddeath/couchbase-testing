@@ -17,22 +17,33 @@
 package com.dreameddeath.billing.process.model;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
+import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.DocumentCreateTask;
 import com.dreameddeath.core.process.model.DocumentUpdateTask;
 import com.dreameddeath.core.process.model.SubJobProcessTask;
 import com.dreameddeath.party.model.base.Party;
+import com.dreameddeath.party.model.base.PartyLink;
 
 /**
  * Created by Christophe Jeunesse on 29/05/2014.
  */
 @DocumentDef(domain = "billing",version="1.0.0")
-public class CreateBillingAccountJob extends AbstractJob<CreateBillingAccountRequest,CreateBillingAccountResult> {
-    @Override
-    public CreateBillingAccountRequest newRequest(){return new CreateBillingAccountRequest();}
-    @Override
-    public CreateBillingAccountResult newResult(){return new CreateBillingAccountResult();}
+public class CreateBillingAccountJob extends AbstractJob {
+    @DocumentProperty("partyId")
+    public String partyId;
+    @DocumentProperty("billDay")
+    public Integer billDay;
+    @DocumentProperty("cycleLength")
+    public Integer cycleLength;
+
+    @DocumentProperty("baCreated")
+    public BillingAccountLink baLink;
+    @DocumentProperty("partyLink")
+    public PartyLink partyLink;
+
 
     @DocumentDef(domain = "billing",version="1.0.0")
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> { }

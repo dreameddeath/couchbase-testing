@@ -25,12 +25,22 @@ public class DocumentNotFoundException extends StorageException {
     private CouchbaseDocument doc;
     private String key;
 
-
-
     public DocumentNotFoundException(String key,String message){
         super(message);
         this.key=key;
     }
+
+    public DocumentNotFoundException(String key,String message,Throwable e){
+        super(message,e);
+        this.key=key;
+    }
+
+    public DocumentNotFoundException(String key,Throwable e){
+        super(e);
+        this.key=key;
+    }
+
+
     public DocumentNotFoundException(CouchbaseDocument doc, String message){
         super(message);
         this.doc=doc;

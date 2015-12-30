@@ -17,22 +17,25 @@
 package com.dreameddeath.billing.process.model;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
+import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.DocumentCreateTask;
 import com.dreameddeath.core.process.model.DocumentUpdateTask;
-import com.dreameddeath.core.process.model.EmptyJobResult;
+import org.joda.time.DateTime;
 
 /**
  * Created by Christophe Jeunesse on 03/08/2014.
  */
 @DocumentDef(domain = "billing",version="1.0.0")
-public class CreateBillingCycleJob extends AbstractJob<CreateBillingCycleRequest,EmptyJobResult> {
-    @Override
-    public CreateBillingCycleRequest newRequest(){return new CreateBillingCycleRequest();}
-    @Override
-    public EmptyJobResult newResult(){return new EmptyJobResult();}
+public class CreateBillingCycleJob extends AbstractJob {
+    @DocumentProperty("ba")
+    public BillingAccountLink baLink;
+    @DocumentProperty("startDate")
+    public DateTime startDate;
+
 
     @DocumentDef(domain = "billing",version="1.0.0")
     public static class CreateBillingCycleTask extends DocumentCreateTask<BillingCycle> { }

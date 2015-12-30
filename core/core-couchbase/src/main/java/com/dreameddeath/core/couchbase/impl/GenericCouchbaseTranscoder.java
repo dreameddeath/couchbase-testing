@@ -26,6 +26,7 @@ import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
 import com.dreameddeath.core.couchbase.exception.DocumentSetUpException;
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
             return baseDocumentContructor.newInstance(content);
         }
         catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
-            throw new DocumentSetUpException("Error during setup", e);
+            throw new StorageObservableException(new DocumentSetUpException("Error during setup", e));
         }
     }
 
@@ -102,7 +103,7 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
             return newDocument;
         }
         catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
-            throw new DocumentSetUpException("Error during setup", e);
+            throw new StorageObservableException(new DocumentSetUpException("Error during setup", e));
         }
     }
 

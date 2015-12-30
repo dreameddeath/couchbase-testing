@@ -29,22 +29,22 @@ public class InstalledItemLink extends CouchbaseDocumentElement {
      *  id : Target item id
      */
     @DocumentProperty("id")
-    private Property<String> id = new StandardProperty<String>(InstalledItemLink.this);
+    private Property<String> id = new StandardProperty<>(InstalledItemLink.this);
     /**
      *  type : The type of link
      */
     @DocumentProperty("type")
-    private Property<Type> type = new StandardProperty<Type>(InstalledItemLink.this);
+    private Property<Type> type = new StandardProperty<>(InstalledItemLink.this);
     /**
      *  direction : Direction of the link
      */
     @DocumentProperty("direction")
-    private Property<Direction> direction = new StandardProperty<Direction>(InstalledItemLink.this);
+    private Property<Direction> direction = new StandardProperty<>(InstalledItemLink.this);
     /**
      *  status : Link Status
      */
     @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<InstalledStatus>(InstalledItemLink.this);
+    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItemLink.this);
 
     // id accessors
     public String getId() { return id.get(); }

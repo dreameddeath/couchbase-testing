@@ -32,9 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ProcessingServiceFactory {
     private Map<Class<? extends AbstractJob>, IJobProcessingService<?>> jobProcessingServicesMap
-            = new ConcurrentHashMap<Class<? extends AbstractJob>, IJobProcessingService<?>>();
-    private Map<Class<? extends AbstractTask>, ITaskProcessingService<?>> taskProcessingServicesMap
-            = new ConcurrentHashMap<Class<? extends AbstractTask>, ITaskProcessingService<?>>();
+            = new ConcurrentHashMap<>();
+    private Map<Class<? extends AbstractTask>, ITaskProcessingService<?,?>> taskProcessingServicesMap
+            = new ConcurrentHashMap<>();
 
 
     public <T extends AbstractJob> void addJobProcessingServiceFor(Class<T> entityClass, IJobProcessingService<T> service){
@@ -59,7 +59,7 @@ public class ProcessingServiceFactory {
         return this;
     }
 
-    public <T extends AbstractTask> void addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<T> service){
+    public <TJOB extends AbstractJob,T extends AbstractTask> void addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<TJOB,T> service){
         taskProcessingServicesMap.put(entityClass, service);
     }
 
@@ -74,8 +74,8 @@ public class ProcessingServiceFactory {
     }
 
 
-    public <T extends AbstractTask> ITaskProcessingService<T> getTaskProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException {
-        ITaskProcessingService<T> result = (ITaskProcessingService<T>) taskProcessingServicesMap.get(entityClass);
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskProcessingService<TJOB,T> getTaskProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException {
+        ITaskProcessingService<TJOB,T> result = (ITaskProcessingService<TJOB,T>) taskProcessingServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractTask.class.isAssignableFrom(parentClass)) {
@@ -111,43 +111,43 @@ public class ProcessingServiceFactory {
     }
 
 
-    public <T extends AbstractJob> boolean init(JobContext ctxt,T job) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return ((IJobProcessingService<T>) getJobProcessingServiceForClass(job.getClass())).init(ctxt,job);
+    public <T extends AbstractJob> boolean init(JobContext ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
+        return getJobProcessingServiceForClass(ctxt.getJob().getClass()).init(ctxt);
     }
 
-    public <T extends AbstractJob> boolean preprocess(JobContext ctxt,T job) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return ((IJobProcessingService<T>) getJobProcessingServiceForClass(job.getClass())).preprocess(ctxt,job);
+    public <T extends AbstractJob> boolean preprocess(JobContext ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
+        return getJobProcessingServiceForClass(ctxt.getJob().getClass()).preprocess(ctxt);
     }
 
     public <T extends AbstractJob> boolean postprocess(JobContext ctxt,T job) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return ((IJobProcessingService<T>) getJobProcessingServiceForClass(job.getClass())).postprocess(ctxt,job);
+        return getJobProcessingServiceForClass(job.getClass()).postprocess(ctxt);
     }
 
     public <T extends AbstractJob> boolean cleanup(JobContext ctxt,T job) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return ((IJobProcessingService<T>) getJobProcessingServiceForClass(job.getClass())).cleanup(ctxt,job);
+        return getJobProcessingServiceForClass(job.getClass()).cleanup(ctxt);
     }
 
 
-    public <T extends AbstractTask> boolean init(TaskContext ctxt,T task) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<T>) getTaskProcessingServiceForClass(task.getClass())).init(ctxt,task);
+    public <T extends AbstractTask> boolean init(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).init(ctxt);
     }
 
-    public <T extends AbstractTask> boolean preprocess(TaskContext ctxt,T task) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<T>) getTaskProcessingServiceForClass(task.getClass())).preprocess(ctxt,task);
+    public <T extends AbstractTask> boolean preprocess(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).preprocess(ctxt);
     }
 
-    public <T extends AbstractTask> boolean process(TaskContext ctxt,T task) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<T>) getTaskProcessingServiceForClass(task.getClass())).process(ctxt, task);
+    public <T extends AbstractTask> boolean process(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).process(ctxt);
     }
 
-    public <T extends AbstractTask> boolean postprocess(TaskContext ctxt,T task) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<T>) getTaskProcessingServiceForClass(task.getClass())).postprocess(ctxt, task);
+    public <T extends AbstractTask> boolean postprocess(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).postprocess(ctxt);
     }
 
-    public <T extends AbstractTask> boolean finish(TaskContext ctxt,T task) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<T>) getTaskProcessingServiceForClass(task.getClass())).finish(ctxt, task);
+    public <T extends AbstractTask> boolean finish(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).finish(ctxt);
     }
-    public <T extends AbstractTask> boolean cleanup(TaskContext ctxt,T task) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<T>) getTaskProcessingServiceForClass(task.getClass())).cleanup(ctxt, task);
+    public <T extends AbstractTask> boolean cleanup(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).cleanup(ctxt);
     }
 }

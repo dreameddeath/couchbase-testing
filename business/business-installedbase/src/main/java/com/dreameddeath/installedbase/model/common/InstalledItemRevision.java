@@ -29,17 +29,17 @@ public abstract class InstalledItemRevision extends CouchbaseDocumentElement {
      *  orderId : Id of the order asking for a modification
      */
     @DocumentProperty("orderId")
-    private Property<String> orderId = new StandardProperty<String>(InstalledItemRevision.this);
+    private Property<String> orderId = new StandardProperty<>(InstalledItemRevision.this);
     /**
      *  orderItemId : the id of the order item requesting a modification
      */
     @DocumentProperty("orderItemId")
-    private Property<String> orderItemId = new StandardProperty<String>(InstalledItemRevision.this);
+    private Property<String> orderItemId = new StandardProperty<>(InstalledItemRevision.this);
     /**
      *  status : Status item linked to the revision
      */
     @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<InstalledStatus>(InstalledItemRevision.this);
+    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItemRevision.this);
 
     // orderId accessors
     public String getOrderId() { return orderId.get(); }

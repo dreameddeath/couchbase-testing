@@ -16,10 +16,14 @@
 
 package com.dreameddeath.core.process.service.impl;
 
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
-import com.dreameddeath.core.process.model.AbstractTask.State;
+import com.dreameddeath.core.process.model.ProcessState;
+import com.dreameddeath.core.process.model.ProcessState.State;
 import com.dreameddeath.core.process.model.SubJobProcessTask;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.JobContext;
@@ -28,91 +32,77 @@ import com.dreameddeath.core.process.service.TaskContext;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
-public class BasicTaskExecutorServiceImpl implements ITaskExecutorService<AbstractTask> {
-    public void onSave(AbstractTask task, State state){}
-    public void onEndProcessing(AbstractTask task, State state){}
+public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends AbstractTask> implements ITaskExecutorService<TJOB,T> {
+    public void onSave(TaskContext<TJOB,T> ctxt, State state){}
+    public void onEndProcessing(TaskContext<TJOB,T> ctxt, State state){}
+
+    public void manageStateExecutionEnd(TaskContext<TJOB,T> ctxt, State newState, boolean needSave) throws DaoException,ValidationException,StorageException{
+        ctxt.getTaskState().setState(newState);
+        if(needSave) {
+            onSave(ctxt, newState);
+            ctxt.save();
+        }
+        onEndProcessing(ctxt,newState);
+    }
 
     @Override
-    public void execute(TaskContext ctxt,AbstractTask task) throws TaskExecutionException {
-        task.setLastRunError(null);
+    public void execute(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
+        T task = ctxt.getTask();
+        ProcessState taskState = ctxt.getTaskState();
+        taskState.setLastRunError(null);
         try {
-            if (!task.isInitialized()) {
+            if (!taskState.isInitialized()) {
                 try {
-                    boolean saveAsked;
-                    saveAsked = ctxt.getProcessingFactory().init(ctxt, task);
-                    task.setState(State.INITIALIZED);
-
-                    if (saveAsked) {
-                        onSave(task, State.INITIALIZED);
-                        ctxt.getSession().save(task.getParentJob());
-                    }
-                    onEndProcessing(task, State.INITIALIZED);
+                    boolean saveAsked = ctxt.getProcessingFactory().init(ctxt);
+                    manageStateExecutionEnd(ctxt,State.INITIALIZED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.INITIALIZED, e);
                 }
             }
 
-            if (!task.isPrepared()) {
+            if (!taskState.isPrepared()) {
                 try {
-                    boolean saveAsked;
-                    saveAsked =ctxt.getProcessingFactory().preprocess(ctxt,task);
-                    task.setState(State.PREPROCESSED);
-
-                    if(saveAsked){
-                        onSave(task, State.PREPROCESSED);
-                        ctxt.getSession().save(task.getParentJob());
-                    }
-                    onEndProcessing(task, State.PREPROCESSED);
+                    boolean saveAsked=ctxt.getProcessingFactory().preprocess(ctxt);
+                    manageStateExecutionEnd(ctxt,State.PREPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.PREPROCESSED, e);
                 }
             }
 
-            if (!task.isProcessed()) {
+            if (!taskState.isProcessed()) {
                 try {
                     boolean saveAsked;
                     if(task instanceof SubJobProcessTask){
                         SubJobProcessTask subJobTask = (SubJobProcessTask)task;
-                        AbstractJob job = ctxt.getSession().getFromUID(subJobTask.getJobId().toString(), AbstractJob.class);
-                        if (!job.isDone()) {
-                            ctxt.getExecutorFactory().execute(JobContext.newContext(ctxt.getJobContext()), job);
+                        JobContext<?> subJobContext = JobContext.newContext(ctxt.getJobContext(),subJobTask.getSubJobId().toString());
+                        if (!subJobContext.getJobState().isDone()) {
+                            ctxt.getExecutorFactory().execute(subJobContext);
                         }
                         saveAsked=true;
                     }
                     else {
-                        saveAsked = ctxt.getProcessingFactory().process(ctxt,task);
+                        saveAsked = ctxt.getProcessingFactory().process(ctxt);
                     }
-                    task.setState(State.PROCESSED);
-                    if(saveAsked){
-                        onSave(task, State.PROCESSED);
-                        ctxt.getSession().save(task.getParentJob());
-                    }
-                    onEndProcessing(task, State.PROCESSED);
+
+                    manageStateExecutionEnd(ctxt,State.PROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.PROCESSED, e);
                 }
             }
 
-            if (!task.isFinalized()) {
+            if (!taskState.isFinalized()) {
                 try {
-                    boolean saveAsked;
-                    saveAsked=ctxt.getProcessingFactory().postprocess(ctxt,task);
-                    task.setState(State.POSTPROCESSED);
-                    if(saveAsked){
-                        onSave(task, State.POSTPROCESSED);
-                        ctxt.getSession().save(task.getParentJob());
-                    }
-                    onEndProcessing(task, State.POSTPROCESSED);
+                    boolean saveAsked=ctxt.getProcessingFactory().postprocess(ctxt);
+                    manageStateExecutionEnd(ctxt,State.POSTPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.POSTPROCESSED, e);
                 }
             }
 
-            if (!task.isDone()) {
-                try {
-                    ctxt.getProcessingFactory().cleanup(ctxt,task);
-                    task.setState(State.DONE);
-                    onEndProcessing(task, State.DONE);
+            if (!taskState.isDone()) {
+                try{
+                    boolean needSave=ctxt.getProcessingFactory().cleanup(ctxt);
+                    manageStateExecutionEnd(ctxt,State.DONE,needSave);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.DONE, e);
                 }
@@ -123,5 +113,4 @@ public class BasicTaskExecutorServiceImpl implements ITaskExecutorService<Abstra
             throw new TaskExecutionException(task,State.UNKNOWN,e);
         }
     }
-
 }

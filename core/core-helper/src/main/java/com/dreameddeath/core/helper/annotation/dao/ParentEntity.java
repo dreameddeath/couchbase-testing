@@ -32,5 +32,5 @@ import java.lang.annotation.Target;
 public @interface ParentEntity {
     Class<? extends CouchbaseDocument> c();
     String keyPath();
-    String separator();
+    String separator() default "/";
 }

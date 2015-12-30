@@ -17,7 +17,6 @@
 package com.dreameddeath.core.couchbase;
 
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
@@ -32,6 +31,7 @@ import com.dreameddeath.testing.Utils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import rx.Observable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,9 +77,17 @@ public class ViewTest {
         public static final String TEST_KEY_PATTERN="test/\\d{10}";
 
         @Override
-        public String getKeyPattern() {
+        public String getKeyRawPattern() {
             return TEST_KEY_PATTERN;
         }
+
+        @Override
+        public String getKeyFromParams(Object... params) {
+            Object cnt = params[0];
+            Integer cntVal = ((cnt instanceof Long) || (cnt instanceof Integer))?(Integer)cnt:Integer.valueOf(params[0].toString());
+            return String.format(TEST_KEY_FMT,cntVal);
+        }
+
 
         public static class TestViewDao extends CouchbaseViewDao<String,String,TestDoc>{
             public TestViewDao(TestDao parentDao){
@@ -131,11 +139,9 @@ public class ViewTest {
             );
         }
         @Override
-        public TestDoc buildKey(ICouchbaseSession session, TestDoc newObject) throws DaoException, StorageException {
-            long result = session.incrCounter(TEST_CNT_KEY, 1);
-            newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, result));
-
-            return newObject;
+        public Observable<TestDoc> asyncBuildKey(ICouchbaseSession session, TestDoc newObject) throws DaoException {
+            return session.asyncIncrCounter(TEST_CNT_KEY, 1).
+                    map(cntVal->{newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, cntVal));return newObject;});
         }
     }
 

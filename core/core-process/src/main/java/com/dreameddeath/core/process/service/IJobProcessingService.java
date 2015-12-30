@@ -24,8 +24,8 @@ import com.dreameddeath.core.process.model.AbstractJob;
  * Created by Christophe Jeunesse on 23/11/2014.
  */
 public interface IJobProcessingService<T extends AbstractJob> {
-    boolean init(JobContext context, T job) throws JobExecutionException;
-    boolean preprocess(JobContext context, T job)throws JobExecutionException;
-    boolean postprocess(JobContext context, T job)throws JobExecutionException;
-    boolean cleanup(JobContext context, T job)throws JobExecutionException;
+    boolean init(JobContext<T> context) throws JobExecutionException;
+    boolean preprocess(JobContext<T> context)throws JobExecutionException;
+    boolean postprocess(JobContext<T> context)throws JobExecutionException;
+    boolean cleanup(JobContext<T> context)throws JobExecutionException;
 }

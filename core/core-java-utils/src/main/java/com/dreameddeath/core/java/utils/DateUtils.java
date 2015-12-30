@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
+package com.dreameddeath.core.java.utils;
 
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import org.joda.time.DateTime;
+import org.joda.time.base.AbstractInstant;
+
+import java.util.Date;
 
 /**
- * Created by Christophe Jeunesse on 30/08/2014.
+ * Created by Christophe Jeunesse on 30/12/2015.
  */
-public class EmptyJobResult extends CouchbaseDocumentElement {
+public class DateUtils {
+    public Date asDate(Object date){
+        if(date instanceof Date){
+            return (Date)date;
+        }
+        else if(date instanceof AbstractInstant){
+            return ((AbstractInstant)date).toDate();
+        }
+        else{
+            return DateTime.parse(date.toString()).toDate();
+        }
+    }
 }

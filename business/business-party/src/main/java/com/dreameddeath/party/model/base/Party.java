@@ -17,7 +17,11 @@
 package com.dreameddeath.party.model.base;
 
 import com.dreameddeath.common.model.ExternalId;
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.business.model.BusinessDocument;
+import com.dreameddeath.core.helper.annotation.dao.Counter;
+import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
+import com.dreameddeath.core.helper.annotation.dao.UidDef;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -31,10 +35,13 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 27/07/2014.
  */
+@DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "party/",idPattern = "\\d{10}",idFormat = "%010d")
+@Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
+@UidDef(fieldName = "uid")
 @DocumentDef(domain="party")
 public abstract class Party extends BusinessDocument {
     @DocumentProperty("uid")
-    private ImmutableProperty<String> uid=new ImmutableProperty<String>(Party.this);
+    private transient ImmutableProperty<String> uid=new ImmutableProperty<String>(Party.this);
     @DocumentProperty(value="partyRoles")
     private List<PartyRole> partyRoles = new ArrayListProperty<PartyRole>(Party.this);
     /**

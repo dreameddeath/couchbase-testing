@@ -69,7 +69,7 @@ public class CouchbaseDocumentIntrospector extends DefaultGetterSetterIntrospect
                     if (am.getName().startsWith("get") && (am.getName().length() > 3)) {
                         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) AbstractClassInfo.getClassInfo(am.getDeclaringClass()));
                         CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldByGetterName(am.getName());
-                        if ((fieldReflection != null) &&(fieldReflection.getGetter() instanceof MethodInfo)) {
+                        if ((fieldReflection != null) && (fieldReflection.getGetter() instanceof MethodInfo) && !(fieldReflection.getField().isTransient())){
                             name = new PropertyName(fieldReflection.getName());
                         }
                     }
@@ -80,7 +80,7 @@ public class CouchbaseDocumentIntrospector extends DefaultGetterSetterIntrospect
                 if(CouchbaseDocumentStructureReflection.isReflexible(af.getDeclaringClass())) {
                     CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) AbstractClassInfo.getClassInfo(af.getDeclaringClass()));
                     CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldByName(af.getName());
-                    if (fieldReflection != null && (fieldReflection.getGetter() instanceof FieldInfo)) {
+                    if (fieldReflection != null && (fieldReflection.getGetter() instanceof FieldInfo) && !(fieldReflection.getField().isTransient())) {
                         name = new PropertyName(fieldReflection.getName());
                     }
                 }

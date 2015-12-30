@@ -18,29 +18,38 @@ package com.dreameddeath.installedbase.process.model;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.DocumentCreateTask;
 import com.dreameddeath.core.process.model.DocumentUpdateTask;
 import com.dreameddeath.core.process.model.NoOpTask;
-import com.dreameddeath.installedbase.model.common.InstalledBase;
+import com.dreameddeath.installedbase.model.InstalledBase;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseResponse;
 
 /**
  * Created by Christophe Jeunesse on 04/09/2014.
  */
-public class CreateUpdateInstalledBaseJob extends AbstractJob<CreateUpdateInstalledBaseRequest,CreateUpdateInstalledBaseResponse> {
+public class CreateUpdateInstalledBaseJob extends AbstractJob{
+    /**
+     *  request : The create update installedbase request
+     */
+    @DocumentProperty("request")
+    private Property<CreateUpdateInstalledBaseRequest> request = new ImmutableProperty<>(CreateUpdateInstalledBaseJob.this,new CreateUpdateInstalledBaseRequest());
+    /**
+     *  result : The CreateUpdate result
+     */
+    @DocumentProperty("result")
+    private Property<CreateUpdateInstalledBaseResponse> result = new StandardProperty<CreateUpdateInstalledBaseResponse>(CreateUpdateInstalledBaseJob.this);
 
-    @Override
-    public CreateUpdateInstalledBaseRequest newRequest() {
-        return new CreateUpdateInstalledBaseRequest();
-    }
 
-    @Override
-    public CreateUpdateInstalledBaseResponse newResult() {
-        return new CreateUpdateInstalledBaseResponse();
-    }
+    // request accessors
+    public CreateUpdateInstalledBaseRequest getRequest() { return request.get(); }
+    public void setRequest(CreateUpdateInstalledBaseRequest val) { request.set(val); }
+    // result accessors
+    public CreateUpdateInstalledBaseResponse getResult() { return result.get(); }
+    public void setResult(CreateUpdateInstalledBaseResponse val) { result.set(val); }
 
 
     public static class InitEmptyInstalledBase extends DocumentCreateTask<InstalledBase> {

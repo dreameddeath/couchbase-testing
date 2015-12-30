@@ -18,11 +18,13 @@ package com.dreameddeath.core.process.model;
 
 import com.dreameddeath.core.process.exception.DuplicateAttachedTaskException;
 
+import java.util.UUID;
+
 /**
  * Created by Christophe Jeunesse on 16/05/2015.
  */
 public interface IDocumentWithLinkedTasks {
-    CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(String jobKey, String taskId);
+    CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, Integer taskId);
     void addAttachedTaskRef(CouchbaseDocumentAttachedTaskRef task)throws DuplicateAttachedTaskException;
     CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(AbstractTask task);
     void cleanupAttachedTaskRef(AbstractTask task);

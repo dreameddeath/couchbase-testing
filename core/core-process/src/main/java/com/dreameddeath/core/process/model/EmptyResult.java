@@ -16,18 +16,10 @@
 
 package com.dreameddeath.core.process.model;
 
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 
 /**
- * Created by Christophe Jeunesse on 22/09/2014.
+ * Created by Christophe Jeunesse on 30/08/2014.
  */
-public class DocumentDeleteJob extends AbstractJob<DocumentDeleteRequest,DocumentDeleteResponse> {
-    @Override
-    public DocumentDeleteRequest newRequest() {
-        return new DocumentDeleteRequest();
-    }
-    @Override
-    public DocumentDeleteResponse newResult() {
-        return new DocumentDeleteResponse();
-    }
-
+public class EmptyResult extends CouchbaseDocumentElement {
 }

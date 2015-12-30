@@ -52,6 +52,9 @@ public abstract class MemberInfo extends AnnotatedInfo {
             else if(Modifier.isProtected(modifier)){
                 modifierInfos.add(ModifierInfo.PROTECTED);
             }
+            else if(Modifier.isTransient(modifier)){
+                modifierInfos.add(ModifierInfo.TRANSIENT);
+            }
         }
     }
     public <T extends AccessibleObject & Member> MemberInfo(AbstractClassInfo parent,T elt) {
@@ -76,6 +79,8 @@ public abstract class MemberInfo extends AnnotatedInfo {
     public boolean isPublic(){
         return modifierInfos.contains(ModifierInfo.PUBLIC);
     }
+
+    public boolean isTransient(){ return modifierInfos.contains(ModifierInfo.TRANSIENT);}
 
     public AbstractClassInfo getDeclaringClassInfo(){
         return parent;

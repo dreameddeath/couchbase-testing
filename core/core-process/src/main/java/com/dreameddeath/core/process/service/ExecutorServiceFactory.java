@@ -32,9 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ExecutorServiceFactory {
     private Map<Class<? extends AbstractJob>, IJobExecutorService<?>> jobExecutorServicesMap
-            = new ConcurrentHashMap<Class<? extends AbstractJob>, IJobExecutorService<?>>();
-    private Map<Class<? extends AbstractTask>, ITaskExecutorService<?>> taskExecutorServicesMap
-            = new ConcurrentHashMap<Class<? extends AbstractTask>, ITaskExecutorService<?>>();
+            = new ConcurrentHashMap<>();
+    private Map<Class<? extends AbstractTask>, ITaskExecutorService<?,?>> taskExecutorServicesMap
+            = new ConcurrentHashMap<>();
 
 
     public ExecutorServiceFactory(){
@@ -43,12 +43,12 @@ public class ExecutorServiceFactory {
     }
 
 
-    public <T extends AbstractTask> void addTaskExecutorServiceFor(Class<T> entityClass, ITaskExecutorService<T> service){
+    public <TJOB extends AbstractJob,T extends AbstractTask> void addTaskExecutorServiceFor(Class<T> entityClass, ITaskExecutorService<TJOB,T> service){
         taskExecutorServicesMap.put(entityClass, service);
     }
 
-    public <T extends AbstractTask> ITaskExecutorService<T> getTaskExecutorServiceForClass(Class<T> entityClass) {
-        ITaskExecutorService<T> result = (ITaskExecutorService<T>) taskExecutorServicesMap.get(entityClass);
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T> getTaskExecutorServiceForClass(Class<T> entityClass) {
+        ITaskExecutorService<TJOB,T> result = (ITaskExecutorService<TJOB,T>) taskExecutorServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractTask.class.isAssignableFrom(parentClass)) {
@@ -86,11 +86,13 @@ public class ExecutorServiceFactory {
     }
 
 
-    public <T extends AbstractJob> void execute(JobContext ctxt,T job) throws JobExecutionException,ExecutorServiceNotFoundException {
-        ((IJobExecutorService<T>) getJobExecutorServiceForClass(job.getClass())).execute(ctxt,job);
+    public <T extends AbstractJob> JobContext<T> execute(JobContext<T> ctxt) throws JobExecutionException,ExecutorServiceNotFoundException {
+        getJobExecutorServiceForClass((Class<T>)ctxt.getJob().getClass()).execute(ctxt);
+        return ctxt;
     }
 
-    public <T extends AbstractTask> void execute(TaskContext ctxt,T task) throws TaskExecutionException,ExecutorServiceNotFoundException {
-        ((ITaskExecutorService<T>) getTaskExecutorServiceForClass(task.getClass())).execute(ctxt,task);
+    public <T extends AbstractTask> TaskContext<? extends AbstractJob,T> execute(TaskContext<? extends AbstractJob,T> ctxt) throws TaskExecutionException,ExecutorServiceNotFoundException {
+        getTaskExecutorServiceForClass((Class<T>)ctxt.getTask().getClass()).execute((TaskContext<AbstractJob,T>)ctxt);
+        return ctxt;
     }
 }

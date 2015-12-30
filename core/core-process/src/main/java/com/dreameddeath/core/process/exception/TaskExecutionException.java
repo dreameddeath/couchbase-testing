@@ -18,33 +18,55 @@ package com.dreameddeath.core.process.exception;
 
 
 import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.ProcessState.State;
+import com.dreameddeath.core.process.service.TaskContext;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class TaskExecutionException extends Exception {
-    AbstractTask.State state;
+    State state;
     AbstractTask task;
 
-    public TaskExecutionException(AbstractTask task, AbstractTask.State state, String message) {
+    public TaskExecutionException(TaskContext ctxt, String message) {
+        super(message);
+        this.task = ctxt.getTask();
+        this.state = ctxt.getTaskState().getState();
+    }
+
+    public TaskExecutionException(TaskContext ctxt, String message,Throwable e) {
+        super(message,e);
+        this.task = ctxt.getTask();
+        this.state = ctxt.getTaskState().getState();
+    }
+
+    public TaskExecutionException(AbstractTask task, State state, String message) {
         super(message);
         this.task = task;
         this.state = state;
     }
 
-    public TaskExecutionException(AbstractTask task, AbstractTask.State state, String message, Throwable e) {
+    public TaskExecutionException(AbstractTask task, State state, String message, Throwable e) {
         super(message, e);
         this.task = task;
         this.state = state;
     }
 
-    public TaskExecutionException(AbstractTask task, AbstractTask.State state, Throwable e) {
+    public TaskExecutionException(AbstractTask task, State state, Throwable e) {
         super(e);
         this.task = task;
         this.state = state;
     }
 
     public AbstractTask getTask(){ return task;}
-    public AbstractTask.State getState(){ return state;}
+    public State getState(){ return state;}
 
+
+    @Override
+    public String toString(){
+        StringBuffer sb = new StringBuffer();
+        sb.append("Task[").append(task.getClass()).append("/").append(task.getJobUid()).append("/").append(task.getId()).append("] ");
+        sb.append(super.toString());
+        return sb.toString();
+    }
 }

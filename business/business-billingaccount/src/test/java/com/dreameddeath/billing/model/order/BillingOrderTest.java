@@ -20,7 +20,7 @@ package com.dreameddeath.billing.model.order;
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.party.dao.PartyDao;
+import com.dreameddeath.party.dao.base.PartyDao;
 import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.testing.Utils;
 import org.junit.After;

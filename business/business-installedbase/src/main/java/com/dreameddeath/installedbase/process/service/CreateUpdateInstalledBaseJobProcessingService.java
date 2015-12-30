@@ -20,7 +20,6 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
-import com.dreameddeath.core.process.exception.DuplicateTaskException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.NoOpTask;
@@ -29,7 +28,7 @@ import com.dreameddeath.core.process.service.TaskContext;
 import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
-import com.dreameddeath.installedbase.model.common.InstalledBase;
+import com.dreameddeath.installedbase.model.InstalledBase;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseResponse;
 import com.dreameddeath.installedbase.process.model.CreateUpdateInstalledBaseJob;
@@ -42,81 +41,79 @@ import com.dreameddeath.installedbase.process.model.CreateUpdateInstalledBaseJob
 @JobProcessingForClass(CreateUpdateInstalledBaseJob.class)
 public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobProcessingService<CreateUpdateInstalledBaseJob> {
     @Override
-    public boolean init(JobContext context, CreateUpdateInstalledBaseJob job) throws JobExecutionException {
-        try {
-            for (CreateUpdateInstalledBaseRequest.Contract contract : job.getRequest().contracts) {
-                UpdateInstalledBase updateTask = new UpdateInstalledBase();
+    public boolean init(JobContext<CreateUpdateInstalledBaseJob> context) throws JobExecutionException {
+        CreateUpdateInstalledBaseJob job = context.getJob();
+        for (CreateUpdateInstalledBaseRequest.Contract contract : job.getRequest().contracts) {
+            UpdateInstalledBase updateTask = new UpdateInstalledBase();
 
-                if (contract.comOp.equals(CreateUpdateInstalledBaseRequest.CommercialOperation.ADD)) {
-                    InitEmptyInstalledBase emptyCreateTask = job.addTask(new InitEmptyInstalledBase());
-                    emptyCreateTask.setContractTempId(contract.tempId);
-                    emptyCreateTask.chainWith(new UpdateInstalledBase());
-                } else {
-                    updateTask.setContractUid(contract.id);
-                }
+            if (contract.comOp.equals(CreateUpdateInstalledBaseRequest.CommercialOperation.ADD)) {
+                TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> emptyCreateTaskContext = context.addTask(new InitEmptyInstalledBase());
+                emptyCreateTaskContext.getTask().setContractTempId(contract.tempId);
+                emptyCreateTaskContext.chainWith(new UpdateInstalledBase());
+            } else {
+                updateTask.setContractUid(contract.id);
             }
-        }
-        catch(DuplicateTaskException e){
-            throw new JobExecutionException(job,job.getJobState(),"Duplicate Errors",e);
         }
 
         return true;
     }
 
     @TaskProcessingForClass(InitEmptyInstalledBase.class)
-    public static class InitEmptyInstalledBaseProcessingService extends DocumentCreateTaskProcessingService<InstalledBase,InitEmptyInstalledBase> {
+    public static class InitEmptyInstalledBaseProcessingService extends DocumentCreateTaskProcessingService<CreateUpdateInstalledBaseJob,InstalledBase,InitEmptyInstalledBase> {
 
         @Override
-        public InstalledBase buildDocument(TaskContext ctxt,InitEmptyInstalledBase task){
+        public InstalledBase buildDocument(TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> ctxt){
             InstalledBase result = ctxt.getSession().newEntity(InstalledBase.class);
             return result;
         }
 
         @Override
-        public boolean postprocess(TaskContext ctxt,InitEmptyInstalledBase task)throws TaskExecutionException {
+        public boolean postprocess(TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> ctxt)throws TaskExecutionException {
+            InitEmptyInstalledBase task = ctxt.getTask();
             CreateUpdateInstalledBaseResponse.Contract result = new CreateUpdateInstalledBaseResponse.Contract();
             result.tempId = task.getContractTempId();
             try {
                 result.id = task.getDocument(ctxt.getSession()).getUid();
             }
             catch(DaoException e){
-                throw new TaskExecutionException(task,task.getState(),"Dao error during retrieval of doc "+task.getDocKey(),e);
+                throw new TaskExecutionException(ctxt,"Dao error during retrieval of doc "+task.getDocKey(),e);
             }
             catch(StorageException e){
-                throw new TaskExecutionException(task,task.getState(),"Storage error during retrieval of doc "+task.getDocKey(),e);
+                throw new TaskExecutionException(ctxt,"Storage error during retrieval of doc "+task.getDocKey(),e);
             }
-            task.getJobResult(CreateUpdateInstalledBaseResponse.class).contracts.add(result);
+            ctxt.getParentJob().getResult().contracts.add(result);
             return true;
         }
     }
 
     public static class AfterPreCreateSyncTaskPr extends NoOpTask {}
 
-    public static class UpdateInstalledBaseProcessingService extends DocumentUpdateTaskProcessingService<InstalledBase,UpdateInstalledBase> {
+    public static class UpdateInstalledBaseProcessingService extends DocumentUpdateTaskProcessingService<CreateUpdateInstalledBaseJob,InstalledBase,UpdateInstalledBase> {
         @Override
-        public boolean preprocess(TaskContext ctxt,UpdateInstalledBase task) throws TaskExecutionException{
+        public boolean preprocess(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBase> ctxt ) throws TaskExecutionException{
+            UpdateInstalledBase task=ctxt.getTask();
             if(task.getContractUid()!=null){
                 try {
                     task.setDocKey(ctxt.getSession().getKeyFromUID(task.getContractUid(), InstalledBase.class));
                 }
                 catch(DaoException e){
-                    throw new TaskExecutionException(task,task.getState(),"Cannot build key from uid <"+task.getContractUid()+">");
+                    throw new TaskExecutionException(ctxt,"Cannot build key from uid <"+task.getContractUid()+">");
                 }
             }
             else {
-                InitEmptyInstalledBase creationInstalledBase = task.getDependentTask(InitEmptyInstalledBase.class);
+                InitEmptyInstalledBase creationInstalledBase = ctxt.getDependentTask(InitEmptyInstalledBase.class);
                 if (creationInstalledBase != null) {
                     task.setDocKey(creationInstalledBase.getDocKey());
                 }
                 else{
-                    throw new TaskExecutionException(task,task.getState(),"Inconsistent State : neither existing InstalledBase nor InitTask found");
+                    throw new TaskExecutionException(ctxt,"Inconsistent State : neither existing InstalledBase nor InitTask found");
                 }
             }
             return false;
         }
 
         @Override
-        public void processDocument(TaskContext ctxt,UpdateInstalledBase task){
+        public void processDocument(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBase> ctxt,InstalledBase installBase){
 
         }
     }

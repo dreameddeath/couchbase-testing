@@ -21,7 +21,6 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -35,6 +34,7 @@ import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import org.junit.Test;
+import rx.Observable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,11 +120,9 @@ public class UpgraderTest {
         }
 
         @Override
-        public TestModel buildKey(ICouchbaseSession session, TestModel newObject) throws DaoException, StorageException {
-            long result = session.incrCounter(TEST_CNT_KEY, 1);
-            newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, result));
-
-            return newObject;
+        public Observable<TestModel> asyncBuildKey(ICouchbaseSession session, TestModel newObject) throws DaoException {
+            return session.asyncIncrCounter(TEST_CNT_KEY, 1)
+                    .map(val->{newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, val));return newObject;});
         }
     }
 
@@ -144,11 +142,9 @@ public class UpgraderTest {
         }
 
         @Override
-        public TestModelV2 buildKey(ICouchbaseSession session, TestModelV2 newObject) throws DaoException, StorageException {
-            long result = session.incrCounter(TEST_CNT_KEY, 1);
-            newObject.getBaseMeta().setKey(String.format(TEST_CNT_KEY, result));
-
-            return newObject;
+        public Observable<TestModelV2> asyncBuildKey(ICouchbaseSession session, TestModelV2 newObject) throws DaoException {
+            return session.asyncIncrCounter(TEST_CNT_KEY, 1).
+                    map(cntVal->{newObject.getBaseMeta().setKey(String.format(TEST_CNT_KEY, cntVal));return newObject;});
         }
 
         @Override

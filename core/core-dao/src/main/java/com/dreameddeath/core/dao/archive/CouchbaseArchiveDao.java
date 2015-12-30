@@ -17,11 +17,11 @@
 package com.dreameddeath.core.dao.archive;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 17/09/2014.
@@ -41,9 +41,9 @@ public abstract class CouchbaseArchiveDao<T extends CouchbaseDocument> extends C
     }
 
     @Override
-    public T buildKey(ICouchbaseSession session, T newObject) throws DaoException, StorageException {
+    public Observable<T> asyncBuildKey(ICouchbaseSession session, T newObject) throws DaoException {
         String key = String.format(BASE_PATTERN_FMT,newObject.getBaseMeta().getKey());
         newObject.getBaseMeta().setKey(key);
-        return newObject;
+        return Observable.just(newObject);
     }
 }

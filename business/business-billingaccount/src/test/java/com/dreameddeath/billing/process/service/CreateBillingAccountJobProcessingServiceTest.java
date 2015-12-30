@@ -22,13 +22,13 @@ import com.dreameddeath.billing.process.model.CreateBillingAccountJob;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.dao.JobDao;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.dao.TaskDao;
+import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.service.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
-import com.dreameddeath.party.dao.PartyDao;
+import com.dreameddeath.party.dao.base.PartyDao;
 import com.dreameddeath.party.process.model.CreatePartyJob;
-import com.dreameddeath.party.process.model.CreatePartyRequest;
 import com.dreameddeath.party.process.service.CreatePartyJobProcessingService;
 import com.dreameddeath.testing.Utils;
 import org.junit.After;
@@ -44,6 +44,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
         env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
         env.addDocumentDao(new PartyDao());
         env.addDocumentDao(new JobDao());
+        env.addDocumentDao(new TaskDao());
         env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
         env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.cycle.BillingCycleDao").newInstance());
         env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());
@@ -64,32 +65,33 @@ public class CreateBillingAccountJobProcessingServiceTest {
     public void JobTest() throws Exception{
         ICouchbaseSession session =env.getSessionFactory().newReadWriteSession(null);
         CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
-        createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
-        createPartyJob.getRequest().person = new CreatePartyRequest.Person();
-        createPartyJob.getRequest().person.firstName = "christophe";
-        createPartyJob.getRequest().person.lastName = "jeunesse";
+        createPartyJob.type = CreatePartyJob.Type.person;
+        createPartyJob.person = new CreatePartyJob.Person();
+        createPartyJob.person.firstName = "christophe";
+        createPartyJob.person.lastName = "jeunesse";
 
-        execFactory.execute(JobContext.newContext(session, execFactory, processFactory), createPartyJob);
+        JobContext<CreatePartyJob> createPartyJobJobContext =execFactory.execute(JobContext.newContext(session, execFactory, processFactory,createPartyJob));
 
         CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
-        createBaJob.getRequest().billDay=2;
-        createBaJob.getRequest().partyId = createPartyJob.getTask(0,CreatePartyJob.CreatePartyTask.class).getDocument(session).getUid();
-        execFactory.execute(JobContext.newContext(session, execFactory, processFactory),createBaJob);
+        createBaJob.billDay=2;
+        CreatePartyJob.CreatePartyTask createPartyTask= createPartyJobJobContext.getTask(0,CreatePartyJob.CreatePartyTask.class);
+        createBaJob.partyId = createPartyTask.getDocument(session).getUid();
+        execFactory.execute(JobContext.newContext(session, execFactory, processFactory,createBaJob));
 
 
         //ICouchbaseSession controlSession = _sessionFactory.newReadOnlySession(null);
         session.reset();
         CreateBillingAccountJob inDbJob = session.get(createBaJob.getBaseMeta().getKey(),CreateBillingAccountJob.class);
-        assertEquals(inDbJob.getJobState(), AbstractJob.State.DONE);
-        BillingAccount inDbBA = session.get(inDbJob.getTask(0, CreateBillingAccountJob.CreateBillingAccountTask.class).getDocKey(),BillingAccount.class);
+        assertEquals(inDbJob.getStateInfo().getState(), ProcessState.State.DONE);
+        CreateBillingAccountJob.CreateBillingAccountTask baTask = session.get(createBaJob.getBaseMeta().getKey()+"/task/1",CreateBillingAccountJob.CreateBillingAccountTask.class);
 
-        assertEquals(inDbBA.getBillDay(),createBaJob.getRequest().billDay);
+        BillingAccount inDbBA = session.get(baTask.getDocKey(),BillingAccount.class);
+
+        assertEquals(inDbBA.getBillDay(),createBaJob.billDay);
         assertEquals((long)inDbBA.getBillCycleLength(),1);
         assertEquals(1,inDbBA.getBillingCycleLinks().size());
         assertEquals(1,inDbBA.getPartyLinks().size());
-        assertEquals(createPartyJob.getTask(0, CreatePartyJob.CreatePartyTask.class).getDocKey(),inDbBA.getPartyLinks().get(0).getKey());
-
-
+        assertEquals(createPartyTask.getDocKey(),inDbBA.getPartyLinks().get(0).getKey());
     }
 
 

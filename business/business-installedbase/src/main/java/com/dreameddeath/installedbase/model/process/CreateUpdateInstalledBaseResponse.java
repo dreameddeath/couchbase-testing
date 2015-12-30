@@ -27,9 +27,9 @@ import java.util.List;
  */
 public class CreateUpdateInstalledBaseResponse extends CouchbaseDocumentElement {
     @DocumentProperty("contracts")
-    public List<Contract> contracts=new ArrayList<Contract>();
+    public List<Contract> contracts=new ArrayList<>();
     @DocumentProperty("offers")
-    public List<Offer> offers=new ArrayList<Offer>();
+    public List<Offer> offers=new ArrayList<>();
 
     public abstract static class IdentifiedItem {
         @DocumentProperty("id")

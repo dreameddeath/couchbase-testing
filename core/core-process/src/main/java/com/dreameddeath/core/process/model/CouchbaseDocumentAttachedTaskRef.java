@@ -23,44 +23,45 @@ import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.UUID;
+
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public class CouchbaseDocumentAttachedTaskRef extends CouchbaseDocumentElement {
-
-    @DocumentProperty("jobKey") @NotNull
-    private Property<String> jobKey = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    @DocumentProperty("jobUid") @NotNull
+    private Property<UUID> jobUid = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);
     /**
      *  jobClass : class of the job
      */
     @DocumentProperty("jobClass") @NotNull
-    private Property<String> jobClassName = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<String> jobClassName = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);
 
     @DocumentProperty("taskId") @NotNull
-    private Property<String> taskId = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<Integer> taskId = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);
     /**
      *  taskClass : the class of the task
      */
     @DocumentProperty("taskClass") @NotNull
-    private Property<String> taskClassName = new ImmutableProperty<String>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<String> taskClassName = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);
 
     // jobKey accessors
-    public String getJobKey(){ return jobKey.get();}
-    public void setJobKey(String key){ jobKey.set(key);}
+    public UUID getJobUid(){ return jobUid.get();}
+    public void setJobUid(UUID key){ jobUid.set(key);}
     // jobClass accessors
     public String getJobClass() { return jobClassName.get(); }
     public void setJobClass(String val) { jobClassName.set(val); }
     // task id accessors
-    public String getTaskId(){ return taskId.get();}
-    public void setTaskId(String id){ taskId.set(id);}
+    public Integer getTaskId(){ return taskId.get();}
+    public void setTaskId(Integer id){ taskId.set(id);}
     // taskClass accessors
     public String getTaskClass() { return taskClassName.get(); }
     public void setTaskClass(String val) { taskClassName.set(val); }
 
     public boolean isForTask(AbstractTask task){
-        return task.getParentJob().getBaseMeta().getKey().equals(jobKey.get()) && task.getUid().equals(taskId.get());
+        return task.getJobUid().equals(jobUid.get()) && task.getId().equals(taskId.get());
     }
 
     public boolean isOfJobType(Class<? extends AbstractJob> jobClass){

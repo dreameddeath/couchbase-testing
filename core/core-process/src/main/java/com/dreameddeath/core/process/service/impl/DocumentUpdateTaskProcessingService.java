@@ -22,89 +22,79 @@ import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.DuplicateAttachedTaskException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
+import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.CouchbaseDocumentAttachedTaskRef;
 import com.dreameddeath.core.process.model.DocumentUpdateTask;
 import com.dreameddeath.core.process.model.IDocumentWithLinkedTasks;
-import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.TaskContext;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
  */
-public abstract class DocumentUpdateTaskProcessingService<TDOC extends CouchbaseDocument & IDocumentWithLinkedTasks,T extends DocumentUpdateTask<TDOC>> implements ITaskProcessingService<T> {
-    @Override
-    public boolean init(TaskContext ctxt, T task) throws TaskExecutionException {
-        return false;
-    }
+public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJob,TDOC extends CouchbaseDocument & IDocumentWithLinkedTasks,T extends DocumentUpdateTask<TDOC>> extends StandardTaskProcessingService<TJOB,T> {
 
     @Override
-    public boolean preprocess(TaskContext ctxt, T task) throws TaskExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean process(TaskContext ctxt, T task) throws TaskExecutionException {
+    public boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
+        DocumentUpdateTask<TDOC> task = ctxt.getTask();
         try {
             TDOC doc = (TDOC)ctxt.getSession().get(task.getDocKey());
 
             CouchbaseDocumentAttachedTaskRef reference = doc.getAttachedTaskRef(task);
             if (reference == null) {
-                processDocument(ctxt,task);
+                if(ctxt.getTask().getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
+                    try{
+                        ctxt.save();
+                    } catch (ValidationException e) {
+                        throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
+                    }
+                }
+                processDocument(ctxt,doc);
                 CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
-                attachedTaskRef.setJobKey(task.getParentJob().getBaseMeta().getKey());
-                attachedTaskRef.setJobClass(task.getParentJob().getClass().getName());
-                attachedTaskRef.setTaskId(task.getUid());
+                attachedTaskRef.setJobUid(ctxt.getParentJob().getUid());
+                attachedTaskRef.setJobClass(ctxt.getParentJob().getClass().getName());
+                attachedTaskRef.setTaskId(ctxt.getTask().getId());
                 attachedTaskRef.setTaskClass(task.getClass().getName());
                 doc.addAttachedTaskRef(attachedTaskRef);
                 try {
                     ctxt.getSession().save(doc);
                 } catch (ValidationException e) {
-                    throw new TaskExecutionException(task, task.getState(), "Updated Document Validation exception", e);
+                    throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
                 }
                 return true;
             }
         }
         catch (DuplicateAttachedTaskException e){
-            throw new TaskExecutionException(task, task.getState(), "Duplicate task exception", e);
+            throw new TaskExecutionException(ctxt, "Duplicate task exception", e);
         }
         catch(DaoException e){
-            throw new TaskExecutionException(task, task.getState(), "Dao exception", e);
+            throw new TaskExecutionException(ctxt, "Dao exception", e);
         }
         catch(StorageException e){
-            throw new TaskExecutionException(task, task.getState(), "Storage exception", e);
+            throw new TaskExecutionException(ctxt, "Storage exception", e);
         }
         return false;
     }
 
     @Override
-    public boolean postprocess(TaskContext ctxt, T task) throws TaskExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean finish(TaskContext ctxt, T task) throws TaskExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean cleanup(TaskContext ctxt, T task) throws TaskExecutionException {
+    public boolean cleanup(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
+        T task=ctxt.getTask();
         try {
-            TDOC doc = (TDOC)ctxt.getSession().get(task.getDocKey());
+            TDOC doc = (TDOC)ctxt.getSession().get(ctxt.getTask().getDocKey());
             doc.cleanupAttachedTaskRef(task);
             ctxt.getSession().save(doc);
         }
         catch(ValidationException e){
-            throw new TaskExecutionException(task,task.getState(),"Cleaned updated document Validation exception",e);
+            throw new TaskExecutionException(ctxt,"Cleaned updated document Validation exception",e);
         }
         catch(DaoException e){
-            throw new TaskExecutionException(task,task.getState(),"Error in dao",e);
+            throw new TaskExecutionException(ctxt,"Error in dao",e);
         }
         catch(StorageException e){
-            throw new TaskExecutionException(task,task.getState(),"Error in storage",e);
+            throw new TaskExecutionException(ctxt,"Error in storage",e);
         }
         return false;
     }
 
 
-    protected abstract void processDocument(TaskContext ctxt,T task) throws DaoException,StorageException;
+    protected abstract void processDocument(TaskContext<TJOB,T> ctxt,TDOC doc) throws DaoException,StorageException;
 }

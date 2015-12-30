@@ -49,7 +49,7 @@ public class BillingInstalledBase extends BillingAccountContributor {
      *  ba : Link toward the parent billing account
      */
     @DocumentProperty(value = "ba",getter = "getBaLink",setter = "setBaLink") @NotNull
-    private Property<BillingAccountLink> ba = new StandardProperty<BillingAccountLink>(BillingInstalledBase.this);
+    private Property<BillingAccountLink> ba = new StandardProperty<>(BillingInstalledBase.this);
     /**
      *  installedBaseLink : Link toward the installed based being billed
      */

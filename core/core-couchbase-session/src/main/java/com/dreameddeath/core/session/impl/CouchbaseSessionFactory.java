@@ -41,7 +41,6 @@ public class CouchbaseSessionFactory {
         uniqueKeyDaoFactory = documentDaoFactory.getUniqueKeyDaoFactory();
         dateTimeServiceFactory = builder.getDateTimeServiceFactory();
         validatorFactory = builder.getValidatorFactory();
-
     }
 
     public CouchbaseDocumentDaoFactory getDocumentDaoFactory(){ return documentDaoFactory;}

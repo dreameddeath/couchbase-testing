@@ -21,13 +21,11 @@ import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.billing.process.model.CreateBillingCycleJob;
 import com.dreameddeath.billing.process.model.CreateBillingCycleJob.CreateBillingCycleLinkTask;
 import com.dreameddeath.billing.process.model.CreateBillingCycleJob.CreateBillingCycleTask;
-import com.dreameddeath.billing.process.model.CreateBillingCycleRequest;
 import com.dreameddeath.billing.util.BillCycleUtils;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
-import com.dreameddeath.core.process.exception.DuplicateTaskException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.TaskContext;
@@ -41,37 +39,32 @@ import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 @JobProcessingForClass(CreateBillingCycleJob.class)
 public class CreateBillingCycleJobProcessingService extends StandardJobProcessingService<CreateBillingCycleJob> {
     @Override
-    public boolean init(JobContext context, CreateBillingCycleJob job) throws JobExecutionException {
-        try {
-            job.addTask(new CreateBillingCycleTask())
-                    .chainWith(new CreateBillingCycleLinkTask().setDocKey(job.getRequest().baLink.getKey()));
-        }
-        catch(DuplicateTaskException e){
-            throw new JobExecutionException(job,job.getJobState(),"Duplicate Errors",e);
-        }
+    public boolean init(JobContext<CreateBillingCycleJob> context) throws JobExecutionException {
+        context.addTask(new CreateBillingCycleTask())
+                .chainWith(new CreateBillingCycleLinkTask().setDocKey(context.getJob().baLink.getKey()));
+
         return false;
     }
 
     @TaskProcessingForClass(CreateBillingCycleTask.class)
-    public static class CreateBillingCycleTaskProcessingService extends DocumentCreateTaskProcessingService<BillingCycle,CreateBillingCycleTask> {
+    public static class CreateBillingCycleTaskProcessingService extends DocumentCreateTaskProcessingService<CreateBillingCycleJob,BillingCycle,CreateBillingCycleTask> {
         @Override
-        protected BillingCycle buildDocument(TaskContext ctxt, CreateBillingCycleTask task) throws DaoException, StorageException {
-            BillingAccount ba = task.getJobRequest(CreateBillingCycleRequest.class).baLink.getLinkedObject(ctxt.getSession());
-            CreateBillingCycleJob job = task.getParentJob(CreateBillingCycleJob.class);
+        protected BillingCycle buildDocument(TaskContext<CreateBillingCycleJob,CreateBillingCycleTask> ctxt) throws DaoException, StorageException {
+            BillingAccount ba = ctxt.getParentJob().baLink.getLinkedObject(ctxt.getSession());
+            CreateBillingCycleJob job = ctxt.getParentJob();
             BillingCycle billCycle = ctxt.getSession().newEntity(BillingCycle.class);
-            billCycle.setStartDate(job.getRequest().startDate);
-            billCycle.setEndDate(BillCycleUtils.CalcCycleEndDate(job.getRequest().startDate, ba.getBillDay(), ba.getBillCycleLength()));
+            billCycle.setStartDate(job.startDate);
+            billCycle.setEndDate(BillCycleUtils.CalcCycleEndDate(job.startDate, ba.getBillDay(), ba.getBillCycleLength()));
             billCycle.setBillingAccountLink(ba.newLink());
             return billCycle;
         }
     }
 
     @TaskProcessingForClass(CreateBillingCycleLinkTask.class)
-    public static class CreateBillingCycleLinkTaskProcessingService extends DocumentUpdateTaskProcessingService<BillingAccount,CreateBillingCycleLinkTask> {
+    public static class CreateBillingCycleLinkTaskProcessingService extends DocumentUpdateTaskProcessingService<CreateBillingCycleJob,BillingAccount,CreateBillingCycleLinkTask> {
         @Override
-        protected void processDocument(TaskContext ctxt, CreateBillingCycleLinkTask task) throws DaoException, StorageException {
-            BillingAccount ba = task.getDocument(ctxt.getSession());
-            ba.addBillingCycleLink(task.getDependentTask(CreateBillingCycleTask.class).getDocument(ctxt.getSession()).newLink());
+        protected void processDocument(TaskContext<CreateBillingCycleJob,CreateBillingCycleLinkTask> ctxt,BillingAccount ba) throws DaoException, StorageException {
+            ba.addBillingCycleLink(ctxt.getDependentTask(CreateBillingCycleTask.class).getDocument(ctxt.getSession()).newLink());
         }
     }
 }

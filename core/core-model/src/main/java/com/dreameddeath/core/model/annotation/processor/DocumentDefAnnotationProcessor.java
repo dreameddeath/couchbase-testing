@@ -39,7 +39,6 @@ import java.util.Set;
         {"com.dreameddeath.core.model.annotation.DocumentDef"}
 )
 public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor {
-
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();

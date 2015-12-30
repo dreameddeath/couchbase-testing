@@ -18,15 +18,15 @@ package com.dreameddeath.party.process.service;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.dao.JobDao;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.dao.TaskDao;
+import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.service.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.ProcessingServiceFactory;
-import com.dreameddeath.party.dao.PartyDao;
+import com.dreameddeath.party.dao.base.PartyDao;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.process.model.CreatePartyJob;
-import com.dreameddeath.party.process.model.CreatePartyRequest;
 import com.dreameddeath.testing.Utils;
 import org.junit.After;
 import org.junit.Before;
@@ -45,6 +45,7 @@ public class CreatePartyJobProcessingServiceTest {
         testEnvironment = new Utils.TestEnvironment("PartyTest", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
         testEnvironment.addDocumentDao(new PartyDao());
         testEnvironment.addDocumentDao(new JobDao());
+        testEnvironment.addDocumentDao(new TaskDao());
         testEnvironment.start();
         processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
     }
@@ -53,22 +54,22 @@ public class CreatePartyJobProcessingServiceTest {
     public void JobTest() throws Exception{
         ICouchbaseSession session = testEnvironment.getSessionFactory().newReadWriteSession(null);
         CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
-        createPartyJob.getRequest().type = CreatePartyRequest.Type.person;
-        createPartyJob.getRequest().person = new CreatePartyRequest.Person();
-        createPartyJob.getRequest().person.firstName = "christophe";
-        createPartyJob.getRequest().person.lastName = "jeunesse";
+        createPartyJob.type = CreatePartyJob.Type.person;
+        createPartyJob.person = new CreatePartyJob.Person();
+        createPartyJob.person.firstName = "christophe";
+        createPartyJob.person.lastName = "jeunesse";
 
-        execFactory.execute(JobContext.newContext(session, execFactory, processFactory), createPartyJob);
+        execFactory.execute(JobContext.newContext(session, execFactory, processFactory, createPartyJob));
         ICouchbaseSession controlSession = testEnvironment.getSessionFactory().newReadOnlySession(null);
         CreatePartyJob inDbJob = controlSession.get(createPartyJob.getBaseMeta().getKey(),CreatePartyJob.class);
-        assertEquals(inDbJob.getJobState(), AbstractJob.State.DONE);
-        Party inDbParty = controlSession.get(inDbJob.getTask(0, CreatePartyJob.CreatePartyTask.class).getDocKey(),Party.class);
+        assertEquals(inDbJob.getStateInfo().getState(), ProcessState.State.DONE);
+        CreatePartyJob.CreatePartyTask inDbTask = controlSession.get(createPartyJob.getBaseMeta().getKey()+"/task/1",CreatePartyJob.CreatePartyTask.class);
+        Party inDbParty = controlSession.get(inDbTask.getDocKey(),Party.class);
         assertEquals(inDbParty.getClass(),Person.class);
         if(inDbParty instanceof Person){
             Person inDbPerson = (Person)inDbParty;
-            CreatePartyRequest req = createPartyJob.getRequest();
-            assertEquals(inDbPerson.getFirstName(),req.person.firstName);
-            assertEquals(inDbPerson.getLastName(),req.person.lastName);
+            assertEquals(inDbPerson.getFirstName(),createPartyJob.person.firstName);
+            assertEquals(inDbPerson.getLastName(),createPartyJob.person.lastName);
         }
     }
 

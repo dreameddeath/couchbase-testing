@@ -23,13 +23,14 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class DocumentStorageException extends StorageException {
-    CouchbaseDocument doc;
+    private CouchbaseDocument doc;
+    private String key;
 
     public DocumentStorageException(CouchbaseDocument doc,String message) {
         super(message);
         this.doc = doc;
-    }
 
+    }
     public DocumentStorageException(CouchbaseDocument doc,String message,Throwable e) {
         super(message,e);
         this.doc = doc;
@@ -44,8 +45,16 @@ public class DocumentStorageException extends StorageException {
         this.doc = doc;
     }
 
+    public DocumentStorageException(String key,String message,Throwable e){
+        super(message,e);
+        this.key = key;
+    }
+
     @Override
     public String getMessage(){
-        return super.getMessage() + "\n The doc was " + doc;
+        StringBuilder builder = new StringBuilder(super.getMessage());
+        if(doc!=null){ builder.append(" The doc was <").append(doc).append(">");}
+        if(key!=null){ builder.append(" The key was <").append(key).append(">");}
+        return builder.toString();
     }
 }

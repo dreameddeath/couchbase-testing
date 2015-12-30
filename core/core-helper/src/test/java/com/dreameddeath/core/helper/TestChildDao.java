@@ -18,7 +18,6 @@ package com.dreameddeath.core.helper;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
@@ -29,6 +28,7 @@ import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import rx.Observable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,12 +39,12 @@ import java.util.List;
 @DaoForClass(TestDocChild.class)
 public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChild> {
     public static final String TEST_CHILD_CNT_KEY = "%s/child/cnt";
-    public static final String TEST_CHILD_CNT_KEY_PATTERN = "test/\\d{10}/child/cnt";
+    public static final String TEST_CHILD_CNT_KEY_PATTERN = TestDao.TEST_KEY_PATTERN+"/child/cnt";
     public static final String TEST_CHILD_KEY_FMT = "%s/child/%05d";
-    public static final String TEST_CHILD_KEY_PATTERN = "test/\\d{10}/child/\\d{5}";
+    public static final String TEST_CHILD_KEY_PATTERN = TestDao.TEST_KEY_PATTERN+"/child/{cuid:\\d{5}}";
 
     @Override
-    public String getKeyPattern() {
+    public String getKeyRawPattern() {
         return TEST_CHILD_KEY_PATTERN;
     }
 
@@ -69,14 +69,15 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
     }
 
     @Override
-    public TestDocChild buildKey(ICouchbaseSession session, TestDocChild newObject) throws DaoException, StorageException {
-        long result = session.incrCounter(String.format(TEST_CHILD_CNT_KEY,newObject.parent.getKey()),1);
-        newObject.getBaseMeta().setKey(String.format(TEST_CHILD_KEY_FMT,newObject.parent.getKey(), result));
-
-        return newObject;
+    public String getKeyFromParams(Object... params) {
+        return String.format(TEST_CHILD_KEY_FMT,params[0],(Long)params[1]);
     }
 
-
+    @Override
+    public Observable<TestDocChild> asyncBuildKey(ICouchbaseSession session, TestDocChild newObject) throws DaoException {
+        return session.asyncIncrCounter(String.format(TEST_CHILD_CNT_KEY,newObject.parent.getKey()),1)
+                .map(new BuildKeyFromCounterFunc(newObject,newObject.parent.getKey()));
+    }
 
     @Override
     public List<CouchbaseViewDao> generateViewDaos() {

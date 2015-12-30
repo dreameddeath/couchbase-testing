@@ -21,7 +21,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 /**
  * Created by Christophe Jeunesse on 12/10/2014.
  */
-public class BinaryCouchbaseDocument extends CouchbaseDocument {
+public abstract class BinaryCouchbaseDocument<TFULL,TPARTIAL> extends CouchbaseDocument {
     public BinaryCouchbaseDocument(){
         super(null);
         setBaseMeta(BinaryCouchbaseDocument.this.new BinaryMetaInfo());

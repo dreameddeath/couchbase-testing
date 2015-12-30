@@ -20,7 +20,6 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
-import com.dreameddeath.core.process.exception.DuplicateTaskException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.JobContext;
 import com.dreameddeath.core.process.service.TaskContext;
@@ -31,7 +30,6 @@ import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;
 import com.dreameddeath.party.process.model.CreatePartyJob;
 import com.dreameddeath.party.process.model.CreatePartyJob.CreatePartyTask;
-import com.dreameddeath.party.process.model.CreatePartyRequest;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
@@ -39,24 +37,18 @@ import com.dreameddeath.party.process.model.CreatePartyRequest;
 @JobProcessingForClass(CreatePartyJob.class)
 public class CreatePartyJobProcessingService extends StandardJobProcessingService<CreatePartyJob> {
     @Override
-    public boolean init(JobContext context, CreatePartyJob job) throws JobExecutionException {
-        try {
-            job.addTask(new CreatePartyJob.CreatePartyTask());
-        }
-        catch(DuplicateTaskException e){
-            throw new JobExecutionException(job,job.getJobState(),e);
-        }
-
+    public boolean init(JobContext<CreatePartyJob> context) throws JobExecutionException {
+        context.addTask(new CreatePartyJob.CreatePartyTask());
         return false;
     }
 
     @TaskProcessingForClass(CreatePartyTask.class)
-    public static class CreatePartyTaskProcessingService extends DocumentCreateTaskProcessingService<Party,CreatePartyTask>{
+    public static class CreatePartyTaskProcessingService extends DocumentCreateTaskProcessingService<CreatePartyJob,Party,CreatePartyTask>{
         @Override
-        protected Party buildDocument(TaskContext ctxt,CreatePartyJob.CreatePartyTask task) throws DaoException, StorageException {
+        protected Party buildDocument(TaskContext<CreatePartyJob,CreatePartyTask> ctxt) throws DaoException, StorageException {
             Party result;
-            CreatePartyRequest req = task.getParentJob(CreatePartyJob.class).getRequest();
-            if(req.type == CreatePartyRequest.Type.person){
+            CreatePartyJob req = ctxt.getParentJob();
+            if(req.type == CreatePartyJob.Type.person){
                 Person person=ctxt.getSession().newEntity(Person.class);
                 person.setFirstName(req.person.firstName);
                 person.setLastName(req.person.lastName);

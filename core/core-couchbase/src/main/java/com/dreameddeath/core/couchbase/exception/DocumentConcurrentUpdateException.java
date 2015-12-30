@@ -28,6 +28,12 @@ public class DocumentConcurrentUpdateException extends StorageException {
         super(message);
         this.key=key;
     }
+    public DocumentConcurrentUpdateException(String key, String message,Throwable e){
+        super(message,e);
+        this.key=key;
+    }
+
+
     public DocumentConcurrentUpdateException(CouchbaseDocument doc, String message){
         super(message);
         this.doc=doc;

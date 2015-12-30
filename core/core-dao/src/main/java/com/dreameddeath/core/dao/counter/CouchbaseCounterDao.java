@@ -22,8 +22,11 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.InconsistentStateException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.dao.utils.KeyPattern;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 02/09/2014.
@@ -31,11 +34,10 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 public class CouchbaseCounterDao{
     private ICouchbaseBucket client;
     private CouchbaseDocumentDao baseDao;
-    private String keyPattern;
+    private final KeyPattern keyPattern;
     private Long defaultValue;
     private Long modulus;
     private Integer expiration;
-
     private CallingMode mode;
 
     public void setBaseDao(CouchbaseDocumentDao dao){baseDao=dao;}
@@ -46,7 +48,12 @@ public class CouchbaseCounterDao{
     }
 
     public CouchbaseCounterDao(String key, Long defaultValue, Long modulus, Integer expiration){
-        this.keyPattern = key;
+        if(key!=null){
+            this.keyPattern=new KeyPattern(key);
+        }
+        else{
+            this.keyPattern = null;
+        }
         this.defaultValue = defaultValue;
         this.modulus = modulus;
         this.expiration = expiration;
@@ -67,109 +74,134 @@ public class CouchbaseCounterDao{
     }
 
     public String getKeyPattern(){
-        return keyPattern;
+        return (keyPattern!=null)?keyPattern.getKeyPatternStr():null;
     }
+
+
 
     public Long getCounter(ICouchbaseSession session,String key,boolean isCalcOnly) throws DaoException,StorageException {
-        return incrCounter(session,key,0,isCalcOnly);
+        try {
+            return asyncGetCounter(session, key, isCalcOnly).toBlocking().first();
+        }
+        catch(DaoException e){
+            throw e;
+        }
+        catch(DaoObservableException e){
+            throw (DaoException)e.getCause();
+        }
+        catch(Throwable e){
+            throw ICouchbaseBucket.Utils.mapStorageException(key,e);
+        }
     }
 
-    public long incrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
-        long result;
+    public Observable<Long> asyncGetCounter(ICouchbaseSession session,String key,boolean isCalcOnly) throws InconsistentStateException {
+        return asyncIncrCounter(session,key,0,isCalcOnly);
+    }
+
+
+    public Observable<Long> asyncIncrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly) throws InconsistentStateException{
         if(baseDao.isReadOnly() && by!=0){
             throw new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode");
         }
+        Observable<Long> result;
 
-        if(isCalcOny){
-                if(session.getKeyPrefix()!=null){
-                    result = getClient().counter(key, 0L, WriteParams.create().with(session.getKeyPrefix()));
-                }
-                else {
-                    result = getClient().counter(key, 0L);
-                }
-                if(result<0){
-                    result=defaultValue;
-                }
-                result+=by;
+        if(isCalcOnly){
+            if(session.getKeyPrefix()!=null){
+                result = getClient().asyncCounter(key, 0L, WriteParams.create().with(session.getKeyPrefix()));
+            }
+            else {
+                result = getClient().asyncCounter(key, 0L);
+            }
+            result=result.map(val->((val<0)?defaultValue:val)+by);
         }
         else{
             switch (mode) {
                 case WITH_DEFAULT:
                     if(session.getKeyPrefix()!=null) {
-                        result = getClient().counter(key, by, defaultValue);
+                        result = getClient().asyncCounter(key, by, defaultValue);
                     }
                     else{
-                        result = getClient().counter(key, by, defaultValue, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, by, defaultValue, WriteParams.create().with(session.getKeyPrefix()));
                     }
                     break;
                 case WITH_DEFAULT_AND_EXPIRATION:
                     if(session.getKeyPrefix()!=null) {
-                        result = getClient().counter(key, by, defaultValue, expiration);
+                        result = getClient().asyncCounter(key, by, defaultValue, expiration);
                     }
                     else{
-                        result = getClient().counter(key, by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
                     }
                     break;
                 default:
                     if(session.getKeyPrefix()!=null) {
-                        result = getClient().counter(key, by);
+                        result = getClient().asyncCounter(key, by);
                     }
                     else{
-                        result = getClient().counter(key, by, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, by, WriteParams.create().with(session.getKeyPrefix()));
                     }
             }
         }
+
         if (modulus != null) {
-            return result % modulus;
+            return result.map(val->val%modulus);
         } else {
             return result;
         }
+
     }
 
-    public long decrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
+    public long incrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
+        return asyncIncrCounter(session,key,by,isCalcOny).toBlocking().first();
+    }
+
+
+    public Observable<Long> asyncDecrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly) throws InconsistentStateException{
         if(baseDao.isReadOnly() && by!=0){
             throw new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode");
         }
-        if(isCalcOny){
-            long result;
-            if(session.getKeyPrefix()!=null) {
-                result = getClient().counter(key, 0L);
-            }
-            else{
-                result = getClient().counter(key, 0L, WriteParams.create().with(session.getKeyPrefix()));
-            }
-            if(result<0){
-                result=defaultValue;
-            }
-            result-=by;
+        Observable<Long> result;
 
-            return result;
+        if(isCalcOnly){
+            if(session.getKeyPrefix()!=null){
+                result = getClient().asyncCounter(key, 0L, WriteParams.create().with(session.getKeyPrefix()));
+            }
+            else {
+                result = getClient().asyncCounter(key, 0L);
+            }
+            result=result.map(val->((val<0)?defaultValue:val)-by);
         }
-        else {
+        else{
             switch (mode) {
                 case WITH_DEFAULT:
                     if(session.getKeyPrefix()!=null) {
-                        return getClient().counter(key, -by, defaultValue);
+                        result = getClient().asyncCounter(key, -by, defaultValue);
                     }
                     else{
-                        return getClient().counter(key, -by, defaultValue,WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, -by, defaultValue, WriteParams.create().with(session.getKeyPrefix()));
                     }
+                    break;
                 case WITH_DEFAULT_AND_EXPIRATION:
                     if(session.getKeyPrefix()!=null) {
-                        return getClient().counter(key, -by, defaultValue, expiration);
+                        result = getClient().asyncCounter(key, -by, defaultValue, expiration);
                     }
                     else{
-                        return getClient().counter(key, -by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, -by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
                     }
+                    break;
                 default:
                     if(session.getKeyPrefix()!=null) {
-                        return getClient().counter(key, -by);
+                        result = getClient().asyncCounter(key, -by);
                     }
                     else{
-                        return getClient().counter(key, -by, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, -by, WriteParams.create().with(session.getKeyPrefix()));
                     }
             }
         }
+        return result;
+    }
+
+    public long decrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
+        return asyncDecrCounter(session,key,by,isCalcOny).toBlocking().first();
     }
 
     public enum CallingMode {
@@ -179,7 +211,7 @@ public class CouchbaseCounterDao{
     }
 
     public static class Builder{
-        private String keyPattern;
+        private String keyPattern=null;
         private Long defaultValue;
         private Long expiration=0L;
         private Long modulus;

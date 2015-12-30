@@ -20,6 +20,7 @@ import com.dreameddeath.core.business.model.BusinessDocumentLink;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.installedbase.model.InstalledBase;
 
 /**
  * Created by Christophe Jeunesse on 10/08/2014.

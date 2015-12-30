@@ -62,15 +62,15 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
         sb.append("function (doc, meta) {\n");
         //Append Prefix if needed
         if(parentDao instanceof  CouchbaseDocumentWithKeyPatternDao){
-            String pattern = ((CouchbaseDocumentWithKeyPatternDao)parentDao).getKeyPattern();
+            String pattern = ((CouchbaseDocumentWithKeyPatternDao)parentDao).getKeyPattern().getKeyPatternStr();
             pattern = pattern.replaceAll("([/\\$])","\\\\$1");
-            sb.append("if(/^(?:[^\\$]+\\$)?"+pattern + "$/.test(meta.id)==false) return;");
+            sb.append("if(/^(?:[^\\$]+\\$)?").append(pattern).append("$/.test(meta.id)==false) return;");
             sb.append("\n");
         }
 
         String content = getContent();
-        content.replaceAll("meta\\.id","meta.id.replace(/^(?:[^\\$]+\\$)/,\"\")");
-        sb.append("\n\n" + content + "\n");
+        content = content.replaceAll("meta\\.id","meta.id.replace(/^(?:[^\\$]+\\$)/,\"\")");
+        sb.append("\n\n").append(content).append("\n");
         sb.append("}\n");
         return sb.toString();
     }
@@ -119,11 +119,11 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
         }
     }
 
-    public IViewQueryResult query(ICouchbaseSession session,boolean isCalcOnly,IViewQuery query){
+    public IViewQueryResult<TKEY,TVALUE,TDOC> query(ICouchbaseSession session,boolean isCalcOnly,IViewQuery<TKEY,TVALUE,TDOC> query){
         return ViewQueryResult.from(query,getClient().query(query.toCouchbaseQuery()));
     }
 
-    public Observable<IViewAsyncQueryResult> asyncQuery(ICouchbaseSession session,boolean isCalcOnly,IViewQuery query){
+    public Observable<IViewAsyncQueryResult<TKEY,TVALUE,TDOC>> asyncQuery(ICouchbaseSession session,boolean isCalcOnly,IViewQuery<TKEY,TVALUE,TDOC> query){
         return getClient().asyncQuery(query.toCouchbaseQuery()).map(asyncView -> ViewAsyncQueryResult.from(query, asyncView));
     }
 

@@ -18,33 +18,49 @@ package com.dreameddeath.core.process.exception;
 
 
 import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.ProcessState.State;
+import com.dreameddeath.core.process.service.JobContext;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class JobExecutionException extends Exception {
-    AbstractJob.State state;
+    State state;
     AbstractJob job;
 
-    public JobExecutionException(AbstractJob job, AbstractJob.State state, String message) {
+    public JobExecutionException(JobContext<?> ctxt, String message) {
+        this(ctxt.getJob(),ctxt.getJobState().getState(),message);
+    }
+
+    public JobExecutionException(JobContext<?> ctxt, String message,Throwable e) {
+        this(ctxt.getJob(),ctxt.getJobState().getState(),message,e);
+    }
+
+
+    public JobExecutionException(JobContext<?> ctxt, Throwable e) {
+        this(ctxt.getJob(),ctxt.getJobState().getState(),e);
+    }
+
+
+    public JobExecutionException(AbstractJob job, State state, String message) {
         super(message);
         this.job = job;
         this.state = state;
     }
 
-    public JobExecutionException(AbstractJob job, AbstractJob.State state, String message, Throwable e) {
+    public JobExecutionException(AbstractJob job, State state, String message, Throwable e) {
         super(message, e);
         this.job = job;
         this.state = state;
     }
 
-    public JobExecutionException(AbstractJob job, AbstractJob.State state, Throwable e) {
+    public JobExecutionException(AbstractJob job, State state, Throwable e) {
         super(e);
         this.job = job;
         this.state = state;
     }
 
     public AbstractJob getJob(){ return job;}
-    public AbstractJob.State getState(){ return state;}
+    public State getState(){ return state;}
 
 }
