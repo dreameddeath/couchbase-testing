@@ -44,7 +44,6 @@ public class CreateBillingAccountJob extends AbstractJob {
     @DocumentProperty("partyLink")
     public PartyLink partyLink;
 
-
     @DocumentDef(domain = "billing",version="1.0.0")
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> { }
 

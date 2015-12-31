@@ -36,12 +36,12 @@ public class CreateUpdateInstalledBaseJob extends AbstractJob{
      *  request : The create update installedbase request
      */
     @DocumentProperty("request")
-    private Property<CreateUpdateInstalledBaseRequest> request = new ImmutableProperty<>(CreateUpdateInstalledBaseJob.this,new CreateUpdateInstalledBaseRequest());
+    private Property<CreateUpdateInstalledBaseRequest> request = new ImmutableProperty<>(CreateUpdateInstalledBaseJob.this,CreateUpdateInstalledBaseRequest.class);
     /**
      *  result : The CreateUpdate result
      */
     @DocumentProperty("result")
-    private Property<CreateUpdateInstalledBaseResponse> result = new StandardProperty<CreateUpdateInstalledBaseResponse>(CreateUpdateInstalledBaseJob.this);
+    private Property<CreateUpdateInstalledBaseResponse> result = new StandardProperty<>(CreateUpdateInstalledBaseJob.this,CreateUpdateInstalledBaseResponse.class);
 
 
     // request accessors

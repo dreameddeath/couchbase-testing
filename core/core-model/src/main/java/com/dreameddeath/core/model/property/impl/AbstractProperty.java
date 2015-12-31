@@ -25,23 +25,51 @@ import com.dreameddeath.core.model.property.Property;
 public class AbstractProperty<T> implements Property<T>,HasParent {
     HasParent parentElt;
     protected T value;
-    protected T defaultValue;
+    protected final boolean hasDefaultValue;
+    protected final T defaultValue;
+    protected final Class<T> defaultClassInit;
+
+    private AbstractProperty(HasParent parentElt,T defaultValue,Class<T> defaultClassInit){
+        this.parentElt = parentElt;
+        this.defaultValue = defaultValue;
+        this.defaultClassInit = defaultClassInit;
+        hasDefaultValue =  defaultValue!=null || defaultClassInit!=null;
+    }
 
     public AbstractProperty(HasParent parentElement){
-        parentElt=parentElement;
+        this(parentElement,null,null);
     }
 
     public AbstractProperty(HasParent parentElement,T defaultValue){
-        parentElt=parentElement;
-        this.defaultValue=defaultValue;
+        this(parentElement,defaultValue,null);
     }
+
+    public AbstractProperty(HasParent parentElement,Class<T> defaultClassInit){
+        this(parentElement,null,defaultClassInit);
+    }
+
 
     public void setParentElement(HasParent parentElement){ parentElt=parentElement;}
     public HasParent getParentElement(){return parentElt;}
 
     protected T getRawValue(){return value;}
 
-    public T get(){ if(value==null){set(defaultValue);} return value; }
+    public T get(){
+        if((value==null)&&(hasDefaultValue)){
+            if(defaultValue!=null) {
+                set(defaultValue);
+            }
+            else if(defaultClassInit!=null){
+                try {
+                    set(defaultClassInit.newInstance());
+                }
+                catch(InstantiationException|IllegalAccessException e){
+                    throw new RuntimeException("Cannot init class "+defaultClassInit.getName()+" as default value",e);
+                }
+            }
+        }
+        return value;
+    }
     public boolean set(T value) {
         if(!equalsValue(value)){
             this.value = value;

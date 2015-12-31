@@ -72,7 +72,7 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
      *  stateInfo : Gives job current state info
      */
     @DocumentProperty("stateInfo")
-    private Property<ProcessState> stateInfo = new ImmutableProperty<>(AbstractTask.this,new ProcessState());
+    private Property<ProcessState> stateInfo = new ImmutableProperty<>(AbstractTask.this,ProcessState.class);
 
 
     // jobUid accessors

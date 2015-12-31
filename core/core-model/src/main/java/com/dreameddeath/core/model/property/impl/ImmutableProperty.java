@@ -26,6 +26,9 @@ public class ImmutableProperty<T> extends AbstractProperty<T> {
     public ImmutableProperty(HasParent parentElement, T defaultValue){
         super(parentElement,defaultValue);
     }
+    public ImmutableProperty(HasParent parentElement, Class<T> defaultValue){
+        super(parentElement,defaultValue);
+    }
 
 
     @Override

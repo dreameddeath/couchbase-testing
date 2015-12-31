@@ -30,4 +30,8 @@ public class StandardProperty<T> extends AbstractProperty<T> {
     public StandardProperty(HasParent parent, T defaultValue){
         super(parent,defaultValue);
     }
+
+    public StandardProperty(HasParent parentElement, Class<T> defaultClassInit) {
+        super(parentElement, defaultClassInit);
+    }
 }

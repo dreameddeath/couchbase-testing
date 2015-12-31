@@ -27,6 +27,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.model.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.offer.InstalledOffer;
@@ -52,7 +53,7 @@ public class InstalledBase extends BusinessDocument {
      *  contract : The installed Contract for this installed base (if any)
      */
     @DocumentProperty("contract")
-    private Property<InstalledContract> contract = new StandardProperty<>(InstalledBase.this);
+    private Property<InstalledContract> contract = new ImmutableProperty<>(InstalledBase.this);
     /**
      *  offers : List of offers being installed
      */
