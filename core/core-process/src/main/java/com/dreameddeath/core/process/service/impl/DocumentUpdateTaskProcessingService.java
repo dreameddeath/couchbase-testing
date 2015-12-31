@@ -26,7 +26,7 @@ import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.CouchbaseDocumentAttachedTaskRef;
 import com.dreameddeath.core.process.model.DocumentUpdateTask;
 import com.dreameddeath.core.process.model.IDocumentWithLinkedTasks;
-import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.

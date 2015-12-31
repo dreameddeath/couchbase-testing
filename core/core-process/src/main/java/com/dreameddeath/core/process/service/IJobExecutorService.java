@@ -22,6 +22,7 @@ import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.ProcessState;
+import com.dreameddeath.core.process.service.context.JobContext;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.

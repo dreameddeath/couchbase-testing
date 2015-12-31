@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service;
+package com.dreameddeath.core.process.service.context;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
+import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.model.ProcessState;
+import com.dreameddeath.core.process.service.ITaskExecutorService;
+import com.dreameddeath.core.process.service.ITaskProcessingService;
+import com.dreameddeath.core.process.service.factory.ExecutorServiceFactory;
+import com.dreameddeath.core.process.service.factory.ProcessingServiceFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +40,8 @@ import java.util.List;
  */
 public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
     private final JobContext<TJOB> jobContext;
+    private final ITaskExecutorService<TJOB,T> taskExecutorService;
+    private final ITaskProcessingService<TJOB,T> taskProcessingService;
     private final T task;
     private boolean isTaskSaved=false;
     private List<TaskContext<TJOB,?>> preRequisites=new ArrayList<>();
@@ -41,6 +50,25 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
         this.jobContext = taskCtxtBuilder.jobContext;
         this.task = taskCtxtBuilder.task;
         this.jobContext.addTask(this);
+        if(taskCtxtBuilder.executorService==null){
+            try {
+                taskCtxtBuilder.executorService = jobContext.getExecutorFactory().getTaskExecutorServiceForClass((Class<T>) this.task.getClass());
+            }
+            catch(ExecutorServiceNotFoundException e){
+                throw new RuntimeException(e);
+            }
+        }
+        this.taskExecutorService = taskCtxtBuilder.executorService;
+
+        if(taskCtxtBuilder.processingService==null){
+            try {
+                taskCtxtBuilder.processingService = jobContext.getProcessingFactory().getTaskProcessingServiceForClass((Class<T>) this.task.getClass());
+            }
+            catch(ProcessingServiceNotFoundException e){
+                throw new RuntimeException(e);
+            }
+        }
+        this.taskProcessingService = taskCtxtBuilder.processingService;
         updateIsTaskSaved();
     }
 
@@ -73,6 +101,20 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
     public void updateIsTaskSaved(){
         this.isTaskSaved = task.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC);
     }
+
+    public ITaskExecutorService<TJOB, T> getExecutorService() {
+        return taskExecutorService;
+    }
+
+    public ITaskProcessingService<TJOB, T> getProcessingService() {
+        return taskProcessingService;
+    }
+
+    public void execute() throws TaskExecutionException{
+        this.task.getStateInfo().setLastRunError(null);
+        taskExecutorService.execute(this);
+    }
+
 
     public void updatePreRequisistes(){
         for(Integer id : task.getDependencies()){
@@ -134,10 +176,22 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
     public static class Builder<TJOB extends AbstractJob,T extends AbstractTask>{
         private final JobContext<TJOB> jobContext;
         private final T task;
+        private ITaskExecutorService<TJOB,T> executorService=null;
+        private ITaskProcessingService<TJOB,T> processingService=null;
 
         public Builder(JobContext<TJOB> jobCtxt,T task){
             this.jobContext = jobCtxt;
             this.task=task;
+        }
+
+        public Builder withExecutorService(ITaskExecutorService<TJOB, T> executorService) {
+            this.executorService = executorService;
+            return this;
+        }
+
+        public Builder withProcessingService(ITaskProcessingService<TJOB, T> processingService) {
+            this.processingService = processingService;
+            return this;
         }
     }
 

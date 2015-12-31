@@ -28,8 +28,6 @@ import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
-import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseDaemonPlugin;
-import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseWebServerPlugin;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.junit.After;

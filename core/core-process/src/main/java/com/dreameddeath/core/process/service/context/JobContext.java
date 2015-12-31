@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service;
+package com.dreameddeath.core.process.service.context;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -22,9 +22,16 @@ import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.dao.TaskDao;
+import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
+import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.model.ProcessState;
+import com.dreameddeath.core.process.service.IJobExecutorService;
+import com.dreameddeath.core.process.service.IJobProcessingService;
+import com.dreameddeath.core.process.service.factory.ExecutorServiceFactory;
+import com.dreameddeath.core.process.service.factory.ProcessingServiceFactory;
 import rx.Subscriber;
 
 import java.util.ArrayList;
@@ -39,6 +46,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JobContext<T extends AbstractJob> {
     private final ICouchbaseSession session;
+    private final IJobExecutorService<T> executorService;
+    private final IJobProcessingService<T> processingService;
     private final ExecutorServiceFactory executorFactory;
     private final ProcessingServiceFactory processingFactory;
     private final T job;
@@ -51,12 +60,29 @@ public class JobContext<T extends AbstractJob> {
         this.executorFactory = jobCtxtBuilder.executorFactory;
         this.processingFactory = jobCtxtBuilder.processingFactory;
         this.job = jobCtxtBuilder.job;
+        if(jobCtxtBuilder.jobExecutorService==null){
+            try {
+                jobCtxtBuilder.jobExecutorService = executorFactory.getJobExecutorServiceForClass((Class<T>) this.job.getClass());
+            }
+            catch(ExecutorServiceNotFoundException e){
+                throw new RuntimeException("Cannot not found Execution service for class "+this.job.getClass(),e);
+            }
+        }
+        this.executorService = jobCtxtBuilder.jobExecutorService;
+        if (jobCtxtBuilder.jobProcessingService == null){
+            try {
+                jobCtxtBuilder.jobProcessingService = processingFactory.getJobProcessingServiceForClass((Class<T>) this.job.getClass());
+            }
+            catch(ProcessingServiceNotFoundException e){
+                throw new RuntimeException("Cannot not found Processing service for class "+this.job.getClass(),e);
+            }
+        }
+        this.processingService = jobCtxtBuilder.jobProcessingService;
+
         updateIsJobSaved();
     }
 
     public ICouchbaseSession getSession(){return session;}
-    public ExecutorServiceFactory getExecutorFactory(){return executorFactory;}
-    public ProcessingServiceFactory getProcessingFactory(){return processingFactory;}
     public T getJob() {
         return job;
     }
@@ -66,6 +92,9 @@ public class JobContext<T extends AbstractJob> {
     public List<TaskContext<T,?>> getTaskContexts() {
         return Collections.unmodifiableList(tasks);
     }
+    //package restricted
+    ExecutorServiceFactory getExecutorFactory(){return executorFactory;}
+    ProcessingServiceFactory getProcessingFactory(){return processingFactory;}
 
     public <TTASK extends AbstractTask> TaskContext<T,TTASK> getTaskContext(int pos,Class<TTASK> taskClass) {
         return (TaskContext<T,TTASK>)tasks.get(pos);
@@ -82,6 +111,11 @@ public class JobContext<T extends AbstractJob> {
 
     public void updateIsJobSaved(){
         this.isJobSaved = job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC);
+    }
+
+    public void execute() throws JobExecutionException{
+        this.job.getStateInfo().setLastRunError(null);
+        executorService.execute(this);
     }
 
     public void save() throws ValidationException,DaoException,StorageException{
@@ -152,6 +186,15 @@ public class JobContext<T extends AbstractJob> {
         return null;
     }
 
+
+    public IJobExecutorService<T> getExecutorService() {
+        return executorService;
+    }
+
+    public IJobProcessingService<T> getProcessingService() {
+        return processingService;
+    }
+
     public TaskContext<T,?> getNextExecutableTask() throws DaoException,StorageException,InterruptedException{
         return getNextExecutableTask(false);
     }
@@ -176,6 +219,11 @@ public class JobContext<T extends AbstractJob> {
                         .withSession(session)
                         .withProcessingFactory(processFactory)
         );
+    }
+
+
+    public static <T extends AbstractJob> JobContext<T> newContext(Builder<T> builder){
+        return new JobContext<>(builder);
     }
 
 
@@ -219,6 +267,8 @@ public class JobContext<T extends AbstractJob> {
 
     public static class Builder<T extends AbstractJob>{
         private ICouchbaseSession session;
+        private IJobExecutorService<T> jobExecutorService=null;
+        private IJobProcessingService<T> jobProcessingService=null;
         private ExecutorServiceFactory executorFactory;
         private ProcessingServiceFactory processingFactory;
         private final T job;
@@ -239,6 +289,17 @@ public class JobContext<T extends AbstractJob> {
 
         public Builder<T> withProcessingFactory(ProcessingServiceFactory processingFactory) {
             this.processingFactory = processingFactory;
+            return this;
+        }
+
+
+        public Builder<T> withJobExecutorService(IJobExecutorService<T> jobExecutorService) {
+            this.jobExecutorService = jobExecutorService;
+            return this;
+        }
+
+        public Builder<T> withJobProcessingService(IJobProcessingService<T> jobProcessingService) {
+            this.jobProcessingService = jobProcessingService;
             return this;
         }
     }

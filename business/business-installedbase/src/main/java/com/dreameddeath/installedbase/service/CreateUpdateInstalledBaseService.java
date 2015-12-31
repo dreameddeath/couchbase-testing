@@ -16,7 +16,7 @@
 
 package com.dreameddeath.installedbase.service;
 
-import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.installedbase.model.InstalledBase;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;

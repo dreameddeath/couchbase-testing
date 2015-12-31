@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.plugin.couchbase.plugin;
+package com.dreameddeath.infrastructure.plugin.couchbase;
 
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketFactory;
 import com.dreameddeath.core.couchbase.impl.CouchbaseClusterFactory;

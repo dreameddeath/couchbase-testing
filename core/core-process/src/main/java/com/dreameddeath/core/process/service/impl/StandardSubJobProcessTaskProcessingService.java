@@ -24,7 +24,7 @@ import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.model.SubJobProcessTask;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
-import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.

@@ -26,8 +26,8 @@ import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.model.ProcessState.State;
 import com.dreameddeath.core.process.model.SubJobProcessTask;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
-import com.dreameddeath.core.process.service.JobContext;
-import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
@@ -53,7 +53,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
         try {
             if (!taskState.isInitialized()) {
                 try {
-                    boolean saveAsked = ctxt.getProcessingFactory().init(ctxt);
+                    boolean saveAsked = ctxt.getProcessingService().init(ctxt);
                     manageStateExecutionEnd(ctxt,State.INITIALIZED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.INITIALIZED, e);
@@ -62,7 +62,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
 
             if (!taskState.isPrepared()) {
                 try {
-                    boolean saveAsked=ctxt.getProcessingFactory().preprocess(ctxt);
+                    boolean saveAsked=ctxt.getProcessingService().preprocess(ctxt);
                     manageStateExecutionEnd(ctxt,State.PREPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.PREPROCESSED, e);
@@ -74,14 +74,14 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                     boolean saveAsked;
                     if(task instanceof SubJobProcessTask){
                         SubJobProcessTask subJobTask = (SubJobProcessTask)task;
-                        JobContext<?> subJobContext = JobContext.newContext(ctxt.getJobContext(),subJobTask.getSubJobId().toString());
+                        JobContext subJobContext = JobContext.newContext(ctxt.getJobContext(),subJobTask.getSubJobId().toString());
                         if (!subJobContext.getJobState().isDone()) {
-                            ctxt.getExecutorFactory().execute(subJobContext);
+                            subJobContext.execute();
                         }
                         saveAsked=true;
                     }
                     else {
-                        saveAsked = ctxt.getProcessingFactory().process(ctxt);
+                        saveAsked = ctxt.getProcessingService().process(ctxt);
                     }
 
                     manageStateExecutionEnd(ctxt,State.PROCESSED,saveAsked);
@@ -92,7 +92,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
 
             if (!taskState.isFinalized()) {
                 try {
-                    boolean saveAsked=ctxt.getProcessingFactory().postprocess(ctxt);
+                    boolean saveAsked=ctxt.getProcessingService().postprocess(ctxt);
                     manageStateExecutionEnd(ctxt,State.POSTPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.POSTPROCESSED, e);
@@ -101,7 +101,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
 
             if (!taskState.isDone()) {
                 try{
-                    boolean needSave=ctxt.getProcessingFactory().cleanup(ctxt);
+                    boolean needSave=ctxt.getProcessingService().cleanup(ctxt);
                     manageStateExecutionEnd(ctxt,State.DONE,needSave);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.DONE, e);

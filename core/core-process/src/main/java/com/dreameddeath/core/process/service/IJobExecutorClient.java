@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service.impl;
+package com.dreameddeath.core.process.service;
 
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.service.IJobProcessingService;
-import com.dreameddeath.core.process.service.context.JobContext;
 
 /**
- * Created by Christophe Jeunesse on 25/11/2014.
+ * Created by Christophe Jeunesse on 31/12/2015.
  */
-public abstract class StandardJobProcessingService<T extends AbstractJob> implements IJobProcessingService<T> {
-
-    @Override
-    public boolean preprocess(JobContext<T> context) throws JobExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean postprocess(JobContext<T> context) throws JobExecutionException {
-        return false;
-    }
-
-    @Override
-    public boolean cleanup(JobContext<T> context) throws JobExecutionException {
-        return false;
-    }
+public interface IJobExecutorClient<T extends AbstractJob> {
+    T executeJob(T job) throws JobExecutionException;
 }

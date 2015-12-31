@@ -16,7 +16,7 @@
 
 package com.dreameddeath.infrastructure.plugin.couchbase.lifecycle;
 
-import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseWebServerPlugin;
+import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
 import org.eclipse.jetty.util.component.LifeCycle;
 
 /**

@@ -25,8 +25,8 @@ import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.model.ProcessState.State;
 import com.dreameddeath.core.process.service.IJobExecutorService;
-import com.dreameddeath.core.process.service.JobContext;
-import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 
 
 /**
@@ -48,7 +48,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
     }
 
     @Override
-    public void execute(JobContext ctxt) throws JobExecutionException{
+    public void execute(JobContext<T> ctxt) throws JobExecutionException{
         final ProcessState jobState=ctxt.getJobState();
         final AbstractJob job = ctxt.getJob();
         jobState.setLastRunError(null);
@@ -56,7 +56,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
             if (!jobState.isInitialized()) {
                 try {
                     boolean saveAsked;
-                    saveAsked=ctxt.getProcessingFactory().init(ctxt);
+                    saveAsked=ctxt.getProcessingService().init(ctxt);
                     manageStateExecutionEnd(ctxt,State.INITIALIZED,saveAsked);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.INITIALIZED, e);
@@ -66,7 +66,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
             if (!jobState.isPrepared()) {
                 try {
                     boolean saveAsked;
-                    saveAsked=ctxt.getProcessingFactory().preprocess(ctxt);
+                    saveAsked=ctxt.getProcessingService().preprocess(ctxt);
                     manageStateExecutionEnd(ctxt,State.PREPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.PREPROCESSED, e);
@@ -75,19 +75,22 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
 
             if (!jobState.isProcessed()) {
                 try {
-                    TaskContext taskCtxt;
+                    TaskContext<T,?> taskCtxt;
                     while ((taskCtxt = ctxt.getNextExecutableTask()) != null) {
                         if(job.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
                             ctxt.save();
                         }
-                        taskCtxt.getTaskState().setLastRunError(null);
-                        ctxt.getExecutorFactory().execute(taskCtxt);
+                        taskCtxt.execute();
                     }
                     if(ctxt.getPendingTasks(true).size()>0){
-                        //TODO throw an error
+                        throw new JobExecutionException(ctxt,"Remaning not executable tasks");
                     }
                     manageStateExecutionEnd(ctxt,State.PROCESSED,true);
-                } catch (Throwable e) {
+                }
+                catch(JobExecutionException e){
+                    throw e;
+                }
+                catch (Throwable e) {
                     throw new JobExecutionException(job, State.PROCESSED, e);
                 }
             }
@@ -95,7 +98,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
             if (!jobState.isFinalized()) {
                 try {
                     boolean saveAsked;
-                    saveAsked=ctxt.getProcessingFactory().postprocess(ctxt,job);
+                    saveAsked=ctxt.getProcessingService().postprocess(ctxt);
                     manageStateExecutionEnd(ctxt,State.POSTPROCESSED,saveAsked);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.POSTPROCESSED, e);
@@ -104,7 +107,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
 
             if (!jobState.isDone()) {
                 try {
-                    ctxt.getProcessingFactory().cleanup(ctxt, job);
+                    ctxt.getProcessingService().cleanup(ctxt);
                     manageStateExecutionEnd(ctxt,State.DONE,true);
                 } catch (Throwable e) {
                     throw new JobExecutionException(job, State.DONE, e);

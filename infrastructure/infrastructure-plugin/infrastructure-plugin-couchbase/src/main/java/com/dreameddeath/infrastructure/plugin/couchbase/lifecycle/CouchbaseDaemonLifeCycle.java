@@ -17,7 +17,7 @@
 package com.dreameddeath.infrastructure.plugin.couchbase.lifecycle;
 
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
-import com.dreameddeath.infrastructure.plugin.couchbase.plugin.CouchbaseDaemonPlugin;
+import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 
 /**
  * Created by Christophe Jeunesse on 22/10/2015.

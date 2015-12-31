@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service;
+package com.dreameddeath.core.process.service.factory;
 
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
@@ -23,6 +23,10 @@ import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundExceptio
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.service.IJobProcessingService;
+import com.dreameddeath.core.process.service.ITaskProcessingService;
+import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -111,43 +115,43 @@ public class ProcessingServiceFactory {
     }
 
 
-    public <T extends AbstractJob> boolean init(JobContext ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass(ctxt.getJob().getClass()).init(ctxt);
+    public <T extends AbstractJob> boolean init(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
+        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).init(ctxt);
     }
 
-    public <T extends AbstractJob> boolean preprocess(JobContext ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass(ctxt.getJob().getClass()).preprocess(ctxt);
+    public <T extends AbstractJob> boolean preprocess(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
+        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).preprocess(ctxt);
     }
 
-    public <T extends AbstractJob> boolean postprocess(JobContext ctxt,T job) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass(job.getClass()).postprocess(ctxt);
+    public <T extends AbstractJob> boolean postprocess(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
+        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).postprocess(ctxt);
     }
 
-    public <T extends AbstractJob> boolean cleanup(JobContext ctxt,T job) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass(job.getClass()).cleanup(ctxt);
+    public <T extends AbstractJob> boolean cleanup(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
+        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).cleanup(ctxt);
     }
 
 
-    public <T extends AbstractTask> boolean init(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).init(ctxt);
+    public <TJOB extends AbstractJob,T extends AbstractTask> boolean init(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).init(ctxt);
     }
 
-    public <T extends AbstractTask> boolean preprocess(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).preprocess(ctxt);
+    public <TJOB extends AbstractJob,T extends AbstractTask> boolean preprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).preprocess(ctxt);
     }
 
-    public <T extends AbstractTask> boolean process(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).process(ctxt);
+    public <TJOB extends AbstractJob,T extends AbstractTask> boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).process(ctxt);
     }
 
-    public <T extends AbstractTask> boolean postprocess(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).postprocess(ctxt);
+    public <TJOB extends AbstractJob,T extends AbstractTask> boolean postprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).postprocess(ctxt);
     }
 
-    public <T extends AbstractTask> boolean finish(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).finish(ctxt);
+    public <TJOB extends AbstractJob,T extends AbstractTask> boolean finish(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).finish(ctxt);
     }
-    public <T extends AbstractTask> boolean cleanup(TaskContext ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return getTaskProcessingServiceForClass(ctxt.getTask().getClass()).cleanup(ctxt);
+    public <TJOB extends AbstractJob,T extends AbstractTask> boolean cleanup(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
+        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).cleanup(ctxt);
     }
 }

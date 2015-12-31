@@ -23,6 +23,7 @@ import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.model.ProcessState;
+import com.dreameddeath.core.process.service.context.TaskContext;
 
 
 /**

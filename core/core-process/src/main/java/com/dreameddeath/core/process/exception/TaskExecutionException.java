@@ -19,7 +19,7 @@ package com.dreameddeath.core.process.exception;
 
 import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.model.ProcessState.State;
-import com.dreameddeath.core.process.service.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.

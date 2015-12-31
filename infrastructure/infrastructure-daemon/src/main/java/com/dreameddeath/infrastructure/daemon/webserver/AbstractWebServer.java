@@ -125,6 +125,15 @@ public abstract class AbstractWebServer {
         return Collections.unmodifiableList(plugins);
     }
 
+    public <T extends AbstractWebServerPlugin> T getPlugin(Class<T> type){
+        for(AbstractWebServerPlugin plugin:plugins){
+            if(type.isAssignableFrom(plugin.getClass())){
+                return (T)plugin;
+            }
+        }
+        return null;
+    }
+
 
     public AbstractDaemon getParentDaemon() {
         return parentDaemon;

@@ -22,9 +22,9 @@
         <artifactId>infrastructure-plugin</artifactId>
         <version>0.1</version>
     </parent>
-    <artifactId>infrastructure-plugin-couchbase</artifactId>
+    <artifactId>infrastructure-plugin-process</artifactId>
     <packaging>jar</packaging>
-    <name>infrastructure-plugin-couchbase</name>
+    <name>infrastructure-plugin-process</name>
     <url>https://github.com/dreameddeath/couchbase-testing</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -37,12 +37,7 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-couchbase</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-dao</artifactId>
+            <artifactId>core-process</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -50,6 +45,17 @@
             <artifactId>core-couchbase-session</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>infrastructure-plugin-couchbase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-business</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-helper</artifactId>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.plugin.couchbase;
+package com.dreameddeath.infrastructure.plugin.couchbase.factory;
 
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;

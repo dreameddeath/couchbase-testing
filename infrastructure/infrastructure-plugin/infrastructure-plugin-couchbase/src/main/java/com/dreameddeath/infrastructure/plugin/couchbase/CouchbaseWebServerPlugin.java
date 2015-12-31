@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.plugin.couchbase.plugin;
+package com.dreameddeath.infrastructure.plugin.couchbase;
 
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
@@ -31,7 +31,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 public class CouchbaseWebServerPlugin extends AbstractWebServerPlugin {
     public static final String GLOBAL_COUCHBASE_DAO_FACTORY_PARAM_NAME = "couchbaseDaoFactory";
     public static final String GLOBAL_COUCHBASE_SESSION_FACTORY_PARAM_NAME = "couchbaseSessionFactory";
-
 
     private final CouchbaseDaemonPlugin parentDaemonPlugin;
     private final CouchbaseDocumentDaoFactory documentDaoFactory;

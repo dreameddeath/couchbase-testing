@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service;
+package com.dreameddeath.core.process.service.factory;
 
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.service.IJobExecutorService;
+import com.dreameddeath.core.process.service.ITaskExecutorService;
+import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.BasicJobExecutorServiceImpl;
 import com.dreameddeath.core.process.service.impl.BasicTaskExecutorServiceImpl;
 
@@ -38,8 +42,8 @@ public class ExecutorServiceFactory {
 
 
     public ExecutorServiceFactory(){
-        addJobExecutorServiceFor(AbstractJob.class, new BasicJobExecutorServiceImpl());
-        addTaskExecutorServiceFor(AbstractTask.class, new BasicTaskExecutorServiceImpl());
+        addJobExecutorServiceFor(AbstractJob.class, new BasicJobExecutorServiceImpl<>());
+        addTaskExecutorServiceFor(AbstractTask.class, new BasicTaskExecutorServiceImpl<>());
     }
 
 
@@ -47,7 +51,7 @@ public class ExecutorServiceFactory {
         taskExecutorServicesMap.put(entityClass, service);
     }
 
-    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T> getTaskExecutorServiceForClass(Class<T> entityClass) {
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T> getTaskExecutorServiceForClass(Class<T> entityClass) throws ExecutorServiceNotFoundException{
         ITaskExecutorService<TJOB,T> result = (ITaskExecutorService<TJOB,T>) taskExecutorServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
@@ -58,7 +62,9 @@ public class ExecutorServiceFactory {
                 }
             }
         }
-        ///TODO throw an error if null
+        if(result==null){
+            throw new ExecutorServiceNotFoundException("Cannot find execution class for job <"+entityClass.getName()+">");
+        }
         return result;
     }
 
@@ -81,7 +87,6 @@ public class ExecutorServiceFactory {
         if(result==null){
             throw new ExecutorServiceNotFoundException("Cannot find execution class for job <"+entityClass.getName()+">");
         }
-        ///TODO throw an error if null
         return result;
     }
 

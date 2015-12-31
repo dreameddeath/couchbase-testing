@@ -27,7 +27,7 @@ public class ImmutablePropertyTest extends TestCase {
         dummyDoc.getBaseMeta().setStateSync();
 
         //Init Property
-        ImmutableProperty<String> testStr = new ImmutableProperty<String>(dummyDoc);
+        ImmutableProperty<String> testStr = new ImmutableProperty<>(dummyDoc);
 
         //Check Set
         testStr.set("str");
