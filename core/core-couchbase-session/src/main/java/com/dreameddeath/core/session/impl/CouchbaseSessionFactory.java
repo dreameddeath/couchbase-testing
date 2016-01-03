@@ -20,6 +20,7 @@ import com.dreameddeath.core.dao.factory.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.factory.CouchbaseUniqueKeyDaoFactory;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.ValidatorFactory;
@@ -28,7 +29,7 @@ import com.dreameddeath.core.validation.ValidatorFactory;
 /**
  * Created by Christophe Jeunesse on 02/09/2014.
  */
-public class CouchbaseSessionFactory {
+public class CouchbaseSessionFactory implements ICouchbaseSessionFactory {
     private final CouchbaseDocumentDaoFactory documentDaoFactory;
     private final CouchbaseCounterDaoFactory counterDaoFactory;
     private final CouchbaseUniqueKeyDaoFactory uniqueKeyDaoFactory;
@@ -56,14 +57,12 @@ public class CouchbaseSessionFactory {
         return new CouchbaseSession(this,type,user,keyPrefix);
     }
 
-
-
-    public ICouchbaseSession newReadOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.READ_ONLY,user);}
-    public ICouchbaseSession newReadWriteSession(IUser user){return newSession(CouchbaseSession.SessionType.READ_WRITE,user);}
-    public ICouchbaseSession newCalcOnlySession(IUser user){return newSession(CouchbaseSession.SessionType.CALC_ONLY,user);}
-    public ICouchbaseSession newReadOnlySession(IUser user,String keyPrefix){return newSession(CouchbaseSession.SessionType.READ_ONLY,user,keyPrefix);}
-    public ICouchbaseSession newReadWriteSession(IUser user,String keyPrefix){return newSession(CouchbaseSession.SessionType.READ_WRITE,user,keyPrefix);}
-    public ICouchbaseSession newCalcOnlySession(IUser user,String keyPrefix){return newSession(CouchbaseSession.SessionType.CALC_ONLY,user,keyPrefix);}
+    public ICouchbaseSession newReadOnlySession(IUser user){return newSession(ICouchbaseSession.SessionType.READ_ONLY,user);}
+    public ICouchbaseSession newReadWriteSession(IUser user){return newSession(ICouchbaseSession.SessionType.READ_WRITE,user);}
+    public ICouchbaseSession newCalcOnlySession(IUser user){return newSession(ICouchbaseSession.SessionType.CALC_ONLY,user);}
+    public ICouchbaseSession newReadOnlySession(IUser user,String keyPrefix){return newSession(ICouchbaseSession.SessionType.READ_ONLY,user,keyPrefix);}
+    public ICouchbaseSession newReadWriteSession(IUser user,String keyPrefix){return newSession(ICouchbaseSession.SessionType.READ_WRITE,user,keyPrefix);}
+    public ICouchbaseSession newCalcOnlySession(IUser user,String keyPrefix){return newSession(ICouchbaseSession.SessionType.CALC_ONLY,user,keyPrefix);}
 
 
 

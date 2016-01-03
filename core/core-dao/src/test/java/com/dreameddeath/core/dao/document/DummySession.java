@@ -25,6 +25,7 @@ import com.dreameddeath.core.dao.model.view.IViewQueryResult;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.user.IUser;
 import org.joda.time.DateTime;
 import rx.Observable;
 
@@ -220,5 +221,15 @@ public class DummySession implements ICouchbaseSession {
     @Override
     public void reset() {
 
+    }
+
+    @Override
+    public SessionType getSessionType() {
+        return null;
+    }
+
+    @Override
+    public IUser getUser() {
+        return null;
     }
 }

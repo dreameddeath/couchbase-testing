@@ -85,7 +85,17 @@ public class KeyPattern {
             char value = keyRawPattern.charAt(pos);
             switch (parsingState){
                 case KEY:
-                    if(value=='{'){
+                    boolean needChangeState=false;
+                    if(value=='{') {
+                        int nextPos = pos + 1;
+                        if(nextPos<len){
+                            char nextChar = keyRawPattern.charAt(nextPos);
+                            if(!Character.isDigit(nextChar)){
+                                needChangeState=true;
+                            }
+                        }
+                    }
+                    if(needChangeState){
                         parsingState=ParsingState.PARAM;
                         currVariableParsingStack.setLength(0);
                     }

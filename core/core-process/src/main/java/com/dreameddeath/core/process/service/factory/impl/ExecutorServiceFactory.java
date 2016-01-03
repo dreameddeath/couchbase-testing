@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service.factory;
+package com.dreameddeath.core.process.service.factory.impl;
 
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
@@ -25,6 +25,7 @@ import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
 import com.dreameddeath.core.process.service.impl.BasicJobExecutorServiceImpl;
 import com.dreameddeath.core.process.service.impl.BasicTaskExecutorServiceImpl;
 
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-public class ExecutorServiceFactory {
+public class ExecutorServiceFactory implements IExecutorServiceFactory {
     private Map<Class<? extends AbstractJob>, IJobExecutorService<?>> jobExecutorServicesMap
             = new ConcurrentHashMap<>();
     private Map<Class<? extends AbstractTask>, ITaskExecutorService<?,?>> taskExecutorServicesMap

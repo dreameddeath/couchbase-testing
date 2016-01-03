@@ -30,7 +30,7 @@ import java.util.UUID;
  */
 public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractTask {
     @DocumentProperty("subJobId")
-    private Property<UUID> subJobId =new StandardProperty<UUID>(SubJobProcessTask.this);
+    private Property<UUID> subJobId =new StandardProperty<>(SubJobProcessTask.this);
 
     public UUID getSubJobId(){ return subJobId.get(); }
     public void setSubJobId(UUID subJobId){this.subJobId.set(subJobId);}

@@ -96,6 +96,11 @@ public class CouchbaseSession implements ICouchbaseSession {
         return keyPrefix;
     }
 
+    @Override
+    public SessionType getSessionType() {
+        return sessionType;
+    }
+
     public boolean isCalcOnly(){
         return sessionType== SessionType.CALC_ONLY;
     }
@@ -208,6 +213,11 @@ public class CouchbaseSession implements ICouchbaseSession {
             ///TODO log something
             return null;
         }
+    }
+
+    @Override
+    public IUser getUser() {
+        return user;
     }
 
     @Override
@@ -431,12 +441,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public DateTime getCurrentDate() {
         return null;
-    }
-
-    public enum SessionType{
-        READ_ONLY,
-        CALC_ONLY,
-        READ_WRITE
     }
 
     public IDateTimeService getDateTimeService(){ return dateTimeService; }

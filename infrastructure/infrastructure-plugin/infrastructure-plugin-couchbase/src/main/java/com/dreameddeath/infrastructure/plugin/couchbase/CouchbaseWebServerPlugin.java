@@ -72,7 +72,6 @@ public class CouchbaseWebServerPlugin extends AbstractWebServerPlugin {
     }
 
     public static class Builder implements IWebServerPluginBuilder<CouchbaseWebServerPlugin>{
-
         @Override
         public CouchbaseWebServerPlugin build(AbstractWebServer parent) {
             return new CouchbaseWebServerPlugin(parent,this);

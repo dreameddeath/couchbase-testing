@@ -20,9 +20,10 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
 import com.dreameddeath.core.process.model.ProcessState;
-import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.process.service.factory.ExecutorServiceFactory;
-import com.dreameddeath.core.process.service.factory.ProcessingServiceFactory;
+import com.dreameddeath.core.process.service.IJobExecutorClient;
+import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
+import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
+import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
 import com.dreameddeath.party.dao.base.PartyDao;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.Person;
@@ -37,9 +38,7 @@ import static org.junit.Assert.assertEquals;
 public class CreatePartyJobProcessingServiceTest {
     //private final static CouchbaseSessionFactory _sessionFactory ;
     private Utils.TestEnvironment testEnvironment;
-    private ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
-    private ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
-
+    private ExecutorClientFactory executorClientFactory;
     @Before
     public void setup() throws Exception{
         testEnvironment = new Utils.TestEnvironment("PartyTest", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
@@ -47,19 +46,26 @@ public class CreatePartyJobProcessingServiceTest {
         testEnvironment.addDocumentDao(new JobDao());
         testEnvironment.addDocumentDao(new TaskDao());
         testEnvironment.start();
+        ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
+        ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
         processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
+        executorClientFactory = new ExecutorClientFactory(testEnvironment.getSessionFactory(),execFactory,processFactory);
     }
 
     @Test
     public void JobTest() throws Exception{
         ICouchbaseSession session = testEnvironment.getSessionFactory().newReadWriteSession(null);
+
         CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
         createPartyJob.type = CreatePartyJob.Type.person;
         createPartyJob.person = new CreatePartyJob.Person();
         createPartyJob.person.firstName = "christophe";
         createPartyJob.person.lastName = "jeunesse";
 
-        execFactory.execute(JobContext.newContext(session, execFactory, processFactory, createPartyJob));
+        IJobExecutorClient<CreatePartyJob> executorClient = executorClientFactory.buildJobClient(CreatePartyJob.class);
+        executorClient.executeJob(createPartyJob,null);
+
+        //execFactory.execute(JobContext.newContext(session, execFactory, processFactory, createPartyJob));
         ICouchbaseSession controlSession = testEnvironment.getSessionFactory().newReadOnlySession(null);
         CreatePartyJob inDbJob = controlSession.get(createPartyJob.getBaseMeta().getKey(),CreatePartyJob.class);
         assertEquals(inDbJob.getStateInfo().getState(), ProcessState.State.DONE);

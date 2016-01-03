@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service.factory;
+package com.dreameddeath.core.process.service.factory.impl;
 
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
@@ -27,6 +27,7 @@ import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-public class ProcessingServiceFactory {
+public class ProcessingServiceFactory implements IProcessingServiceFactory {
     private Map<Class<? extends AbstractJob>, IJobProcessingService<?>> jobProcessingServicesMap
             = new ConcurrentHashMap<>();
     private Map<Class<? extends AbstractTask>, ITaskProcessingService<?,?>> taskProcessingServicesMap
@@ -94,8 +95,6 @@ public class ProcessingServiceFactory {
         }
         return result;
     }
-
-
 
     public <T extends AbstractJob> IJobProcessingService<T> getJobProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException{
         IJobProcessingService<T> result = (IJobProcessingService<T>) jobProcessingServicesMap.get(entityClass);

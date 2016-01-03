@@ -21,16 +21,13 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
-import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
-import com.dreameddeath.core.process.service.factory.ExecutorServiceFactory;
-import com.dreameddeath.core.process.service.factory.ProcessingServiceFactory;
+import com.dreameddeath.core.user.IUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,32 +47,14 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
         this.jobContext = taskCtxtBuilder.jobContext;
         this.task = taskCtxtBuilder.task;
         this.jobContext.addTask(this);
-        if(taskCtxtBuilder.executorService==null){
-            try {
-                taskCtxtBuilder.executorService = jobContext.getExecutorFactory().getTaskExecutorServiceForClass((Class<T>) this.task.getClass());
-            }
-            catch(ExecutorServiceNotFoundException e){
-                throw new RuntimeException(e);
-            }
-        }
         this.taskExecutorService = taskCtxtBuilder.executorService;
-
-        if(taskCtxtBuilder.processingService==null){
-            try {
-                taskCtxtBuilder.processingService = jobContext.getProcessingFactory().getTaskProcessingServiceForClass((Class<T>) this.task.getClass());
-            }
-            catch(ProcessingServiceNotFoundException e){
-                throw new RuntimeException(e);
-            }
-        }
         this.taskProcessingService = taskCtxtBuilder.processingService;
         updateIsTaskSaved();
     }
 
     public JobContext<TJOB> getJobContext(){return jobContext;}
     public ICouchbaseSession getSession(){return jobContext.getSession();}
-    public ExecutorServiceFactory getExecutorFactory(){return jobContext.getExecutorFactory();}
-    public ProcessingServiceFactory getProcessingFactory(){return jobContext.getProcessingFactory();}
+    public IUser getUser() {return jobContext.getUser(); }
     public T getTask() {
         return task;
     }
@@ -154,7 +133,6 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
                 return fromParent;
             }
         }
-
         return null;
     }
 
@@ -166,11 +144,12 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
         return null;
     }
 
-
     public static <TJOB extends AbstractJob,TTASK extends AbstractTask> TaskContext<TJOB,TTASK> newContext(JobContext<TJOB> ctxt,TTASK task){
-        return new TaskContext<>(
-                new Builder<>(ctxt, task)
-        );
+        return ctxt.getClientFactory().buildTaskClient((Class<TJOB>)ctxt.getJob().getClass(),(Class<TTASK>)task.getClass()).buildTaskContext(ctxt,task);
+    }
+
+    public static <TJOB extends AbstractJob,TTASK extends AbstractTask> Builder<TJOB,TTASK> builder(JobContext<TJOB> jobCtxt,TTASK task){
+        return new Builder<>(jobCtxt,task);
     }
 
     public static class Builder<TJOB extends AbstractJob,T extends AbstractTask>{
@@ -184,14 +163,18 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
             this.task=task;
         }
 
-        public Builder withExecutorService(ITaskExecutorService<TJOB, T> executorService) {
+        public Builder<TJOB,T> withExecutorService(ITaskExecutorService<TJOB, T> executorService) {
             this.executorService = executorService;
             return this;
         }
 
-        public Builder withProcessingService(ITaskProcessingService<TJOB, T> processingService) {
+        public Builder<TJOB,T> withProcessingService(ITaskProcessingService<TJOB, T> processingService) {
             this.processingService = processingService;
             return this;
+        }
+
+        public TaskContext<TJOB,T> build(){
+            return new TaskContext<>(this);
         }
     }
 

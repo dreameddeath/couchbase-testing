@@ -146,6 +146,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         deleteContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"DELETE\"", registry);
         deltaContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"DELTA\"", registry);
         counterContext = new CouchbaseMetricsContext("CouchbaseWrapper=\""+bucketName+"\" Operation=\"COUNTER\"", registry);
+        //TODO manage views
         buildTranscoders(bucketName);
     }
 

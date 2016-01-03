@@ -40,7 +40,7 @@ public class CouchbaseDocumentWithKeyPatternDaoTest {
     public static class TestWithKeyPattern extends CouchbaseDocumentWithKeyPatternDao<TestDoc>{
         @Override
         protected String getKeyRawPattern() {
-            return "test/{ tutu : \\w+ }/sub/{ toto : [^/]{1,} }/sub2/{titi}";
+            return "test/{ tutu : \\w+ }/sub/{ toto : [^/]{1,} }/sub2/{titi}/subStd/\\d{2}";
         }
 
         @Override
@@ -82,16 +82,16 @@ public class CouchbaseDocumentWithKeyPatternDaoTest {
         TestWithKeyPattern dao =new TestWithKeyPattern();
         dao.init();
         Pattern pattern =dao.getKeyPattern().getKeyPattern();
-        assertTrue(pattern.matcher("test/a2ezee/sub/e-2-azfbb/sub2/test").matches());
-        assertFalse(pattern.matcher("test/a2e!zee/sub/e-2-azfbb/sub2/test").matches());
-        Map<String,String> matchingExtractionResult = dao.getKeyPattern().extractParamsFromKey("test/a2ezee/sub/e-2-azfbb/sub2/test");
+        assertTrue(pattern.matcher("test/a2ezee/sub/e-2-azfbb/sub2/test/subStd/22").matches());
+        assertFalse(pattern.matcher("test/a2e!zee/sub/e-2-azfbb/sub2/test/subStd/22").matches());
+        Map<String,String> matchingExtractionResult = dao.getKeyPattern().extractParamsFromKey("test/a2ezee/sub/e-2-azfbb/sub2/test/subStd/22");
         assertEquals(3,matchingExtractionResult.size());
         assertEquals("a2ezee",matchingExtractionResult.get("tutu"));
         assertEquals("e-2-azfbb",matchingExtractionResult.get("toto"));
         assertEquals("test",matchingExtractionResult.get("titi"));
 
         TestDoc test=new TestDoc();
-        test = dao.unitTestParamExtract(test,"test/a2ezee/sub/e-2-azfbb/sub2/test");
+        test = dao.unitTestParamExtract(test,"test/a2ezee/sub/e-2-azfbb/sub2/test/subStd/22");
         assertEquals("a2ezee",test.tutu);
         assertEquals("e-2-azfbb",test.toto);
         assertEquals("test",test.titi);

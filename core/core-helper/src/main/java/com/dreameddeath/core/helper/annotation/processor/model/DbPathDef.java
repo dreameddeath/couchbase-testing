@@ -39,14 +39,18 @@ public class DbPathDef {
     private String basePath;
     private String idFormat;
     private String idPattern;
+    private String dbName;
     private String formatPrefix = "";
     private String patternPrefix = "";
     private KeyPattern keyPattern;
     private List<FormatType> formatTypes = new ArrayList<>();
 
     public DbPathDef(CouchbaseDocumentReflection docReflection) {
+        EntityDef entityDef =new EntityDef(docReflection);
+        dbName = entityDef.getDbName();
         DaoEntity annot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);
         basePath = annot.dbPath();
+
         idFormat = annot.idFormat();
         idPattern = annot.idPattern();
 
@@ -87,7 +91,7 @@ public class DbPathDef {
 
 
     public String getFullPattern() {
-        return patternPrefix + basePath + idPattern;
+        return patternPrefix + basePath + "{"+dbName+"Uid :"+ idPattern+"}";
     }
 
     public String getFullFormat() {
@@ -123,7 +127,6 @@ public class DbPathDef {
     }
 
     public enum FormatType{
-
         LONG(true,"NumberUtils.asLong"),
         FLOAT(true,"NumberUtils.asFloat"),
         STRING(false,null),
@@ -133,7 +136,7 @@ public class DbPathDef {
         private final String formatter;
         private final boolean needFormat;
 
-        private FormatType(boolean needFormat,String formatter){
+        FormatType(boolean needFormat,String formatter){
             this.needFormat=needFormat;
             this.formatter = formatter;
         }
@@ -145,5 +148,5 @@ public class DbPathDef {
         public boolean needFormat() {
             return needFormat;
         }
-    };
+    }
 }

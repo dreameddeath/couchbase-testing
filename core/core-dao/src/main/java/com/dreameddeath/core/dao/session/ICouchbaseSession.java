@@ -25,6 +25,7 @@ import com.dreameddeath.core.dao.model.view.IViewQueryResult;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.user.IUser;
 import org.joda.time.DateTime;
 import rx.Observable;
 
@@ -82,9 +83,17 @@ public interface ICouchbaseSession {
 
     String getKeyPrefix();
 
+    SessionType getSessionType();
+    IUser getUser();
     <TKEY,TVALUE,T extends CouchbaseDocument> IViewQuery<TKEY,TVALUE,T> initViewQuery(Class<T> forClass, String viewName) throws DaoException;
     <TKEY,TVALUE,T extends CouchbaseDocument> IViewQueryResult<TKEY,TVALUE,T> executeQuery(IViewQuery<TKEY, TVALUE, T> query) throws DaoException,StorageException;
     <TKEY,TVALUE,T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY,TVALUE,T>> executeAsyncQuery(IViewQuery<TKEY, TVALUE, T> query) throws DaoException,StorageException;
 
     void reset(); //Clean cache
+
+    enum SessionType{
+        READ_ONLY,
+        CALC_ONLY,
+        READ_WRITE
+    }
 }

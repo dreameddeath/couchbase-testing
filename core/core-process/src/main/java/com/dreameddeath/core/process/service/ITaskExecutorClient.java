@@ -16,14 +16,18 @@
 
 package com.dreameddeath.core.process.service;
 
-import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.user.IUser;
 
 /**
- * Created by Christophe Jeunesse on 31/12/2015.
+ * Created by Christophe Jeunesse on 03/01/2016.
  */
-public interface IJobExecutorClient<T extends AbstractJob> {
-    JobContext<T> executeJob(T job, IUser user) throws JobExecutionException;
+public interface ITaskExecutorClient<TJOB extends AbstractJob,TTASK extends AbstractTask> {
+    TTASK executeTask(JobContext<TJOB> parentContext,TTASK task) throws TaskExecutionException;
+    TTASK executeTask(TJOB parentJob,TTASK task, IUser user) throws TaskExecutionException;
+    TaskContext<TJOB,TTASK> buildTaskContext(JobContext<TJOB> jobContext,TTASK task);
 }

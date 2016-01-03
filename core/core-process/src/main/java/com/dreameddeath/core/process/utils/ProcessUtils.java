@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service;
+package com.dreameddeath.core.process.utils;
 
-import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.user.IUser;
+import com.dreameddeath.core.process.model.AbstractTask;
 
 /**
- * Created by Christophe Jeunesse on 31/12/2015.
+ * Created by Christophe Jeunesse on 03/01/2016.
  */
-public interface IJobExecutorClient<T extends AbstractJob> {
-    JobContext<T> executeJob(T job, IUser user) throws JobExecutionException;
+public class ProcessUtils {
+
+    public static <TTASK extends AbstractTask>  TTASK loadTask(ICouchbaseSession session, AbstractJob job, int taskId,Class<TTASK> taskClass) throws DaoException,StorageException{
+        return session.getFromKeyParams(taskClass,job.getUid(),taskId);
+    }
 }

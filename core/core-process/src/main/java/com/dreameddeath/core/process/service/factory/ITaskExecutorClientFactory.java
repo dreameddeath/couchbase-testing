@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service;
-
-import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.user.IUser;
+package com.dreameddeath.core.process.service.factory;
 
 /**
- * Created by Christophe Jeunesse on 31/12/2015.
+ * Created by Christophe Jeunesse on 03/01/2016.
  */
-public interface IJobExecutorClient<T extends AbstractJob> {
-    JobContext<T> executeJob(T job, IUser user) throws JobExecutionException;
+public class ITaskExecutorClientFactory {
 }

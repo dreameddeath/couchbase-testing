@@ -209,9 +209,13 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         }
     }
 
-    public CouchbaseDocumentWithKeyPatternDao getDaoForKey(String key) throws DaoNotFoundException {
+    public CouchbaseDocumentDao getDaoForKey(String key) throws DaoNotFoundException {
         try {
-            return documentInfoMapper.getMappingFromKey(key).classMappingInfo().getAttachedObject(CouchbaseDocumentWithKeyPatternDao.class);
+            CouchbaseDocumentDao dao = documentInfoMapper.getMappingFromKey(key).classMappingInfo().getAttachedObject(CouchbaseDocumentDao.class);
+            if(dao==null){
+                throw new DaoNotFoundException(key,DaoNotFoundException.Type.DOC);
+            }
+            return dao;
         }
         catch(MappingNotFoundException e){
             throw new DaoNotFoundException(key, DaoNotFoundException.Type.DOC);

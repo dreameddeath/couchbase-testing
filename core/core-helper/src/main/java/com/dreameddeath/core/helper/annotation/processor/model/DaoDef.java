@@ -44,7 +44,6 @@ public class DaoDef {
     private boolean generateRestLayer;
 
     public DaoDef(CouchbaseDocumentReflection docReflection) {
-
         simpleName = docReflection.getSimpleName().replaceAll("\\$", "") + "Dao";
         packageName = docReflection.getClassInfo().getPackageInfo().getName().replaceAll("\\bmodel\\b", "dao");
         DaoEntity daoEntityAnnot = docReflection.getClassInfo().getAnnotation(DaoEntity.class);

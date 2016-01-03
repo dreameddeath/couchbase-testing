@@ -16,7 +16,9 @@
 
 package com.dreameddeath.core.process.service.impl;
 
+import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
@@ -25,21 +27,26 @@ import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.process.service.factory.ExecutorServiceFactory;
-import com.dreameddeath.core.process.service.factory.ProcessingServiceFactory;
+import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
+import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
+import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
+import com.dreameddeath.core.user.IUser;
 
 /**
  * Created by Christophe Jeunesse on 31/12/2015.
  */
 public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecutorClient<T> {
-    private final ICouchbaseSession session;
-    private final ExecutorServiceFactory executorServiceFactory;
-    private final ProcessingServiceFactory processingServiceFactory;
+    private final ExecutorClientFactory parentClientFactory;
+    private final ICouchbaseSessionFactory sessionFactory;
+    private final IExecutorServiceFactory executorServiceFactory;
+    private final IProcessingServiceFactory processingServiceFactory;
     private final IJobExecutorService<T> executorService;
     private final IJobProcessingService<T> processingService;
+    private final MetricRegistry metricRegistry;
 
-    public BasicJobExecutorClient(Class<T> jobClass,ICouchbaseSession session,ExecutorServiceFactory executorServiceFactory,ProcessingServiceFactory processingServiceFactory){
-        this.session =session;
+    public BasicJobExecutorClient(Class<T> jobClass, ExecutorClientFactory clientFactory,ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
+        this.parentClientFactory = clientFactory;
+        this.sessionFactory =sessionFactory;
         this.executorServiceFactory =executorServiceFactory;
         this.processingServiceFactory = processingServiceFactory;
         try {
@@ -49,18 +56,18 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
         catch(ExecutorServiceNotFoundException|ProcessingServiceNotFoundException e){
             throw new RuntimeException(e);
         }
+        this.metricRegistry = registry;
     }
 
     @Override
-    public T executeJob(T job) throws JobExecutionException {
+    public JobContext<T> executeJob(T job, IUser user) throws JobExecutionException {
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(session)
-                .withExecutorFactory(executorServiceFactory)
-                .withProcessingFactory(processingServiceFactory)
+                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
+                .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
         );
         ctxt.execute();
-        return job;
+        return ctxt;
     }
 }

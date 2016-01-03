@@ -25,8 +25,8 @@ import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.model.ProcessState.State;
 import com.dreameddeath.core.process.model.SubJobProcessTask;
+import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
-import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
 
 /**
@@ -74,9 +74,10 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                     boolean saveAsked;
                     if(task instanceof SubJobProcessTask){
                         SubJobProcessTask subJobTask = (SubJobProcessTask)task;
-                        JobContext subJobContext = JobContext.newContext(ctxt.getJobContext(),subJobTask.getSubJobId().toString());
-                        if (!subJobContext.getJobState().isDone()) {
-                            subJobContext.execute();
+                        AbstractJob subJob = subJobTask.getJob(ctxt.getSession());
+                        if(!subJob.getStateInfo().isDone()){
+                            IJobExecutorClient subJobClient = ctxt.getJobContext().getClientFactory().buildJobClient(subJob.getClass());
+                            subJobClient.executeJob(subJob,ctxt.getUser());
                         }
                         saveAsked=true;
                     }
