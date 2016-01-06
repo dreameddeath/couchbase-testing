@@ -22,7 +22,6 @@ import com.dreameddeath.core.java.utils.StringUtils;
  * Created by Christophe Jeunesse on 23/10/2015.
  */
 public class StandardMockUserFactory implements IUserFactory {
-
     @Override
     public IUser fromToken(String token) {
         if(StringUtils.isEmpty(token)){
@@ -31,5 +30,10 @@ public class StandardMockUserFactory implements IUserFactory {
         else {
             return AuthorizeAllUser.INSTANCE;
         }
+    }
+
+    @Override
+    public IUser defaultUser() {
+        return AnonymousUser.INSTANCE;
     }
 }

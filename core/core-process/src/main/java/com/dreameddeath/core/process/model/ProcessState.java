@@ -47,6 +47,7 @@ public class ProcessState extends CouchbaseDocumentElement {
     public enum State{
         UNKNOWN,
         NEW,
+        ASYNC_NEW,
         INITIALIZED, //Init done
         PREPROCESSED,
         PROCESSED, //Processing Done

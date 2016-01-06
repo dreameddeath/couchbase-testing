@@ -17,8 +17,9 @@
 package com.dreameddeath.core.service.testing;
 
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
+import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
+import com.dreameddeath.core.service.context.provider.UserContextProvider;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
@@ -27,6 +28,8 @@ import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
+import com.dreameddeath.core.user.IUserFactory;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.curator.framework.CuratorFramework;
@@ -107,58 +110,32 @@ public class TestSpringConfig implements ServletContextAware {
     }
 
     @Bean(name="globalContextTranscoder")
-    public IGlobalContextTranscoder getContextTranscoder(){
-        return new IGlobalContextTranscoder() {
-            @Override
-            public String encode(IGlobalContext ctxt) {
-                return "";
-            }
-
-            @Override
-            public IGlobalContext decode(String encodedContext) {
-                return null;
-            }
-        };
+    public IGlobalContextFactory getContextTranscoder(){
+        return new DummyContextFactory();
     }
+
+    @Bean(name="userFactory")
+    public IUserFactory getUserFactory(){
+        return new StandardMockUserFactory();
+    }
+
 
     @Bean(name="endPointDescription")
     public IRestEndPointDescription getEndPointDescr(){
         return (IRestEndPointDescription)servletContext.getAttribute("endPointInfo");
-        /*return new IRestEndPointDescription() {
-            private final UUID daemon = UUID.randomUUID();
-            private final UUID server = UUID.randomUUID();
-
-            @Override
-            public String daemonUid() {
-                return daemon.toString();
-            }
-
-            @Override
-            public String webserverUid() {
-                return server.toString();
-            }
-
-            @Override
-            public int port() {
-                return endPointDescr.port();
-            }
-
-            @Override
-            public String path() {
-                return (endPointDescr.path() + TestSpringConfig.JAXRS_PATH).replaceAll("//{2,}", "/");
-            }
-
-            @Override
-            public String host() {
-                return endPointDescr.host();
-            }
-
-            @Override
-            public String buildInstanceUid() {
-                return UUID.randomUUID().toString();
-            }
-        };*/
     }
+
+    @Bean(name="globalContextProvider")
+    public GlobalContextProvider globalContextProvider(){
+        return new GlobalContextProvider();
+    }
+
+    @Bean(name="userContextProvider")
+    public UserContextProvider userContextProvider(){
+        return new UserContextProvider();
+    }
+
+
 
     @Bean(name="testingJaxRsServer")
     public Server buildJaxRsServer() {
@@ -169,7 +146,11 @@ public class TestSpringConfig implements ServletContextAware {
         if(mapper==null){
             mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR);
         }
-        factory.setProviders(Arrays.asList(new JacksonJsonProvider(mapper)));
+        factory.setProviders(Arrays.asList(
+                new JacksonJsonProvider(mapper),
+                ctxt.getBeanFactory().getBean("userContextProvider"),
+                ctxt.getBeanFactory().getBean("globalContextProvider")
+        ));
 
         Map<String,Object> beanObjMap = (Map<String,Object>)servletContext.getAttribute("beanObjMap");
         for(Map.Entry<String,Object> beanObjEntry:beanObjMap.entrySet()){

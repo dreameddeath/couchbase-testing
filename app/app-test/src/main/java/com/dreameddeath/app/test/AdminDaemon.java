@@ -19,6 +19,8 @@ package com.dreameddeath.app.test;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.AuthorizeAllUser;
+import com.dreameddeath.core.user.IUser;
+import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
@@ -31,12 +33,15 @@ public class AdminDaemon extends AbstractDaemon {
     public AdminDaemon(){
         super(AdminDaemon.builder()
                 .withName("AdminDaemon")
-                .withUserFactory(token -> {
-                    if(StringUtils.isEmpty(token)){
-                        return AnonymousUser.INSTANCE;
+                .withUserFactory(new IUserFactory() {
+                    @Override
+                    public IUser fromToken(String token) {
+                        return StringUtils.isEmpty(token)?AnonymousUser.INSTANCE:AuthorizeAllUser.INSTANCE;
                     }
-                    else {
-                        return AuthorizeAllUser.INSTANCE;
+
+                    @Override
+                    public IUser defaultUser() {
+                        return AnonymousUser.INSTANCE;
                     }
                 })
 

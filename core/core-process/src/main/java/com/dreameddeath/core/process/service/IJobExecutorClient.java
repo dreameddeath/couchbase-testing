@@ -26,4 +26,6 @@ import com.dreameddeath.core.user.IUser;
  */
 public interface IJobExecutorClient<T extends AbstractJob> {
     JobContext<T> executeJob(T job, IUser user) throws JobExecutionException;
+    JobContext<T> submitJob(T job, IUser user) throws JobExecutionException;
+    JobContext<T> resumeJob(T job, IUser user) throws JobExecutionException;
 }

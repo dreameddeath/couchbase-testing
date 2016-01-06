@@ -19,28 +19,24 @@ package com.dreameddeath.core.business.model;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
-import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.SetProperty;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
-import com.dreameddeath.core.process.exception.DuplicateAttachedTaskException;
-import com.dreameddeath.core.process.model.AbstractTask;
-import com.dreameddeath.core.process.model.CouchbaseDocumentAttachedTaskRef;
-import com.dreameddeath.core.process.model.IDocumentWithLinkedTasks;
+import com.dreameddeath.core.process.model.AbstractProcessCouchbaseDocument;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
-public abstract class BusinessDocument extends CouchbaseDocument implements IHasUniqueKeysRef,IVersionedEntity,IDocumentWithLinkedTasks{
+public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument implements IHasUniqueKeysRef,IVersionedEntity{
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
@@ -55,8 +51,6 @@ public abstract class BusinessDocument extends CouchbaseDocument implements IHas
         return fullEntityId;
     }
 
-    @DocumentProperty("attachedTasks")
-    private ListProperty<CouchbaseDocumentAttachedTaskRef> attachedTasks = new ArrayListProperty<CouchbaseDocumentAttachedTaskRef>(BusinessDocument.this);
     @DocumentProperty("docRevision")
     private Long revision = 0L;
     @DocumentProperty("docLastModDate")
@@ -100,54 +94,6 @@ public abstract class BusinessDocument extends CouchbaseDocument implements IHas
         Set<String> removed=new HashSet<String>(inDbUniqKeys);
         removed.removeAll(docUniqKeys.get());
         return removed;
-    }
-
-    public List<CouchbaseDocumentAttachedTaskRef> getAttachedTasks(){return attachedTasks.get();}
-    public void setAttachedTasks(Collection<CouchbaseDocumentAttachedTaskRef> tasks){
-        attachedTasks.set(tasks);
-    }
-
-    public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, Integer taskId){
-        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks) {
-            if (jobKey.equals(taskRef.getJobUid()) && (taskId.equals(taskRef.getTaskId()))) {
-                return taskRef;
-            }
-        }
-        return null;
-    }
-
-    public void addAttachedTaskRef(CouchbaseDocumentAttachedTaskRef task)throws DuplicateAttachedTaskException{
-        if(getAttachedTaskRef(task.getJobUid(), task.getTaskId())!=null){
-            throw new DuplicateAttachedTaskException(this,task.getJobUid().toString(),task.getTaskId());
-        }
-        attachedTasks.add(task);
-    }
-
-    public CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(AbstractTask task){
-        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks){
-            if(taskRef.isForTask(task)){
-                return taskRef;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Detach the task from the document as it has been processed
-     *
-     * @param task the task to be detached
-     */
-    public void cleanupAttachedTaskRef(AbstractTask task){
-        CouchbaseDocumentAttachedTaskRef result=null;
-        for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks){
-            if(taskRef.isForTask(task)) {
-                result = taskRef;
-                break;
-            }
-        }
-        if(result!=null){
-            attachedTasks.remove(result);
-        }
     }
 
 

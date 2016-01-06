@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.service.context;
+package com.dreameddeath.couchbase.core.process.rest.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by Christophe Jeunesse on 17/03/2015.
+ * Created by Christophe Jeunesse on 03/01/2016.
  */
-public interface IGlobalContextTranscoder {
-    String encode(IGlobalContext ctxt);
-    IGlobalContext decode(String encodedContext);
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Request {
+    String value() default "";
 }

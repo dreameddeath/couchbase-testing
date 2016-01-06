@@ -20,6 +20,7 @@ import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
+import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -30,18 +31,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
     public static final String GLOBAL_EXECUTOR_FACTORY_PARAM_NAME = "executorServiceFactory";
     public static final String GLOBAL_PROCESSING_FACTORY_PARAM_NAME = "processingServiceFactory";
-    public static final String GLOBAL_JOB_EXECUTOR_CLIENT_FACTORY_PARAM_NAME = "jobExecutorClientFactory";
+        public static final String GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME = "executorClientFactory";
 
     private ExecutorClientFactory executorClientFactory;
     private ExecutorServiceFactory executorServiceFactory;
     private ProcessingServiceFactory processingServiceFactory;
 
-    public ProcessesWebServerPlugin(AbstractWebServer server) {
+    public ProcessesWebServerPlugin(AbstractWebServer server,Builder builder) {
         super(server);
-        CouchbaseWebServerPlugin plugin = server.getPlugin(CouchbaseWebServerPlugin.class);
+        CouchbaseWebServerPlugin couchbasePlugin = server.getPlugin(CouchbaseWebServerPlugin.class);
         executorServiceFactory = new ExecutorServiceFactory();
         processingServiceFactory = new ProcessingServiceFactory();
-        executorClientFactory = new ExecutorClientFactory(plugin.getSessionFactory(),executorServiceFactory,processingServiceFactory,server.getMetricRegistry());
+        executorClientFactory = new ExecutorClientFactory(couchbasePlugin.getSessionFactory(),executorServiceFactory,processingServiceFactory,server.getMetricRegistry());
     }
 
 
@@ -50,6 +51,19 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
         super.enrich(handler);
         handler.setAttribute(GLOBAL_EXECUTOR_FACTORY_PARAM_NAME,executorServiceFactory);
         handler.setAttribute(GLOBAL_PROCESSING_FACTORY_PARAM_NAME,processingServiceFactory);
-        handler.setAttribute(GLOBAL_JOB_EXECUTOR_CLIENT_FACTORY_PARAM_NAME, executorClientFactory);
+        handler.setAttribute(GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME, executorClientFactory);
     }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder implements IWebServerPluginBuilder<ProcessesWebServerPlugin> {
+        @Override
+        public ProcessesWebServerPlugin build(AbstractWebServer parent) {
+            return new ProcessesWebServerPlugin(parent,this);
+        }
+    }
+
+
 }

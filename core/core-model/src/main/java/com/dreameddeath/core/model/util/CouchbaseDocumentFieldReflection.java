@@ -20,6 +20,7 @@ import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.MemberInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 
 import java.util.Collection;
@@ -54,7 +55,7 @@ public class CouchbaseDocumentFieldReflection {
                 result=field.getDeclaringClassInfo().getDeclaredMethod(getter);
             }
             else {
-                String name = nameBuilder(prop.value(),"get");
+                String name = nameBuilder(this.name,"get");
                 result= field.getDeclaringClassInfo().getDeclaredMethod(name);
             }
         }
@@ -76,7 +77,7 @@ public class CouchbaseDocumentFieldReflection {
                 result = field.getDeclaringClassInfo().getDeclaredMethod(setter, effectiveType);
             }
             else {
-                String name = nameBuilder(prop.value(), "set");
+                String name = nameBuilder(this.name, "set");
                 result= field.getDeclaringClassInfo().getDeclaredMethod(name,effectiveType);
             }
         }
@@ -90,6 +91,9 @@ public class CouchbaseDocumentFieldReflection {
 
     public CouchbaseDocumentFieldReflection(FieldInfo fieldInfo) {
         name = fieldInfo.getAnnotation(DocumentProperty.class).value();
+        if(StringUtils.isEmpty(name)){
+            name = fieldInfo.getName();
+        }
         field = fieldInfo;
         getter = fieldGetterFinder();
         if(getter==null){

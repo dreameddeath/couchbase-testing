@@ -30,4 +30,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JobProcessingForClass {
     Class<? extends AbstractJob> value();
+    String version() default "1.0.0";
 }

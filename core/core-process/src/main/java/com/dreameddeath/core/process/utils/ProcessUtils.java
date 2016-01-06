@@ -21,11 +21,21 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.model.AbstractJob;
 import com.dreameddeath.core.process.model.AbstractTask;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
  */
 public class ProcessUtils {
+
+    public static <TJOB extends AbstractJob> Observable<TJOB> asyncLoadJob(ICouchbaseSession session, String uid, Class<TJOB> jobClass) throws StorageException,DaoException{
+        return session.asyncGetFromKeyParams(jobClass,uid);
+    }
+
+
+    public static <TJOB extends AbstractJob>  TJOB loadJob(ICouchbaseSession session,String uid, Class<TJOB> jobClass) throws DaoException,StorageException{
+        return session.getFromKeyParams(jobClass,uid);
+    }
 
     public static <TTASK extends AbstractTask>  TTASK loadTask(ICouchbaseSession session, AbstractJob job, int taskId,Class<TTASK> taskClass) throws DaoException,StorageException{
         return session.getFromKeyParams(taskClass,job.getUid(),taskId);

@@ -111,6 +111,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-user</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-jaxrs</artifactId>
             <version>${swagger.jaxrs.version}</version>
@@ -148,17 +153,16 @@
             <artifactId>javax.ws.rs-api</artifactId>
             <version>${jaxrs.api.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+            <version>${apache.cxf.jaxrs.version}</version>
+        </dependency>
         <!--
         *
         * Unit / Integration Testing
         *
         *-->
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${apache.cxf.jaxrs.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-client</artifactId>
@@ -171,7 +175,6 @@
             <version>${jetty.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -230,11 +233,11 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>
+        <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>compiling-annotation-processor-tools</artifactId>
+            <artifactId>testing-user</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
-        </dependency>-->
+        </dependency>
     </dependencies>
 </project>

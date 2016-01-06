@@ -19,6 +19,7 @@ package ${service.package};
 
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.service.model.HasServiceClientFactory;
 import com.dreameddeath.core.json.JsonProviderFactory;
@@ -46,15 +47,15 @@ import ${import};
     comments = "${generator.comment}"
 )
 public class ${service.clientSimpleClassName} implements HasServiceClientFactory#foreach($interface in $service.interfaces),$interface#end {
-#if($service.hasGlobalContextTranscoder())
-    private IGlobalContextTranscoder transcoder;
+#if($service.hasGlobalContextFactory())
+    private IGlobalContextFactory contextFactory;
 #end
     private IServiceClient serviceClient;
 
-#if($service.hasGlobalContextTranscoder())
+#if($service.hasGlobalContextFactory())
     @Autowired
-    public void setContextTranscoder(IGlobalContextTranscoder transcoder){
-        this.transcoder = transcoder;
+    public void setContextFactory(IGlobalContextFactory contextFactory){
+        this.contextFactory = contextFactory;
     }
 #end
     @Override @Autowired
@@ -89,7 +90,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
         return Observable.from(
                     target.request(MediaType.APPLICATION_JSON_TYPE)
 #if($method.hasGlobalContextParam())
-                    .header("X-CONTEXT", transcoder.encode($method.globalContextParamName))
+                    .header("X-CONTEXT", contextFactory.encode($method.globalContextParamName))
 #end
                     .async()
                     .${method.httpMethod.toLowerCase()}(

@@ -147,7 +147,7 @@ public class ServiceExpositionDef {
         return Collections.unmodifiableList(methodList);
     }
 
-    public boolean hasGlobalContextTranscoder(){
+    public boolean hasGlobalContextFactory(){
         return methodList.stream().filter(ServiceExpositionMethodDef::hasGlobalContextParam).count()>0;
     }
 

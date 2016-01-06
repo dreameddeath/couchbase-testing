@@ -21,10 +21,11 @@ import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotatio
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.model.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
+import com.dreameddeath.core.service.testing.DummyContextFactory;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
@@ -138,17 +139,7 @@ public class TestServicesTest extends Assert{
     public void testService() throws Exception{
         LOG.debug("Connector port {}", server.getLocalPort());
         ServiceClientFactory clientFactory = new ServiceClientFactory(server.getServiceDiscoverer());
-        IGlobalContextTranscoder transcoder = new IGlobalContextTranscoder() {
-            @Override
-            public String encode(IGlobalContext ctxt) {
-                return "";
-            }
-
-            @Override
-            public IGlobalContext decode(String encodedContext) {
-                return null;
-            }
-        };
+        IGlobalContextFactory transcoder = new DummyContextFactory();
 
         TestServiceRestClientImpl service = new TestServiceRestClientImpl();
         service.setContextTranscoder(transcoder);
@@ -181,7 +172,7 @@ public class TestServicesTest extends Assert{
         assertEquals("15 put", resultPut.id);
 
         Object serviceGen =generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestClient").newInstance();
-        serviceGen.getClass().getMethod("setContextTranscoder",IGlobalContextTranscoder.class).invoke(serviceGen,transcoder);
+        serviceGen.getClass().getMethod("setContextFactory",IGlobalContextFactory.class).invoke(serviceGen,transcoder);
         serviceGen.getClass().getMethod("setServiceClientFactory",ServiceClientFactory.class).invoke(serviceGen,clientFactory);
         Object resultGenObservable = serviceGen.getClass().getMethod("runWithRes", IGlobalContext.class,ITestService.Input.class).invoke(serviceGen,null,input);
         try {

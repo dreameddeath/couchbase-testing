@@ -19,7 +19,7 @@ package ${service.package};
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.model.GeneratedRestImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,22 +47,22 @@ import ${import};
 @ServiceDef(domain="${service.domain}",name="${service.name}",version="${service.version}",status = VersionStatus.${service.status.name()})
 @Api(value = "$esc.java($service.path)", description = "$esc.java($service.description)")
 public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${service.className}> {
-    private ${service.className} _serviceImpl;
+    private ${service.className} serviceImpl;
     @Override @Autowired
     public void setServiceImplementation(${service.className} serviceImpl){
-        _serviceImpl = serviceImpl;
+        this.serviceImpl = serviceImpl;
     }
     @Override
     public ${service.className} getServiceImpl(){
-        return _serviceImpl;
+        return this.serviceImpl;
     }
 
-#if($service.hasGlobalContextTranscoder())
-    private IGlobalContextTranscoder _transcoder;
+#if($service.hasGlobalContextFactory())
+    private IGlobalContextFactory contextFactory;
 
     @Autowired
-    public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
-        _transcoder = transcoder;
+    public void setGlobalContextFactory(IGlobalContextFactory contextFactory){
+        this.contextFactory = contextFactory;
     }
 #end
 
@@ -100,7 +100,7 @@ public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${servic
             )
     {
 #if($method.hasGlobalContextParam())
-        IGlobalContext $method.globalContextParamName = _transcoder.decode(contextParam);
+        IGlobalContext $method.globalContextParamName = this.contextFactory.decode(contextParam);
 #end
 #if($method.hasBody())
         $method.bodyInfo.className ${method.bodyInfo.setterString};

@@ -30,4 +30,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TaskProcessingForClass {
     Class<? extends AbstractTask> value();
+    String version() default "1.0.0";
 }

@@ -25,7 +25,6 @@ import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
-import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.junit.After;
@@ -62,7 +61,7 @@ public class ViewTest {
         testUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
         server.registerBeanObject("couchbaseSessionFactory",env.getSessionFactory());
-        server.registerBeanObject("userFactory",new StandardMockUserFactory());
+        //server.registerBeanObject("userFactory",new StandardMockUserFactory());
 
         server.registerBeanClass("TestDaoRestService",TestDaoRestService.class);
         server.registerBeanClass("TestChildDaoRestService",TestChildDaoRestService.class);

@@ -19,7 +19,7 @@ package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import rx.Observable;
 
@@ -38,10 +38,10 @@ import javax.ws.rs.core.MediaType;
         comments = "Generated for servcice $"
 )
 public class TestServiceRestClientImpl implements ITestService {
-    private IGlobalContextTranscoder transcoder;
+    private IGlobalContextFactory transcoder;
     private IServiceClient serviceClient;
 
-    public void setContextTranscoder(IGlobalContextTranscoder transcoder){
+    public void setContextTranscoder(IGlobalContextFactory transcoder){
         this.transcoder = transcoder;
     }
 

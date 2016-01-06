@@ -16,8 +16,11 @@
 
 package com.dreameddeath.core.service.context;
 
+import com.dreameddeath.core.user.IUser;
+
 /**
  * Created by Christophe Jeunesse on 05/03/2015.
  */
 public interface IUserContext {
+    IUser getUser();
 }

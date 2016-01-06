@@ -31,7 +31,6 @@ import com.dreameddeath.core.model.annotation.processor.DocumentDefAnnotationPro
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
-import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
@@ -91,7 +90,7 @@ public class DaoGenerationTest extends Assert {
         testUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", testUtils.getClient("serverTesting"), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
         server.registerBeanObject("couchbaseSessionFactory",env.getSessionFactory());
-        server.registerBeanObject("userFactory",new StandardMockUserFactory());
+        //server.registerBeanObject("userFactory",new StandardMockUserFactory());
         server.registerBeanClass("TestGeneratedDaoReadRestService",compiledEnv.getClass("service.TestGeneratedDaoReadRestService"));
         server.registerBeanClass("TestGeneratedDaoWriteRestService",compiledEnv.getClass("service.TestGeneratedDaoWriteRestService"));
         server.registerBeanClass("TestGeneratedDaoChildReadRestService",compiledEnv.getClass("service.TestGeneratedDaoChildReadRestService"));

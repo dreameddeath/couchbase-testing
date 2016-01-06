@@ -1,0 +1,120 @@
+/*
+ * Copyright Christophe Jeunesse
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package ${service.package};
+
+import com.dreameddeath.core.service.annotation.VersionStatus;
+import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.model.AbstractExposableService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+import javax.annotation.Generated;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.beans.factory.annotation.Autowired;
+
+
+#foreach($import in $service.imports)
+import ${import};
+#end
+
+@Generated(
+    value = "${generator.name}",
+    date = "${generator.date}",
+    comments = "${generator.comment}"
+)
+@Path("$esc.java($service.path)")
+@ServiceDef(domain="${service.domain}",name="${service.name}",version="${service.version}",status = VersionStatus.${service.status.name()})
+@Api(value = "$esc.java($service.path)", description = "$esc.java($service.description)")
+public class ${service.serverSimpleClassName} extends AbstractExposableService {
+#foreach($job in$service.jobs)
+    private Exposed
+#end
+    private ${service.className} serviceImpl;
+    @Override @Autowired
+    public void setServiceImplementation(${service.className} serviceImpl){
+        this.serviceImpl = serviceImpl;
+    }
+    @Override
+    public ${service.className} getServiceImpl(){
+        return this.serviceImpl;
+    }
+
+#if($service.hasGlobalContextTranscoder())
+    private IGlobalContextTranscoder _transcoder;
+
+    @Autowired
+    public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
+        _transcoder = transcoder;
+    }
+#end
+
+#foreach($method in $service.methods)
+    @${method.httpMethod}
+    @Path("$esc.java($method.pathInfo.jaxRsPath)")
+    @Produces({ MediaType.APPLICATION_JSON })
+#if($method.hasGlobalContextParam())
+    @Consumes({ MediaType.APPLICATION_JSON })
+#end
+    @ApiOperation(
+            value = "$esc.java($method.name)",
+            notes = "$esc.java($method.description)",
+            response = ${method.returnClassName}.class,
+            position = 0)
+    /*
+    TODO Map API response
+    @ApiResponses({
+            @ApiResponse(code = 400, message = "Invalid ID"),
+            @ApiResponse(code = 404, message = "object not found")
+    })*/
+    public ${method.returnClassName} ${method.name} (#set($methodParamPrefix="")
+#if($method.hasGlobalContextParam())
+            @HeaderParam("X-CONTEXT") String contextParam #set($methodParamPrefix=",")
+#end
+#foreach($pathParam in $method.pathInfo.urlParamsList)
+            ${methodParamPrefix} @PathParam("$pathParam.name") ${pathParam.className} ${pathParam.name} #set($methodParamPrefix=",")
+#end
+#if($method.hasBody())
+            ${methodParamPrefix} $method.bodyInfo.className $method.bodyInfo.name #set($methodParamPrefix=",")
+#end
+#foreach($queryParam in $method.pathInfo.queryParamsList)
+            ${methodParamPrefix} @QueryParam("${queryParam.name}") ${queryParam.className} ${queryParam.name} #set($methodParamPrefix=",")
+#end
+            )
+    {
+#if($method.hasGlobalContextParam())
+        IGlobalContext $method.globalContextParamName = _transcoder.decode(contextParam);
+#end
+#if($method.hasBody())
+        $method.bodyInfo.className ${method.bodyInfo.setterString};
+#end
+        return getServiceImpl().${method.name}(#set($methodParamPrefix="")
+#foreach($methodParam in $method.methodParamsDefinition)
+                    ${methodParamPrefix} $methodParam.name #set($methodParamPrefix=",")
+#end
+              ).toBlocking().first();
+    }
+#end
+
+}
+

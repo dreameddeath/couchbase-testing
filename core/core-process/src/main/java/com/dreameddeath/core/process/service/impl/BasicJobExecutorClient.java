@@ -17,12 +17,16 @@
 package com.dreameddeath.core.process.service.impl;
 
 import com.codahale.metrics.MetricRegistry;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
 import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
@@ -68,6 +72,42 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
                 .withJobProcessingService(processingService)
         );
         ctxt.execute();
+        return ctxt;
+    }
+
+    @Override
+    public JobContext<T> submitJob(T job, IUser user) throws JobExecutionException {
+        JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
+                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
+                .withClientFactory(parentClientFactory)
+                .withJobExecutorService(executorService)
+                .withJobProcessingService(processingService)
+        );
+        try {
+            ctxt.getJob().getStateInfo().setState(ProcessState.State.ASYNC_NEW);
+            ctxt.save();
+        }
+        catch(DaoException|StorageException|ValidationException e){
+            throw new JobExecutionException(ctxt,"Unable to submit in deferred state",e);
+        }
+        return null;
+    }
+
+    @Override
+    public JobContext<T> resumeJob(T job, IUser user) throws JobExecutionException {
+        JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
+                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
+                .withClientFactory(parentClientFactory)
+                .withJobExecutorService(executorService)
+                .withJobProcessingService(processingService)
+        );
+
+        if(!ctxt.getJobState().isDone()){
+            ctxt.execute();
+        }
+        else{
+            throw new JobExecutionException(ctxt,"Cannot resume from done state");
+        }
         return ctxt;
     }
 }

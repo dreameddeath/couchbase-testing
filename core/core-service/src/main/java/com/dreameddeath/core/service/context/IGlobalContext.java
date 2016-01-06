@@ -20,7 +20,7 @@ package com.dreameddeath.core.service.context;
  * Created by Christophe Jeunesse on 05/03/2015.
  */
 public interface IGlobalContext {
-    ICallerContext caller();
-    IExternalCallerContext external();
-    IUserContext user();
+    ICallerContext callerCtxt();
+    IExternalCallerContext externalCtxt();
+    IUserContext userCtxt();
 }

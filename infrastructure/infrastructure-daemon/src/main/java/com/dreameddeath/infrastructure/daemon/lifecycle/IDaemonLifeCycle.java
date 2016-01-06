@@ -87,6 +87,10 @@ public interface IDaemonLifeCycle {
     class DefaultListener implements Listener{
         private final int rank;
 
+        /**
+         * Default listener constructor
+         * @param rank the rank of the listener : the higher the latter to be started (and the first to be stopped)
+         */
         public DefaultListener(int rank){
             this.rank =rank;
         }

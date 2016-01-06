@@ -24,14 +24,15 @@ import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Created by Christophe Jeunesse on 07/11/2014.
  */
 public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
     private JavaType baseType;
-    private Map<String,JavaType> mapClass = new HashMap<>();
+    private Map<String,JavaType> mapClass = new ConcurrentHashMap<>();
     private EntityDefinitionManager entityDefinitionManager = new EntityDefinitionManager();
 
     public  CouchbaseDocumentTypeIdResolver() {
@@ -75,11 +76,10 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
         return null;
     }
 
-    public JavaType typeFromId(DatabindContext context, String id) {
-        if(!mapClass.containsKey(id)) {
-            mapClass.put(id, context.getTypeFactory().constructType(entityDefinitionManager.findClassFromVersionnedTypeId(id)));
-        }
-        return mapClass.get(id);
+    public JavaType typeFromId(final DatabindContext context, final String id) {
+        return mapClass.computeIfAbsent(id,
+                typeId->context.getTypeFactory().constructType(entityDefinitionManager.findClassFromVersionnedTypeId(typeId))
+        );
     }
 
     @Override

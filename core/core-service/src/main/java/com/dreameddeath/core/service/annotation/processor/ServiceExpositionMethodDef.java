@@ -23,7 +23,7 @@ import com.dreameddeath.core.service.annotation.BodyInfo;
 import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
 
 import java.util.*;
 
@@ -105,7 +105,7 @@ public class ServiceExpositionMethodDef {
         Set<String> result = new TreeSet<>();
         if(hasGlobalContextParam()){
             result.add(AbstractClassInfo.getClassInfo(IGlobalContext.class).getImportName());
-            result.add(AbstractClassInfo.getClassInfo(IGlobalContextTranscoder.class).getImportName());
+            result.add(AbstractClassInfo.getClassInfo(IGlobalContextFactory.class).getImportName());
         }
         result.add(returnType.getImportName());
         for(ServiceExpositionMethodParamDefinition methodParam:methodParamsDefinition){

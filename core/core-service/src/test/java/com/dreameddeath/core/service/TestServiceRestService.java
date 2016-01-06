@@ -19,7 +19,7 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextTranscoder;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import io.swagger.annotations.Api;
@@ -39,10 +39,10 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractExposableService {
     private TestServiceImpl testService=new TestServiceImpl();
-    private IGlobalContextTranscoder transcoder;
+    private IGlobalContextFactory transcoder;
 
     @Autowired
-    public void setGlobalContextTranscoder(IGlobalContextTranscoder transcoder){
+    public void setGlobalContextTranscoder(IGlobalContextFactory transcoder){
         this.transcoder = transcoder;
     }
 
