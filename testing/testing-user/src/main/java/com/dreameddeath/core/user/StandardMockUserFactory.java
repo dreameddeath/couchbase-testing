@@ -33,6 +33,11 @@ public class StandardMockUserFactory implements IUserFactory {
     }
 
     @Override
+    public String toToken(IUser user) {
+        return user.getUserId().equalsIgnoreCase(AuthorizeAllUser.INSTANCE.getUserId())?AuthorizeAllUser.INSTANCE.getUserId():"";
+    }
+
+    @Override
     public IUser defaultUser() {
         return AnonymousUser.INSTANCE;
     }

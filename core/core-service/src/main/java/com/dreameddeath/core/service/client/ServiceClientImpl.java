@@ -98,7 +98,11 @@ public class ServiceClientImpl implements IServiceClient {
     @Override
     public String  getUriInstance(){
         try {
-            return buildUri(provider.getInstance());
+            ServiceInstance<CuratorDiscoveryServiceDescription> instance = provider.getInstance();
+            if(instance==null){
+                throw new RuntimeException("Cannot get instance of service <"+fullName+">");
+            }
+            return buildUri(instance);
         }
         catch(Exception e){
             LOG.error("Cannot get instance of service "+fullName,e);

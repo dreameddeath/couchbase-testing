@@ -151,6 +151,11 @@ public class ServiceExpositionDef {
         return methodList.stream().filter(ServiceExpositionMethodDef::hasGlobalContextParam).count()>0;
     }
 
+    public boolean hasUserFactory(){
+        return methodList.stream().filter(ServiceExpositionMethodDef::hasUserParam).count()>0;
+    }
+
+
     public Set<String> getImports() {
         return imports;
     }

@@ -20,7 +20,9 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
+import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
 import com.dreameddeath.core.service.swagger.TestingDocument;
+import com.dreameddeath.core.user.IUser;
 import rx.Observable;
 
 import javax.annotation.Generated;
@@ -56,7 +58,7 @@ public class TestServiceRestClientImpl implements ITestService {
 
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)
-                        .header("X-CONTEXT", transcoder.encode(ctxt))
+                        .header(GlobalContextProvider.CONTEXT_HEADER, transcoder.encode(ctxt))
                         .async().post(
                         Entity.entity(input, MediaType.APPLICATION_JSON_TYPE),
                         new GenericType<>(Result.class)
@@ -93,6 +95,20 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
+        WebTarget target = serviceClient.getInstance();
+        target = target.property("IGlobalContext",ctxt);
+        target = target.path(String.format("testingDocument"));
+        return Observable.from(
+                target.request(MediaType.APPLICATION_JSON_TYPE)
+                        .async()
+                        .post(
+                                null,
+                                new GenericType<>(TestingDocument.class)
+                        ));
+    }
+
+    @Override
+    public Observable<TestingDocument> initDocument(IUser user) {
         WebTarget target = serviceClient.getInstance();
         target = target.path(String.format("testingDocument"));
         return Observable.from(

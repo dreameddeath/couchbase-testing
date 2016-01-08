@@ -18,21 +18,28 @@ package com.dreameddeath.core.service.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.user.IUser;
 
 /**
  * Created by Christophe Jeunesse on 07/04/2015.
  */
 public class ServiceExpositionMethodParamDefinition {
     private boolean isGlobalContextParam;
+    private boolean isUserParam;
     private ParameterizedTypeInfo paramInfo;
 
     public ServiceExpositionMethodParamDefinition(ParameterizedTypeInfo paramInfo, ServiceExpositionPathInfo pathInfo){
         isGlobalContextParam = paramInfo.isAssignableTo(IGlobalContext.class);
+        isUserParam = paramInfo.isAssignableTo(IUser.class);
         this.paramInfo = paramInfo;
     }
 
     public boolean isGlobalContextParam() {
         return isGlobalContextParam;
+    }
+
+    public boolean isUserParam() {
+        return isUserParam;
     }
 
     public String getName(){

@@ -23,6 +23,7 @@ import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.swagger.TestingExternalElement;
+import com.dreameddeath.core.user.IUser;
 import org.joda.time.DateTime;
 import rx.Observable;
 import com.dreameddeath.core.service.*;
@@ -88,6 +89,24 @@ public class TestServiceGenImpl implements ITestService {
             status = VersionStatus.STABLE
     )
     public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
+        TestingDocument doc = new TestingDocument();
+        TestingExternalElement extElt = new TestingExternalElement();
+        extElt.addDate(new DateTime());
+        doc.addTestExternalEltList(extElt);
+        TestingDocument.TestingInnerElement innerElement = new TestingDocument.TestingInnerElement();
+        innerElement.addDate(new DateTime());
+        doc.addTestCplxList(innerElement);
+        return Observable.just(doc);
+    }
+
+
+    @Override
+    @ExposeMethod(
+            method=HttpMethod.POST,
+            path="/testingDocumentUser",
+            status = VersionStatus.STABLE
+    )
+    public Observable<TestingDocument> initDocument(IUser user) {
         TestingDocument doc = new TestingDocument();
         TestingExternalElement extElt = new TestingExternalElement();
         extElt.addDate(new DateTime());

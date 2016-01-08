@@ -24,6 +24,10 @@ import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
+import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
+import com.dreameddeath.core.service.context.provider.UserContextProvider;
+import com.dreameddeath.core.user.IUser;
+import com.dreameddeath.core.user.IUserFactory;
 
 import java.util.*;
 
@@ -35,6 +39,7 @@ public class ServiceExpositionMethodDef {
     private String httpMethod;
     private AbstractClassInfo returnType;
     private String globalContextParamName =null;
+    private String userParamName =null;
     private VersionStatus status;
     private ServiceExpositionPathInfo pathInfo;
     private List<ServiceExpositionMethodParamDefinition> methodParamsDefinition =new ArrayList<>();
@@ -47,7 +52,6 @@ public class ServiceExpositionMethodDef {
         httpMethod = exposeMethodAnnot.method();
         status = exposeMethodAnnot.status();
         pathInfo = new ServiceExpositionPathInfo(exposeMethodAnnot.path(),methodInfo);
-
         returnType = methodInfo.getReturnType().getMainTypeGeneric(0).getMainType();
 
         for(ParameterizedTypeInfo paramInfo: methodInfo.getMethodParameters()){
@@ -56,8 +60,10 @@ public class ServiceExpositionMethodDef {
             if(methodParam.isGlobalContextParam()){
                 globalContextParamName = methodParam.getName();
             }
+            if(methodParam.isUserParam()){
+                userParamName = methodParam.getName();
+            }
         }
-
 
         BodyInfo bodyInfoAnnot = methodInfo.getAnnotation(BodyInfo.class);
         if(bodyInfoAnnot!=null) {
@@ -66,7 +72,6 @@ public class ServiceExpositionMethodDef {
         else{
             bodyInfo =null;
         }
-
     }
 
     public String getName(){
@@ -93,6 +98,10 @@ public class ServiceExpositionMethodDef {
         return globalContextParamName;
     }
 
+    public boolean hasUserParam(){ return userParamName!=null;}
+
+    public String getUserParamName(){return userParamName;}
+
     public VersionStatus getStatus() {
         return status;
     }
@@ -106,6 +115,12 @@ public class ServiceExpositionMethodDef {
         if(hasGlobalContextParam()){
             result.add(AbstractClassInfo.getClassInfo(IGlobalContext.class).getImportName());
             result.add(AbstractClassInfo.getClassInfo(IGlobalContextFactory.class).getImportName());
+            result.add(AbstractClassInfo.getClassInfo(GlobalContextProvider.class).getImportName());
+        }
+        if(hasUserParam()){
+            result.add(AbstractClassInfo.getClassInfo(IUser.class).getImportName());
+            result.add(AbstractClassInfo.getClassInfo(IUserFactory.class).getImportName());
+            result.add(AbstractClassInfo.getClassInfo(UserContextProvider.class).getImportName());
         }
         result.add(returnType.getImportName());
         for(ServiceExpositionMethodParamDefinition methodParam:methodParamsDefinition){

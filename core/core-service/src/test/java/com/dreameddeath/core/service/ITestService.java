@@ -18,6 +18,7 @@ package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.swagger.TestingDocument;
+import com.dreameddeath.core.user.IUser;
 import org.joda.time.DateTime;
 import rx.Observable;
 
@@ -31,7 +32,7 @@ public interface ITestService {
     Observable<Result> putWithQuery(String rootId, String id);
 
     Observable<TestingDocument> initDocument(IGlobalContext ctxt);
-
+    Observable<TestingDocument> initDocument(IUser user);
 
     class Result{
         public String result;

@@ -21,5 +21,6 @@ package com.dreameddeath.core.user;
  */
 public interface IUserFactory {
     IUser fromToken(String token);
+    String toToken(IUser user);
     IUser defaultUser();
 }

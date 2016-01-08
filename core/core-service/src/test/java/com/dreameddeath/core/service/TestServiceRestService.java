@@ -19,16 +19,15 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -39,12 +38,12 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractExposableService {
     private TestServiceImpl testService=new TestServiceImpl();
-    private IGlobalContextFactory transcoder;
+    /*private IGlobalContextFactory transcoder;
 
     @Autowired
     public void setGlobalContextTranscoder(IGlobalContextFactory transcoder){
         this.transcoder = transcoder;
-    }
+    }*/
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
@@ -58,8 +57,10 @@ public class TestServiceRestService extends AbstractExposableService {
             @ApiResponse(code = 400, message = "Invalid ID"),
             @ApiResponse(code = 404, message = "object not found")
     })
-    public ITestService.Result runWithRes(@HeaderParam("X-CONTEXT") String contextParam,@PathParam("rootId") String rootId,@PathParam("id") String id, ITestService.Input input){
-        IGlobalContext context = transcoder.decode(contextParam);
+    public ITestService.Result runWithRes(
+            @Context IGlobalContext context,
+            @PathParam("rootId") String rootId,@PathParam("id") String id, ITestService.Input input){
+        //IGlobalContext context = transcoder.decode(contextParam);
         /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
         input.id = id;*/
@@ -119,6 +120,6 @@ public class TestServiceRestService extends AbstractExposableService {
     })
 
     public TestingDocument initDocument(){
-        return testService.initDocument(null).toBlocking().first();
+        return testService.initDocument((IGlobalContext)null).toBlocking().first();
     }
 }

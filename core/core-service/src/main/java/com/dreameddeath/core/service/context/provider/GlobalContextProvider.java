@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.service.context.provider;
 
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.user.IUserFactory;
@@ -34,6 +35,11 @@ public class GlobalContextProvider implements ContextProvider<IGlobalContext> {
 
     private IGlobalContextFactory transcoder;
     private IUserFactory userFactory;
+    private boolean autoSetupDefaultContext = false;
+
+    public GlobalContextProvider(){
+        super();
+    }
 
     @Autowired
     public void setGlobalContextTranscoder(IGlobalContextFactory transcoder){
@@ -45,10 +51,24 @@ public class GlobalContextProvider implements ContextProvider<IGlobalContext> {
         this.userFactory = userFactory;
     }
 
+    public void setAutoSetupDefaultContext(boolean setupDefaultContext){
+        this.autoSetupDefaultContext = setupDefaultContext;
+    }
+
     @Override
     public IGlobalContext createContext(Message message) {
         HttpHeaders headers = new HttpHeadersImpl(message);
         String contextHeader = headers.getHeaderString(CONTEXT_HEADER);
-        return transcoder.decode(contextHeader);
+        String userHeader = headers.getHeaderString(UserContextProvider.USER_TOKEN_HEADER);
+        if(StringUtils.isNotEmpty(contextHeader)){
+            return transcoder.decode(contextHeader);
+        }
+        else if (StringUtils.isNotEmpty(userHeader)) {
+            return transcoder.buildContext(userFactory.fromToken(userHeader));
+        }
+        if(autoSetupDefaultContext) {
+            return transcoder.buildDefaultContext();
+        }
+        throw new RuntimeException("Cannot setup Global context from message");
     }
 }

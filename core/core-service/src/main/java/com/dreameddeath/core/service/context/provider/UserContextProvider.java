@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.service.context.provider;
 
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.user.IUserFactory;
@@ -34,6 +35,7 @@ public class UserContextProvider implements ContextProvider<IUser> {
 
     private IGlobalContextFactory transcoder;
     private IUserFactory userFactory;
+    private boolean setupDefaultUser=false;
 
     @Autowired
     public void setGlobalContextTranscoder(IGlobalContextFactory transcoder){
@@ -45,17 +47,24 @@ public class UserContextProvider implements ContextProvider<IUser> {
         this.userFactory = userFactory;
     }
 
+    public void setSetupDefaultUser(boolean setupDefaultUser){
+        this.setupDefaultUser = setupDefaultUser;
+    }
+
     @Override
     public IUser createContext(Message message) {
         HttpHeaders headers = new HttpHeadersImpl(message);
         String userToken = headers.getHeaderString(USER_TOKEN_HEADER);
-        if(userToken!=null){
+        if(StringUtils.isNotEmpty(userToken)){
             return userFactory.fromToken(userToken);
         }
         String contextToken = headers.getHeaderString(GlobalContextProvider.CONTEXT_HEADER);
-        if(contextToken!=null){
+        if(StringUtils.isNotEmpty(contextToken)){
             return transcoder.decode(contextToken).userCtxt().getUser();
         }
-        return userFactory.defaultUser();
+        if(setupDefaultUser) {
+            return userFactory.defaultUser();
+        }
+        throw new RuntimeException("Cannot setup User from message");
     }
 }

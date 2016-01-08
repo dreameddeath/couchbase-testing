@@ -174,8 +174,11 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             classToInfoMap.put(clazz,this);
         }
         if(typeElement!=null){
-            if(!(typeElement.getEnclosingElement() instanceof PackageElement)){
+            if(typeElement.getEnclosingElement() instanceof TypeElement){
                 enclosingClass = AbstractClassInfo.getClassInfo((TypeElement)typeElement.getEnclosingElement());
+            }
+            else if(!(typeElement.getEnclosingElement() instanceof PackageElement)){
+                throw new RuntimeException("The type <"+typeElement.getQualifiedName().toString()+"> isn't a well declared class/interface");
             }
             packageInfo = PackageInfo.getPackageInfo(typeElement);
             simpleName = typeElement.getSimpleName().toString();

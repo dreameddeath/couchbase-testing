@@ -25,9 +25,14 @@ import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.model.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
+import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.testing.DummyContextFactory;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
+import com.dreameddeath.core.user.AuthorizeAllUser;
+import com.dreameddeath.core.user.IUser;
+import com.dreameddeath.core.user.IUserFactory;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -80,6 +85,7 @@ public class TestServicesTest extends Assert{
         server.registerBeanClass("testGenImpl",generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImpl"));
         server.registerBeanClass("testGen",generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestService"));
         server.start();
+        Thread.sleep(100);
     }
 
 
@@ -173,7 +179,9 @@ public class TestServicesTest extends Assert{
 
         Object serviceGen =generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestClient").newInstance();
         serviceGen.getClass().getMethod("setContextFactory",IGlobalContextFactory.class).invoke(serviceGen,transcoder);
+        serviceGen.getClass().getMethod("setUserFactory",IUserFactory.class).invoke(serviceGen,new StandardMockUserFactory());
         serviceGen.getClass().getMethod("setServiceClientFactory",ServiceClientFactory.class).invoke(serviceGen,clientFactory);
+
         Object resultGenObservable = serviceGen.getClass().getMethod("runWithRes", IGlobalContext.class,ITestService.Input.class).invoke(serviceGen,null,input);
         try {
             ITestService.Result resultGen = (ITestService.Result) ((Observable) resultGenObservable).toBlocking().first();
@@ -202,6 +210,18 @@ public class TestServicesTest extends Assert{
             LOG.debug("Result {}", resultGen);
             assertEquals("30 putgen", resultGen.rootId);
             assertEquals("15 putgen",resultGen.id);
+        }
+        catch(Exception e){
+            throw e;
+        }
+
+        Object resultTestingUserDoc = serviceGen.getClass().getMethod("initDocument", IUser.class).invoke(serviceGen, AuthorizeAllUser.INSTANCE);
+        try {
+            TestingDocument resultGen = (TestingDocument) ((Observable) resultTestingUserDoc).toBlocking().first();
+            LOG.debug("Result {}", resultGen);
+            assertEquals(1,resultGen.getTestExternalEltList().size());
+            assertEquals(1,resultGen.getTestCplxList().size());
+
         }
         catch(Exception e){
             throw e;

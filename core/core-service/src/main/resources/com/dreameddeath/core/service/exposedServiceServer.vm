@@ -28,6 +28,7 @@ import io.swagger.annotations.ApiResponses;
 
 import javax.annotation.Generated;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.springframework.beans.factory.annotation.Required;
@@ -57,15 +58,6 @@ public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${servic
         return this.serviceImpl;
     }
 
-#if($service.hasGlobalContextFactory())
-    private IGlobalContextFactory contextFactory;
-
-    @Autowired
-    public void setGlobalContextFactory(IGlobalContextFactory contextFactory){
-        this.contextFactory = contextFactory;
-    }
-#end
-
 #foreach($method in $service.methods)
     @${method.httpMethod}
     @Path("$esc.java($method.pathInfo.jaxRsPath)")
@@ -86,7 +78,10 @@ public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${servic
     })*/
     public ${method.returnClassName} ${method.name} (#set($methodParamPrefix="")
 #if($method.hasGlobalContextParam())
-            @HeaderParam("X-CONTEXT") String contextParam #set($methodParamPrefix=",")
+            @Context IGlobalContext $method.globalContextParamName #set($methodParamPrefix=",")
+#end
+#if($method.hasUserParam())
+            @Context IUser $method.userParamName #set($methodParamPrefix=",")
 #end
 #foreach($pathParam in $method.pathInfo.urlParamsList)
             ${methodParamPrefix} @PathParam("$pathParam.name") ${pathParam.className} ${pathParam.name} #set($methodParamPrefix=",")
@@ -99,9 +94,6 @@ public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${servic
 #end
             )
     {
-#if($method.hasGlobalContextParam())
-        IGlobalContext $method.globalContextParamName = this.contextFactory.decode(contextParam);
-#end
 #if($method.hasBody())
         $method.bodyInfo.className ${method.bodyInfo.setterString};
 #end

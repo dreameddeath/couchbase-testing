@@ -50,12 +50,22 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
 #if($service.hasGlobalContextFactory())
     private IGlobalContextFactory contextFactory;
 #end
+#if($service.hasUserFactory())
+    private IUserFactory userFactory;
+#end
+
     private IServiceClient serviceClient;
 
 #if($service.hasGlobalContextFactory())
     @Autowired
     public void setContextFactory(IGlobalContextFactory contextFactory){
         this.contextFactory = contextFactory;
+    }
+#end
+#if($service.hasUserFactory())
+    @Autowired
+    public void setUserFactory(IUserFactory userFactory){
+        this.userFactory = userFactory;
     }
 #end
     @Override @Autowired
@@ -90,7 +100,10 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
         return Observable.from(
                     target.request(MediaType.APPLICATION_JSON_TYPE)
 #if($method.hasGlobalContextParam())
-                    .header("X-CONTEXT", contextFactory.encode($method.globalContextParamName))
+                    .header(GlobalContextProvider.CONTEXT_HEADER, contextFactory.encode($method.globalContextParamName))
+#end
+#if($method.hasUserParam())
+                    .header(UserContextProvider.USER_TOKEN_HEADER, userFactory.toToken($method.userParamName))
 #end
                     .async()
                     .${method.httpMethod.toLowerCase()}(

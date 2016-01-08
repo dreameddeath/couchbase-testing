@@ -27,7 +27,7 @@ import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
-import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,12 +75,10 @@ public class TestSpringConfig implements ServletContextAware {
         this.ctxt = ctxt;
     }
 
-
     @Bean(name="curatorClient")
     public CuratorFramework getClient() throws Exception{
         return (CuratorFramework)servletContext.getAttribute("curatorClient");
     }
-
 
     @Bean(name="serviceDiscoverer")
     public ServiceDiscoverer getDiscoverer(){
@@ -92,12 +90,10 @@ public class TestSpringConfig implements ServletContextAware {
         return (ServiceRegistrar) servletContext.getAttribute("serviceRegistrar");
     }
 
-
     @Bean(name="clientRegistrar")
     public ClientRegistrar getClientRegistrar(){
         return (ClientRegistrar) servletContext.getAttribute("clientRegistrar");
     }
-
 
     @Bean(name="clientDiscoverer")
     public ClientDiscoverer getClientDiscoverer(){
@@ -119,7 +115,6 @@ public class TestSpringConfig implements ServletContextAware {
         return new StandardMockUserFactory();
     }
 
-
     @Bean(name="endPointDescription")
     public IRestEndPointDescription getEndPointDescr(){
         return (IRestEndPointDescription)servletContext.getAttribute("endPointInfo");
@@ -127,25 +122,29 @@ public class TestSpringConfig implements ServletContextAware {
 
     @Bean(name="globalContextProvider")
     public GlobalContextProvider globalContextProvider(){
-        return new GlobalContextProvider();
+        GlobalContextProvider provider = new GlobalContextProvider();
+        provider.setAutoSetupDefaultContext(true);
+        return provider;
     }
 
     @Bean(name="userContextProvider")
     public UserContextProvider userContextProvider(){
-        return new UserContextProvider();
+        UserContextProvider provider = new UserContextProvider();
+        provider.setSetupDefaultUser(true);
+        return provider;
     }
-
-
 
     @Bean(name="testingJaxRsServer")
     public Server buildJaxRsServer() {
         SpringJAXRSServerFactoryBean factory = new SpringJAXRSServerFactoryBean();
         factory.setTransportId("http://cxf.apache.org/transports/http");
         factory.setAddress(JAXRS_PATH);
+
         ObjectMapper mapper =(ObjectMapper)servletContext.getAttribute("jacksonObjectMapper");
         if(mapper==null){
-            mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR);
+            mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC);
         }
+
         factory.setProviders(Arrays.asList(
                 new JacksonJsonProvider(mapper),
                 ctxt.getBeanFactory().getBean("userContextProvider"),
