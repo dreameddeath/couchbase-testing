@@ -25,6 +25,7 @@ import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentProviderInterceptor;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.junit.After;
@@ -123,7 +124,7 @@ public class ViewTest {
                     .get();
             TestDoc rsGetReadResult = responseGet.readEntity(new GenericType<>(TestDoc.class));
             String origStrVal = rsGetReadResult.strVal;
-            assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY), row.getDocKey());
+            assertEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY), row.getDocKey());
             assertEquals(row.getKey(), rsGetReadResult.strVal);
 
             /*
@@ -149,8 +150,11 @@ public class ViewTest {
             *  Create a new TestDoc
              */
             rsGetReadResult.strVal=origStrVal+" rest added";
+            String oldKey = rsGetReadResult.getBaseMeta().getKey();
+            rsGetReadResult.getBaseMeta().setKey(null);//Nullify Key to reuse read as input
             Response responsePost = target.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
-            String createdString = responsePost.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY);
+            rsGetReadResult.getBaseMeta().setKey(oldKey);//Reset Key to reuse read as input
+            String createdString = responsePost.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY);
             TestDoc rsPostResult = responsePost.readEntity(new GenericType<>(TestDoc.class));
             assertEquals(rsGetReadResult.strVal,rsPostResult.strVal);
 
@@ -170,11 +174,10 @@ public class ViewTest {
             Response responsePut = target
                     .path(id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
-                    .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV))
                     .put(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             TestDoc rsPutResult = responsePut.readEntity(new GenericType<>(TestDoc.class));
-            assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY), responsePut.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY));
-            assertNotEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV), responsePut.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV));
+            assertEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY), responsePut.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY));
+            assertNotEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_REV), responsePut.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_REV));
             assertEquals(rsGetReadResult.strVal, rsPutResult.strVal);
 
         }

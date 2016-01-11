@@ -18,16 +18,30 @@ package com.dreameddeath.core.json;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceLoader;
+
 /**
  * Created by Christophe Jeunesse on 07/11/2015.
  */
 public class JsonProviderFactory {
+    public static List<IProviderInterceptor> getProviderInterceptorList(){
+        ServiceLoader<IProviderInterceptor> loader = ServiceLoader.load(IProviderInterceptor.class);
+        loader.reload();
+        Iterator<IProviderInterceptor> iterator=loader.iterator();
+        List<IProviderInterceptor> result = new ArrayList<>();
+        while(iterator.hasNext()){
+            result.add(iterator.next());
+        }
+        return result;
+    }
     public static JacksonJsonProvider getProvider(String name){
-        return new JacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(name));
+        return new EnhancedJacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(name), getProviderInterceptorList());
     }
 
     public static JacksonJsonProvider getProvider(IObjectMapperConfigurator.ConfiguratorType type){
-        return new JacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(type));
+        return new EnhancedJacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(type),getProviderInterceptorList());
     }
-
 }

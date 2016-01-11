@@ -23,7 +23,6 @@ import com.dreameddeath.core.dao.model.view.IViewQueryResult;
 import com.dreameddeath.core.dao.model.view.IViewQueryRow;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.helper.annotation.processor.DaoGeneratorAnnotationProcessor;
-import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
@@ -31,6 +30,7 @@ import com.dreameddeath.core.model.annotation.processor.DocumentDefAnnotationPro
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentProviderInterceptor;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.Utils;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
@@ -144,9 +144,9 @@ public class DaoGenerationTest extends Assert {
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .get();
             ITestDao rsGetReadResult = responseGet.readEntity(new GenericType<>(testGeneratedDaoClass));
-            DaoHelperServiceUtils.finalizeFromResponse(responseGet,(CouchbaseDocument)rsGetReadResult);
+            //DaoHelperServiceUtils.finalizeFromResponse(responseGet,(CouchbaseDocument)rsGetReadResult);
             String origStrVal = rsGetReadResult.getValue();
-            assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY), row.getDocKey());
+            assertEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY), row.getDocKey());
             assertEquals(row.getKey(), rsGetReadResult.getValue());
 
             /*
@@ -172,8 +172,11 @@ public class DaoGenerationTest extends Assert {
             *  Create a new TestGeneratedDao
              */
             rsGetReadResult.setValue(origStrVal+" rest added");
+            String oldKey = ((CouchbaseDocument)rsGetReadResult).getBaseMeta().getKey();//
+            ((CouchbaseDocument)rsGetReadResult).getBaseMeta().setKey(null);
             Response responsePost = writeTarget.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
-            String createdString = responsePost.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY);
+            ((CouchbaseDocument)rsGetReadResult).getBaseMeta().setKey(oldKey);
+            String createdString = responsePost.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY);
             ITestDao rsPostResult = responsePost.readEntity(new GenericType<>(testGeneratedDaoClass));
             assertEquals(rsGetReadResult.getValue(),rsPostResult.getValue());
 
@@ -194,11 +197,11 @@ public class DaoGenerationTest extends Assert {
             Response responsePut = writeTarget
                     .path(id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
-                    .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV))
+                    //.header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV))
                     .put(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             ITestDao rsPutResult = responsePut.readEntity(new GenericType<>(testGeneratedDaoClass));
-            assertEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY), responsePut.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY));
-            assertNotEquals(responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV), responsePut.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV));
+            assertEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY), responsePut.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY));
+            assertNotEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_REV), responsePut.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_REV));
             assertEquals(rsGetReadResult.getValue(), rsPutResult.getValue());
 
             //TODO manage views

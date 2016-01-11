@@ -94,7 +94,6 @@ public class ServiceClientImpl implements IServiceClient {
         }
     }
 
-
     @Override
     public String  getUriInstance(){
         try {
@@ -136,4 +135,5 @@ public class ServiceClientImpl implements IServiceClient {
         LOG.error("Cannot find instance <"+instanceId+"> of service "+fullName);
         throw new RuntimeException("Service instance not found");
     }
+
 }

@@ -37,7 +37,6 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
     public void onSave(JobContext<T> ctxt,ProcessState.State state){}
     public void onEndProcessing(JobContext<T> ctxt,ProcessState.State state){}
 
-    @Override
     public void manageStateExecutionEnd(JobContext<T> ctxt, ProcessState.State newState, boolean needSave) throws DaoException,ValidationException,StorageException{
         ctxt.getJobState().setState(newState);
         if(needSave) {

@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.metrics;
+package com.dreameddeath.core.service.context.feature;
 
-import com.codahale.metrics.MetricRegistry;
+import com.dreameddeath.core.user.IUserFactory;
 import org.apache.cxf.Bus;
-import org.apache.cxf.metrics.codahale.CodahaleMetricsProvider;
+import org.apache.cxf.endpoint.Client;
+import org.apache.cxf.feature.AbstractFeature;
 
 /**
- * Created by Christophe Jeunesse on 30/11/2015.
+ * Created by Christophe Jeunesse on 11/01/2016.
  */
-public class CxfMetricsProvider extends CodahaleMetricsProvider {
+public class UserFeature extends AbstractFeature {
+    private final IUserFactory factory;
 
-    private static Bus updateBus(Bus bus,MetricRegistry registry){
-        bus.setExtension(registry,MetricRegistry.class);
-        return bus;
+    public UserFeature(IUserFactory userFactory){
+        this.factory = userFactory;
     }
 
-    public CxfMetricsProvider(Bus bus, MetricRegistry registry){
-        super(updateBus(bus,registry));
+    public void initialize(Client client, Bus bus) {
+        UserClientInInterceptor clientInInterceptor = new UserClientInInterceptor(factory);
+        client.getInInterceptors().add(clientInInterceptor);
     }
+
 }

@@ -113,9 +113,6 @@ public class TestDaoRestService extends AbstractDaoRestService {
         }
         session.create(documentToCreate);
         return Response.ok(documentToCreate, MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, documentToCreate.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(documentToCreate.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(documentToCreate.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -129,9 +126,6 @@ public class TestDaoRestService extends AbstractDaoRestService {
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(doc.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(doc.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -146,9 +140,6 @@ public class TestDaoRestService extends AbstractDaoRestService {
         TestDoc doc = session.get(String.format("test/%s",id),TestDoc.class);
         session.delete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(doc.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(doc.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -174,9 +165,6 @@ public class TestDaoRestService extends AbstractDaoRestService {
         session.attachEntity(updatedDocument);
         session.update(updatedDocument);
         return Response.ok(updatedDocument,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, updatedDocument.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(updatedDocument.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(updatedDocument.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 

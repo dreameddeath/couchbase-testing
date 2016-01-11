@@ -16,6 +16,8 @@
 
 package com.dreameddeath.core.service.testing;
 
+import com.dreameddeath.core.json.EnhancedJacksonJsonProvider;
+import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
@@ -31,7 +33,6 @@ import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfig
 import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxrs.lifecycle.ResourceProvider;
@@ -146,7 +147,7 @@ public class TestSpringConfig implements ServletContextAware {
         }
 
         factory.setProviders(Arrays.asList(
-                new JacksonJsonProvider(mapper),
+                new EnhancedJacksonJsonProvider(mapper, JsonProviderFactory.getProviderInterceptorList()),
                 ctxt.getBeanFactory().getBean("userContextProvider"),
                 ctxt.getBeanFactory().getBean("globalContextProvider")
         ));

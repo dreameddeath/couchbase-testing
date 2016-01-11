@@ -35,6 +35,7 @@ import rx.Observable;
 
 import javax.annotation.Generated;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
@@ -57,13 +58,12 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
-    public Response create(@HeaderParam("USER_TOKEN") String userToken,
+    public Response create(@Context IUser user,
             @HeaderParam("DOC_FLAGS")Integer flags,
             #foreach($parentAttributeInfo in $service.rootPathAttributeInfoList)
              @ApiParam("${parentAttributeInfo.descr}") @PathParam("${parentAttributeInfo.name}") ${parentAttributeInfo.type} ${parentAttributeInfo.name},
              #end
             ${service.classSimpleName} documentToCreate) throws Exception{
-        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         session.attachEntity(documentToCreate);
         if(flags!=null){
@@ -72,9 +72,6 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
         //session.save(documentToCreate);
         session.create(documentToCreate);
         return Response.ok(documentToCreate, MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, documentToCreate.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(documentToCreate.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(documentToCreate.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -84,12 +81,11 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
     @DELETE
     @Produces({ MediaType.APPLICATION_JSON })
     @Path("{${service.defaultAttributeName}}")
-    public Response delete(@HeaderParam("USER_TOKEN") String userToken,
+    public Response delete(@Context IUser user,
                           #foreach($parentAttributeInfo in $service.rootPathAttributeInfoList)
                              @ApiParam("${parentAttributeInfo.descr}") @PathParam("${parentAttributeInfo.name}") ${parentAttributeInfo.type} ${parentAttributeInfo.name},
                              #end
                              @ApiParam("The requested id") @PathParam("${service.defaultAttributeName}") String ${service.defaultAttributeName}) throws Exception{
-        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         ${service.classSimpleName} doc = session.get(
                         String.format("$esc.java($service.fullDbKeyPattern)"
@@ -100,9 +96,6 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
                         ${service.classSimpleName}.class);
         session.delete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(doc.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(doc.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -111,7 +104,7 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes({ MediaType.APPLICATION_JSON })
     @Path("{${service.defaultAttributeName}}")
-    public Response replace(@HeaderParam("USER_TOKEN") String userToken,
+    public Response replace(@Context IUser user,
                            @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV) Long casData,
                            @HeaderParam(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS) Integer flags,
                            #foreach($parentAttributeInfo in $service.rootPathAttributeInfoList)
@@ -119,7 +112,6 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
                            #end
                            @ApiParam("The requested id") @PathParam("${service.defaultAttributeName}") String ${service.defaultAttributeName},
                            ${service.classSimpleName} updatedDocument) throws Exception{
-        IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
         updatedDocument.getBaseMeta().setKey(
                             String.format("$esc.java($service.fullDbKeyPattern)"
@@ -136,9 +128,6 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
         session.attachEntity(updatedDocument);
         session.update(updatedDocument);
         return Response.ok(updatedDocument,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, updatedDocument.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(updatedDocument.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(updatedDocument.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 

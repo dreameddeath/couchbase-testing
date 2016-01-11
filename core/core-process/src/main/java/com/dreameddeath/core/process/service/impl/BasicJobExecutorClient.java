@@ -90,7 +90,7 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
         catch(DaoException|StorageException|ValidationException e){
             throw new JobExecutionException(ctxt,"Unable to submit in deferred state",e);
         }
-        return null;
+        return ctxt;
     }
 
     @Override
@@ -109,5 +109,11 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
             throw new JobExecutionException(ctxt,"Cannot resume from done state");
         }
         return ctxt;
+    }
+
+    @Override
+    public JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException {
+        //TODO
+        return null;
     }
 }

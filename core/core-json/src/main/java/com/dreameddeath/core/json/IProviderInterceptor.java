@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.helper.service;
+package com.dreameddeath.core.json;
+
+import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 
 /**
- * Created by Christophe Jeunesse on 15/04/2015.
+ * Created by Christophe Jeunesse on 11/01/2016.
  */
-public class DaoHelperServiceUtils {
-    public static final String HTTP_HEADER_DOC_KEY = "X-DOCUMENT-KEY";
-    public static final String HTTP_HEADER_DOC_REV = "X-DOCUMENT-REV";
-    public static final String HTTP_HEADER_DOC_FLAGS = "X-DOCUMENT-FLAGS";
-    public static final String HTTP_HEADER_QUERY_TOTAL_ROWS = "X-DOCUMENT-QUERY-TOTAL-ROWS";
-
+public interface IProviderInterceptor<T> {
+    boolean isApplicableTo(Object obj);
+    void preWriteTo(T value, Annotation[] annotations, MultivaluedMap<String, Object> httpHeaders) throws IOException;
+    void postReadFrom(T value, Annotation[] annotations, MultivaluedMap<String, String> httpHeaders);
 }

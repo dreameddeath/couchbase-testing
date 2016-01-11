@@ -16,12 +16,8 @@
 
 package com.dreameddeath.core.process.service;
 
-import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.service.context.JobContext;
 
 /**
@@ -29,5 +25,5 @@ import com.dreameddeath.core.process.service.context.JobContext;
  */
 public interface IJobExecutorService<T extends AbstractJob> {
     void execute(JobContext<T> context) throws JobExecutionException;
-    void manageStateExecutionEnd(JobContext<T> ctxt, ProcessState.State newState, boolean needSave) throws DaoException,ValidationException,StorageException;
+    //void manageStateExecutionEnd(JobContext<T> ctxt, ProcessState.State newState, boolean needSave) throws DaoException,ValidationException,StorageException;
 }

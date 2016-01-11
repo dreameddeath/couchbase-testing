@@ -86,7 +86,6 @@ public class DbPathDef {
                 formatTypes.add(FormatType.RAW);
             }
         }
-        LOG.error("Parsing result {}",formatTypes);
     }
 
 

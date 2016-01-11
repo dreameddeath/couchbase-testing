@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.service.gentest;
 
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.service.annotation.BodyInfo;
 import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.ExposeService;
@@ -108,6 +109,11 @@ public class TestServiceGenImpl implements ITestService {
     )
     public Observable<TestingDocument> initDocument(IUser user) {
         TestingDocument doc = new TestingDocument();
+        doc.getBaseMeta().setKey("testingdoc/1");
+        doc.getBaseMeta().setCas(21);
+        doc.getBaseMeta().addFlag(CouchbaseDocument.DocumentFlag.Binary);
+        doc.getBaseMeta().addFlag(CouchbaseDocument.DocumentFlag.Compressed);
+        doc.getBaseMeta().addFlag(CouchbaseDocument.DocumentFlag.Deleted);
         TestingExternalElement extElt = new TestingExternalElement();
         extElt.addDate(new DateTime());
         doc.addTestExternalEltList(extElt);

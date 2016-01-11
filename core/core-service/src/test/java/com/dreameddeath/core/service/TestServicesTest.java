@@ -53,6 +53,8 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 
+import static com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
+
 
 /**
  * Created by Christophe Jeunesse on 20/03/2015.
@@ -221,7 +223,14 @@ public class TestServicesTest extends Assert{
             LOG.debug("Result {}", resultGen);
             assertEquals(1,resultGen.getTestExternalEltList().size());
             assertEquals(1,resultGen.getTestCplxList().size());
-
+            assertEquals("testingdoc/1",resultGen.getBaseMeta().getKey());
+            assertEquals(21L,resultGen.getBaseMeta().getCas());
+            assertEquals(
+                    DocumentFlag.Binary.toInteger()|
+                            DocumentFlag.Compressed.toInteger()|
+                            DocumentFlag.Deleted.toInteger()
+                    ,
+                    (long)resultGen.getBaseMeta().getEncodedFlags());
         }
         catch(Exception e){
             throw e;

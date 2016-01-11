@@ -16,6 +16,9 @@
 
 package com.dreameddeath.core.service.client;
 
+import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.user.IUser;
+
 import javax.ws.rs.client.WebTarget;
 import java.util.UUID;
 
@@ -29,4 +32,7 @@ public interface IServiceClient {
     WebTarget getInstance();
     WebTarget getInstance(String instanceId);
     String getUriInstance();
+
+    String USER_PROPERTY = IUser.class.getName();
+    String CONTEXT_PROPERTY = IGlobalContext.class.getName();
 }

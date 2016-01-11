@@ -21,7 +21,6 @@ import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.discovery.DaoDiscovery;
 import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
 import com.dreameddeath.core.helper.config.DaoHelperConfigProperties;
-import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
@@ -90,7 +89,7 @@ public class CouchbasePluginTest extends Assert {
                             .request()
                             .post(Entity.json(newDoc));
                     TestDoc createdTestDoc = response.readEntity(new GenericType<>(TestDoc.class));
-                    DaoHelperServiceUtils.finalizeFromResponse(response, createdTestDoc);
+                    //DaoHelperServiceUtils.finalizeFromResponse(response, createdTestDoc);
                     assertEquals(newDoc.name, createdTestDoc.name);
 
                     String[] keyParts = createdTestDoc.getMeta().getKey().split("/");
@@ -101,7 +100,7 @@ public class CouchbasePluginTest extends Assert {
                             .get();
 
                     TestDoc readDoc = readDocResponse.readEntity(new GenericType<>(TestDoc.class));
-                    DaoHelperServiceUtils.finalizeFromResponse(readDocResponse, readDoc);
+                    //DaoHelperServiceUtils.finalizeFromResponse(readDocResponse, readDoc);
                     assertEquals(createdTestDoc.name, readDoc.name);
                     assertEquals(createdTestDoc.getMeta().getKey(), readDoc.getMeta().getKey());
 

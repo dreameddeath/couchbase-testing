@@ -148,9 +148,6 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
         //session.save(documentToCreate);
         session.create(documentToCreate);
         return Response.ok(documentToCreate, MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, documentToCreate.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(documentToCreate.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(documentToCreate.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -165,9 +162,6 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
         TestDocChild doc = session.get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(doc.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(doc.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -183,9 +177,6 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
         TestDocChild doc = session.get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         session.delete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, doc.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(doc.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(doc.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 
@@ -212,9 +203,6 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
         session.attachEntity(updatedDocument);
         session.update(updatedDocument);
         return Response.ok(updatedDocument,MediaType.APPLICATION_JSON_TYPE)
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_KEY, updatedDocument.getBaseMeta().getKey())
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, Long.toString(updatedDocument.getBaseMeta().getCas()))
-                .header(DaoHelperServiceUtils.HTTP_HEADER_DOC_FLAGS, Long.toString(updatedDocument.getBaseMeta().getEncodedFlags()))
                 .build();
     }
 

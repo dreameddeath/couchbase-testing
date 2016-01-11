@@ -19,5 +19,21 @@ package com.dreameddeath.couchbase.core.process.rest.model;
 /**
  * Created by Christophe Jeunesse on 05/01/2016.
  */
-public class ActionRequest {
+public enum ActionRequest {
+    RESUME("resume"),
+    CANCEL("cancel");
+
+    private final String value;
+    ActionRequest(String value){
+        this.value = value;
+    }
+
+    public static ActionRequest fromValue(String value){
+        for(ActionRequest action:ActionRequest.values()){
+            if(action.value.equalsIgnoreCase(value)){
+                return action;
+            }
+        }
+        return null;
+    }
 }
