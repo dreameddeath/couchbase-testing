@@ -8,14 +8,14 @@ TODOs
 -----
 
 ### Couchbase Layer
-- Metric Gathering
+- ~~Metric Gathering~~
 - ~~Views/Queries~~
 - ~~Getting from Replicate Management (load-balancing)~~
 - ~~Simulation (in-memory mode) for all verbs (get, update, append,prepend, ...) for views also and cas~~
 - Simulation of expiration
 - management of time to simulate data expiration
 - ~~Replicate/Timeout/Persistance Management (ReplicateTo/PersistTo)~~
-- ~~Unique Index ~~
+- ~~Unique Index~~
 - ~~Datamodel upgrade management~~
 - History :
     - Keep previous revision at document level
@@ -50,11 +50,11 @@ TODOs
 ### Infrastructure Layer
 - Logging management (local + distributed & correlation) - LogStash
 - Security Layer (and Auditing)
-- Configuration (and configuration override/deploy) - have look at Netflix's archaius
-- Perfs/Stats Monitoring (using - dropwizard metrics)
+- ~~Configuration (and configuration override/deploy) - have look at Netflix's archaius~~
+- ~~Perfs/Stats Monitoring (using - dropwizard metrics)~~
 - Version Upgrades
 - Integration with Storm - DRPC, standard - , kafka (& ElasticSearch, Esper?)
-- Integration with Apache Curator (zookeeper, service dispatch)
+- ~~Integration with Apache Curator (zookeeper, service dispatch)~~
 
 ### Testing
 - Job Unit Tests (~ integration tests) with or without calc only, db simulator
