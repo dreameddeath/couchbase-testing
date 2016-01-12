@@ -16,24 +16,25 @@
 
 package com.dreameddeath.core.service.context.feature;
 
-import com.dreameddeath.core.user.IUserFactory;
-import org.apache.cxf.interceptor.Fault;
-import org.apache.cxf.message.Message;
-import org.apache.cxf.phase.AbstractPhaseInterceptor;
-import org.apache.cxf.phase.Phase;
+import com.dreameddeath.core.service.context.IGlobalContextFactory;
+import com.dreameddeath.core.service.context.provider.ContextClientFilter;
+
+import javax.ws.rs.core.Feature;
+import javax.ws.rs.core.FeatureContext;
 
 /**
- * Created by Christophe Jeunesse on 11/01/2016.
+ * Created by Christophe Jeunesse on 12/01/2016.
  */
-public class UserClientInInterceptor extends AbstractPhaseInterceptor<Message> {
-    private final IUserFactory factory;
-    public UserClientInInterceptor(IUserFactory factory) {
-        super(Phase.PRE_INVOKE);
-        this.factory = factory;
+public class ContextClientFeature implements Feature {
+    private final ContextClientFilter contextClientFilter;
+
+    public ContextClientFeature(IGlobalContextFactory contextFactory){
+        contextClientFilter = new ContextClientFilter();
+        contextClientFilter.setGlobalContextFactory(contextFactory);
     }
 
     @Override
-    public void handleMessage(Message message) throws Fault {
-
+    public boolean configure(FeatureContext featureContext) {
+        return false;
     }
 }

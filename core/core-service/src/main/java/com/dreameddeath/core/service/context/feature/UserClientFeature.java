@@ -16,24 +16,26 @@
 
 package com.dreameddeath.core.service.context.feature;
 
+import com.dreameddeath.core.service.context.provider.UserClientFilter;
 import com.dreameddeath.core.user.IUserFactory;
-import org.apache.cxf.Bus;
-import org.apache.cxf.endpoint.Client;
-import org.apache.cxf.feature.AbstractFeature;
+
+import javax.ws.rs.core.Feature;
+import javax.ws.rs.core.FeatureContext;
 
 /**
  * Created by Christophe Jeunesse on 11/01/2016.
  */
-public class UserFeature extends AbstractFeature {
-    private final IUserFactory factory;
+public class UserClientFeature implements Feature {
+    private final UserClientFilter userClientFilter;
 
-    public UserFeature(IUserFactory userFactory){
-        this.factory = userFactory;
+    public UserClientFeature(IUserFactory userFactory){
+        userClientFilter = new UserClientFilter();
+        userClientFilter.setUserFactory(userFactory);
     }
 
-    public void initialize(Client client, Bus bus) {
-        UserClientInInterceptor clientInInterceptor = new UserClientInInterceptor(factory);
-        client.getInInterceptors().add(clientInInterceptor);
+    @Override
+    public boolean configure(FeatureContext featureContext) {
+        featureContext.register(userClientFilter);
+        return true;
     }
-
 }

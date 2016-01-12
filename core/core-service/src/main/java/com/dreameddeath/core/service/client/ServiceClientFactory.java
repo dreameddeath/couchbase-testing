@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.service.client;
 
+import com.dreameddeath.core.service.context.feature.ClientFeatureFactory;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
 import com.dreameddeath.core.service.model.ClientInstanceInfo;
@@ -24,10 +25,10 @@ import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 //import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
@@ -40,6 +41,13 @@ public class ServiceClientFactory {
     private final ServiceDiscoverer serviceDiscoverer;
     private final ClientRegistrar clientRegistrar;
     private final ConcurrentMap<String,IServiceClient> serviceClientMap = new ConcurrentHashMap<>();
+    private ClientFeatureFactory featureFactory=null;
+
+
+    @Autowired(required = false)
+    public void setFeatureFactory(ClientFeatureFactory featureFactory){
+        this.featureFactory=featureFactory;
+    }
 
     public ServiceClientFactory(ServiceDiscoverer serviceDiscoverer){
         this(serviceDiscoverer,null);
@@ -64,23 +72,26 @@ public class ServiceClientFactory {
         }
     }
 
+    public ClientFeatureFactory getFeatureFactory() {
+        return featureFactory;
+    }
+
     public IServiceClient getClient(final String serviceName, final String serviceVersion){
-        return serviceClientMap.computeIfAbsent(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion), new Function<String, IServiceClient>() {
-            @Override
-            public IServiceClient apply(String s) {
-                try {
-                    IServiceClient client = new ServiceClientImpl(serviceDiscoverer.getServiceProvider(s),s);
-                    if(clientRegistrar!=null){
-                        registarClient(client);
+        return serviceClientMap.computeIfAbsent(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion),
+                serviceFullName -> {
+                    try {
+                        IServiceClient client = new ServiceClientImpl(serviceDiscoverer.getServiceProvider(serviceFullName),serviceFullName,this);
+                        if(clientRegistrar!=null){
+                            registarClient(client);
+                        }
+                        return client;
                     }
-                    return client;
+                    catch(ServiceDiscoveryException e){
+                        LOG.error("Cannot build/find service "+serviceName+" "+serviceVersion,e);
+                        throw new RuntimeException(e);
+                    }
                 }
-                catch(ServiceDiscoveryException e){
-                    LOG.error("Cannot find service "+serviceName+" "+serviceVersion,e);
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        );
     }
 
     public void stop() throws Exception{

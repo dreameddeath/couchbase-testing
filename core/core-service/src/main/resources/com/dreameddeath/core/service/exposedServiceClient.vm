@@ -100,10 +100,10 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
         return Observable.from(
                     target.request(MediaType.APPLICATION_JSON_TYPE)
 #if($method.hasGlobalContextParam())
-                    .header(GlobalContextProvider.CONTEXT_HEADER, contextFactory.encode($method.globalContextParamName))
+                    .property(IServiceClient.CONTEXT_PROPERTY, $method.globalContextParamName)
 #end
 #if($method.hasUserParam())
-                    .header(UserContextProvider.USER_TOKEN_HEADER, userFactory.toToken($method.userParamName))
+                    .property(IServiceClient.USER_PROPERTY, $method.userParamName)
 #end
                     .async()
                     .${method.httpMethod.toLowerCase()}(

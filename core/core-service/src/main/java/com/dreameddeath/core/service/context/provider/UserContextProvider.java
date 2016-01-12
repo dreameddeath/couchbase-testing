@@ -16,55 +16,25 @@
 
 package com.dreameddeath.core.service.context.provider;
 
-import com.dreameddeath.core.java.utils.StringUtils;
-import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.user.IUserFactory;
 import org.apache.cxf.jaxrs.ext.ContextProvider;
-import org.apache.cxf.jaxrs.impl.HttpHeadersImpl;
 import org.apache.cxf.message.Message;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.cxf.transport.http.AbstractHTTPDestination;
 
-import javax.ws.rs.core.HttpHeaders;
+import javax.servlet.ServletRequest;
 
 /**
  * Created by Christophe Jeunesse on 06/01/2016.
  */
 public class UserContextProvider implements ContextProvider<IUser> {
-    public static final String USER_TOKEN_HEADER = "X-USER-TOKEN";
-
-    private IGlobalContextFactory transcoder;
-    private IUserFactory userFactory;
-    private boolean setupDefaultUser=false;
-
-    @Autowired
-    public void setGlobalContextTranscoder(IGlobalContextFactory transcoder){
-        this.transcoder = transcoder;
-    }
-
-    @Autowired
-    public void setUserFactory(IUserFactory userFactory) {
-        this.userFactory = userFactory;
-    }
-
-    public void setSetupDefaultUser(boolean setupDefaultUser){
-        this.setupDefaultUser = setupDefaultUser;
-    }
 
     @Override
     public IUser createContext(Message message) {
-        HttpHeaders headers = new HttpHeadersImpl(message);
-        String userToken = headers.getHeaderString(USER_TOKEN_HEADER);
-        if(StringUtils.isNotEmpty(userToken)){
-            return userFactory.fromToken(userToken);
+        ServletRequest request = (ServletRequest)message.get(AbstractHTTPDestination.HTTP_REQUEST);
+        IUser context = (IUser) request.getAttribute(UserServerFilter.PROPERTY_PARAM_NAME);
+        if(context!=null){
+            return context;
         }
-        String contextToken = headers.getHeaderString(GlobalContextProvider.CONTEXT_HEADER);
-        if(StringUtils.isNotEmpty(contextToken)){
-            return transcoder.decode(contextToken).userCtxt().getUser();
-        }
-        if(setupDefaultUser) {
-            return userFactory.defaultUser();
-        }
-        throw new RuntimeException("Cannot setup User from message");
+        throw new RuntimeException("Cannot setup Global context from message");
     }
 }

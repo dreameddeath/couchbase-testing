@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Feature;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,24 +64,31 @@ public class ServiceClientImpl implements IServiceClient {
     }
 
     private final ServiceProvider<CuratorDiscoveryServiceDescription> provider;
+    private final ServiceClientFactory parentFactory;
     private final Map<String,ServiceInstanceConfig> configMap = new ConcurrentHashMap<>();
     private final String fullName;
     private final UUID uuid=UUID.randomUUID();
 
-    public ServiceClientImpl(ServiceProvider<CuratorDiscoveryServiceDescription> provider,String serviceFullName){
+    public ServiceClientImpl(ServiceProvider<CuratorDiscoveryServiceDescription> provider,String serviceFullName,ServiceClientFactory factory){
         Preconditions.checkNotNull(provider,"The provider for service %s is null",serviceFullName);
         this.provider = provider;
         this.fullName = serviceFullName;
+        this.parentFactory = factory;
     }
 
     protected WebTarget buildClient(final ServiceInstance<CuratorDiscoveryServiceDescription> instance){
         ServiceInstanceConfig config = configMap.computeIfAbsent(instance.getId(), s ->
                 new ServiceInstanceConfig(instance)
         );
-        return ClientBuilder.newBuilder().build()
+        WebTarget target = ClientBuilder.newBuilder().build()
                 .target(config.uri)
                 .register(config.provider);
-
+        if(parentFactory.getFeatureFactory()!=null){
+            for(Feature feature:parentFactory.getFeatureFactory().getClientFeatures()){
+                target=target.register(feature);
+            }
+        }
+        return target;
     }
 
     @Override

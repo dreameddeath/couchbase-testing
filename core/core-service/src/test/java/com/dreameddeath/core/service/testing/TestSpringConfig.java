@@ -20,8 +20,10 @@ import com.dreameddeath.core.json.EnhancedJacksonJsonProvider;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
+import com.dreameddeath.core.service.context.provider.ContextServerFilter;
 import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
 import com.dreameddeath.core.service.context.provider.UserContextProvider;
+import com.dreameddeath.core.service.context.provider.UserServerFilter;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
@@ -123,17 +125,29 @@ public class TestSpringConfig implements ServletContextAware {
 
     @Bean(name="globalContextProvider")
     public GlobalContextProvider globalContextProvider(){
-        GlobalContextProvider provider = new GlobalContextProvider();
-        provider.setAutoSetupDefaultContext(true);
-        return provider;
+        return new GlobalContextProvider();
     }
 
     @Bean(name="userContextProvider")
     public UserContextProvider userContextProvider(){
-        UserContextProvider provider = new UserContextProvider();
-        provider.setSetupDefaultUser(true);
-        return provider;
+        return new UserContextProvider();
     }
+
+    @Bean(name="userServerFilter")
+    public UserServerFilter userServerFilter(){
+        UserServerFilter filter = new UserServerFilter();
+        filter.setSetupDefaultUser(true);
+        return filter;
+    }
+
+
+    @Bean(name="contextServerFilter")
+    public ContextServerFilter contextServerFilter(){
+        ContextServerFilter filter = new ContextServerFilter();
+        filter.setSetupDefaultContext(true);
+        return filter;
+    }
+
 
     @Bean(name="testingJaxRsServer")
     public Server buildJaxRsServer() {
@@ -149,7 +163,9 @@ public class TestSpringConfig implements ServletContextAware {
         factory.setProviders(Arrays.asList(
                 new EnhancedJacksonJsonProvider(mapper, JsonProviderFactory.getProviderInterceptorList()),
                 ctxt.getBeanFactory().getBean("userContextProvider"),
-                ctxt.getBeanFactory().getBean("globalContextProvider")
+                ctxt.getBeanFactory().getBean("globalContextProvider"),
+                ctxt.getBeanFactory().getBean("userServerFilter"),
+                ctxt.getBeanFactory().getBean("contextServerFilter")
         ));
 
         Map<String,Object> beanObjMap = (Map<String,Object>)servletContext.getAttribute("beanObjMap");

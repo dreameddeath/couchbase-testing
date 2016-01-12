@@ -19,8 +19,6 @@ package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextFactory;
-import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.user.IUser;
 import rx.Observable;
@@ -40,12 +38,12 @@ import javax.ws.rs.core.MediaType;
         comments = "Generated for servcice $"
 )
 public class TestServiceRestClientImpl implements ITestService {
-    private IGlobalContextFactory transcoder;
+    //private IGlobalContextFactory transcoder;
     private IServiceClient serviceClient;
 
-    public void setContextTranscoder(IGlobalContextFactory transcoder){
+    /*public void setContextTranscoder(IGlobalContextFactory transcoder){
         this.transcoder = transcoder;
-    }
+    }*/
 
     public void setServiceClient(IServiceClient serviceClient){
         this.serviceClient = serviceClient;
@@ -58,7 +56,8 @@ public class TestServiceRestClientImpl implements ITestService {
 
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)
-                        .header(GlobalContextProvider.CONTEXT_HEADER, transcoder.encode(ctxt))
+                       // .header(GlobalContextProvider.CONTEXT_HEADER, transcoder.encode(ctxt))
+                        .property(IServiceClient.CONTEXT_PROPERTY,ctxt)
                         .async().post(
                         Entity.entity(input, MediaType.APPLICATION_JSON_TYPE),
                         new GenericType<>(Result.class)
@@ -113,6 +112,7 @@ public class TestServiceRestClientImpl implements ITestService {
         target = target.path(String.format("testingDocument"));
         return Observable.from(
                 target.request(MediaType.APPLICATION_JSON_TYPE)
+                        .property(IServiceClient.USER_PROPERTY,user)
                         .async()
                         .post(
                                 null,

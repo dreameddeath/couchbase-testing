@@ -16,58 +16,23 @@
 
 package com.dreameddeath.core.service.context.provider;
 
-import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextFactory;
-import com.dreameddeath.core.user.IUserFactory;
 import org.apache.cxf.jaxrs.ext.ContextProvider;
-import org.apache.cxf.jaxrs.impl.HttpHeadersImpl;
 import org.apache.cxf.message.Message;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.cxf.transport.http.AbstractHTTPDestination;
 
-import javax.ws.rs.core.HttpHeaders;
+import javax.servlet.ServletRequest;
 
 /**
  * Created by Christophe Jeunesse on 06/01/2016.
  */
 public class GlobalContextProvider implements ContextProvider<IGlobalContext> {
-    public final static String CONTEXT_HEADER = "X-GLOBAL-CONTEXT";
-
-    private IGlobalContextFactory transcoder;
-    private IUserFactory userFactory;
-    private boolean autoSetupDefaultContext = false;
-
-    public GlobalContextProvider(){
-        super();
-    }
-
-    @Autowired
-    public void setGlobalContextTranscoder(IGlobalContextFactory transcoder){
-        this.transcoder = transcoder;
-    }
-
-    @Autowired
-    public void setUserFactory(IUserFactory userFactory) {
-        this.userFactory = userFactory;
-    }
-
-    public void setAutoSetupDefaultContext(boolean setupDefaultContext){
-        this.autoSetupDefaultContext = setupDefaultContext;
-    }
-
     @Override
     public IGlobalContext createContext(Message message) {
-        HttpHeaders headers = new HttpHeadersImpl(message);
-        String contextHeader = headers.getHeaderString(CONTEXT_HEADER);
-        String userHeader = headers.getHeaderString(UserContextProvider.USER_TOKEN_HEADER);
-        if(StringUtils.isNotEmpty(contextHeader)){
-            return transcoder.decode(contextHeader);
-        }
-        else if (StringUtils.isNotEmpty(userHeader)) {
-            return transcoder.buildContext(userFactory.fromToken(userHeader));
-        }
-        if(autoSetupDefaultContext) {
-            return transcoder.buildDefaultContext();
+        ServletRequest request = (ServletRequest)message.get(AbstractHTTPDestination.HTTP_REQUEST);
+        IGlobalContext context = (IGlobalContext)request.getAttribute(ContextServerFilter.PROPERTY_PARAM_NAME);
+        if(context!=null){
+            return context;
         }
         throw new RuntimeException("Cannot setup Global context from message");
     }

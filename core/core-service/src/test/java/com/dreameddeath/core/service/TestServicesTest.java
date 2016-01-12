@@ -22,6 +22,9 @@ import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.ServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
+import com.dreameddeath.core.service.context.feature.ClientFeatureFactory;
+import com.dreameddeath.core.service.context.feature.ContextClientFeature;
+import com.dreameddeath.core.service.context.feature.UserClientFeature;
 import com.dreameddeath.core.service.model.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
@@ -112,6 +115,7 @@ public class TestServicesTest extends Assert{
     public void testClientRegister() throws Exception {
         ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN,server.getDaemonUid().toString(),server.getServerUid().toString());
         ServiceClientFactory clientFactory = new ServiceClientFactory(server.getServiceDiscoverer(),clientRegistrar);
+
         IServiceClient client = clientFactory.getClient("testService","1.0");
         Thread.sleep(100);
         assertEquals(1L,server.getClientDiscoverer().getNbInstances("testService","1.0"));
@@ -148,10 +152,14 @@ public class TestServicesTest extends Assert{
         LOG.debug("Connector port {}", server.getLocalPort());
         ServiceClientFactory clientFactory = new ServiceClientFactory(server.getServiceDiscoverer());
         IGlobalContextFactory transcoder = new DummyContextFactory();
+        ClientFeatureFactory featureFactory = new ClientFeatureFactory();
+        featureFactory.addFeature(new ContextClientFeature(transcoder));
+        featureFactory.addFeature(new UserClientFeature(new StandardMockUserFactory()));
+        clientFactory.setFeatureFactory(featureFactory);
+
 
         TestServiceRestClientImpl service = new TestServiceRestClientImpl();
-        service.setContextTranscoder(transcoder);
-
+        //service.setContextTranscoder(transcoder);
         service.setServiceClient(clientFactory.getClient("testService","1.0"));
 
         ITestService.Input input = new ITestService.Input();
