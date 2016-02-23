@@ -22,16 +22,16 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
  * Created by Christophe Jeunesse on 20/11/2014.
  */
 public class DuplicateAttachedTaskException extends Exception {
-    private Integer taskUid;
+    private String taskUid;
     private String jobKey;
     private CouchbaseDocument doc;
 
 
-    public DuplicateAttachedTaskException(CouchbaseDocument doc, String jobKey,Integer taskUid){
+    public DuplicateAttachedTaskException(CouchbaseDocument doc, String jobKey,String taskUid){
         this(doc,jobKey,taskUid,"The task <"+taskUid+"> is already existing of job <"+jobKey+">");
     }
 
-    public DuplicateAttachedTaskException(CouchbaseDocument doc,String jobKey, Integer taskUid,  String message){
+    public DuplicateAttachedTaskException(CouchbaseDocument doc,String jobKey, String taskUid,  String message){
         super(message);
         this.doc = doc;
         this.jobKey = jobKey;

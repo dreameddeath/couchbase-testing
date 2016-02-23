@@ -31,7 +31,7 @@ import com.dreameddeath.core.process.service.context.TaskContext;
  */
 public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJob,TDOC extends CouchbaseDocument,T extends DocumentCreateTask<TDOC>> extends StandardTaskProcessingService<TJOB,T> {
     @Override
-    public boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
+    public final boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
         T task = ctxt.getTask();
         try {
             //Recovery mode

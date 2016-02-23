@@ -38,6 +38,7 @@ public class ConfigPropertySource extends PropertySource {
             }
         }
     }
+
     private ConcurrentMap<String,IConfigProperty<String>> propertyMap = new ConcurrentHashMap<>();
 
 

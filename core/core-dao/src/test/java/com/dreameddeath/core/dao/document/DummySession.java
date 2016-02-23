@@ -109,6 +109,16 @@ public class DummySession implements ICouchbaseSession {
     }
 
     @Override
+    public <T extends CouchbaseDocument> T refresh(T doc) throws DaoException, StorageException {
+        return null;
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc) throws DaoException, StorageException {
+        return null;
+    }
+
+    @Override
     public <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException {
         return null;
     }

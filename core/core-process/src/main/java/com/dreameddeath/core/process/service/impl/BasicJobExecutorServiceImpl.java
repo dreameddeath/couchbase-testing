@@ -47,7 +47,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
     }
 
     @Override
-    public void execute(JobContext<T> ctxt) throws JobExecutionException{
+    public JobContext<T> execute(JobContext<T> ctxt) throws JobExecutionException{
         final ProcessState jobState=ctxt.getJobState();
         final AbstractJob job = ctxt.getJob();
         jobState.setLastRunError(null);
@@ -121,5 +121,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
             jobState.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
             throw new JobExecutionException(job,State.UNKNOWN,e);
         }
+        return ctxt;
     }
+
 }

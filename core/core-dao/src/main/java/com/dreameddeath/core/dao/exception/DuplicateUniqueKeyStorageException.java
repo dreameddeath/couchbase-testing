@@ -17,13 +17,34 @@
 package com.dreameddeath.core.dao.exception;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
+import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class DuplicateUniqueKeyStorageException extends DocumentStorageException {
-    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc){ super(doc);}
-    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc, String message){ super(doc,message);}
-    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc, String message, Throwable e){ super(doc,message,e);}
-    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc, Throwable e){ super(doc,e);}
+    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc, String message, DuplicateUniqueKeyException e){ super(doc,message,e);}
+    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc, DuplicateUniqueKeyException e){ super(doc,e);}
+
+    @Override
+    public DuplicateUniqueKeyException getCause(){
+        return (DuplicateUniqueKeyException) super.getCause();
+    }
+
+    public CouchbaseDocument getDoc() {
+        return (getCause()!=null)?getCause().getDoc():null;
+    }
+
+    public String getKey() {
+        return (getCause()!=null)?getCause().getKey():null;
+    }
+
+    public CouchbaseUniqueKey getUniqueKeyDoc() {
+        return (getCause()!=null)?getCause().getUniqueKeyDoc():null;
+    }
+
+    public String getOwnerDocumentKey() {
+        return (getCause()!=null)?getCause().getOwnerDocumentKey():null;
+    }
 }

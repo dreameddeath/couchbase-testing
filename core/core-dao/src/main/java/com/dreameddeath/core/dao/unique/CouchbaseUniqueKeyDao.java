@@ -141,20 +141,21 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             keyDoc.addKey(internalKey, doc);
         }
         catch(DuplicateUniqueKeyException e){
-            throw new DuplicateUniqueKeyStorageException(doc,e.getMessage());
+            throw new DuplicateUniqueKeyStorageException(doc,e.getMessage(),e);
         }
 
         if(isCalcOnly) {
             try {
                 CouchbaseUniqueKey existingKeyDoc = session.getUniqueKey(internalKey);
-                throw new DuplicateDocumentKeyException(existingKeyDoc,"The key <"+internalKey+"> is already pre-existing in calc only mode");
+                DuplicateUniqueKeyException duplicateException = new DuplicateUniqueKeyException(internalKey,existingKeyDoc.getKeyRefDocKey(internalKey),doc,existingKeyDoc);
+                throw new DuplicateDocumentKeyException(existingKeyDoc,"The key <"+internalKey+"> is already pre-existing in calc only mode",duplicateException);
             } catch (DocumentNotFoundException e) {
                 super.create(session,keyDoc,isCalcOnly);
                 //Nothing to do as it means no duplicates
             }
         }
         else{
-            super.create(session,keyDoc,isCalcOnly); //getClient().add(getTranscoder().newDocument(keyDoc));
+            super.create(session,keyDoc,isCalcOnly);
         }
         if(doc instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
         return keyDoc;

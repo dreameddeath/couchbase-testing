@@ -44,10 +44,10 @@ public interface ICouchbaseSession {
 
     CouchbaseDocument get(String key) throws DaoException,StorageException;
     Observable<CouchbaseDocument> asyncGet(String key)throws DaoException;
+    <T extends CouchbaseDocument> T refresh(T doc) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc) throws DaoException,StorageException;
     <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncGet(String key, Class<T> targetClass)throws DaoException;
-
-
     <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException;
     <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException;

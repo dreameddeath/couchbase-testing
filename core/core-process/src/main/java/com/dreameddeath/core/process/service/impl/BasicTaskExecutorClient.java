@@ -66,7 +66,6 @@ public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends Abst
 
         this.jobExecutorService = new DummyJobExecutor();
         this.jobProcessingService=new DummyJobProcessing();
-
         this.metricRegistry = registry;
     }
 
@@ -98,7 +97,7 @@ public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends Abst
 
     public class DummyJobExecutor implements IJobExecutorService<TJOB>{
         @Override
-        public void execute(JobContext<TJOB> context) throws JobExecutionException {
+        public JobContext<TJOB> execute(JobContext<TJOB> context) throws JobExecutionException {
             throw new JobExecutionException(context,"Shouldn't occurs from task Client <"+taskClass.getName()+">");
         }
     }
@@ -109,18 +108,18 @@ public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends Abst
             throw new JobExecutionException(context,"Shouldn't occurs from task Client <"+taskClass.getName()+">");
         }
 
-            @Override
-            public boolean preprocess(JobContext<TJOB> context) throws JobExecutionException {
+        @Override
+        public boolean preprocess(JobContext<TJOB> context) throws JobExecutionException {
             throw new JobExecutionException(context,"Shouldn't occurs from task Client <"+taskClass.getName()+">");
         }
 
-            @Override
-            public boolean postprocess(JobContext<TJOB> context) throws JobExecutionException {
+        @Override
+        public boolean postprocess(JobContext<TJOB> context) throws JobExecutionException {
             throw new JobExecutionException(context,"Shouldn't occurs from task Client <"+taskClass.getName()+">");
         }
 
-            @Override
-            public boolean cleanup(JobContext<TJOB> context) throws JobExecutionException {
+        @Override
+        public boolean cleanup(JobContext<TJOB> context) throws JobExecutionException {
             throw new JobExecutionException(context,"Shouldn't occurs from task Client <"+taskClass.getName()+">");
         }
     }

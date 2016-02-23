@@ -35,7 +35,7 @@
         <module>core-model</module>
         <module>core-business</module>
         <module>core-process</module>
-        <module>core-process-rest</module>
+        <module>core-process-remote</module>
         <module>core-couchbase</module>
         <module>core-couchbase-session</module>
         <module>core-dao</module>

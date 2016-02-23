@@ -18,8 +18,8 @@ package com.dreameddeath.billing.process.service;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.cycle.BillingCycle;
+import com.dreameddeath.billing.model.cycle.BillingCycleLink;
 import com.dreameddeath.billing.process.model.CreateBillingCycleJob;
-import com.dreameddeath.billing.process.model.CreateBillingCycleJob.CreateBillingCycleLinkTask;
 import com.dreameddeath.billing.process.model.CreateBillingCycleJob.CreateBillingCycleTask;
 import com.dreameddeath.billing.util.BillCycleUtils;
 import com.dreameddeath.core.couchbase.exception.StorageException;
@@ -29,8 +29,7 @@ import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
-import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
-import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.ChildDocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 
 /**
@@ -40,14 +39,14 @@ import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 public class CreateBillingCycleJobProcessingService extends StandardJobProcessingService<CreateBillingCycleJob> {
     @Override
     public boolean init(JobContext<CreateBillingCycleJob> context) throws JobExecutionException {
-        context.addTask(new CreateBillingCycleTask())
-                .chainWith(new CreateBillingCycleLinkTask().setDocKey(context.getJob().baLink.getKey()));
+        context.addTask(new CreateBillingCycleTask(context.getJob().baLink.getKey()));
+                //.chainWith(new CreateBillingCycleLinkTask().setDocKey(context.getJob().baLink.getKey()));
 
         return false;
     }
 
     @TaskProcessingForClass(CreateBillingCycleTask.class)
-    public static class CreateBillingCycleTaskProcessingService extends DocumentCreateTaskProcessingService<CreateBillingCycleJob,BillingCycle,CreateBillingCycleTask> {
+    public static class CreateBillingCycleTaskProcessingService extends ChildDocumentCreateTaskProcessingService<CreateBillingCycleJob,BillingCycle,BillingAccount,CreateBillingCycleTask> {
         @Override
         protected BillingCycle buildDocument(TaskContext<CreateBillingCycleJob,CreateBillingCycleTask> ctxt) throws DaoException, StorageException {
             BillingAccount ba = ctxt.getParentJob().baLink.getLinkedObject(ctxt.getSession());
@@ -58,13 +57,20 @@ public class CreateBillingCycleJobProcessingService extends StandardJobProcessin
             billCycle.setBillingAccountLink(ba.newLink());
             return billCycle;
         }
-    }
 
-    @TaskProcessingForClass(CreateBillingCycleLinkTask.class)
-    public static class CreateBillingCycleLinkTaskProcessingService extends DocumentUpdateTaskProcessingService<CreateBillingCycleJob,BillingAccount,CreateBillingCycleLinkTask> {
         @Override
-        protected void processDocument(TaskContext<CreateBillingCycleJob,CreateBillingCycleLinkTask> ctxt,BillingAccount ba) throws DaoException, StorageException {
-            ba.addBillingCycleLink(ctxt.getDependentTask(CreateBillingCycleTask.class).getDocument(ctxt.getSession()).newLink());
+        protected boolean needParentUpdate(BillingAccount parent, BillingCycle child) {
+            for(BillingCycleLink link:parent.getBillingCycleLinks()){
+                if(link.isLinkTo(child)){
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        protected void updateParent(BillingAccount parent, BillingCycle child) {
+            parent.addBillingCycleLink(child.newLink());
         }
     }
 }

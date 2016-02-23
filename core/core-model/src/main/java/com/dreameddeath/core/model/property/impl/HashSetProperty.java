@@ -28,7 +28,7 @@ import java.util.Set;
  * Created by Christophe Jeunesse on 08/08/2014.
  */
 public class HashSetProperty<T> extends HashSet<T> implements SetProperty<T>,HasParent {
-    HasParent parentElt;
+    private HasParent parentElt;
 
     public HashSetProperty(HasParent parentElement){
         parentElt=parentElement;

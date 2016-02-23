@@ -42,6 +42,22 @@ public class DuplicateUniqueKeyException extends Exception {
     }
 
 
+    public CouchbaseDocument getDoc() {
+        return doc;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public CouchbaseUniqueKey getUniqueKeyDoc() {
+        return uniqueKeyDoc;
+    }
+
+    public String getOwnerDocumentKey() {
+        return ownerDocumentKey;
+    }
+
     @Override
     public String getMessage(){
         return super.getMessage() + "\n The doc was " + doc;

@@ -79,10 +79,12 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
     protected class BuildKeyFromCounterFunc implements Func1<Long,T>{
         private final T obj;
         private final Object[] params;
+
         public BuildKeyFromCounterFunc(T obj,Object ...params){
             this.obj = obj;
             this.params = Arrays.copyOf(params,params.length+1);
         }
+
         @Override
         public T call(Long aLong) {
             params[params.length-1]=aLong;

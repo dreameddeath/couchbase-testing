@@ -48,6 +48,9 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
 
     public ProcessingServiceFactory addJobProcessingService(Class<? extends IJobProcessingService> serviceClass){
         JobProcessingForClass ann = serviceClass.getAnnotation(JobProcessingForClass.class);
+        if(ann==null){
+            throw new RuntimeException("Cannot find annotation JobProcessingForClass for job processing service class "+serviceClass.getName());
+        }
         try {
             addJobProcessingServiceFor(ann.value(), serviceClass.newInstance());
         }
@@ -70,6 +73,9 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
 
     public void addTaskProcessingService(Class<? extends ITaskProcessingService> serviceClass){
         TaskProcessingForClass ann = serviceClass.getAnnotation(TaskProcessingForClass.class);
+        if(ann==null){
+            throw new RuntimeException("Cannot find annotation TaskProcessingForClass for processing service class "+serviceClass.getName());
+        }
         try {
             addTaskProcessingServiceFor(ann.value(), serviceClass.newInstance());
         }

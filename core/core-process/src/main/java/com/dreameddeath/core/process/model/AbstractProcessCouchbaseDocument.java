@@ -48,7 +48,7 @@ public class AbstractProcessCouchbaseDocument extends CouchbaseDocument implemen
     }
 
     @Override
-    public final CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, Integer taskId){
+    public final CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, String taskId){
         for(CouchbaseDocumentAttachedTaskRef taskRef: attachedTasks) {
             if (jobKey.equals(taskRef.getJobUid()) && (taskId.equals(taskRef.getTaskId()))) {
                 return taskRef;

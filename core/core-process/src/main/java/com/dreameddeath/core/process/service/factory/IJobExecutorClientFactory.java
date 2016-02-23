@@ -23,5 +23,5 @@ import com.dreameddeath.core.process.service.IJobExecutorClient;
  * Created by Christophe Jeunesse on 02/01/2016.
  */
 public interface IJobExecutorClientFactory {
-     <T extends AbstractJob> IJobExecutorClient<T> buildClient(Class<T> jobClass);
+     <T extends AbstractJob> IJobExecutorClient<T> buildJobClient(Class<T> jobClass);
 }

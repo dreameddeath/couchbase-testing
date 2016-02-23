@@ -62,34 +62,49 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
      *  id : the task id
      */
     @DocumentProperty("id")
-    private transient Property<Integer> id = new ImmutableProperty<>(AbstractTask.this);
+    private transient Property<String> id = new ImmutableProperty<>(AbstractTask.this);
     /**
      *  dependencies : List of task Id being a pre-requisite
      */
     @DocumentProperty("dependencies")
-    private ListProperty<Integer> dependencies = new ArrayListProperty<>(AbstractTask.this);
+    private ListProperty<String> dependencies = new ArrayListProperty<>(AbstractTask.this);
     /**
      *  stateInfo : Gives job current state info
      */
     @DocumentProperty("stateInfo")
     private Property<ProcessState> stateInfo = new ImmutableProperty<>(AbstractTask.this,ProcessState.class);
-
+    /**
+     *  parentTaskId : The root task which has created the task
+     */
+    @DocumentProperty("parentTaskId")
+    private transient Property<String> parentTaskId = new ImmutableProperty<>(AbstractTask.this);
 
     // jobUid accessors
     public UUID getJobUid() { return jobUid.get(); }
     public void setJobUid(UUID val) { jobUid.set(val); }
     // id accessors
-    public Integer getId() { return id.get(); }
-    public void setId(Integer val) { id.set(val); }
+    public String getId() { return id.get(); }
+    public void setId(String val) { id.set(val); }
 
     // Dependency Accessors
-    public List<Integer> getDependencies() { return dependencies.get(); }
-    public void setDependencies(Collection<Integer> taskKeys) { dependencies.set(taskKeys); }
-    public boolean addDependency(Integer taskKey){ return dependencies.add(taskKey); }
-    public boolean removeDependency(Integer taskKey){ return dependencies.remove(taskKey); }
+    public List<String> getDependencies() { return dependencies.get(); }
+    public void setDependencies(Collection<String> taskKeys) { dependencies.set(taskKeys); }
+    public boolean addDependency(String taskKey){ return dependencies.add(taskKey); }
+    public boolean removeDependency(String taskKey){ return dependencies.remove(taskKey); }
 
     // stateInfo accessors
     public ProcessState getStateInfo() { return stateInfo.get(); }
     public void setStateInfo(ProcessState val) { stateInfo.set(val); }
+
+    /**
+     * Getter of parentTaskId
+     * @return the content
+     */
+    public String getParentTaskId() { return parentTaskId.get(); }
+    /**
+     * Setter of parentTaskId
+     * @param val the new content
+     */
+    public void setParentTaskId(String val) { parentTaskId.set(val); }
 
 }

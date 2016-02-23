@@ -45,6 +45,10 @@ public class CouchbaseUniqueKey extends CouchbaseDocument {
         keyMaps.put(key,doc.getBaseMeta().getKey());
     }
 
+    public String getKeyRefDocKey(String key){
+        return keyMaps.get(key);
+    }
+
     public boolean isEmpty(){
         return keyMaps.size()==0;
     }

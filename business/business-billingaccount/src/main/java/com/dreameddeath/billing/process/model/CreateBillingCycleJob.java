@@ -22,8 +22,9 @@ import com.dreameddeath.billing.model.cycle.BillingCycle;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.DocumentCreateTask;
-import com.dreameddeath.core.process.model.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.ChildDocumentCreateTask;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTime;
 
 /**
@@ -38,8 +39,10 @@ public class CreateBillingCycleJob extends AbstractJob {
 
 
     @DocumentDef(domain = "billing",version="1.0.0")
-    public static class CreateBillingCycleTask extends DocumentCreateTask<BillingCycle> { }
-
-    @DocumentDef(domain = "billing",version="1.0.0")
-    public static class CreateBillingCycleLinkTask extends DocumentUpdateTask<BillingAccount> { }
+    public static class CreateBillingCycleTask extends ChildDocumentCreateTask<BillingCycle,BillingAccount> {
+        @JsonCreator
+        public CreateBillingCycleTask(@JsonProperty("parent") String parentKey) {
+            super(parentKey);
+        }
+    }
 }

@@ -28,8 +28,11 @@ import com.dreameddeath.core.process.model.ProcessState;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.user.IUser;
+import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -67,10 +70,18 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
         for(TaskContext<TJOB,?> preReq:preRequisites){
             if(preReq.getTask().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
                 preReq.save();
+                Preconditions.checkNotNull(preReq.getTask().getId());
                 task.addDependency(preReq.getTask().getId());
             }
         }
+        if(task.getId()==null){
+            jobContext.assignIds(Collections.singletonList(task));
+        }
         getSession().save(task);
+    }
+
+    public Collection<AbstractTask> assignIds(Collection<AbstractTask> tasks) throws DaoException,StorageException{
+        return jobContext.assignIds(tasks);
     }
 
     public boolean isTaskSaved() {
@@ -96,7 +107,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
 
 
     public void updatePreRequisistes(){
-        for(Integer id : task.getDependencies()){
+        for(String id : task.getDependencies()){
             TaskContext<TJOB,?> foundTask=null;
             for(TaskContext<TJOB,?>currTask: jobContext.getTaskContexts()){
                 if(currTask.getTask().getId().equals(id)){
@@ -184,7 +195,6 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
         if (o == null || getClass() != o.getClass()) return false;
 
         TaskContext<?,?> that = (TaskContext<?,?>) o;
-
         return task.equals(that.task);
     }
 

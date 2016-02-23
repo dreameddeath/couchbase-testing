@@ -23,7 +23,9 @@ import com.dreameddeath.core.process.model.AbstractTask;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.ITaskExecutorClient;
 import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
+import com.dreameddeath.core.process.service.factory.IJobExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
+import com.dreameddeath.core.process.service.factory.ITaskExecutorClientFactory;
 import com.dreameddeath.core.process.service.impl.BasicJobExecutorClient;
 import com.dreameddeath.core.process.service.impl.BasicTaskExecutorClient;
 
@@ -33,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 02/01/2016.
  */
-public class ExecutorClientFactory {
+public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExecutorClientFactory {
     private final ICouchbaseSessionFactory couchbaseSessionFactory;
     private final IExecutorServiceFactory executorServiceFactory;
     private final IProcessingServiceFactory processingServiceFactory;

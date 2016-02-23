@@ -68,6 +68,13 @@ public abstract class BusinessDocumentLink<T extends CouchbaseDocument> extends 
         }
     }
 
+    public boolean isLinkTo(T docObj){
+        return isLinkTo(docObj.getBaseMeta().getKey());
+    }
+
+    public boolean isLinkTo(String lookupKey){
+        return key.get()!=null && key.get().equals(lookupKey);
+    }
 
     public BusinessDocumentLink(){}
     public BusinessDocumentLink(T targetDoc){

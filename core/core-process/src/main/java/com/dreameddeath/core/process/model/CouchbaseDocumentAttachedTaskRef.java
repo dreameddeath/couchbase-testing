@@ -40,7 +40,7 @@ public class CouchbaseDocumentAttachedTaskRef extends CouchbaseDocumentElement {
     private Property<String> jobClassName = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);
 
     @DocumentProperty("taskId") @NotNull
-    private Property<Integer> taskId = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);
+    private Property<String> taskId = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);
     /**
      *  taskClass : the class of the task
      */
@@ -54,8 +54,8 @@ public class CouchbaseDocumentAttachedTaskRef extends CouchbaseDocumentElement {
     public String getJobClass() { return jobClassName.get(); }
     public void setJobClass(String val) { jobClassName.set(val); }
     // task id accessors
-    public Integer getTaskId(){ return taskId.get();}
-    public void setTaskId(Integer id){ taskId.set(id);}
+    public String getTaskId(){ return taskId.get();}
+    public void setTaskId(String id){ taskId.set(id);}
     // taskClass accessors
     public String getTaskClass() { return taskClassName.get(); }
     public void setTaskClass(String val) { taskClassName.set(val); }

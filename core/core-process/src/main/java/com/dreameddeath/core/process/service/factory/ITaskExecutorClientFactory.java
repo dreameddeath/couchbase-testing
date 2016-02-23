@@ -16,8 +16,13 @@
 
 package com.dreameddeath.core.process.service.factory;
 
+import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.service.ITaskExecutorClient;
+
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
  */
-public class ITaskExecutorClientFactory {
+public interface ITaskExecutorClientFactory {
+    <TJOB extends AbstractJob,TTASK extends AbstractTask> ITaskExecutorClient<TJOB,TTASK> buildTaskClient(Class<TJOB> jobClass, Class<TTASK> taskClass);
 }

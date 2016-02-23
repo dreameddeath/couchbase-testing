@@ -24,6 +24,6 @@ import com.dreameddeath.core.process.service.context.JobContext;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 public interface IJobExecutorService<T extends AbstractJob> {
-    void execute(JobContext<T> context) throws JobExecutionException;
+    JobContext<T> execute(JobContext<T> context) throws JobExecutionException;
     //void manageStateExecutionEnd(JobContext<T> ctxt, ProcessState.State newState, boolean needSave) throws DaoException,ValidationException,StorageException;
 }

@@ -98,6 +98,22 @@ public class ValidationFailedException extends ValidationException {
         this.value = value;
     }
 
+
+    public <T extends Throwable> T findException(Class<T> exceptionClass){
+        for(ValidationException e : childList){
+            if(exceptionClass.isAssignableFrom(e.getCause().getClass())){
+                return (T) e.getCause();
+            }
+            else if(e instanceof ValidationFailedException){
+                T result = ((ValidationFailedException) e).findException(exceptionClass);
+                if(result!=null){
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
     @SuppressWarnings("StringBufferMayBeStringBuilder")
     public String formatValidationIssues(AccessibleObject parentField,int level){
         StringBuffer buf=new StringBuffer(level*2);

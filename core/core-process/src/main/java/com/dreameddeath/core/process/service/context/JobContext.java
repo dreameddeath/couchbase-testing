@@ -34,6 +34,7 @@ import com.dreameddeath.core.user.IUser;
 import rx.Subscriber;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -43,20 +44,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
  */
-public class JobContext<T extends AbstractJob> {
+public class JobContext<TJOB extends AbstractJob> {
     private final ICouchbaseSession session;
-    private final IJobExecutorService<T> executorService;
-    private final IJobProcessingService<T> processingService;
+    private final IJobExecutorService<TJOB> executorService;
+    private final IJobProcessingService<TJOB> processingService;
     private final ExecutorClientFactory clientFactory;
     //private final IExecutorServiceFactory executorFactory;
     //private final IProcessingServiceFactory processingFactory;
-    private final T job;
+    private final TJOB job;
     private final MetricRegistry metricRegistry;
     private boolean isJobSaved;
-    private final List<TaskContext<T,?>> tasks=new ArrayList<>();
+    private final List<TaskContext<TJOB,?>> tasks=new ArrayList<>();
     private int loadedTaskCounter=0;
 
-    private JobContext(Builder<T> jobCtxtBuilder){
+    private JobContext(Builder<TJOB> jobCtxtBuilder){
         this.session = jobCtxtBuilder.session;
         this.clientFactory = jobCtxtBuilder.clientFactory;
         this.job = jobCtxtBuilder.job;
@@ -69,18 +70,18 @@ public class JobContext<T extends AbstractJob> {
     public ICouchbaseSession getSession(){return session;}
     public IUser getUser(){ return session.getUser();}
     public ExecutorClientFactory getClientFactory(){return clientFactory;}
-    public T getJob() {
+    public TJOB getJob() {
         return job;
     }
     public ProcessState getJobState(){
         return job.getStateInfo();
     }
-    public List<TaskContext<T,?>> getTaskContexts() {
+    public List<TaskContext<TJOB,?>> getTaskContexts() {
         return Collections.unmodifiableList(tasks);
     }
 
-    public <TTASK extends AbstractTask> TaskContext<T,TTASK> getTaskContext(int pos,Class<TTASK> taskClass) {
-        return (TaskContext<T,TTASK>)tasks.get(pos);
+    public <TTASK extends AbstractTask> TaskContext<TJOB,TTASK> getTaskContext(int pos, Class<TTASK> taskClass) {
+        return (TaskContext<TJOB,TTASK>)tasks.get(pos);
     }
 
     public <TTASK extends AbstractTask> TTASK getTask(int pos,Class<TTASK> taskClass) {
@@ -102,61 +103,103 @@ public class JobContext<T extends AbstractJob> {
     }
 
     public void save() throws ValidationException,DaoException,StorageException{
-        //Save new tasks before continuing
-        for(TaskContext<T,?> taskContext:tasks){
+        List<AbstractTask> tasksWithoutIds=new ArrayList<>(tasks.size());
+        List<TaskContext<TJOB,?>> tasksToSave=new ArrayList<>(tasks.size());
+        //Update tasks ids before continuing
+        for(TaskContext<TJOB,?> taskContext:tasks){
             if(taskContext.getTask().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
-                taskContext.save();
+                if(taskContext.getTask().getId()==null){
+                    tasksWithoutIds.add(taskContext.getTask());
+                }
+                tasksToSave.add(taskContext);
             }
+        }
+        assignIds(tasksWithoutIds);
+        for(TaskContext<TJOB,?> taskContext:tasksToSave){
+            taskContext.save();
         }
         //Save the job itself
         session.save(job);
         updateIsJobSaved();
     }
 
+
+    public Collection<AbstractTask> assignIds(Collection<AbstractTask> tasks) throws DaoException,StorageException{
+        Long cntNewValue = session.incrCounter(String.format(TaskDao.TASK_CNT_FMT, job.getUid()), tasks.size());
+        for(AbstractTask task:tasks){
+            if(task.getId()==null){
+                long id = cntNewValue--;
+                if(task.getParentTaskId()!=null){
+                    task.setId(task.getParentTaskId()+"-"+id);
+                }
+                else{
+                    task.setId(Long.toString(id));
+                }
+            }
+            job.addTask(task.getId());
+        }
+        return tasks;
+    }
+
+
     public void resyncTasksContext() throws DaoException,StorageException,InterruptedException{
-        int nbTaskContext =(int)session.getCounter(String.format(TaskDao.TASK_CNT_FMT,job.getUid()));
-        if(nbTaskContext>loadedTaskCounter){
-            final CountDownLatch nbToLoad=new CountDownLatch(nbTaskContext-loadedTaskCounter);
+        /**
+         * TODO : force reload of the job itself (not required if optimistic locking), then load all task not yet loaded
+         */
+        //int nbTaskContext =tasks.size();  //(int)session.getCounter(String.format(TaskDao.TASK_CNT_FMT,job.getUid()));
+        if(tasks.size()<job.getTasks().size()) {
+            List<String> missingTaskIds = new ArrayList<>(job.getTasks().size()-tasks.size());
+            for(String taskId:job.getTasks()){
+                TaskContext<TJOB,?> foundTaskContext = null;
+                for(TaskContext<TJOB,?> taskContext:tasks){
+                    if(taskContext.getTask().getId().equals(taskId)){
+                        foundTaskContext = taskContext;
+                        break;
+                    }
+                }
+                if(foundTaskContext==null){
+                    missingTaskIds.add(taskId);
+                }
+            }
+            final CountDownLatch nbToLoad = new CountDownLatch(missingTaskIds.size());
             final AtomicInteger nbFailure=new AtomicInteger(0);
             final String uid = job.getUid().toString();
-            final int previousSize=tasks.size();
-            for(int taskId=loadedTaskCounter+1;taskId<=nbTaskContext;++taskId){
-                session.asyncGetFromKeyParams(AbstractTask.class,uid,taskId)
-                    .map(task->TaskContext.newContext(JobContext.this,task))
-                    .subscribe(new Subscriber<TaskContext>() {
-                        @Override
-                        public void onCompleted() {
-                            nbToLoad.countDown();
-                        }
+            for(String missingTaskId:missingTaskIds) {
+                session.asyncGetFromKeyParams(AbstractTask.class,uid,missingTaskId)
+                        .map(task->TaskContext.newContext(JobContext.this,task))
+                        .subscribe(new Subscriber<TaskContext>() {
+                            @Override
+                            public void onCompleted() {
+                                nbToLoad.countDown();
+                            }
 
-                        @Override
-                        public void onError(Throwable e) {
-                            nbToLoad.countDown();
-                            nbFailure.incrementAndGet();
-                        }
+                            @Override
+                            public void onError(Throwable e) {
+                                nbToLoad.countDown();
+                                nbFailure.incrementAndGet();
+                            }
 
-                        @Override
-                        public void onNext(TaskContext taskContext) {
-                            tasks.add(taskContext);
-                        }
-                    });
+                            @Override
+                            public void onNext(TaskContext taskContext) {
+                                tasks.add(taskContext);
+                            }
+                        });
+                nbToLoad.await(1, TimeUnit.MINUTES);
             }
-            nbToLoad.await(1, TimeUnit.MINUTES);
-            loadedTaskCounter=nbTaskContext;
-            for(int pos=previousSize;pos<tasks.size();++pos){
-                tasks.get(pos).updatePreRequisistes();
+            for(TaskContext<TJOB,?> taskContext:tasks){
+                taskContext.updatePreRequisistes();
             }
         }
     }
 
-    public TaskContext<T,?> getNextExecutableTask(boolean resync) throws DaoException,StorageException,InterruptedException{
-        List<TaskContext<T,?>> contexts=getPendingTasks(resync);
-        for(TaskContext<T,?> context:contexts){
+    public TaskContext<TJOB,?> getNextExecutableTask(boolean resync) throws DaoException,StorageException,InterruptedException{
+        List<TaskContext<TJOB,?>> contexts=getPendingTasks(resync);
+        for(TaskContext<TJOB,?> context:contexts){
             if(context.getTaskState().isDone()){
                continue;
             }
             boolean allPreRequisitesValid = true;
-            for(TaskContext<T,?> prereqCtxt:context.getPreRequisites()){
+            for(TaskContext<TJOB,?> prereqCtxt:context.getPreRequisites()){
                 if(!prereqCtxt.getTaskState().isDone()){
                     allPreRequisitesValid=false;
                     break;
@@ -170,24 +213,24 @@ public class JobContext<T extends AbstractJob> {
     }
 
 
-    public IJobExecutorService<T> getExecutorService() {
+    public IJobExecutorService<TJOB> getExecutorService() {
         return executorService;
     }
 
-    public IJobProcessingService<T> getProcessingService() {
+    public IJobProcessingService<TJOB> getProcessingService() {
         return processingService;
     }
 
-    public TaskContext<T,?> getNextExecutableTask() throws DaoException,StorageException,InterruptedException{
+    public TaskContext<TJOB,?> getNextExecutableTask() throws DaoException,StorageException,InterruptedException{
         return getNextExecutableTask(false);
     }
 
-    public List<TaskContext<T,?>> getPendingTasks(boolean forceResync) throws DaoException,StorageException,InterruptedException{
+    public List<TaskContext<TJOB,?>> getPendingTasks(boolean forceResync) throws DaoException,StorageException,InterruptedException{
         if(forceResync || tasks.size()==0){
             resyncTasksContext();
         }
-        List<TaskContext<T,?>> result=new ArrayList<>();
-        for(TaskContext<T,?> currCtxt:tasks){
+        List<TaskContext<TJOB,?>> result=new ArrayList<>();
+        for(TaskContext<TJOB,?> currCtxt:tasks){
             if(!currCtxt.getTaskState().isDone()){
                 result.add(currCtxt);
             }
@@ -200,11 +243,12 @@ public class JobContext<T extends AbstractJob> {
     }
 
 
-    public <TTASK extends AbstractTask> TaskContext<T,TTASK> addTask(TTASK task){
-        return TaskContext.newContext(this,task);
+    public <TTASK extends AbstractTask> TaskContext<TJOB,TTASK> addTask(TTASK task){
+        return TaskContext.newContext(this,task);//Note the addTask(taskCtxt is called by the TaskContext constructor)
     }
 
-    public void addTask(TaskContext<T,?> ctxt){
+    //Package level to be called by TaskContext
+    void addTask(TaskContext<TJOB,?> ctxt){
         tasks.add(ctxt);
         if(ctxt.getTask().getJobUid()==null){
             ctxt.getTask().setJobUid(job.getUid());
@@ -245,6 +289,15 @@ public class JobContext<T extends AbstractJob> {
 
         public Builder<T> withMetricRegistry(MetricRegistry metricRegistry) {
             this.metricRegistry = metricRegistry;
+            return this;
+        }
+
+        public Builder<T> fromJobContext(JobContext<T> jobContext){
+            this.jobExecutorService = jobContext.executorService;
+            this.jobProcessingService = jobContext.processingService;
+            this.metricRegistry =jobContext.metricRegistry;
+            this.clientFactory = jobContext.clientFactory;
+            this.session = jobContext.session;
             return this;
         }
     }

@@ -24,7 +24,7 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 16/05/2015.
  */
 public interface IDocumentWithLinkedTasks {
-    CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, Integer taskId);
+    CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, String taskId);
     void addAttachedTaskRef(CouchbaseDocumentAttachedTaskRef task)throws DuplicateAttachedTaskException;
     CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(AbstractTask task);
     void cleanupAttachedTaskRef(AbstractTask task);

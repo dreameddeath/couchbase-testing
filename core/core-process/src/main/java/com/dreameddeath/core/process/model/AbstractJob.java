@@ -22,12 +22,16 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.TreeSetProperty;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -58,6 +62,11 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
      */
     @DocumentProperty("stateInfo")
     private Property<ProcessState> stateInfo = new ImmutableProperty<>(AbstractJob.this,ProcessState.class);
+    /**
+     *  tasks : List of tasks attached to the document
+     */
+    @DocumentProperty("tasks")
+    private SetProperty<String> tasks = new TreeSetProperty<>(AbstractJob.this);
 
     // uid accessors
     public UUID getUid() { return uid.get(); }
@@ -65,5 +74,28 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
     // stateInfo accessors
     public ProcessState getStateInfo() { return stateInfo.get(); }
     public void setStateInfo(ProcessState val) { stateInfo.set(val); }
+
+    /**
+     * Getter of tasks
+     * @return the content
+     */
+    public Set<String> getTasks() { return tasks.get(); }
+    /**
+     * Setter of tasks
+     * @param vals the new collection of values
+     */
+    public void setTasks(Collection<String> vals) { tasks.set(vals); }
+    /**
+     * Add a new entry to the property tasks
+     * @param val the new entry to be added
+     */
+    public boolean addTask(String val){ return tasks.add(val); }
+    /**
+     * Remove an entry to the property tasks
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeTask(String val){ return tasks.remove(val); }
+
 
 }

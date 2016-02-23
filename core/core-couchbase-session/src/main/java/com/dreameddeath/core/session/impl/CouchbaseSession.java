@@ -287,6 +287,20 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
+
+    @Override
+    public <T extends CouchbaseDocument> T refresh(T doc) throws DaoException, StorageException {
+        return asyncRefresh(doc).toBlocking().first();
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc) throws DaoException, StorageException {
+        CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>)doc.getClass());
+        Observable<T> result = dao.asyncGet(this,doc.getBaseMeta().getKey());
+        result.doOnNext(this::attachDocument);
+        return result;
+    }
+
     @Override
     public <T extends CouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException {
         return manageAsyncResult(obj,asyncUpdate(obj));
