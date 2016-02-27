@@ -76,7 +76,7 @@ public interface ICouchbaseSession {
     void validate(CouchbaseDocument doc) throws ValidationException;
 
     CouchbaseUniqueKey getUniqueKey(String internalKey) throws DaoException,StorageException;
-    void addOrUpdateUniqueKey(CouchbaseDocument doc, Object value, String nameSpace) throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException;
+    void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException;
     void removeUniqueKey(String internalKey) throws DaoException,ValidationException,StorageException;
 
     DateTime getCurrentDate();

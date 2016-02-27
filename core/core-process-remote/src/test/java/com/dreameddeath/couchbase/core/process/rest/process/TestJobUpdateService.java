@@ -21,7 +21,6 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.model.DocumentUpdateTask;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
@@ -36,17 +35,15 @@ import com.dreameddeath.couchbase.core.process.remote.model.TestDocJobUpdate;
 public class TestJobUpdateService extends StandardJobProcessingService<TestDocJobUpdate> {
     @Override
     public boolean init(JobContext<TestDocJobUpdate> context) throws JobExecutionException {
-        context.addTask(new TestJobUpdateTask());
+        context.addTask(new TestDocJobUpdate.TestJobUpdateTask());
         return false;
     }
 
-    public static class TestJobUpdateTask extends DocumentUpdateTask<TestDoc>{}
 
-
-    @TaskProcessingForClass(TestJobUpdateTask.class)
-    public static class TestJobUpdateTaskService extends DocumentUpdateTaskProcessingService<TestDocJobUpdate,TestDoc,TestJobUpdateTask>{
+    @TaskProcessingForClass(TestDocJobUpdate.TestJobUpdateTask.class)
+    public static class TestJobUpdateTaskService extends DocumentUpdateTaskProcessingService<TestDocJobUpdate,TestDoc,TestDocJobUpdate.TestJobUpdateTask>{
         @Override
-        protected void processDocument(TaskContext<TestDocJobUpdate, TestJobUpdateTask> ctxt, TestDoc doc) throws DaoException, StorageException {
+        protected void processDocument(TaskContext<TestDocJobUpdate, TestDocJobUpdate.TestJobUpdateTask> ctxt, TestDoc doc) throws DaoException, StorageException {
             doc.intValue+=ctxt.getParentJob().incrIntValue;
         }
     }

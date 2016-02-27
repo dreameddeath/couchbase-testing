@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.dao.model;
+package com.dreameddeath.couchbase.core.process.remote.factory;
 
-import java.util.Set;
+import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 
 /**
- * Created by Christophe Jeunesse on 23/11/2014.
+ * Created by Christophe Jeunesse on 26/02/2016.
  */
-public interface IHasUniqueKeysRef {
-    boolean addDocUniqKeys(String key);
-    Set<String> getRemovedUniqueKeys();
-    boolean isInDbKey(String key);
+public interface IRemoteClientFactory {
+    IServiceClient getClient(RemoteJobTaskProcessing forProcessing);
 }

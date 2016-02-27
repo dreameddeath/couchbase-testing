@@ -18,6 +18,7 @@ package com.dreameddeath.core.dao.factory;
 
 import com.dreameddeath.core.couchbase.exception.TranscoderNotFoundException;
 import com.dreameddeath.core.couchbase.utils.CouchbaseUtils;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
@@ -50,9 +51,16 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
     public CouchbaseUniqueKeyDao getDaoFor(String nameSpace) throws DaoNotFoundException{
         CouchbaseUniqueKeyDao result =daosMap.get(nameSpace);
         if(result==null){
-            throw new DaoNotFoundException(nameSpace, DaoNotFoundException.Type.KEY);
+            throw new DaoNotFoundException(nameSpace, DaoNotFoundException.Type.UNIQ_KEY);
         }
         return daosMap.get(nameSpace);
+    }
+
+    public CouchbaseUniqueKeyDao getDaoFor(final String nameSpace, final CouchbaseDocumentDao docDao){
+        //CouchbaseUniqueKeyDao dao = new CouchbaseUniqueKeyDao.Builder().withBaseDao(docDao).build();
+        return daosMap.computeIfAbsent(nameSpace,ns->
+                new CouchbaseUniqueKeyDao.Builder().withBaseDao(docDao).withNameSpace(ns).withClient(docDao.getClient()).build()
+        );
     }
 
     public CouchbaseUniqueKeyDao getDaoForInternalKey(String key) throws DaoNotFoundException{
@@ -62,7 +70,7 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
                 return entry.getValue();
             }
         }
-        throw new DaoNotFoundException(key, DaoNotFoundException.Type.KEY);
+        throw new DaoNotFoundException(key, DaoNotFoundException.Type.UNIQ_KEY);
     }
 
     @Override
@@ -85,14 +93,14 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
     }
 
     public Map<CouchbaseUniqueKeyDao,List<String>> mapRemovedUniqueKeys(CouchbaseDocument doc) throws DaoNotFoundException{
-        Map<CouchbaseUniqueKeyDao, List<String>> mapKeys = new HashMap<CouchbaseUniqueKeyDao, List<String>>();
+        Map<CouchbaseUniqueKeyDao, List<String>> mapKeys = new HashMap<>();
 
         if(doc instanceof IHasUniqueKeysRef) {
             Set<String> removedKeys = ((IHasUniqueKeysRef)doc).getRemovedUniqueKeys();
             for (String key : removedKeys) {
                 CouchbaseUniqueKeyDao dao = getDaoForInternalKey(key);
                 if (!mapKeys.containsKey(dao)) {
-                    mapKeys.put(dao, new ArrayList<String>());
+                    mapKeys.put(dao, new ArrayList<>());
                 }
                 mapKeys.get(dao).add(key);
             }
@@ -116,7 +124,6 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
         public CouchbaseUniqueKeyDaoFactory build(){
             return new CouchbaseUniqueKeyDaoFactory(this);
         }
-
     }
 
 }

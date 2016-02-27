@@ -38,7 +38,7 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
     Map<AccessibleObject,CouchbaseDocumentValidatorFieldEntry> validationRules = new HashMap<AccessibleObject,CouchbaseDocumentValidatorFieldEntry>();
 
     public static class CouchbaseDocumentValidatorFieldEntry{
-        private List<Validator> validationRules=new ArrayList<Validator>();
+        private List<Validator> validationRules=new ArrayList<>();
         private String fieldName;
         private Field field;
 
@@ -260,27 +260,27 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
                     }
                     catch(ValidationException e){
                         if(fldErrors==null){
-                            fldErrors = new ArrayList<ValidationException>();
+                            fldErrors = new ArrayList<>();
                         }
                         fldErrors.add(e);
                     }
                 }
                 if(fldErrors!=null){
                     if(fieldsErrors==null){
-                        fieldsErrors=new ArrayList<ValidationException>();
+                        fieldsErrors=new ArrayList<>();
                     }
                     fieldsErrors.add(new ValidationFailedException(element,validationRules.get(elt).getField(),"Errors of field",fldErrors));
                 }
             }
             catch(IllegalAccessException e){
                 if(fieldsErrors==null){
-                    fieldsErrors=new ArrayList<ValidationException>();
+                    fieldsErrors=new ArrayList<>();
                 }
                 fieldsErrors.add(new ValidationFailedException(element,validationRules.get(elt).getField(),"Cannot access to the value of the field",e));
             }
             catch(InvocationTargetException e){
                 if(fieldsErrors==null){
-                    fieldsErrors=new ArrayList<ValidationException>();
+                    fieldsErrors=new ArrayList<>();
                 }
                 fieldsErrors.add(new ValidationFailedException(element,validationRules.get(elt).getField(),"Cannot access to the target of the field",e));
             }

@@ -23,6 +23,7 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.IDaoForDocumentWithUID;
 import com.dreameddeath.core.dao.document.IDaoWithKeyPattern;
 import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.ReadOnlyException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
@@ -417,14 +418,25 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public void addOrUpdateUniqueKey(CouchbaseDocument doc, Object value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException{
+    public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException{
         //Skip null value
         if(value==null){
             return;
         }
         checkReadOnly(doc);
-        CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace);
-        CouchbaseUniqueKey keyDoc =dao.addOrUpdateUniqueKey(this, nameSpace, value.toString(), doc, isCalcOnly());
+        CouchbaseUniqueKeyDao dao;
+        try {
+            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace);
+        }
+        catch(DaoNotFoundException e){
+            try {
+                dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace, sessionFactory.getDocumentDaoFactory().getDaoForClass(doc.getClass()));
+            }
+            catch(Throwable e1){
+                throw e;
+            }
+        }
+        CouchbaseUniqueKey keyDoc = dao.addOrUpdateUniqueKey(this, nameSpace, value.toString(), doc, isCalcOnly());
         keyCache.put(keyDoc.getBaseMeta().getKey(),keyDoc);
     }
 

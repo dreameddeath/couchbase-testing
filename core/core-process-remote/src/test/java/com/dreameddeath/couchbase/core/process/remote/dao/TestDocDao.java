@@ -19,7 +19,7 @@ package com.dreameddeath.couchbase.core.process.remote.dao;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDoc;
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by Christophe Jeunesse on 23/02/2016.
  */
 @DaoForClass(TestDoc.class)
-public class TestDocDao extends CouchbaseDocumentDao<TestDoc> {
+public class TestDocDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
     public static AtomicInteger cnt = new AtomicInteger();
 
     @BucketDocumentForClass(TestDoc.class)
@@ -41,7 +41,7 @@ public class TestDocDao extends CouchbaseDocumentDao<TestDoc> {
 
     @Override
     public Observable<TestDoc> asyncBuildKey(ICouchbaseSession session, final TestDoc newObject) throws DaoException {
-        newObject.getBaseMeta().setKey(String.format("testdoc/%d",cnt.incrementAndGet()));
+        newObject.getBaseMeta().setKey(getKeyFromParams(cnt.incrementAndGet()));
         return Observable.just(newObject);
     }
 
@@ -53,6 +53,16 @@ public class TestDocDao extends CouchbaseDocumentDao<TestDoc> {
     @Override
     public Class<TestDoc> getBaseClass() {
         return TestDoc.class;
+    }
+
+    @Override
+    protected String getKeyRawPattern() {
+        return "testdoc/{tid}";
+    }
+
+    @Override
+    public String getKeyFromParams(Object... params) {
+        return String.format("testdoc/%d",(Integer)params[0]);
     }
 }
 

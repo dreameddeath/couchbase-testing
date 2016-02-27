@@ -19,22 +19,22 @@ package com.dreameddeath.couchbase.core.process.remote.model;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.DocumentUpdateTask;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
-import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobCreateRequest;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobCreateResult;
 
 /**
- * Created by Christophe Jeunesse on 04/01/2016.
+ * Created by Christophe Jeunesse on 25/02/2016.
  */
 @DocumentDef(domain="test")
-public class TestDocJobUpdate extends AbstractJob {
-    @DocumentProperty @NotNull @Request
-    public Integer incrIntValue;
-
-    @DocumentProperty @NotNull @Result
-    public Integer resultIncrValue;
+public class RemoteCreateJob extends AbstractJob {
+    @DocumentProperty @NotNull
+    public String tempUid;
+    @DocumentProperty @NotNull
+    public String name;
+    @DocumentProperty
+    public Integer initIntValue;
 
     @DocumentDef(domain = "test")
-    public static class TestJobUpdateTask extends DocumentUpdateTask<TestDoc> {}
+    public static class RemoteTestJobCreateTask extends RemoteJobProcessTask<TestDocJobCreateRequest,TestDocJobCreateResult> {}
 }

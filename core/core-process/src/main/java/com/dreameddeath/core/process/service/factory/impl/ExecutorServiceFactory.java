@@ -59,7 +59,7 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
             if (AbstractTask.class.isAssignableFrom(parentClass)) {
                 result = getTaskExecutorServiceForClass(parentClass.asSubclass(AbstractTask.class));
                 if (result != null) {
-                    taskExecutorServicesMap.put(entityClass, result);
+                    addTaskExecutorServiceFor(entityClass, result);
                 }
             }
         }

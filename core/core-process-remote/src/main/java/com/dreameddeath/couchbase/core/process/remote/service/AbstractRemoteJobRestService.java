@@ -16,9 +16,9 @@
 
 package com.dreameddeath.couchbase.core.process.remote.service;
 
+import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DocumentNotFoundException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
@@ -31,10 +31,13 @@ import com.dreameddeath.core.process.utils.ProcessUtils;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.ActionRequest;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.StateInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Created by Christophe Jeunesse on 15/01/2016.
@@ -61,19 +64,23 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
 
 
     @POST
-    public TRESP runJobCreate(@Context IUser user,
-                              @QueryParam("submitOnly") Boolean submitOnly,
-                              TREQ request) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public RemoteJobResultWrapper<TRESP> runJobCreate(@Context IUser user,
+                                 @QueryParam("submitOnly") Boolean submitOnly,
+                                 TREQ request) {
         try {
             JobContext<TJOB> result;
             TJOB job = buildJobFromRequest(request);
-            if (submitOnly) {
+            if (submitOnly!=null && submitOnly) {
                 result = jobExecutorClient.submitJob(job, user);
             }
             else {
                 result = jobExecutorClient.executeJob(job, user);
             }
-            return buildResponse(result.getJob());
+            RemoteJobResultWrapper<TRESP> response = new RemoteJobResultWrapper<>(buildResponse(result.getJob()));
+            response.setJodId(job.getUid());
+            response.setJobStateInfo(new StateInfo(job.getStateInfo()));
+            return response;
         } catch (DuplicateJobExecutionException e) {
             throw new NotAllowedException("The job " + e.getKey() + " is already existing with job key <" + e.getOwnerDocumentKey() + ">", e, "PUT", "GET");
         } catch (JobExecutionException e) {
@@ -83,12 +90,16 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
 
     @GET
     @Path("/{uid}")
-    public TRESP getJobCreate(@Context IUser user,
+    @Produces(MediaType.APPLICATION_JSON)
+    public RemoteJobResultWrapper<TRESP> getJob(@Context IUser user,
                               @PathParam("uid") String uid) {
         ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
         try {
-            TJOB createJob = ProcessUtils.loadJob(session, uid, getJobClass());
-            return buildResponse(createJob);
+            TJOB job = ProcessUtils.loadJob(session, uid, getJobClass());
+            RemoteJobResultWrapper<TRESP> response = new RemoteJobResultWrapper<>(buildResponse(job));
+            response.setJodId(job.getUid());
+            response.setJobStateInfo(new StateInfo(job.getStateInfo()));
+            return response;
         } catch (DocumentNotFoundException e) {
             throw new NotFoundException(e);
         } catch (StorageException | DaoException e) {
@@ -98,27 +109,31 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
 
     @PUT
     @Path("/{uid}/{action:cancel|resume}")
-    public TRESP updateJobCreate(@Context IUser user,
+    @Produces(MediaType.APPLICATION_JSON)
+    public RemoteJobResultWrapper<TRESP> updateJob(@Context IUser user,
                                  @PathParam("uid")String uid,
                                  @PathParam("action") ActionRequest actionRequest){
         if(actionRequest==null){
-            throw new BadRequestException("The action is iconsistent");
+            throw new BadRequestException("The action is inconsistent");
         }
         try {
             ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
-            TJOB createJob = ProcessUtils.loadJob(session, uid, getJobClass());
+            TJOB job = ProcessUtils.loadJob(session, uid, getJobClass());
             JobContext<TJOB> result;
             switch (actionRequest) {
                 case RESUME:
-                    result = jobExecutorClient.resumeJob(createJob, user);
+                    result = jobExecutorClient.resumeJob(job, user);
                     break;
                 case CANCEL:
-                    result = jobExecutorClient.cancelJob(createJob, user);
+                    result = jobExecutorClient.cancelJob(job, user);
                     break;
                 default:
                     throw new NotSupportedException("Not managed action :"+actionRequest+" on job "+uid);
             }
-            return buildResponse(result.getJob());
+            RemoteJobResultWrapper<TRESP> response = new RemoteJobResultWrapper<>(buildResponse(result.getJob()));
+            response.setJodId(job.getUid());
+            response.setJobStateInfo(new StateInfo(job.getStateInfo()));
+            return response;
         }
         catch(StorageException|DaoException|JobExecutionException e){
             throw new InternalServerErrorException(e);

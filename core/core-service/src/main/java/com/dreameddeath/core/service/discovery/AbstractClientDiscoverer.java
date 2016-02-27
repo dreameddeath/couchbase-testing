@@ -112,13 +112,11 @@ public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceI
         }
     }
 
-
     public List<T> getInstances(){
         List<T> result = new ArrayList<>();
         clientInstances.values().forEach(result::addAll);
         return result;
     }
-
 
 }
 

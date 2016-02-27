@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.dao.model;
+package com.dreameddeath.couchbase.core.process.remote.annotation;
 
-import java.util.Set;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by Christophe Jeunesse on 23/11/2014.
+ * Created by Christophe Jeunesse on 26/02/2016.
  */
-public interface IHasUniqueKeysRef {
-    boolean addDocUniqKeys(String key);
-    Set<String> getRemovedUniqueKeys();
-    boolean isInDbKey(String key);
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RemoteServiceInfo {
+    String name();
+    String version();
 }

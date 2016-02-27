@@ -30,9 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-//import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
-
 /**
  * Created by Christophe Jeunesse on 04/03/2015.
  */

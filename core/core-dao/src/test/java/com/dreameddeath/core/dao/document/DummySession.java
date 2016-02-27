@@ -194,7 +194,7 @@ public class DummySession implements ICouchbaseSession {
     }
 
     @Override
-    public void addOrUpdateUniqueKey(CouchbaseDocument doc, Object value, String nameSpace) {
+    public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) {
 
     }
 

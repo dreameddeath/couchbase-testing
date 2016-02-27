@@ -154,6 +154,9 @@ public interface ICouchbaseBucket {
                 return (StorageException)e.getCause();
             }
             Throwable rootException =e.getCause();
+            if(rootException == null){
+                rootException = e;
+            }
             if(rootException instanceof InterruptedException){
                 return new DocumentStorageTimeOutException(doc,"Interruption occurs",rootException);
             }
@@ -177,6 +180,9 @@ public interface ICouchbaseBucket {
                 return (StorageException)e.getCause();
             }
             Throwable rootException =e.getCause();
+            if(rootException==null){
+                rootException=e;
+            }
             if(rootException instanceof InterruptedException){
                 return new DocumentStorageTimeOutException(key,"Interruption occurs",rootException);
             }
@@ -191,6 +197,9 @@ public interface ICouchbaseBucket {
 
         public static StorageException mapAccessException(String key,Throwable e){
             Throwable rootException =e.getCause();
+            if(rootException==null){
+                rootException=e;
+            }
             if(e instanceof StorageException){
                 return (StorageException)e;
             }

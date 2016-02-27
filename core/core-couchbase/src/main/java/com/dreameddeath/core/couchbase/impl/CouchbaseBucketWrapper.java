@@ -100,6 +100,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     protected void buildTranscoders(String bucketName){
         EntityDefinitionManager definitionManager = new EntityDefinitionManager();
+
+        //Add unique key
+        /*UniqueKeyCouchbaseTranscoder uniqueKeyCouchbaseTranscoder = new UniqueKeyCouchbaseTranscoder();
+        String cbTranscoderClassName = CouchbaseConfigProperties.COUCHBASE_CBTRANSCODER_CLASS_NAME.getProperty(entityDef.getModelId().getDomain(), entityDef.getModelId().getName()).getMandatoryValue("Please define couchbase CB Transcoder");
+        transcoders.add(uniqueKeyCouchbaseTranscoder);
+        transcoderMap.put(CouchbaseUniqueKey.class,uniqueKeyCouchbaseTranscoder);*/
+
         //TODO define per bucket name list of entities to load
         for(EntityDef entityDef :definitionManager.getEntities()){
             try {

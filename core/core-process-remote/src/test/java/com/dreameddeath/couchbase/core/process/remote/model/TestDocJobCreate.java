@@ -19,6 +19,7 @@ package com.dreameddeath.couchbase.core.process.remote.model;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.DocumentCreateTask;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.core.validation.annotation.Unique;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
@@ -38,4 +39,7 @@ public class TestDocJobCreate extends AbstractJob {
 
     @DocumentProperty @Result
     public String createdKey;
+
+    @DocumentDef(domain = "test")
+    public static class TestJobCreateTask extends DocumentCreateTask<TestDoc> {}
 }

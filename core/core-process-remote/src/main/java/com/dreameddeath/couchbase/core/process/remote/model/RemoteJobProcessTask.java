@@ -29,8 +29,7 @@ public abstract class RemoteJobProcessTask<TREQ,TRESP> extends AbstractTask {
      *  jobInfo : The data around remote job processing info
      */
     @DocumentProperty("remoteJobInfo")
-    private Property<RemoteJobInfo> remoteJobInfo = new StandardProperty<>(RemoteJobProcessTask.this);
-
+    private Property<RemoteJobInfo> remoteJobInfo = new StandardProperty<>(RemoteJobProcessTask.this,new RemoteJobInfo());
     /**
      * Getter of jobInfo
      * @return the content

@@ -74,9 +74,8 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
     // DocUniqKeys Accessors
     public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
     public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
+    @Override
     public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
-    public final boolean removeDocUniqKeys(String key){ return docUniqKeys.remove(key); }
-
 
     protected void syncKeyWithDb(){
         inDbUniqKeys.clear();
@@ -85,17 +84,22 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
     }
 
     public Set<String> getToBeDeletedUniqueKeys(){
-        Set<String> toRemoveKeyList=new HashSet<String>(inDbUniqKeys);
+        Set<String> toRemoveKeyList=new HashSet<>(inDbUniqKeys);
         toRemoveKeyList.addAll(docUniqKeys.get());
         return toRemoveKeyList;
     }
 
+    @Override
     public Set<String> getRemovedUniqueKeys(){
-        Set<String> removed=new HashSet<String>(inDbUniqKeys);
+        Set<String> removed=new HashSet<>(inDbUniqKeys);
         removed.removeAll(docUniqKeys.get());
         return removed;
     }
 
+    @Override
+    public boolean isInDbKey(String key) {
+        return inDbUniqKeys.contains(key);
+    }
 
     public BusinessDocument(){
         super(null);

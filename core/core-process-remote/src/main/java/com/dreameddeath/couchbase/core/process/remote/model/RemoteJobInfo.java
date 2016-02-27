@@ -34,7 +34,7 @@ public class RemoteJobInfo extends CouchbaseDocumentElement {
      *  isDone : Tell that the remote job is finished
      */
     @DocumentProperty("isDone")
-    private Property<Boolean> isDone = new StandardProperty<>(RemoteJobInfo.this);
+    private Property<Boolean> isDone = new StandardProperty<>(RemoteJobInfo.this,false);
 
     // target job uuid
     public UUID getRemoteJobId(){ return remoteJobId.get(); }

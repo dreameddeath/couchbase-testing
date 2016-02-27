@@ -35,12 +35,12 @@ public class DaoNotFoundException extends DaoException {
     }
 
     public DaoNotFoundException(String key, Type type){
-        super("The dao for "+type.toString()+ " with key <"+key+"> hasn't been found");
+        super("The dao for "+type.toString()+ " of pf type <"+key+"> hasn't been found");
     }
 
     public enum Type{
         DOC,
         COUNTER,
-        KEY
+        UNIQ_KEY
     }
 }
