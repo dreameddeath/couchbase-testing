@@ -35,7 +35,9 @@ import com.dreameddeath.couchbase.core.process.remote.model.TestDocJobUpdate;
 public class TestJobUpdateService extends StandardJobProcessingService<TestDocJobUpdate> {
     @Override
     public boolean init(JobContext<TestDocJobUpdate> context) throws JobExecutionException {
-        context.addTask(new TestDocJobUpdate.TestJobUpdateTask());
+        TestDocJobUpdate.TestJobUpdateTask task =new TestDocJobUpdate.TestJobUpdateTask();
+        task.setDocKey(context.getJob().docKey);
+        context.addTask(task);
         return false;
     }
 

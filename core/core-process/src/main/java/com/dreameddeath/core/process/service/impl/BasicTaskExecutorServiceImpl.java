@@ -100,6 +100,20 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                 }
             }
 
+            if (!taskState.isJobUpdated()) {
+                try {
+                    boolean saveAsked=ctxt.getProcessingService().updatejob(ctxt);
+                    if(saveAsked){
+                        ctxt.getJobContext().save();
+                    }
+                    manageStateExecutionEnd(ctxt,State.JOBUPDATED,saveAsked);
+                } catch (Throwable e) {
+                    throw new TaskExecutionException(task, State.JOBUPDATED, e);
+                }
+            }
+
+
+
             if (!taskState.isDone()) {
                 try{
                     boolean needSave=ctxt.getProcessingService().cleanup(ctxt);

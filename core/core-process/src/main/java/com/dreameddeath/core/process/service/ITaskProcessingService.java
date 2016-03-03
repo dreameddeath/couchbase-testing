@@ -29,6 +29,7 @@ public interface ITaskProcessingService<TJOB extends AbstractJob,T extends Abstr
     boolean preprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
     boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
     boolean postprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
+    boolean updatejob(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
     boolean finish(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
     boolean cleanup(TaskContext<TJOB,T> ctxt) throws TaskExecutionException;
 }

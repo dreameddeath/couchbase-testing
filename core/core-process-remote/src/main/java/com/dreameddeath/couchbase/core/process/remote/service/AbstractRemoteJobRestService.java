@@ -21,6 +21,7 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
+import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.AbstractJob;
@@ -37,18 +38,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created by Christophe Jeunesse on 15/01/2016.
  */
 public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ,TRESP> extends AbstractExposableService {
-    ICouchbaseSessionFactory sessionFactory;
-    IJobExecutorClient<TJOB> jobExecutorClient;
+    private final Class<TJOB> jobClass;
+    private final Constructor<? extends RemoteJobResultWrapper<TRESP>> jobResultWrapperConstructor;
+    private ICouchbaseSessionFactory sessionFactory;
+    private IJobExecutorClient<TJOB> jobExecutorClient;
 
     @Autowired
     public void setJobExecutorClientFactory(IJobExecutorClientFactory jobExecutorClientFactory) {
-        this.jobExecutorClient = jobExecutorClientFactory.buildJobClient(getJobClass());
+        this.jobExecutorClient = jobExecutorClientFactory.buildJobClient(jobClass);
     }
 
     @Autowired
@@ -57,15 +64,47 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
     }
 
     protected abstract TJOB buildJobFromRequest(TREQ request);
-
     protected abstract TRESP buildResponse(TJOB response);
+    protected abstract Class<? extends RemoteJobResultWrapper<TRESP>> getResponseClass();
 
-    protected abstract Class<TJOB> getJobClass();
+    @SuppressWarnings("unchecked")
+    public AbstractRemoteJobRestService(){
+        //
+        jobClass = ClassUtils.getEffectiveGenericType(this.getClass(),AbstractRemoteJobRestService.class,0);
+        Class responseClass = ClassUtils.getEffectiveGenericType(this.getClass(),AbstractRemoteJobRestService.class,2);
+        if(responseClass==null){
+            throw new RuntimeException("Cannot find response class "+this.getClass().getName());
+        }
+        Class<?> jaxrsReponseClass=getResponseClass();
+        Constructor<? extends RemoteJobResultWrapper<TRESP>> foundConstructor = null;
+        for(Constructor constructor:jaxrsReponseClass.getConstructors()){
+            if((constructor.getParameters().length==1) && responseClass.isAssignableFrom(constructor.getParameters()[0].getType())){
+                foundConstructor = (Constructor<RemoteJobResultWrapper<TRESP>>)constructor;
+                break;
+            }
+        }
+        jobResultWrapperConstructor = foundConstructor;
+        if(jobResultWrapperConstructor==null){
+            throw new RuntimeException("Cannot find constructor of class "+jaxrsReponseClass.getName()+" with parameter of class <"+responseClass.getName()+">");
+        }
+    }
 
+
+    private Response buildJaxrsResponse(TJOB job){
+        try {
+            RemoteJobResultWrapper<TRESP> response = jobResultWrapperConstructor.newInstance(buildResponse(job));
+            response.setJodId(job.getUid());
+            response.setJobStateInfo(new StateInfo(job.getStateInfo()));
+            return Response.ok().entity(new GenericEntity<>(response, getResponseClass())).build();
+        }
+        catch(InstantiationException|IllegalAccessException|InvocationTargetException e){
+            throw new RuntimeException(e);
+        }
+    }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public RemoteJobResultWrapper<TRESP> runJobCreate(@Context IUser user,
+    public Response runJobCreate(@Context IUser user,
                                  @QueryParam("submitOnly") Boolean submitOnly,
                                  TREQ request) {
         try {
@@ -77,13 +116,12 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
             else {
                 result = jobExecutorClient.executeJob(job, user);
             }
-            RemoteJobResultWrapper<TRESP> response = new RemoteJobResultWrapper<>(buildResponse(result.getJob()));
-            response.setJodId(job.getUid());
-            response.setJobStateInfo(new StateInfo(job.getStateInfo()));
-            return response;
-        } catch (DuplicateJobExecutionException e) {
+            return buildJaxrsResponse(result.getJob());
+        }
+        catch (DuplicateJobExecutionException e) {
             throw new NotAllowedException("The job " + e.getKey() + " is already existing with job key <" + e.getOwnerDocumentKey() + ">", e, "PUT", "GET");
-        } catch (JobExecutionException e) {
+        }
+        catch (JobExecutionException e) {
             throw new RuntimeException(e);
         }
     }
@@ -91,18 +129,17 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
     @GET
     @Path("/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public RemoteJobResultWrapper<TRESP> getJob(@Context IUser user,
+    public Response getJob(@Context IUser user,
                               @PathParam("uid") String uid) {
         ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
         try {
-            TJOB job = ProcessUtils.loadJob(session, uid, getJobClass());
-            RemoteJobResultWrapper<TRESP> response = new RemoteJobResultWrapper<>(buildResponse(job));
-            response.setJodId(job.getUid());
-            response.setJobStateInfo(new StateInfo(job.getStateInfo()));
-            return response;
-        } catch (DocumentNotFoundException e) {
+            TJOB job = ProcessUtils.loadJob(session, uid, jobClass);
+            return buildJaxrsResponse(job);
+        }
+        catch(DocumentNotFoundException e) {
             throw new NotFoundException(e);
-        } catch (StorageException | DaoException e) {
+        }
+        catch(StorageException|DaoException e) {
             throw new InternalServerErrorException(e);
         }
     }
@@ -110,7 +147,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
     @PUT
     @Path("/{uid}/{action:cancel|resume}")
     @Produces(MediaType.APPLICATION_JSON)
-    public RemoteJobResultWrapper<TRESP> updateJob(@Context IUser user,
+    public Response updateJob(@Context IUser user,
                                  @PathParam("uid")String uid,
                                  @PathParam("action") ActionRequest actionRequest){
         if(actionRequest==null){
@@ -118,7 +155,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
         }
         try {
             ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
-            TJOB job = ProcessUtils.loadJob(session, uid, getJobClass());
+            TJOB job = ProcessUtils.loadJob(session, uid, jobClass);
             JobContext<TJOB> result;
             switch (actionRequest) {
                 case RESUME:
@@ -130,15 +167,10 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                 default:
                     throw new NotSupportedException("Not managed action :"+actionRequest+" on job "+uid);
             }
-            RemoteJobResultWrapper<TRESP> response = new RemoteJobResultWrapper<>(buildResponse(result.getJob()));
-            response.setJodId(job.getUid());
-            response.setJobStateInfo(new StateInfo(job.getStateInfo()));
-            return response;
+            return buildJaxrsResponse(result.getJob());
         }
         catch(StorageException|DaoException|JobExecutionException e){
             throw new InternalServerErrorException(e);
         }
     }
-
-
 }

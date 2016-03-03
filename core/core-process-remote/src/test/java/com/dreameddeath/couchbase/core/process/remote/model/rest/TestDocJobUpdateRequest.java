@@ -25,10 +25,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TestDocJobUpdateRequest {
     @JsonProperty
     public Integer incrIntValue;
+    @JsonProperty
+    public String key;
 
     public TestDocJobUpdate buildJob(){
         TestDocJobUpdate job = new TestDocJobUpdate();
         job.incrIntValue = incrIntValue;
+        job.docKey = key;
         return job;
     }
 }

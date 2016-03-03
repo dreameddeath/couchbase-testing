@@ -46,6 +46,11 @@ public abstract class StandardTaskProcessingService<TJOB extends AbstractJob,T e
         return false;
     }
 
+    @Override
+    public boolean updatejob(TaskContext<TJOB,T> context) throws TaskExecutionException {
+        return false;
+    }
+
 
     @Override
     public boolean cleanup(TaskContext<TJOB,T> context) throws TaskExecutionException {

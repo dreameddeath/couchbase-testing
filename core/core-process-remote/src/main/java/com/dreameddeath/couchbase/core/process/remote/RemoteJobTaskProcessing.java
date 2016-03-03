@@ -98,6 +98,7 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
                     }
                     updateTaskWithResponse(task,parsedResponse.getResult());
                     onResponseReceived(ctxt,parsedResponse.getResult());
+                    return true;
                 }
                 else{
                     throw new TaskExecutionException(ctxt,"Error from message "+response);
@@ -112,6 +113,11 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
 
     @Override
     public boolean postprocess(TaskContext<TJOB, TTASK> ctxt) throws TaskExecutionException {
+        return false;
+    }
+
+    @Override
+    public boolean updatejob(TaskContext<TJOB, TTASK> ctxt) throws TaskExecutionException {
         return false;
     }
 

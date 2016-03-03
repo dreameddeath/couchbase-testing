@@ -31,8 +31,10 @@ import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
 public class TestDocJobUpdate extends AbstractJob {
     @DocumentProperty @NotNull @Request
     public Integer incrIntValue;
+    @DocumentProperty @NotNull @Request
+    public String docKey;
 
-    @DocumentProperty @NotNull @Result
+    @DocumentProperty @Result
     public Integer resultIncrValue;
 
     @DocumentDef(domain = "test")

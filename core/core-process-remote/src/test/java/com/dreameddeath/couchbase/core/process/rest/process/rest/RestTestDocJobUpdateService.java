@@ -18,6 +18,7 @@ package com.dreameddeath.couchbase.core.process.rest.process.rest;
 
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDocJobUpdate;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdateRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdateResult;
 import com.dreameddeath.couchbase.core.process.remote.service.AbstractRemoteJobRestService;
@@ -40,8 +41,14 @@ public class RestTestDocJobUpdateService extends AbstractRemoteJobRestService<Te
         return new TestDocJobUpdateResult(response);
     }
 
+    public static class CartResponse extends RemoteJobResultWrapper<TestDocJobUpdateResult>{
+        public CartResponse(TestDocJobUpdateResult result) {
+            super(result);
+        }
+    }
+
     @Override
-    protected Class<TestDocJobUpdate> getJobClass() {
-        return TestDocJobUpdate.class;
+    protected final Class<CartResponse> getResponseClass(){
+        return CartResponse.class;
     }
 }

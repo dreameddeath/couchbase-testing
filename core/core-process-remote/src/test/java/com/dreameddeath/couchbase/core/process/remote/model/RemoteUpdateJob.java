@@ -29,6 +29,8 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdat
 public class RemoteUpdateJob extends AbstractJob {
     @DocumentProperty
     public Integer incrIntValue;
+    @DocumentProperty
+    public String key;
 
     @DocumentDef(domain = "test")
     public static class RemoteTestJobUpdateTask extends RemoteJobProcessTask<TestDocJobUpdateRequest,TestDocJobUpdateResult> {}

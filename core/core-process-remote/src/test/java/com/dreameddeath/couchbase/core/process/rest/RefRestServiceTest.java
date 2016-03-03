@@ -31,6 +31,8 @@ import com.dreameddeath.couchbase.core.process.remote.dao.TestDocDao;
 import com.dreameddeath.couchbase.core.process.remote.factory.ProcessingServiceWithRemoteCapabiltyFactory;
 import com.dreameddeath.couchbase.core.process.remote.factory.RemoteClientFactory;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteCreateJob;
+import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateJob;
+import com.dreameddeath.couchbase.core.process.remote.model.TestDoc;
 import com.dreameddeath.couchbase.core.process.rest.process.RemoteTestJobCreateService;
 import com.dreameddeath.couchbase.core.process.rest.process.RemoteTestJobUpdateService;
 import com.dreameddeath.couchbase.core.process.rest.process.TestJobCreateService;
@@ -56,6 +58,7 @@ public class RefRestServiceTest extends Assert {
     private static AnnotationProcessorTestingWrapper.Result generatorResult;
     private static CuratorTestUtils curatorUtils;
     private static ExecutorClientFactory executorClientFactory;
+    private static CouchbaseBucketSimulator cbSimulator;
 
     public static void compileTestServiceGen() throws Exception{
         AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
@@ -75,7 +78,7 @@ public class RefRestServiceTest extends Assert {
         RemoteClientFactory remoteClientFactory = new RemoteClientFactory();
         remoteClientFactory.setClientFactory(server.getClientFactory());
 
-        CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
+        cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         CouchbaseSessionFactory sessionFactory = new CouchbaseSessionFactory.Builder().build();
         sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(cbSimulator));
@@ -108,8 +111,21 @@ public class RefRestServiceTest extends Assert {
         job.name = "testValu1";
         job.tempUid = UUID.randomUUID().toString();
         JobContext<RemoteCreateJob> context = jobClient.executeJob(job, AnonymousUser.INSTANCE);
-        assertTrue(context.getJobState().isDone());
 
+        assertTrue(context.getJobState().isDone());
+        String createdKey = context.getTasks(RemoteCreateJob.RemoteTestJobCreateTask.class).get(0).key;
+        TestDoc createdDoc = cbSimulator.get(createdKey,TestDoc.class);
+        assertEquals(job.initIntValue,createdDoc.intValue);
+        assertEquals(job.name,createdDoc.name);
+
+        IJobExecutorClient<RemoteUpdateJob> updateJobClient = executorClientFactory.buildJobClient(RemoteUpdateJob.class);
+        RemoteUpdateJob updateJob = new RemoteUpdateJob();
+        updateJob.incrIntValue = 20;
+        updateJob.key = createdKey;
+        JobContext<RemoteUpdateJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE);
+        assertTrue(updateContext.getJobState().isDone());
+        TestDoc updatedDoc = cbSimulator.get(createdKey,TestDoc.class);
+        assertEquals(job.initIntValue+updateJob.incrIntValue,(long)updatedDoc.intValue);
     }
 
     @AfterClass
@@ -119,6 +135,9 @@ public class RefRestServiceTest extends Assert {
         }
         if(generatorResult!=null){
             generatorResult.cleanUp();
+        }
+        if(cbSimulator!=null && cbSimulator.isStarted()){
+            cbSimulator.shutdown();
         }
     }
 }

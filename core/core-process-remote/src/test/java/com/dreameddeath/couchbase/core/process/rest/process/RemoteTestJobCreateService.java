@@ -28,6 +28,7 @@ import com.dreameddeath.couchbase.core.process.remote.model.RemoteCreateJob;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobCreateRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobCreateResult;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * Created by Christophe Jeunesse on 25/02/2016.
@@ -40,9 +41,12 @@ public class RemoteTestJobCreateService extends StandardJobProcessingService<Rem
         return false;
     }
 
-    public static class Result extends RemoteJobResultWrapper<TestDocJobCreateResult>{}
-
-
+    public static class Result extends RemoteJobResultWrapper<TestDocJobCreateResult>{
+        @JsonCreator
+        public Result(TestDocJobCreateResult result) {
+            super(result);
+        }
+    }
 
     @TaskProcessingForClass(RemoteCreateJob.RemoteTestJobCreateTask.class) @RemoteServiceInfo(name = "testdocjobcreate", version = "1.0.0")
     public static class TestJobCreateTaskService extends RemoteJobTaskProcessing<TestDocJobCreateRequest,TestDocJobCreateResult,RemoteCreateJob,RemoteCreateJob.RemoteTestJobCreateTask> {
@@ -55,6 +59,10 @@ public class RemoteTestJobCreateService extends StandardJobProcessingService<Rem
             return request;
         }
 
+        @Override
+        protected void updateTaskWithResponse(RemoteCreateJob.RemoteTestJobCreateTask task, TestDocJobCreateResult resp) {
+            task.key = resp.createdKey;
+        }
 
         @Override
         protected Class<Result> getResponseClass() {

@@ -36,5 +36,8 @@ public class RemoteCreateJob extends AbstractJob {
     public Integer initIntValue;
 
     @DocumentDef(domain = "test")
-    public static class RemoteTestJobCreateTask extends RemoteJobProcessTask<TestDocJobCreateRequest,TestDocJobCreateResult> {}
+    public static class RemoteTestJobCreateTask extends RemoteJobProcessTask<TestDocJobCreateRequest,TestDocJobCreateResult> {
+        @DocumentProperty
+        public String key;
+    }
 }

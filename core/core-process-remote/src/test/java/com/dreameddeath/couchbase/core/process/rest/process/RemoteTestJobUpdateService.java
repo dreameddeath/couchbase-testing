@@ -47,6 +47,7 @@ import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateJob;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdateRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdateResult;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 
 /**
@@ -60,9 +61,12 @@ public class RemoteTestJobUpdateService extends StandardJobProcessingService<Rem
         return false;
     }
 
-    public static class Result extends RemoteJobResultWrapper<TestDocJobUpdateResult> {}
-
-
+    public static class Result extends RemoteJobResultWrapper<TestDocJobUpdateResult> {
+        @JsonCreator
+        public Result(TestDocJobUpdateResult result) {
+            super(result);
+        }
+    }
 
     @TaskProcessingForClass(RemoteUpdateJob.RemoteTestJobUpdateTask.class) @RemoteServiceInfo(name = "testdocjobupdate", version = "1.0.0")
     public static class TestJobUpdateTaskService extends RemoteJobTaskProcessing<TestDocJobUpdateRequest,TestDocJobUpdateResult,RemoteUpdateJob,RemoteUpdateJob.RemoteTestJobUpdateTask> {
@@ -70,9 +74,9 @@ public class RemoteTestJobUpdateService extends StandardJobProcessingService<Rem
         protected TestDocJobUpdateRequest getRequest(TaskContext<RemoteUpdateJob, RemoteUpdateJob.RemoteTestJobUpdateTask> ctxt) {
             TestDocJobUpdateRequest request = new TestDocJobUpdateRequest();
             request.incrIntValue=ctxt.getParentJob().incrIntValue;
+            request.key = ctxt.getParentJob().key;
             return request;
         }
-
 
         @Override
         protected Class<Result> getResponseClass() {

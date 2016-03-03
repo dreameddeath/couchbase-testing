@@ -32,12 +32,9 @@ public class RemoteJobResultWrapper<T> {
     private UUID jobId;
 
 
-    @JsonCreator
     public RemoteJobResultWrapper(T result){
         this.result = result;
     }
-
-    protected RemoteJobResultWrapper(){}
 
     @JsonValue
     public T getResult(){return result;}

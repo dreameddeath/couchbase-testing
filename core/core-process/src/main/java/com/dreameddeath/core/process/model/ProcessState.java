@@ -42,6 +42,7 @@ public class ProcessState extends CouchbaseDocumentElement {
     public boolean isPrepared(){ return state.get().compareTo(State.PREPROCESSED)>=0; }
     public boolean isProcessed(){ return state.get().compareTo(State.PROCESSED)>=0; }
     public boolean isFinalized(){ return state.get().compareTo(State.POSTPROCESSED)>=0; }
+    public boolean isJobUpdated(){ return state.get().compareTo(State.JOBUPDATED)>=0; }
     public boolean isDone(){ return state.get().compareTo(State.DONE)>=0; }
 
     public enum State{
@@ -51,7 +52,8 @@ public class ProcessState extends CouchbaseDocumentElement {
         INITIALIZED, //Init done
         PREPROCESSED,
         PROCESSED, //Processing Done
-        POSTPROCESSED, //Job Update Processing done
+        POSTPROCESSED,
+        JOBUPDATED, //Task only
         DONE//Cleaning done
     }
 

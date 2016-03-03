@@ -33,10 +33,7 @@ import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
 import rx.Subscriber;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -87,6 +84,17 @@ public class JobContext<TJOB extends AbstractJob> {
     public <TTASK extends AbstractTask> TTASK getTask(int pos,Class<TTASK> taskClass) {
         return (TTASK)tasks.get(pos).getTask();
     }
+
+    public <TTASK extends AbstractTask> List<TTASK> getTasks(Class<TTASK> taskClass) {
+        List<TTASK> result = new LinkedList<>();
+        for(TaskContext<TJOB,?> taskCtxt : tasks){
+            if(taskClass.isAssignableFrom(taskCtxt.getTask().getClass())){
+                result.add((TTASK)taskCtxt.getTask());
+            }
+        }
+        return result;
+    }
+
 
 
     public boolean isJobSaved() {
