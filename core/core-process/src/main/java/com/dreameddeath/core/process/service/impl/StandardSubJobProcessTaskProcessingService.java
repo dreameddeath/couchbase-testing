@@ -80,6 +80,11 @@ public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB exte
     }
 
     @Override
+    public boolean updatejob(TaskContext<TPARENTJOB, TTASK> ctxt) throws TaskExecutionException {
+        return false;
+    }
+
+    @Override
     public boolean cleanup(TaskContext ctxt) throws TaskExecutionException {
         return false;
     }
