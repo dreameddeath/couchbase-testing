@@ -130,10 +130,6 @@ public class ElasticSearchIntegrationTest {
             );
         }
 
-        @Override
-        public Class<TestDoc> getBaseClass() {
-            return TestDoc.class;
-        }
 
         @Override
         public List<CouchbaseCounterDao.Builder> getCountersBuilder() {

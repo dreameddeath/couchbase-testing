@@ -32,6 +32,6 @@ public @interface RestExpose {
     String rootPath();
     String domain() default "";
     String name() default  "";
-    String version() default "";
+    String version() default "1.0.0";
     VersionStatus status() default VersionStatus.STABLE;
 }

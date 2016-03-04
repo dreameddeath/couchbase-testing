@@ -70,7 +70,7 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
 
     @Override
     public String getKeyFromParams(Object... params) {
-        return String.format(TEST_CHILD_KEY_FMT,params[0],(Long)params[1]);
+        return String.format(TEST_CHILD_KEY_FMT,params[0], params[1]);
     }
 
     @Override
@@ -86,10 +86,6 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
         );
     }
 
-    @Override
-    public Class<TestDocChild> getBaseClass() {
-        return TestDocChild.class;
-    }
 
     public static class AllElementsViewDao extends CouchbaseViewDao<String,String,TestDocChild>{
         private static final IViewKeyTranscoder<String> KEY_TRANSCODER = new ViewStringKeyTranscoder();

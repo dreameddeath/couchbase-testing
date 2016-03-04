@@ -53,11 +53,6 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
     }
 
     @Override
-    public Class<AbstractJob> getBaseClass(){
-        return AbstractJob.class;
-    }
-
-    @Override
     public Class<? extends BucketDocument<AbstractJob>> getBucketDocumentClass() { return LocalBucketDocument.class; }
 
 

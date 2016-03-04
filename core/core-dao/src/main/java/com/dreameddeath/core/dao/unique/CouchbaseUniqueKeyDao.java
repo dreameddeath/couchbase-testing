@@ -119,11 +119,6 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         throw new RuntimeException("Shouldn't append");
     }
 
-    @Override
-    public Class<CouchbaseUniqueKey> getBaseClass() {
-        return CouchbaseUniqueKey.class;
-    }
-
     public CouchbaseUniqueKey get(ICouchbaseSession session,String nameSpace,String value) throws DaoException,StorageException{
         return super.get(session,buildKey(nameSpace, value));
     }

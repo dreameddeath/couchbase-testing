@@ -31,12 +31,11 @@ import com.dreameddeath.couchbase.core.process.remote.dao.TestDocDao;
 import com.dreameddeath.couchbase.core.process.remote.factory.ProcessingServiceWithRemoteCapabiltyFactory;
 import com.dreameddeath.couchbase.core.process.remote.factory.RemoteClientFactory;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteCreateJob;
+import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateGenJob;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateJob;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDoc;
-import com.dreameddeath.couchbase.core.process.rest.process.RemoteTestJobCreateService;
-import com.dreameddeath.couchbase.core.process.rest.process.RemoteTestJobUpdateService;
-import com.dreameddeath.couchbase.core.process.rest.process.TestJobCreateService;
-import com.dreameddeath.couchbase.core.process.rest.process.TestJobUpdateService;
+import com.dreameddeath.couchbase.core.process.remote.service.rest.RemoteTestDocJobUpdateGenService;
+import com.dreameddeath.couchbase.core.process.rest.process.*;
 import com.dreameddeath.couchbase.core.process.rest.process.rest.RestTestDocJobCreateService;
 import com.dreameddeath.couchbase.core.process.rest.process.rest.RestTestDocJobUpdateService;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
@@ -66,13 +65,13 @@ public class RefRestServiceTest extends Assert {
                 withAnnotationProcessor(new ServiceExposeAnnotationProcessor()).
                 withAnnotationProcessor(new ProcessRestServiceProcessor()).
                 withTempDirectoryPrefix("ProcessRestServiceGeneratorTest");
-        generatorResult = annotTester.run(RefRestServiceTest.class.getClassLoader().getResource("testingServiceGen").getPath());
+        generatorResult = annotTester.run(RefRestServiceTest.class.getClassLoader().getResource("processGenSourceFiles").getPath());
         assertTrue(generatorResult.getResult());
     }
 
     @BeforeClass
     public static void initialise() throws Exception{
-        //compileTestServiceGen();
+        compileTestServiceGen();
         curatorUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", curatorUtils.getClient("TestServicesTest"));
         RemoteClientFactory remoteClientFactory = new RemoteClientFactory();
@@ -91,10 +90,13 @@ public class RefRestServiceTest extends Assert {
 
         processFactory.addJobProcessingService(TestJobCreateService.class);
         processFactory.addJobProcessingService(TestJobUpdateService.class);
+        processFactory.addJobProcessingService(TestJobUpdateGenService.class);
         processFactory.addJobProcessingService(RemoteTestJobCreateService.class);
         processFactory.addJobProcessingService(RemoteTestJobUpdateService.class);
+        processFactory.addJobProcessingService(RemoteTestJobUpdateGenService.class);
         server.registerBeanClass("testJobCreate",RestTestDocJobCreateService.class);
         server.registerBeanClass("testJobUpdate",RestTestDocJobUpdateService.class);
+        server.registerBeanClass("testJobUpdateGen",RemoteTestDocJobUpdateGenService.class);
         server.registerBeanObject("couchbaseSessionFactory",sessionFactory);
         executorClientFactory = new ExecutorClientFactory(sessionFactory,execFactory,processFactory);
         server.registerBeanObject("stdJobExecutorFactory", executorClientFactory);
@@ -118,14 +120,26 @@ public class RefRestServiceTest extends Assert {
         assertEquals(job.initIntValue,createdDoc.intValue);
         assertEquals(job.name,createdDoc.name);
 
-        IJobExecutorClient<RemoteUpdateJob> updateJobClient = executorClientFactory.buildJobClient(RemoteUpdateJob.class);
-        RemoteUpdateJob updateJob = new RemoteUpdateJob();
-        updateJob.incrIntValue = 20;
-        updateJob.key = createdKey;
-        JobContext<RemoteUpdateJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE);
-        assertTrue(updateContext.getJobState().isDone());
-        TestDoc updatedDoc = cbSimulator.get(createdKey,TestDoc.class);
-        assertEquals(job.initIntValue+updateJob.incrIntValue,(long)updatedDoc.intValue);
+        {
+            IJobExecutorClient<RemoteUpdateJob> updateJobClient = executorClientFactory.buildJobClient(RemoteUpdateJob.class);
+            RemoteUpdateJob updateJob = new RemoteUpdateJob();
+            updateJob.incrIntValue = 20;
+            updateJob.key = createdKey;
+            JobContext<RemoteUpdateJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE);
+            assertTrue(updateContext.getJobState().isDone());
+            TestDoc updatedDoc = cbSimulator.get(createdKey, TestDoc.class);
+            assertEquals(job.initIntValue + updateJob.incrIntValue, (long) updatedDoc.intValue);
+        }
+        {
+            IJobExecutorClient<RemoteUpdateGenJob> updateJobClient = executorClientFactory.buildJobClient(RemoteUpdateGenJob.class);
+            RemoteUpdateGenJob updateJob = new RemoteUpdateGenJob();
+            updateJob.descrIntValue = 3;
+            updateJob.key = createdKey;
+            JobContext<RemoteUpdateGenJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE);
+            assertTrue(updateContext.getJobState().isDone());
+            TestDoc updatedDoc = cbSimulator.get(createdKey, TestDoc.class);
+            assertEquals(job.initIntValue + 20 - 3 , (long) updatedDoc.intValue);
+        }
     }
 
     @AfterClass

@@ -73,11 +73,6 @@ public class PrefixKeyTest {
         }
 
         @Override
-        public Class<TestPrefixKey> getBaseClass() {
-            return TestPrefixKey.class;
-        }
-
-        @Override
         public Observable<TestPrefixKey> asyncBuildKey(ICouchbaseSession session, TestPrefixKey newObject) throws DaoException {
             return session.asyncIncrCounter(TEST_CNT_KEY, 1)
                     .map(cntVal->{newObject.getBaseMeta().setKey(String.format(TEST_KEY_FMT, cntVal));return newObject;});

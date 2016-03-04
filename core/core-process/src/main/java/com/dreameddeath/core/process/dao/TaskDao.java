@@ -95,8 +95,4 @@ public class TaskDao extends CouchbaseDocumentWithKeyPatternDao<AbstractTask> {
         return LocalBucketDocument.class;
     }
 
-    @Override
-    public Class<AbstractTask> getBaseClass() {
-        return AbstractTask.class;
-    }
 }

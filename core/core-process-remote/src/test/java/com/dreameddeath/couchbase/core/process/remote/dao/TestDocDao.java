@@ -50,10 +50,6 @@ public class TestDocDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
         return LocalBucketDocument.class;
     }
 
-    @Override
-    public Class<TestDoc> getBaseClass() {
-        return TestDoc.class;
-    }
 
     @Override
     protected String getKeyRawPattern() {

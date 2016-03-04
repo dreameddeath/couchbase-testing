@@ -35,6 +35,7 @@ import com.dreameddeath.core.dao.registrar.DaoRegistrar;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDaoFactory;
+import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
@@ -145,10 +146,17 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
 
     public <T extends CouchbaseDocument> void addDao(CouchbaseDocumentDao<T> dao) throws DuplicateMappedEntryInfoException{
         DaoForClass annotation = dao.getClass().getAnnotation(DaoForClass.class);
-        if(annotation==null){
+        Class<T> clazz = ClassUtils.getEffectiveGenericType(dao.getClass(),CouchbaseDocumentDao.class,0);
+
+        if(annotation!=null) {
+            addDaoFor((Class<T>) annotation.value(), dao);
+        }
+        else if(clazz!=null) {
+            addDaoFor(clazz, dao);
+        }
+        else{
             throw new NullPointerException("Annotation DaoForClass not defined for dao <"+dao.getClass().getName()+">");
         }
-        addDaoFor((Class<T>) annotation.value(), dao);
     }
 
 

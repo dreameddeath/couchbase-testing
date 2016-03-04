@@ -59,11 +59,6 @@ public class CouchbaseDocumentWithKeyPatternDaoTest {
         }
 
         @Override
-        public Class<TestDoc> getBaseClass() {
-            return TestDoc.class;
-        }
-
-        @Override
         protected TestDoc updateTransientFromKeyPattern(TestDoc obj, String... params) {
             obj.tutu=params[0];
             obj.toto=params[1];

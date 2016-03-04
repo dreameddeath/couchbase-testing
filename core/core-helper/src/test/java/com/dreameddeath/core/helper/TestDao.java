@@ -69,11 +69,6 @@ public class TestDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
     }
 
     @Override
-    public Class<TestDoc> getBaseClass() {
-        return TestDoc.class;
-    }
-
-    @Override
     public List<CouchbaseCounterDao.Builder> getCountersBuilder() {
         return Arrays.asList(
                 new CouchbaseCounterDao.Builder().withKeyPattern(TEST_CNT_KEY_PATTERN).withDefaultValue(1L).withBaseDao(this)

@@ -114,10 +114,6 @@ public class UpgraderTest {
             );
         }
 
-        @Override
-        public Class<TestModel> getBaseClass() {
-            return TestModel.class;
-        }
 
         @Override
         public Observable<TestModel> asyncBuildKey(ICouchbaseSession session, TestModel newObject) throws DaoException {
@@ -147,10 +143,6 @@ public class UpgraderTest {
                     map(cntVal->{newObject.getBaseMeta().setKey(String.format(TEST_CNT_KEY, cntVal));return newObject;});
         }
 
-        @Override
-        public Class<TestModelV2> getBaseClass() {
-            return TestModelV2.class;
-        }
     }
 
 

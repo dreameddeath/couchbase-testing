@@ -31,6 +31,7 @@ import com.dreameddeath.core.dao.exception.validation.ValidationObservableExcept
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
 import rx.Observable;
@@ -46,20 +47,26 @@ import java.util.UUID;
  */
 @DaoForClass(CouchbaseDocument.class)
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
+    private final Class<T> baseClass;
     private final UUID uuid = UUID.randomUUID();
     private ICouchbaseBucket client;
     private List<CouchbaseViewDao> daoViews=null;
     private boolean isReadOnly=false;
 
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
+    public abstract Observable<T> asyncBuildKey(ICouchbaseSession session,T newObject) throws DaoException;
 
     public final T buildKey(ICouchbaseSession session,T newObject) throws DaoException,StorageException{
         return asyncBuildKey(session,newObject).toBlocking().first();
     }
 
-    public abstract Observable<T> asyncBuildKey(ICouchbaseSession session,T newObject) throws DaoException;
+    public CouchbaseDocumentDao() {
+        baseClass=ClassUtils.getEffectiveGenericType(this.getClass(),CouchbaseDocumentDao.class,0);
+    }
 
-    public abstract Class<T> getBaseClass();
+    public final Class<T> getBaseClass(){
+        return baseClass;
+    }
 
     public List<CouchbaseCounterDao.Builder> getCountersBuilder(){return Collections.emptyList();}
     public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder(){return Collections.emptyList();}
@@ -260,10 +267,10 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         try {
             Observable<T> result;
             if (session.getKeyPrefix() != null) {
-                result = getClient().asyncGet(key, getBaseClass(), ReadParams.create().with(session.getKeyPrefix()));
+                result = getClient().asyncGet(key, baseClass, ReadParams.create().with(session.getKeyPrefix()));
             }
             else {
-                result = getClient().asyncGet(key, getBaseClass());
+                result = getClient().asyncGet(key, baseClass);
             }
             result = result.map(val -> {
                         if (val.getBaseMeta().hasFlag(DocumentFlag.Deleted)) {

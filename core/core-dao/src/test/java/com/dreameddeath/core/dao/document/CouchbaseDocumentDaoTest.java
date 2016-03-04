@@ -79,10 +79,6 @@ public class CouchbaseDocumentDaoTest{
                     .map(cntVal->{newObject.getBaseMeta().setKey("test/"+cntVal);return newObject;});
         }
 
-        @Override
-        public Class<TestRootDaoDoc> getBaseClass() {
-            return TestRootDaoDoc.class;
-        }
     }
 
     private DaoRootTest daoTest;

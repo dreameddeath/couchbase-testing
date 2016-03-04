@@ -64,12 +64,6 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
     }
 
     @Override
-    public Class<${entity.simpleName}> getBaseClass() {
-        return ${entity.simpleName}.class;
-    }
-
-
-    @Override
     public Class<? extends BucketDocument<${entity.simpleName}>> getBucketDocumentClass() {
         return LocalBucketDocument.class;
     }
@@ -95,11 +89,6 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
             ,#if($formatType.needFormat())${formatType.formatter}(#end params[$foreach.index]#if($formatType.needFormat()) )#end
         #end );
     }
-
-   /* @Override
-    public String getKeyFromParams(Object ... params){
-        return String.format(FMT_KEY,#if($daoDef.isUidTypeLong()) Long.parseLong(uid) #else uid #end );
-    }*/
 
     @Override
     protected ${entity.simpleName} updateTransientFromKeyPattern(${entity.simpleName} obj,String ... keyParams){
