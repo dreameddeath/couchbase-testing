@@ -29,7 +29,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 @DocumentDef(domain = "test")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "test/",idFormat = "%010d",idPattern = "\\d{10}",rest = true)
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
-public class TestDoc extends BusinessDocument {
+public class TestDocProcess extends BusinessDocument {
     @DocumentProperty("name")
     public String name;
 }

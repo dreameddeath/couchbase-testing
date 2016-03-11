@@ -18,7 +18,7 @@ package com.dreameddeath.couchbase.core.process.remote.model;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.AbstractProcessCouchbaseDocument;
+import com.dreameddeath.core.process.model.base.AbstractProcessCouchbaseDocument;
 
 /**
  * Created by Christophe Jeunesse on 04/01/2016.

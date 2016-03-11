@@ -18,9 +18,11 @@ TODO
 --------------
 ###features
 - Reflexion around href links for services (HATEOS)
-- Management of stats (metrics, ...) around the registered services
-- helpers around spring service scans
-- self discovery of services should be based on path cache 
+- ~~Management of stats (metrics, ...) around the registered services~~
+- ~~helpers around spring service scans~~
+- ~~self discovery of services should be based on path cache~~
+- helpers on management of async service modes
+- normalisation of error management
 
 ###testing
 - ~~test the swagger api exposure~~

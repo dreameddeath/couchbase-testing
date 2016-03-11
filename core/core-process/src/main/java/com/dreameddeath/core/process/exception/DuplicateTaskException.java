@@ -17,8 +17,8 @@
 package com.dreameddeath.core.process.exception;
 
 
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 
 /**
  * Created by Christophe Jeunesse on 08/10/2014.

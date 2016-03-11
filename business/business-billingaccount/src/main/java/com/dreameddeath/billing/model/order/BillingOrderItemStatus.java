@@ -30,17 +30,17 @@ public class BillingOrderItemStatus extends CouchbaseDocumentElement {
      *  status : Status of the billing item
      */
     @DocumentProperty("status")
-    private Property<Status> status = new StandardProperty<Status>(BillingOrderItemStatus.this);
+    private Property<Status> status = new StandardProperty<>(BillingOrderItemStatus.this);
     /**
      *  startDate : The start Date of the status
      */
     @DocumentProperty("startDate")
-    private Property<DateTime> startDate = new StandardProperty<DateTime>(BillingOrderItemStatus.this);
+    private Property<DateTime> startDate = new StandardProperty<>(BillingOrderItemStatus.this);
     /**
      *  endDate : The end of validity date of the status
      */
     @DocumentProperty("endDate")
-    private Property<DateTime> endDate = new StandardProperty<DateTime>(BillingOrderItemStatus.this);
+    private Property<DateTime> endDate = new StandardProperty<>(BillingOrderItemStatus.this);
 
     // status accessors
     public Status getStatus() { return status.get(); }

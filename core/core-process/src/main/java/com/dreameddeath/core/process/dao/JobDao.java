@@ -23,7 +23,7 @@ import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractJob;
 import rx.Observable;
 
 import java.util.UUID;

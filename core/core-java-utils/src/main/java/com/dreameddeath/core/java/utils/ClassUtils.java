@@ -31,7 +31,7 @@ public class ClassUtils {
     public static Class getCallerClass(int level) throws ClassNotFoundException {
         StackTraceElement[] stElements = Thread.currentThread().getStackTrace();
         String rawFQN = stElements[level+1].toString().split("\\(")[0];
-        return Class.forName(rawFQN.substring(0, rawFQN.lastIndexOf('.')));
+        return Thread.currentThread().getContextClassLoader().loadClass(rawFQN.substring(0, rawFQN.lastIndexOf('.')));
     }
 
     public static Deque<Class> getAncestorsPath(Class currentClass, Class ancestorClass){

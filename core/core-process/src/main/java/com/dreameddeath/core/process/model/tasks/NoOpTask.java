@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
+package com.dreameddeath.core.process.model.tasks;
 
-import com.dreameddeath.core.process.exception.DuplicateAttachedTaskException;
-
-import java.util.UUID;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 
 /**
- * Created by Christophe Jeunesse on 16/05/2015.
+ * Created by Christophe Jeunesse on 23/09/2014.
  */
-public interface IDocumentWithLinkedTasks {
-    CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(UUID jobKey, String taskId);
-    void addAttachedTaskRef(CouchbaseDocumentAttachedTaskRef task)throws DuplicateAttachedTaskException;
-    CouchbaseDocumentAttachedTaskRef getAttachedTaskRef(AbstractTask task);
-    void cleanupAttachedTaskRef(AbstractTask task);
+public class NoOpTask extends AbstractTask {
+
 }

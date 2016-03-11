@@ -18,8 +18,12 @@ package com.dreameddeath.core.process.service.factory.impl;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractTask;
+import com.dreameddeath.core.process.model.discovery.JobExecutorClientInfo;
+import com.dreameddeath.core.process.model.discovery.TaskExecutorClientInfo;
+import com.dreameddeath.core.process.registrar.JobExecutorClientRegistrar;
+import com.dreameddeath.core.process.registrar.TaskExecutorClientRegistrar;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.ITaskExecutorClient;
 import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
@@ -28,6 +32,8 @@ import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.ITaskExecutorClientFactory;
 import com.dreameddeath.core.process.service.impl.BasicJobExecutorClient;
 import com.dreameddeath.core.process.service.impl.BasicTaskExecutorClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +42,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 02/01/2016.
  */
 public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExecutorClientFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(ExecutorClientFactory.class);
+    private final JobExecutorClientRegistrar jobRegistrar;
+    private final TaskExecutorClientRegistrar taskRegistrar;
     private final ICouchbaseSessionFactory couchbaseSessionFactory;
     private final IExecutorServiceFactory executorServiceFactory;
     private final IProcessingServiceFactory processingServiceFactory;
@@ -43,26 +52,99 @@ public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExe
     private final Map<Class<? extends AbstractJob>,IJobExecutorClient<? extends AbstractJob>> jobClientMap=new ConcurrentHashMap<>();
     private final Map<TaskClientKey<? extends AbstractJob,? extends AbstractTask>,ITaskExecutorClient<? extends AbstractJob,? extends AbstractTask>> taskClientMap=new ConcurrentHashMap<>();
 
-    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
+    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory, MetricRegistry registry,JobExecutorClientRegistrar jobRegistrar,TaskExecutorClientRegistrar taskRegistrar){
         this.couchbaseSessionFactory = couchbaseSessionFactory;
         this.executorServiceFactory = executorServiceFactory;
         this.processingServiceFactory=processingServiceFactory;
         this.metricRegistry = registry;
+        this.jobRegistrar = jobRegistrar;
+        this.taskRegistrar = taskRegistrar;
+    }
+
+
+    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
+        this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,registry,null,null);
     }
 
     public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory){
         this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,null);
     }
 
+
+    private <TJOB extends AbstractJob> IJobExecutorClient<TJOB> createJobClient(Class<TJOB> jobClass){
+        IJobExecutorClient<TJOB> jobClient = new BasicJobExecutorClient<>(jobClass, this, couchbaseSessionFactory, executorServiceFactory, processingServiceFactory, metricRegistry);
+        if(jobRegistrar!=null) {
+            try {
+
+                JobExecutorClientInfo info = new JobExecutorClientInfo(jobClient);
+                jobRegistrar.enrich(info);
+                jobRegistrar.register(info);
+            }
+            catch(Exception e){
+                LOG.error("Error during unregistrar of job client "+jobClient.getInstanceUUID(),e);
+                throw new RuntimeException(e);
+            }
+        }
+        return jobClient;
+
+    }
+
     @SuppressWarnings("unchecked")
     public <TJOB extends AbstractJob> IJobExecutorClient<TJOB> buildJobClient(Class<TJOB> jobClass){
-        return (IJobExecutorClient<TJOB>)jobClientMap.computeIfAbsent(jobClass, aClass -> new BasicJobExecutorClient<>(aClass,this, couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,metricRegistry));
+        return (IJobExecutorClient<TJOB>)jobClientMap.computeIfAbsent(jobClass, this::createJobClient);
+    }
+
+
+    private <TJOB extends AbstractJob,TTASK extends AbstractTask> ITaskExecutorClient<TJOB,TTASK> createTaskClient(TaskClientKey<TJOB,TTASK> clientKey){
+        ITaskExecutorClient<TJOB,TTASK> taskClient = new BasicTaskExecutorClient<>(clientKey.jobClass,clientKey.taskClass,this,couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,metricRegistry);
+        if(taskRegistrar!=null) {
+            try {
+                TaskExecutorClientInfo info = new TaskExecutorClientInfo(taskClient);
+                taskRegistrar.enrich(info);
+                taskRegistrar.register(info);
+            }
+            catch(Exception e){
+                LOG.error("Error during registrar of task client "+taskClient.getInstanceUUID(),e);
+                throw new RuntimeException(e);
+            }
+        }
+        return taskClient;
+
     }
 
     @SuppressWarnings("unchecked")
     public <TJOB extends AbstractJob,TTASK extends AbstractTask> ITaskExecutorClient<TJOB,TTASK> buildTaskClient(Class<TJOB> jobClass, Class<TTASK> taskClass){
-        return (ITaskExecutorClient<TJOB,TTASK>) taskClientMap.computeIfAbsent(new TaskClientKey<>(jobClass,taskClass),taskClassKey->new BasicTaskExecutorClient<>(taskClassKey.jobClass,taskClassKey.taskClass,this,couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,metricRegistry));
+        return (ITaskExecutorClient<TJOB,TTASK>) taskClientMap.computeIfAbsent(new TaskClientKey<>(jobClass,taskClass),this::createTaskClient);
     }
+
+
+    public void cleanup(){
+        if(taskRegistrar!=null){
+            for(ITaskExecutorClient client:taskClientMap.values()){
+                try {
+                    TaskExecutorClientInfo info = new TaskExecutorClientInfo(client);
+                    taskRegistrar.deregister(info);
+                }
+                catch(Exception e){
+                    LOG.error("Error during unregistrar of task client "+client.getInstanceUUID(),e);
+                }
+            }
+        }
+        taskClientMap.clear();
+        if(jobRegistrar!=null){
+            for(IJobExecutorClient client:jobClientMap.values()){
+                try {
+                    JobExecutorClientInfo info = new JobExecutorClientInfo(client);
+                    jobRegistrar.deregister(info);
+                }
+                catch(Exception e){
+                    LOG.error("Error during unregistrar of job client "+client.getInstanceUUID(),e);
+                }
+            }
+        }
+        jobClientMap.clear();
+    }
+
 
     protected static class TaskClientKey<TJOB extends AbstractJob,TTASK extends AbstractTask>{
         private final Class<TJOB> jobClass;
@@ -79,8 +161,7 @@ public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExe
 
             TaskClientKey<?, ?> that = (TaskClientKey<?, ?>) o;
 
-            if (!jobClass.equals(that.jobClass)) return false;
-            return taskClass.equals(that.taskClass);
+            return jobClass.equals(that.jobClass) && taskClass.equals(that.taskClass);
         }
 
         @Override

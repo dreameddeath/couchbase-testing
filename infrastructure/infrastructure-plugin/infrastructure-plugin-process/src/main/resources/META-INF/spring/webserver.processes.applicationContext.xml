@@ -19,6 +19,22 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
+    <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
+
+
+    <bean id="jobDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
+          factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
+        <constructor-arg value="core" />
+        <constructor-arg value="AbstractJob" />
+    </bean>
+
+
+    <bean id="taskDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
+          factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
+        <constructor-arg value="core" />
+        <constructor-arg value="AbstractTask" />
+    </bean>
+
     <bean id="executorServiceFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
         <property name="attributeName" value="executorServiceFactory" />
     </bean>

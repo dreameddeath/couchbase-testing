@@ -32,14 +32,14 @@ import java.util.List;
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> {
     @DocumentProperty("links")
-    private ListProperty<InstalledOfferLink> links = new ArrayListProperty<InstalledOfferLink>(InstalledOffer.this);
+    private ListProperty<InstalledOfferLink> links = new ArrayListProperty<>(InstalledOffer.this);
     @DocumentProperty("tariffs")
-    private ListProperty<InstalledTariff> tariffs = new ArrayListProperty<InstalledTariff>(InstalledOffer.this);
+    private ListProperty<InstalledTariff> tariffs = new ArrayListProperty<>(InstalledOffer.this);
     /**
      *  commercialParameters : explain the commercial parameters defined for the given offer
      */
     @DocumentProperty("commercialParameters")
-    private ListProperty<InstalledCommercialParameter> commercialParameters = new ArrayListProperty<InstalledCommercialParameter>(InstalledOffer.this);
+    private ListProperty<InstalledCommercialParameter> commercialParameters = new ArrayListProperty<>(InstalledOffer.this);
 
     // links accessors
     public List<InstalledOfferLink> getLinks() { return links.get(); }

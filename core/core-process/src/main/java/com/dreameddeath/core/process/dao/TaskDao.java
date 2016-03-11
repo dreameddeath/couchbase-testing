@@ -23,7 +23,7 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 import rx.Observable;
 
 import java.util.ArrayList;

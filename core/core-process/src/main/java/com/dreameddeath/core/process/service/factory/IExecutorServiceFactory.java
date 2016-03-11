@@ -17,8 +17,8 @@
 package com.dreameddeath.core.process.service.factory;
 
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 

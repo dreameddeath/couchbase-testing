@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
+package com.dreameddeath.core.process.model.tasks;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 
 import java.util.Collection;
 import java.util.List;

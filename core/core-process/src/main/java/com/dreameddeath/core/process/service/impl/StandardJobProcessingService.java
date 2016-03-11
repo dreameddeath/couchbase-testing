@@ -17,7 +17,7 @@
 package com.dreameddeath.core.process.service.impl;
 
 import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractJob;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.context.JobContext;
 

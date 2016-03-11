@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.process.annotation;
 
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

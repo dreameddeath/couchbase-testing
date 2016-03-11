@@ -32,7 +32,7 @@ public class InstalledTariff extends InstalledItem<InstalledTariffRevision> {
      *  discounts : list of discounts attached to the tariff
      */
     @DocumentProperty("discounts")
-    private ListProperty<InstalledDiscount> discounts = new ArrayListProperty<InstalledDiscount>(InstalledTariff.this);
+    private ListProperty<InstalledDiscount> discounts = new ArrayListProperty<>(InstalledTariff.this);
 
     // Discounts Accessors
     public List<InstalledDiscount> getDiscounts() { return discounts.get(); }

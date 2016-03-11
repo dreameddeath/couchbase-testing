@@ -34,12 +34,12 @@ public class BillingOrderItem extends CouchbaseDocumentElement {
      *  id : The internal id of the order being billed
      */
     @DocumentProperty("id")
-    private Property<Long> id = new StandardProperty<Long>(BillingOrderItem.this);
+    private Property<Long> id = new StandardProperty<>(BillingOrderItem.this);
     /**
      *  statuses : Statuses of the order item
      */
     @DocumentProperty("statuses")
-    private ListProperty<BillingOrderItemStatus> statuses = new ArrayListProperty<BillingOrderItemStatus>(BillingOrderItem.this);
+    private ListProperty<BillingOrderItemStatus> statuses = new ArrayListProperty<>(BillingOrderItem.this);
 
 
     // id accessors

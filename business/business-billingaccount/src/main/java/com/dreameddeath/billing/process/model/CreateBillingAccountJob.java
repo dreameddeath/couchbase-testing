@@ -20,10 +20,10 @@ import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.DocumentCreateTask;
-import com.dreameddeath.core.process.model.DocumentUpdateTask;
-import com.dreameddeath.core.process.model.SubJobProcessTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.tasks.DocumentCreateTask;
+import com.dreameddeath.core.process.model.tasks.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.tasks.SubJobProcessTask;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.PartyLink;
 

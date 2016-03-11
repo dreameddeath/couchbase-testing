@@ -18,6 +18,10 @@ package com.dreameddeath.infrastructure.plugin.process;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.process.service.IJobExecutorClient;
+import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
@@ -58,7 +62,10 @@ public class ProcessesWebServerPluginTest {
         String connectionString = testUtils.getCluster().getConnectString();
 
         ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
+        //ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "TestDocProcess").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "AbstractJob").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "AbstractTask").getName(), "testBucketName");
         final AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
                 .withUserFactory(new StandardMockUserFactory())
@@ -70,13 +77,20 @@ public class ProcessesWebServerPluginTest {
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withApplicationContextConfig("applicationContext.xml"));
 
-
         Thread stopping_thread = new Thread(new Runnable() {
             @Override
             public void run() {
 
                 try {
-
+                    ProcessesWebServerPlugin plugin=daemon.getAdditionalWebServers().get(0).getPlugin(ProcessesWebServerPlugin.class);
+                    CouchbaseWebServerPlugin cbPlugin=daemon.getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
+                    IJobExecutorClient<TestDocCreateJob> executorClient=plugin.getExecutorClientFactory().buildJobClient(TestDocCreateJob.class);
+                    TestDocCreateJob createJob=new TestDocCreateJob();
+                    createJob.name = "test";
+                    JobContext<TestDocCreateJob> createJobJobContext =executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
+                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+                    TestDocProcess processDoc = session.get(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(),TestDocProcess.class);
+                    assertEquals(processDoc.name,createJob.name);
                 } catch (Throwable e) {
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during status read", e);

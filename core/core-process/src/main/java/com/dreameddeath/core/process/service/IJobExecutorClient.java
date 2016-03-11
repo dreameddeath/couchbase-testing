@@ -17,14 +17,20 @@
 package com.dreameddeath.core.process.service;
 
 import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractJob;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.user.IUser;
+
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 31/12/2015.
  */
 public interface IJobExecutorClient<T extends AbstractJob> {
+    Class<T> getJobClass();
+    UUID getInstanceUUID();
+    IJobExecutorService<T> getExecutorService();
+    IJobProcessingService<T> getProcessingService();
     JobContext<T> executeJob(T job, IUser user) throws JobExecutionException;
     JobContext<T> submitJob(T job, IUser user) throws JobExecutionException;
     JobContext<T> resumeJob(T job, IUser user) throws JobExecutionException;

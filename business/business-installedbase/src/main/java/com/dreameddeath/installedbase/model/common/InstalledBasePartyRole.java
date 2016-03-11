@@ -34,12 +34,12 @@ public class InstalledBasePartyRole extends PartyRole {
      *  roles : List of roles on this Installed base (or part of it)
      */
     @DocumentProperty("roles")
-    private ListProperty<Roles> roles = new ArrayListProperty<Roles>(InstalledBasePartyRole.this);
+    private ListProperty<Roles> roles = new ArrayListProperty<>(InstalledBasePartyRole.this);
     /**
      *  installedBase : The installed base implied by the role
      */
     @DocumentProperty("installedBase")
-    private Property<InstalledBaseLink> installedBase = new StandardProperty<InstalledBaseLink>(InstalledBasePartyRole.this);
+    private Property<InstalledBaseLink> installedBase = new StandardProperty<>(InstalledBasePartyRole.this);
 
     // Roles Accessors
     public List<Roles> getRoles() { return roles.get(); }

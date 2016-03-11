@@ -21,8 +21,8 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.ChildDocumentCreateTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.tasks.ChildDocumentCreateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
 
 /**

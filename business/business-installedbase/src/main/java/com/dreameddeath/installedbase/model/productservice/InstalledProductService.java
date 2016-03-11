@@ -32,7 +32,7 @@ public class InstalledProductService extends InstalledItem<InstalledProductServi
      *  functions : give the list of functions attached to the Product
      */
     @DocumentProperty("functions")
-    private ListProperty<InstalledFunction> functions = new ArrayListProperty<InstalledFunction>(InstalledProductService.this);
+    private ListProperty<InstalledFunction> functions = new ArrayListProperty<>(InstalledProductService.this);
 
     // Functions Accessors
     public List<InstalledFunction> getFunctions() { return functions.get(); }

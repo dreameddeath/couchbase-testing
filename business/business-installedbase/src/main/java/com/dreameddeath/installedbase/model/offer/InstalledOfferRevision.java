@@ -32,12 +32,12 @@ public class InstalledOfferRevision extends InstalledItemRevision {
      *  links : links for this revision
      */
     @DocumentProperty("links")
-    private ListProperty<InstalledOfferLink> links = new ArrayListProperty<InstalledOfferLink>(InstalledOfferRevision.this);
+    private ListProperty<InstalledOfferLink> links = new ArrayListProperty<>(InstalledOfferRevision.this);
     /**
      *  commercialParameters : list of commercial parameters of the revision
      */
     @DocumentProperty("commercialParameters")
-    private ListProperty<InstalledCommercialParameter> commercialParameters = new ArrayListProperty<InstalledCommercialParameter>(InstalledOfferRevision.this);
+    private ListProperty<InstalledCommercialParameter> commercialParameters = new ArrayListProperty<>(InstalledOfferRevision.this);
 
     // Links Accessors
     public List<InstalledOfferLink> getLinks() { return links.get(); }

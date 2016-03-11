@@ -33,12 +33,12 @@ public class BillingOrderItemFee extends BillingOrderItem {
      *  tariffId : The tariff id being billed
      */
     @DocumentProperty("tariffId")
-    private Property<String> tariffId = new StandardProperty<String>(BillingOrderItemFee.this);
+    private Property<String> tariffId = new StandardProperty<>(BillingOrderItemFee.this);
     /**
      *  discountIds : The list of applicable billing item ids
      */
     @DocumentProperty("discountIds")
-    private ListProperty<Long> discountIds = new ArrayListProperty<Long>(BillingOrderItemFee.this);
+    private ListProperty<Long> discountIds = new ArrayListProperty<>(BillingOrderItemFee.this);
 
     // tariffId accessors
     public String getTariffId() { return tariffId.get(); }

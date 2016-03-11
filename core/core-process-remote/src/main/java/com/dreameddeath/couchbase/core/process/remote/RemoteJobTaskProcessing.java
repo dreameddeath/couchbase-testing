@@ -17,7 +17,8 @@
 package com.dreameddeath.couchbase.core.process.remote;
 
 import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.service.client.IServiceClient;
@@ -31,11 +32,12 @@ import javax.inject.Inject;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 14/01/2016.
  */
-public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJob,TTASK extends RemoteJobProcessTask<TREQ,TRESP>> implements ITaskProcessingService<TJOB,TTASK> {
+public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJob,TTASK extends RemoteJobProcessTask<TREQ,TRESP>> implements ITaskProcessingService<TJOB,TTASK>, IHasServiceClient{
     private IRemoteClientFactory remoteClientFactory;
     private IServiceClient remoteJobProcessingClient;
 
@@ -129,5 +131,15 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
     @Override
     public boolean cleanup(TaskContext<TJOB, TTASK> ctxt) throws TaskExecutionException {
         return false;
+    }
+
+    @Override
+    public UUID getClientUUID() {
+        return getRemoteJobProcessingClient().getUuid();
+    }
+
+    @Override
+    public String getServiceName() {
+        return getRemoteJobProcessingClient().getFullName();
     }
 }

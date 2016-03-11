@@ -31,7 +31,7 @@ public class InstalledCompositeOffer extends InstalledOffer {
      *  children : List of children offers id
      */
     @DocumentProperty("children")
-    private ListProperty<String> children = new ArrayListProperty<String>(InstalledCompositeOffer.this);
+    private ListProperty<String> children = new ArrayListProperty<>(InstalledCompositeOffer.this);
 
     // Children Accessors
     public List<String> getChildren() { return children.get(); }

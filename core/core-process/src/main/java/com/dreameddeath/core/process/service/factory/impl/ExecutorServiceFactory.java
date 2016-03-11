@@ -19,8 +19,8 @@ package com.dreameddeath.core.process.service.factory.impl;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
@@ -100,5 +100,10 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
     public <T extends AbstractTask> TaskContext<? extends AbstractJob,T> execute(TaskContext<? extends AbstractJob,T> ctxt) throws TaskExecutionException,ExecutorServiceNotFoundException {
         getTaskExecutorServiceForClass((Class<T>)ctxt.getTask().getClass()).execute((TaskContext<AbstractJob,T>)ctxt);
         return ctxt;
+    }
+
+    public void cleanup(){
+        jobExecutorServicesMap.clear();
+        taskExecutorServicesMap.clear();
     }
 }

@@ -30,22 +30,22 @@ public class InstalledValue extends CouchbaseDocumentElement {
      *  value : the value itself
      */
     @DocumentProperty("value")
-    private Property<String> value = new StandardProperty<String>(InstalledValue.this);
+    private Property<String> value = new StandardProperty<>(InstalledValue.this);
     /**
      *  startDate : The value startDate
      */
     @DocumentProperty("startDate")
-    private Property<DateTime> startDate = new StandardProperty<DateTime>(InstalledValue.this);
+    private Property<DateTime> startDate = new StandardProperty<>(InstalledValue.this);
     /**
      *  endDate : The value endDate
      */
     @DocumentProperty("endDate")
-    private Property<DateTime> endDate = new StandardProperty<DateTime>(InstalledValue.this);
+    private Property<DateTime> endDate = new StandardProperty<>(InstalledValue.this);
     /**
      *  keyType : Type of public key if applicable
      */
     @DocumentProperty("keyType")
-    private Property<String> keyType = new StandardProperty<String>(InstalledValue.this);
+    private Property<String> keyType = new StandardProperty<>(InstalledValue.this);
 
     // value accessors
     public String getValue() { return value.get(); }

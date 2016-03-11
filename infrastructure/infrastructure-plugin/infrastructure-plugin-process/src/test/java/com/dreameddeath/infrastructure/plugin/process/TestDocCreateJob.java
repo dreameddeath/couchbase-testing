@@ -18,16 +18,17 @@ package com.dreameddeath.infrastructure.plugin.process;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.DocumentCreateTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.tasks.DocumentCreateTask;
 
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
  */
+@DocumentDef(domain = "test")
 public class TestDocCreateJob extends AbstractJob {
     @DocumentProperty("name")
     public String name;
 
     @DocumentDef(domain = "billing",version="1.0.0")
-    public static class TestDocCreateTask extends DocumentCreateTask<TestDoc> { }
+    public static class TestDocCreateTask extends DocumentCreateTask<TestDocProcess> { }
 }

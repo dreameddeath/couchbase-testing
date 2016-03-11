@@ -28,8 +28,8 @@ import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.ProcessState;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.ProcessState;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
@@ -40,10 +40,14 @@ import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.exception.ValidationFailedException;
 
+import java.util.UUID;
+
 /**
  * Created by Christophe Jeunesse on 31/12/2015.
  */
 public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecutorClient<T> {
+    private final UUID instanceUUID=UUID.randomUUID();
+    private final Class<T> jobClass;
     private final ExecutorClientFactory parentClientFactory;
     private final ICouchbaseSessionFactory sessionFactory;
     private final IExecutorServiceFactory executorServiceFactory;
@@ -53,6 +57,7 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
     private final MetricRegistry metricRegistry;
 
     public BasicJobExecutorClient(Class<T> jobClass, ExecutorClientFactory clientFactory,ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
+        this.jobClass = jobClass;
         this.parentClientFactory = clientFactory;
         this.sessionFactory =sessionFactory;
         this.executorServiceFactory =executorServiceFactory;
@@ -137,5 +142,26 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
     public JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException {
         //TODO
         return null;
+    }
+
+    @Override
+    public UUID getInstanceUUID() {
+        return instanceUUID;
+    }
+
+    @Override
+    public Class<T> getJobClass() {
+        return jobClass;
+    }
+
+    @Override
+    public IJobExecutorService<T> getExecutorService() {
+        return executorService;
+    }
+
+
+    @Override
+    public IJobProcessingService<T> getProcessingService() {
+        return processingService;
     }
 }

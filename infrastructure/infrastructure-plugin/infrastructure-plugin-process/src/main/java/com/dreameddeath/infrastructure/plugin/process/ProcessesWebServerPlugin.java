@@ -23,6 +23,7 @@ import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
+import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 /**
@@ -40,9 +41,11 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
     public ProcessesWebServerPlugin(AbstractWebServer server,Builder builder) {
         super(server);
         CouchbaseWebServerPlugin couchbasePlugin = server.getPlugin(CouchbaseWebServerPlugin.class);
+        Preconditions.checkNotNull(couchbasePlugin,"The couchbase Plugin must be define to create the Process Plugin");
         executorServiceFactory = new ExecutorServiceFactory();
         processingServiceFactory = new ProcessingServiceFactory();
-        executorClientFactory = new ExecutorClientFactory(couchbasePlugin.getSessionFactory(),executorServiceFactory,processingServiceFactory,server.getMetricRegistry());
+        executorClientFactory = new ExecutorClientFactory(
+                couchbasePlugin.getSessionFactory(),executorServiceFactory,processingServiceFactory,server.getMetricRegistry());
     }
 
 
@@ -65,5 +68,15 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
         }
     }
 
+    public ExecutorClientFactory getExecutorClientFactory() {
+        return executorClientFactory;
+    }
 
+    public ExecutorServiceFactory getExecutorServiceFactory() {
+        return executorServiceFactory;
+    }
+
+    public ProcessingServiceFactory getProcessingServiceFactory() {
+        return processingServiceFactory;
+    }
 }

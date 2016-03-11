@@ -20,11 +20,17 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
     <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
+    <import resource="classpath:META-INF/spring/webserver.processes.applicationContext.xml" />
 
     <bean id="testDocDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
           factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
         <constructor-arg value="test" />
-        <constructor-arg value="testdoc" />
+        <constructor-arg value="TestDocProcess" />
+    </bean>
+
+    <bean id="jobCreateProcess" class="com.dreameddeath.core.process.service.IJobProcessingService"
+          factory-bean="processingServiceFactory" factory-method="addJobProcessingService">
+        <constructor-arg value="com.dreameddeath.infrastructure.plugin.process.TestDocCreateJobProcess" />
     </bean>
 
 </beans>

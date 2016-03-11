@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
+package com.dreameddeath.core.process.model.base;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;

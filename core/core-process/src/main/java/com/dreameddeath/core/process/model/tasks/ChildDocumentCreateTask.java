@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
+package com.dreameddeath.core.process.model.tasks;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;

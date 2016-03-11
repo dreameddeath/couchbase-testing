@@ -21,7 +21,8 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.service.client.IServiceClient;
@@ -29,11 +30,12 @@ import com.dreameddeath.core.service.client.IServiceClient;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 10/01/2016.
  */
-public class RemoteJobExecutorService<T extends AbstractJob> implements IJobExecutorService<T>{
+public class RemoteJobExecutorService<T extends AbstractJob> implements IJobExecutorService<T>,IHasServiceClient{
     private final IServiceClient client;
 
     public RemoteJobExecutorService(IServiceClient client) {
@@ -68,5 +70,15 @@ public class RemoteJobExecutorService<T extends AbstractJob> implements IJobExec
         else{
             throw new JobExecutionException(context,"An error occurs during distant call");
         }
+    }
+
+    @Override
+    public UUID getClientUUID() {
+        return client.getUuid();
+    }
+
+    @Override
+    public String getServiceName() {
+        return client.getFullName();
     }
 }

@@ -30,12 +30,12 @@ public class InstalledBaseLink extends BusinessDocumentLink<InstalledBase> {
      *  offerId : The offer id linked (if only a subpart is pointed by the link)
      */
     @DocumentProperty("offerId")
-    private Property<String> offerId = new StandardProperty<String>(InstalledBaseLink.this);
+    private Property<String> offerId = new StandardProperty<>(InstalledBaseLink.this);
     /**
      *  productId : The installedProductId (if only a sub part of the installed base is pointed by the link)
      */
     @DocumentProperty("productId")
-    private Property<String> productId = new StandardProperty<String>(InstalledBaseLink.this);
+    private Property<String> productId = new StandardProperty<>(InstalledBaseLink.this);
 
 
     // offerId accessors

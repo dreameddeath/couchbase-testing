@@ -20,6 +20,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.validation.annotation.NotNull;
 import org.joda.time.DateTime;
 
 /**
@@ -29,7 +30,7 @@ public class InstalledStatus extends CouchbaseDocumentElement {
     /**
      *  code : Status Code
      */
-    @DocumentProperty("code")
+    @DocumentProperty("code") @NotNull
     private Property<Code> code = new StandardProperty<Code>(InstalledStatus.this);
     /**
      *  startDate : Start Validity date of the status

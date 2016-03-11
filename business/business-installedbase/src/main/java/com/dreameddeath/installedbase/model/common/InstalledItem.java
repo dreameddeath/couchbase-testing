@@ -33,26 +33,26 @@ import java.util.UUID;
  */
 public abstract class InstalledItem<T extends InstalledItemRevision> extends CouchbaseDocumentElement {
     @DocumentProperty("id")
-    private Property<String> id = new StandardProperty<String>(InstalledItem.this, UUID.randomUUID().toString());
+    private Property<String> id = new StandardProperty<>(InstalledItem.this, UUID.randomUUID().toString());
     @DocumentProperty("creationDate")
-    private Property<DateTime> creationDate = new StandardProperty<DateTime>(InstalledItem.this);
+    private Property<DateTime> creationDate = new StandardProperty<>(InstalledItem.this);
     @DocumentProperty("lastModificationDate")
-    private Property<DateTime> lastModificationDate = new StandardProperty<DateTime>(InstalledItem.this);
+    private Property<DateTime> lastModificationDate = new StandardProperty<>(InstalledItem.this);
     /**
      *  status :
      */
     @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<InstalledStatus>(InstalledItem.this);
+    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItem.this);
     /**
      *  code : The code of the item
      */
     @DocumentProperty("code")
-    private Property<String> code = new StandardProperty<String>(InstalledItem.this);
+    private Property<String> code = new StandardProperty<>(InstalledItem.this);
     /**
      *  revisions : ItemRevisions
      */
     @DocumentProperty("revisions")
-    private ListProperty<T> revisions = new ArrayListProperty<T>(InstalledItem.this);
+    private ListProperty<T> revisions = new ArrayListProperty<>(InstalledItem.this);
 
     // id accessors
     public String getId() { return id.get(); }

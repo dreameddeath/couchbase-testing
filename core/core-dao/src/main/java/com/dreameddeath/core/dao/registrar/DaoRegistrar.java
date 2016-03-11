@@ -30,7 +30,7 @@ import org.apache.curator.framework.CuratorFramework;
 public class DaoRegistrar extends CuratorRegistrarImpl<DaoInstanceInfo> {
     public static String getRootPath(){
         try {
-            return CouchbaseDaoConfigProperties.DAO_REGISTER_PATH.getMandatoryValue("The daemon registering path isn't set");
+            return CouchbaseDaoConfigProperties.DAO_REGISTER_PATH.getMandatoryValue("The dao registering path isn't set");
         }
         catch (ConfigPropertyValueNotFoundException e){
             throw new RuntimeException(e);

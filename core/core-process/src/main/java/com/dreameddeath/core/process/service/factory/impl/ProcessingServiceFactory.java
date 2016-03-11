@@ -19,8 +19,8 @@ package com.dreameddeath.core.process.service.factory.impl;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
@@ -38,11 +38,12 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
             = new ConcurrentHashMap<>();
 
 
-    public <T extends AbstractJob> void addJobProcessingServiceFor(Class<T> entityClass, IJobProcessingService<T> service){
+    public <T extends AbstractJob> IJobProcessingService<T> addJobProcessingServiceFor(Class<T> entityClass, IJobProcessingService<T> service){
         jobProcessingServicesMap.put(entityClass, service);
+        return service;
     }
 
-    protected IJobProcessingService createJobProcessingService(Class<? extends IJobProcessingService> serviceClass){
+    protected <T extends IJobProcessingService<? extends AbstractJob>> T  createJobProcessingService(Class<T> serviceClass){
         try {
             return serviceClass.newInstance();
         }
@@ -51,14 +52,13 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
         }
     }
 
-    public ProcessingServiceFactory addJobProcessingService(Class<? extends IJobProcessingService> serviceClass){
+    public <TJOB extends AbstractJob,T extends IJobProcessingService<TJOB>> T addJobProcessingService(Class<T> serviceClass){
         JobProcessingForClass ann = serviceClass.getAnnotation(JobProcessingForClass.class);
         if(ann==null){
             throw new RuntimeException("Cannot find annotation JobProcessingForClass for job processing service class "+serviceClass.getName());
         }
-        addJobProcessingServiceFor(ann.value(), createJobProcessingService(serviceClass));
-
-
+        T jobProcessingService = createJobProcessingService(serviceClass);
+        addJobProcessingServiceFor((Class<TJOB>)ann.value(), jobProcessingService);
 
         for(Class innerClass:serviceClass.getClasses()){
             if(ITaskProcessingService.class.isAssignableFrom(innerClass)){
@@ -66,18 +66,19 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
                     getTaskProcessingServiceForClass(innerClass);
                 }
                 catch(ProcessingServiceNotFoundException e){
-                    addTaskProcessingService((Class<ITaskProcessingService>) innerClass);
+                    addTaskProcessingService((Class<ITaskProcessingService<TJOB,AbstractTask>>) innerClass);
                 }
             }
         }
-        return this;
+        return jobProcessingService;
     }
 
-    public <TJOB extends AbstractJob,T extends AbstractTask> void addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<TJOB,T> service){
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskProcessingService<TJOB, T> addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<TJOB,T> service){
         taskProcessingServicesMap.put(entityClass, service);
+        return service;
     }
 
-    protected ITaskProcessingService createTaskProcessingService(Class<? extends ITaskProcessingService> serviceClass){
+    protected <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T createTaskProcessingService(Class<T> serviceClass){
         try {
             return serviceClass.newInstance();
         }
@@ -86,12 +87,13 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
         }
     }
 
-    public void addTaskProcessingService(Class<? extends ITaskProcessingService> serviceClass){
+    public <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T addTaskProcessingService(Class<T> serviceClass){
         TaskProcessingForClass ann = serviceClass.getAnnotation(TaskProcessingForClass.class);
         if(ann==null){
             throw new RuntimeException("Cannot find annotation TaskProcessingForClass for processing service class "+serviceClass.getName());
         }
-        addTaskProcessingServiceFor(ann.value(), createTaskProcessingService(serviceClass));
+        T service = createTaskProcessingService(serviceClass);
+        return (T)addTaskProcessingServiceFor((Class<TTASK>)ann.value(),service);
     }
 
 
@@ -129,44 +131,8 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
         return result;
     }
 
-
-    /*public <T extends AbstractJob> boolean init(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).init(ctxt);
+    public void cleanup(){
+        jobProcessingServicesMap.clear();
+        taskProcessingServicesMap.clear();
     }
-
-    public <T extends AbstractJob> boolean preprocess(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).preprocess(ctxt);
-    }
-
-    public <T extends AbstractJob> boolean postprocess(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).postprocess(ctxt);
-    }
-
-    public <T extends AbstractJob> boolean cleanup(JobContext<T> ctxt) throws JobExecutionException,ProcessingServiceNotFoundException {
-        return getJobProcessingServiceForClass((Class<T>)ctxt.getJob().getClass()).cleanup(ctxt);
-    }
-
-
-    public <TJOB extends AbstractJob,T extends AbstractTask> boolean init(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).init(ctxt);
-    }
-
-    public <TJOB extends AbstractJob,T extends AbstractTask> boolean preprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).preprocess(ctxt);
-    }
-
-    public <TJOB extends AbstractJob,T extends AbstractTask> boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).process(ctxt);
-    }
-
-    public <TJOB extends AbstractJob,T extends AbstractTask> boolean postprocess(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).postprocess(ctxt);
-    }
-
-    public <TJOB extends AbstractJob,T extends AbstractTask> boolean finish(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).finish(ctxt);
-    }
-    public <TJOB extends AbstractJob,T extends AbstractTask> boolean cleanup(TaskContext<TJOB,T> ctxt) throws TaskExecutionException,ProcessingServiceNotFoundException {
-        return ((ITaskProcessingService<TJOB,T>)getTaskProcessingServiceForClass((Class<T>)ctxt.getTask().getClass())).cleanup(ctxt);
-    }*/
 }

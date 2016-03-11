@@ -23,8 +23,8 @@ import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.AbstractTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 import com.dreameddeath.core.process.service.*;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
@@ -33,10 +33,13 @@ import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
 
+import java.util.UUID;
+
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
  */
 public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends AbstractTask> implements ITaskExecutorClient<TJOB,TTASK> {
+    private final UUID uuid=UUID.randomUUID();
     private final ExecutorClientFactory clientFactory;
     private final Class<TTASK> taskClass;
     private final ICouchbaseSessionFactory sessionFactory;
@@ -44,8 +47,6 @@ public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends Abst
     private final IProcessingServiceFactory processingServiceFactory;
     private final IJobExecutorService<TJOB> jobExecutorService;
     private final IJobProcessingService<TJOB> jobProcessingService;
-
-
     private final ITaskExecutorService<TJOB,TTASK> executorService;
     private final ITaskProcessingService<TJOB,TTASK> processingService;
     private final MetricRegistry metricRegistry;
@@ -122,5 +123,25 @@ public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends Abst
         public boolean cleanup(JobContext<TJOB> context) throws JobExecutionException {
             throw new JobExecutionException(context,"Shouldn't occurs from task Client <"+taskClass.getName()+">");
         }
+    }
+
+    @Override
+    public UUID getInstanceUUID() {
+        return uuid;
+    }
+
+    @Override
+    public Class<TTASK> getTaskClass() {
+        return taskClass;
+    }
+
+    @Override
+    public ITaskExecutorService<TJOB, TTASK> getExecutorService() {
+        return executorService;
+    }
+
+    @Override
+    public ITaskProcessingService<TJOB, TTASK> getProcessingService() {
+        return processingService;
     }
 }

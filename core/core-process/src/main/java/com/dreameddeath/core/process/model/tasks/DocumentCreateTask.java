@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model;
+package com.dreameddeath.core.process.model.tasks;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -23,6 +23,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.

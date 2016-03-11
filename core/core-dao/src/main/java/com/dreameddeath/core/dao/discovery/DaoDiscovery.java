@@ -29,7 +29,7 @@ import java.io.IOException;
  * Created by Christophe Jeunesse on 28/10/2015.
  */
 public class DaoDiscovery extends CuratorDiscoveryImpl<DaoInstanceInfo> {
-    private ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper();
+    private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper();
 
     public DaoDiscovery(CuratorFramework curatorFramework) {
         super(curatorFramework, DaoRegistrar.getRootPath());

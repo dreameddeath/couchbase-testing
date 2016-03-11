@@ -18,8 +18,8 @@ package com.dreameddeath.couchbase.core.process.remote.model;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.AbstractJob;
-import com.dreameddeath.core.process.model.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Result;

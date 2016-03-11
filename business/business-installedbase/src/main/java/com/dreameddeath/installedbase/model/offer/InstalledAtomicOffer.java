@@ -29,7 +29,7 @@ public class InstalledAtomicOffer extends InstalledOffer {
      *  product : Installed Product
      */
     @DocumentProperty("product")
-    private Property<InstalledProductService> product = new StandardProperty<InstalledProductService>(InstalledAtomicOffer.this);
+    private Property<InstalledProductService> product = new StandardProperty<>(InstalledAtomicOffer.this);
 
     // product accessors
     public InstalledProductService getProduct() { return product.get(); }

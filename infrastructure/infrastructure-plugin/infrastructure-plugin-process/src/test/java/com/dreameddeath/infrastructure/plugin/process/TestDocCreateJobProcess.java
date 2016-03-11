@@ -38,10 +38,10 @@ public class TestDocCreateJobProcess extends StandardJobProcessingService<TestDo
     }
 
     @TaskProcessingForClass(TestDocCreateJob.TestDocCreateTask.class)
-    public static class TestDocCreateTaskProcess extends DocumentCreateTaskProcessingService<TestDocCreateJob,TestDoc,TestDocCreateJob.TestDocCreateTask> {
+    public static class TestDocCreateTaskProcess extends DocumentCreateTaskProcessingService<TestDocCreateJob,TestDocProcess,TestDocCreateJob.TestDocCreateTask> {
         @Override
-        protected TestDoc buildDocument(TaskContext<TestDocCreateJob, TestDocCreateJob.TestDocCreateTask> ctxt) throws DaoException, StorageException {
-            TestDoc doc = new TestDoc();
+        protected TestDocProcess buildDocument(TaskContext<TestDocCreateJob, TestDocCreateJob.TestDocCreateTask> ctxt) throws DaoException, StorageException {
+            TestDocProcess doc = new TestDocProcess();
             doc.name = ctxt.getParentJob().name;
             return doc;
         }

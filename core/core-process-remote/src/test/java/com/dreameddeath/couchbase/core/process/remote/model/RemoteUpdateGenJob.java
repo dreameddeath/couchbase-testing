@@ -18,7 +18,7 @@ package com.dreameddeath.couchbase.core.process.remote.model;
 
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractJob;
 import com.dreameddeath.couchbase.core.process.remote.model.published.TestDocJobUpdateGenRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.published.TestDocJobUpdateGenResponse;
 

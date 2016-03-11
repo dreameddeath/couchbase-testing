@@ -17,19 +17,29 @@
 package com.dreameddeath.couchbase.core.process.remote;
 
 import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.model.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractJob;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
+import com.dreameddeath.core.process.service.IJobExecutorService;
+import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.user.IUser;
+
+import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 10/01/2016.
  */
 public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecutorClient<T>{
+    private final UUID instanceUUID=UUID.randomUUID();
+    private final Class<T> jobClass;
+    private final IJobProcessingService<T> dummyProcessing;
+
     private final RemoteJobExecutorService<T> remoteJobExecutorService;
 
-    public RemoteJobExecutorClient(RemoteJobExecutorService<T> executorService) {
+    public RemoteJobExecutorClient(Class<T> jobClass, RemoteJobExecutorService<T> executorService) {
+        this.jobClass = jobClass;
         this.remoteJobExecutorService = executorService;
+        this.dummyProcessing = new DummyRemoteJobProcessingService<>();
     }
 
     @Override
@@ -64,5 +74,48 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
     @Override
     public JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException {
         return null;//TODO
+    }
+
+    @Override
+    public UUID getInstanceUUID() {
+        return instanceUUID;
+    }
+
+    @Override
+    public Class<T> getJobClass() {
+        return jobClass;
+    }
+
+    @Override
+    public IJobExecutorService<T> getExecutorService() {
+        return remoteJobExecutorService;
+    }
+
+    @Override
+    public IJobProcessingService<T> getProcessingService() {
+        return dummyProcessing;
+    }
+
+
+    public static class DummyRemoteJobProcessingService<T extends AbstractJob> implements IJobProcessingService<T>{
+        @Override
+        public boolean init(JobContext<T> context) throws JobExecutionException {
+            return false;
+        }
+
+        @Override
+        public boolean preprocess(JobContext<T> context) throws JobExecutionException {
+            return false;
+        }
+
+        @Override
+        public boolean postprocess(JobContext<T> context) throws JobExecutionException {
+            return false;
+        }
+
+        @Override
+        public boolean cleanup(JobContext<T> context) throws JobExecutionException {
+            return false;
+        }
     }
 }
