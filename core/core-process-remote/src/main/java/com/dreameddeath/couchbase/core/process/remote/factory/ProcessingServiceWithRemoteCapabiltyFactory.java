@@ -16,6 +16,8 @@
 
 package com.dreameddeath.couchbase.core.process.remote.factory;
 
+import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.base.AbstractTask;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
@@ -35,14 +37,14 @@ public class ProcessingServiceWithRemoteCapabiltyFactory extends ProcessingServi
     }
 
     @Override
-    protected IJobProcessingService createJobProcessingService(Class<? extends IJobProcessingService> serviceClass) {
+    protected <T extends IJobProcessingService<? extends AbstractJob>> T  createJobProcessingService(Class<T> serviceClass) {
         return super.createJobProcessingService(serviceClass);
     }
 
 
     @Override
-    protected ITaskProcessingService createTaskProcessingService(Class<? extends ITaskProcessingService> serviceClass) {
-        ITaskProcessingService service = super.createTaskProcessingService(serviceClass);
+    protected <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T createTaskProcessingService(Class<T> serviceClass){
+        T service = super.createTaskProcessingService(serviceClass);
         if(service instanceof RemoteJobTaskProcessing){
             ((RemoteJobTaskProcessing) service).setRemoteJobClientFactory(clientFactory);
         }

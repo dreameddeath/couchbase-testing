@@ -25,14 +25,14 @@
     <bean id="jobDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
           factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
         <constructor-arg value="core" />
-        <constructor-arg value="AbstractJob" />
+        <constructor-arg value="abstractjob" />
     </bean>
 
 
     <bean id="taskDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
           factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
         <constructor-arg value="core" />
-        <constructor-arg value="AbstractTask" />
+        <constructor-arg value="abstracttask" />
     </bean>
 
     <bean id="executorServiceFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
