@@ -25,7 +25,7 @@
     <bean id="testDocDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
           factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
         <constructor-arg value="test" />
-        <constructor-arg value="TestDocProcess" />
+        <constructor-arg value="testdocprocess" />
     </bean>
 
     <bean id="jobCreateProcess" class="com.dreameddeath.core.process.service.IJobProcessingService"
