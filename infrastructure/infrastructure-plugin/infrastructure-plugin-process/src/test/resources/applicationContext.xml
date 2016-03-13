@@ -17,10 +17,21 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+                http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+                ">
 
+    <import resource="classpath:META-INF/spring/webserver.rest.applicationContext.xml" />
     <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
     <import resource="classpath:META-INF/spring/webserver.processes.applicationContext.xml" />
+
+    <bean id="serviceRegistrar"
+          class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
+          factory-bean="serviceDiscovererManager"
+          factory-method="getServiceRegistrar">
+        <constructor-arg type="java.lang.String" value="test" />
+    </bean>
 
     <bean id="testDocDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
           factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
@@ -32,5 +43,30 @@
           factory-bean="processingServiceFactory" factory-method="addJobProcessingService">
         <constructor-arg value="com.dreameddeath.infrastructure.plugin.process.TestDocCreateJobProcess" />
     </bean>
+
+
+    <bean id="remoteKobCreateProcess" class="com.dreameddeath.core.process.service.IJobProcessingService"
+          factory-bean="processingServiceFactory" factory-method="addJobProcessingService">
+        <constructor-arg value="com.dreameddeath.infrastructure.plugin.process.RemoteTestDocCreateJobProcess" />
+    </bean>
+
+
+    <jaxrs:server id="tests" transportId="http://cxf.apache.org/transports/http" address="/tests" >
+        <jaxrs:serviceBeans>
+            <bean id="tests" class="com.dreameddeath.infrastructure.plugin.process.RemoteTestDocCreateJobService" >
+                <property name="address" value="/tests"/>
+                <property name="endPoint" ref="endPoint"/>
+                <property name="serviceRegistrar" ref="serviceRegistrar" />
+                <property name="jobExecutorClientFactory" ref="executorClientFactory" />
+                <property name="sessionFactory" ref="couchbaseSessionFactory" />
+
+            </bean>
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="service" />
+            </bean>
+        </jaxrs:providers>
+    </jaxrs:server>
 
 </beans>

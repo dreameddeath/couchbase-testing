@@ -24,7 +24,7 @@ import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceIn
 /**
  * Created by Christophe Jeunesse on 26/02/2016.
  */
-public class RemoteClientFactory implements IRemoteClientFactory {
+public class BaseRemoteClientFactory implements IRemoteClientFactory {
     private ServiceClientFactory clientFactory;
 
     public void setClientFactory(ServiceClientFactory clientFactory){

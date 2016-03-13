@@ -19,6 +19,7 @@ package com.dreameddeath.infrastructure.plugin.process;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
+import com.dreameddeath.couchbase.core.process.remote.factory.ProcessingServiceWithRemoteCapabiltyFactory;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
@@ -34,16 +35,20 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
     public static final String GLOBAL_PROCESSING_FACTORY_PARAM_NAME = "processingServiceFactory";
         public static final String GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME = "executorClientFactory";
 
-    private ExecutorClientFactory executorClientFactory;
-    private ExecutorServiceFactory executorServiceFactory;
-    private ProcessingServiceFactory processingServiceFactory;
+    private final ExecutorClientFactory executorClientFactory;
+    private final ExecutorServiceFactory executorServiceFactory;
+    private final ProcessingServiceFactory processingServiceFactory;
 
     public ProcessesWebServerPlugin(AbstractWebServer server,Builder builder) {
         super(server);
         CouchbaseWebServerPlugin couchbasePlugin = server.getPlugin(CouchbaseWebServerPlugin.class);
         Preconditions.checkNotNull(couchbasePlugin,"The couchbase Plugin must be define to create the Process Plugin");
         executorServiceFactory = new ExecutorServiceFactory();
-        processingServiceFactory = new ProcessingServiceFactory();
+        ProcessingServiceWithRemoteCapabiltyFactory processingFactory = new ProcessingServiceWithRemoteCapabiltyFactory();
+        if(this.getParentWebServer().getServiceDiscoveryManager()!=null){
+            processingFactory.setRemoteClientFactory(new RemoteServiceClientFactoryWithManager(getParentWebServer().getServiceDiscoveryManager()));
+        }
+        processingServiceFactory = processingFactory;
         executorClientFactory = new ExecutorClientFactory(
                 couchbasePlugin.getSessionFactory(),executorServiceFactory,processingServiceFactory,server.getMetricRegistry());
     }

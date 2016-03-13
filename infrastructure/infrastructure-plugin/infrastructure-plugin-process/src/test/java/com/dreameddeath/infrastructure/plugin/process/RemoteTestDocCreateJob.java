@@ -19,21 +19,21 @@ package com.dreameddeath.infrastructure.plugin.process;
 import com.dreameddeath.core.model.annotation.DocumentDef;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.tasks.DocumentCreateTask;
-import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
-import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
-import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
+import com.dreameddeath.couchbase.core.process.remote.model.RemoteJobProcessTask;
+import com.dreameddeath.infrastructure.plugin.process.published.TestDocCreateJobRequest;
+import com.dreameddeath.infrastructure.plugin.process.published.TestDocCreateJobResponse;
 
 /**
- * Created by Christophe Jeunesse on 03/01/2016.
+ * Created by Christophe Jeunesse on 13/03/2016.
  */
-@DocumentDef(domain = "test") @RestExpose(rootPath = "testdoc/create",domain = "test",name = "testdoccreatejob")
-public class TestDocCreateJob extends AbstractJob {
-    @DocumentProperty("name")  @Request
-    public String name;
-    @DocumentProperty("key") @Result
-    public String key;
+@DocumentDef(domain = "test")
+public class RemoteTestDocCreateJob extends AbstractJob {
+    @DocumentProperty
+    public String remoteName;
 
     @DocumentDef(domain = "test",version="1.0.0")
-    public static class TestDocCreateTask extends DocumentCreateTask<TestDocProcess> { }
+    public static class RemoteTestDocCreateTask extends RemoteJobProcessTask<TestDocCreateJobRequest,TestDocCreateJobResponse> {
+        @DocumentProperty("key")
+        public String key;
+    }
 }

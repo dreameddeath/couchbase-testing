@@ -21,6 +21,7 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
@@ -44,6 +45,12 @@ public class TestDocCreateJobProcess extends StandardJobProcessingService<TestDo
             TestDocProcess doc = new TestDocProcess();
             doc.name = ctxt.getParentJob().name;
             return doc;
+        }
+
+        @Override
+        public boolean updatejob(TaskContext<TestDocCreateJob, TestDocCreateJob.TestDocCreateTask> context) throws TaskExecutionException {
+            context.getParentJob().key = context.getTask().getDocKey();
+            return super.updatejob(context);
         }
     }
 }

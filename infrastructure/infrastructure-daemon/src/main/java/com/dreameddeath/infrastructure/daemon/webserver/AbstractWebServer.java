@@ -23,6 +23,8 @@ import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryLifeCycleManager;
+import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
 import com.dreameddeath.infrastructure.daemon.metrics.InstrumentedConnectionFactory;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
@@ -58,7 +60,10 @@ public abstract class AbstractWebServer {
     private final Server webServer;
     private final ServerConnector serverConnector;
     private final PropertySources propertySources;
+    private final ServiceDiscoveryManager serviceDiscoveryManager;
+
     private final List<AbstractWebServerPlugin> plugins = new ArrayList<>();
+
 
     private String getAddress(String address,String networkInterfaceName){
         if(address!=null){
@@ -114,6 +119,13 @@ public abstract class AbstractWebServer {
         }
         this.propertySources = propertySources;
 
+        ServiceDiscoveryManager manager = null;
+        if(builder.withServiceDiscoveryManager){
+            manager = new ServiceDiscoveryManager(this);
+            getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(manager));
+        }
+        serviceDiscoveryManager = manager;
+
         for(IWebServerPluginBuilder pluginBuilder : builder.pluginBuilders){
             AbstractWebServerPlugin plugin = pluginBuilder.build(this);
             this.plugins.add(plugin);
@@ -154,6 +166,11 @@ public abstract class AbstractWebServer {
     public ServerConnector getServerConnector() {
         return serverConnector;
     }
+
+    public ServiceDiscoveryManager getServiceDiscoveryManager() {
+        return serviceDiscoveryManager;
+    }
+
 
     public void start() throws Exception{
         getMetricRegistry().removeMatching(MetricFilter.ALL);
@@ -223,6 +240,7 @@ public abstract class AbstractWebServer {
         private String address=null;
         private String interfaceName=null;
         private boolean isRoot=false;
+        private boolean withServiceDiscoveryManager=false;
         private int port=0;
         private List<IWebServerPluginBuilder> pluginBuilders = new ArrayList<>();
 
@@ -263,6 +281,11 @@ public abstract class AbstractWebServer {
 
         public T withPlugin(IWebServerPluginBuilder pluginBuilder){
             this.pluginBuilders.add(pluginBuilder);
+            return (T)this;
+        }
+
+        public T withServiceDiscoveryManager(boolean withServiceDiscoveryManager){
+            this.withServiceDiscoveryManager = withServiceDiscoveryManager;
             return (T)this;
         }
     }

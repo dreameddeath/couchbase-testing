@@ -73,6 +73,7 @@ public class ProcessesWebServerPluginTest {
                 .build();
 
         daemon.addWebServer(RestWebServer.builder().withName("tests")
+                //.withServiceDiscoveryManager(true)
                 .withPlugin(CouchbaseWebServerPlugin.builder())
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withApplicationContextConfig("applicationContext.xml"));
@@ -84,13 +85,27 @@ public class ProcessesWebServerPluginTest {
                 try {
                     ProcessesWebServerPlugin plugin=daemon.getAdditionalWebServers().get(0).getPlugin(ProcessesWebServerPlugin.class);
                     CouchbaseWebServerPlugin cbPlugin=daemon.getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
-                    IJobExecutorClient<TestDocCreateJob> executorClient=plugin.getExecutorClientFactory().buildJobClient(TestDocCreateJob.class);
-                    TestDocCreateJob createJob=new TestDocCreateJob();
-                    createJob.name = "test";
-                    JobContext<TestDocCreateJob> createJobJobContext =executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
-                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                    TestDocProcess processDoc = session.get(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(),TestDocProcess.class);
-                    assertEquals(processDoc.name,createJob.name);
+                    {
+                        IJobExecutorClient<TestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(TestDocCreateJob.class);
+                        TestDocCreateJob createJob = new TestDocCreateJob();
+                        createJob.name = "test";
+                        JobContext<TestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
+                        ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+                        TestDocProcess processDoc = session.get(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(), TestDocProcess.class);
+                        assertEquals(processDoc.name, createJob.name);
+                    }
+
+                    {
+                        IJobExecutorClient<RemoteTestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(RemoteTestDocCreateJob.class);
+                        RemoteTestDocCreateJob createJob = new RemoteTestDocCreateJob();
+                        createJob.remoteName = "test2";
+                        JobContext<RemoteTestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
+                        ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+                        TestDocProcess processDoc = session.get(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).key, TestDocProcess.class);
+                        assertEquals(processDoc.name, createJob.remoteName);
+                    }
+
+
                 } catch (Throwable e) {
                     nbErrors.incrementAndGet();
                     LOG.error("!!!!! ERROR !!!!!Error during status read", e);

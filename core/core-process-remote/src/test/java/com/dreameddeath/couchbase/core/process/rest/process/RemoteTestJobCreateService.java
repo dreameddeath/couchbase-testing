@@ -48,7 +48,7 @@ public class RemoteTestJobCreateService extends StandardJobProcessingService<Rem
         }
     }
 
-    @TaskProcessingForClass(RemoteCreateJob.RemoteTestJobCreateTask.class) @RemoteServiceInfo(name = "testdocjobcreate", version = "1.0.0")
+    @TaskProcessingForClass(RemoteCreateJob.RemoteTestJobCreateTask.class) @RemoteServiceInfo(domain = "test",name = "testdocjobcreate", version = "1.0.0")
     public static class TestJobCreateTaskService extends RemoteJobTaskProcessing<TestDocJobCreateRequest,TestDocJobCreateResult,RemoteCreateJob,RemoteCreateJob.RemoteTestJobCreateTask> {
         @Override
         protected TestDocJobCreateRequest getRequest(TaskContext<RemoteCreateJob, RemoteCreateJob.RemoteTestJobCreateTask> ctxt) {

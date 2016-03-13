@@ -17,36 +17,37 @@
 package com.dreameddeath.infrastructure.daemon.webserver;
 
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
-import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryLifeCycleManager;
-import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
 import com.dreameddeath.infrastructure.daemon.servlet.RestServicesServletContextHandler;
 
 /**
  * Created by Christophe Jeunesse on 18/08/2015.
  */
 public class RestWebServer extends AbstractWebServer {
-    private ServiceDiscoveryManager serviceDiscoveryManager;
 
     public RestWebServer(Builder builder){
         super(builder);
-        serviceDiscoveryManager = new ServiceDiscoveryManager(this);
-        getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(serviceDiscoveryManager));
 
         String path = builder.apiPath;
         if(path ==null){
             path = DaemonConfigProperties.DAEMON_WEBSERVER_API_PATH_PREFIX.get();
         }
-        setHandler(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,serviceDiscoveryManager));
+        setHandler(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,getServiceDiscoveryManager()));
     }
 
 
-    public ServiceDiscoveryManager getServiceDiscoveryManager() {
-        return serviceDiscoveryManager;
-    }
 
     public static class Builder extends AbstractWebServer.Builder<Builder>{
         private String apiPath=null;
         private String applicationContextConfig;
+
+        public Builder(){
+            super.withServiceDiscoveryManager(true);
+        }
+
+        @Override
+        public Builder withServiceDiscoveryManager(boolean withServiceDiscoveryManager) {
+            throw new RuntimeException("Shouldn't override the parameter");
+        }
 
         public Builder withApplicationContextConfig(String configName){
             applicationContextConfig = configName;

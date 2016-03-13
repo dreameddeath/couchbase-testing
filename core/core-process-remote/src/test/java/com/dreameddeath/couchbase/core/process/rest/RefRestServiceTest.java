@@ -28,8 +28,8 @@ import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.couchbase.core.process.remote.annotation.processor.ProcessRestServiceProcessor;
 import com.dreameddeath.couchbase.core.process.remote.dao.TestDocDao;
+import com.dreameddeath.couchbase.core.process.remote.factory.BaseRemoteClientFactory;
 import com.dreameddeath.couchbase.core.process.remote.factory.ProcessingServiceWithRemoteCapabiltyFactory;
-import com.dreameddeath.couchbase.core.process.remote.factory.RemoteClientFactory;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteCreateJob;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateGenJob;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateJob;
@@ -74,7 +74,7 @@ public class RefRestServiceTest extends Assert {
         compileTestServiceGen();
         curatorUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", curatorUtils.getClient("TestServicesTest"));
-        RemoteClientFactory remoteClientFactory = new RemoteClientFactory();
+        BaseRemoteClientFactory remoteClientFactory = new BaseRemoteClientFactory();
         remoteClientFactory.setClientFactory(server.getClientFactory());
 
         cbSimulator = new CouchbaseBucketSimulator("test");

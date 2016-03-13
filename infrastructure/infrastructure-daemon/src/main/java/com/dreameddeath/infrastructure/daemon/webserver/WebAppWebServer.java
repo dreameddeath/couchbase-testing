@@ -17,8 +17,6 @@
 package com.dreameddeath.infrastructure.daemon.webserver;
 
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
-import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryLifeCycleManager;
-import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
 import com.dreameddeath.infrastructure.daemon.servlet.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -29,9 +27,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
  */
-public class WebAppWebServer extends AbstractWebServer {
-    private ServiceDiscoveryManager serviceDiscoveryManager;
-
+public class WebAppWebServer extends AbstractWebServer{
     public WebAppWebServer(Builder builder){
         super(builder);
         List<ServletContextHandler> handlersList = new ArrayList<>();
@@ -46,13 +42,11 @@ public class WebAppWebServer extends AbstractWebServer {
 
         if(builder.withApis){
             String path = builder.apiPath;
-            serviceDiscoveryManager = new ServiceDiscoveryManager(this);
-            getWebServer().addLifeCycleListener(new ServiceDiscoveryLifeCycleManager(serviceDiscoveryManager));
 
             if(path ==null){
                 path = DaemonConfigProperties.DAEMON_WEBSERVER_API_PATH_PREFIX.get();
             }
-            handlersList.add(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,serviceDiscoveryManager));
+            handlersList.add(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,getServiceDiscoveryManager()));
         }
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
@@ -118,6 +112,7 @@ public class WebAppWebServer extends AbstractWebServer {
 
         public Builder withApiPath(String apiPath) {
             withApis = (apiPath!=null);
+            super.withServiceDiscoveryManager(withApis);
             this.apiPath = apiPath;
             return this;
         }

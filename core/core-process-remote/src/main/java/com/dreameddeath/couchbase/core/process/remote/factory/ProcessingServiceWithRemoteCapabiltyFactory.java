@@ -22,6 +22,7 @@ import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
+import com.google.common.base.Preconditions;
 
 import javax.inject.Inject;
 
@@ -46,6 +47,7 @@ public class ProcessingServiceWithRemoteCapabiltyFactory extends ProcessingServi
     protected <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T createTaskProcessingService(Class<T> serviceClass){
         T service = super.createTaskProcessingService(serviceClass);
         if(service instanceof RemoteJobTaskProcessing){
+            Preconditions.checkNotNull(clientFactory,"The client factory must be defined prior to the initialization of the Processing service {}",serviceClass.getName());
             ((RemoteJobTaskProcessing) service).setRemoteJobClientFactory(clientFactory);
         }
         return service;

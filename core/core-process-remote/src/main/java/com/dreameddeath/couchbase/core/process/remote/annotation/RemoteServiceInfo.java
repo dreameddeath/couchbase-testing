@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RemoteServiceInfo {
+    String domain();
     String name();
     String version();
 }

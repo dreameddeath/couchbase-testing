@@ -54,7 +54,7 @@ public class RemoteTestJobUpdateGenService extends StandardJobProcessingService<
         }
     }
 
-    @TaskProcessingForClass(RemoteUpdateGenJob.RemoteTestJobUpdateGenTask.class) @RemoteServiceInfo(name = "testdocjobupdategen", version = "1.0.0")
+    @TaskProcessingForClass(RemoteUpdateGenJob.RemoteTestJobUpdateGenTask.class) @RemoteServiceInfo(domain = "test",name = "testdocjobupdategen", version = "1.0.0")
     public static class TestJobUpdateTaskService extends RemoteJobTaskProcessing<TestDocJobUpdateGenRequest,TestDocJobUpdateGenResponse,RemoteUpdateGenJob,RemoteUpdateGenJob.RemoteTestJobUpdateGenTask> {
         @Override
         protected TestDocJobUpdateGenRequest getRequest(TaskContext<RemoteUpdateGenJob, RemoteUpdateGenJob.RemoteTestJobUpdateGenTask> ctxt) {
