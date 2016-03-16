@@ -17,6 +17,9 @@
 package com.dreameddeath.core.process.model.discovery;
 
 import com.dreameddeath.core.curator.model.IRegisterable;
+import com.dreameddeath.core.model.entity.model.EntityDef;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.ITaskExecutorClient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,14 +35,16 @@ public class TaskExecutorClientInfo implements IRegisterable {
     private UUID uuid;
     @JsonProperty("className")
     private String className;
-    @JsonProperty("taskClass")
-    private String taskClassName;
-    @JsonProperty("taskExecutorService")
-    private String taskExecutorClassName;
+    @JsonProperty("taskEntity")
+    private EntityDef taskEntity;
     @JsonProperty("taskProcessingService")
     private String taskProcessingClassName;
+    @JsonProperty("taskProcessingVersion")
+    private String taskProcessingVersion;
     @JsonProperty("remoteTaskServiceClient")
     private String remoteTaskServiceClientUUID;
+    @JsonProperty("taskExecutorService")
+    private String taskExecutorClassName;
     @JsonProperty("remoteTaskServiceClientName")
     private String remoteTaskServiceClientName;
     @JsonProperty("daemonUid")
@@ -53,9 +58,15 @@ public class TaskExecutorClientInfo implements IRegisterable {
     public TaskExecutorClientInfo(ITaskExecutorClient executorClient){
         this.uuid = executorClient.getInstanceUUID();
         this.className = executorClient.getClass().getName();
-        this.taskClassName = executorClient.getTaskClass().getName();
+        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(executorClient.getTaskClass());
+        this.taskEntity = EntityDef.build(structureReflection);
         this.taskExecutorClassName = executorClient.getExecutorService().getClass().getName();
         this.taskProcessingClassName = executorClient.getProcessingService().getClass().getName();
+        TaskProcessingForClass annot = executorClient.getProcessingService().getClass().getAnnotation(TaskProcessingForClass.class);
+        if(annot!=null){
+            this.taskProcessingVersion= annot.version();
+        }
+
         if(executorClient.getExecutorService() instanceof IHasServiceClient){
             this.remoteTaskServiceClientUUID = ((IHasServiceClient)executorClient.getExecutorService()).getClientUUID().toString();
             this.remoteTaskServiceClientName = ((IHasServiceClient)executorClient.getExecutorService()).getServiceName();
@@ -82,12 +93,12 @@ public class TaskExecutorClientInfo implements IRegisterable {
         this.className = className;
     }
 
-    public String getTaskClassName() {
-        return taskClassName;
+    public EntityDef getTaskEntity() {
+        return taskEntity;
     }
 
-    public void setTaskClassName(String taskClassName) {
-        this.taskClassName = taskClassName;
+    public void setTaskEntity(EntityDef taskEntity) {
+        this.taskEntity = taskEntity;
     }
 
     public String getTaskExecutorClassName() {
@@ -104,6 +115,14 @@ public class TaskExecutorClientInfo implements IRegisterable {
 
     public void setTaskProcessingClassName(String taskProcessingClassName) {
         this.taskProcessingClassName = taskProcessingClassName;
+    }
+
+    public String getTaskProcessingVersion() {
+        return taskProcessingVersion;
+    }
+
+    public void setTaskProcessingVersion(String taskProcessingVersion) {
+        this.taskProcessingVersion = taskProcessingVersion;
     }
 
     public String getRemoteTaskServiceClientUUID() {

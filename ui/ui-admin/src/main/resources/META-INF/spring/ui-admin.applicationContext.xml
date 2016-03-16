@@ -79,6 +79,14 @@
         <constructor-arg ref="curatorClient"/>
     </bean>
 
+    <bean id="processesJobClientDiscovery" class="com.dreameddeath.core.process.discovery.JobProcessClientDiscovery">
+        <constructor-arg ref="curatorClient"/>
+    </bean>
+
+    <bean id="processesTaskClientDiscovery" class="com.dreameddeath.core.process.discovery.TaskProcessClientDiscovery">
+        <constructor-arg ref="curatorClient"/>
+    </bean>
+
 
     <jaxrs:server id="apps-admin" transportId="http://cxf.apache.org/transports/http" address="/apps-admin" >
         <jaxrs:serviceBeans>
@@ -91,6 +99,8 @@
             <bean id="config-shared" class="com.dreameddeath.core.service.config.service.RestSharedConfigManagementService">
             </bean>
             <bean id="services-domain" class="com.dreameddeath.core.service.discovery.RestServiceDomainDiscovery">
+            </bean>
+            <bean id="processes-domain" class="com.dreameddeath.core.process.discovery.ProcessDiscoveryRestService">
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>

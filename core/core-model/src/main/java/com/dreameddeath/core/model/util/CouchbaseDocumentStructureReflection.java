@@ -78,10 +78,12 @@ public class CouchbaseDocumentStructureReflection {
             return null;
         }
     }
-    public static CouchbaseDocumentStructureReflection getReflectionFromClassInfo(Class<? extends CouchbaseDocumentElement> docEltclass) {
+
+    public static CouchbaseDocumentStructureReflection getReflectionFromClass(Class<? extends CouchbaseDocumentElement> docEltclass) {
         ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(docEltclass);
         return getReflectionFromClassInfo(classInfo);
     }
+
 
     public static CouchbaseDocumentStructureReflection getReflectionFromClassInfo(ClassInfo classInfo){
         if(classInfo.getTypeElement()!=null){

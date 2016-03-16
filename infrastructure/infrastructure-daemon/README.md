@@ -18,7 +18,7 @@ Zookeeper daemon registering :
 - ~~provide services to navigate within those information~~
 - ~~provide a standard proxy to call load balanced services (see AsyncProxyServlet from jetty)~~
 - allow separation of public (proxy,webapps) and private domain (admin, internal services)
-- allow dynamic setup of couchbase core components(cluster,bucket,dao) using spring. Allow to list all dao info (entities, versions, read only state, ...)
+- ~~allow dynamic setup of couchbase core components(cluster,bucket,dao) using spring. Allow to list all dao info (entities, versions, read only state, ...)~~
 
 Architecture :
-- separate the admin part and the business part
+- ~~separate the admin part and the business part~~

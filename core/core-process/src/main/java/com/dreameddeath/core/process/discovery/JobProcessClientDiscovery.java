@@ -17,9 +17,9 @@
 package com.dreameddeath.core.process.discovery;
 
 import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
-import com.dreameddeath.core.dao.registrar.DaoRegistrar;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.process.model.discovery.JobExecutorClientInfo;
+import com.dreameddeath.core.process.registrar.JobExecutorClientRegistrar;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 
@@ -32,7 +32,7 @@ public class JobProcessClientDiscovery extends CuratorDiscoveryImpl<JobExecutorC
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper();
 
     public JobProcessClientDiscovery(CuratorFramework curatorFramework) {
-        super(curatorFramework, DaoRegistrar.getRootPath());
+        super(curatorFramework, JobExecutorClientRegistrar.getRootPath());
     }
 
     @Override

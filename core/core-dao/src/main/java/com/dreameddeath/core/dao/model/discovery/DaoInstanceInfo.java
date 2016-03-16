@@ -47,6 +47,11 @@ public class DaoInstanceInfo implements IRegisterable {
     private String bucketName;
     @JsonProperty("readOnly")
     private boolean readOnly;
+    @JsonProperty("daemonUid")
+    private String daemonUid;
+    @JsonProperty("webServerUid")
+    private String webServerUid;
+
     /*@JsonProperty("views")
     private List<ViewInfo> viewInfoList;
     @JsonProperty("counters")
@@ -61,7 +66,7 @@ public class DaoInstanceInfo implements IRegisterable {
         this.bucketName=dao.getClient().getBucketName();
         this.readOnly=dao.isReadOnly();
 
-        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(dao.getBaseClass());
+        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(dao.getBaseClass());
 
         this.mainEntity = EntityDef.build(structureReflection);
         this.childEntities.addAll(new EntityDefinitionManager().getEntities().stream().filter(entity -> entity.getParentEntities().contains(this.mainEntity.getModelId())).collect(Collectors.toList()));
@@ -114,6 +119,22 @@ public class DaoInstanceInfo implements IRegisterable {
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+    }
+
+    public String getDaemonUid() {
+        return daemonUid;
+    }
+
+    public void setDaemonUid(String daemonUid) {
+        this.daemonUid = daemonUid;
+    }
+
+    public String getWebServerUid() {
+        return webServerUid;
+    }
+
+    public void setWebServerUid(String webServerUid) {
+        this.webServerUid = webServerUid;
     }
 
     @Override @JsonIgnore

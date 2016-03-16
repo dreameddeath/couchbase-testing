@@ -59,7 +59,19 @@
                 <property name="serviceRegistrar" ref="serviceRegistrar" />
                 <property name="jobExecutorClientFactory" ref="executorClientFactory" />
                 <property name="sessionFactory" ref="couchbaseSessionFactory" />
+            </bean>
 
+            <bean id="processorsDiscovery" class="com.dreameddeath.core.process.discovery.ProcessDiscoveryRestService" >
+                <property name="jobDiscovery">
+                    <bean class="com.dreameddeath.core.process.discovery.JobProcessClientDiscovery">
+                        <constructor-arg ref="curatorClient" />
+                    </bean>
+                </property>
+                <property name="taskDiscovery">
+                    <bean class="com.dreameddeath.core.process.discovery.TaskProcessClientDiscovery">
+                        <constructor-arg ref="curatorClient" />
+                    </bean>
+                </property>
             </bean>
         </jaxrs:serviceBeans>
         <jaxrs:providers>

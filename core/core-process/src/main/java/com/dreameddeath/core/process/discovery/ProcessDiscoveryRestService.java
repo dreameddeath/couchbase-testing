@@ -49,28 +49,28 @@ public class ProcessDiscoveryRestService {
 
 
     @GET
-    @Path("job")
+    @Path("jobs")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<JobExecutorClientInfo> getAllJobClients(){
         return jobDiscovery.getList();
     }
 
     @GET
-    @Path("job/{uid}")
+    @Path("jobs/{uid}")
     @Produces({ MediaType.APPLICATION_JSON })
     public JobExecutorClientInfo getJobClient(@PathParam("uid") String uid){
         return jobDiscovery.get(uid);
     }
 
     @GET
-    @Path("task")
+    @Path("tasks")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<TaskExecutorClientInfo> getAllTaskClients(){
         return taskDiscovery.getList();
     }
 
     @GET
-    @Path("task/{uid}")
+    @Path("tasks/{uid}")
     @Produces({ MediaType.APPLICATION_JSON })
     public TaskExecutorClientInfo getTaskClient(@PathParam("uid") String uid){
         return taskDiscovery.get(uid);

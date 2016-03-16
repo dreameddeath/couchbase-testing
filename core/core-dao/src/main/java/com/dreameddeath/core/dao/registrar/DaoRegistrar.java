@@ -37,11 +37,26 @@ public class DaoRegistrar extends CuratorRegistrarImpl<DaoInstanceInfo> {
         }
     }
 
-    private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
+    private final ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
+    private final String daemonUid;
+    private final String webServerUid;
 
     public DaoRegistrar(CuratorFramework curatorFramework) {
-        super(curatorFramework, getRootPath());
+        this(curatorFramework,null,null);
     }
+
+    public DaoRegistrar(CuratorFramework curatorFramework,String daemonUid,String webServerUid) {
+        super(curatorFramework, getRootPath());
+        this.daemonUid=daemonUid;
+        this.webServerUid=webServerUid;
+    }
+
+    public void enrich(DaoInstanceInfo obj){
+        obj.setDaemonUid(daemonUid);
+        obj.setWebServerUid(webServerUid);
+    }
+
+
 
     @Override
     protected byte[] serialize(DaoInstanceInfo obj) throws Exception {

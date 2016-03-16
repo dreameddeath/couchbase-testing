@@ -41,6 +41,8 @@ public class CouchbaseWebServerPlugin extends AbstractWebServerPlugin {
         parentDaemonPlugin=getParentDaemon().getPlugin(CouchbaseDaemonPlugin.class);
         Preconditions.checkNotNull(parentDaemonPlugin,"The webserver {} requires that a couchbase plugin must be defined in the parent daemon",parentServer.getName());
         documentDaoFactory=CouchbaseDocumentDaoFactory.builder()
+                .withDaemonUid(getParentDaemon().getUuid().toString())
+                .withWebServerUid(getParentWebServer().getUuid().toString())
                 .withBucketFactory(parentDaemonPlugin.getBucketFactory())
                 .withCuratorFramework(getParentDaemon().getCuratorClient())
                 .build();

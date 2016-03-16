@@ -44,4 +44,8 @@ public class ServerConnectorUtils {
     public static int getConnectorPort(ServerConnector connector) {
         return connector.getLocalPort();
     }
+
+    public static String getUrl(ServerConnector connector){
+        return getConnectorHost(connector)+":"+getConnectorPort(connector);
+    }
 }

@@ -19,6 +19,9 @@ package com.dreameddeath.infrastructure.plugin.process;
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.json.JsonProviderFactory;
+import com.dreameddeath.core.process.model.discovery.JobExecutorClientInfo;
+import com.dreameddeath.core.process.model.discovery.TaskExecutorClientInfo;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.user.AnonymousUser;
@@ -26,6 +29,7 @@ import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
+import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
@@ -37,6 +41,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
@@ -104,7 +112,28 @@ public class ProcessesWebServerPluginTest {
                         TestDocProcess processDoc = session.get(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).key, TestDocProcess.class);
                         assertEquals(processDoc.name, createJob.remoteName);
                     }
+                    {
+                        List<JobExecutorClientInfo> jobClients = ClientBuilder.newClient()
+                                .register(JsonProviderFactory.getProvider("service"))
+                                .target("http://"+ ServerConnectorUtils.getUrl(daemon.getAdditionalWebServers().get(0).getServerConnector()))
+                                .path("/apis/tests/processors/jobs")
+                                .request()
+                                .accept(MediaType.APPLICATION_JSON)
+                                .get(new GenericType<List<JobExecutorClientInfo>>(){});
+                        assertEquals(2L, jobClients.size());
+                    }
 
+                    {
+                        List<TaskExecutorClientInfo> taskClients = ClientBuilder.newClient()
+                                .register(JsonProviderFactory.getProvider("service"))
+                                .target("http://" + ServerConnectorUtils.getUrl(daemon.getAdditionalWebServers().get(0).getServerConnector()))
+                                .path("/apis/tests/processors/tasks")
+                                .request()
+                                .accept(MediaType.APPLICATION_JSON)
+                                .get(new GenericType<List<TaskExecutorClientInfo>>() {
+                                });
+                        assertEquals(2L, taskClients.size());
+                    }
 
                 } catch (Throwable e) {
                     nbErrors.incrementAndGet();

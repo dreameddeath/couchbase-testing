@@ -16,6 +16,8 @@
 
 package com.dreameddeath.infrastructure.plugin.process;
 
+import com.dreameddeath.core.process.registrar.JobExecutorClientRegistrar;
+import com.dreameddeath.core.process.registrar.TaskExecutorClientRegistrar;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
@@ -49,8 +51,15 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
             processingFactory.setRemoteClientFactory(new RemoteServiceClientFactoryWithManager(getParentWebServer().getServiceDiscoveryManager()));
         }
         processingServiceFactory = processingFactory;
+        new JobExecutorClientRegistrar(getParentDaemon().getCuratorClient(),getParentDaemon().getUuid().toString(),getParentWebServer().getUuid().toString());
         executorClientFactory = new ExecutorClientFactory(
-                couchbasePlugin.getSessionFactory(),executorServiceFactory,processingServiceFactory,server.getMetricRegistry());
+                couchbasePlugin.getSessionFactory(),
+                executorServiceFactory,
+                processingServiceFactory,
+                server.getMetricRegistry(),
+                new JobExecutorClientRegistrar(getParentDaemon().getCuratorClient(),getParentDaemon().getUuid().toString(),getParentWebServer().getUuid().toString()),
+                new TaskExecutorClientRegistrar(getParentDaemon().getCuratorClient(),getParentDaemon().getUuid().toString(),getParentWebServer().getUuid().toString())
+        );
     }
 
 

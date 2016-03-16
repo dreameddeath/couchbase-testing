@@ -211,12 +211,4 @@ public abstract class AbstractJob<TREQ extends BaseCouchbaseDocumentElement,TRES
     public boolean postprocess()throws JobExecutionException{return false;}
     public boolean cleanup()throws JobExecutionException{return false;}
 
-    /*public final void setProcessingService(JobProcessingService service){
-        _processingService = service;
-    }*/
-
-    /*public final JobProcessingService getProcessingService(){
-        return _processingService ;
-    }*/
-
 }

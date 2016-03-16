@@ -59,7 +59,7 @@ public class CouchbaseDocumentModelConverter extends AbstractModelConverter {
             rawClass = (Class)type;
         }
         if((rawClass!=null) && CouchbaseDocumentStructureReflection.isReflexible(rawClass)){
-            CouchbaseDocumentStructureReflection eltReflexion = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(rawClass);
+            CouchbaseDocumentStructureReflection eltReflexion = CouchbaseDocumentStructureReflection.getReflectionFromClass(rawClass);
             ModelImpl model = new ModelImpl()
                     .name(TypeNameResolver.std.nameForType(_mapper.constructType(type)));
             for(CouchbaseDocumentFieldReflection field:eltReflexion.getFields()){

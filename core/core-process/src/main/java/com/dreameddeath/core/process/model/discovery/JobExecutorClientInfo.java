@@ -17,6 +17,9 @@
 package com.dreameddeath.core.process.model.discovery;
 
 import com.dreameddeath.core.curator.model.IRegisterable;
+import com.dreameddeath.core.model.entity.model.EntityDef;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,12 +35,15 @@ public class JobExecutorClientInfo implements IRegisterable {
     private UUID uuid;
     @JsonProperty("className")
     private String className;
-    @JsonProperty("jobClass")
-    private String jobClassName;
-    @JsonProperty("jobExecutorService")
-    private String jobExecutorClassName;
+    @JsonProperty("jobEntity")
+    private EntityDef jobEntity;
     @JsonProperty("jobProcessingService")
     private String jobProcessingClassName;
+    @JsonProperty("jobProcessingVersion")
+    private String jobProcessingVersion;
+
+    @JsonProperty("jobExecutorService")
+    private String jobExecutorClassName;
     @JsonProperty("remoteJobServiceClientUid")
     private String remoteJobServiceClientUUID;
     @JsonProperty("remoteJobServiceClientName")
@@ -52,9 +58,17 @@ public class JobExecutorClientInfo implements IRegisterable {
     public JobExecutorClientInfo(IJobExecutorClient client){
         this.uuid = client.getInstanceUUID();
         this.className = client.getClass().getName();
-        this.jobClassName = client.getJobClass().getName();
-        this.jobExecutorClassName = client.getExecutorService().getClass().getName();
+        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(client.getJobClass());
+        this.jobEntity = EntityDef.build(structureReflection);
+
         this.jobProcessingClassName = client.getProcessingService().getClass().getName();
+        JobProcessingForClass annot = client.getProcessingService().getClass().getAnnotation(JobProcessingForClass.class);
+        if(annot!=null){
+            this.jobProcessingVersion = annot.version();
+        }
+
+        this.jobExecutorClassName = client.getExecutorService().getClass().getName();
+
         if(client.getExecutorService() instanceof IHasServiceClient){
             this.remoteJobServiceClientUUID = ((IHasServiceClient)client.getExecutorService()).getClientUUID().toString();
             this.remoteJobServiceClientName = ((IHasServiceClient)client.getExecutorService()).getServiceName();
@@ -81,12 +95,12 @@ public class JobExecutorClientInfo implements IRegisterable {
         this.className = className;
     }
 
-    public String getJobClassName() {
-        return jobClassName;
+    public EntityDef getJobEntity() {
+        return jobEntity;
     }
 
-    public void setJobClassName(String jobClassName) {
-        this.jobClassName = jobClassName;
+    public void setJobEntity(EntityDef jobEntity) {
+        this.jobEntity = jobEntity;
     }
 
     public String getJobExecutorClassName() {
@@ -103,6 +117,14 @@ public class JobExecutorClientInfo implements IRegisterable {
 
     public void setJobProcessingClassName(String jobProcessingClassName) {
         this.jobProcessingClassName = jobProcessingClassName;
+    }
+
+    public String getJobProcessingVersion() {
+        return jobProcessingVersion;
+    }
+
+    public void setJobProcessingVersion(String jobProcessingVersion) {
+        this.jobProcessingVersion = jobProcessingVersion;
     }
 
     public String getRemoteJobServiceClientUUID() {

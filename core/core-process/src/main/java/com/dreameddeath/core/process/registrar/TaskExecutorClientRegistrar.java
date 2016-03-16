@@ -53,7 +53,6 @@ public class TaskExecutorClientRegistrar extends CuratorRegistrarImpl<TaskExecut
         obj.setWebServerUid(webServerUid);
     }
 
-
     @Override
     protected byte[] serialize(TaskExecutorClientInfo obj) throws Exception {
         return mapper.writeValueAsBytes(obj);

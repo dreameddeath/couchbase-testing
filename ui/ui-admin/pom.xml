@@ -51,13 +51,26 @@
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>infrastructure-daemon</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>infrastructure-plugin-couchbase</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>infrastructure-plugin-process</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!--
+        -
+        -
+        - Testing dependencies
+        -
+        -
+        -
+        -->
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-user</artifactId>

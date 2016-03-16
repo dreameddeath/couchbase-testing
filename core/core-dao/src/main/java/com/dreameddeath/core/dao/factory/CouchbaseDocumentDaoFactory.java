@@ -73,7 +73,7 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         uniqueKeyDaoFactory = builder.uniqueKeyDaoFactoryBuilder.build();
         viewDaoFactory = builder.viewDaoFactoryBuilder.build();
         if(builder.curatorFramework!=null) {
-            daoRegistrar = new DaoRegistrar(builder.curatorFramework);
+            daoRegistrar = new DaoRegistrar(builder.curatorFramework,builder.daemonUid,builder.webServerUid);
         }
         else{
             daoRegistrar=null;
@@ -127,7 +127,9 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         }
         if(daoRegistrar!=null){
             try {
-                daoRegistrar.register(new DaoInstanceInfo(dao));
+                DaoInstanceInfo daoInstanceInfo = new DaoInstanceInfo(dao);
+                daoRegistrar.enrich(daoInstanceInfo);
+                daoRegistrar.register(daoInstanceInfo);
             }
             catch(Exception e){
                 LOG.error("Cannot register dao <"+dao.getClass().getName()+">",e);
@@ -256,6 +258,8 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         private CouchbaseViewDaoFactory.Builder viewDaoFactoryBuilder;
         private IDocumentInfoMapper documentInfoMapper;
         private CuratorFramework curatorFramework;
+        private String daemonUid=null;
+        private String webServerUid=null;
 
         public Builder(){
             couchbaseBucketFactory= null;
@@ -279,6 +283,16 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
 
         public Builder withCuratorFramework(CuratorFramework curatorFramework){
             this.curatorFramework=curatorFramework;
+            return this;
+        }
+
+        public Builder withDaemonUid(String daemonUid) {
+            this.daemonUid = daemonUid;
+            return this;
+        }
+
+        public Builder withWebServerUid(String webServerUid) {
+            this.webServerUid = webServerUid;
             return this;
         }
 
