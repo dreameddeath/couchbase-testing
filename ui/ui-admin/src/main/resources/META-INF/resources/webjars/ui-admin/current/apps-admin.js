@@ -58,6 +58,15 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
                 files: ['apps-admin-config-shared']
             }
         });
+        $futureStateProvider.futureState({
+            'stateName': 'admin.process',
+            'urlPrefix': '/processors',
+            'type': 'ocLazyLoad',
+            'moduleDef':{
+                name: 'apps-admin-process',
+                files: ['apps-admin-process']
+            }
+        });
     }]);
 
     appsAdminModule.controller('apps-admin-ctrl',['$scope','$state','$stateParams',
@@ -80,10 +89,14 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
                         heading: 'Shared Config',
                         route:   'admin.config'
                       },
-                       {
-                          heading: 'Services',
-                          route:   'admin.service'
-                        }
+                      {
+                        heading: 'Services',
+                        route:   'admin.service'
+                      },
+                      {
+                        heading: 'Processors',
+                        route:   'admin.process'
+                      }
                     ];
                 }
                 $scope.initialize();

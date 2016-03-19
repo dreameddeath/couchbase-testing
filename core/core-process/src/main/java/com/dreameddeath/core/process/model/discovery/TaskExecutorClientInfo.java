@@ -17,9 +17,11 @@
 package com.dreameddeath.core.process.model.discovery;
 
 import com.dreameddeath.core.curator.model.IRegisterable;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
+import com.dreameddeath.core.process.VersionStatus;
+import com.dreameddeath.core.process.annotation.ProcessorInfo;
 import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.ITaskExecutorClient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,22 +37,28 @@ public class TaskExecutorClientInfo implements IRegisterable {
     private UUID uuid;
     @JsonProperty("className")
     private String className;
-    @JsonProperty("taskEntity")
+    @JsonProperty("entity")
     private EntityDef taskEntity;
-    @JsonProperty("taskProcessingService")
+    @JsonProperty("processingName")
+    private String taskProcessingName=null;
+    @JsonProperty("processingDomain")
+    private String taskProcessingDomain=null;
+    @JsonProperty("processingService")
     private String taskProcessingClassName;
-    @JsonProperty("taskProcessingVersion")
-    private String taskProcessingVersion;
-    @JsonProperty("remoteTaskServiceClient")
-    private String remoteTaskServiceClientUUID;
-    @JsonProperty("taskExecutorService")
+    @JsonProperty("processingVersion")
+    private String taskProcessingVersion="1.0.0";
+    @JsonProperty("processingVersionState")
+    private VersionStatus taskProcessingVersionState=VersionStatus.STABLE;
+    @JsonProperty("executorService")
     private String taskExecutorClassName;
-    @JsonProperty("remoteTaskServiceClientName")
+    @JsonProperty("remoteServiceClientUid")
+    private String remoteTaskServiceClientUUID;
+    @JsonProperty("remoteServiceClientName")
     private String remoteTaskServiceClientName;
-    @JsonProperty("daemonUid")
-    private String daemonUid;
     @JsonProperty("webServerUid")
     private String webServerUid;
+    @JsonProperty("daemonUid")
+    private String daemonUid;
 
 
     public TaskExecutorClientInfo(){}
@@ -61,10 +69,22 @@ public class TaskExecutorClientInfo implements IRegisterable {
         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(executorClient.getTaskClass());
         this.taskEntity = EntityDef.build(structureReflection);
         this.taskExecutorClassName = executorClient.getExecutorService().getClass().getName();
+        
+        
         this.taskProcessingClassName = executorClient.getProcessingService().getClass().getName();
-        TaskProcessingForClass annot = executorClient.getProcessingService().getClass().getAnnotation(TaskProcessingForClass.class);
+        this.taskProcessingClassName = executorClient.getProcessingService().getClass().getName();
+        ProcessorInfo annot = executorClient.getProcessingService().getClass().getAnnotation(ProcessorInfo.class);
         if(annot!=null){
-            this.taskProcessingVersion= annot.version();
+            this.taskProcessingName = annot.name();
+            this.taskProcessingDomain = annot.domain();
+            this.taskProcessingVersion = annot.version();
+            this.taskProcessingVersionState = annot.state();
+        }
+        if(StringUtils.isEmpty(this.taskProcessingName)){
+            this.taskProcessingName = taskProcessingClassName.substring(taskProcessingClassName.lastIndexOf(".")+1);
+        }
+        if(StringUtils.isEmpty(taskProcessingDomain)){
+            this.taskProcessingDomain=this.taskEntity.getModelId().getDomain();
         }
 
         if(executorClient.getExecutorService() instanceof IHasServiceClient){
@@ -123,6 +143,30 @@ public class TaskExecutorClientInfo implements IRegisterable {
 
     public void setTaskProcessingVersion(String taskProcessingVersion) {
         this.taskProcessingVersion = taskProcessingVersion;
+    }
+
+    public String getTaskProcessingName() {
+        return taskProcessingName;
+    }
+
+    public void setTaskProcessingName(String taskProcessingName) {
+        this.taskProcessingName = taskProcessingName;
+    }
+
+    public String getTaskProcessingDomain() {
+        return taskProcessingDomain;
+    }
+
+    public void setTaskProcessingDomain(String taskProcessingDomain) {
+        this.taskProcessingDomain = taskProcessingDomain;
+    }
+
+    public VersionStatus getTaskProcessingVersionState() {
+        return taskProcessingVersionState;
+    }
+
+    public void setTaskProcessingVersionState(VersionStatus taskProcessingVersionState) {
+        this.taskProcessingVersionState = taskProcessingVersionState;
     }
 
     public String getRemoteTaskServiceClientUUID() {

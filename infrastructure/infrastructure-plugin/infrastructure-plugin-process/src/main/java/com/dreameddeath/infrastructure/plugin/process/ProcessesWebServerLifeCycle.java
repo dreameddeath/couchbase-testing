@@ -35,7 +35,7 @@ public class ProcessesWebServerLifeCycle implements LifeCycle.Listener{
 
     @Override
     public void lifeCycleStarted(LifeCycle event) {
-
+        plugin.getExecutorClientsPreInit().init();
     }
 
     @Override
@@ -55,5 +55,6 @@ public class ProcessesWebServerLifeCycle implements LifeCycle.Listener{
         plugin.getExecutorClientFactory().cleanup();
         plugin.getProcessingServiceFactory().cleanup();
         plugin.getExecutorServiceFactory().cleanup();
+        plugin.getExecutorClientsPreInit().cleanup();
     }
 }

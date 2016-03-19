@@ -26,12 +26,10 @@
                     "apps-admin-daemon-list": "daemon/apps-admin-daemon-list",
                     "apps-admin-daemon-detail": "daemon/apps-admin-daemon-detail",
                     "apps-admin-daemon-resource": "daemon/apps-admin-daemon-resource",
-                    "apps-admin-daemon-view": "daemon/apps-admin-daemon-view",
 
                     "apps-admin-dao": "dao/apps-admin-dao",
                     "apps-admin-dao-details": "dao/apps-admin-dao-details",
                     "apps-admin-dao-resource": "dao/apps-admin-dao-resource",
-                    "apps-admin-dao-view": "dao/apps-admin-dao-view",
 
                     "apps-admin-config-list": "config/apps-admin-config-list",
                     "apps-admin-config-list-add": "config/apps-admin-config-list-add",
@@ -42,7 +40,11 @@
                     "apps-admin-service-require": "service/apps-admin-service-require",
                     "apps-admin-service-resource": "service/apps-admin-service-resource",
                     "apps-admin-service-version": "service/apps-admin-service-version",
-                    "apps-admin-service-domain": "service/apps-admin-service-domain"
+                    "apps-admin-service-domain": "service/apps-admin-service-domain",
+
+                    "apps-admin-process": "process/apps-admin-process",
+                    "apps-admin-process-resource": "process/apps-admin-process-resource",
+                    "apps-admin-process-version": "process/apps-admin-process-detail"
             }
             }
         </requirejs>

@@ -35,11 +35,13 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
     public static final String GLOBAL_EXECUTOR_FACTORY_PARAM_NAME = "executorServiceFactory";
     public static final String GLOBAL_PROCESSING_FACTORY_PARAM_NAME = "processingServiceFactory";
-        public static final String GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME = "executorClientFactory";
+    public static final String GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME = "executorClientFactory";
+    public static final String GLOBAL_EXECUTOR_CLIENT_PREINIT_PARAM_NAME = "executorClientsPreInit";
 
     private final ExecutorClientFactory executorClientFactory;
     private final ExecutorServiceFactory executorServiceFactory;
     private final ProcessingServiceFactory processingServiceFactory;
+    private final ProcessorClientPreInit executorClientsPreInit;
 
     public ProcessesWebServerPlugin(AbstractWebServer server,Builder builder) {
         super(server);
@@ -51,7 +53,6 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
             processingFactory.setRemoteClientFactory(new RemoteServiceClientFactoryWithManager(getParentWebServer().getServiceDiscoveryManager()));
         }
         processingServiceFactory = processingFactory;
-        new JobExecutorClientRegistrar(getParentDaemon().getCuratorClient(),getParentDaemon().getUuid().toString(),getParentWebServer().getUuid().toString());
         executorClientFactory = new ExecutorClientFactory(
                 couchbasePlugin.getSessionFactory(),
                 executorServiceFactory,
@@ -60,6 +61,8 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
                 new JobExecutorClientRegistrar(getParentDaemon().getCuratorClient(),getParentDaemon().getUuid().toString(),getParentWebServer().getUuid().toString()),
                 new TaskExecutorClientRegistrar(getParentDaemon().getCuratorClient(),getParentDaemon().getUuid().toString(),getParentWebServer().getUuid().toString())
         );
+        executorClientsPreInit = new ProcessorClientPreInit(executorClientFactory);
+        getParentWebServer().getLifeCycle().addLifeCycleListener(new ProcessesWebServerLifeCycle(this));
     }
 
 
@@ -69,6 +72,7 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
         handler.setAttribute(GLOBAL_EXECUTOR_FACTORY_PARAM_NAME,executorServiceFactory);
         handler.setAttribute(GLOBAL_PROCESSING_FACTORY_PARAM_NAME,processingServiceFactory);
         handler.setAttribute(GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME, executorClientFactory);
+        handler.setAttribute(GLOBAL_EXECUTOR_CLIENT_PREINIT_PARAM_NAME, executorClientsPreInit);
     }
 
     public static Builder builder(){
@@ -92,5 +96,9 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
 
     public ProcessingServiceFactory getProcessingServiceFactory() {
         return processingServiceFactory;
+    }
+
+    public ProcessorClientPreInit getExecutorClientsPreInit() {
+        return executorClientsPreInit;
     }
 }

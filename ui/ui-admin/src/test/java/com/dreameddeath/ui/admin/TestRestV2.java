@@ -18,10 +18,12 @@ package com.dreameddeath.ui.admin;
 
 import com.dreameddeath.core.config.ConfigPropertyFactory;
 import com.dreameddeath.core.config.impl.StringConfigProperty;
+import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -40,6 +42,14 @@ import java.util.Map;
 public class TestRestV2 extends TestRest {
     private final StringConfigProperty property = ConfigPropertyFactory.getStringProperty("test.message.prefix","a warm welcome");
 
+
+    public ExecutorClientFactory clientFactory;
+
+    @Autowired
+    public void setClientFactory(ExecutorClientFactory clientFactory) {
+        this.clientFactory = clientFactory;
+    }
+
     @Override
     @GET
     @Path("{id}")
@@ -51,4 +61,7 @@ public class TestRestV2 extends TestRest {
         result.put("message",property.get()+" to you : "+id);
         return result;
     }
+
+
+
 }

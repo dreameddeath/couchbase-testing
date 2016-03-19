@@ -23,7 +23,7 @@
         -->
         <div class="panel-heading">
             <h3 class="panel-title">
-                <span class="label"><button class="btn btn-xs btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button></span>
+                <!--<span class="label"><button class="btn btn-xs btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button></span>-->
                 <span>Job Processors</span>
             </h3>
         </div>
@@ -31,7 +31,7 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th class="text-center"><button ng-click="refresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></th>
+                    <th class="text-center"><button ng-click="jobsRefresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></th>
                     <th>name</th>
                     <th>version</th>
                     <th>state</th>
@@ -39,17 +39,18 @@
                     <th>instances</th>
                 </tr>
                 </thead>
-                <tbody ng-repeat="jobProcess in jobProcesses | orderBy:'name'">
-                <tr ng-repeat="(jobProcess,jobProcessInfo) in jobProcess.jobProcesses">
+                <tbody ng-repeat="(processorName,processorNameInfo) in jobProcessors">
+                <tr ng-repeat="(processorVersion,processorVersionInfo) in processorNameInfo.versions">
                     <td class="text-center">
                         <div class="btn-group btn-group-xs">
-                            <button type="button" class="btn btn-primary" ng-click="showDetails(jobProcessInfo.fullName)" ng-class="{'active disabled':daemon.isStarted()}" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-primary" ng-click="showDetails('job',processorVersionInfo.name)" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
                         </div>
                     </td>
-                    <td>{{jobProcess.name}}</td>
-                    <td>{{jobProcess.version}}</td>
-                    <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[jobProcessInfo.state]">{{jobProcessInfo.state}}</span></td>
-                    <td>{{jobProcessInfo.clients.length}}</td>
+                    <td>{{processorNameInfo.name}}</td>
+                    <td>{{processorVersionInfo.version}}</td>
+                    <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[processorVersionInfo.state]">{{processorVersionInfo.state}}</span></td>
+                    <td>{{processorVersionInfo.entity}}</td>
+                    <td>{{processorVersionInfo.clients.length}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -61,7 +62,7 @@
         -->
         <div class="panel-heading">
             <h3 class="panel-title">
-                <span class="label"><button class="btn btn-xs btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button></span>
+                <!--<span class="label"><button class="btn btn-xs btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button></span>-->
                 <span>Tasks Processors</span>
             </h3>
         </div>
@@ -69,7 +70,7 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th class="text-center"><button ng-click="refresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></th>
+                    <th class="text-center"><button ng-click="tasksRefresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></th>
                     <th>name</th>
                     <th>version</th>
                     <th>state</th>
@@ -77,18 +78,18 @@
                     <th>instances</th>
                 </tr>
                 </thead>
-                <tbody ng-repeat="taskProcess in taskProcesses | orderBy:'name'">
-                <tr ng-repeat="(taskProcess,taskProcessInfo) in taskProcess.taskProcesses">
+                <tbody ng-repeat="(processorName,processorNameInfo) in taskProcessors">
+                <tr ng-repeat="(processorVersion,processorVersionInfo) in processorNameInfo.versions">
                     <td class="text-center">
                         <div class="btn-group btn-group-xs">
-                            <button type="button" class="btn btn-primary" ng-click="showDetails(taskProcessInfo.fullName)" ng-class="{'active disabled':daemon.isStarted()}" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-primary" ng-click="showDetails('task',processorVersionInfo.name)" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
                         </div>
                     </td>
-                    <td>{{taskProcess.name}}</td>
-                    <td>{{taskProcess.version}}</td>
-                    <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[taskProcessInfo.state]">{{taskProcessInfo.state}}</span></td>
-                    <td>{{taskProcessInfo.entity.length}}</td>
-                    <td>{{taskProcessInfo.clients.length}}</td>
+                    <td>{{processorNameInfo.name}}</td>
+                    <td>{{processorVersionInfo.version}}</td>
+                    <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[processorVersionInfo.state]">{{processorVersionInfo.state}}</span></td>
+                    <td>{{processorVersionInfo.entity}}</td>
+                    <td>{{processorVersionInfo.clients.length}}</td>
                 </tr>
                 </tbody>
             </table>

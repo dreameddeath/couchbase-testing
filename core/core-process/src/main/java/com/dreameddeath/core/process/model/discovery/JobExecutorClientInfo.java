@@ -17,9 +17,11 @@
 package com.dreameddeath.core.process.model.discovery;
 
 import com.dreameddeath.core.curator.model.IRegisterable;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.core.process.annotation.JobProcessingForClass;
+import com.dreameddeath.core.process.VersionStatus;
+import com.dreameddeath.core.process.annotation.ProcessorInfo;
 import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,18 +37,23 @@ public class JobExecutorClientInfo implements IRegisterable {
     private UUID uuid;
     @JsonProperty("className")
     private String className;
-    @JsonProperty("jobEntity")
+    @JsonProperty("entity")
     private EntityDef jobEntity;
-    @JsonProperty("jobProcessingService")
+    @JsonProperty("processingName")
+    private String jobProcessingName=null;
+    @JsonProperty("processingDomain")
+    private String jobProcessingDomain=null;
+    @JsonProperty("processingService")
     private String jobProcessingClassName;
-    @JsonProperty("jobProcessingVersion")
-    private String jobProcessingVersion;
-
-    @JsonProperty("jobExecutorService")
+    @JsonProperty("processingVersion")
+    private String jobProcessingVersion="1.0.0";
+    @JsonProperty("processingVersionState")
+    private VersionStatus jobProcessingVersionState=VersionStatus.STABLE;
+    @JsonProperty("executorService")
     private String jobExecutorClassName;
-    @JsonProperty("remoteJobServiceClientUid")
+    @JsonProperty("remoteServiceClientUid")
     private String remoteJobServiceClientUUID;
-    @JsonProperty("remoteJobServiceClientName")
+    @JsonProperty("remoteServiceClientName")
     private String remoteJobServiceClientName;
     @JsonProperty("daemonUid")
     private String daemonUid;
@@ -60,11 +67,19 @@ public class JobExecutorClientInfo implements IRegisterable {
         this.className = client.getClass().getName();
         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(client.getJobClass());
         this.jobEntity = EntityDef.build(structureReflection);
-
         this.jobProcessingClassName = client.getProcessingService().getClass().getName();
-        JobProcessingForClass annot = client.getProcessingService().getClass().getAnnotation(JobProcessingForClass.class);
+        ProcessorInfo annot = client.getProcessingService().getClass().getAnnotation(ProcessorInfo.class);
         if(annot!=null){
+            this.jobProcessingName = annot.name();
+            this.jobProcessingDomain = annot.domain();
             this.jobProcessingVersion = annot.version();
+            this.jobProcessingVersionState = annot.state();
+        }
+        if(StringUtils.isEmpty(this.jobProcessingName)){
+            this.jobProcessingName = jobProcessingClassName.substring(jobProcessingClassName.lastIndexOf(".")+1);
+        }
+        if(StringUtils.isEmpty(jobProcessingDomain)){
+            this.jobProcessingDomain=this.jobEntity.getModelId().getDomain();
         }
 
         this.jobExecutorClassName = client.getExecutorService().getClass().getName();
@@ -111,6 +126,14 @@ public class JobExecutorClientInfo implements IRegisterable {
         this.jobExecutorClassName = jobExecutorClassName;
     }
 
+    public String getJobProcessingName() {
+        return jobProcessingName;
+    }
+
+    public void setJobProcessingName(String jobProcessingName) {
+        this.jobProcessingName = jobProcessingName;
+    }
+
     public String getJobProcessingClassName() {
         return jobProcessingClassName;
     }
@@ -127,6 +150,14 @@ public class JobExecutorClientInfo implements IRegisterable {
         this.jobProcessingVersion = jobProcessingVersion;
     }
 
+    public String getJobProcessingDomain() {
+        return jobProcessingDomain;
+    }
+
+    public void setJobProcessingDomain(String jobProcessingDomain) {
+        this.jobProcessingDomain = jobProcessingDomain;
+    }
+
     public String getRemoteJobServiceClientUUID() {
         return remoteJobServiceClientUUID;
     }
@@ -141,6 +172,14 @@ public class JobExecutorClientInfo implements IRegisterable {
 
     public void setRemoteJobServiceClientName(String remoteJobServiceClientName) {
         this.remoteJobServiceClientName = remoteJobServiceClientName;
+    }
+
+    public VersionStatus getJobProcessingVersionState() {
+        return jobProcessingVersionState;
+    }
+
+    public void setJobProcessingVersionState(VersionStatus jobProcessingVersionState) {
+        this.jobProcessingVersionState = jobProcessingVersionState;
     }
 
     public String getDaemonUid() {

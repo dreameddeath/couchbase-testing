@@ -47,4 +47,9 @@
         <property name="attributeName" value="executorClientFactory" />
     </bean>
 
+    <bean id="executorClientsPreInit" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="executorClientsPreInit" />
+    </bean>
+
+
 </beans>

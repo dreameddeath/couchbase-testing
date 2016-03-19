@@ -20,7 +20,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jaxrs="http://cxf.apache.org/jaxrs"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
             http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
 
@@ -48,6 +50,23 @@
         <constructor-arg value="com.dreameddeath.ui.admin.process.RemoteTestDocCreateJobProcess" />
     </bean>
 
+    <bean id="processMapPreInit" factory-bean="executorClientsPreInit" factory-method="precreateJobAndTasksClients">
+        <constructor-arg>
+            <util:map key-type="java.lang.Class">
+                <entry key="com.dreameddeath.ui.admin.process.TestDocCreateJob">
+                    <list value-type="java.lang.Class">
+                        <value>com.dreameddeath.ui.admin.process.TestDocCreateJob$TestDocCreateTask</value>
+                    </list>
+                </entry>
+                <entry key="com.dreameddeath.ui.admin.process.RemoteTestDocCreateJob">
+                    <list value-type="java.lang.Class">
+                        <!--<value>com.dreameddeath.ui.admin.process.RemoteTestDocCreateJob$RemoteTestDocCreateTask</value>-->
+                    </list>
+                </entry>
+            </util:map>
+        </constructor-arg>
+    </bean>
+
 
     <bean id="daos"
           factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntities">
@@ -60,25 +79,27 @@
         </constructor-arg>
     </bean>
 
-    <bean id="serviceRegistrar"
+    <bean id="serviceRegistrarTests"
           class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
           factory-bean="serviceDiscovererManager"
           factory-method="getServiceRegistrar">
         <constructor-arg type="java.lang.String" value="tests" />
     </bean>
 
+
+
     <jaxrs:server id="testing" transportId="http://cxf.apache.org/transports/http" address="/" >
         <jaxrs:serviceBeans>
             <bean id="serviceDiscovery" class="com.dreameddeath.ui.admin.TestRest">
                 <property name="address" value="/"/>
             </bean>
-            <bean id="serviceDiscovery" class="com.dreameddeath.ui.admin.TestRestV2">
+            <bean id="serviceDiscovery2" class="com.dreameddeath.ui.admin.TestRestV2">
                 <property name="address" value="/"/>
             </bean>
-            <bean id="tests" class="com.dreameddeath.infrastructure.plugin.process.RemoteTestDocCreateJobService" >
+            <bean id="tests" class="com.dreameddeath.ui.admin.process.RemoteTestDocCreateJobService" >
                 <property name="address" value="/"/>
                 <property name="endPoint" ref="endPoint"/>
-                <property name="serviceRegistrar" ref="serviceRegistrar" />
+                <property name="serviceRegistrar" ref="serviceRegistrarTests" />
                 <property name="jobExecutorClientFactory" ref="executorClientFactory" />
                 <property name="sessionFactory" ref="couchbaseSessionFactory" />
             </bean>
