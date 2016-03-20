@@ -129,7 +129,6 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                         $scope.showDaemon = function(daemonUid){
                             $state.go("admin.daemon.detail",{uid:daemonUid});
                         }
-                        //$scope.serviceInfo = $scope.$parent.getServiceVersionInfo($scope.fullName);
                     }]
                 );
 

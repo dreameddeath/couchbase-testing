@@ -44,7 +44,7 @@
 
                     "apps-admin-process": "process/apps-admin-process",
                     "apps-admin-process-resource": "process/apps-admin-process-resource",
-                    "apps-admin-process-version": "process/apps-admin-process-detail"
+                    "apps-admin-process-detail": "process/apps-admin-process-detail"
             }
             }
         </requirejs>

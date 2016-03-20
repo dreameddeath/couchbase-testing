@@ -152,7 +152,6 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
                     return new DaemonInfo(infos);
                 }
             }
-
         ]);
 
 
@@ -182,26 +181,26 @@ define(['angular','angular-route','angular-animate','apps-admin-daemon-resource'
         );
 
     appsAdminModule.controller('apps-admin-daemon-detail-ctrl',['$scope','$state','$stateParams','DaemonInfoService','DaemonBuilder',
-                function($scope,$state,$stateParams,DaemonInfoService,DaemonBuilder){
-                    DaemonInfoService.get({uid:$stateParams.uid},function(daemonInfo){
-                        $scope.daemonInfo=DaemonBuilder(daemonInfo);
-                        if($state.data==null){
-                            $state.data={};
-                        }
-                        $state.data.daemonInfo = daemonInfo;
-                    });
-
-                    $scope.close=function(){
-                        $state.go('^.list');
-                    };
-
-                    $scope.isCurrent=function(){
-                        return $state.is("admin.daemon.detail");
+            function($scope,$state,$stateParams,DaemonInfoService,DaemonBuilder){
+                DaemonInfoService.get({uid:$stateParams.uid},function(daemonInfo){
+                    $scope.daemonInfo=DaemonBuilder(daemonInfo);
+                    if($state.data==null){
+                        $state.data={};
                     }
-                    $scope.viewConfig = function(domain){
-                            $state.go(".config",{"domain":domain});
-                    };
-                }]
+                    $state.data.daemonInfo = daemonInfo;
+                });
+
+                $scope.close=function(){
+                    $state.go('^.list');
+                };
+
+                $scope.isCurrent=function(){
+                    return $state.is("admin.daemon.detail");
+                }
+                $scope.viewConfig = function(domain){
+                        $state.go(".config",{"domain":domain});
+                };
+            }]
     );
 
 }

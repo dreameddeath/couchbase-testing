@@ -15,7 +15,7 @@
   -->
 
 <div ng-controller="apps-admin-process-ctrl">
-    <div class="panel panel-default">
+    <div class="panel panel-default" ng-if="$state.is('admin.process')">
         <!--
         -
         - Jobs
@@ -23,7 +23,6 @@
         -->
         <div class="panel-heading">
             <h3 class="panel-title">
-                <!--<span class="label"><button class="btn btn-xs btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button></span>-->
                 <span>Job Processors</span>
             </h3>
         </div>
@@ -43,14 +42,14 @@
                 <tr ng-repeat="(processorVersion,processorVersionInfo) in processorNameInfo.versions">
                     <td class="text-center">
                         <div class="btn-group btn-group-xs">
-                            <button type="button" class="btn btn-primary" ng-click="showDetails('job',processorVersionInfo.name)" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-primary" ng-click="processorVersionInfo.showDetails()" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
                         </div>
                     </td>
                     <td>{{processorNameInfo.name}}</td>
                     <td>{{processorVersionInfo.version}}</td>
                     <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[processorVersionInfo.state]">{{processorVersionInfo.state}}</span></td>
-                    <td>{{processorVersionInfo.entity}}</td>
-                    <td>{{processorVersionInfo.clients.length}}</td>
+                    <td>{{processorVersionInfo.mainEntityStr}}</td>
+                    <td>{{processorVersionInfo.instances.length}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -82,14 +81,14 @@
                 <tr ng-repeat="(processorVersion,processorVersionInfo) in processorNameInfo.versions">
                     <td class="text-center">
                         <div class="btn-group btn-group-xs">
-                            <button type="button" class="btn btn-primary" ng-click="showDetails('task',processorVersionInfo.name)" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-primary" ng-click="processorVersionInfo.showDetails()" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
                         </div>
                     </td>
                     <td>{{processorNameInfo.name}}</td>
                     <td>{{processorVersionInfo.version}}</td>
                     <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[processorVersionInfo.state]">{{processorVersionInfo.state}}</span></td>
-                    <td>{{processorVersionInfo.entity}}</td>
-                    <td>{{processorVersionInfo.clients.length}}</td>
+                    <td>{{processorVersionInfo.mainEntityStr}}</td>
+                    <td>{{processorVersionInfo.instances.length}}</td>
                 </tr>
                 </tbody>
             </table>

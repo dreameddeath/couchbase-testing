@@ -23,7 +23,7 @@ import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
  * Created by Christophe Jeunesse on 19/12/2015.
  */
 public class AbstractWebServerPlugin extends AbstractPlugin {
-    private AbstractWebServer parentWebServer;
+    private final AbstractWebServer parentWebServer;
 
     public AbstractWebServerPlugin(AbstractWebServer server){
         this.parentWebServer = server;

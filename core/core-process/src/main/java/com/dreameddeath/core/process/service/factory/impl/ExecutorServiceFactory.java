@@ -48,8 +48,21 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
     }
 
 
-    public <TJOB extends AbstractJob,T extends AbstractTask> void addTaskExecutorServiceFor(Class<T> entityClass, ITaskExecutorService<TJOB,T> service){
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T>  addTaskExecutorService(Class<T> entityClass, Class<ITaskExecutorService<TJOB,T>> serviceClass){
+        try {
+            ITaskExecutorService<TJOB,T> service =serviceClass.newInstance();
+            addTaskExecutorServiceFor(entityClass,service);
+            return service;
+        }
+        catch(InstantiationException|IllegalAccessException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T>  addTaskExecutorServiceFor(Class<T> entityClass, ITaskExecutorService<TJOB,T> service){
         taskExecutorServicesMap.put(entityClass, service);
+        return service;
     }
 
     public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T> getTaskExecutorServiceForClass(Class<T> entityClass) throws ExecutorServiceNotFoundException{
@@ -69,9 +82,21 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
         return result;
     }
 
+    public <T extends AbstractJob> IJobExecutorService<T> addJobExecutorService(Class<T> entityClass, Class<IJobExecutorService<T>> serviceClass){
+        try {
+            IJobExecutorService<T> service =serviceClass.newInstance();
+            addJobExecutorServiceFor(entityClass,service);
+            return service;
+        }
+        catch(InstantiationException|IllegalAccessException e){
+            throw new RuntimeException(e);
+        }
+    }
 
-    public <T extends AbstractJob> void addJobExecutorServiceFor(Class<T> entityClass, IJobExecutorService<T> service){
+
+    public <T extends AbstractJob> IJobExecutorService<T> addJobExecutorServiceFor(Class<T> entityClass, IJobExecutorService<T> service){
         jobExecutorServicesMap.put(entityClass, service);
+        return service;
     }
 
     public <T extends AbstractJob> IJobExecutorService<T> getJobExecutorServiceForClass(Class<T> entityClass) throws ExecutorServiceNotFoundException {

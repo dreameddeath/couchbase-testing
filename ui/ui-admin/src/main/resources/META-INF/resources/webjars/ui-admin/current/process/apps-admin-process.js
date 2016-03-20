@@ -12,38 +12,49 @@ define(['angular','angular-route','angular-animate','apps-admin-process-resource
                        url:         '/processors',
                        templateUrl: requirejs.toUrl('apps-admin-process.html')
                     })
+                    .state('admin.process.detail', {
+                        url:         '/{type}/{name}/{version}',
+                        templateUrl: requirejs.toUrl('apps-admin-process-detail.html'),
+                        controller:"apps-admin-process-details-ctrl"
+                    })
+
     }]);
 
-    appsProcessorsModule.controller('apps-admin-process-ctrl',['$scope','$uibModal',
+    appsProcessorsModule.controller('apps-admin-process-ctrl',['$scope','$state',
             'TasksListService','TasksInfoService','JobsListService','JobsInfoService',
-            function($scope,$uibModal,TasksListService,TasksInfoService,JobsListService,JobsInfoService){
-
+            function($scope,$state,TasksListService,TasksInfoService,JobsListService,JobsInfoService){
                 var ProcessorInstanceInfo = function(type,processorInfo){
                     var self=this;
                     for(var attr in processorInfo){
                         this[attr] = processorInfo[attr];
                     }
                     this.type = type;
+                    this.domain = this.processingDomain;
                     this.name = this.processingName;
+                    this.className = this.processingService;
                     this.version = this.processingVersion;
                     this.versionState = this.processingVersionState;
                     this.mainEntityStr = this.entity.modelId.domain+'/'+this.entity.modelId.name;
-
-                    this.viewDetails = function(){$uibModal.open({
-                                 animation: true,
-                                 templateUrl: requirejs.toUrl("apps-admin-process-details.html"),
-                                 controller: 'apps-admin-process-details-ctrl',
-                                 size: 'lg',
-                                 resolve: {
-                                   processorInfo: function () {
-                                     return self;
-                                   }
-                                 }
-                               })};
-
                     return this;
                 }
 
+                $scope.currVersionName={};
+                $scope.currProcessorInfo={};
+                $scope.$state = $state;
+                $scope.setCurrVersion=function(type,name,version){
+                    $scope.currVersionName={"type":type,"name":name,"version":version};
+                    $scope.updateCurrVersion();
+                }
+                $scope.updateCurrVersion=function(){
+                    var refMap=null;
+                    if($scope.currVersionName.type==='job'){
+                        refMap=$scope.jobProcessors;
+                    }
+                    else if($scope.currVersionName.type==='task'){
+                        refMap=$scope.taskProcessors;
+                    }
+                    $scope.currProcessorInfo=(refMap!=null)?refMap[$scope.currVersionName.name].versions[$scope.currVersionName.version]:{};
+                }
                 $scope.buildProcessorsMap=function(domain,data){
                     var processorsMap = {};
                     for(var processorPos=0;processorPos<data.length;++processorPos){
@@ -56,35 +67,50 @@ define(['angular','angular-route','angular-animate','apps-admin-process-resource
                         }
                         if(processorsMap[processorInstanceInfo.name].versions[processorInstanceInfo.version]==null){
                             processorsMap[processorInstanceInfo.name].versions[processorInstanceInfo.version]={
-                                version: processorInstanceInfo.version,
-                                state: processorInstanceInfo.versionState,
-                                entity: processorInstanceInfo.mainEntityStr,
-                                clients:[]
+                                type:processorInstanceInfo.type,
+                                domain:processorInstanceInfo.domain,
+                                name:processorInstanceInfo.name,
+                                className:processorInstanceInfo.className,
+                                version:processorInstanceInfo.version,
+                                state:processorInstanceInfo.versionState,
+                                mainEntityStr:processorInstanceInfo.mainEntityStr,
+                                showDetails:function(){
+                                    var self=this;
+                                    $state.go("admin.process.detail",{"type":self.type,"name":self.name,"version":self.version});
+                                },
+                                instances:[]
                             };
                         }
-                        processorsMap[processorInstanceInfo.name].versions[processorInstanceInfo.version].clients.push(processorInstanceInfo);
+                        processorsMap[processorInstanceInfo.name].versions[processorInstanceInfo.version].instances.push(processorInstanceInfo);
                     }
 
                     return processorsMap;
                 }
+
                 $scope.jobsRefresh=function(){
                     JobsListService.get(function(data){
                         $scope.jobProcessors=$scope.buildProcessorsMap("job",data);
+                        $scope.updateCurrVersion();
                     });
                 };
                 $scope.tasksRefresh=function(){
                     TasksListService.get(function(data){
                         $scope.taskProcessors=$scope.buildProcessorsMap("task",data);
+                        $scope.updateCurrVersion();
                     });
                 }
+
                 $scope.jobsRefresh();
                 $scope.tasksRefresh();
+                $scope.close=function(){
+                    $state.go("^");
+                };
             }]
         );
 
-    appsProcessorsModule.controller('apps-admin-process-details-ctrl',['$scope','$uibModalInstance','processorInfo',
-                function($scope,$uibModalInstance,processorInfo){
-                    $scope.processorInfo = processorInfo;
+    appsProcessorsModule.controller('apps-admin-process-details-ctrl',['$scope','$state','$stateParams',
+                function($scope,$state,$stateParams){
+                    $scope.$parent.setCurrVersion($stateParams.type,$stateParams.name,$stateParams.version);
                     $scope.ok=function(){
                         $uibModalInstance.close();
                     }

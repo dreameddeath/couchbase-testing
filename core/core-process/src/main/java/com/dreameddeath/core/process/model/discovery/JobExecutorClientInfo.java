@@ -33,10 +33,10 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 10/03/2016.
  */
 public class JobExecutorClientInfo implements IRegisterable {
-    @JsonProperty("uuid")
-    private UUID uuid;
-    @JsonProperty("className")
-    private String className;
+    @JsonProperty("clientUuid")
+    private UUID clientUuid;
+    @JsonProperty("clientClassName")
+    private String clientClassName;
     @JsonProperty("entity")
     private EntityDef jobEntity;
     @JsonProperty("processingName")
@@ -63,8 +63,8 @@ public class JobExecutorClientInfo implements IRegisterable {
     public JobExecutorClientInfo(){}
 
     public JobExecutorClientInfo(IJobExecutorClient client){
-        this.uuid = client.getInstanceUUID();
-        this.className = client.getClass().getName();
+        this.clientUuid = client.getInstanceUUID();
+        this.clientClassName = client.getClass().getName();
         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(client.getJobClass());
         this.jobEntity = EntityDef.build(structureReflection);
         this.jobProcessingClassName = client.getProcessingService().getClass().getName();
@@ -94,20 +94,20 @@ public class JobExecutorClientInfo implements IRegisterable {
         }
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public UUID getClientUuid() {
+        return clientUuid;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public void setClientUuid(UUID clientUuid) {
+        this.clientUuid = clientUuid;
     }
 
-    public String getClassName() {
-        return className;
+    public String getClientClassName() {
+        return clientClassName;
     }
 
-    public void setClassName(String className) {
-        this.className = className;
+    public void setClientClassName(String clientClassName) {
+        this.clientClassName = clientClassName;
     }
 
     public EntityDef getJobEntity() {
@@ -200,6 +200,6 @@ public class JobExecutorClientInfo implements IRegisterable {
 
     @Override @JsonIgnore
     public String getUid() {
-        return uuid.toString();
+        return clientUuid.toString();
     }
 }

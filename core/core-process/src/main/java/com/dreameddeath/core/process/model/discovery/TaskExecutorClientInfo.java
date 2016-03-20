@@ -33,10 +33,10 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 10/03/2016.
  */
 public class TaskExecutorClientInfo implements IRegisterable {
-    @JsonProperty("uuid")
-    private UUID uuid;
-    @JsonProperty("className")
-    private String className;
+    @JsonProperty("clientUuid")
+    private UUID clientUuid;
+    @JsonProperty("clientClassName")
+    private String clientClassName;
     @JsonProperty("entity")
     private EntityDef taskEntity;
     @JsonProperty("processingName")
@@ -64,8 +64,8 @@ public class TaskExecutorClientInfo implements IRegisterable {
     public TaskExecutorClientInfo(){}
 
     public TaskExecutorClientInfo(ITaskExecutorClient executorClient){
-        this.uuid = executorClient.getInstanceUUID();
-        this.className = executorClient.getClass().getName();
+        this.clientUuid = executorClient.getInstanceUUID();
+        this.clientClassName = executorClient.getClass().getName();
         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(executorClient.getTaskClass());
         this.taskEntity = EntityDef.build(structureReflection);
         this.taskExecutorClassName = executorClient.getExecutorService().getClass().getName();
@@ -97,20 +97,20 @@ public class TaskExecutorClientInfo implements IRegisterable {
         }
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public UUID getClientUuid() {
+        return clientUuid;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public void setClientUuid(UUID clientUuid) {
+        this.clientUuid = clientUuid;
     }
 
-    public String getClassName() {
-        return className;
+    public String getClientClassName() {
+        return clientClassName;
     }
 
-    public void setClassName(String className) {
-        this.className = className;
+    public void setClientClassName(String clientClassName) {
+        this.clientClassName = clientClassName;
     }
 
     public EntityDef getTaskEntity() {
@@ -203,6 +203,6 @@ public class TaskExecutorClientInfo implements IRegisterable {
 
     @Override @JsonIgnore
     public String getUid() {
-        return uuid.toString();
+        return clientUuid.toString();
     }
 }

@@ -23,14 +23,16 @@ import com.dreameddeath.infrastructure.daemon.model.DaemonMetricsInfo;
  * Created by Christophe Jeunesse on 19/12/2015.
  */
 public abstract class AbstractDaemonPlugin extends AbstractPlugin {
-    private AbstractDaemon parentDaemon;
-
-
-    public void enrichMetrics(DaemonMetricsInfo info){
-
-    }
+    private final AbstractDaemon parentDaemon;
 
     public AbstractDaemonPlugin(AbstractDaemon daemon){
         parentDaemon = daemon;
+    }
+
+    public void enrichMetrics(DaemonMetricsInfo info){
+    }
+
+    public AbstractDaemon getParentDaemon() {
+        return parentDaemon;
     }
 }
