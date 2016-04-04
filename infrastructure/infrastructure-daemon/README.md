@@ -22,3 +22,10 @@ Zookeeper daemon registering :
 
 Architecture :
 - ~~separate the admin part and the business part~~
+- on the top of webserver, publish "connector servers" to setup other kind of servers than web (kafka consumer, dcp client, ...)
+
+
+Proxy Management :
+- build dynamic "public" urls based on prototype [domain]/[apis|process|data]/[version]/[public url] :
+    - the public url is defined by an annotation at core-service
+    - there is a "special version" called "current"

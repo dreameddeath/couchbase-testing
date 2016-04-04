@@ -18,20 +18,26 @@ package com.dreameddeath.installedbase.model.offer;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 
 /**
  * Created by Christophe Jeunesse on 21/10/2014.
  */
 public class InstalledAtomicOffer extends InstalledOffer {
     /**
-     *  product : Installed Product
+     *  ps : Product service id
      */
-    @DocumentProperty("product")
-    private Property<InstalledProductService> product = new StandardProperty<>(InstalledAtomicOffer.this);
+    @DocumentProperty("ps")
+    private Property<String> ps = new ImmutableProperty<>(InstalledAtomicOffer.this);
 
-    // product accessors
-    public InstalledProductService getProduct() { return product.get(); }
-    public void setProduct(InstalledProductService val) { product.set(val); }
+    /**
+     * Getter of ps
+     * @return the content
+     */
+    public String getPs() { return ps.get(); }
+    /**
+     * Setter of ps
+     * @param val the new content
+     */
+    public void setPs(String val) { ps.set(val); }
 }

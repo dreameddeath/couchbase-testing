@@ -139,7 +139,7 @@ public class CouchbaseDCPConnector implements Runnable {
     }
 
     private Observable<DCPRequest> requestStreams(final int numberOfPartitions) {
-        return Observable.merge(
+        return Observable.merge((Observable<? extends Observable<? extends DCPRequest>>)
                 Observable.range(0, numberOfPartitions)
                         .flatMap(partition -> core.<StreamRequestResponse>send(buildStreamRequest(partition)))
                         .map(StreamRequestResponse::stream)

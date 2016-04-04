@@ -43,15 +43,30 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
     @Override
     public boolean init(JobContext<CreateUpdateInstalledBaseJob> context) throws JobExecutionException {
         CreateUpdateInstalledBaseJob job = context.getJob();
-        for (CreateUpdateInstalledBaseRequest.Contract contract : job.getRequest().contracts) {
-            UpdateInstalledBase updateTask = new UpdateInstalledBase();
+        //Algorithm :
+        // * create all contracts without contents :
+        //     * create structure
+        //     * attach to party
+        //     * attach to billing account
+        // * Loop on all contracts :
+        //     * Perform all modifications
+        //     * Provide ids to all new objects
+        //     * init links to all objects
+        //     * attach to party
+        //     * attach to billing account
+        // * Loop on all contracts with inter contracts links toward new items :
+        //     * create them
 
+
+        for (CreateUpdateInstalledBaseRequest.Contract contract : job.getRequest().contracts) {
+            //Create target contracts if needed
             if (contract.comOp.equals(CreateUpdateInstalledBaseRequest.CommercialOperation.ADD)) {
                 TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> emptyCreateTaskContext = context.addTask(new InitEmptyInstalledBase());
                 emptyCreateTaskContext.getTask().setContractTempId(contract.tempId);
-                emptyCreateTaskContext.chainWith(new UpdateInstalledBase());
             } else {
+                UpdateInstalledBase updateTask = new UpdateInstalledBase();
                 updateTask.setContractUid(contract.id);
+
             }
         }
 
@@ -68,7 +83,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
         }
 
         @Override
-        public boolean postprocess(TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> ctxt)throws TaskExecutionException {
+        public boolean updatejob(TaskContext<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase> ctxt) throws TaskExecutionException {
             InitEmptyInstalledBase task = ctxt.getTask();
             CreateUpdateInstalledBaseResponse.Contract result = new CreateUpdateInstalledBaseResponse.Contract();
             result.tempId = task.getContractTempId();

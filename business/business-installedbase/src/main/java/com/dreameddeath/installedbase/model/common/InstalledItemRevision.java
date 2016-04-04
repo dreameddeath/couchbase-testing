@@ -16,15 +16,16 @@
 
 package com.dreameddeath.installedbase.model.common;
 
+import com.dreameddeath.core.business.model.VersionedDocumentElement;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import org.joda.time.DateTime;
 
 /**
  * Created by Christophe Jeunesse on 10/08/2014.
  */
-public abstract class InstalledItemRevision extends CouchbaseDocumentElement {
+public abstract class InstalledItemRevision extends VersionedDocumentElement {
     /**
      *  orderId : Id of the order asking for a modification
      */
@@ -39,7 +40,17 @@ public abstract class InstalledItemRevision extends CouchbaseDocumentElement {
      *  status : Status item linked to the revision
      */
     @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItemRevision.this);
+    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItemRevision.this,InstalledStatus.class);
+    /**
+     *  revState : the current revision state
+     */
+    @DocumentProperty("revState")
+    private Property<RevStatus> revState = new StandardProperty<>(InstalledItemRevision.this);
+    /**
+     *  effectiveDate : The effective date of the revision if future
+     */
+    @DocumentProperty("effectiveDate")
+    private Property<DateTime> effectiveDate = new StandardProperty<>(InstalledItemRevision.this);
 
     // orderId accessors
     public String getOrderId() { return orderId.get(); }
@@ -53,4 +64,46 @@ public abstract class InstalledItemRevision extends CouchbaseDocumentElement {
     public InstalledStatus getStatus() { return status.get(); }
     public void setStatus(InstalledStatus val) { status.set(val); }
 
+    /**
+     * Getter of revState
+     * @return the content
+     */
+    public RevStatus getRevState() { return revState.get(); }
+    /**
+     * Setter of revState
+     * @param val the new content
+     */
+    public void setRevState(RevStatus val) { revState.set(val); }
+
+    /**
+     * Getter of effectiveDate
+     * @return the content
+     */
+    public DateTime getEffectiveDate() { return effectiveDate.get(); }
+    /**
+     * Setter of effectiveDate
+     * @param val the new content
+     */
+    public void setEffectiveDate(DateTime val) { effectiveDate.set(val); }
+
+    /**
+     * comparator of revisions
+     * @param revision the target revision to compare with
+     */
+    public boolean isSame(InstalledItemRevision revision){
+        return effectiveDate.equals(revision.effectiveDate)
+                && status.equals(status)
+                && revState.equals(revState)
+                && orderId.equals(orderId)
+                && orderId.equals(orderItemId)
+                ;
+    }
+
+    public enum RevStatus{
+        CURRENT, // correspond to the active revision
+        REQUESTED, // the revision is requested but not "planned" (order delivery not started)
+        CANCELLED, //revision requested at one time but not planned
+        PLANNED, //the revision is planned
+        PAST // usefull??
+    }
 }

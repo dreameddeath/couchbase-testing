@@ -17,12 +17,15 @@ It provides :
 TODO
 --------------
 ###features
-- Reflexion around href links for services (HATEOS)
+- Reflexion around href links for services (HATEOS) :
+    * need configuration param for public server / port (can be specified by domains)
+    * need configuration param for public base url
 - ~~Management of stats (metrics, ...) around the registered services~~
 - ~~helpers around spring service scans~~
 - ~~self discovery of services should be based on path cache~~
 - helpers on management of async service modes
 - normalisation of error management
+- define public urls annotation for HATEOS (cf infrastructure daemon)
 
 ###testing
 - ~~test the swagger api exposure~~

@@ -59,8 +59,8 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
      *  docUniqKeys : List of uniqueness Keys attached to this document
      */
     @DocumentProperty("docUniqKeys")
-    private SetProperty<String> docUniqKeys = new HashSetProperty<String>(BusinessDocument.this);
-    private Set<String> inDbUniqKeys = new HashSet<String>();
+    private SetProperty<String> docUniqKeys = new HashSetProperty<>(BusinessDocument.this);
+    private Set<String> inDbUniqKeys = new HashSet<>();
 
 
     public final Long getDocRevision(){ return revision; }

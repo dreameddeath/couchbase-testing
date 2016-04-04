@@ -33,7 +33,7 @@ public class ImmutableProperty<T> extends AbstractProperty<T> {
 
     @Override
     public final boolean set(T newValue) {
-        if(!equalsValue(newValue) && (this.value!=null)){
+        if(!equalsValue(newValue) && (this.getRawValue()!=null)){
             throw new UnsupportedOperationException("Cannot reassign value <"+newValue+"> with newValue <"+newValue+">");
         }
         return super.set(newValue);

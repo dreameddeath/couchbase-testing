@@ -21,7 +21,9 @@ import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.validation.annotation.NotNull;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
@@ -32,24 +34,29 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 10/08/2014.
  */
 public abstract class InstalledItem<T extends InstalledItemRevision> extends CouchbaseDocumentElement {
-    @DocumentProperty("id")
-    private Property<String> id = new StandardProperty<>(InstalledItem.this, UUID.randomUUID().toString());
-    @DocumentProperty("creationDate")
-    private Property<DateTime> creationDate = new StandardProperty<>(InstalledItem.this);
-    @DocumentProperty("lastModificationDate")
+    @DocumentProperty("id") @NotNull
+    private Property<String> id = new ImmutableProperty<>(InstalledItem.this, UUID.randomUUID().toString());
+    @DocumentProperty("creationDate") @NotNull
+    private Property<DateTime> creationDate = new ImmutableProperty<>(InstalledItem.this);
+    @DocumentProperty("lastModificationDate") @NotNull
     private Property<DateTime> lastModificationDate = new StandardProperty<>(InstalledItem.this);
     /**
      *  status :
      */
-    @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItem.this);
+    @DocumentProperty("status") @NotNull
+    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItem.this,InstalledStatus.class);
+    /**
+     *  statusHistory : history of statuses
+     */
+    @DocumentProperty("statusHistory")
+    private ListProperty<InstalledStatus> statusHistory = new ArrayListProperty<>(InstalledItem.this);
     /**
      *  code : The code of the item
      */
-    @DocumentProperty("code")
+    @DocumentProperty("code") @NotNull
     private Property<String> code = new StandardProperty<>(InstalledItem.this);
     /**
-     *  revisions : ItemRevisions
+     *  revisions : planned revisions
      */
     @DocumentProperty("revisions")
     private ListProperty<T> revisions = new ArrayListProperty<>(InstalledItem.this);
@@ -79,5 +86,27 @@ public abstract class InstalledItem<T extends InstalledItemRevision> extends Cou
     public void setRevisions(Collection<T> vals) { revisions.set(vals); }
     public boolean addRevisions(T val){ return revisions.add(val); }
     public boolean removeRevisions(T val){ return revisions.remove(val); }
+
+    /**
+     * Getter of statusHistory
+     * @return the content
+     */
+    public List<InstalledStatus> getStatusHistory() { return statusHistory.get(); }
+    /**
+     * Setter of statusHistory
+     * @param vals the new collection of values
+     */
+    public void setStatusHistory(Collection<InstalledStatus> vals) { statusHistory.set(vals); }
+    /**
+     * Add a new entry to the property statusHistory
+     * @param val the new entry to be added
+     */
+    public boolean addStatusHistory(InstalledStatus val){ return statusHistory.add(val); }
+    /**
+     * Remove an entry to the property statusHistory
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeStatusHistory(InstalledStatus val){ return statusHistory.remove(val); }
 
 }

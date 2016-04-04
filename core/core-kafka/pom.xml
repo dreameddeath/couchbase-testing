@@ -19,13 +19,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>infrastructure</artifactId>
+        <artifactId>core</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>infrastructure-kafka</artifactId>
+  <artifactId>core-kafka</artifactId>
   <packaging>jar</packaging>
 
-  <name>infrastructure-kafka</name>
+  <name>core-kafka</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

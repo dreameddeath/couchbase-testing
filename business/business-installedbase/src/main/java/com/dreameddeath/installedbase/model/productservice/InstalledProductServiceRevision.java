@@ -16,10 +16,90 @@
 
 package com.dreameddeath.installedbase.model.productservice;
 
+import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.installedbase.annotation.EntityConstants;
+import com.dreameddeath.installedbase.model.common.InstalledAttributeRevision;
+import com.dreameddeath.installedbase.model.common.InstalledItemLinkRevision;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 11/08/2014.
  */
+@DocumentDef(domain = EntityConstants.DOMAIN)
 public class InstalledProductServiceRevision extends InstalledItemRevision {
+    /**
+     *  links : list of link revisions
+     */
+    @DocumentProperty("links")
+    private ListProperty<InstalledItemLinkRevision> links = new ArrayListProperty<>(InstalledProductServiceRevision.this);
+    /**
+     *  functions : Functions revisions
+     */
+    @DocumentProperty("functions")
+    private ListProperty<InstalledAttributeRevision> functions = new ArrayListProperty<>(InstalledProductServiceRevision.this);
+
+    /**
+     * Getter of functions
+     * @return the content
+     */
+    public List<InstalledAttributeRevision> getFunctions() { return functions.get(); }
+    /**
+     * Setter of functions
+     * @param vals the new collection of values
+     */
+    public void setFunctions(Collection<InstalledAttributeRevision> vals) { functions.set(vals); }
+    /**
+     * Add a new entry to the property functions
+     * @param val the new entry to be added
+     */
+    public boolean addFunctions(InstalledAttributeRevision val){ return functions.add(val); }
+    /**
+     * Remove an entry to the property functions
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeFunctions(InstalledAttributeRevision val){ return functions.remove(val); }
+    /**
+     * Getter of links
+     * @return the content
+     */
+    public List<InstalledItemLinkRevision> getLinks() { return links.get(); }
+    /**
+     * Setter of links
+     * @param vals the new collection of values
+     */
+    public void setLinks(Collection<InstalledItemLinkRevision> vals) { links.set(vals); }
+    /**
+     * Add a new entry to the property links
+     * @param val the new entry to be added
+     */
+    public boolean addLinks(InstalledItemLinkRevision val){ return links.add(val); }
+    /**
+     * Remove an entry to the property links
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeLinks(InstalledItemLinkRevision val){ return links.remove(val); }
+
+
+    /**
+     * comparator of revisions
+     * @param revision the target revision to compare with
+     */
+    @Override
+    public boolean isSame(InstalledItemRevision revision){
+        return super.isSame(revision)
+                && (revision instanceof InstalledProductServiceRevision)
+                && InstalledItemLinkRevision.isSameLinkList(links,((InstalledProductServiceRevision) revision).links)
+                && InstalledAttributeRevision.isSameAttributeList(functions,((InstalledProductServiceRevision) revision).functions)
+                //Add other fields
+                ;
+    }
+
 }

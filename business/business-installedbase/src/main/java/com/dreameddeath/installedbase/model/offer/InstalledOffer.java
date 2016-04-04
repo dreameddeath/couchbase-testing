@@ -18,7 +18,9 @@ package com.dreameddeath.installedbase.model.offer;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -31,6 +33,11 @@ import java.util.List;
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> {
+    /**
+     *  parent : the current parent of the offer
+     */
+    @DocumentProperty("parent")
+    private Property<String> parent = new StandardProperty<>(InstalledOffer.this);
     @DocumentProperty("links")
     private ListProperty<InstalledOfferLink> links = new ArrayListProperty<>(InstalledOffer.this);
     @DocumentProperty("tariffs")
@@ -59,4 +66,14 @@ public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevisio
     public boolean addCommercialParameter(InstalledCommercialParameter val){ return commercialParameters.add(val); }
     public boolean removeCommercialParameter(InstalledCommercialParameter val){ return commercialParameters.remove(val); }
 
+    /**
+     * Getter of parent
+     * @return the content
+     */
+    public String getParent() { return parent.get(); }
+    /**
+     * Setter of parent
+     * @param val the new content
+     */
+    public void setParent(String val) { parent.set(val); }
 }

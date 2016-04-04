@@ -29,7 +29,6 @@
         <module>infrastructure-storm</module>
         <module>infrastructure-daemon</module>
         <module>infrastructure-common</module>
-        <module>infrastructure-kafka</module>
         <module>infrastructure-agent</module>
         <module>infrastructure-plugin</module>
     </modules>

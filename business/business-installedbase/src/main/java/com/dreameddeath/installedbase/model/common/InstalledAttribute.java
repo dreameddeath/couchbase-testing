@@ -22,6 +22,7 @@ import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.validation.annotation.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,7 +34,7 @@ public abstract class InstalledAttribute extends CouchbaseDocumentElement {
     /**
      *  code : The catalogue code of the attribute
      */
-    @DocumentProperty("code")
+    @DocumentProperty("code") @NotNull
     private Property<String> code = new StandardProperty<>(InstalledAttribute.this);
     /**
      *  values : List of values (and their history)
@@ -51,4 +52,20 @@ public abstract class InstalledAttribute extends CouchbaseDocumentElement {
     public boolean addValues(InstalledValue val){ return values.add(val); }
     public boolean removeValues(InstalledValue val){ return values.remove(val); }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        InstalledAttribute that = (InstalledAttribute) o;
+
+        return code.equals(that.code);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return code.hashCode();
+    }
 }

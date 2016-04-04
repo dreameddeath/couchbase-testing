@@ -12,12 +12,12 @@ parser grammar JSON_DATASET;
 
 options {   tokenVocab = JSON_DATASET_LEXER; }
 
-
 dataset :
     monoline_rule |
     multiline_rule |
     json
     ;
+
 
 monoline_rule :
     MVEL_MONOLINE_START MVEL_MONOLINE_CONTENT

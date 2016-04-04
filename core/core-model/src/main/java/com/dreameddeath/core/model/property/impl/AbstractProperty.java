@@ -23,11 +23,11 @@ import com.dreameddeath.core.model.property.Property;
  * Created by Christophe Jeunesse on 09/05/2014.
  */
 public class AbstractProperty<T> implements Property<T>,HasParent {
-    HasParent parentElt;
-    protected T value;
-    protected final boolean hasDefaultValue;
-    protected final T defaultValue;
-    protected final Class<T> defaultClassInit;
+    private final boolean hasDefaultValue;
+    private final T defaultValue;
+    private final Class<T> defaultClassInit;
+    private T value=null;
+    private HasParent parentElt;
 
     private AbstractProperty(HasParent parentElt,T defaultValue,Class<T> defaultClassInit){
         this.parentElt = parentElt;
@@ -48,11 +48,17 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
         this(parentElement,null,defaultClassInit);
     }
 
+    public void setParentElement(HasParent parentElement){
+        parentElt=parentElement;
+    }
 
-    public void setParentElement(HasParent parentElement){ parentElt=parentElement;}
-    public HasParent getParentElement(){return parentElt;}
+    public HasParent getParentElement(){
+        return parentElt;
+    }
 
-    protected T getRawValue(){return value;}
+    protected T getRawValue(){
+        return value;
+    }
 
     public T get(){
         if((value==null)&&(hasDefaultValue)){
@@ -70,6 +76,7 @@ public class AbstractProperty<T> implements Property<T>,HasParent {
         }
         return value;
     }
+
     public boolean set(T value) {
         if(!equalsValue(value)){
             this.value = value;

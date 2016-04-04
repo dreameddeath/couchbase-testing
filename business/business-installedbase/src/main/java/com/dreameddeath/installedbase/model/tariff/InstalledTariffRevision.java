@@ -16,10 +16,25 @@
 
 package com.dreameddeath.installedbase.model.tariff;
 
+import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.installedbase.annotation.EntityConstants;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
 
 /**
  * Created by Christophe Jeunesse on 11/08/2014.
  */
+@DocumentDef(domain = EntityConstants.DOMAIN)
 public class InstalledTariffRevision extends InstalledItemRevision {
+
+    /**
+     * comparator of revisions
+     * @param revision the target revision to compare with
+     */
+    @Override
+    public boolean isSame(InstalledItemRevision revision){
+        return super.isSame(revision)
+                && (revision instanceof InstalledDiscountRevision)
+                //Add other fields
+                ;
+    }
 }

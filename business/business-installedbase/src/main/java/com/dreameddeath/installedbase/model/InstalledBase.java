@@ -29,8 +29,10 @@ import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.installedbase.annotation.EntityConstants;
 import com.dreameddeath.installedbase.model.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.offer.InstalledOffer;
+import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
 import com.dreameddeath.party.model.base.PartyLink;
 
 import java.util.Collection;
@@ -42,7 +44,7 @@ import java.util.List;
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "instBase/",idPattern = "\\d{10}",idFormat = "%010d")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")
-@DocumentDef(domain = "installedbase")
+@DocumentDef(domain = EntityConstants.DOMAIN)
 public class InstalledBase extends BusinessDocument {
     /**
      *  uid : The unique id of the installed base
@@ -59,6 +61,13 @@ public class InstalledBase extends BusinessDocument {
      */
     @DocumentProperty("offers")
     private ListProperty<InstalledOffer> offers = new ArrayListProperty<>(InstalledBase.this);
+
+    /**
+     *  ps : Product services
+     */
+    @DocumentProperty("ps")
+    private ListProperty<InstalledProductService> psList = new ArrayListProperty<>(InstalledBase.this);
+
     /**
      *  partys : List of linked Partys
      */
@@ -93,5 +102,27 @@ public class InstalledBase extends BusinessDocument {
     // billingAccount accessors
     public BillingAccountLink getBillingAccount() { return billingAccount.get(); }
     public void setBillingAccount(BillingAccountLink val) { billingAccount.set(val); }
+
+    /**
+     * Getter of ps
+     * @return the content
+     */
+    public List<InstalledProductService> getPsList() { return psList.get(); }
+    /**
+     * Setter of ps
+     * @param vals the new collection of values
+     */
+    public void setPsList(Collection<InstalledProductService> vals) { psList.set(vals); }
+    /**
+     * Add a new entry to the property ps
+     * @param val the new entry to be added
+     */
+    public boolean addPsList(InstalledProductService val){ return psList.add(val); }
+    /**
+     * Remove an entry to the property ps
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removePsList(InstalledProductService val){ return psList.remove(val); }
 
 }

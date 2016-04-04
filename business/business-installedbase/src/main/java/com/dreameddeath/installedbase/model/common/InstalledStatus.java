@@ -31,17 +31,17 @@ public class InstalledStatus extends CouchbaseDocumentElement {
      *  code : Status Code
      */
     @DocumentProperty("code") @NotNull
-    private Property<Code> code = new StandardProperty<Code>(InstalledStatus.this);
+    private Property<Code> code = new StandardProperty<>(InstalledStatus.this);
     /**
      *  startDate : Start Validity date of the status
      */
     @DocumentProperty("startDate")
-    private Property<DateTime> startDate = new StandardProperty<DateTime>(InstalledStatus.this);
+    private Property<DateTime> startDate = new StandardProperty<>(InstalledStatus.this);
     /**
      *  endDate : End validity date of the status
      */
     @DocumentProperty("endDate")
-    private Property<DateTime> endDate = new StandardProperty<DateTime>(InstalledStatus.this);
+    private Property<DateTime> endDate = new StandardProperty<>(InstalledStatus.this);
 
     // code accessors
     public Code getCode() { return code.get(); }
@@ -58,7 +58,7 @@ public class InstalledStatus extends CouchbaseDocumentElement {
         ACTIVE,
         SUSPENDED,
         CLOSED,
-        CANCELLED,
+        REMOVED,
         ABORTED
     }
 }

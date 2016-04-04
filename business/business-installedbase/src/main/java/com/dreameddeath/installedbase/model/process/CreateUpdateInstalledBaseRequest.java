@@ -19,6 +19,9 @@ package com.dreameddeath.installedbase.model.process;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.validation.annotation.Unique;
+import com.dreameddeath.installedbase.model.common.InstalledItemLink;
+import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
+import com.dreameddeath.installedbase.model.common.InstalledStatus;
 import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
@@ -45,6 +48,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         public OrderItemInfo orderInfo=new OrderItemInfo();
         @DocumentProperty("commercialOperation")
         public CommercialOperation comOp;
+
     }
 
     public abstract class IdentifiedItem extends Item{
@@ -52,6 +56,8 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         public String id;
         @DocumentProperty("tempId")
         public String tempId;
+        @DocumentProperty("code")
+        public String code;
     }
 
     public class Contract extends IdentifiedItem {
@@ -60,56 +66,77 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         @DocumentProperty("billingAccountId")
         public String billingAccountId;
         @DocumentProperty("links")
-        public List<IdentifiedItemLink> links = new ArrayList<IdentifiedItemLink>();
+        public List<IdentifiedItemLink> links = new ArrayList<>();
     }
 
 
-    public class IdentifiedItemLink extends Item{
+    public class IdentifiedItemLink{
+        @DocumentProperty("commercialOperation")
+        public LinkOperation comOp;
+        @DocumentProperty("status")
+        public ItemStatus status=new ItemStatus();
         @DocumentProperty("type")
         public LinkType linkType;
         @DocumentProperty("direction")
         public LinkDirection direction;
-        @DocumentProperty("id")
-        public String id;
-        @DocumentProperty("tempId")
-        public String tempId;
+        @DocumentProperty("target")
+        public TargetIdentifiedItem target;
     }
 
     public enum LinkType{
-        RELIES_ON,
-        BRINGS,
-        AGGREGATE,
-        MIGRATE
-    }
+        RELIES_ON(InstalledItemLink.Type.RELIES,InstalledItemLink.Direction.TO),
+        BRINGS(InstalledItemLink.Type.BRINGS,InstalledItemLink.Direction.TO),
+        AGGREGATE(InstalledItemLink.Type.AGGREGATE,InstalledItemLink.Direction.TO),
+        MIGRATE(InstalledItemLink.Type.MIGRATE,InstalledItemLink.Direction.TO),;
 
-    public enum LinkDirection{
-        FROM,
-        TO
-    }
+        private InstalledItemLink.Type type;
+        private InstalledItemLink.Direction direction;
 
-    public class Offer extends IdentifiedItem {
-        @DocumentProperty("spec")
-        public Specification spec=new Specification();
-        @DocumentProperty("tariffs")
-        public List<Tariff> tariffs=new ArrayList<Tariff>();
-        @DocumentProperty("attributes")
-        public List<Attribute> attributes = new ArrayList<Attribute>();
-        @DocumentProperty("links")
-        public List<IdentifiedItemLink> links = new ArrayList<IdentifiedItemLink>();
-        @DocumentProperty("parent")
-        public ParentIdentifiedItem parent = new ParentIdentifiedItem();
-        @DocumentProperty("productService")
-        public ProductService ps = new ProductService();
+        LinkType(InstalledItemLink.Type type,InstalledItemLink.Direction direction){
+            this.type=type;
+            this.direction = direction;
+        }
 
-        public class Specification{
-            @DocumentProperty("code")
-            public String code;
-            @DocumentProperty("type")
-            public OfferType type;
+        public InstalledItemLink.Type getType(){
+            return type;
+        }
+
+        public InstalledItemLink.Direction getDirection(){
+            return direction;
         }
     }
 
-    public class ParentIdentifiedItem{
+    public enum LinkDirection{
+        FROM(InstalledItemLink.Direction.FROM),
+        TO(InstalledItemLink.Direction.TO);
+
+        private InstalledItemLink.Direction direction;
+
+        LinkDirection(InstalledItemLink.Direction direction){
+            this.direction=direction;
+        }
+
+        public InstalledItemLink.Direction getDirection() {
+            return direction;
+        }
+    }
+
+    public class Offer extends IdentifiedItem {
+        @DocumentProperty("type")
+        public OfferType type;
+        @DocumentProperty("tariffs")
+        public List<Tariff> tariffs=new ArrayList<>();
+        @DocumentProperty("attributes")
+        public List<Attribute> attributes = new ArrayList<>();
+        @DocumentProperty("links")
+        public List<IdentifiedItemLink> links = new ArrayList<>();
+        @DocumentProperty("parent")
+        public TargetIdentifiedItem parent = new TargetIdentifiedItem();
+        @DocumentProperty("productService")
+        public ProductService ps = new ProductService();
+    }
+
+    public class TargetIdentifiedItem {
         @DocumentProperty("id")
         public String id;
         @DocumentProperty("tempId")
@@ -128,87 +155,74 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         public List<IdentifiedItemLink> links = new ArrayList<IdentifiedItemLink>();
         @DocumentProperty("attributes")
         public List<Attribute> attributes = new ArrayList<Attribute>();
-        @DocumentProperty("spec")
-        public Specification spec = new Specification();
-
-        public class Specification{
-            @DocumentProperty("code")
-            public String code;
-        }
     }
 
     public class Tariff extends IdentifiedItem {
-        @DocumentProperty("spec")
-        public Specification spec=new Specification();
+        @DocumentProperty("tailorMadeVal")
+        public BigDecimal tailorMadeValue;
         @DocumentProperty("discounts")
         public List<Discount> discounts = new ArrayList<Discount>();
-
-        public class Specification{
-            @DocumentProperty("code")
-            public String code;
-            @DocumentProperty("tailorMadeVal")
-            public BigDecimal tailorMadeValue;
-        }
     }
 
     public class Discount extends IdentifiedItem {
-        @DocumentProperty("spec")
-        public Specification spec=new Specification();
-
-        public class Specification{
-            @DocumentProperty("code")
-            public String code;
-            @DocumentProperty("tailorMadeVal")
-            public BigDecimal tailorMadeValue;
-        }
+        @DocumentProperty("tailorMadeVal")
+        public BigDecimal tailorMadeValue;
     }
 
-    public class Attribute extends Item{
-        @DocumentProperty("spec")
-        public Specification spec=new Specification();
+    public class Attribute{
+        @DocumentProperty("code")
+        public String code;
+        @DocumentProperty("publicKeyType")
+        public String type;
         @DocumentProperty("values")
-        public List<Value> values=new ArrayList<Value>();
+        public List<Value> values=new ArrayList<>();
+        @DocumentProperty("comOp")
+        public AttributeOperation comOp;
 
-        public class Value extends Item{
+
+        public class Value{
             @DocumentProperty("value")
             public String value;
-            @DocumentProperty("spec")
-            public Specification spec=new Specification();
+            @DocumentProperty("startDate")
+            public DateTime startDate;
+            @DocumentProperty("endDate")
+            public DateTime endDate;
+            @DocumentProperty("comOp")
+            public ValueOperation comOp;
 
-            public class Specification{
-                @DocumentProperty("code")
-                public String code;
-            }
         }
 
-        public class Specification{
-            @DocumentProperty("code")
-            public String code;
-            @DocumentProperty("publicKey")
-            public PublicKeySpec keySpec=new PublicKeySpec();
-
-            public class PublicKeySpec{
-                @DocumentProperty("type")
-                public String type;
-            }
-        }
     }
 
     public class ItemStatus {
         @DocumentProperty("status")
-        public Status statusCode;
-        @DocumentProperty("startDate")
-        public DateTime startDate;
+        public Status code;
+        @DocumentProperty("effectiveDate")
+        public DateTime effectiveDate;
         @DocumentProperty("endDate")
         public DateTime endDate;
     }
 
     public enum Status{
-        ACTIVE,
-        SUSPENDED,
-        REMOVED,
-        CLOSED,
-        CANCELLED
+        ACTIVE(InstalledStatus.Code.ACTIVE),
+        SUSPENDED(InstalledStatus.Code.SUSPENDED),
+        REMOVED(InstalledStatus.Code.REMOVED),
+        CLOSED(InstalledStatus.Code.CLOSED),
+        ABORTED(InstalledStatus.Code.ABORTED);
+
+        private final InstalledStatus.Code mappedCode;
+
+        Status(InstalledStatus.Code code){
+            mappedCode = code;
+        }
+
+        public boolean isSameStatus(InstalledStatus.Code code){
+            return this.mappedCode.equals(code);
+        }
+
+        public InstalledStatus.Code getMappedCode(){
+            return mappedCode;
+        }
     }
 
     public class OrderItemInfo{
@@ -226,13 +240,49 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         IN_ORDER,
         ON_DELIVERY,
         COMPLETED,
-        CANCELLED
+        CANCELLED;
+
+        public boolean isRevTarget(InstalledItemRevision.RevStatus revStatus){
+            switch(this){
+                case IN_ORDER:
+                case ON_DELIVERY:
+                    return revStatus.equals(InstalledItemRevision.RevStatus.REQUESTED);
+                case CANCELLED:
+                    return revStatus.equals(InstalledItemRevision.RevStatus.CANCELLED);
+                case COMPLETED:
+                    return revStatus.equals(InstalledItemRevision.RevStatus.PLANNED)|| revStatus.equals(InstalledItemRevision.RevStatus.CURRENT);
+                default:
+                    return false;
+            }
+        }
+
+        public boolean isUpdatableFrom(InstalledItemRevision.RevStatus revStatus){
+            if(revStatus==null){
+                return true;
+            }
+            if(isRevTarget(revStatus)){
+                return true;
+            }
+            switch(this){
+                case IN_ORDER: case ON_DELIVERY:
+                    return revStatus.equals(InstalledItemRevision.RevStatus.PLANNED);
+                case CANCELLED:
+                    return revStatus.equals(InstalledItemRevision.RevStatus.REQUESTED) ||
+                            revStatus.equals(InstalledItemRevision.RevStatus.PLANNED);
+                case COMPLETED:
+                    return revStatus.equals(InstalledItemRevision.RevStatus.PLANNED);
+                default:
+                    return false;
+            }
+        }
     }
 
     public enum CommercialOperation{
         ADD,
         REMOVE,
+        MOVE,
         CHANGE,
+        CHILD_CHANGE,
         MIGRATE,
         ACTIVATE,
         SUSPEND,
@@ -240,4 +290,24 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         CANCEL
     }
 
+    public enum ValueOperation{
+        ADD,
+        MODIFY,
+        REMOVE,
+        UNCHANGE
+    }
+
+    public enum AttributeOperation{
+        ADD,
+        MODIFY,
+        REMOVE,
+        UNCHANGE
+    }
+
+    public enum LinkOperation{
+        ADD,
+        MODIFY,
+        REMOVE,
+        UNCHANGE
+    }
 }
