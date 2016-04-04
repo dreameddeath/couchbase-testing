@@ -50,6 +50,9 @@
             <artifactId>core-couchbase-session</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!--
+        - test libs
+        -->
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-helper</artifactId>
