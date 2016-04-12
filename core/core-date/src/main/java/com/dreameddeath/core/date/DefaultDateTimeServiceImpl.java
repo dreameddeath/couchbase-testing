@@ -21,10 +21,25 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 03/11/2014.
  */
-public class DateTimeServiceImpl implements IDateTimeService {
+public class DefaultDateTimeServiceImpl implements IDateTimeService {
 
+    @Override
     public DateTime getCurrentDate(){
         return DateTime.now();
     }
-    public DateTime now(){return getCurrentDate();}
+
+    @Override
+    public DateTime now(){
+        return getCurrentDate();
+    }
+
+    @Override
+    public DateTime min(){
+        return MIN_TIME;
+    }
+
+    @Override
+    public DateTime max(){
+        return MAX_TIME;
+    }
 }

@@ -99,6 +99,10 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
                 ;
     }
 
+    @Override
+    public String toString(){
+        return direction+"/"+targetId;
+    }
 
     public static boolean isSameLinkList(List<InstalledItemLinkRevision> srcList,List<InstalledItemLinkRevision> targetList){
         int nbTargetLinksMatched=0;

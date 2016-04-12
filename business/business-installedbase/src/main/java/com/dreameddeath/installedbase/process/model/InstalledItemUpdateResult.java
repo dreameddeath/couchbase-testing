@@ -22,11 +22,6 @@ public class InstalledItemUpdateResult extends IdentifiedItemUpdateResult{
      */
     @DocumentProperty("linkUpdates")
     private ListProperty<LinkUpdateResult> linkUpdates = new ArrayListProperty<>(InstalledItemUpdateResult.this);
-    /**
-     *  tariffs : list of tariff updates if any
-     */
-    @DocumentProperty("tariffs")
-    private ListProperty<TariffUpdateResult> tariffs = new ArrayListProperty<>(InstalledItemUpdateResult.this);
 
     /**
      * Getter of attributes
@@ -72,27 +67,5 @@ public class InstalledItemUpdateResult extends IdentifiedItemUpdateResult{
      * @return true if the entry has been removed
      */
     public boolean removeLinkUpdates(LinkUpdateResult val){ return linkUpdates.remove(val); }
-
-    /**
-     * Getter of tariffs
-     * @return the content
-     */
-    public List<TariffUpdateResult> getTariffs() { return tariffs.get(); }
-    /**
-     * Setter of tariffs
-     * @param vals the new collection of values
-     */
-    public void setTariffs(Collection<TariffUpdateResult> vals) { tariffs.set(vals); }
-    /**
-     * Add a new entry to the property tariffs
-     * @param val the new entry to be added
-     */
-    public boolean addTariffs(TariffUpdateResult val){ return tariffs.add(val); }
-    /**
-     * Remove an entry to the property tariffs
-     * @param val the entry to be remove
-     * @return true if the entry has been removed
-     */
-    public boolean removeTariffs(TariffUpdateResult val){ return tariffs.remove(val); }
 
 }

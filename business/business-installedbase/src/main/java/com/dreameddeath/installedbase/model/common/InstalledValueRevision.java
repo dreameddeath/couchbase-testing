@@ -67,7 +67,8 @@ public class InstalledValueRevision extends CouchbaseDocumentElement {
 
     public enum Action{
         ADD,
-        REMOVE
+        REMOVE,
+        MODIFY
     }
 
     public boolean isSame(InstalledValueRevision target){

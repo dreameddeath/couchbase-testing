@@ -20,7 +20,13 @@ package com.dreameddeath.core.date;
  * Created by Christophe Jeunesse on 03/11/2014.
  */
 public class DateTimeServiceFactory {
+    private IDateTimeService currService = new DefaultDateTimeServiceImpl();
+
+    public void setDateTimeService(IDateTimeService service){
+        this.currService=service;
+    }
+
     public IDateTimeService getService(){
-        return new DateTimeServiceImpl();
+        return currService;
     }
 }

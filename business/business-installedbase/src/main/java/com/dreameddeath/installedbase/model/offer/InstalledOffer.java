@@ -21,6 +21,7 @@ import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.installedbase.model.common.IHasInstalledItemLink;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -32,7 +33,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 10/08/2014.
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
-public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> {
+public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> implements IHasInstalledItemLink<InstalledOfferLink> {
     /**
      *  parent : the current parent of the offer
      */
@@ -49,9 +50,13 @@ public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevisio
     private ListProperty<InstalledCommercialParameter> commercialParameters = new ArrayListProperty<>(InstalledOffer.this);
 
     // links accessors
+    @Override
     public List<InstalledOfferLink> getLinks() { return links.get(); }
+    @Override
     public void setLinks(Collection<InstalledOfferLink> vals) { links.set(vals); }
+    @Override
     public boolean addLink(InstalledOfferLink val){ return links.add(val); }
+    @Override
     public boolean removeLink(InstalledOfferLink val){ return links.remove(val); }
 
     // tariffs accessors

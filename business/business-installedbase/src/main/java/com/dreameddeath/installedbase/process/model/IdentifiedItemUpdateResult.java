@@ -2,9 +2,14 @@ package com.dreameddeath.installedbase.process.model;
 
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 22/03/2016.
@@ -25,6 +30,11 @@ public abstract class IdentifiedItemUpdateResult extends VersionedDocumentElemen
      */
     @DocumentProperty("statusUpdate")
     private Property<StatusUpdateResult> statusUpdate = new StandardProperty<>(IdentifiedItemUpdateResult.this);
+    /**
+     *  revisions : updates on the revisions of the items
+     */
+    @DocumentProperty("revisions")
+    private ListProperty<RevisionUpdateResult> revisions = new ArrayListProperty<>(IdentifiedItemUpdateResult.this);
 
     /**
      * Getter of tempId
@@ -58,4 +68,26 @@ public abstract class IdentifiedItemUpdateResult extends VersionedDocumentElemen
      * @param val the new content
      */
     public void setStatusUpdate(StatusUpdateResult val) { statusUpdate.set(val); }
+
+    /**
+     * Getter of revisions
+     * @return the content
+     */
+    public List<RevisionUpdateResult> getRevisions() { return revisions.get(); }
+    /**
+     * Setter of revisions
+     * @param vals the new collection of values
+     */
+    public void setRevisions(Collection<RevisionUpdateResult> vals) { revisions.set(vals); }
+    /**
+     * Add a new entry to the property revisions
+     * @param val the new entry to be added
+     */
+    public boolean addRevision(RevisionUpdateResult val){ return revisions.add(val); }
+    /**
+     * Remove an entry to the property revisions
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeRevision(RevisionUpdateResult val){ return revisions.remove(val); }
 }

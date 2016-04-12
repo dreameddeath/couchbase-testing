@@ -54,12 +54,31 @@ public class CreateUpdateInstalledBaseService {
                 //TODO keep track of update of revision
                 RevisionUpdateResult result = revisionManagementService.addOrReplaceRevision(contractUpdateWorkingInfo.getInstalledBase(),(InstalledItem<InstalledItemRevision>)workingInfo.getTargetItem(),workingInfo.getTargetRevision());
                 workingInfo.setRevisionUpdateResult(result);
+                if(!result.getAction().equals(RevisionUpdateResult.UpdateAction.UNCHANGED)){
+                    workingInfo.getResult().addRevision(result);
+                }
+                if((workingInfo.getUpdateRequest().tempId!=null) || !result.getAction().equals(RevisionUpdateResult.UpdateAction.UNCHANGED)){
+                    if(workingInfo instanceof OfferUpdateWorkingInfo){
+                        contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addOfferUpdates((InstalledItemUpdateResult)workingInfo.getResult());
+                    }
+                    else if(workingInfo instanceof TariffUpdateWorkingInfo){
+                        contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addTariffs((TariffUpdateResult) workingInfo.getResult());
+                    }
+                    else if(workingInfo instanceof DiscountUpdateWorkingInfo){
+                        contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addDiscounts((DiscountUpdateResult) workingInfo.getResult());
+                    }
+                    else if(workingInfo instanceof ProductServiceUpdateWorkingInfo){
+                        contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addProducts((InstalledItemUpdateResult) workingInfo.getResult());
+                    }
+                }
             }
             catch(Throwable e){
                 LOG.error("error during the revision management of item "+workingInfo.getItemUid(),e);
                 throw e;
             }
         }
+        revisionManagementService.applyApplicableRevisions(contractUpdateWorkingInfo.getInstalledBaseUpdateResult(),contractUpdateWorkingInfo.getInstalledBase());
+
     }
 
     public CreateUpdateWorkingInfo buildWorkingInfoForContract(TaskContext<CreateUpdateInstalledBaseJob,CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt, InstalledBase ref, CreateUpdateInstalledBaseRequest.Contract reqContract ){

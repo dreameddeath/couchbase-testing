@@ -19,6 +19,7 @@ package com.dreameddeath.installedbase.model.productservice;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.installedbase.model.common.IHasInstalledItemLink;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 
 import java.util.Collection;
@@ -27,12 +28,17 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 10/08/2014.
  */
-public class InstalledProductService extends InstalledItem<InstalledProductServiceRevision> {
+public class InstalledProductService extends InstalledItem<InstalledProductServiceRevision> implements IHasInstalledItemLink<InstalledProductServiceLink> {
     /**
      *  functions : give the list of functions attached to the Product
      */
     @DocumentProperty("functions")
     private ListProperty<InstalledFunction> functions = new ArrayListProperty<>(InstalledProductService.this);
+    /**
+     *  links : give the list of the links around product items
+     */
+    @DocumentProperty("links")
+    private ListProperty<InstalledProductServiceLink> links = new ArrayListProperty<>(InstalledProductService.this);
 
     // Functions Accessors
     public List<InstalledFunction> getFunctions() { return functions.get(); }
@@ -40,4 +46,29 @@ public class InstalledProductService extends InstalledItem<InstalledProductServi
     public boolean addFunctions(InstalledFunction val){ return functions.add(val); }
     public boolean removeFunctions(InstalledFunction val){ return functions.remove(val); }
 
+
+    /**
+     * Getter of links
+     * @return the content
+     */
+    public List<InstalledProductServiceLink> getLinks() { return links.get(); }
+    /**
+     * Setter of links
+     * @param vals the new collection of values
+     */
+    @Override
+    public void setLinks(Collection<InstalledProductServiceLink> vals) { links.set(vals); }
+    /**
+     * Add a new entry to the property links
+     * @param val the new entry to be added
+     */
+    @Override
+    public boolean addLink(InstalledProductServiceLink val){ return links.add(val); }
+    /**
+     * Remove an entry to the property links
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    @Override
+    public boolean removeLink(InstalledProductServiceLink val){ return links.remove(val); }
 }

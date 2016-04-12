@@ -2,6 +2,12 @@ package com.dreameddeath.installedbase.service.utils;
 
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
+import com.dreameddeath.installedbase.model.contract.InstalledContract;
+import com.dreameddeath.installedbase.model.offer.InstalledOffer;
+import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
+import com.dreameddeath.installedbase.model.tariff.InstalledDiscount;
+import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
+import com.dreameddeath.installedbase.process.model.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,10 +19,58 @@ import java.util.List;
 public class InstalledItemRevisionsToApply<TREV extends InstalledItemRevision,TITEM extends InstalledItem<TREV>> {
     private final TITEM parent;
     private final List<TREV> revisionsToApply;
+    private final IdentifiedItemUpdateResult updateResult;
+    private final boolean isNewUpdateResult;
+    private final Type itemType;
 
     public InstalledItemRevisionsToApply(TITEM item){
+        this(item,null);
+    }
+
+    public InstalledItemRevisionsToApply(TITEM item,InstalledBaseUpdateResult baseUpdateResult){
         parent=item;
         revisionsToApply=new ArrayList<>(item.getRevisions().size());
+        if(parent instanceof InstalledProductService){ itemType=Type.PS;}
+        else if(parent instanceof InstalledContract) { itemType=Type.CONTRACT;}
+        else if(parent instanceof InstalledTariff)   { itemType=Type.TARIFF; }
+        else if(parent instanceof InstalledDiscount) { itemType=Type.DISCOUNT;}
+        else if(parent instanceof InstalledOffer)    { itemType=Type.OFFER;}
+        else{
+            throw new RuntimeException("Unknow parent type "+parent.getClass().getName());
+        }
+
+        IdentifiedItemUpdateResult foundUpdateResult=null;
+        if(baseUpdateResult!=null){
+            List<? extends IdentifiedItemUpdateResult> existingList=null;
+            switch (itemType){
+                case OFFER:existingList=baseUpdateResult.getOffersUpdates();break;
+                case PS:existingList=baseUpdateResult.getProducts();break;
+                case TARIFF:existingList=baseUpdateResult.getTariffsUpdates();break;
+                case DISCOUNT:existingList=baseUpdateResult.getDiscountsUpdates();break;
+            }
+            if(existingList!=null){
+                for(IdentifiedItemUpdateResult itemUpdateResult:existingList){
+                    if(itemUpdateResult.getId().equals(item.getId())){
+                        foundUpdateResult=itemUpdateResult;
+                        break;
+                    }
+                }
+            }
+        }
+        if(foundUpdateResult!=null){
+            updateResult = foundUpdateResult;
+            isNewUpdateResult=false;
+        }
+        else {
+            updateResult = newResult();
+            updateResult.setId(item.getId());
+            isNewUpdateResult=true;
+        }
+    }
+
+
+    public TITEM getParent() {
+        return parent;
     }
 
     public void addRevisionToApply(TREV revision){
@@ -25,5 +79,51 @@ public class InstalledItemRevisionsToApply<TREV extends InstalledItemRevision,TI
 
     public List<TREV> getRevisionsToApply(){
         return Collections.unmodifiableList(revisionsToApply);
+    }
+
+    public String getItemUid(){
+        return parent.getId()+"["+parent.getCode()+"]";
+    }
+
+    public IdentifiedItemUpdateResult getUpdateResult() {
+        return updateResult;
+    }
+
+    public <T extends IdentifiedItemUpdateResult> T  getUpdateResult(Class<T> clazz) {
+        return (T)updateResult;
+    }
+
+    public boolean isNewUpdateResult() {
+        return isNewUpdateResult;
+    }
+
+    protected IdentifiedItemUpdateResult newResult(){
+        switch (itemType){
+            case TARIFF:   return new TariffUpdateResult();
+            case DISCOUNT: return new DiscountUpdateResult();
+            default : return new InstalledItemUpdateResult();
+        }
+    }
+
+    public Type getItemType() {
+        return itemType;
+    }
+
+    public enum Type{
+        CONTRACT(true),
+        OFFER(true),
+        PS(true),
+        TARIFF(false),
+        DISCOUNT(false);
+
+        private final boolean hasLink;
+
+        Type(boolean hasLink) {
+            this.hasLink = hasLink;
+        }
+
+        public boolean isHasLink() {
+            return hasLink;
+        }
     }
 }

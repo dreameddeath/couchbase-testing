@@ -1,13 +1,16 @@
 package com.dreameddeath.installedbase.utils;
 
 import com.dreameddeath.installedbase.model.InstalledBase;
+import com.dreameddeath.installedbase.model.common.InstalledValue;
 import com.dreameddeath.installedbase.model.offer.InstalledAtomicOffer;
 import com.dreameddeath.installedbase.model.offer.InstalledOffer;
 import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 24/03/2016.
@@ -87,4 +90,20 @@ public class InstalledBaseTools {
         }
     }
 
+    public static class Values{
+        public static List<InstalledValue> findMatchingInstalledValues(List<InstalledValue> values, DateTime startDate, DateTime endDate){
+            return values.stream()
+                    .filter(value->!endDate.isBefore(value.getStartDate()) && !startDate.isAfter(value.getEndDate()))
+                    .collect(Collectors.toList());
+        }
+
+        public static List<InstalledValue> findMatchingInstalledValues(List<InstalledValue> values, DateTime startDate, DateTime endDate,String valueStr){
+            return values.stream()
+                    .filter(value->!endDate.isBefore(value.getStartDate()) && !startDate.isAfter(value.getEndDate()) && valueStr.equals(value.getValue()))
+                    .collect(Collectors.toList());
+        }
+
+
+
+    }
 }

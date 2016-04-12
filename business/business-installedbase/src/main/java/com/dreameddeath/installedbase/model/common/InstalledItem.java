@@ -33,7 +33,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 10/08/2014.
  */
-public abstract class InstalledItem<T extends InstalledItemRevision> extends CouchbaseDocumentElement {
+public abstract class InstalledItem<T extends InstalledItemRevision> extends CouchbaseDocumentElement implements IHasStatus {
     @DocumentProperty("id") @NotNull
     private Property<String> id = new ImmutableProperty<>(InstalledItem.this, UUID.randomUUID().toString());
     @DocumentProperty("creationDate") @NotNull

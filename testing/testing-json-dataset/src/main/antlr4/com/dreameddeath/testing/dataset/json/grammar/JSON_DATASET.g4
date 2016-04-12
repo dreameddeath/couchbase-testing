@@ -8,6 +8,7 @@ parser grammar JSON_DATASET;
   import java.util.Collections;
   import java.util.List;
   import java.util.ArrayList;
+  import com.dreameddeath.testing.dataset.json.*;
 }
 
 options {   tokenVocab = JSON_DATASET_LEXER; }
@@ -52,16 +53,23 @@ pair :
     ;
 
 json_path
-    returns [ List<Object> result]
-    @init{$result = new ArrayList<Object>();}
+    returns [ JsonXPath result ]
+    @init{$result = new JsonXPath();}
  :
-    path_part {$result.add($path_part.text);} ( DOT path_part {$result.add($path_part.text);} )* //{ $result.add($path_part.text); $result.addAll($json_path.result);}
+    (meta_data {$result.addMeta($meta_data.result);})* path_part {$result.addPart($path_part.result);} ( DOT path_part {$result.addPart($path_part.result);} )* //{ $result.add($path_part.text); $result.addAll($json_path.result);}
     ;
 
-path_part :
-    basename ARRAY_START offsets ARRAY_END |
-    basename
-    //basename '(' predicate ')' |
+
+meta_data returns [ JsonMeta result ] @init{$result = new JsonMeta();}:
+    META_CHAR basename {$result.setName($basename.text);} |
+    META_CHAR basename {$result.setName($basename.text);} PARENTHESIS_START PARENTHESIS_END;
+
+
+
+path_part returns [ JsonXPathPart result ] @init{$result=new JsonXPathPart();}:
+    basename {$result.setLocalName($basename.text);} ARRAY_START offsets {$result.setOffset($offsets.result);} ARRAY_END |
+    basename {$result.setLocalName($basename.text);}
+    //basename PARENTHESIS_START predicate PARENTHESIS_END |
     //basename '[' offsets ']' '(' predicate ')'
     ;
 
@@ -72,9 +80,9 @@ basename:
     PATH_ANY_RECURSIVE
 ;
 
-offsets :
-    INTEGER |
-    INTEGER RANGE_SEP INTEGER
+offsets returns [ JsonOffset result ] @init{$result = new JsonOffset();}:
+    INTEGER {$result.setExact($INTEGER.text);} |
+    INTEGER {$result.setMin($INTEGER.text);} RANGE_SEP INTEGER {$result.setMax($INTEGER.text);}
     ;
 
 array

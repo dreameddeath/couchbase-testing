@@ -19,28 +19,31 @@ package com.dreameddeath.testing.dataset.json;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 08/12/2014.
  */
-public class JsonPath {
-    private String path;
-    private PartType type;
-    private String localName;
-    private String subPath;
-    private JsonPath subJsonPath;
+public class JsonXPath {
+    private List<JsonMeta> metas=new ArrayList<>();
+    private List<JsonXPathPart> parts=new ArrayList<>();
 
-    protected void parsePath(){
-        if(path.contains(".")){
-            localName = path.substring(0,path.indexOf('.'));
-            subPath = path.substring(path.indexOf('.')+1);
-        }
-        else{
-            localName = path;
-            subPath = null;
-            subJsonPath = null;
-        }
+
+    public void addMeta(JsonMeta meta){
+        metas.add(meta);
+    }
+
+    public void addPart(JsonXPathPart part){
+        parts.add(part);
+    }
+
+    public List<JsonXPathPart> getParts(){
+        return Collections.unmodifiableList(parts);
+    }
+
+    public List<JsonMeta> getMetas(){
+        return Collections.unmodifiableList(metas);
     }
 
     public List<JsonNode> getMatchingNodes(JsonNode node){
@@ -54,8 +57,18 @@ public class JsonPath {
         return result;
     }
 
-    public String getPath(){return path;}
-    public void setPath(String path){ this.path=path; parsePath();}
+    public String getPath(){
+        StringBuilder sb = new StringBuilder();
+        for(JsonXPathPart part:parts){
+            if(sb.length()>0) sb.append(".");
+            sb.append(part.getPath());
+        }
+        return sb.toString();
+    }
+
+    public String toString(){
+        return getPath();
+    }
 
     public enum PartType{
         STD,

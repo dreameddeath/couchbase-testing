@@ -31,12 +31,17 @@ PATH_ANY_RECURSIVE : '**';
 PATH_ANY : '*';
 ARRAY_START:'[';
 ARRAY_END:']';
+PARENTHESIS_START:'(';
+PARENTHESIS_END:')';
+QUESTION_MARK:'?';
+META_CHAR:'@';
 OBJECT_START:'{';
 OBJECT_END:'}';
 RANGE_SEP : '..';
 DOT : '.';
 FIELD_SEPARATOR : ',';
 FIELD_VAL_SEP : ':';
+SPACES : [\r\n ] {skip();};
 
 mode MvelMultilineMode;
 

@@ -3,11 +3,10 @@ testing-library
 
 Json Expr Syntax
 ```
-/* escaper */
-#@ eol line expr
-#%
+#% eol line expr
+#%%
 arbitrary mvel code (mono line or multi-line)
-%#
+%%
 ```
 
 Json Comments
@@ -22,15 +21,22 @@ xxx /* embedded comment */ yyy
 
 
 Json Predicates
-@NotNull
-@NotExisting
-@Equal(value)
-@Contains(value)
-@Match(value)
-@Count(value)
-@Type(numeric|boolean|date)
-@Assert(xpath,assertions)
-@Eval(method name)
+
+    @NotNull
+    @NotExisting
+    @Equal(value)
+    @Contains(value)
+    @Match(regexp)
+    @Count(value)
+    @Before(date)
+    @After(date)
+    @LowerThan(date|int)
+    @LowerOrEqualThan(date|int)
+    @HigherThan(date|int)
+    @HigherOrEqualThan(date|int)
+    @Type(string|numeric|boolean|date)
+    @Assert(xpath,assertions)
+    @Eval(method name)
 
 Json XPath Syntax :
 
@@ -41,19 +47,19 @@ field1(0).field2 : field2 of first element. raise an empty list if field1 is not
 field1.*.field2 : access to subfield field2 with 1 intermediate field name (unknown name)
 field1.**.field2 : access to subfield field2 what ever intermediate fields existing
 field1(xpath : assertions)
-field1(=predicates)
+field1(?predicates)
 ```
 
 Json extended Syntax :
-    xpath : string value
-       String values can be :
+
+
+    xpath : string value. And string values can be :
             'simple value'
             "simple value"
             "simple #%xxxxx%# with interpolation"
             <<EOF
                 a multi-line text
             EOF (position defines the caracters to skip)
-
     xpath : numeric
     xpath : true
     xpath : false

@@ -16,20 +16,21 @@
 
 package com.dreameddeath.testing.dataset.json.grammar;
 
+import com.dreameddeath.testing.dataset.json.JsonXPath;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JsonGrammarTest {
 
     @Test
     public void simpleGrammarText(){
-        String simpleJson="{ toto[0].utut[1..-1].\"tata\": \"the given value\"}";
+        String simpleJson="{ @Testing\ntoto[0].utut[1..-1].\"ta\\\"ta\": \"the given value\"}";
 
         JSON_DATASET_LEXER lexer = new JSON_DATASET_LEXER(new ANTLRInputStream(simpleJson));
         JSON_DATASET parser = new JSON_DATASET(new CommonTokenStream(lexer));
@@ -39,9 +40,15 @@ public class JsonGrammarTest {
         assertTrue(json.result instanceof Map);
         assertEquals(1, ((Map) json.result).size());
         for(Map.Entry element:((Map<Object,Object>) json.result).entrySet()){
-            assertTrue(element.getKey() instanceof List);
-            assertEquals(3, ((List)element.getKey()).size());
-            assertArrayEquals(new String[]{"toto[0]","utut[1..-1]","\"tata\""}, ((List<String>)element.getKey()).toArray());
+            assertTrue(element.getKey() instanceof JsonXPath);
+            JsonXPath path = (JsonXPath)element.getKey();
+            assertEquals(1, path.getMetas().size());
+            assertEquals("Testing",path.getMetas().get(0).getName());
+            assertEquals(3, path.getParts().size());
+            assertEquals("toto[0]",path.getParts().get(0).getPath());
+            assertEquals("utut[1..-1]",path.getParts().get(1).getPath());
+            assertEquals("ta\"ta",path.getParts().get(2).getPath());
+            //assertArrayEquals(new String[]{"toto[0]","utut[1..-1]","\"tata\""}, ((List<String>)element.getKey()).toArray());
             assertTrue(element.getValue() instanceof String);
             assertEquals("\"the given value\"", element.getValue().toString());
         }

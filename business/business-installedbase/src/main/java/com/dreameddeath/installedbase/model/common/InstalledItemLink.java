@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 31/08/2014.
  */
-public class InstalledItemLink extends CouchbaseDocumentElement {
+public class InstalledItemLink extends CouchbaseDocumentElement implements IHasStatus {
     /**
      *  id : Target item id
      */

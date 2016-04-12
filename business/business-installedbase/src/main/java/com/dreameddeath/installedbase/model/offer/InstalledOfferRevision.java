@@ -23,6 +23,7 @@ import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.annotation.EntityConstants;
+import com.dreameddeath.installedbase.model.common.IHasLinkRevision;
 import com.dreameddeath.installedbase.model.common.InstalledAttributeRevision;
 import com.dreameddeath.installedbase.model.common.InstalledItemLinkRevision;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
@@ -34,7 +35,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 11/08/2014.
  */
 @DocumentDef(domain = EntityConstants.DOMAIN)
-public class InstalledOfferRevision extends InstalledItemRevision {
+public class InstalledOfferRevision extends InstalledItemRevision implements IHasLinkRevision {
     /**
      *  parent : the  parent of the offer
      */
@@ -56,22 +57,26 @@ public class InstalledOfferRevision extends InstalledItemRevision {
      * Getter of links
      * @return the content
      */
+    @Override
     public List<InstalledItemLinkRevision> getLinks() { return links.get(); }
     /**
      * Setter of links
      * @param vals the new collection of values
      */
+    @Override
     public void setLinks(Collection<InstalledItemLinkRevision> vals) { links.set(vals); }
     /**
      * Add a new entry to the property links
      * @param val the new entry to be added
      */
+    @Override
     public boolean addLinks(InstalledItemLinkRevision val){ return links.add(val); }
     /**
      * Remove an entry to the property links
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
+    @Override
     public boolean removeLinks(InstalledItemLinkRevision val){ return links.remove(val); }
 
     /**

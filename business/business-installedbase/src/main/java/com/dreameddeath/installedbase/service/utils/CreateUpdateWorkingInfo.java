@@ -63,6 +63,10 @@ public class CreateUpdateWorkingInfo {
         return ctxt;
     }
 
+    public InstalledBaseUpdateResult getInstalledBaseUpdateResult() {
+        return installedBaseUpdateResult;
+    }
+
     public InstalledBase getInstalledBase() {
         return installedBase;
     }
