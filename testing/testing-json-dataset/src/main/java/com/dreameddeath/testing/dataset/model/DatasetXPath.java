@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.testing.dataset.json;
+package com.dreameddeath.testing.dataset.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -25,24 +25,24 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 08/12/2014.
  */
-public class JsonXPath {
-    private List<JsonMeta> metas=new ArrayList<>();
-    private List<JsonXPathPart> parts=new ArrayList<>();
+public class DatasetXPath {
+    private List<DatasetMeta> metas=new ArrayList<>();
+    private List<DatasetXPathPart> parts=new ArrayList<>();
 
 
-    public void addMeta(JsonMeta meta){
+    public void addMeta(DatasetMeta meta){
         metas.add(meta);
     }
 
-    public void addPart(JsonXPathPart part){
+    public void addPart(DatasetXPathPart part){
         parts.add(part);
     }
 
-    public List<JsonXPathPart> getParts(){
+    public List<DatasetXPathPart> getParts(){
         return Collections.unmodifiableList(parts);
     }
 
-    public List<JsonMeta> getMetas(){
+    public List<DatasetMeta> getMetas(){
         return Collections.unmodifiableList(metas);
     }
 
@@ -59,7 +59,7 @@ public class JsonXPath {
 
     public String getPath(){
         StringBuilder sb = new StringBuilder();
-        for(JsonXPathPart part:parts){
+        for(DatasetXPathPart part:parts){
             if(sb.length()>0) sb.append(".");
             sb.append(part.getPath());
         }

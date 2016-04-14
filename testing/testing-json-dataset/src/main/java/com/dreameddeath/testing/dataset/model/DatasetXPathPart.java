@@ -1,12 +1,12 @@
-package com.dreameddeath.testing.dataset.json;
+package com.dreameddeath.testing.dataset.model;
 
 /**
  * Created by Christophe Jeunesse on 12/04/2016.
  */
-public class JsonXPathPart {
+public class DatasetXPathPart {
     private PartType type;
     private String localName;
-    private JsonOffset offset=null;
+    private DatasetRange range =null;
 
     public void setLocalName(String name){
         this.localName = name;
@@ -25,15 +25,15 @@ public class JsonXPathPart {
         }
     }
 
-    public void setOffset(JsonOffset offset){
-        this.offset = offset;
+    public void setRange(DatasetRange range){
+        this.range = range;
     }
 
     public String getPath(){
         StringBuilder sb = new StringBuilder();
         sb.append(localName);
-        if(this.offset!=null){
-            sb.append(offset.getPathString());
+        if(this.range !=null){
+            sb.append(range.getPathString());
         }
         return sb.toString();
     }

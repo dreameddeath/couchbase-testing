@@ -16,15 +16,12 @@
 
 package com.dreameddeath.testing.dataset.json.grammar;
 
-import com.dreameddeath.testing.dataset.json.JsonXPath;
+import com.dreameddeath.testing.dataset.model.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Test;
 
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class JsonGrammarTest {
 
@@ -35,22 +32,21 @@ public class JsonGrammarTest {
         JSON_DATASET_LEXER lexer = new JSON_DATASET_LEXER(new ANTLRInputStream(simpleJson));
         JSON_DATASET parser = new JSON_DATASET(new CommonTokenStream(lexer));
 
-        JSON_DATASET.JsonContext json = parser.json();
-        System.out.println(json.result);
-        assertTrue(json.result instanceof Map);
-        assertEquals(1, ((Map) json.result).size());
-        for(Map.Entry element:((Map<Object,Object>) json.result).entrySet()){
-            assertTrue(element.getKey() instanceof JsonXPath);
-            JsonXPath path = (JsonXPath)element.getKey();
+        JSON_DATASET.DatasetContext datasetContext = parser.dataset();
+        Dataset dataset = datasetContext.result;
+        assertEquals(1, dataset.getElements().size());
+        DatasetElement element = dataset.getElements().get(0);
+        assertEquals(DatasetElement.Type.OBJECT, element.getType());
+        for(DatasetObjectNode objectNode:dataset.getElements().get(0).getObject().getNodes()){
+            DatasetXPath path = objectNode.getPath();
             assertEquals(1, path.getMetas().size());
             assertEquals("Testing",path.getMetas().get(0).getName());
             assertEquals(3, path.getParts().size());
             assertEquals("toto[0]",path.getParts().get(0).getPath());
             assertEquals("utut[1..-1]",path.getParts().get(1).getPath());
             assertEquals("ta\"ta",path.getParts().get(2).getPath());
-            //assertArrayEquals(new String[]{"toto[0]","utut[1..-1]","\"tata\""}, ((List<String>)element.getKey()).toArray());
-            assertTrue(element.getValue() instanceof String);
-            assertEquals("\"the given value\"", element.getValue().toString());
+            assertEquals(DatasetValue.Type.STRING, objectNode.getValue().getType());
+            assertEquals("\"the given value\"", objectNode.getValue().getContent());
         }
         //assertEquals(1,((Map)json.result).keySet().iterator().next());
     }

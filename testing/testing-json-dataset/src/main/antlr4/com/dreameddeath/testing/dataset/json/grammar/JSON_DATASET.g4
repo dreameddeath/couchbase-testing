@@ -8,66 +8,72 @@ parser grammar JSON_DATASET;
   import java.util.Collections;
   import java.util.List;
   import java.util.ArrayList;
-  import com.dreameddeath.testing.dataset.json.*;
+  import com.dreameddeath.testing.dataset.model.*;
 }
 
 options {   tokenVocab = JSON_DATASET_LEXER; }
 
-dataset :
-    monoline_rule |
-    multiline_rule |
-    json
+dataset returns [ Dataset result ]
+       @init{ $result=new Dataset(); }
+   :
+    (dataset_elt {$result.addElement($dataset_elt.result);} ) +
     ;
 
 
-monoline_rule :
-    MVEL_MONOLINE_START MVEL_MONOLINE_CONTENT
+monoline_rule returns [ DatasetMvel result ] @init{ $result=new DatasetMvel();} :
+    MVEL_MONOLINE_START MVEL_MONOLINE_CONTENT {$result.addContent($MVEL_MONOLINE_CONTENT.text);}
     ;
 
-multiline_rule :
+multiline_rule returns [ DatasetMvel result ] @init{ $result=new DatasetMvel();} :
     MVEL_MULTILINE
     (
-        MVEL_MULTILINE_COMMENT_COMPLEX |
-        MVEL_MULTILINE_COMMENT_SIMPLE |
-        MVEL_MULTILINE_DQ_STRING |
-        MVEL_MULTILINE_SQ_STRING |
-        MVEL_MULTILINE_CONTENT
+        MVEL_MULTILINE_COMMENT_COMPLEX {$result.addContent($MVEL_MULTILINE_COMMENT_COMPLEX.text);}|
+        MVEL_MULTILINE_COMMENT_SIMPLE {$result.addContent($MVEL_MULTILINE_COMMENT_SIMPLE.text);}|
+        MVEL_MULTILINE_DQ_STRING {$result.addContent($MVEL_MULTILINE_DQ_STRING.text);}|
+        MVEL_MULTILINE_SQ_STRING {$result.addContent($MVEL_MULTILINE_SQ_STRING.text);}|
+        MVEL_MULTILINE_CONTENT {$result.addContent($MVEL_MULTILINE_CONTENT.text);}
      ) *
     MVEL_MULTILINE_END
     ;
 
 
 
-json returns [ Object result ] : object { $result = $object.result;}
-| array {$result = $array.result;}
+dataset_elt returns [ DatasetElement result ]
+    @init{ $result=new DatasetElement(); }
+:
+ (meta_data {$result.addMeta($meta_data.result);})* object { $result.setObject($object.result);}
+| (meta_data {$result.addMeta($meta_data.result);})* array {$result.setArray($array.result);}
+| monoline_rule {$result.setMvel($monoline_rule.result);}
+| multiline_rule {$result.setMvel($multiline_rule.result);}
 ;
 
-object returns [ Map<Object,Object> result ]
-       @init{ $result = new HashMap<Object,Object>();}
-: OBJECT_START pair (FIELD_SEPARATOR pair)* OBJECT_END //{ $result = $attributes;}
-| OBJECT_START OBJECT_END //{$result = Collections.emptyMap(); }// empty object
+object returns [ DatasetObject result ]
+       @init{ $result = new DatasetObject(); }
+: OBJECT_START pair {$result.addNode($pair.result);} (FIELD_SEPARATOR pair {$result.addNode($pair.result);} )* OBJECT_END //{ $result = $attributes;}
+| OBJECT_START OBJECT_END // empty object
 ;
 
-pair :
-    json_path FIELD_VAL_SEP value {$object::result.put($json_path.result,$value.result);}
+pair returns [ DatasetObjectNode result ]
+        @init{ $result=new DatasetObjectNode();}:
+    dataset_path { $result.setPath($dataset_path.result);} FIELD_VAL_SEP value {$result.setValue($value.result);}
     ;
 
-json_path
-    returns [ JsonXPath result ]
-    @init{$result = new JsonXPath();}
+dataset_path
+    returns [ DatasetXPath result ]
+    @init{$result = new DatasetXPath();}
  :
-    (meta_data {$result.addMeta($meta_data.result);})* path_part {$result.addPart($path_part.result);} ( DOT path_part {$result.addPart($path_part.result);} )* //{ $result.add($path_part.text); $result.addAll($json_path.result);}
+    (meta_data {$result.addMeta($meta_data.result);})* path_part {$result.addPart($path_part.result);} ( DOT path_part {$result.addPart($path_part.result);} )* //{ $result.add($path_part.text); $result.addAll($Dataset_path.result);}
     ;
 
 
-meta_data returns [ JsonMeta result ] @init{$result = new JsonMeta();}:
+meta_data returns [ DatasetMeta result ] @init{$result = new DatasetMeta();}:
     META_CHAR basename {$result.setName($basename.text);} |
     META_CHAR basename {$result.setName($basename.text);} PARENTHESIS_START PARENTHESIS_END;
 
 
 
-path_part returns [ JsonXPathPart result ] @init{$result=new JsonXPathPart();}:
-    basename {$result.setLocalName($basename.text);} ARRAY_START offsets {$result.setOffset($offsets.result);} ARRAY_END |
+path_part returns [ DatasetXPathPart result ] @init{$result=new DatasetXPathPart();}:
+    basename {$result.setLocalName($basename.text);} ARRAY_START range {$result.setRange($range.result);} ARRAY_END |
     basename {$result.setLocalName($basename.text);}
     //basename PARENTHESIS_START predicate PARENTHESIS_END |
     //basename '[' offsets ']' '(' predicate ')'
@@ -80,26 +86,27 @@ basename:
     PATH_ANY_RECURSIVE
 ;
 
-offsets returns [ JsonOffset result ] @init{$result = new JsonOffset();}:
+range returns [ DatasetRange result ] @init{$result = new DatasetRange();}:
     INTEGER {$result.setExact($INTEGER.text);} |
-    INTEGER {$result.setMin($INTEGER.text);} RANGE_SEP INTEGER {$result.setMax($INTEGER.text);}
+    INTEGER {$result.setMin($INTEGER.text);} RANGE_SEP INTEGER {$result.setMax($INTEGER.text);} |
     ;
 
 array
-    returns [ List<Object> result ]
+    returns [ List<DatasetValue> result ]
     @init{$result= new ArrayList();}
 : ARRAY_START value {$result.add($value.result);} (FIELD_SEPARATOR value {$result.add($value.result);} )* ARRAY_END//{ $result = $elements;}
-| ARRAY_START ARRAY_END //{ $result = Collections.emptyList();}// empty array
+| ARRAY_START ARRAY_END // empty array
 ;
 
-value returns [ Object result ]
-: STRING { $result = $STRING.text;System.out.println($STRING.text);}
-| DECIMAL { $result = Double.parseDouble($DECIMAL.text); }
-| INTEGER { $result = Long.parseLong($INTEGER.text);}
-| EXP_INT { $result = Long.parseLong($EXP_INT.text);}
-| object { $result = $object.result;}// recursion
-| array { $result = $array.result;}// recursion
-| TRUE { $result = new Boolean(true);}// keywords
-| FALSE { $result = new Boolean(false);}
-| NULL { $result = null;}
+value returns [ DatasetValue result ]
+@init{$result=new DatasetValue();}
+: (meta_data {$result.addMeta($meta_data.result);})* STRING { $result.setStrValue($STRING.text);}
+| (meta_data {$result.addMeta($meta_data.result);})* DECIMAL { $result.setDecimalValue($DECIMAL.text); }
+| (meta_data {$result.addMeta($meta_data.result);})* INTEGER { $result.setLongValue($INTEGER.text);}
+| (meta_data {$result.addMeta($meta_data.result);})* EXP_INT { $result.setLongValue($EXP_INT.text);}
+| (meta_data {$result.addMeta($meta_data.result);})* object { $result.setObjectValue($object.result);}// recursion
+| (meta_data {$result.addMeta($meta_data.result);})* array { $result.setArrayValue($array.result);}// recursion
+| (meta_data {$result.addMeta($meta_data.result);})* TRUE { $result.setBool(true);}// keywords
+| (meta_data {$result.addMeta($meta_data.result);})* FALSE { $result.setBool(false);}
+| (meta_data {$result.addMeta($meta_data.result);})* NULL { $result.setNull();}
 ;

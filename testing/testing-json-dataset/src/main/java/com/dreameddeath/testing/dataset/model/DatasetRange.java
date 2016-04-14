@@ -1,9 +1,9 @@
-package com.dreameddeath.testing.dataset.json;
+package com.dreameddeath.testing.dataset.model;
 
 /**
  * Created by Christophe Jeunesse on 12/04/2016.
  */
-public class JsonOffset {
+public class DatasetRange {
     private Integer min=null;
     private Integer max=null;
     private Integer exact=null;
@@ -37,6 +37,9 @@ public class JsonOffset {
         sb.append("[");
         if(this.exact!=null){
             sb.append(exact);
+        }
+        else if(min==null && max==null){
+            sb.append("*");
         }
         else{
             sb.append(min!=null?min:0);

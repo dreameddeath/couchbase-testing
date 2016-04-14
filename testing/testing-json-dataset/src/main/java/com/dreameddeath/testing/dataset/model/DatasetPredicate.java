@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.testing.dataset.json;
+package com.dreameddeath.testing.dataset.model;
 
 /**
  * Created by Christophe Jeunesse on 08/12/2014.
  */
-public class JsonPredicate {
+public class DatasetPredicate {
 }
