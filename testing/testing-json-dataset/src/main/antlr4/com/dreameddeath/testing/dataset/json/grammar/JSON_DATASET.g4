@@ -16,7 +16,7 @@ options {   tokenVocab = JSON_DATASET_LEXER; }
 dataset returns [ Dataset result ]
        @init{ $result=new Dataset(); }
    :
-    (dataset_elt {$result.addElement($dataset_elt.result);} ) +
+    (dataset_elt {$result.addElement($dataset_elt.result); } ) +
     ;
 
 
@@ -45,11 +45,12 @@ dataset_elt returns [ DatasetElement result ]
 | (meta_data {$result.addMeta($meta_data.result);})* array {$result.setArray($array.result);}
 | monoline_rule {$result.setMvel($monoline_rule.result);}
 | multiline_rule {$result.setMvel($multiline_rule.result);}
+| directive {$result.setDirective($directive.result);}
 ;
 
 object returns [ DatasetObject result ]
        @init{ $result = new DatasetObject(); }
-: OBJECT_START pair {$result.addNode($pair.result);} (FIELD_SEPARATOR pair {$result.addNode($pair.result);} )* OBJECT_END //{ $result = $attributes;}
+: OBJECT_START pair {$result.addNode($pair.result);} (COMMA pair {$result.addNode($pair.result);} )* OBJECT_END //{ $result = $attributes;}
 | OBJECT_START OBJECT_END // empty object
 ;
 
@@ -58,6 +59,11 @@ pair returns [ DatasetObjectNode result ]
     dataset_path { $result.setPath($dataset_path.result);} FIELD_VAL_SEP value {$result.setValue($value.result);}
     ;
 
+directive returns [ DatasetDirective result ]
+    @init{ $result=new DatasetDirective();}
+    :
+ DIRECTIVE BASENAME {$result.setName($BASENAME.text);} PARENTHESIS_START (STRING {$result.addParam($STRING.text);} (COMMA STRING {$result.addParam($STRING.text);}) *) ? PARENTHESIS_END
+;
 dataset_path
     returns [ DatasetXPath result ]
     @init{$result = new DatasetXPath();}
@@ -94,7 +100,7 @@ range returns [ DatasetRange result ] @init{$result = new DatasetRange();}:
 array
     returns [ List<DatasetValue> result ]
     @init{$result= new ArrayList();}
-: ARRAY_START value {$result.add($value.result);} (FIELD_SEPARATOR value {$result.add($value.result);} )* ARRAY_END//{ $result = $elements;}
+: ARRAY_START value {$result.add($value.result);} (COMMA value {$result.add($value.result);} )* ARRAY_END//{ $result = $elements;}
 | ARRAY_START ARRAY_END // empty array
 ;
 

@@ -1,6 +1,13 @@
 testing-library
 =================
 
+Json Dataset Syntax
+```
+#import(string) :import a dataset file
+#name(string) : the name of the whole dataset
+#descr(string) : the description
+````
+
 Json Expr Syntax
 ```
 #% eol line expr
@@ -11,7 +18,6 @@ arbitrary mvel code (mono line or multi-line)
 
 Json Comments
 ```
-# [eol commment]
 // [eol comment]
 /* [multiline
 comment]

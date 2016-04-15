@@ -13,6 +13,7 @@ public class DatasetElement {
     private List<DatasetMeta> metaList=new ArrayList<>();
     private DatasetMvel mvelElement;
     private DatasetObject objElt;
+    private DatasetDirective directive;
     private List<DatasetValue> arrayElt=new ArrayList<>();
 
     public void setName(String name) {
@@ -39,11 +40,18 @@ public class DatasetElement {
         this.metaList.add(meta);
     }
 
+
+    public void setDirective(DatasetDirective directive){
+        this.directive=directive;
+        this.type = Type.DIRECTIVE;
+    }
+
     public Object getContent(){
         switch (type){
             case OBJECT:return this.objElt;
             case ARRAY: return Collections.unmodifiableList(arrayElt);
             case MVEL:return this.mvelElement;
+            case DIRECTIVE:return this.directive;
             default : return null;
         }
     }
@@ -72,9 +80,14 @@ public class DatasetElement {
         return Collections.unmodifiableList(arrayElt);
     }
 
+    public DatasetDirective getDirective(){
+        return directive;
+    }
+
     public enum Type{
         OBJECT,
         ARRAY,
-        MVEL
+        MVEL,
+        DIRECTIVE
     }
 }

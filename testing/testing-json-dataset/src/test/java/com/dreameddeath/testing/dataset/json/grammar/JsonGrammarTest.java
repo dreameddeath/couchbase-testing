@@ -46,7 +46,7 @@ public class JsonGrammarTest {
             assertEquals("utut[1..-1]",path.getParts().get(1).getPath());
             assertEquals("ta\"ta",path.getParts().get(2).getPath());
             assertEquals(DatasetValue.Type.STRING, objectNode.getValue().getType());
-            assertEquals("\"the given value\"", objectNode.getValue().getContent());
+            assertEquals("the given value", objectNode.getValue().getContent());
         }
         //assertEquals(1,((Map)json.result).keySet().iterator().next());
     }

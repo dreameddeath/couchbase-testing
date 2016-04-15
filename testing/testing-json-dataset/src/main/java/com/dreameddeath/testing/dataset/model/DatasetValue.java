@@ -1,5 +1,7 @@
 package com.dreameddeath.testing.dataset.model;
 
+import com.dreameddeath.testing.dataset.utils.DatasetUtils;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,9 +20,10 @@ public class DatasetValue {
     private DatasetObject objVal;
     private List<DatasetValue> arrayVal = new ArrayList<>();
     private Boolean boolVal;
+
     public void setStrValue(String value){
         type = Type.STRING;
-        strValue = value;
+        strValue = DatasetUtils.parseJavaEncodedString(value);
     }
 
     public void addMeta(DatasetMeta meta){

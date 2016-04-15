@@ -1,5 +1,7 @@
 package com.dreameddeath.testing.dataset.model;
 
+import com.dreameddeath.testing.dataset.utils.DatasetUtils;
+
 /**
  * Created by Christophe Jeunesse on 12/04/2016.
  */
@@ -9,18 +11,21 @@ public class DatasetXPathPart {
     private DatasetRange range =null;
 
     public void setLocalName(String name){
-        this.localName = name;
-        if("*".equals(localName)){
+        if("*".equals(name)){
             type=PartType.MATCH_ALL;
+            this.localName = "*";
         }
-        else if("**".equals(localName)){
+        else if("**".equals(name)){
             type = PartType.MATCH_ALL_RECURSIVE;
+            this.localName="**";
         }
         else{
             type = PartType.STD;
-            if(localName.startsWith("\"")){
-                this.localName = localName.substring(1,localName.length()-1)
-                        .replaceAll("\\\\(.)","$1");
+            if(name.startsWith("\"")){
+                this.localName = DatasetUtils.parseJavaEncodedString(name);
+            }
+            else{
+                this.localName=name;
             }
         }
     }

@@ -1,0 +1,12 @@
+#$dataset_name("test1")
+
+#$dataset_elt_name("the first dataset")
+
+{
+  "a new test is borned":[
+      {
+              "toto": @Test "tutut",
+              tata[0..2].tutu : [ "toto", "v2", "v3"]
+      }
+  ]
+}

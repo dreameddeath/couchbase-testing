@@ -1,7 +1,6 @@
 lexer grammar JSON_DATASET_LEXER;
 
 
-
 MVEL_MULTILINE : '#%' -> pushMode(MvelMultilineMode);
 MVEL_MONOLINE_START : '#%%' ->pushMode(MvelMonolineMode);
 
@@ -24,6 +23,7 @@ WS : [ \t\n\r]+ -> skip ;
 INTEGER :
     '-'? INT;
 
+DIRECTIVE : '#$';
 TRUE: 'true';
 FALSE : 'false';
 NULL : 'null';
@@ -38,8 +38,9 @@ META_CHAR:'@';
 OBJECT_START:'{';
 OBJECT_END:'}';
 RANGE_SEP : '..';
+SHARP:'#';
 DOT : '.';
-FIELD_SEPARATOR : ',';
+COMMA : ',';
 FIELD_VAL_SEP : ':';
 SPACES : [\r\n ] {skip();};
 
