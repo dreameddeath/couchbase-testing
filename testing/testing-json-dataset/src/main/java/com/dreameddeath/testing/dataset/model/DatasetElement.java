@@ -12,9 +12,10 @@ public class DatasetElement {
     private Type type;
     private List<DatasetMeta> metaList=new ArrayList<>();
     private DatasetMvel mvelElement;
-    private DatasetObject objElt;
     private DatasetDirective directive;
-    private List<DatasetValue> arrayElt=new ArrayList<>();
+    private final DatasetValue value=new DatasetValue();
+    //private List<DatasetValue> arrayElt=new ArrayList<>();
+    //private DatasetObject objElt;
 
     public void setName(String name) {
         this.name = name;
@@ -26,13 +27,12 @@ public class DatasetElement {
     }
 
     public void setObject(DatasetObject objElt) {
-        this.objElt = objElt;
+        this.value.setObjectValue(objElt);
         this.type =Type.OBJECT;
     }
 
     public void setArray(List<DatasetValue> arrayElt) {
-        this.arrayElt.clear();
-        this.arrayElt.addAll(arrayElt);
+        this.value.setArrayValue(arrayElt);
         this.type = Type.ARRAY;
     }
 
@@ -48,11 +48,25 @@ public class DatasetElement {
 
     public Object getContent(){
         switch (type){
-            case OBJECT:return this.objElt;
-            case ARRAY: return Collections.unmodifiableList(arrayElt);
+            case OBJECT:return this.value.getObjVal();
+            case ARRAY: return this.value.getArrayVal();
             case MVEL:return this.mvelElement;
             case DIRECTIVE:return this.directive;
             default : return null;
+        }
+    }
+
+    public void prepare(Dataset parent){
+        for (DatasetMeta datasetMeta : metaList) {
+            datasetMeta.prepare(parent,this,"");
+        }
+
+        switch (type){
+            case OBJECT:case ARRAY:
+                this.value.prepare(parent,this,"");
+                break;
+            case MVEL:this.mvelElement.prepare(parent,this);break;
+            case DIRECTIVE:this.directive.prepare(parent,this);break;
         }
     }
 
@@ -73,13 +87,20 @@ public class DatasetElement {
     }
 
     public DatasetObject getObject() {
-        return objElt;
+        return value.getObjVal();
     }
 
     public List<DatasetValue> getArray() {
-        return Collections.unmodifiableList(arrayElt);
+        return value.getArrayVal();
     }
 
+    public DatasetValue getValue(){
+        return value;
+    }
+
+    public boolean isValue(){
+        return type==Type.OBJECT||type==Type.ARRAY;
+    }
     public DatasetDirective getDirective(){
         return directive;
     }

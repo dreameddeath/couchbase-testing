@@ -26,6 +26,10 @@ import java.util.List;
  * Created by Christophe Jeunesse on 08/12/2014.
  */
 public class DatasetXPath {
+    private Dataset parent = null;
+    private DatasetElement parentElement=null;
+    private String path=null;
+
     private List<DatasetMeta> metas=new ArrayList<>();
     private List<DatasetXPathPart> parts=new ArrayList<>();
 
@@ -59,6 +63,7 @@ public class DatasetXPath {
 
     public String getPath(){
         StringBuilder sb = new StringBuilder();
+
         for(DatasetXPathPart part:parts){
             if(sb.length()>0) sb.append(".");
             sb.append(part.getPath());
@@ -68,6 +73,25 @@ public class DatasetXPath {
 
     public String toString(){
         return getPath();
+    }
+
+    public void prepare(Dataset parent, DatasetElement parentElt, String path) {
+        this.parent =parent;
+        this.parentElement = parentElt;
+        this.path = path;
+        StringBuilder subPathBuilder=new StringBuilder();
+
+        for(DatasetMeta meta:metas){
+            meta.prepare(parent,parentElement,path);
+        }
+
+        for(DatasetXPathPart part:parts){
+            part.prepare(parent,parentElt,path,subPathBuilder.toString());
+            if(subPathBuilder.length()!=0){
+                subPathBuilder.append('.');
+            }
+            subPathBuilder.append(part.getPath());
+        }
     }
 
     public enum PartType{

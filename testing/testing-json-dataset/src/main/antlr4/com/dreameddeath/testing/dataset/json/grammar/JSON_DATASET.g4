@@ -21,7 +21,9 @@ dataset returns [ Dataset result ]
 
 
 monoline_rule returns [ DatasetMvel result ] @init{ $result=new DatasetMvel();} :
-    MVEL_MONOLINE_START MVEL_MONOLINE_CONTENT {$result.addContent($MVEL_MONOLINE_CONTENT.text);}
+    MVEL_MONOLINE_START
+        (MVEL_MONOLINE_CONTENT {$result.addContent($MVEL_MONOLINE_CONTENT.text);})*
+    MVEL_MONOLINE_END
     ;
 
 multiline_rule returns [ DatasetMvel result ] @init{ $result=new DatasetMvel();} :
@@ -56,7 +58,7 @@ object returns [ DatasetObject result ]
 
 pair returns [ DatasetObjectNode result ]
         @init{ $result=new DatasetObjectNode();}:
-    dataset_path { $result.setPath($dataset_path.result);} FIELD_VAL_SEP value {$result.setValue($value.result);}
+    dataset_path { $result.setXPath($dataset_path.result);} FIELD_VAL_SEP value {$result.setValue($value.result);}
     ;
 
 directive returns [ DatasetDirective result ]

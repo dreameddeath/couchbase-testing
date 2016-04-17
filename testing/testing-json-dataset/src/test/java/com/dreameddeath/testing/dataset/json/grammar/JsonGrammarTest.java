@@ -38,7 +38,7 @@ public class JsonGrammarTest {
         DatasetElement element = dataset.getElements().get(0);
         assertEquals(DatasetElement.Type.OBJECT, element.getType());
         for(DatasetObjectNode objectNode:dataset.getElements().get(0).getObject().getNodes()){
-            DatasetXPath path = objectNode.getPath();
+            DatasetXPath path = objectNode.getXPath();
             assertEquals(1, path.getMetas().size());
             assertEquals("Testing",path.getMetas().get(0).getName());
             assertEquals(3, path.getParts().size());

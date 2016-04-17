@@ -12,8 +12,13 @@ import java.util.List;
  * Created by Christophe Jeunesse on 13/04/2016.
  */
 public class DatasetValue {
+    private String path=null;
+    private Dataset parent=null;
+    private DatasetElement parentElement=null;
     private Type type;
+
     private List<DatasetMeta> metaList=new ArrayList<>();
+
     private String strValue;
     private BigDecimal decimalVal;
     private Long longVal;
@@ -77,13 +82,60 @@ public class DatasetValue {
         }
     }
 
+    public String getStrValue() {
+        return strValue;
+    }
+
+    public BigDecimal getDecimalVal() {
+        return decimalVal;
+    }
+
+    public Long getLongVal() {
+        return longVal;
+    }
+
+    public DatasetObject getObjVal() {
+        return objVal;
+    }
+
+    public List<DatasetValue> getArrayVal() {
+        return Collections.unmodifiableList(arrayVal);
+    }
+
+    public Boolean getBoolVal() {
+        return boolVal;
+    }
+
     public enum Type{
         STRING,
         DECIMAL,
         LONG,
         OBJECT,
         ARRAY,
+        DATETIME,
         BOOL,
         NULL
+    }
+
+    public void prepare(Dataset parent,DatasetElement parentElt,String path){
+        this.parent = parent;
+        this.parentElement = parentElt;
+        this.path=path;
+        metaList.forEach(datasetMeta -> datasetMeta.prepare(parent,parentElt,path));
+
+        switch (type) {
+            case OBJECT:
+                objVal.prepare(parent, parentElt, path);
+                break;
+            case ARRAY:
+                Integer pos = 0;
+                for (DatasetValue val : this.arrayVal) {
+                    val.prepare(parent, parentElt, path+"[" + (pos++) + "]");
+                }
+                break;
+            default:
+                //Nothing to do
+        }
+
     }
 }

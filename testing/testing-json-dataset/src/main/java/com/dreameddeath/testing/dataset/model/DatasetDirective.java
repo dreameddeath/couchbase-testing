@@ -13,6 +13,8 @@ import java.util.List;
 public class DatasetDirective {
     private Type type;
     private List<String> params=new ArrayList<>();
+    private Dataset parent;
+    private DatasetElement parentElement;
     private Dataset importedDataset=null;
 
     public void setName(String name){
@@ -30,6 +32,23 @@ public class DatasetDirective {
 
     public Type getType() {
         return type;
+    }
+
+    public void prepare(Dataset parent, DatasetElement datasetElement) {
+        this.parent=parent;
+        this.parentElement=datasetElement;
+        switch (type){
+            case IMPORT:
+                this.importedDataset = this.parent.getManager().getDatasetByName(params.get(0));
+                Preconditions.checkNotNull(importedDataset,"Cannot find the referenced dataset %s",params.get(0));
+                break;
+            default:
+                //Nothing to do;
+        }
+    }
+
+    public Dataset getImportedDataset() {
+        return importedDataset;
     }
 
     public enum Type{

@@ -69,6 +69,16 @@
             <artifactId>spring-core</artifactId>
             <version>${spring.core.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.mvel</groupId>
+            <artifactId>mvel2</artifactId>
+            <version>${mvel2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-java-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
 

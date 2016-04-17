@@ -62,7 +62,7 @@ MVEL_MULTILINE_CONTENT : . ;
 
 
 mode MvelMonolineMode;
-MVEL_MONOLINE_CONTENT :
-    [^\n\r]* [\r]? [\n] ->popMode
-    ;
+
+MVEL_MONOLINE_END : [\r]?[\n] ->popMode;
+MVEL_MONOLINE_CONTENT : . ;
 

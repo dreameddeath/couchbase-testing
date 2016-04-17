@@ -50,4 +50,20 @@ public class DatasetRange {
         sb.append("]");
         return sb.toString();
     }
+
+    public Integer getMin() {
+        return min;
+    }
+
+    public Integer getMax() {
+        return max;
+    }
+
+    public Integer getExact() {
+        return exact;
+    }
+
+    public boolean isExact(){
+        return exact!=null;
+    }
 }

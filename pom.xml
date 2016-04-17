@@ -217,6 +217,7 @@
         <antlr.version>4.5.1-1</antlr.version>
         <velocity.version>1.7</velocity.version>
         <velocity.tootls.version>2.0</velocity.tootls.version>
+        <mvel2.version>2.2.8.Final</mvel2.version>
 
         <!-- spring lib -->
         <spring.version>4.2.1.RELEASE</spring.version>

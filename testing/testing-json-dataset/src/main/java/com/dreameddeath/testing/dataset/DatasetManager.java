@@ -9,29 +9,32 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.*;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Christophe Jeunesse on 14/04/2016.
  */
 public class DatasetManager {
-    private Map<String,Dataset> datasetMap=new HashMap<>();
+    private Map<String,Dataset> datasetMap=new ConcurrentHashMap<>();
 
-
-
-
-
+    synchronized public void registerDataset(String name,Dataset dataset){
+        if(datasetMap.containsKey(name)){
+            throw new RuntimeException("The dataset <"+name+"> is already existing");
+        }
+        datasetMap.put(name,dataset);
+    }
 
     public Dataset newDataset(ANTLRInputStream inputStream){
         JSON_DATASET_LEXER lexer = new JSON_DATASET_LEXER(inputStream);
         JSON_DATASET parser = new JSON_DATASET(new CommonTokenStream(lexer));
         Dataset result = parser.dataset().result;
         if(result.getName()!=null){
-            datasetMap.put(result.getName(),result);
+            registerDataset(result.getName(),result);
         }
         else if(inputStream.name!=null){
-            datasetMap.put(inputStream.name,result);
+            result.setName(inputStream.name);
+            registerDataset(result.getName(),result);
         }
         else{
             throw new RuntimeException("Dataset must have a name");
@@ -53,7 +56,11 @@ public class DatasetManager {
 
     public Dataset newDatasetFromFile(File filename){
         try {
-            return this.newDataset(new FileInputStream(filename),filename.getName());
+            String name = filename.getName();
+            if(name.lastIndexOf(".")>0){
+                name=name.substring(0,name.lastIndexOf("."));
+            }
+            return this.newDataset(new FileInputStream(filename),name);
         }
         catch(FileNotFoundException e){
             throw new RuntimeException(e);
@@ -71,6 +78,16 @@ public class DatasetManager {
         catch(IOException e){
             throw new RuntimeException(e);
         }
-
     }
+
+    public void prepareDatasets(){
+        for(Dataset dataset:datasetMap.values()){
+            dataset.prepare();
+        }
+    }
+
+    public Dataset getDatasetByName(String name){
+        return datasetMap.get(name);
+    }
+
 }

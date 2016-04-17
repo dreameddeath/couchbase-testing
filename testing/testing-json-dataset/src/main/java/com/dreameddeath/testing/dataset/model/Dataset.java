@@ -1,6 +1,8 @@
 package com.dreameddeath.testing.dataset.model;
 
 import com.dreameddeath.testing.dataset.DatasetManager;
+import org.mvel2.ParserContext;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 public class Dataset {
     private DatasetManager manager =null;
     private String name=null;
+    private ParserContext mvel2Ctxt=null;
 
     private List<DatasetElement> elementList = new ArrayList<>();
 
@@ -29,10 +32,13 @@ public class Dataset {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public List<DatasetElement> getElements(){
         return Collections.unmodifiableList(elementList);
     }
-
 
     public List<DatasetDirective> getImportDirectives(){
         return this.elementList.stream()
@@ -47,5 +53,23 @@ public class Dataset {
 
     public DatasetManager getManager() {
         return manager;
+    }
+
+    public void prepare(){
+        for(DatasetElement element:elementList){
+            element.prepare(this);
+        }
+    }
+
+    synchronized public ParserContext getParserContext(){
+        if(mvel2Ctxt==null){
+            mvel2Ctxt = new ParserContext();
+            mvel2Ctxt.setStrongTyping(true);
+            mvel2Ctxt.setStrictTypeEnforcement(true);
+            mvel2Ctxt.addVariable("globalManager",DatasetManager.class,true);
+            mvel2Ctxt.addVariable("globalDataset",Dataset.class,true);
+            mvel2Ctxt.addVariable("log",Logger.class,true);
+        }
+        return mvel2Ctxt;
     }
 }
