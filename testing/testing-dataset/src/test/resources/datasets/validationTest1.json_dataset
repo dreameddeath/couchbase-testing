@@ -1,0 +1,42 @@
+#%% Integer pos=0;
+#$dataset_elt_name("validateTest1")
+{
+  "a new test is borned" : [ {
+    "toto" : "tutut",
+    "tata" : [ {
+      "tutu" : [ "toto", #% ++pos;"v"+pos;%#, #%pos;%# ]
+    }, {
+      "tutu" : [ "toto", #% ++pos;"v"+pos;%#, #%pos;%#  ]
+    }, {
+      "tutu" : [ @Contains("oto") "toto", "v@{++pos}", #%pos;%# ]
+    } ]
+  } ]
+}
+
+#$dataset_elt_name("validateTest1Success")
+{
+  "a new test is borned"[0].tata[2].tutu[0] : @Contains("oto") "toto"
+}
+
+
+#$dataset_elt_name("validateTest1Failure")
+{
+"a new test is borned"[0].tata[2].tutu[0] : @Contains("ata") "toto"
+}
+
+#$dataset_elt_name("validateTest1SuccessWithStar")
+{
+"a new test is borned"[0].*[2].tutu[0] : @Contains("oto") "toto"
+}
+
+
+#$dataset_elt_name("validateTest1SuccessWithEmptyRule")
+{
+"a new test is borned"[0].*[2].tutu[0] : @Contains("oto")
+}
+
+
+#$dataset_elt_name("validateTest1FailureWithEmptyRule")
+{
+"a new test is borned"[0].*[2].tutu[0] : @Contains("ata")
+}

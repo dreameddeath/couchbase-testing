@@ -1,0 +1,23 @@
+#$dataset_name("test1")
+#$import("subDataset1")
+
+#%% Integer x,y,z; x=1;y=2;log.debug(x+y);z=x+y;
+#%
+        Integer generator=0;
+        log.debug(x);
+        log.debug(y);
+        z+y+x;
+%#
+
+/*
+this is a simple comment
+*/
+#$dataset_elt_name("the first dataset")
+{
+  "a new test is borned" : [
+      {
+              "toto": @Test "tutut",
+              tata[0..2].tutu : [ "toto", "v@{++generator}", #% generator; %#]
+      }
+  ]
+}

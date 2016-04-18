@@ -30,7 +30,7 @@
     <modules>
         <module>testing-common</module>
         <module>testing-annotation-processor</module>
-        <module>testing-json-dataset</module>
+        <module>testing-dataset</module>
         <module>testing-couchbase</module>
         <module>testing-curator</module>
         <module>testing-kafka</module>
