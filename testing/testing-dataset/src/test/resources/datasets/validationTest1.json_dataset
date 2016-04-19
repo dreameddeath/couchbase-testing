@@ -1,10 +1,11 @@
 #%% Integer pos=0;
 #$dataset_elt_name("validateTest1")
+@Declare("toto_value","String") @BuildOnly
 {
   "a new test is borned" : [ {
-    "toto" : "tutut",
+    "toto" : "@{toto_value}",
     "tata" : [ {
-      "tutu" : [ "toto", #% ++pos;"v"+pos;%#, #%pos;%# ]
+      "tutu" : [ "toto", #% "v"+(++pos);%#, #%pos;%# ]
     }, {
       "tutu" : [ "toto", #% ++pos;"v"+pos;%#, #%pos;%#  ]
     }, {

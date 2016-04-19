@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 /**
  * Created by Christophe Jeunesse on 17/04/2016.
  */
-public class DatasetResultValue {
+public class DatasetResultValue implements Cloneable {
     private DatasetValue.Type type=null;
     private DatasetResultObject objVal;
     private DatasetResultArray arrayVal;
@@ -110,5 +110,29 @@ public class DatasetResultValue {
 
     public <T> T getContent(Class<T> content){
         return (T) getContent();
+    }
+
+    @Override
+    protected DatasetResultValue clone(){
+        DatasetResultValue result = new DatasetResultValue();
+        result.type = this.type;
+        switch(type){
+            case OBJECT: result.objVal=this.objVal.clone();break;
+            case ARRAY: result.arrayVal = this.arrayVal.clone();break;
+            case DECIMAL: result.decimalVal=this.decimalVal;break;
+            case LONG: result.longVal=this.longVal;break;
+            case DATETIME:result.dateTimeVal=this.dateTimeVal;break;
+            case STRING: result.strVal=this.strVal;break;
+            case BOOL: result.boolVal=this.boolVal;break;
+            case NULL:
+                break;
+            case EMPTY:
+                break;
+            case MVEL:
+                break;
+            default:
+                throw new RuntimeException("not managed type "+type);
+        }
+        return result;
     }
 }

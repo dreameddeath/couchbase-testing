@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 17/04/2016.
  */
-public class DatasetResultArray {
+public class DatasetResultArray implements Cloneable{
     private ArrayList<DatasetResultValue> values=new ArrayList<>();
 
     public DatasetResultValue getOrCreate(Integer exact) {
@@ -50,5 +50,15 @@ public class DatasetResultArray {
     @JsonValue
     public List<DatasetResultValue> getValues(){
         return Collections.unmodifiableList(values);
+    }
+
+    @Override
+    public DatasetResultArray clone(){
+        DatasetResultArray result = new DatasetResultArray();
+        result.values.ensureCapacity(this.values.size());
+        for(DatasetResultValue value:this.values){
+            result.values.add(value.clone());
+        }
+        return result;
     }
 }

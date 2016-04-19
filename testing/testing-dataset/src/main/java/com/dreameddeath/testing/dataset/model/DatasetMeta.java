@@ -1,5 +1,8 @@
 package com.dreameddeath.testing.dataset.model;
 
+import org.joda.time.DateTime;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +31,28 @@ public class DatasetMeta {
         this.parent = parent;
         this.parentElement = parentElement;
         this.path = path;
+        if(this.getType()==Type.DECLARE_VAR){
+            String name = this.getParam(0,String.class);
+            String varType = this.getParam(1,String.class);
+            if("string".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,String.class);
+            }
+            else if("integer".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,Integer.class);
+            }
+            else if("long".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,Long.class);
+            }
+            else if("decimal".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,BigDecimal.class);
+            }
+            else if("datetime".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,DateTime.class);
+            }
+            else if("boolean".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,Boolean.class);
+            }
+        }
     }
 
     public Type getType() {
@@ -47,7 +72,7 @@ public class DatasetMeta {
     }
 
     public enum Type{
-
+        INIT_FROM("InitFrom"),
         NOT_NULL("NotNull"),
         NOT_EXISTING("NotExisting"),
         CONTAINS("Contains"),
@@ -59,6 +84,8 @@ public class DatasetMeta {
         GTE("HigherThanOrEqual"),
         TYPE("Type"),
         EVAL("Eval"),
+        DECLARE_VAR("Declare"),
+        FOR_BUILD_ONLY("BuildOnly"),
         UNKNOWN("");
 
         private String name;

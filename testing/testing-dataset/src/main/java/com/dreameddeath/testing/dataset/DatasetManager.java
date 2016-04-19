@@ -13,6 +13,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.*;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -94,11 +95,16 @@ public class DatasetManager {
         return datasetMap.get(name);
     }
 
-    public boolean validate(DatasetResultValue value,String datasetName,String dataSetElementName){
+    public boolean validate(DatasetResultValue value,String datasetName,String dataSetElementName,Map<String,Object> params){
         Dataset dataset=getDatasetByName(datasetName);
         Preconditions.checkNotNull(dataset);
-        return new DatasetValidator(dataset).validate(value,dataSetElementName);
+        return new DatasetValidator(dataset,params).validate(value,dataSetElementName);
     }
+
+    public boolean validate(DatasetResultValue value,String datasetName,String dataSetElementName){
+        return validate(value,datasetName,dataSetElementName, Collections.emptyMap());
+    }
+
 
     public DatasetResultValue build(String datasetName,String datasetElementName){
         Dataset dataset=getDatasetByName(datasetName);

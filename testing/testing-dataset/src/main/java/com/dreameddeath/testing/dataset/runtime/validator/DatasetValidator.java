@@ -10,8 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static com.dreameddeath.testing.dataset.model.DatasetMeta.Type.*;
 
@@ -26,8 +28,12 @@ public class DatasetValidator {
     private final MvelRuntimeContext context;
 
     public DatasetValidator(Dataset dataset){
+        this(dataset, Collections.emptyMap());
+    }
+
+    public DatasetValidator(Dataset dataset,Map<String,Object> params){
         this.rootDataset=dataset;
-        this.builder=new DatasetBuilder(dataset);
+        this.builder=new DatasetBuilder(dataset,params);
         this.context = builder.getContext();
         this.xPathProcessor= builder.getXPathProcessor();
     }
@@ -39,7 +45,9 @@ public class DatasetValidator {
                 return validate(value,element);
             }
             else{
-                builder.run(element);
+                if(!element.hasMeta(DatasetMeta.Type.FOR_BUILD_ONLY)) {
+                    builder.run(element);
+                }
             }
         }
         throw new RuntimeException("The dataset element "+datasetElementName+" isn't found");

@@ -9,6 +9,9 @@ import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.mvel2.templates.TemplateRuntime;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Created by Christophe Jeunesse on 17/04/2016.
  */
@@ -16,7 +19,14 @@ public class MvelRuntimeContext {
     private final VariableResolverFactory variableResolverFactory;
 
     public MvelRuntimeContext(Dataset dataset){
+        this(dataset, Collections.emptyMap());
+    }
+
+    public MvelRuntimeContext(Dataset dataset,Map<String,Object> params){
         MapVariableResolverFactory factory=new MapVariableResolverFactory();
+        for(Map.Entry<String,Object> param:params.entrySet()){
+            factory.createVariable(param.getKey(),param.getValue());
+        }
         factory.createVariable("log",LoggerFactory.getLogger(dataset.getClass().getName()+"."+dataset.getName()));
         factory.createVariable("globalDataset",dataset);
         factory.createVariable("globalManager",dataset.getManager());

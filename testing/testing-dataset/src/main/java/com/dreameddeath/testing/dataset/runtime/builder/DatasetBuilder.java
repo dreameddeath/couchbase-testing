@@ -9,6 +9,7 @@ import com.dreameddeath.testing.dataset.runtime.xpath.DatasetXPathProcessor;
 import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,11 @@ public class DatasetBuilder {
     private final DatasetXPathProcessor xPathProcessor;
 
     public DatasetBuilder(Dataset dataset){
+        this(dataset, Collections.emptyMap());
+    }
+    public DatasetBuilder(Dataset dataset,Map<String,Object>params){
         this.rootDataset=dataset;
-        context = new MvelRuntimeContext(dataset);
+        context = new MvelRuntimeContext(dataset,params);
         xPathProcessor = new DatasetXPathProcessor();
     }
 
@@ -66,11 +70,11 @@ public class DatasetBuilder {
         switch (element.getType()){
             case OBJECT:
                 resultValue = new DatasetResultValue();
-                resultValue.setObject(buildObject(element.getObject()));
+                resultValue.setObject(buildObject(initObject(element.getMetaList()),element.getObject()));
                 break;
             case ARRAY:
                 resultValue = new DatasetResultValue();
-                resultValue.setArray(buildArray(element.getArray()));
+                resultValue.setArray(buildArray(initArray(element.getMetaList()),element.getArray()));
                 break;
             case MVEL:
                 context.execute(element.getMvel());break;
@@ -92,8 +96,47 @@ public class DatasetBuilder {
         return resultValue;
     }
 
-    protected DatasetResultObject buildObject(DatasetObject objectDef){
-        DatasetResultObject result = new DatasetResultObject();
+    protected DatasetResultObject initObject(List<DatasetMeta> metas){
+        for(DatasetMeta meta:metas){
+            if(meta.getType()== DatasetMeta.Type.INIT_FROM){
+                String name=meta.getParam(0,String.class);
+                DatasetResultValue initValue=resultingDatasetMap.get(name);
+                if(initValue!=null){
+                    if(initValue.getType()== DatasetValue.Type.OBJECT){
+                        return initValue.getObject().clone();
+                    }
+                    else{
+                        throw new RuntimeException("The dataset "+name+ " isn't an object but "+initValue.getType());
+                    }
+                }
+                throw new RuntimeException("Cannot find dataset <"+name+">");
+            }
+        }
+        return new DatasetResultObject();
+    }
+
+
+    protected DatasetResultArray initArray(List<DatasetMeta> metas){
+        for(DatasetMeta meta:metas){
+            if(meta.getType()== DatasetMeta.Type.INIT_FROM){
+                String name=meta.getParam(0,String.class);
+                DatasetResultValue initValue=resultingDatasetMap.get(name);
+                if(initValue!=null){
+                    if(initValue.getType()== DatasetValue.Type.ARRAY){
+                        return initValue.getArrayVal().clone();
+                    }
+                    else{
+                        throw new RuntimeException("The dataset "+name+ " isn't an array but "+initValue.getType());
+                    }
+                }
+                throw new RuntimeException("Cannot find dataset <"+name+">");
+            }
+        }
+        return new DatasetResultArray();
+    }
+
+
+    protected DatasetResultObject buildObject(DatasetResultObject result,DatasetObject objectDef){
         for(DatasetObjectNode node:objectDef.getNodes()){
             List<DatasetResultValue> resultValues = xPathProcessor.applyXPath(result,node.getXPath(),true).getValues();
             for(DatasetResultValue value:resultValues){
@@ -103,8 +146,9 @@ public class DatasetBuilder {
         return result;
     }
 
-    protected DatasetResultArray buildArray(List<DatasetValue> valuesDef){
-        DatasetResultArray result=new DatasetResultArray();
+    protected DatasetResultArray buildArray(DatasetResultArray result,List<DatasetValue> valuesDef){
+        //DatasetResultArray result=new DatasetResultArray();
+
         for(DatasetValue currValueDef:valuesDef){
             result.add(buildValue(currValueDef));
         }
@@ -141,10 +185,10 @@ public class DatasetBuilder {
         else {
             switch (valueDef.getType()) {
                 case ARRAY:
-                    newValue.setArray(buildArray(valueDef.getArrayVal()));
+                    newValue.setArray(buildArray(initArray(valueDef.getMetas()),valueDef.getArrayVal()));
                     break;
                 case OBJECT:
-                    newValue.setObject(buildObject(valueDef.getObjVal()));
+                    newValue.setObject(buildObject(initObject(valueDef.getMetas()),valueDef.getObjVal()));
                     break;
                 case DECIMAL:
                     newValue.setDecimal(valueDef.getDecimalVal());

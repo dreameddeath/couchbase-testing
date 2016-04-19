@@ -7,6 +7,8 @@ import com.dreameddeath.testing.dataset.runtime.model.DatasetResultValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
+import java.util.Collections;
+
 import static org.junit.Assert.*;
 
 /**
@@ -33,7 +35,12 @@ public class DatasetManagerTest {
         String resultAsJson=new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(resultingDataset);
         assertTrue(resultAsJson.contains("\"a new test is borned\""));
 
-        assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1"));
+        DatasetResultValue resulting2Dataset=manager.build("test1","the second dataset");
+        String result2AsJson=new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(resulting2Dataset);
+        assertTrue(result2AsJson.contains("\"new value\""));
+
+        assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1", Collections.singletonMap("toto_value","tutut")));
+        assertTrue(manager.validate(resulting2Dataset,"validationTest1","validateTest1", Collections.singletonMap("toto_value","new value")));
         assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1Success"));
         assertFalse(manager.validate(resultingDataset,"validationTest1","validateTest1Failure"));
         assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1SuccessWithStar"));

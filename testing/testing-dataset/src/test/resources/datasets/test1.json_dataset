@@ -21,3 +21,9 @@ this is a simple comment
       }
   ]
 }
+
+#$dataset_elt_name("the second dataset")
+@InitFrom("the first dataset")
+{
+    "a new test is borned"[0].toto: "new value"
+}

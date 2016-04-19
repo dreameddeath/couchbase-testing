@@ -111,4 +111,8 @@ public class DatasetElement {
         MVEL,
         DIRECTIVE
     }
+
+    public boolean hasMeta(DatasetMeta.Type type){
+        return metaList.stream().filter(meta->meta.getType()==type).count()>0;
+    }
 }
