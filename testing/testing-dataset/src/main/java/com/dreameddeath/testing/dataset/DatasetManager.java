@@ -1,5 +1,6 @@
 package com.dreameddeath.testing.dataset;
 
+import com.dreameddeath.testing.dataset.converter.IDatasetResultConverter;
 import com.dreameddeath.testing.dataset.json.grammar.JSON_DATASET;
 import com.dreameddeath.testing.dataset.json.grammar.JSON_DATASET_LEXER;
 import com.dreameddeath.testing.dataset.model.Dataset;
@@ -13,8 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -22,6 +22,35 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DatasetManager {
     private Map<String,Dataset> datasetMap=new ConcurrentHashMap<>();
+
+    private final ServiceLoader<IDatasetResultConverter> mapperServiceLoader=ServiceLoader.load(IDatasetResultConverter.class);
+    private final List<IDatasetResultConverter> mappers=new ArrayList<>();
+    private final Map<Class<?>,IDatasetResultConverter> mapperPerClass=new HashMap<>();
+
+    public void initMapper(){
+        mappers.clear();
+        mapperServiceLoader.reload();
+        Iterator<IDatasetResultConverter> mapperIterator=mapperServiceLoader.iterator();
+        while(mapperIterator.hasNext()){
+            mappers.add(mapperIterator.next());
+        }
+    }
+
+    public DatasetManager(){
+        initMapper();
+    }
+
+    public <T> IDatasetResultConverter<T> getMapperForClass(Class<T> clazz){
+        return mapperPerClass.computeIfAbsent(clazz,cls->{
+            for(IDatasetResultConverter<?> mapper:mappers){
+                if(mapper.canMap(clazz)){
+                    return mapper;
+                }
+            }
+            throw new IllegalArgumentException("Class mapper "+clazz.getName()+" not found");
+        });
+    }
+
 
     synchronized public void registerDataset(String name,Dataset dataset){
         if(datasetMap.containsKey(name)){
@@ -95,6 +124,35 @@ public class DatasetManager {
         return datasetMap.get(name);
     }
 
+    public DatasetResultValue build(String datasetName,String datasetElementName,Map<String,Object> params){
+        Dataset dataset=getDatasetByName(datasetName);
+        Preconditions.checkNotNull(datasetName);
+
+        return new DatasetBuilder(dataset,params).build(datasetElementName);
+    }
+
+
+    public DatasetResultValue build(String datasetName,String datasetElementName){
+        return build(datasetName,datasetElementName,Collections.emptyMap());
+    }
+
+    public <T> T build(Class<T> clazz,String datasetName,String datasetElementName,Map<String,Object> params){
+        DatasetResultValue result=build(datasetName,datasetElementName,params);
+        IDatasetResultConverter<T> mapper = getMapperForClass(clazz);
+        if(mapper!=null){
+            return mapper.mapResult(result);
+        }
+        else {
+            throw new RuntimeException("Cannot get mapper for class <"+clazz.getName());
+        }
+    }
+
+    public <T> T build(Class<T> clazz,String datasetName,String datasetElementName){
+        return build(clazz,datasetName,datasetElementName,Collections.emptyMap());
+    }
+
+
+
     public boolean validate(DatasetResultValue value,String datasetName,String dataSetElementName,Map<String,Object> params){
         Dataset dataset=getDatasetByName(datasetName);
         Preconditions.checkNotNull(dataset);
@@ -105,12 +163,23 @@ public class DatasetManager {
         return validate(value,datasetName,dataSetElementName, Collections.emptyMap());
     }
 
+    public <T> boolean validate(T value,String datasetName,String dataSetElementName,Map<String,Object> params){
+        if(value instanceof DatasetResultValue){
+            return validate((DatasetResultValue)value,datasetName,dataSetElementName, params);
+        }
+        else{
+            IDatasetResultConverter<T> mapper=getMapperForClass((Class<T>)value.getClass());
+            if(mapper!=null){
+                return validate(mapper.mapObject(value),datasetName,dataSetElementName,params);
+            }
+            else{
+                throw new RuntimeException("Cannot convert class <"+value.getClass().getName()+">");
+            }
+        }
+    }
 
-    public DatasetResultValue build(String datasetName,String datasetElementName){
-        Dataset dataset=getDatasetByName(datasetName);
-        Preconditions.checkNotNull(datasetName);
-
-        return new DatasetBuilder(dataset).build(datasetElementName);
+    public <T> boolean validate(T value,String datasetName,String dataSetElementName){
+        return validate(value,datasetName,dataSetElementName,Collections.emptyMap());
     }
 
 }

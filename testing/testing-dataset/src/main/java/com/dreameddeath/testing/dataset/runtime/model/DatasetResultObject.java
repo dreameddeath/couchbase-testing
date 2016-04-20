@@ -19,6 +19,8 @@ public class DatasetResultObject implements Cloneable{
     }
 
 
+
+
     public List<DatasetResultValue> getAll(){
         return new ArrayList<>(values.values());
     }

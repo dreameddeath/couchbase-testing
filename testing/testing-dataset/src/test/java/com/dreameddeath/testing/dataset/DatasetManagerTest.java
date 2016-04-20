@@ -4,6 +4,7 @@ import com.dreameddeath.testing.dataset.model.Dataset;
 import com.dreameddeath.testing.dataset.model.DatasetElement;
 import com.dreameddeath.testing.dataset.runtime.MvelRuntimeContext;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultValue;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
@@ -15,6 +16,7 @@ import static org.junit.Assert.*;
  * Created by Christophe Jeunesse on 16/04/2016.
  */
 public class DatasetManagerTest {
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void addDatasetsFromResourcePath() throws Exception {
@@ -35,10 +37,11 @@ public class DatasetManagerTest {
         String resultAsJson=new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(resultingDataset);
         assertTrue(resultAsJson.contains("\"a new test is borned\""));
 
-        DatasetResultValue resulting2Dataset=manager.build("test1","the second dataset");
-        String result2AsJson=new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(resulting2Dataset);
+        JsonNode resulting2Dataset=manager.build(JsonNode.class,"test1","the second dataset");
+        assertEquals("new value",resulting2Dataset.get("a new test is borned").get(0).get("toto").asText());
+        String result2AsJson=mapper.writerWithDefaultPrettyPrinter().writeValueAsString(resulting2Dataset);
         assertTrue(result2AsJson.contains("\"new value\""));
-
+        assertTrue(manager.validate(mapper.readTree(resultAsJson),"validationTest1","validateTest1", Collections.singletonMap("toto_value","tutut")));
         assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1", Collections.singletonMap("toto_value","tutut")));
         assertTrue(manager.validate(resulting2Dataset,"validationTest1","validateTest1", Collections.singletonMap("toto_value","new value")));
         assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1Success"));
