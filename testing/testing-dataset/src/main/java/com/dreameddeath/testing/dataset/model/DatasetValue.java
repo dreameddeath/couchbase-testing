@@ -1,6 +1,7 @@
 package com.dreameddeath.testing.dataset.model;
 
 import com.dreameddeath.testing.dataset.utils.DatasetUtils;
+import org.joda.time.DateTime;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.res.EndNode;
@@ -30,6 +31,7 @@ public class DatasetValue {
     private DatasetObject objVal;
     private List<DatasetValue> arrayVal = new ArrayList<>();
     private Boolean boolVal;
+    private DateTime dateTimeVal;
     private boolean isTemplate=false;
     private CompiledTemplate template=null;
     private DatasetMvel mvel=null;
@@ -90,6 +92,14 @@ public class DatasetValue {
         this.type = Type.BOOL;
     }
 
+    public void setDateTime(DateTime dateTime) {
+        this.dateTimeVal = dateTime;
+        this.type = DatasetValue.Type.DATETIME;
+    }
+
+    public void setDateTime(String dateTimeValStr) {
+        setDateTime(DateTime.parse(dateTimeValStr));
+    }
     public void setEmpty(){
         this.type = Type.EMPTY;
     }
@@ -114,6 +124,7 @@ public class DatasetValue {
             case OBJECT:return objVal;
             case ARRAY:return Collections.unmodifiableList(arrayVal);
             case BOOL:return boolVal;
+            case DATETIME:return dateTimeVal;
             case NULL:return null;
             default:return null;
         }
@@ -173,6 +184,10 @@ public class DatasetValue {
 
     public DatasetMvel getMvel() {
         return mvel;
+    }
+
+    public DateTime getDateTimeVal() {
+        return dateTimeVal;
     }
 
     public enum Type{

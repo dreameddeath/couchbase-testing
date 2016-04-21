@@ -19,10 +19,10 @@ package com.dreameddeath.billing.process.model;
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.billing.model.cycle.BillingCycle;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.tasks.ChildDocumentCreateTask;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.tasks.ChildDocumentCreateTask;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTime;
@@ -30,7 +30,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 03/08/2014.
  */
-@DocumentDef(domain = "billing",version="1.0.0")
+@DocumentEntity(domain = "billing",version="1.0.0")
 public class CreateBillingCycleJob extends AbstractJob {
     @DocumentProperty("ba")
     public BillingAccountLink baLink;
@@ -38,7 +38,7 @@ public class CreateBillingCycleJob extends AbstractJob {
     public DateTime startDate;
 
 
-    @DocumentDef(domain = "billing",version="1.0.0")
+    @DocumentEntity(domain = "billing",version="1.0.0")
     public static class CreateBillingCycleTask extends ChildDocumentCreateTask<BillingCycle,BillingAccount> {
         @JsonCreator
         public CreateBillingCycleTask(@JsonProperty("parent") String parentKey) {

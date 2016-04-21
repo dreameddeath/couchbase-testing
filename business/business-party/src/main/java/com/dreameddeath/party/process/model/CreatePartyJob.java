@@ -16,17 +16,17 @@
 
 package com.dreameddeath.party.process.model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.tasks.DocumentCreateTask;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
 import com.dreameddeath.party.model.base.Party;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-@DocumentDef(domain = "party",version="1.0.0")
+@DocumentEntity(domain = "party",version="1.0.0")
 public class CreatePartyJob extends AbstractJob {
     @DocumentProperty("type")
     public Type type;
@@ -54,7 +54,7 @@ public class CreatePartyJob extends AbstractJob {
     }
 
 
-    @DocumentDef(domain="party",version="1.0.0")
+    @DocumentEntity(domain="party",version="1.0.0")
     public static class CreatePartyTask extends DocumentCreateTask<Party> {
     }
 }

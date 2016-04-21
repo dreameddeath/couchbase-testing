@@ -21,7 +21,7 @@ import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.model.utils.DaoInfo;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
@@ -52,7 +52,7 @@ public class DaoUtils {
 
     public static String getTargetDaoPerModelRegisteringFilename(DaoForClass annot){
         AbstractClassInfo classInfo = AbstractClassInfo.getClassInfoFromAnnot(annot, DaoForClass::value);
-        DocumentDef docDefAnnot = classInfo.getAnnotation(DocumentDef.class);
+        DocumentEntity docDefAnnot = classInfo.getAnnotation(DocumentEntity.class);
         if(docDefAnnot==null){
             throw new RuntimeException("Cannot find DocumentDef for class <"+classInfo.getFullName()+">");
         }
@@ -63,7 +63,7 @@ public class DaoUtils {
 
     public static void writeDaoInfo(Writer writer,DaoForClass annot,ClassInfo daoClassInfo) throws IOException{
         AbstractClassInfo classInfo = AbstractClassInfo.getClassInfoFromAnnot(annot, DaoForClass::value);
-        DocumentDef docDefAnnot = classInfo.getAnnotation(DocumentDef.class);
+        DocumentEntity docDefAnnot = classInfo.getAnnotation(DocumentEntity.class);
         if(docDefAnnot==null){
             throw new RuntimeException("Cannot find DocumentDef for class <"+classInfo.getFullName()+">");
         }

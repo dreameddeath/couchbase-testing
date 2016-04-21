@@ -69,7 +69,10 @@ public class DaoInstanceInfo implements IRegisterable {
         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(dao.getBaseClass());
 
         this.mainEntity = EntityDef.build(structureReflection);
-        this.childEntities.addAll(new EntityDefinitionManager().getEntities().stream().filter(entity -> entity.getParentEntities().contains(this.mainEntity.getModelId())).collect(Collectors.toList()));
+        this.childEntities.addAll(new EntityDefinitionManager().getEntities().stream().filter(
+                entity ->
+                        entity.getParentEntities().contains(this.mainEntity.getModelId())
+        ).collect(Collectors.toList()));
     }
 
     public UUID getUuid() {

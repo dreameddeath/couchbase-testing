@@ -8,5 +8,5 @@ import com.dreameddeath.testing.dataset.runtime.model.DatasetResultValue;
 public interface IDatasetResultConverter<T> {
     boolean canMap(Class<?> clazz);
     DatasetResultValue mapObject(T src);
-    T mapResult(DatasetResultValue value);
+    <TSUB extends T> TSUB mapResult(Class<TSUB> clazz,DatasetResultValue value);
 }

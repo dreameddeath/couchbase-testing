@@ -16,15 +16,15 @@
 
 package com.dreameddeath.party.process.model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-@DocumentDef(domain = "party",version="1.0.0")
+@DocumentEntity(domain = "party",version="1.0.0")
 public class CreatePartyRequest extends AbstractJob {
     @DocumentProperty("type")
     public Type type;

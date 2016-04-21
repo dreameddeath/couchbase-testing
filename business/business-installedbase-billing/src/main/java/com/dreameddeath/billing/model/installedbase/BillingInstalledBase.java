@@ -23,7 +23,7 @@ import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.ParentEntity;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.NumericProperty;
@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 12/08/2014.
  */
-@DocumentDef(domain = "billing",name="base",version = "1.0.0")
+@DocumentEntity(domain = "billing",name="base",version = "1.0.0")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDao.class,dbPath = "base/",idPattern = "\\d{5}",idFormat = "%05d")
 @ParentEntity(c= BillingAccount.class,keyPath = "ba.key",separator = "/")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)

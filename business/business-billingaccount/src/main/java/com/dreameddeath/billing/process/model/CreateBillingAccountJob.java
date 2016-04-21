@@ -18,19 +18,19 @@ package com.dreameddeath.billing.process.model;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.tasks.DocumentCreateTask;
-import com.dreameddeath.core.process.model.tasks.DocumentUpdateTask;
-import com.dreameddeath.core.process.model.tasks.SubJobProcessTask;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
+import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.v1.tasks.SubJobProcessTask;
 import com.dreameddeath.party.model.base.Party;
 import com.dreameddeath.party.model.base.PartyLink;
 
 /**
  * Created by Christophe Jeunesse on 29/05/2014.
  */
-@DocumentDef(domain = "billing",version="1.0.0")
+@DocumentEntity(domain = "billing",version="1.0.0")
 public class CreateBillingAccountJob extends AbstractJob {
     @DocumentProperty("partyId")
     public String partyId;
@@ -44,12 +44,12 @@ public class CreateBillingAccountJob extends AbstractJob {
     @DocumentProperty("partyLink")
     public PartyLink partyLink;
 
-    @DocumentDef(domain = "billing",version="1.0.0")
+    @DocumentEntity(domain = "billing",version="1.0.0")
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> { }
 
-    @DocumentDef(domain = "billing",version="1.0.0")
+    @DocumentEntity(domain = "billing",version="1.0.0")
     public static class CreatePartyRolesTask extends DocumentUpdateTask<Party> { }
 
-    @DocumentDef(domain = "billing",version="1.0.0")
+    @DocumentEntity(domain = "billing",version="1.0.0")
     public static class CreateBillingCycleJobTask extends SubJobProcessTask<CreateBillingCycleJob> { }
 }

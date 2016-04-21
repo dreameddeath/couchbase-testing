@@ -18,10 +18,10 @@ package com.dreameddeath.core.process.service.factory.impl;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
-import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.base.AbstractTask;
 import com.dreameddeath.core.process.model.discovery.JobExecutorClientInfo;
 import com.dreameddeath.core.process.model.discovery.TaskExecutorClientInfo;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.registrar.JobExecutorClientRegistrar;
 import com.dreameddeath.core.process.registrar.TaskExecutorClientRegistrar;
 import com.dreameddeath.core.process.service.IJobExecutorClient;

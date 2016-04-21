@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.upgrade;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
  * Created by Christophe Jeunesse on 28/11/2014.
  */
 public class UpgraderTest {
-    @DocumentDef(domain="test",name="test",version = "1.0.0")
+    @DocumentEntity(domain="test",name="test",version = "1.0.0")
     public static class TestModel implements IVersionedEntity {
         private EntityModelId entityModelId;
         @Override
@@ -50,7 +50,7 @@ public class UpgraderTest {
         public String value;
     }
 
-    @DocumentDef(domain="test",name="test",version = "2.1.0")
+    @DocumentEntity(domain="test",name="test",version = "2.1.0")
     public static class TestModelV2 extends TestModel {
 
     }

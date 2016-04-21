@@ -24,7 +24,6 @@ import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.model.common.IHasInstalledItemLink;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 10/08/2014.
  */
-@JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> implements IHasInstalledItemLink<InstalledOfferLink> {
     /**
      *  parent : the current parent of the offer

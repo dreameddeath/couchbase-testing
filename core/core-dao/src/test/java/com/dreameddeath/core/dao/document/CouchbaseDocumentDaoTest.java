@@ -24,7 +24,7 @@ import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingException;
@@ -46,7 +46,7 @@ import static org.junit.Assert.assertTrue;
 public class CouchbaseDocumentDaoTest{
     private static Logger LOG = LoggerFactory.getLogger(CouchbaseDocumentDaoTest.class);
 
-    @DocumentDef(domain = "test")
+    @DocumentEntity(domain = "test",version = "1.0")
     public static class TestRootDaoDoc extends CouchbaseDocument{
         @DocumentProperty("test")
         public String test;

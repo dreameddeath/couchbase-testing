@@ -18,7 +18,7 @@ package com.dreameddeath.core.model.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
@@ -36,15 +36,15 @@ import java.util.Set;
  * Created by Christophe Jeunesse on 26/11/2014.
  */
 @SupportedAnnotationTypes(
-        {"com.dreameddeath.core.model.annotation.DocumentDef"}
+        {"com.dreameddeath.core.model.annotation.DocumentEntity"}
 )
 public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
         EntityDefinitionManager entityDefinitionManager = new EntityDefinitionManager();
-        for(Element classElem:roundEnv.getElementsAnnotatedWith(DocumentDef.class)){
-            DocumentDef annot =classElem.getAnnotation(DocumentDef.class);
+        for(Element classElem:roundEnv.getElementsAnnotatedWith(DocumentEntity.class)){
+            DocumentEntity annot =classElem.getAnnotation(DocumentEntity.class);
             try {
                 String fileName= entityDefinitionManager.getDocumentEntityFilename(EntityModelId.build(annot, classElem));
                 AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, classElem);

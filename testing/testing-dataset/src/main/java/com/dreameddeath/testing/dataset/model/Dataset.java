@@ -90,6 +90,8 @@ public class Dataset {
             mvel2Ctxt = new ParserContext();
             mvel2Ctxt.setStrongTyping(true);
             mvel2Ctxt.setStrictTypeEnforcement(true);
+            mvel2Ctxt.setDebugSymbols(true);
+            mvel2Ctxt.setSourceFile(this.getName());
             mvel2Ctxt.addVariable("globalManager",DatasetManager.class,true);
             mvel2Ctxt.addVariable("globalDataset",Dataset.class,true);
             mvel2Ctxt.addVariable("log",Logger.class,true);

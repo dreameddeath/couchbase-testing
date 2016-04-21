@@ -23,7 +23,7 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.UidDef;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -38,7 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@DocumentDef(domain = "billing",name="ba",version="1.0.0")
+@DocumentEntity(domain = "billing",name="ba",version="1.0.0")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "ba/",idPattern = "\\d{10}",idFormat = "%010d")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")

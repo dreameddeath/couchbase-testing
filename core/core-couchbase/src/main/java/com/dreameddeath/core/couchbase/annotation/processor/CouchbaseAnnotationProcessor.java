@@ -22,7 +22,7 @@ import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFile
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.couchbase.utils.CouchbaseUtils;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class CouchbaseAnnotationProcessor extends AbstractAnnotationProcessor {
                     AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement) element);
                     BucketDocumentForClass annot = classInfo.getAnnotation(BucketDocumentForClass.class);
                     AbstractClassInfo targetClassInfo = AbstractClassInfo.getClassInfoFromAnnot(annot, BucketDocumentForClass::value);
-                    if(targetClassInfo.getAnnotation(DocumentDef.class)==null){
+                    if(targetClassInfo.getAnnotation(DocumentEntity.class)==null){
                         throw new RuntimeException("The class <"+targetClassInfo.getFullName()+"> must have an @DocumentDef annotation as it is the target of a BucketDocumentForClass annotation");
                     }
                     String fileName= CouchbaseUtils.getTargetBucketDocumentRegisteringFilename(annot);

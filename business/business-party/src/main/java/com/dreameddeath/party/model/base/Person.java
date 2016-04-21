@@ -16,7 +16,7 @@
 
 package com.dreameddeath.party.model.base;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -26,7 +26,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-@DocumentDef(domain = "party",version="1.0.0")
+@DocumentEntity(domain = "party")
 public class Person extends Party {
     @DocumentProperty("firstName") @NotNull
     private Property<String> firstName=new StandardProperty<String>(Person.this);

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dreameddeath.testing.couchbase;
 
 import com.codahale.metrics.MetricRegistry;
@@ -31,7 +30,7 @@ import com.dreameddeath.core.couchbase.dcp.ICouchbaseDCPEnvironment;
 import com.dreameddeath.core.couchbase.dcp.exception.HandlerException;
 import com.dreameddeath.core.couchbase.dcp.impl.AbstractDCPFlowHandler;
 import com.dreameddeath.core.couchbase.dcp.impl.DefaultCouchbaseDCPEnvironment;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingException;
 import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
@@ -126,7 +125,7 @@ public class CouchbaseBucketSimulatorTest {
         }
     }
 
-    @DocumentDef(domain = "test")
+    @DocumentEntity(domain = "test",version = "1.0")
     public static class TestDoc extends CouchbaseDocument {
         public String field1;
         public String field2;
@@ -226,7 +225,6 @@ public class CouchbaseBucketSimulatorTest {
         assertEquals(0, handler.errors);
         assertEquals(6,handler.mutations);
         assertEquals(1,handler.deletions);
-
         assertEquals(6,registry.getTimers().get("DcpFlowHandler=\"TestBucketSimulator\", Event=\"Mutation\",Attribute=Totals").getCount());
         assertEquals(1,registry.getTimers().get("DcpFlowHandler=\"TestBucketSimulator\", Event=\"Deletion\",Attribute=Totals").getCount());
         //assertEquals(1,counters.get(0).getCount());

@@ -55,7 +55,7 @@
     <bean id="defaultJobExecutor" class="com.dreameddeath.core.process.service.IJobExecutorService"
           factory-bean="executorServiceFactory"
           factory-method="addJobExecutorService">
-        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.model.base.AbstractJob" />
+        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.model.v1.base.AbstractJob" />
         <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.service.impl.BasicJobExecutorServiceImpl" />
     </bean>
 
@@ -63,7 +63,7 @@
     <bean id="defaultTaskExecutor" class="com.dreameddeath.core.process.service.IJobExecutorService"
           factory-bean="executorServiceFactory"
           factory-method="addTaskExecutorService">
-        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.model.base.AbstractTask" />
+        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.model.v1.base.AbstractTask" />
         <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.service.impl.BasicTaskExecutorServiceImpl" />
     </bean>
 

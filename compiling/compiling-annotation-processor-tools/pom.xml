@@ -51,6 +51,16 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>core-java-utils</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <!--
+      -
+      - testing
+      -
+      -->
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>testing-annotation-processor</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>

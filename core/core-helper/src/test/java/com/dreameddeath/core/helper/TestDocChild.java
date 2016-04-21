@@ -16,14 +16,14 @@
 
 package com.dreameddeath.core.helper;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
 /**
  * Created by Christophe Jeunesse on 20/04/2015.
  */
-@DocumentDef(domain="testDao")
+@DocumentEntity(domain="testDao")
 public class TestDocChild extends CouchbaseDocument {
     @DocumentProperty("value")
     public String value;

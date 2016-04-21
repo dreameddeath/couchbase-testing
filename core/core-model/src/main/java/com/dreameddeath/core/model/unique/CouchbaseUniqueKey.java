@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.model.unique;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Created by Christophe Jeunesse on 06/08/2014.
  */
-@DocumentDef(domain="core")
+@DocumentEntity(domain="core",version = "1.0")
 public class CouchbaseUniqueKey extends CouchbaseDocument {
     @DocumentProperty("maps")
     MapProperty<String,String> keyMaps = new HashMapProperty<String, String>(CouchbaseUniqueKey.this);

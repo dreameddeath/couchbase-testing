@@ -35,7 +35,7 @@ import com.dreameddeath.core.elasticsearch.IElasticSearchMapper;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchDao;
 import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
@@ -102,7 +102,7 @@ public class Utils {
 
             @Override
             public String documentTypeBuilder(String bucketName, Class<? extends CouchbaseDocument> clazz) {
-                DocumentDef annot = clazz.getAnnotation(DocumentDef.class);
+                DocumentEntity annot = clazz.getAnnotation(DocumentEntity.class);
                 if(annot!=null){
                     return annot.domain()+"_-_"+annot.name()+"_-_"+annot.version().toLowerCase();
                 }

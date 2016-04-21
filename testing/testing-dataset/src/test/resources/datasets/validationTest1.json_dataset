@@ -4,6 +4,9 @@
 {
   "a new test is borned" : [ {
     "toto" : "@{toto_value}",
+    date : 2016-10-10T00:00:00,
+    datetime : 2016-10-10T05:00:00,
+    datetimeTz : 2016-10-10T03:00:00+00:00,
     "tata" : [ {
       "tutu" : [ "toto", #% "v"+(++pos);%#, #%pos;%# ]
     }, {

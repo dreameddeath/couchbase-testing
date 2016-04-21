@@ -16,13 +16,12 @@
 
 package com.dreameddeath.installedbase.model.offer;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.installedbase.annotation.EntityConstants;
 import com.dreameddeath.installedbase.model.common.IHasLinkRevision;
 import com.dreameddeath.installedbase.model.common.InstalledAttributeRevision;
 import com.dreameddeath.installedbase.model.common.InstalledItemLinkRevision;
@@ -34,7 +33,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 11/08/2014.
  */
-@DocumentDef(domain = EntityConstants.DOMAIN)
+@DocumentEntity
 public class InstalledOfferRevision extends InstalledItemRevision implements IHasLinkRevision {
     /**
      *  parent : the  parent of the offer

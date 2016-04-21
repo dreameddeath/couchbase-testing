@@ -26,7 +26,7 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.annotation.DocumentVersionUpgrader;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
@@ -51,19 +51,19 @@ public class UpgraderTest {
         public String baseValue;
     }
 
-    @DocumentDef(domain="test",name="elementType1",version = "1.0.0")
+    @DocumentEntity(domain="test",name="elementType1",version = "1.0.0")
     public static class TestElementType1 extends TestElement{
         @DocumentProperty("value")
         public String valueType1;
     }
 
-    @DocumentDef(domain="test",name="elementType2",version = "1.0.0")
+    @DocumentEntity(domain="test",name="elementType2",version = "1.0.0")
     public static class TestElementType2 extends TestElement{
         @DocumentProperty("value")
         public String valueType2;
     }
 
-    @DocumentDef(domain="test",name="elementUnified",version = "1.0.0")
+    @DocumentEntity(domain="test",name="elementUnified",version = "1.0.0")
     public static class TestElementV2 extends VersionedDocumentElement {
         @DocumentProperty("baseValue2")
         public String baseValue2;
@@ -71,7 +71,7 @@ public class UpgraderTest {
         public String value2;
     }
 
-    @DocumentDef(domain="test",name="test",version = "1.0.0")
+    @DocumentEntity(domain="test",name="test",version = "1.0.0")
     public static class TestModel extends BusinessDocument {
         @DocumentProperty("value")
         public String value;
@@ -80,7 +80,7 @@ public class UpgraderTest {
         public List<TestElement> element=new ArrayList<>();
     }
 
-    @DocumentDef(domain="test",name="test",version = "2.1.0")
+    @DocumentEntity(domain="test",name="test",version = "2.1.0")
     public static class TestModelV2 extends BusinessDocument {
         @DocumentProperty("value")
         public String value2;

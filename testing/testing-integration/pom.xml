@@ -97,5 +97,10 @@
             <artifactId>testing-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-dataset</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

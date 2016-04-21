@@ -16,10 +16,10 @@
 
 package com.dreameddeath.couchbase.core.process.remote.model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.tasks.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
@@ -27,7 +27,7 @@ import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
 /**
  * Created by Christophe Jeunesse on 04/01/2016.
  */
-@DocumentDef(domain="test")
+@DocumentEntity(domain="test")
 public class TestDocJobUpdate extends AbstractJob {
     @DocumentProperty @NotNull @Request
     public Integer incrIntValue;
@@ -37,6 +37,6 @@ public class TestDocJobUpdate extends AbstractJob {
     @DocumentProperty @Result
     public Integer resultIncrValue;
 
-    @DocumentDef(domain = "test")
+    @DocumentEntity(domain = "test")
     public static class TestJobUpdateTask extends DocumentUpdateTask<TestDoc> {}
 }

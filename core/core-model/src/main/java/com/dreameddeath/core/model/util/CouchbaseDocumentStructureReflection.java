@@ -18,7 +18,7 @@ package com.dreameddeath.core.model.util;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
@@ -138,7 +138,7 @@ public class CouchbaseDocumentStructureReflection {
 
     protected CouchbaseDocumentStructureReflection(ClassInfo classInfo){
         this.classInfo = classInfo;
-        DocumentDef docDefAnnot = classInfo.getAnnotation(DocumentDef.class);
+        DocumentEntity docDefAnnot = classInfo.getAnnotation(DocumentEntity.class);
         modelId = (docDefAnnot!=null)?EntityModelId.build(docDefAnnot,classInfo):EntityModelId.EMPTY_MODEL_ID;
 
         if(CouchbaseDocumentStructureReflection.isReflexible(classInfo.getSuperClass())){

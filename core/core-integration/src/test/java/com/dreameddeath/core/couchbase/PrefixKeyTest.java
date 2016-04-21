@@ -23,7 +23,7 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -41,7 +41,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class PrefixKeyTest {
 
-    @DocumentDef(domain="test",name="prefixKey",version = "1.0.0")
+    @DocumentEntity(domain="test",name="prefixKey",version = "1.0.0")
     public static class TestPrefixKey extends BusinessDocument {
         @DocumentProperty("value")
         public String value;

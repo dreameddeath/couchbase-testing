@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.model.entity.model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -69,10 +69,10 @@ public class EntityDef {
     public static EntityDef build(CouchbaseDocumentStructureReflection documentDef){
         EntityDef result = new EntityDef();
         if(documentDef.getClassInfo().getTypeElement()!=null) {
-            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentDef.class), documentDef.getClassInfo().getTypeElement()));
+            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentEntity.class), documentDef.getClassInfo().getTypeElement()));
         }
         else{
-            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentDef.class), documentDef.getClassInfo().getCurrentClass()));
+            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentEntity.class), documentDef.getClassInfo().getCurrentClass()));
         }
         result.setClassName(documentDef.getClassInfo().getFullName());
         CouchbaseDocumentStructureReflection currDocReflection = documentDef;

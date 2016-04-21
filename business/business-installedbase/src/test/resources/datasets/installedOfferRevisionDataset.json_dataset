@@ -1,0 +1,48 @@
+#$dataset_name("installed_offer_revision_test")
+
+#$dataset_elt_name("base_installed_offer")
+@Declare("origDate","DateTime")
+{
+    id:"111",
+    code:"test",
+    creationDate:#% origDate; %#,
+    lastModificationDate:#% origDate; %#,
+    status:{
+        code:"INITIALIZED"
+    },
+    revisions :[{
+            orderItemId:"ccoItem1",
+            revState:"REQUESTED"
+        },{
+            orderItemId:"ccoItem2",
+            revState:"PLANNED",
+            effectiveDate:#% origDate.plusDays(1); %#,
+            status:{
+                code:"SUSPENDED"
+            }
+        },{
+            orderItemId:"ccoItem3",
+            revState:"PLANNED",
+            effectiveDate:#% origDate.plus(1); %#,
+            status:{
+                code:"ACTIVE"
+            }
+        },{
+            orderItemId:"ccoItem4",
+            revState:"PLANNED",
+            effectiveDate:#% origDate; %#
+        },{
+            orderItemId:"ccoItem4.1",
+            revState:"PLANNED",
+            effectiveDate:#% origDate.minus(5); %#
+        },{
+            orderItemId:"ccoItem5",
+            revState:"CURRENT",
+            effectiveDate:#% origDate; %#
+        },{
+            orderItemId:"ccoItem6",
+            revState:"PAST",
+            effectiveDate:#% origDate; %#
+        }
+    ]
+}

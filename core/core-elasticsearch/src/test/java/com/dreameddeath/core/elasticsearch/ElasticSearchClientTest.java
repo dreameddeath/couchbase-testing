@@ -25,7 +25,7 @@ import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResultHit;
 import com.dreameddeath.core.elasticsearch.dcp.ElasticSearchDcpFlowHandler;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
@@ -120,7 +120,7 @@ public class ElasticSearchClientTest {
         }
     }
 
-    @DocumentDef(domain = "test")
+    @DocumentEntity(domain = "test",version="1.0")
     public static class TestDoc extends CouchbaseDocument {
         @DocumentProperty("lastName")
         public String lastName;

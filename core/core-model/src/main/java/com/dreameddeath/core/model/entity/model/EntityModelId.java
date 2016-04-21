@@ -16,14 +16,22 @@
 
 package com.dreameddeath.core.model.entity.model;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.PackageInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.annotation.DocumentPackageDefault;
 import com.fasterxml.jackson.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.dreameddeath.core.model.entity.model.EntityVersion.EMPTY_VERSION;
 
 /**
  * Created by Christophe Jeunesse on 12/10/2015.
@@ -32,10 +40,12 @@ import java.util.regex.Pattern;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonAutoDetect(getterVisibility= JsonAutoDetect.Visibility.NONE,fieldVisibility= JsonAutoDetect.Visibility.NONE,isGetterVisibility = JsonAutoDetect.Visibility.NONE,setterVisibility = JsonAutoDetect.Visibility.NONE,creatorVisibility = JsonAutoDetect.Visibility.NONE)
 public class EntityModelId {
+    private static final Logger LOG= LoggerFactory.getLogger(EntityModelId.class);
+    public static final char ENTITY_SPERATOR='/';
     public static final String ENTITY_PATTERN_STRING = "(\\w+)/(\\w+)";
     public static final Pattern ENTITY_PATTERN=Pattern.compile("^"+ENTITY_PATTERN_STRING+"$");
     public static final Pattern FULL_ENTITY_ID= Pattern.compile("^"+ENTITY_PATTERN_STRING+"/("+EntityVersion.VERSION_PATTERN_STR+")$");
-    public static final EntityModelId EMPTY_MODEL_ID=new EntityModelId(null,null,EntityVersion.EMPTY_VERSION);
+    public static final EntityModelId EMPTY_MODEL_ID=new EntityModelId(null,null, EMPTY_VERSION);
 
 
     @JsonProperty("domain")
@@ -64,12 +74,54 @@ public class EntityModelId {
         entityVersion = version!=null?EntityVersion.version(version):null;
     }
 
-    public EntityModelId(DocumentDef documentDef,Element elt) {
-        this(documentDef.domain(), StringUtils.isEmpty(documentDef.name()) ? elt.getSimpleName().toString().toLowerCase() : documentDef.name(), documentDef.version());
+    private static String getInfo(PackageInfo pkg,boolean isVersion){
+        DocumentPackageDefault annot=pkg.getAnnotation(DocumentPackageDefault.class);
+        if(annot!=null){
+            String info =isVersion?annot.version():annot.domain();
+            if(StringUtils.isNotEmpty(info)){
+                 return info;
+            }
+        }
+        PackageInfo parent = pkg.getParentPackage();
+        String info=null;
+        if(parent!=null){
+            info=getInfo(parent,isVersion);
+        }
+
+        if(info==null){
+            LOG.error("Cannot find {} in Package {}",isVersion?"version":"domain",pkg.getName());
+        }
+        return null;
     }
 
-    public EntityModelId(DocumentDef documentDef,Class<?> clazz){
-        this(documentDef.domain(),StringUtils.isEmpty(documentDef.name())?clazz.getSimpleName().toLowerCase():documentDef.name(),documentDef.version());
+    private static String getInfo(DocumentEntity documentEntity, AbstractClassInfo cls, boolean isVersion) {
+        String info = isVersion?documentEntity.version(): documentEntity.domain();
+        if (StringUtils.isEmpty(info)) {
+            PackageInfo packageInfo=cls.getPackageInfo();
+            info=getInfo(packageInfo,isVersion);
+        }
+        if (StringUtils.isEmpty(info)) {
+            throw new RuntimeException("Cannot get "+ (isVersion?"version":"domain")+ " of element "+cls.getImportName());
+        }
+        else{
+            return info;
+        }
+    }
+
+
+    public EntityModelId(DocumentEntity documentEntity, AbstractClassInfo classInfo) {
+        this(
+                getInfo(documentEntity,classInfo,false),
+                StringUtils.isEmpty(documentEntity.name()) ? classInfo.getSimpleName().toLowerCase() : documentEntity.name(),
+                getInfo(documentEntity,classInfo,true));
+    }
+
+    public EntityModelId(DocumentEntity documentEntity, Element elt) {
+        this(documentEntity,ClassInfo.getClassInfo((TypeElement)elt));
+    }
+
+    public EntityModelId(DocumentEntity documentEntity, Class<?> clazz){
+        this(documentEntity,ClassInfo.getClassInfo(clazz));
     }
 
     public EntityModelId(String fullString){
@@ -117,11 +169,11 @@ public class EntityModelId {
     }
 
     public String toString(){
-        return domain+"/"+name+"/"+entityVersion.toString();
+        return domain+"/"+name+((entityVersion!=null)?"/"+entityVersion.toString():"");
     }
 
     public String getClassUnivoqueModelId(){
-        return domain+"/"+name+"/"+entityVersion.getMajor().toString();
+        return domain+"/"+name+((entityVersion!=null)?"/"+entityVersion.getMajor().toString():"");
     }
 
 
@@ -150,7 +202,7 @@ public class EntityModelId {
         return new EntityModelId(fullIdString);
     }
 
-    public static EntityModelId build(DocumentDef annot,ClassInfo classInfo){
+    public static EntityModelId build(DocumentEntity annot, ClassInfo classInfo){
         if(classInfo.getCurrentClass()!=null){
             return EntityModelId.build(annot,classInfo.getCurrentClass());
         }
@@ -165,11 +217,11 @@ public class EntityModelId {
         return new EntityModelId(domain,name,version);
     }
 
-    public static EntityModelId build(DocumentDef annot,Element elt){
+    public static EntityModelId build(DocumentEntity annot, Element elt){
         return new EntityModelId(annot,elt);
     }
 
-    public static EntityModelId build(DocumentDef annot,Class clazz){
+    public static EntityModelId build(DocumentEntity annot, Class clazz){
         return new EntityModelId(annot,clazz);
     }
 

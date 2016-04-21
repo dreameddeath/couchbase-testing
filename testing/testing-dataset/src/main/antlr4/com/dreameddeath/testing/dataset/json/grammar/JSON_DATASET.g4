@@ -114,6 +114,7 @@ value returns [ DatasetValue result ]
 | (meta_data {$result.addMeta($meta_data.result);})* DECIMAL { $result.setDecimalValue($DECIMAL.text); }
 | (meta_data {$result.addMeta($meta_data.result);})* INTEGER { $result.setLongValue($INTEGER.text);}
 | (meta_data {$result.addMeta($meta_data.result);})* EXP_INT { $result.setLongValue($EXP_INT.text);}
+| (meta_data {$result.addMeta($meta_data.result);})* DATETIME { $result.setDateTime($DATETIME.text);}
 | (meta_data {$result.addMeta($meta_data.result);})* object { $result.setObjectValue($object.result);}// recursion
 | (meta_data {$result.addMeta($meta_data.result);})* array { $result.setArrayValue($array.result);}// recursion
 | (meta_data {$result.addMeta($meta_data.result);})* TRUE { $result.setBool(true);}// keywords

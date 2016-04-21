@@ -84,5 +84,16 @@
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
     </dependency>
+      <!--
+       -
+       - Testing
+       -
+       -->
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-integration</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 </project>

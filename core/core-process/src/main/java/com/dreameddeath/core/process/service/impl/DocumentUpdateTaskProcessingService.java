@@ -22,10 +22,10 @@ import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.DuplicateAttachedTaskException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.base.CouchbaseDocumentAttachedTaskRef;
-import com.dreameddeath.core.process.model.base.IDocumentWithLinkedTasks;
-import com.dreameddeath.core.process.model.tasks.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.CouchbaseDocumentAttachedTaskRef;
+import com.dreameddeath.core.process.model.v1.base.IDocumentWithLinkedTasks;
+import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
 
 /**

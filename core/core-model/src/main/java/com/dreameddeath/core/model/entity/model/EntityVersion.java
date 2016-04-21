@@ -73,7 +73,7 @@ public class EntityVersion implements Comparable<EntityVersion>{
 
     @Override @JsonValue
     public String toString(){
-        return String.format("%d.%d.%d", major, minor, patch);
+        return String.format("%d.%d.%d", major, minor, patch!=null?patch:0);
     }
 
     @Override
@@ -85,14 +85,14 @@ public class EntityVersion implements Comparable<EntityVersion>{
 
         if (!major.equals(entityVersion.major)) return false;
         if (!minor.equals(entityVersion.minor)) return false;
-        return !(patch != null ? !patch.equals(entityVersion.patch) : entityVersion.patch != null);
+        return (patch==null)||(entityVersion.patch==null) || patch.equals(entityVersion.patch);
     }
 
     @Override
     public int hashCode() {
         int result = major.hashCode();
         result = 31 * result + minor.hashCode();
-        result = 31 * result + (patch != null ? patch.hashCode() : 0);
+        //result = 31 * result + (patch != null ? patch.hashCode() : 0);
         return result;
     }
 

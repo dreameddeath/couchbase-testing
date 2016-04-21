@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.transcoder.json;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -46,7 +46,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     @Override
     public String idFromValue(Object value){
-        DocumentDef annot=value.getClass().getAnnotation(DocumentDef.class);
+        DocumentEntity annot=value.getClass().getAnnotation(DocumentEntity.class);
         if(annot!=null){
             return EntityModelId.build(annot, value.getClass()).toString();
         }
@@ -62,7 +62,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
 
     @Override
     public String idFromBaseType() {
-        DocumentDef annot = baseType.getRawClass().getAnnotation(DocumentDef.class);
+        DocumentEntity annot = baseType.getRawClass().getAnnotation(DocumentEntity.class);
         if(annot!=null){
             return EntityModelId.build(annot, baseType.getRawClass()).toString();
         }

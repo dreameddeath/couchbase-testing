@@ -26,8 +26,8 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DocumentDef {
-    String domain();
+public @interface DocumentEntity {
+    String domain() default "";//Default is package domain
     String name() default "";//Default is class
-    String version() default "1.0.0";
+    String version() default "";//Default is package
 }

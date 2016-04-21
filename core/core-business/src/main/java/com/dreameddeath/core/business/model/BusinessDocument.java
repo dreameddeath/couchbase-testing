@@ -23,7 +23,7 @@ import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
-import com.dreameddeath.core.process.model.base.AbstractProcessCouchbaseDocument;
+import com.dreameddeath.core.process.model.v1.base.AbstractProcessCouchbaseDocument;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model.base;
+package com.dreameddeath.core.process.model.v1.base;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.UUID;
 
@@ -29,7 +28,6 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
-@JsonTypeInfo(use= JsonTypeInfo.Id.MINIMAL_CLASS, include= JsonTypeInfo.As.PROPERTY, property="@c")
 public class CouchbaseDocumentAttachedTaskRef extends CouchbaseDocumentElement {
     @DocumentProperty("jobUid") @NotNull
     private Property<UUID> jobUid = new ImmutableProperty<>(CouchbaseDocumentAttachedTaskRef.this);

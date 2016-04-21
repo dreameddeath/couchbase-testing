@@ -16,7 +16,7 @@
 
 package com.dreameddeath.couchbase.core.process.remote.model.rest;
 
-import com.dreameddeath.core.process.model.base.ProcessState;
+import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**

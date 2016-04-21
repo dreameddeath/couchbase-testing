@@ -25,7 +25,7 @@ public class MvelRuntimeContext {
     public MvelRuntimeContext(Dataset dataset,Map<String,Object> params){
         MapVariableResolverFactory factory=new MapVariableResolverFactory();
         for(Map.Entry<String,Object> param:params.entrySet()){
-            factory.createVariable(param.getKey(),param.getValue());
+            factory.createVariable(param.getKey(), param.getValue());
         }
         factory.createVariable("log",LoggerFactory.getLogger(dataset.getClass().getName()+"."+dataset.getName()));
         factory.createVariable("globalDataset",dataset);

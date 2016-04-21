@@ -37,7 +37,9 @@ public class CouchbaseBusinessDocumentDeserializerModifier extends BeanDeseriali
                 (deserializer instanceof  BeanDeserializer)
                 )
         {
-            return new CouchbaseBusinessDocumentDeserializer((BeanDeserializer)deserializer);
+            if(deserializer instanceof BeanDeserializer) {
+                return new CouchbaseBusinessDocumentDeserializer((BeanDeserializer) deserializer);
+            }
         }
 
         return super.modifyDeserializer(config, beanDesc, deserializer);

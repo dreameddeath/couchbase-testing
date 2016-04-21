@@ -16,22 +16,22 @@
 
 package com.dreameddeath.couchbase.core.process.remote.model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.couchbase.core.process.remote.model.published.TestDocJobUpdateGenRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.published.TestDocJobUpdateGenResponse;
 
 /**
  * Created by Christophe Jeunesse on 25/02/2016.
  */
-@DocumentDef(domain="test")
+@DocumentEntity(domain="test")
 public class RemoteUpdateGenJob extends AbstractJob {
     @DocumentProperty
     public Integer descrIntValue;
     @DocumentProperty
     public String key;
 
-    @DocumentDef(domain = "test")
+    @DocumentEntity(domain = "test")
     public static class RemoteTestJobUpdateGenTask extends RemoteJobProcessTask<TestDocJobUpdateGenRequest,TestDocJobUpdateGenResponse> {}
 }

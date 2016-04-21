@@ -16,7 +16,7 @@
 
 package com.dreameddeath.installedbase.model.productservice;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 11/08/2014.
  */
-@DocumentDef(domain = EntityConstants.DOMAIN)
+@DocumentEntity(domain = EntityConstants.DOMAIN)
 public class InstalledProductServiceRevision extends InstalledItemRevision implements IHasLinkRevision {
     /**
      *  links : list of link revisions

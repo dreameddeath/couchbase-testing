@@ -5,6 +5,7 @@ import com.dreameddeath.testing.dataset.json.grammar.JSON_DATASET;
 import com.dreameddeath.testing.dataset.json.grammar.JSON_DATASET_LEXER;
 import com.dreameddeath.testing.dataset.model.Dataset;
 import com.dreameddeath.testing.dataset.runtime.builder.DatasetBuilder;
+import com.dreameddeath.testing.dataset.runtime.model.DatasetResult;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultValue;
 import com.dreameddeath.testing.dataset.runtime.validator.DatasetValidator;
 import com.google.common.base.Preconditions;
@@ -26,6 +27,7 @@ public class DatasetManager {
     private final ServiceLoader<IDatasetResultConverter> mapperServiceLoader=ServiceLoader.load(IDatasetResultConverter.class);
     private final List<IDatasetResultConverter> mappers=new ArrayList<>();
     private final Map<Class<?>,IDatasetResultConverter> mapperPerClass=new HashMap<>();
+    private boolean isPrepared=false;
 
     public void initMapper(){
         mappers.clear();
@@ -34,6 +36,10 @@ public class DatasetManager {
         while(mapperIterator.hasNext()){
             mappers.add(mapperIterator.next());
         }
+    }
+
+    public void checkPrepared(){
+        Preconditions.checkArgument(isPrepared,"The prepared hasn't been called");
     }
 
     public DatasetManager(){
@@ -102,9 +108,13 @@ public class DatasetManager {
     }
 
     public void addDatasetsFromResourcePath(String resourceName){
+        addDatasetsFromResourceFilename(resourceName + "/*");
+    }
+
+    public void addDatasetsFromResourceFilename(String resourceName){
         PathMatchingResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver(Thread.currentThread().getContextClassLoader());
         try {
-            Resource[] resources = resourcePatternResolver.getResources("classpath:" + resourceName + "/*");
+            Resource[] resources = resourcePatternResolver.getResources("classpath:" + resourceName);
             for(Resource resource:resources){
                 newDatasetFromFile(resource.getFile());
             }
@@ -114,46 +124,63 @@ public class DatasetManager {
         }
     }
 
+
     public void prepareDatasets(){
         for(Dataset dataset:datasetMap.values()){
             dataset.prepare();
         }
+        isPrepared=true;
     }
 
     public Dataset getDatasetByName(String name){
         return datasetMap.get(name);
     }
 
-    public DatasetResultValue build(String datasetName,String datasetElementName,Map<String,Object> params){
+
+
+    private <T> T internalBuilder(String datasetName, String datasetElementName, Map<String,Object> params, Class<T> tClass){
+        checkPrepared();
         Dataset dataset=getDatasetByName(datasetName);
         Preconditions.checkNotNull(datasetName);
-
-        return new DatasetBuilder(dataset,params).build(datasetElementName);
+        if(DatasetResultValue.class.isAssignableFrom(tClass)) {
+            return (T) new DatasetBuilder(dataset, params).build(datasetElementName);
+        }
+        else{
+            return new DatasetBuilder(dataset, params).build(tClass,datasetElementName);
+        }
     }
 
+    public DatasetResultValue build(String datasetName,String datasetElementName,Map<String,Object> params){
+        return internalBuilder(datasetName,datasetElementName,params,DatasetResultValue.class);
+    }
 
     public DatasetResultValue build(String datasetName,String datasetElementName){
         return build(datasetName,datasetElementName,Collections.emptyMap());
     }
 
     public <T> T build(Class<T> clazz,String datasetName,String datasetElementName,Map<String,Object> params){
-        DatasetResultValue result=build(datasetName,datasetElementName,params);
-        IDatasetResultConverter<T> mapper = getMapperForClass(clazz);
-        if(mapper!=null){
-            return mapper.mapResult(result);
-        }
-        else {
-            throw new RuntimeException("Cannot get mapper for class <"+clazz.getName());
-        }
+        return internalBuilder(datasetName,datasetElementName,params,clazz);
     }
 
     public <T> T build(Class<T> clazz,String datasetName,String datasetElementName){
         return build(clazz,datasetName,datasetElementName,Collections.emptyMap());
     }
 
+    public DatasetResult build(String datasetName){
+        return build(datasetName,Collections.emptyMap());
+    }
+
+    public DatasetResult build(String datasetName,Map<String,Object> params){
+        checkPrepared();
+        Dataset dataset=getDatasetByName(datasetName);
+        Preconditions.checkNotNull(datasetName);
+        return new DatasetBuilder(dataset, params).run();
+    }
+
 
 
     public boolean validate(DatasetResultValue value,String datasetName,String dataSetElementName,Map<String,Object> params){
+        checkPrepared();
         Dataset dataset=getDatasetByName(datasetName);
         Preconditions.checkNotNull(dataset);
         return new DatasetValidator(dataset,params).validate(value,dataSetElementName);

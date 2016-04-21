@@ -1,11 +1,11 @@
 package com.dreameddeath.testing.dataset;
 
+import com.dreameddeath.testing.dataset.converter.JsonNodeConverter;
 import com.dreameddeath.testing.dataset.model.Dataset;
 import com.dreameddeath.testing.dataset.model.DatasetElement;
 import com.dreameddeath.testing.dataset.runtime.MvelRuntimeContext;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultValue;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -16,7 +16,6 @@ import static org.junit.Assert.*;
  * Created by Christophe Jeunesse on 16/04/2016.
  */
 public class DatasetManagerTest {
-    private ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void addDatasetsFromResourcePath() throws Exception {
@@ -34,14 +33,14 @@ public class DatasetManagerTest {
         assertEquals(6,result2);
 
         DatasetResultValue resultingDataset=manager.build("test1","the first dataset");
-        String resultAsJson=new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(resultingDataset);
+        String resultAsJson= JsonNodeConverter.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(resultingDataset);
         assertTrue(resultAsJson.contains("\"a new test is borned\""));
 
         JsonNode resulting2Dataset=manager.build(JsonNode.class,"test1","the second dataset");
         assertEquals("new value",resulting2Dataset.get("a new test is borned").get(0).get("toto").asText());
-        String result2AsJson=mapper.writerWithDefaultPrettyPrinter().writeValueAsString(resulting2Dataset);
+        String result2AsJson=JsonNodeConverter.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(resulting2Dataset);
         assertTrue(result2AsJson.contains("\"new value\""));
-        assertTrue(manager.validate(mapper.readTree(resultAsJson),"validationTest1","validateTest1", Collections.singletonMap("toto_value","tutut")));
+        assertTrue(manager.validate(JsonNodeConverter.OBJECT_MAPPER.readTree(resultAsJson),"validationTest1","validateTest1", Collections.singletonMap("toto_value","tutut")));
         assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1", Collections.singletonMap("toto_value","tutut")));
         assertTrue(manager.validate(resulting2Dataset,"validationTest1","validateTest1", Collections.singletonMap("toto_value","new value")));
         assertTrue(manager.validate(resultingDataset,"validationTest1","validateTest1Success"));

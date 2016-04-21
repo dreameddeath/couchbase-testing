@@ -22,7 +22,7 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.UidDef;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -38,7 +38,7 @@ import java.util.List;
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "party/",idPattern = "\\d{10}",idFormat = "%010d")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")
-@DocumentDef(domain="party")
+@DocumentEntity(domain="party")
 public abstract class Party extends BusinessDocument {
     @DocumentProperty("uid")
     private transient ImmutableProperty<String> uid=new ImmutableProperty<String>(Party.this);

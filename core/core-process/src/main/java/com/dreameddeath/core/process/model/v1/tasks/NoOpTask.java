@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model.tasks;
+package com.dreameddeath.core.process.model.v1.tasks;
 
-import com.dreameddeath.core.process.model.base.AbstractTask;
+import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 
 /**
  * Created by Christophe Jeunesse on 23/09/2014.

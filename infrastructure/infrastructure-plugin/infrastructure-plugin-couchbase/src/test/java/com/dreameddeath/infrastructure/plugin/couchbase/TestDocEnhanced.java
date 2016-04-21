@@ -16,11 +16,11 @@
 
 package com.dreameddeath.infrastructure.plugin.couchbase;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 
 /**
  * Created by Christophe Jeunesse on 01/11/2015.
  */
-@DocumentDef(domain = "test")
+@DocumentEntity(domain = "test",version = "1.0")
 public class TestDocEnhanced extends TestDoc {
 }

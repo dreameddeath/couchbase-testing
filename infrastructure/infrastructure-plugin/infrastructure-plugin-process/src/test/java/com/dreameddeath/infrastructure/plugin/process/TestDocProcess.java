@@ -20,13 +20,13 @@ import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
  */
-@DocumentDef(domain = "test")
+@DocumentEntity(domain = "test")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "test/",idFormat = "%010d",idPattern = "\\d{10}",rest = true)
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 public class TestDocProcess extends BusinessDocument {

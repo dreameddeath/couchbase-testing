@@ -16,11 +16,11 @@
 
 package com.dreameddeath.ui.admin;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 
 /**
  * Created by Christophe Jeunesse on 09/11/2015.
  */
-@DocumentDef(domain="test",name="inherited")
+@DocumentEntity(domain="test",name="inherited")
 public class TestDocInherited extends TestDoc {
 }

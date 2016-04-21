@@ -16,7 +16,7 @@
 
 package model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.helper.annotation.dao.*;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
@@ -24,7 +24,7 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 
-@DocumentDef(domain="test",name="daoProccessor",version = "1.0.0")
+@DocumentEntity(domain="test",name="daoProccessor",version = "1.0.0")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "test/",idFormat = "%010d",idPattern = "\\d{10}",rest = true)
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @Counter(name= "checks",dbName = "checks")

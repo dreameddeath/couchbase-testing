@@ -28,7 +28,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.elasticsearch.dao.ElasticSearchResult;
 import com.dreameddeath.core.java.utils.NumberUtils;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.Utils;
@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ElasticSearchIntegrationTest {
 
-    @DocumentDef(domain="testEs")
+    @DocumentEntity(domain="testEs",version = "1.0")
     public static class TestDoc extends CouchbaseDocument {
         @DocumentProperty("strVal")
         public String strVal;
@@ -163,7 +163,7 @@ public class ElasticSearchIntegrationTest {
             doc.doubleVal=i*1.1;
             doc.longVal=i+1L;
             doc.intVal=i;
-            doc.boolVal=((i%2)==0)?true:false;
+            doc.boolVal= ((i % 2) == 0);
             doc.arrayVal = new ArrayList<>(i);
             for(int j=0;j<i;++j){
                 TestDoc.SubElem elem=new TestDoc.SubElem();

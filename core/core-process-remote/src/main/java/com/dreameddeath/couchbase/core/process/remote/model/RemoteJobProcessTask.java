@@ -19,7 +19,7 @@ package com.dreameddeath.couchbase.core.process.remote.model;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.core.process.model.base.AbstractTask;
+import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 
 /**
  * Created by Christophe Jeunesse on 13/01/2016.

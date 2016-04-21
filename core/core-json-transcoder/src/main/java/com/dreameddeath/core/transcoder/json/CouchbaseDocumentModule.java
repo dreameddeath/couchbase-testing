@@ -25,6 +25,7 @@ public class CouchbaseDocumentModule extends SimpleModule {
 
     public CouchbaseDocumentModule(){
         this.setDeserializerModifier(new CouchbaseBusinessDocumentDeserializerModifier());
+
     }
 
     @Override

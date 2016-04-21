@@ -20,6 +20,7 @@ import com.dreameddeath.core.json.BaseObjectMapperConfigurator;
 import com.dreameddeath.core.json.IObjectMapperConfigurator;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +55,10 @@ public class CouchbaseDocumentObjectMapperConfigurator implements IObjectMapperC
     @Override
     public void configure(ObjectMapper mapper, ConfiguratorType type) {
         mapper.setConfig(mapper.getDeserializationConfig().withAttribute(EntityVersionUpgradeManager.class, new EntityVersionUpgradeManager()));
+        if(type.contains(BASE_COUCHBASE_STORAGE)){
+            mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
+            mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        }
         mapper.setAnnotationIntrospector(new CouchbaseDocumentIntrospector());
         mapper.registerModule(new CouchbaseDocumentModule());
     }

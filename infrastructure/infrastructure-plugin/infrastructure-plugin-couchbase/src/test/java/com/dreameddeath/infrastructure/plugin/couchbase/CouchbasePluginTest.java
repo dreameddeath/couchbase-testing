@@ -79,6 +79,7 @@ public class CouchbasePluginTest extends Assert {
             public void run() {
 
                 try {
+                    Thread.sleep(200);
                     TestDoc newDoc = new TestDoc();
                     newDoc.name = "testInit";
 
@@ -106,7 +107,7 @@ public class CouchbasePluginTest extends Assert {
 
                 } catch (Throwable e) {
                     nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+                    LOG.error("!!!!! ERROR !!!!!Error during dao service access tests", e);
                 }
                 try {
                     DaoDiscovery discovery = new DaoDiscovery(daemon.getCuratorClient());

@@ -16,6 +16,8 @@
 
 package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
+import com.dreameddeath.core.java.utils.ClassUtils;
+
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -28,7 +30,6 @@ import java.util.Map;
 public class PackageInfo extends AnnotatedInfo {
     private final static Map<PackageElement,PackageInfo> packageElementToInfoMap = new HashMap<>();
     private final static Map<Package,PackageInfo> packageToInfoMap = new HashMap<>();
-
 
     public static PackageInfo getPackageInfo(Package aPackage){
         synchronized (packageElementToInfoMap) {
@@ -44,7 +45,6 @@ public class PackageInfo extends AnnotatedInfo {
             if (!packageElementToInfoMap.containsKey(packageElement)) {
                 return new PackageInfo(packageElement);
             }
-
             return packageElementToInfoMap.get(packageElement);
         }
     }
@@ -69,6 +69,7 @@ public class PackageInfo extends AnnotatedInfo {
     private String name;
     private PackageElement packageElement=null;
     private Package packageRef = null;
+    private PackageInfo parentPackage=null;
 
     private void init(){
         if(packageRef!=null){
@@ -86,15 +87,35 @@ public class PackageInfo extends AnnotatedInfo {
         packageElement=element;
         packageRef = getPackage(packageElement);
         init();
+        parentPackage=PackageInfo.getPackageInfo(packageElement);
+        if(parentPackage==this) {
+            parentPackage=null;
+        }
+        if(parentPackage==null && packageRef!=null){
+            Package parent = ClassUtils.getParentPackage(packageRef);
+            if (parent != null) {
+                parentPackage = PackageInfo.getPackageInfo(parent);
+            }
+        }
     }
 
     private PackageInfo(Package aPackage){
         super(aPackage);
         packageRef = aPackage;
         init();
+        if(aPackage!=null) {
+            Package parent = ClassUtils.getParentPackage(aPackage);
+            if (parent != null) {
+                parentPackage = PackageInfo.getPackageInfo(parent);
+            }
+        }
     }
 
     public String getName(){
         return name;
+    }
+
+    public PackageInfo getParentPackage() {
+        return parentPackage;
     }
 }

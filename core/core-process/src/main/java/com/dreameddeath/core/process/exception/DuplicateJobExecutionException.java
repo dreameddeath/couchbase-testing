@@ -18,8 +18,8 @@ package com.dreameddeath.core.process.exception;
 
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyStorageException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import com.dreameddeath.core.process.model.base.AbstractJob;
-import com.dreameddeath.core.process.model.base.ProcessState;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.service.context.JobContext;
 
 /**

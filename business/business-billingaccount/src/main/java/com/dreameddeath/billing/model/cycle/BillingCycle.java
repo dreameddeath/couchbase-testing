@@ -23,14 +23,14 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.ParentEntity;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;
 
-@DocumentDef(domain = "billing",name="cycle",version="1.0.0")
+@DocumentEntity(domain = "billing",name="cycle",version="1.0.0")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDao.class,dbPath = "cycle/",idPattern = "\\d{5}",idFormat = "%05d")
 @ParentEntity(c= BillingAccount.class,keyPath = "ba.key",separator = "/")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)

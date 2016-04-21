@@ -24,7 +24,7 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.model.view.*;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.Utils;
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ViewTest {
 
-    @DocumentDef(domain="testView")
+    @DocumentEntity(domain="testView")
     public static class TestDoc extends CouchbaseDocument{
         @DocumentProperty("strVal")
         public String strVal;
@@ -158,7 +158,7 @@ public class ViewTest {
             doc.doubleVal=i*1.1;
             doc.longVal=i+1L;
             doc.intVal=i;
-            doc.boolVal=(i%2==0)?true:false;
+            doc.boolVal= (i % 2 == 0);
             doc.arrayVal = new ArrayList<>(i);
             for(int j=0;j<i;++j){
                 TestDoc.SubElem elem=new TestDoc.SubElem();

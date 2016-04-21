@@ -14,6 +14,7 @@ public class DatasetElement {
     private DatasetMvel mvelElement;
     private DatasetDirective directive;
     private final DatasetValue value=new DatasetValue();
+    private Dataset parent;
     //private List<DatasetValue> arrayElt=new ArrayList<>();
     //private DatasetObject objElt;
 
@@ -103,6 +104,10 @@ public class DatasetElement {
     }
     public DatasetDirective getDirective(){
         return directive;
+    }
+
+    public Dataset getDataset() {
+        return parent;
     }
 
     public enum Type{

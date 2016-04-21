@@ -1,7 +1,7 @@
 package com.dreameddeath.installedbase.process.model;
 
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 22/03/2016.
  */
-@DocumentDef(domain = "installedbase")
+@DocumentEntity(domain = "installedbase")
 public class InstalledBaseUpdateResult extends VersionedDocumentElement {
     /**
      *  contract : contract updates

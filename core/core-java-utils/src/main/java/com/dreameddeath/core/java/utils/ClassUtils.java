@@ -133,4 +133,16 @@ public class ClassUtils {
 
         return null;
     }
+
+    public static Package getParentPackage(Package pkg){
+        if(!pkg.getName().contains(".")){
+            return null;
+        }
+        String[] parts=pkg.getName().split("\\.");
+        StringBuilder fullName=new StringBuilder(parts[0]);
+        for(int pos=1;pos<(parts.length-1);++pos){
+            fullName.append('.').append(parts[pos]);
+        }
+        return Package.getPackage(fullName.toString());
+    }
 }

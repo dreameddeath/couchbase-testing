@@ -16,7 +16,7 @@
 
 package model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
@@ -24,7 +24,7 @@ import com.dreameddeath.core.helper.annotation.dao.ParentEntity;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.business.model.BusinessDocument;
 
-@DocumentDef(domain="test",name="daoProccessorChild",version = "1.0.0")
+@DocumentEntity(domain="test",name="daoProccessorChild",version = "1.0.0")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "child/",idFormat = "%010d",idPattern = "\\d{10}")
 @ParentEntity(c=TestGeneratedDao.class,keyPath = "parent.key",separator = "/")
 @Counter(name="cnt",dbName = "cnt",isKeyGen = true)

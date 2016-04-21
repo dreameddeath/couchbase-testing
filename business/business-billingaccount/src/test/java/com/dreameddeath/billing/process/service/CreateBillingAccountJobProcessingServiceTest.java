@@ -23,7 +23,7 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
-import com.dreameddeath.core.process.model.base.ProcessState;
+import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;

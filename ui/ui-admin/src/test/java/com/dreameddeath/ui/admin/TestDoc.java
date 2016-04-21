@@ -21,13 +21,13 @@ import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;
 import com.dreameddeath.core.helper.annotation.dao.UidDef;
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 
 /**
  * Created by Christophe Jeunesse on 09/11/2015.
  */
-@DocumentDef(domain="test",name="root",version="1.0.2")
+@DocumentEntity(domain="test",name="root",version="1.0.2")
 @DaoEntity(baseDao = BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "/test",idFormat = "/%d",idPattern = "/\\d+")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")

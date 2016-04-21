@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.helper;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 14/04/2015.
  */
-@DocumentDef(domain = "testDao")
+@DocumentEntity(domain = "testDao",version="1.0")
 public class TestDoc extends CouchbaseDocument {
     @DocumentProperty("strVal")
     public String strVal;

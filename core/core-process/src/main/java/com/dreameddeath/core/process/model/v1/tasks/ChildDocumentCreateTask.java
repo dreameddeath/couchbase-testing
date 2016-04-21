@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model.tasks;
+package com.dreameddeath.core.process.model.v1.tasks;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -23,18 +23,35 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
-import com.dreameddeath.core.process.model.base.AbstractTask;
 import com.dreameddeath.core.validation.annotation.NotNull;
 
 /**
- * Created by Christophe Jeunesse on 21/05/2014.
+ * Created by Christophe Jeunesse on 23/02/2016.
  */
-public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends AbstractTask {
-    @DocumentProperty("docKey") @NotNull
-    private Property<String> docKey=new ImmutableProperty<String>(DocumentUpdateTask.this);
+public abstract class ChildDocumentCreateTask<TCHILD extends CouchbaseDocument,TPARENT extends CouchbaseDocument> extends DocumentCreateTask<TCHILD> {
+    public ChildDocumentCreateTask(String parentKey){
+        setParent(parentKey);
+    }
 
-    public String getDocKey(){return docKey.get(); }
-    public DocumentUpdateTask<T> setDocKey(String docKey){this.docKey.set(docKey); return this;}
+    /**
+     *  parent : Parent document key
+     */
+    @DocumentProperty("parent") @NotNull
+    private Property<String> parent = new ImmutableProperty<>(ChildDocumentCreateTask.this);
 
-    public T getDocument(ICouchbaseSession session)throws DaoException, StorageException {return (T)session.get(getDocKey());}
+    /**
+     * Getter of parent
+     * @return the content
+     */
+    public String getParent() { return parent.get(); }
+    /**
+     * Setter of parent
+     * @param parentKey the key of the parement
+     */
+    public void setParent(String parentKey) { parent.set(parentKey); }
+
+
+
+
+    public TPARENT getParentDocument(ICouchbaseSession session) throws DaoException, StorageException {return (TPARENT)session.get(getParent());}
 }

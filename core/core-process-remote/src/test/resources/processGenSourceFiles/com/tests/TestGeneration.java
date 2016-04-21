@@ -16,9 +16,9 @@
 
 package com.tests;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
@@ -27,7 +27,7 @@ import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
 /**
  * Created by Christophe Jeunesse on 04/03/2016.
  */
-@DocumentDef(domain="test")
+@DocumentEntity(domain="test",version = "1.0")
 @RestExpose(rootPath = "testdocjobs/genupdate",domain = "tests",name = "testdocjobupdategen")
 public class TestGeneration extends AbstractJob {
     @DocumentProperty @NotNull @Request

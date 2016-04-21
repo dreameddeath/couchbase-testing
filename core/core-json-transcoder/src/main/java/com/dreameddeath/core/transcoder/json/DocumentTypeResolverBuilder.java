@@ -17,9 +17,11 @@
 package com.dreameddeath.core.transcoder.json;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 
@@ -49,5 +51,22 @@ public class DocumentTypeResolverBuilder extends StdTypeResolverBuilder {
         }
         return super.idResolver(config,baseType,subtypes,forSer,forDeser);
 
+    }
+
+    @Override
+    public TypeDeserializer buildTypeDeserializer(DeserializationConfig config,
+                                                  JavaType baseType, Collection<NamedType> subtypes)
+    {
+
+        if(     (_idType!= JsonTypeInfo.Id.NONE) && (_includeAs== JsonTypeInfo.As.PROPERTY)
+                && (_customIdResolver!=null) && (_customIdResolver instanceof CouchbaseDocumentTypeIdResolver)
+                )
+        {
+            TypeIdResolver idRes = idResolver(config, baseType, subtypes, false, true);
+            return new CustomerAsPropertyDeserializer(baseType, idRes,
+                    _typeProperty, _typeIdVisible, _defaultImpl, _includeAs);
+        }
+
+        return super.buildTypeDeserializer(config, baseType, subtypes);
     }
 }

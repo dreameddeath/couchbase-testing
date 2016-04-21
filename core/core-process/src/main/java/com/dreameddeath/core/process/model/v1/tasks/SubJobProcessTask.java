@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.model.tasks;
+package com.dreameddeath.core.process.model.v1.tasks;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
-import com.dreameddeath.core.process.model.base.AbstractTask;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractTask;
+
+import java.util.UUID;
 
 /**
- * Created by Christophe Jeunesse on 21/05/2014.
+ * Created by Christophe Jeunesse on 01/08/2014.
  */
-public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends AbstractTask {
-    @DocumentProperty("docKey")
-    private Property<String> docKey=new ImmutableProperty<>(DocumentCreateTask.this);
+public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractTask {
+    @DocumentProperty("subJobId")
+    private Property<UUID> subJobId =new StandardProperty<>(SubJobProcessTask.this);
 
-    // docKey accessors
-    public String getDocKey(){return docKey.get(); }
-    public void setDocKey(String docKey){this.docKey.set(docKey); }
+    public UUID getSubJobId(){ return subJobId.get(); }
+    public void setSubJobId(UUID subJobId){this.subJobId.set(subJobId);}
 
-    public T getDocument(ICouchbaseSession session) throws DaoException, StorageException {return (T)session.get(getDocKey());}
+    public T getJob(ICouchbaseSession session) throws DaoException,StorageException{return (T)session.getFromUID(getSubJobId().toString(),AbstractJob.class);}
 }

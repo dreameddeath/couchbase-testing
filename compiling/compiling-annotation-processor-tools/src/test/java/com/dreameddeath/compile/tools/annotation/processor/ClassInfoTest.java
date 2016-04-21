@@ -35,5 +35,8 @@ public class ClassInfoTest {
         FieldInfo field = classInfo.getFieldByName("value");
         MethodInfo info = classInfo.getMethod("classWithTreq", field.getType());
         assertNotNull(info);
+        assertNotNull(classInfo.getPackageInfo());
+        assertNotNull(classInfo.getPackageInfo().getParentPackage());
+
     }
 }

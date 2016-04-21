@@ -16,6 +16,9 @@ this is a simple comment
 {
   "a new test is borned" : [
       {
+              date : 2016-10-10,
+              datetime : 2016-10-10T05:00:00,
+              datetimeTz : 2016-10-10T05:00:00+02:00,
               "toto": @Test "tutut",
               tata[0..2].tutu : [ "toto", "v@{++generator}", #% generator; %#]
       }

@@ -16,14 +16,14 @@
 
 package com.dreameddeath.couchbase.core.process.remote.model;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.base.AbstractProcessCouchbaseDocument;
+import com.dreameddeath.core.process.model.v1.base.AbstractProcessCouchbaseDocument;
 
 /**
  * Created by Christophe Jeunesse on 04/01/2016.
  */
-@DocumentDef(domain = "test")
+@DocumentEntity(domain = "test",version = "1.0")
 public class TestDoc extends AbstractProcessCouchbaseDocument {
     @DocumentProperty
     public String name;

@@ -16,9 +16,9 @@
 
 package com.dreameddeath.ui.admin.process;
 
-import com.dreameddeath.core.model.annotation.DocumentDef;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.process.model.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteJobProcessTask;
 import com.dreameddeath.ui.admin.process.published.TestDocCreateJobRequest;
 import com.dreameddeath.ui.admin.process.published.TestDocCreateJobResponse;
@@ -26,12 +26,12 @@ import com.dreameddeath.ui.admin.process.published.TestDocCreateJobResponse;
 /**
  * Created by Christophe Jeunesse on 13/03/2016.
  */
-@DocumentDef(domain = "test")
+@DocumentEntity(domain = "test")
 public class RemoteTestDocCreateJob extends AbstractJob {
     @DocumentProperty
     public String remoteName;
 
-    @DocumentDef(domain = "test",version="1.0.0")
+    @DocumentEntity(domain = "test",version="1.0.0")
     public static class RemoteTestDocCreateTask extends RemoteJobProcessTask<TestDocCreateJobRequest,TestDocCreateJobResponse> {
         @DocumentProperty("key")
         public String key;

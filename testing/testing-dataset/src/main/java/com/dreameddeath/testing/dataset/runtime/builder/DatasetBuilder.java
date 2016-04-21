@@ -2,6 +2,7 @@ package com.dreameddeath.testing.dataset.runtime.builder;
 
 import com.dreameddeath.testing.dataset.model.*;
 import com.dreameddeath.testing.dataset.runtime.MvelRuntimeContext;
+import com.dreameddeath.testing.dataset.runtime.model.DatasetResult;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultArray;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultObject;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultValue;
@@ -10,7 +11,6 @@ import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +18,8 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 17/04/2016.
  */
 public class DatasetBuilder {
-    private final Map<String,DatasetResultValue> resultingDatasetMap = new HashMap<>();
+    //private final Map<String,DatasetResultValue> resultingDatasetMap = new HashMap<>();
+    private final DatasetResult result;
     private final MvelRuntimeContext context;
     private final Dataset rootDataset;
     private final DatasetXPathProcessor xPathProcessor;
@@ -30,6 +31,7 @@ public class DatasetBuilder {
         this.rootDataset=dataset;
         context = new MvelRuntimeContext(dataset,params);
         xPathProcessor = new DatasetXPathProcessor();
+        result = new DatasetResult(dataset.getManager());
     }
 
     public DatasetXPathProcessor getXPathProcessor(){
@@ -39,14 +41,10 @@ public class DatasetBuilder {
         return context;
     }
 
-    public DatasetResultValue getDatasetResultByName(String name){
-        return resultingDatasetMap.get(name);
-    }
-
     public DatasetResultValue build(String datasetElementName) {
         for(DatasetElement element: rootDataset.getElements()){
             run(element);
-            DatasetResultValue resultValue=resultingDatasetMap.get(datasetElementName);
+            DatasetResultValue resultValue=result.get(datasetElementName);
             if(resultValue!=null){
                 return resultValue;
             }
@@ -54,15 +52,20 @@ public class DatasetBuilder {
         throw new RuntimeException("Cannot find dataset element "+datasetElementName +" in dataset "+rootDataset.getName());
     }
 
-    public void run(){
-        run(rootDataset);
+    public <T> T build(Class<T> tClass,String datasetElementName) {
+        this.build(datasetElementName);
+        return result.get(tClass,datasetElementName);
     }
 
-    protected void run(Dataset dataset){
-        String currDatasetElementName=null;
+    public DatasetResult run(){
+        return run(rootDataset);
+    }
+
+    protected DatasetResult run(Dataset dataset){
         for(DatasetElement element:dataset.getElements()){
             run(element);
         }
+        return result;
     }
 
     public DatasetResultValue run(DatasetElement element){
@@ -88,10 +91,10 @@ public class DatasetBuilder {
         if(resultValue!=null){
             String currDatasetElementName= element.getName();
             if(currDatasetElementName==null){
-                currDatasetElementName = "anonymous_dataset_#"+resultingDatasetMap.values().size();
+                currDatasetElementName = result.buildAnonymousName();
             }
 
-            resultingDatasetMap.putIfAbsent(currDatasetElementName,resultValue);
+            result.add(currDatasetElementName,resultValue);
         }
         return resultValue;
     }
@@ -100,7 +103,7 @@ public class DatasetBuilder {
         for(DatasetMeta meta:metas){
             if(meta.getType()== DatasetMeta.Type.INIT_FROM){
                 String name=meta.getParam(0,String.class);
-                DatasetResultValue initValue=resultingDatasetMap.get(name);
+                DatasetResultValue initValue=result.get(name);
                 if(initValue!=null){
                     if(initValue.getType()== DatasetValue.Type.OBJECT){
                         return initValue.getObject().clone();
@@ -120,7 +123,7 @@ public class DatasetBuilder {
         for(DatasetMeta meta:metas){
             if(meta.getType()== DatasetMeta.Type.INIT_FROM){
                 String name=meta.getParam(0,String.class);
-                DatasetResultValue initValue=resultingDatasetMap.get(name);
+                DatasetResultValue initValue=result.get(name);
                 if(initValue!=null){
                     if(initValue.getType()== DatasetValue.Type.ARRAY){
                         return initValue.getArrayVal().clone();
@@ -201,6 +204,10 @@ public class DatasetBuilder {
                     break;
                 case BOOL:
                     newValue.setBool(valueDef.getBoolVal());
+                    break;
+                case DATETIME:
+                    newValue.setDateTime(valueDef.getDateTimeVal());
+                    break;
                 default:
                     newValue = null;
             }
