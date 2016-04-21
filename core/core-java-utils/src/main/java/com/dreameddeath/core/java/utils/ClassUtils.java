@@ -20,9 +20,7 @@ package com.dreameddeath.core.java.utils;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 20/10/2015.
@@ -134,15 +132,39 @@ public class ClassUtils {
         return null;
     }
 
-    public static Package getParentPackage(Package pkg){
+    public static Package getFirstParentPackage(Package pkg){
         if(!pkg.getName().contains(".")){
             return null;
         }
-        String[] parts=pkg.getName().split("\\.");
-        StringBuilder fullName=new StringBuilder(parts[0]);
-        for(int pos=1;pos<(parts.length-1);++pos){
-            fullName.append('.').append(parts[pos]);
+        for(String potentialParent :getPotentialParentPackageNameList(pkg.getName())) {
+            Package parent = Package.getPackage(potentialParent);
+            if(parent==null){
+                try{
+                    Thread.currentThread().getContextClassLoader().loadClass(potentialParent+".package-info");
+                    parent = Package.getPackage(potentialParent);
+                }
+                catch(ClassNotFoundException e){
+                    //ignore
+                }
+            }
+            if(parent!=null){
+                return parent;
+            }
         }
-        return Package.getPackage(fullName.toString());
+        return null;
+    }
+
+    public static List<String> getPotentialParentPackageNameList(String name){
+        String[] parts=name.split("\\.");
+        List<String> potentialParents = new ArrayList<>(parts.length);
+        if(parts.length>1) {
+            StringBuilder fullName = new StringBuilder(parts[0]);
+            potentialParents.add(fullName.toString());
+            for (int pos = 1; pos < (parts.length - 1); ++pos) {
+                fullName.append('.').append(parts[pos]);
+                potentialParents.add(0, fullName.toString());
+            }
+        }
+        return potentialParents;
     }
 }

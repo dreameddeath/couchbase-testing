@@ -91,17 +91,23 @@ public class EntityModelId {
         if(info==null){
             LOG.error("Cannot find {} in Package {}",isVersion?"version":"domain",pkg.getName());
         }
-        return null;
+        return info;
     }
 
     private static String getInfo(DocumentEntity documentEntity, AbstractClassInfo cls, boolean isVersion) {
         String info = isVersion?documentEntity.version(): documentEntity.domain();
+
         if (StringUtils.isEmpty(info)) {
             PackageInfo packageInfo=cls.getPackageInfo();
             info=getInfo(packageInfo,isVersion);
         }
         if (StringUtils.isEmpty(info)) {
-            throw new RuntimeException("Cannot get "+ (isVersion?"version":"domain")+ " of element "+cls.getImportName());
+            StringBuilder parents = new StringBuilder();
+            PackageInfo currPackageInfo = cls.getPackageInfo();
+            while(currPackageInfo!=null){
+                parents.append(currPackageInfo.getName());
+            }
+            throw new RuntimeException("Cannot get "+ (isVersion?"version":"domain")+ " of element "+cls.getImportName()+ " in parents <"+parents+">");
         }
         else{
             return info;

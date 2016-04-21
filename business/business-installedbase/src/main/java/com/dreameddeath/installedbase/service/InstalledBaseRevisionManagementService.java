@@ -103,6 +103,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
     @Override
     public void applyApplicableRevisions(InstalledBaseUpdateResult result,InstalledBase ref,List<InstalledItemRevisionsToApply> revisions) {
         for(InstalledItemRevisionsToApply<? extends InstalledItemRevision,? extends InstalledItem> itemWithRevs:revisions){
+            itemWithRevs.sortRevisions();
             boolean hasChanges = false;
             hasChanges|=applyStatusesFromRevision(itemWithRevs);
             if(itemWithRevs.getItemType().isHasLink()){
@@ -395,7 +396,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             StatusUpdateResult resultUpdate=manageStatusUpdate(itemWithRevs.getParent(),revStatus,rev.getEffectiveDate());
             if(resultUpdate!=null){
                 hasChanges=true;
-                itemWithRevs.getUpdateResult().setStatusUpdate(resultUpdate);
+                itemWithRevs.getUpdateResult().addStatusUpdate(resultUpdate);
             }
         }
 

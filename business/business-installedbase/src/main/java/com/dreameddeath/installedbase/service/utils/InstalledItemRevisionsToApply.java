@@ -109,6 +109,27 @@ public class InstalledItemRevisionsToApply<TREV extends InstalledItemRevision,TI
         return itemType;
     }
 
+    public void sortRevisions(){
+        revisionsToApply.sort((a1,a2)->
+            {
+                if(a1.getEffectiveDate()!=null){
+                    if(a2.getEffectiveDate()!=null){
+                        return a1.getEffectiveDate().compareTo(a2.getEffectiveDate());
+                    }
+                    else{
+                        return 1;
+                    }
+                }
+                else if(a2.getEffectiveDate()!=null){
+                    return -1;
+                }
+                else{
+                    return 0;
+                }
+            }
+        );
+    }
+
     public enum Type{
         CONTRACT(true),
         OFFER(true),

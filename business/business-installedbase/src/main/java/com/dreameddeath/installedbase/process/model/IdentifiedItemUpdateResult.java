@@ -6,7 +6,6 @@ import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
-import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,10 +25,11 @@ public abstract class IdentifiedItemUpdateResult extends VersionedDocumentElemen
     @DocumentProperty("id")
     private Property<String> id = new ImmutableProperty<>(IdentifiedItemUpdateResult.this);
     /**
-     *  statusUpdate : status update info if any
+     *  statusUpdates : updates on the status
      */
-    @DocumentProperty("statusUpdate")
-    private Property<StatusUpdateResult> statusUpdate = new StandardProperty<>(IdentifiedItemUpdateResult.this);
+    @DocumentProperty("statusUpdates")
+    private ListProperty<StatusUpdateResult> statusUpdates = new ArrayListProperty<>(IdentifiedItemUpdateResult.this);
+
     /**
      *  revisions : updates on the revisions of the items
      */
@@ -59,15 +59,26 @@ public abstract class IdentifiedItemUpdateResult extends VersionedDocumentElemen
     public void setId(String val) { id.set(val); }
 
     /**
-     * Getter of statusUpdate
+     * Getter of statusUpdates
      * @return the content
      */
-    public StatusUpdateResult getStatusUpdate() { return statusUpdate.get(); }
+    public List<StatusUpdateResult> getStatusUpdates() { return statusUpdates.get(); }
     /**
-     * Setter of statusUpdate
-     * @param val the new content
+     * Setter of statusUpdates
+     * @param vals the new collection of values
      */
-    public void setStatusUpdate(StatusUpdateResult val) { statusUpdate.set(val); }
+    public void setStatusUpdates(Collection<StatusUpdateResult> vals) { statusUpdates.set(vals); }
+    /**
+     * Add a new entry to the property statusUpdates
+     * @param val the new entry to be added
+     */
+    public boolean addStatusUpdate(StatusUpdateResult val){ return statusUpdates.add(val); }
+    /**
+     * Remove an entry to the property statusUpdates
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeStatusUpdate(StatusUpdateResult val){ return statusUpdates.remove(val); }
 
     /**
      * Getter of revisions

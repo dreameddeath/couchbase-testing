@@ -1,6 +1,7 @@
 package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.MockDateTimeServiceImpl;
+import com.dreameddeath.installedbase.model.common.InstalledStatus;
 import com.dreameddeath.installedbase.model.offer.InstalledCompositeOffer;
 import com.dreameddeath.installedbase.model.offer.InstalledOfferRevision;
 import com.dreameddeath.installedbase.process.model.InstalledBaseUpdateResult;
@@ -56,6 +57,16 @@ public class InstalledBaseRevisionManagementServiceTest {
             assertEquals("ccoItem3",revs.getRevisionsToApply().get(0).getOrderItemId());
             assertEquals("ccoItem4",revs.getRevisionsToApply().get(1).getOrderItemId());
             assertEquals("ccoItem4.1",revs.getRevisionsToApply().get(2).getOrderItemId());
+        }
+
+        {
+            InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledCompositeOffer> revs=service.findApplicableRevisions(result,offer);
+            InstalledBaseUpdateResult globalResult=new InstalledBaseUpdateResult();
+            service.applyApplicableRevisions(globalResult,null,Collections.singletonList(revs));
+            assertEquals(1,globalResult.getOffersUpdates().size());
+            assertEquals(3,globalResult.getOffersUpdates().get(0).getStatusUpdates().size());
+            assertEquals(InstalledStatus.Code.CLOSED,offer.getStatus().getCode());
+            assertEquals(3,offer.getStatusHistory().size());
         }
 
 

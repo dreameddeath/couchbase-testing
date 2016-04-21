@@ -18,6 +18,9 @@ package com.dreameddeath.compile.tools.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.exception.AnnotationProcessorException;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.*;
+import com.dreameddeath.core.java.utils.ClassUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
@@ -32,6 +35,7 @@ public enum AnnotationElementType {
     METHOD_PARAMETER,
     GENERIC_PARAMETER;
 
+    private static final Logger LOG = LoggerFactory.getLogger(AnnotationElementType.class);
 
     public static ThreadLocal<Elements> CURRENT_ELEMENT_UTILS=new ThreadLocal<>();
 
@@ -108,5 +112,24 @@ public enum AnnotationElementType {
 
     private static AbstractClassInfo getParentTypeInfo(VariableElement element) throws AnnotationProcessorException{
         return AbstractClassInfo.getClassInfo(getParentTypeElement(element));
+    }
+
+    public static PackageInfo getFirstParentTypeInfo(PackageInfo info){
+        Elements elements=CURRENT_ELEMENT_UTILS.get();
+        if(elements!=null){
+            for(String potentialParentName: ClassUtils.getPotentialParentPackageNameList(info.getName())) {
+                try {
+                    PackageElement packageElement = elements.getPackageElement(potentialParentName);
+
+                    if (packageElement != null) {
+                        return PackageInfo.getPackageInfo(packageElement);
+                    }
+                }
+                catch(NullPointerException e){
+                    //LOG.debug("Error on <{}>",potentialParentName);
+                }
+            }
+        }
+        return null;
     }
 }

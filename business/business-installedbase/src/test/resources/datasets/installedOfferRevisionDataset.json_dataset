@@ -25,16 +25,18 @@
             revState:"PLANNED",
             effectiveDate:#% origDate.plus(1); %#,
             status:{
-                code:"ACTIVE"
+                code:"CLOSED"
             }
         },{
             orderItemId:"ccoItem4",
             revState:"PLANNED",
-            effectiveDate:#% origDate; %#
+            effectiveDate:#% origDate; %#,
+            status:{code:"SUSPENDED"}
         },{
             orderItemId:"ccoItem4.1",
             revState:"PLANNED",
-            effectiveDate:#% origDate.minus(5); %#
+            effectiveDate:#% origDate.minus(5); %#,
+            status:{code:"ACTIVE"}
         },{
             orderItemId:"ccoItem5",
             revState:"CURRENT",

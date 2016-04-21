@@ -38,6 +38,7 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -74,6 +75,18 @@ public class TestingAnnotationProcessor extends AbstractAnnotationProcessor {
                         assertNotNull(info);
                         info = classWithGenericsInfo.getMethod("setStatus",classWithGenericsInfo.getFieldByName("status").getType());
                         assertNotNull(info);
+
+                        TestingPackageAnnot annot=null;
+                        PackageInfo currPackage = classInfo.getPackageInfo();
+                        while(currPackage!=null){
+                            annot = currPackage.getAnnotation(TestingPackageAnnot.class);
+                            if(annot!=null){
+                                break;
+                            }
+                            currPackage=currPackage.getParentPackage();
+                        }
+                        assertNotNull(annot);
+                        assertEquals("toto2",annot.value());
                     }
                 }
                 Annotation[] annotArray = elemInfo.getAnnotations();

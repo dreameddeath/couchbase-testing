@@ -16,6 +16,7 @@
 
 package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
+import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
 import com.dreameddeath.core.java.utils.ClassUtils;
 
 import javax.lang.model.element.Element;
@@ -87,12 +88,15 @@ public class PackageInfo extends AnnotatedInfo {
         packageElement=element;
         packageRef = getPackage(packageElement);
         init();
-        parentPackage=PackageInfo.getPackageInfo(packageElement);
-        if(parentPackage==this) {
+        /*parentPackage=PackageInfo.getPackageInfo(packageElement);
+        if((parentPackage==this)||(parentPackage!=null && parentPackage.getName().equals(this.getName()))) {
             parentPackage=null;
+        }*/
+        if(parentPackage==null) {
+            parentPackage=AnnotationElementType.getFirstParentTypeInfo(this);
         }
-        if(parentPackage==null && packageRef!=null){
-            Package parent = ClassUtils.getParentPackage(packageRef);
+        if((parentPackage==null) && (packageRef!=null)){
+            Package parent = ClassUtils.getFirstParentPackage(packageRef);
             if (parent != null) {
                 parentPackage = PackageInfo.getPackageInfo(parent);
             }
@@ -104,9 +108,14 @@ public class PackageInfo extends AnnotatedInfo {
         packageRef = aPackage;
         init();
         if(aPackage!=null) {
-            Package parent = ClassUtils.getParentPackage(aPackage);
-            if (parent != null) {
-                parentPackage = PackageInfo.getPackageInfo(parent);
+            if(parentPackage==null) {
+                parentPackage=AnnotationElementType.getFirstParentTypeInfo(this);
+            }
+            if(parentPackage==null) {
+                Package parent = ClassUtils.getFirstParentPackage(aPackage);
+                if (parent != null) {
+                    parentPackage = PackageInfo.getPackageInfo(parent);
+                }
             }
         }
     }

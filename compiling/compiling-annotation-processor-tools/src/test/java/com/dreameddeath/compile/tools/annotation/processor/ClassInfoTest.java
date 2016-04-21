@@ -16,13 +16,12 @@
 
 package com.dreameddeath.compile.tools.annotation.processor;
 
-import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.*;
 import com.dreameddeath.compile.tools.annotation.processor.testing.ClassWithGenerics;
+import com.dreameddeath.compile.tools.annotation.processor.testing.TestingPackageAnnot;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -37,6 +36,16 @@ public class ClassInfoTest {
         assertNotNull(info);
         assertNotNull(classInfo.getPackageInfo());
         assertNotNull(classInfo.getPackageInfo().getParentPackage());
-
+        TestingPackageAnnot annot=null;
+        PackageInfo currPackage = classInfo.getPackageInfo();
+        while(currPackage!=null){
+            annot = currPackage.getAnnotation(TestingPackageAnnot.class);
+            if(annot!=null){
+                break;
+            }
+            currPackage=currPackage.getParentPackage();
+        }
+        assertNotNull(annot);
+        assertEquals("toto",annot.value());
     }
 }
