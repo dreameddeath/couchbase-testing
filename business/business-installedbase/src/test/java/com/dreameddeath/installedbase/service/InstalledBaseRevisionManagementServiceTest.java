@@ -2,6 +2,7 @@ package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.MockDateTimeServiceImpl;
 import com.dreameddeath.installedbase.model.offer.InstalledCompositeOffer;
+import com.dreameddeath.installedbase.model.offer.InstalledOfferRevision;
 import com.dreameddeath.installedbase.process.model.InstalledBaseUpdateResult;
 import com.dreameddeath.installedbase.service.utils.InstalledItemRevisionsToApply;
 import com.dreameddeath.testing.dataset.DatasetManager;
@@ -42,7 +43,7 @@ public class InstalledBaseRevisionManagementServiceTest {
         InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, "base_installed_offer", Collections.singletonMap("origDate", dateTimeRef.get()));
         assertNotNull(offer);
         {
-            InstalledItemRevisionsToApply<?, ?> revs = service.findApplicableRevisions(result, offer);
+            InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledCompositeOffer> revs = service.findApplicableRevisions(result, offer);
             assertEquals(2, revs.getRevisionsToApply().size());
             assertEquals("ccoItem4", revs.getRevisionsToApply().get(0).getOrderItemId());
             assertEquals("ccoItem4.1", revs.getRevisionsToApply().get(1).getOrderItemId());
@@ -50,7 +51,7 @@ public class InstalledBaseRevisionManagementServiceTest {
 
         dateTimeRef.getAndUpdate(dt->dt.plus(1));
         {
-            InstalledItemRevisionsToApply<?,?> revs=service.findApplicableRevisions(result,offer);
+            InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledCompositeOffer> revs=service.findApplicableRevisions(result,offer);
             assertEquals(3,revs.getRevisionsToApply().size());
             assertEquals("ccoItem3",revs.getRevisionsToApply().get(0).getOrderItemId());
             assertEquals("ccoItem4",revs.getRevisionsToApply().get(1).getOrderItemId());
