@@ -22,10 +22,14 @@ import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
-import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.joda.time.DateTime;
 
 import java.util.Collection;
 import java.util.List;
+
+import static com.dreameddeath.installedbase.utils.InstalledBaseTools.Statuses.getMatchingStatuses;
+import static com.dreameddeath.installedbase.utils.InstalledBaseTools.Statuses.getStatusFromHistory;
 
 /**
  * Created by Christophe Jeunesse on 31/08/2014.
@@ -47,15 +51,10 @@ public class InstalledItemLink extends CouchbaseDocumentElement implements IHasS
     @DocumentProperty("direction")
     private Property<Direction> direction = new ImmutableProperty<>(InstalledItemLink.this);
     /**
-     *  status : Link Status
-     */
-    @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItemLink.this);
-    /**
      *  statusHistory : history of statuses
      */
-    @DocumentProperty("statusHistory")
-    private ListProperty<InstalledStatus> statusHistory = new ArrayListProperty<>(InstalledItemLink.this);
+    @DocumentProperty("statuses")
+    private ListProperty<InstalledStatus> statuses = new ArrayListProperty<>(InstalledItemLink.this);
 
     // id accessors
     public String getTargetId() { return targetId.get(); }
@@ -67,29 +66,42 @@ public class InstalledItemLink extends CouchbaseDocumentElement implements IHasS
     public Direction getDirection() { return direction.get(); }
     public void setDirection(Direction val) { direction.set(val); }
     // status accessors
-    public InstalledStatus getStatus() { return status.get(); }
-    public void setStatus(InstalledStatus val) { status.set(val); }
+    @JsonIgnore
+    public InstalledStatus getStatus(DateTime ref) {
+        return getStatusFromHistory(statuses,ref);
+    }
+
+    @Override
+    public List<InstalledStatus> getStatuses(DateTime startDate, DateTime endDate) {
+        return getMatchingStatuses(statuses,startDate,endDate);
+    }
+
+    @Override
+    public List<InstalledStatus> getOverlappingStatuses(InstalledStatus refStatus) {
+        return getMatchingStatuses(statuses,refStatus.getStartDate(),refStatus.getEndDate());
+    }
+
     /**
      * Getter of statusHistory
      * @return the content
      */
-    public List<InstalledStatus> getStatusHistory() { return statusHistory.get(); }
+    public List<InstalledStatus> getStatuses() { return statuses.get(); }
     /**
      * Setter of statusHistory
      * @param vals the new collection of values
      */
-    public void setStatusHistory(Collection<InstalledStatus> vals) { statusHistory.set(vals); }
+    public void setStatuses(Collection<InstalledStatus> vals) { statuses.set(vals); }
     /**
      * Add a new entry to the property statusHistory
      * @param val the new entry to be added
      */
-    public boolean addStatusHistory(InstalledStatus val){ return statusHistory.add(val); }
+    public boolean addStatus(InstalledStatus val){ return statuses.add(val); }
     /**
      * Remove an entry to the property statusHistory
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
-    public boolean removeStatusHistory(InstalledStatus val){ return statusHistory.remove(val); }
+    public boolean removeStatus(InstalledStatus val){ return statuses.remove(val); }
 
 
     public enum Type{

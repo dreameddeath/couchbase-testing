@@ -37,20 +37,30 @@ public abstract class InstalledItemRevision extends VersionedDocumentElement {
     @DocumentProperty("orderItemId")
     private Property<String> orderItemId = new StandardProperty<>(InstalledItemRevision.this);
     /**
-     *  status : Status item linked to the revision
+     *  status : The wished status linked to the revision
      */
     @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItemRevision.this,InstalledStatus.class);
+    private Property<InstalledStatus.Code> status = new StandardProperty<>(InstalledItemRevision.this);
     /**
      *  revState : the current revision state
      */
     @DocumentProperty("revState")
-    private Property<RevStatus> revState = new StandardProperty<>(InstalledItemRevision.this);
+    private Property<RevState> revState = new StandardProperty<>(InstalledItemRevision.this);
     /**
      *  effectiveDate : The effective date of the revision if future
      */
     @DocumentProperty("effectiveDate")
     private Property<DateTime> effectiveDate = new StandardProperty<>(InstalledItemRevision.this);
+    /**
+     *  rank : executed rank when applied
+     */
+    @DocumentProperty("rank")
+    private Property<Integer> rank = new StandardProperty<>(InstalledItemRevision.this);
+    /**
+     *  runDate : date time when it has been runned
+     */
+    @DocumentProperty("runDate")
+    private Property<DateTime> runDate = new StandardProperty<>(InstalledItemRevision.this);
 
     // orderId accessors
     public String getOrderId() { return orderId.get(); }
@@ -61,19 +71,19 @@ public abstract class InstalledItemRevision extends VersionedDocumentElement {
     public void setOrderItemId(String val) { orderItemId.set(val); }
 
     // status accessors
-    public InstalledStatus getStatus() { return status.get(); }
-    public void setStatus(InstalledStatus val) { status.set(val); }
+    public InstalledStatus.Code getStatus() { return status.get(); }
+    public void setStatus(InstalledStatus.Code val) { status.set(val); }
 
     /**
      * Getter of revState
      * @return the content
      */
-    public RevStatus getRevState() { return revState.get(); }
+    public RevState getRevState() { return revState.get(); }
     /**
      * Setter of revState
      * @param val the new content
      */
-    public void setRevState(RevStatus val) { revState.set(val); }
+    public void setRevState(RevState val) { revState.set(val); }
 
     /**
      * Getter of effectiveDate
@@ -85,6 +95,27 @@ public abstract class InstalledItemRevision extends VersionedDocumentElement {
      * @param val the new content
      */
     public void setEffectiveDate(DateTime val) { effectiveDate.set(val); }
+    /**
+     * Getter of rank
+     * @return the content
+     */
+    public Integer getRank() { return rank.get(); }
+    /**
+     * Setter of rank
+     * @param val the new content
+     */
+    public void setRank(Integer val) { rank.set(val); }
+    /**
+     * Getter of runDate
+     * @return the content
+     */
+    public DateTime getRunDate() { return runDate.get(); }
+    /**
+     * Setter of runDate
+     * @param val the new content
+     */
+    public void setRunDate(DateTime val) { runDate.set(val); }
+
 
     /**
      * comparator of revisions
@@ -99,11 +130,10 @@ public abstract class InstalledItemRevision extends VersionedDocumentElement {
                 ;
     }
 
-    public enum RevStatus{
-        CURRENT, // correspond to the active revision
+    public enum RevState {
         REQUESTED, // the revision is requested but not "planned" (order delivery not started)
         CANCELLED, //revision requested at one time but not planned
         PLANNED, //the revision is planned
-        PAST // usefull??
+        DONE
     }
 }

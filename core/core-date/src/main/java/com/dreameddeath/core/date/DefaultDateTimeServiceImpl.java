@@ -28,18 +28,4 @@ public class DefaultDateTimeServiceImpl implements IDateTimeService {
         return DateTime.now();
     }
 
-    @Override
-    public DateTime now(){
-        return getCurrentDate();
-    }
-
-    @Override
-    public DateTime min(){
-        return MIN_TIME;
-    }
-
-    @Override
-    public DateTime max(){
-        return MAX_TIME;
-    }
 }

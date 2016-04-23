@@ -199,8 +199,6 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         public Status code;
         @DocumentProperty("effectiveDate")
         public DateTime effectiveDate;
-        @DocumentProperty("endDate")
-        public DateTime endDate;
     }
 
     public enum Status{
@@ -242,35 +240,35 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         COMPLETED,
         CANCELLED;
 
-        public boolean isRevTarget(InstalledItemRevision.RevStatus revStatus){
+        public boolean isRevTarget(InstalledItemRevision.RevState revState){
             switch(this){
                 case IN_ORDER:
                 case ON_DELIVERY:
-                    return revStatus.equals(InstalledItemRevision.RevStatus.REQUESTED);
+                    return revState.equals(InstalledItemRevision.RevState.REQUESTED);
                 case CANCELLED:
-                    return revStatus.equals(InstalledItemRevision.RevStatus.CANCELLED);
+                    return revState.equals(InstalledItemRevision.RevState.CANCELLED);
                 case COMPLETED:
-                    return revStatus.equals(InstalledItemRevision.RevStatus.PLANNED)|| revStatus.equals(InstalledItemRevision.RevStatus.CURRENT);
+                    return revState.equals(InstalledItemRevision.RevState.PLANNED)|| revState.equals(InstalledItemRevision.RevState.DONE);
                 default:
                     return false;
             }
         }
 
-        public boolean isUpdatableFrom(InstalledItemRevision.RevStatus revStatus){
-            if(revStatus==null){
+        public boolean isUpdatableFrom(InstalledItemRevision.RevState revState){
+            if(revState ==null){
                 return true;
             }
-            if(isRevTarget(revStatus)){
+            if(isRevTarget(revState)){
                 return true;
             }
             switch(this){
                 case IN_ORDER: case ON_DELIVERY:
-                    return revStatus.equals(InstalledItemRevision.RevStatus.PLANNED);
+                    return revState.equals(InstalledItemRevision.RevState.PLANNED);
                 case CANCELLED:
-                    return revStatus.equals(InstalledItemRevision.RevStatus.REQUESTED) ||
-                            revStatus.equals(InstalledItemRevision.RevStatus.PLANNED);
+                    return revState.equals(InstalledItemRevision.RevState.REQUESTED) ||
+                            revState.equals(InstalledItemRevision.RevState.PLANNED);
                 case COMPLETED:
-                    return revStatus.equals(InstalledItemRevision.RevStatus.PLANNED);
+                    return revState.equals(InstalledItemRevision.RevState.PLANNED);
                 default:
                     return false;
             }

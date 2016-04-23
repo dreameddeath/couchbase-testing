@@ -148,7 +148,7 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
             if(map instanceof HasParent){
                 parent = ((HasParent) map).getParentElement();
             }
-            return new ArrayListProperty<T>(parent);
+            return new ArrayListProperty<>(parent);
         }
     }
 

@@ -25,9 +25,26 @@ import org.joda.time.DateTimeZone;
 public interface IDateTimeService {
     DateTime MIN_TIME = new DateTime( 0, 1, 1, 0, 0, 0, DateTimeZone.UTC );
     DateTime MAX_TIME = new DateTime(292278993, 12, 31, 23, 59, 59);
+    default boolean isMax(DateTime date){
+        return date.isEqual(MAX_TIME);
+    }
+
+    default boolean isMin(DateTime date){
+        return date.isEqual(MIN_TIME);
+    }
+
+    default DateTime now(){
+        return DateTime.now();
+    }
+
+    default DateTime min(){
+        return MIN_TIME;
+    }
+    default DateTime max(){
+        return MAX_TIME;
+    }
 
     DateTime getCurrentDate();
-    DateTime now();
-    DateTime min();
-    DateTime max();
+
+
 }

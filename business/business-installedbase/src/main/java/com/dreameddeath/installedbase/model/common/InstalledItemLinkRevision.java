@@ -5,6 +5,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import org.joda.time.DateTime;
 
 import java.util.List;
 
@@ -31,7 +32,12 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
      *  status : the revision status if any
      */
     @DocumentProperty("status")
-    private Property<InstalledStatus> status = new StandardProperty<>(InstalledItemLinkRevision.this);
+    private Property<InstalledStatus.Code> status = new StandardProperty<>(InstalledItemLinkRevision.this);
+    /**
+     *  statusDate : The status effective date if different from the revision date
+     */
+    @DocumentProperty("statusDate")
+    private Property<DateTime> statusDate = new StandardProperty<>(InstalledItemLinkRevision.this);
     /**
      *  action : The action on the link if any
      */
@@ -73,12 +79,22 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
      * Getter of status
      * @return the content
      */
-    public InstalledStatus getStatus() { return status.get(); }
+    public InstalledStatus.Code getStatus() { return status.get(); }
     /**
      * Setter of status
      * @param val the new content
      */
-    public void setStatus(InstalledStatus val) { status.set(val); }
+    public void setStatus(InstalledStatus.Code val) { status.set(val); }
+    /**
+     * Getter of statusDate
+     * @return the content
+     */
+    public DateTime getStatusDate() { return statusDate.get(); }
+    /**
+     * Setter of statusDate
+     * @param val the new content
+     */
+    public void setStatusDate(DateTime val) { statusDate.set(val); }
     /**
      * Getter of action
      * @return the content

@@ -25,11 +25,10 @@ public abstract class IdentifiedItemUpdateResult extends VersionedDocumentElemen
     @DocumentProperty("id")
     private Property<String> id = new ImmutableProperty<>(IdentifiedItemUpdateResult.this);
     /**
-     *  statusUpdates : updates on the status
+     *  statuses : list the statuses updates done
      */
-    @DocumentProperty("statusUpdates")
-    private ListProperty<StatusUpdateResult> statusUpdates = new ArrayListProperty<>(IdentifiedItemUpdateResult.this);
-
+    @DocumentProperty("statuses")
+    private ListProperty<StatusUpdateResult> statuses = new ArrayListProperty<>(IdentifiedItemUpdateResult.this);
     /**
      *  revisions : updates on the revisions of the items
      */
@@ -59,26 +58,47 @@ public abstract class IdentifiedItemUpdateResult extends VersionedDocumentElemen
     public void setId(String val) { id.set(val); }
 
     /**
-     * Getter of statusUpdates
+     * Getter of statuses
      * @return the content
      */
-    public List<StatusUpdateResult> getStatusUpdates() { return statusUpdates.get(); }
+    public List<StatusUpdateResult> getStatuses() { return statuses.get(); }
     /**
-     * Setter of statusUpdates
+     * Setter of statuses
      * @param vals the new collection of values
      */
-    public void setStatusUpdates(Collection<StatusUpdateResult> vals) { statusUpdates.set(vals); }
+    public void setStatuses(Collection<StatusUpdateResult> vals) { statuses.set(vals); }
     /**
-     * Add a new entry to the property statusUpdates
-     * @param val the new entry to be added
+     * Size of statuses
+     * @return the curr size of the list
      */
-    public boolean addStatusUpdate(StatusUpdateResult val){ return statusUpdates.add(val); }
+    public int sizeOfStatuses() { return statuses.size(); }
     /**
-     * Remove an entry to the property statusUpdates
+     * Add a new entry to the property statuses
+     * @param val the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addStatus(StatusUpdateResult val){ return statuses.add(val); }
+    /**
+     * Add a new entry to the property statuses at the specified position
+     * @param index the new entry to be added
+     * @param val the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addStatus(int index,StatusUpdateResult val){ return statuses.add(val); }
+    /**
+     * Remove an entry to the property statuses
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
-    public boolean removeStatusUpdate(StatusUpdateResult val){ return statusUpdates.remove(val); }
+    public boolean removeStatus(StatusUpdateResult val){ return statuses.remove(val); }
+    /**
+     * Remove an entry to the property statuses at the specified position
+     * @param index the position of element to be removed
+     * @return the entry removed if any
+     */
+    public StatusUpdateResult removeStatus(int index){ return statuses.remove(index); }
+
+
 
     /**
      * Getter of revisions

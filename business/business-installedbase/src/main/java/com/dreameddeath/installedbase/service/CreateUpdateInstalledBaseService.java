@@ -247,19 +247,20 @@ public class CreateUpdateInstalledBaseService {
 
         //Manage status if given
         if(linkRequest.status!=null){
-            InstalledStatus status=new InstalledStatus();
-            link.setStatus(status);
-            status.setCode(linkRequest.status.code.getMappedCode());
-
-            //Manage dates
-            if(InstalledItemLinkRevision.Action.REMOVE.equals(link.getAction())){
-                status.setEndDate(linkRequest.status.effectiveDate);
+            if(linkRequest.status.code!=null){
+                link.setStatus(linkRequest.status.code.getMappedCode());
             }
-            else{
-                status.setStartDate(linkRequest.status.effectiveDate);
-                if(linkRequest.status.endDate!=null){
-                    status.setEndDate(linkRequest.status.endDate);
-                }
+            else if(InstalledItemLinkRevision.Action.ADD.equals(link.getAction())) {
+                link.setStatus(InstalledStatus.Code.ACTIVE);
+            }
+            else if(InstalledItemLinkRevision.Action.REMOVE.equals(link.getAction())) {
+                link.setStatus(InstalledStatus.Code.REMOVED);
+            }
+            else if(InstalledItemLinkRevision.Action.CHANGE.equals(link.getAction())) {
+                throw new RuntimeException("Cannot change without a status");
+            }
+            if(linkRequest.status.effectiveDate!=null){
+                link.setStatusDate(linkRequest.status.effectiveDate);
             }
         }
         return link;
@@ -471,8 +472,6 @@ public class CreateUpdateInstalledBaseService {
 
             workingInfo.getTargetItem().setCode(workingInfo.getUpdateRequest().code);
             workingInfo.getTargetItem().setCreationDate(ctxt.getSession().getCurrentDate());
-            workingInfo.getTargetItem().getStatus().setCode(InstalledStatus.Code.INITIALIZED);
-            workingInfo.getTargetItem().getStatus().setStartDate(workingInfo.getTargetItem().getCreationDate());
             workingInfo.getResult().setTempId(workingInfo.getUpdateRequest().tempId);
             workingInfo.getResult().setId(workingInfo.getTargetItem().getId());
         }
@@ -486,27 +485,25 @@ public class CreateUpdateInstalledBaseService {
         //If order id/order item id given, manage by revision
         if(mapElement.getUpdateRequest().comOp!=null) {
             switch (mapElement.getUpdateRequest().comOp) {
-                case ADD:case ACTIVATE: targetRevision.getStatus().setCode(InstalledStatus.Code.ACTIVE);break;
-                case REMOVE: targetRevision.getStatus().setCode(InstalledStatus.Code.CLOSED);break;
-                case SUSPEND: targetRevision.getStatus().setCode(InstalledStatus.Code.SUSPENDED);break;
-                case CANCEL: targetRevision.getStatus().setCode(InstalledStatus.Code.REMOVED);break;
-                case MIGRATE: targetRevision.getStatus().setCode(InstalledStatus.Code.CLOSED);break;
+                case ADD:case ACTIVATE: targetRevision.setStatus(InstalledStatus.Code.ACTIVE);break;
+                case REMOVE: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
+                case SUSPEND: targetRevision.setStatus(InstalledStatus.Code.SUSPENDED);break;
+                case CANCEL: targetRevision.setStatus(InstalledStatus.Code.REMOVED);break;
+                case MIGRATE: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
                 default://TODO throw an error
             }
-            targetRevision.getStatus().setStartDate(mapElement.getUpdateRequest().orderInfo.effectiveDate);
             targetRevision.setEffectiveDate(mapElement.getUpdateRequest().orderInfo.effectiveDate);
         }
         //if status given
         else if(mapElement.getUpdateRequest().status!=null){
             switch(mapElement.getUpdateRequest().status.code){
-                case ACTIVE: targetRevision.getStatus().setCode(InstalledStatus.Code.ACTIVE);break;
-                case CLOSED: targetRevision.getStatus().setCode(InstalledStatus.Code.CLOSED);break;
-                case SUSPENDED: targetRevision.getStatus().setCode(InstalledStatus.Code.SUSPENDED);break;
-                case ABORTED: targetRevision.getStatus().setCode(InstalledStatus.Code.ABORTED);break;
-                case REMOVED: targetRevision.getStatus().setCode(InstalledStatus.Code.REMOVED);break;
+                case ACTIVE: targetRevision.setStatus(InstalledStatus.Code.ACTIVE);break;
+                case CLOSED: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
+                case SUSPENDED: targetRevision.setStatus(InstalledStatus.Code.SUSPENDED);break;
+                case ABORTED: targetRevision.setStatus(InstalledStatus.Code.ABORTED);break;
+                case REMOVED: targetRevision.setStatus(InstalledStatus.Code.REMOVED);break;
                 default://TODO throw an error
             }
-            targetRevision.getStatus().setStartDate(mapElement.getUpdateRequest().status.effectiveDate);
             targetRevision.setEffectiveDate(mapElement.getUpdateRequest().orderInfo.effectiveDate);
         }
     }

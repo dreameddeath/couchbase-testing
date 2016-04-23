@@ -7,9 +7,6 @@
     code:"test",
     creationDate:#% origDate; %#,
     lastModificationDate:#% origDate; %#,
-    status:{
-        code:"INITIALIZED"
-    },
     revisions :[{
             orderItemId:"ccoItem1",
             revState:"REQUESTED"
@@ -17,34 +14,40 @@
             orderItemId:"ccoItem2",
             revState:"PLANNED",
             effectiveDate:#% origDate.plusDays(1); %#,
-            status:{
-                code:"SUSPENDED"
-            }
+            status:"ACTIVE"
         },{
             orderItemId:"ccoItem3",
             revState:"PLANNED",
             effectiveDate:#% origDate.plus(1); %#,
-            status:{
-                code:"CLOSED"
-            }
+            status:"CLOSED"
         },{
             orderItemId:"ccoItem4",
             revState:"PLANNED",
             effectiveDate:#% origDate; %#,
-            status:{code:"SUSPENDED"}
+            status:"SUSPENDED"
         },{
             orderItemId:"ccoItem4.1",
             revState:"PLANNED",
             effectiveDate:#% origDate.minus(5); %#,
-            status:{code:"ACTIVE"}
+            status:"ACTIVE"
         },{
             orderItemId:"ccoItem5",
-            revState:"CURRENT",
+            revState:"DONE",
             effectiveDate:#% origDate; %#
         },{
             orderItemId:"ccoItem6",
-            revState:"PAST",
-            effectiveDate:#% origDate; %#
-        }
+            revState:"DONE"
+        },{
+             orderItemId:"ccoItem7",
+             revState:"PLANNED",
+             effectiveDate:#% origDate.plusDays(3);%#,
+             status:"SUSPENDED"
+         },{
+             orderItemId:"ccoItem7",
+             revState:"PLANNED",
+             effectiveDate:#% origDate.plusDays(5);%#,
+             status:"CLOSED"
+         }
     ]
 }
+

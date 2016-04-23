@@ -21,8 +21,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 30/03/2016.
@@ -110,7 +109,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                 hasChanges|=applyLinksFromRevision(ref,(InstalledItemRevisionsToApply)itemWithRevs);
             }
             if(itemWithRevs.getItemType().equals(InstalledItemRevisionsToApply.Type.OFFER)){
-                hasChanges|=applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<? extends InstalledOfferRevision, ? extends InstalledOffer>) itemWithRevs);
+                hasChanges|=applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledOffer>)itemWithRevs);
             }
             else if(itemWithRevs.getParent() instanceof InstalledProductService){
                 hasChanges|=applyFunctionsFromRevision((InstalledItemRevisionsToApply<? extends InstalledProductServiceRevision, ? extends InstalledProductService>)itemWithRevs);
@@ -124,11 +123,25 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                     case DISCOUNT:result.addDiscounts(itemWithRevs.getUpdateResult(DiscountUpdateResult.class));break;
                 }
             }
+            updateRevisions(itemWithRevs.getParent(),itemWithRevs.getRevisionsToApply());
         }
     }
 
+    public void updateRevisions(InstalledItem<? extends InstalledItemRevision> installedItem,List<? extends InstalledItemRevision> revisions){
+        //Update revisions states
+        Optional<? extends InstalledItemRevision> maxRank=installedItem.getRevisions().stream().max(
+                Comparator.comparingInt(
+                        rev->(rev.getRank()!=null)?rev.getRank():-1
+                ));
+        int lastRank=(maxRank.get().getRank()!=null)?maxRank.get().getRank():-1;
+        for(InstalledItemRevision revision:revisions){
+            revision.setRank(++lastRank);
+            revision.setRevState(InstalledItemRevision.RevState.DONE);
+            revision.setRunDate(dateTimeService.getCurrentDate());
+        }
+    }
 
-    private boolean applyFunctionsFromRevision(InstalledItemRevisionsToApply<? extends InstalledProductServiceRevision, ? extends InstalledProductService> itemWithRevs) {
+    public boolean applyFunctionsFromRevision(InstalledItemRevisionsToApply<? extends InstalledProductServiceRevision, ? extends InstalledProductService> itemWithRevs) {
         boolean hasChanges=false;
         for(InstalledProductServiceRevision psRevision:itemWithRevs.getRevisionsToApply()){
             for(InstalledAttributeRevision attrRev:psRevision.getFunctions()){
@@ -149,7 +162,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         return hasChanges;
     }
 
-    private boolean applyCommercialParametersFromRevision(InstalledItemRevisionsToApply<? extends InstalledOfferRevision, ? extends InstalledOffer> itemWithRevs) {
+    private boolean applyCommercialParametersFromRevision(InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledOffer> itemWithRevs) {
         boolean hasChanges=false;
         for(InstalledOfferRevision offerRevision:itemWithRevs.getRevisionsToApply()){
             for(InstalledAttributeRevision attrRev:offerRevision.getCommercialParameters()){
@@ -355,10 +368,6 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             existingLink.setTargetId(linkRev.getTargetId());
             existingLink.setType(linkRev.getType());
             existingLink.setDirection(linkRev.getDirection());
-            InstalledStatus status =new InstalledStatus();
-            status.setCode(InstalledStatus.Code.INITIALIZED);
-            status.setStartDate(dateTimeService.getCurrentDate());
-            existingLink.setStatus(status);
             hasChanges=true;
         }
         else{
@@ -366,80 +375,117 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             Preconditions.checkArgument(InstalledItemLinkRevision.Action.ADD.equals(linkRev.getAction()),"The existing link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
         }
 
+
         //Changing status
-        StatusUpdateResult resultUpdate = manageStatusUpdate(existingLink,linkRev.getStatus(),effectiveDate);
-        if(resultUpdate!=null){
-            hasChanges=true;
-        }
+        List<StatusUpdateResult> statusUpdateResults = manageStatusesUpdate(existingLink,linkRev.getStatus(),effectiveDate);
+        hasChanges|=(statusUpdateResults.size()>0);
 
         if(hasChanges){
             LinkUpdateResult result = new LinkUpdateResult();
             result.setTargetId(existingLink.getTargetId());
             result.setDirection(existingLink.getDirection());
             result.setType(existingLink.getType());
-            result.setStatus(resultUpdate);
+            statusUpdateResults.forEach(result::addStatus);
             return result;
         }
         else{
             return null;
         }
-
     }
 
     public <TREV extends InstalledItemRevision,TITEM extends InstalledItem<TREV>> boolean applyStatusesFromRevision(InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs){
         boolean hasChanges=false;
         for(InstalledItemRevision rev:itemWithRevs.getRevisionsToApply()){
-            InstalledStatus revStatus=rev.getStatus();
-            if(revStatus==null){
+            InstalledStatus.Code revStatusCode=rev.getStatus();
+            TITEM item=itemWithRevs.getParent();
+            IdentifiedItemUpdateResult updateResult=itemWithRevs.getUpdateResult();
+            if(revStatusCode==null){
                 continue;
             }
-            StatusUpdateResult resultUpdate=manageStatusUpdate(itemWithRevs.getParent(),revStatus,rev.getEffectiveDate());
-            if(resultUpdate!=null){
-                hasChanges=true;
-                itemWithRevs.getUpdateResult().addStatusUpdate(resultUpdate);
+            DateTime effectiveStatusDate=rev.getEffectiveDate();
+            if(effectiveStatusDate==null){
+                effectiveStatusDate=dateTimeService.getCurrentDate();
             }
+            List<StatusUpdateResult> statusUpdateResults = manageStatusesUpdate(item,revStatusCode,effectiveStatusDate);
+            hasChanges|=(statusUpdateResults.size()>0);
+            mergeStatusesUpdate(updateResult.getStatuses(),statusUpdateResults).forEach(updateResult::addStatus);
         }
 
         return hasChanges;
     }
 
-    public StatusUpdateResult manageStatusUpdate(IHasStatus refElement,InstalledStatus targetStatus,@Nullable DateTime targetEffectiveDate){
-        InstalledStatus currStatus = refElement.getStatus();
-        if(currStatus.getCode().equals(targetStatus.getCode())) {
-            return null;
+    public List<StatusUpdateResult> mergeStatusesUpdate(List<StatusUpdateResult> origStatusUpdates,List<StatusUpdateResult> newResults){
+        Iterator<StatusUpdateResult> newResultIterator=newResults.iterator();
+        while(newResultIterator.hasNext()) {
+            StatusUpdateResult newResult=newResultIterator.next();
+            for(StatusUpdateResult oldStatusUpdate:origStatusUpdates){
+                if(newResult.getCode().equals(oldStatusUpdate.getCode()) && newResult.getStartDate().equals(oldStatusUpdate.getStartDate())){
+                    newResultIterator.remove();
+                    oldStatusUpdate.setEndDate(newResult.getEndDate());
+                }
+            }
         }
-        else{
-            ///TODO check change status applicability
-            DateTime effectiveDate;
-            InstalledStatus newStatus = new InstalledStatus();
-            InstalledStatus oldStatus = new InstalledStatus();
+        return newResults;
+    }
 
-            oldStatus.setCode(currStatus.getCode());
-            oldStatus.setStartDate(currStatus.getStartDate());
-
-            newStatus.setCode(targetStatus.getCode());
-            if(targetStatus.getStartDate()!=null){
-                effectiveDate=targetStatus.getStartDate();
+    public List<StatusUpdateResult> manageStatusesUpdate(IHasStatus item,InstalledStatus.Code targetStatusCode,DateTime effectiveStatusDate){
+        List<InstalledStatus> currStatuses = item.getStatuses(effectiveStatusDate,dateTimeService.max());
+        List<StatusUpdateResult> results=new ArrayList<>(currStatuses.size()+1);
+        for(InstalledStatus currMathingStatus:currStatuses) {
+            StatusUpdateResult resultUpdate = manageStatusUpdate(item,currMathingStatus, targetStatusCode, effectiveStatusDate);
+            //check if  added
+            if (resultUpdate != null) {
+                results.add(resultUpdate);
             }
-            else if(targetEffectiveDate!=null) {
-                effectiveDate = targetEffectiveDate;
-            }
-            else{
-                effectiveDate = dateTimeService.getCurrentDate();
-            }
+        }
+        if((currStatuses.size()==0) || !(currStatuses.get(0).getCode().equals(targetStatusCode))){
+            InstalledStatus status=new InstalledStatus();
+            status.setCode(targetStatusCode);
+            status.setStartDate(effectiveStatusDate);
+            status.setEndDate(dateTimeService.max());
+            item.addStatus(status);
+            StatusUpdateResult updateResult = new StatusUpdateResult();
+            updateResult.setAction(StatusUpdateResult.Action.NEW);
+            updateResult.setCode(targetStatusCode);
+            updateResult.setStartDate(status.getStartDate());
+            updateResult.setEndDate(status.getEndDate());
+            results.add(updateResult);
+        }
+        return results;
+    }
 
-            newStatus.setStartDate(effectiveDate);
-            oldStatus.setEndDate(effectiveDate);
-            refElement.addStatusHistory(oldStatus);
-            refElement.setStatus(newStatus);
 
-            StatusUpdateResult resultUpdate = new StatusUpdateResult();
-            resultUpdate.setOldStatus(oldStatus.getCode());
-            resultUpdate.setNewStatus(newStatus.getCode());
-            resultUpdate.setEffectiveDate(effectiveDate);
 
+    public StatusUpdateResult manageStatusUpdate(IHasStatus item,InstalledStatus currStatus,InstalledStatus.Code targetStatusCode,DateTime targetEffectiveDate) {
+        StatusUpdateResult resultUpdate = new StatusUpdateResult();
+        resultUpdate.setCode(currStatus.getCode());
+        resultUpdate.setStartDate(currStatus.getStartDate());
+        resultUpdate.setOldEndDate(currStatus.getEndDate());
+
+        //Full Delete
+        if (targetEffectiveDate.compareTo(currStatus.getStartDate()) < 0) {
+            resultUpdate.setAction(StatusUpdateResult.Action.DELETED);
+            item.removeStatus(currStatus);
+            currStatus.setEndDate(currStatus.getStartDate());
             return resultUpdate;
         }
+        //if same code, if same end date, ignore the modification it may be a change of end date
+        else if (currStatus.getCode().equals(targetStatusCode)) {
+            if (dateTimeService.isMax(currStatus.getEndDate())) {
+                return null;
+            } else {
+                resultUpdate.setAction(StatusUpdateResult.Action.MODIFIED);
+                currStatus.setEndDate(dateTimeService.max());
+            }
+        } else {
+            resultUpdate.setAction(StatusUpdateResult.Action.MODIFIED);
+            currStatus.setEndDate(targetEffectiveDate);
+        }
+
+        resultUpdate.setEndDate(currStatus.getEndDate());
+
+        return resultUpdate;
+
     }
 
 
@@ -448,7 +494,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         InstalledItemRevisionsToApply<T,TITEM> result=new InstalledItemRevisionsToApply<>(baseItem);
 
         for(T rev:baseItem.getRevisions()){
-            if(rev.getRevState().equals(InstalledItemRevision.RevStatus.PLANNED)){
+            if(rev.getRevState().equals(InstalledItemRevision.RevState.PLANNED)){
                 if((rev.getEffectiveDate()==null) || (rev.getEffectiveDate().compareTo(dateTimeService.getCurrentDate())<=0)){
                     result.addRevisionToApply(rev);
                 }

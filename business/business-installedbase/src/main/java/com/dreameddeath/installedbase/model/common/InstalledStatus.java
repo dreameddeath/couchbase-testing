@@ -35,13 +35,21 @@ public class InstalledStatus extends CouchbaseDocumentElement {
     /**
      *  startDate : Start Validity date of the status
      */
-    @DocumentProperty("startDate")
+    @DocumentProperty("startDate") @NotNull
     private Property<DateTime> startDate = new StandardProperty<>(InstalledStatus.this);
     /**
      *  endDate : End validity date of the status
      */
-    @DocumentProperty("endDate")
+    @DocumentProperty("endDate") @NotNull
     private Property<DateTime> endDate = new StandardProperty<>(InstalledStatus.this);
+
+    public InstalledStatus(){}
+
+    public InstalledStatus(InstalledStatus status){
+        this.setCode(status.getCode());
+        this.setStartDate(status.getStartDate());
+        this.setEndDate(status.getEndDate());
+    }
 
     // code accessors
     public Code getCode() { return code.get(); }
@@ -54,7 +62,7 @@ public class InstalledStatus extends CouchbaseDocumentElement {
     public void setEndDate(DateTime val) { endDate.set(val); }
 
     public enum Code{
-        INITIALIZED,
+        INEXISTING,
         ACTIVE,
         SUSPENDED,
         CLOSED,
