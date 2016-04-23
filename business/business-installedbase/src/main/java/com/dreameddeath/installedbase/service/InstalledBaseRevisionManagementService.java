@@ -21,7 +21,10 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 30/03/2016.
@@ -128,12 +131,18 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
     }
 
     public void updateRevisions(InstalledItem<? extends InstalledItemRevision> installedItem,List<? extends InstalledItemRevision> revisions){
-        //Update revisions states
+        Integer lastRank=installedItem.getRevisions().stream()
+                .filter(rev->rev.getRank()!=null)
+                .map(InstalledItemRevision::getRank)
+                .max(Comparator.naturalOrder())
+                .orElse(-1);
+
+        /*//Update revisions states
         Optional<? extends InstalledItemRevision> maxRank=installedItem.getRevisions().stream().max(
                 Comparator.comparingInt(
                         rev->(rev.getRank()!=null)?rev.getRank():-1
-                ));
-        int lastRank=(maxRank.get().getRank()!=null)?maxRank.get().getRank():-1;
+                ));*/
+        //int lastRank=(maxRank!=null)?maxRank:-1;
         for(InstalledItemRevision revision:revisions){
             revision.setRank(++lastRank);
             revision.setRevState(InstalledItemRevision.RevState.DONE);
@@ -295,7 +304,6 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                                 valueUpdateResult.setEnd(newValueStartDate);
                                 value.setEndDate(newValueStartDate);
                             }
-
                         }
                     }
 
@@ -314,7 +322,6 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                     newValue.setKeyType(valueRev.getKeyType());
                     ValueUpdateResult newValueResult=new ValueUpdateResult(newValue, ValueUpdateResult.Action.ADD);
                     result.addValues(newValueResult);
-
                 }
             }
         }
