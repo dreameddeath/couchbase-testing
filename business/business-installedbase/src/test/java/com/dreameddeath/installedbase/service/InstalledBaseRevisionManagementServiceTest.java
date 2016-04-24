@@ -364,11 +364,11 @@ public class InstalledBaseRevisionManagementServiceTest {
             assertEquals(1,revs.getRevisionsToApply().size());
             boolean modified=service.applyLinksFromRevision(ref,revs);
             assertTrue(modified);
-            assertEquals(4, revs.getUpdateResult(InstalledItemUpdateResult.class).getLinkUpdates().size());
+            assertEquals(4, revs.getUpdateResult(InstalledItemUpdateResult.class).getLinks().size());
             assertEquals(4, offer.getLinks().size());
             int pos = 0;
             {
-                LinkUpdateResult linkUpdateResult = revs.getUpdateResult(InstalledItemUpdateResult.class).getLinkUpdates().get(pos);
+                LinkUpdateResult linkUpdateResult = revs.getUpdateResult(InstalledItemUpdateResult.class).getLinks().get(pos);
                 //update itself
                 assertEquals(InstalledItemLink.Type.RELIES,linkUpdateResult.getType());
                 assertEquals("tid1",linkUpdateResult.getTargetId());
@@ -389,8 +389,186 @@ public class InstalledBaseRevisionManagementServiceTest {
                 assertEquals(linkUpdateResult.getStatuses().get(0).getStartDate(),link.getStatuses().get(0).getStartDate());
                 assertEquals(linkUpdateResult.getStatuses().get(0).getEndDate(),link.getStatuses().get(0).getEndDate());
             }
+            ++pos;
+            {
+                LinkUpdateResult linkUpdateResult = revs.getUpdateResult(InstalledItemUpdateResult.class).getLinks().get(pos);
+                //update itself
+                assertEquals(InstalledItemLink.Type.MIGRATE,linkUpdateResult.getType());
+                assertEquals("tid1",linkUpdateResult.getTargetId());
+                assertTrue(linkUpdateResult.isReverse());
+                assertEquals(1,linkUpdateResult.getStatuses().size());
+                //Status check
+                assertEquals(StatusUpdateResult.Action.NEW,linkUpdateResult.getStatuses().get(0).getAction());
+                assertEquals(InstalledStatus.Code.SUSPENDED,linkUpdateResult.getStatuses().get(0).getCode());
+                assertEquals(REFERENCE_DATE,linkUpdateResult.getStatuses().get(0).getStartDate());
+                assertEquals(IDateTimeService.MAX_TIME,linkUpdateResult.getStatuses().get(0).getEndDate());
 
+                InstalledOfferLink link = revs.getParent().getLinks().get(pos);
+                assertEquals(linkUpdateResult.getTargetId(),link.getTargetId());
+                assertEquals(linkUpdateResult.getType(),link.getType());
+                assertEquals(linkUpdateResult.isReverse(),link.isReverse());
+                assertEquals(1,link.getStatuses().size());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getCode(),link.getStatuses().get(0).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getStartDate(),link.getStatuses().get(0).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getEndDate(),link.getStatuses().get(0).getEndDate());
+            }
+            ++pos;
+            {
+                LinkUpdateResult linkUpdateResult = revs.getUpdateResult(InstalledItemUpdateResult.class).getLinks().get(pos);
+                //update itself
+                assertEquals(InstalledItemLink.Type.MIGRATE,linkUpdateResult.getType());
+                assertEquals("tid2",linkUpdateResult.getTargetId());
+                assertNull(linkUpdateResult.isReverse());
+                assertEquals(1,linkUpdateResult.getStatuses().size());
+                //Status check
+                assertEquals(StatusUpdateResult.Action.NEW,linkUpdateResult.getStatuses().get(0).getAction());
+                assertEquals(InstalledStatus.Code.ACTIVE,linkUpdateResult.getStatuses().get(0).getCode());
+                assertEquals(REFERENCE_DATE,linkUpdateResult.getStatuses().get(0).getStartDate());
+                assertEquals(IDateTimeService.MAX_TIME,linkUpdateResult.getStatuses().get(0).getEndDate());
+
+                InstalledOfferLink link = revs.getParent().getLinks().get(pos);
+                assertEquals(linkUpdateResult.getTargetId(),link.getTargetId());
+                assertEquals(linkUpdateResult.getType(),link.getType());
+                assertEquals(linkUpdateResult.isReverse(),link.isReverse());
+                assertEquals(1,link.getStatuses().size());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getCode(),link.getStatuses().get(0).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getStartDate(),link.getStatuses().get(0).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getEndDate(),link.getStatuses().get(0).getEndDate());
+            }
+            ++pos;
+            {
+                LinkUpdateResult linkUpdateResult = revs.getUpdateResult(InstalledItemUpdateResult.class).getLinks().get(pos);
+                //update itself
+                assertEquals(InstalledItemLink.Type.AGGREGATE,linkUpdateResult.getType());
+                assertEquals("tid3",linkUpdateResult.getTargetId());
+                assertNull(linkUpdateResult.isReverse());
+                assertEquals(1,linkUpdateResult.getStatuses().size());
+                //Status check
+                assertEquals(StatusUpdateResult.Action.NEW,linkUpdateResult.getStatuses().get(0).getAction());
+                assertEquals(InstalledStatus.Code.ACTIVE,linkUpdateResult.getStatuses().get(0).getCode());
+                assertEquals(REFERENCE_DATE.plus(5),linkUpdateResult.getStatuses().get(0).getStartDate());
+                assertEquals(IDateTimeService.MAX_TIME,linkUpdateResult.getStatuses().get(0).getEndDate());
+
+                InstalledOfferLink link = revs.getParent().getLinks().get(pos);
+                assertEquals(linkUpdateResult.getTargetId(),link.getTargetId());
+                assertEquals(linkUpdateResult.getType(),link.getType());
+                assertEquals(linkUpdateResult.isReverse(),link.isReverse());
+                assertEquals(1,link.getStatuses().size());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getCode(),link.getStatuses().get(0).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getStartDate(),link.getStatuses().get(0).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getEndDate(),link.getStatuses().get(0).getEndDate());
+            }
+            service.updateRevisions(revs.getParent(),revs.getRevisionsToApply());
         }
-        //service.applyLinksFromRevision()
+
+
+        dateTimeRef.getAndUpdate(dt->dt.plusHours(14).plusMinutes(30));
+        {
+            InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledCompositeOffer> revs=service.findApplicableRevisions(result,offer);
+            revs.sortRevisions();
+            assertEquals(2,revs.getRevisionsToApply().size());
+            boolean modified=service.applyLinksFromRevision(ref,revs);
+            assertTrue(modified);
+            assertEquals(1, revs.getUpdateResult(InstalledItemUpdateResult.class).getLinks().size());
+            assertEquals(4, offer.getLinks().size());
+            LinkUpdateResult linkUpdateResult = revs.getUpdateResult(InstalledItemUpdateResult.class).getLinks().get(0);
+            //update itself
+            assertEquals(InstalledItemLink.Type.RELIES,linkUpdateResult.getType());
+            assertEquals("tid1",linkUpdateResult.getTargetId());
+            assertNull(linkUpdateResult.isReverse());
+            assertEquals(4,linkUpdateResult.getStatuses().size());
+
+            InstalledOfferLink link = revs.getParent().getLinks().get(0);
+            assertEquals(linkUpdateResult.getTargetId(),link.getTargetId());
+            assertEquals(linkUpdateResult.getType(),link.getType());
+            assertEquals(linkUpdateResult.isReverse(),link.isReverse());
+            assertEquals(4,link.getStatuses().size());
+
+            int pos = 0;
+            {
+                //Status check
+                assertEquals(StatusUpdateResult.Action.MODIFIED,linkUpdateResult.getStatuses().get(pos).getAction());
+                assertEquals(InstalledStatus.Code.SUSPENDED,linkUpdateResult.getStatuses().get(pos).getCode());
+                assertEquals(REFERENCE_DATE,linkUpdateResult.getStatuses().get(pos).getStartDate());
+                assertEquals(REFERENCE_DATE.plusHours(12),linkUpdateResult.getStatuses().get(pos).getEndDate());
+                assertEquals(IDateTimeService.MAX_TIME,linkUpdateResult.getStatuses().get(pos).getOldEndDate());
+                //Effective link results
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getCode(),link.getStatuses().get(0).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getStartDate(),link.getStatuses().get(0).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getEndDate(),link.getStatuses().get(0).getEndDate());
+            }
+            ++pos;
+            {
+                //Status check
+                assertEquals(StatusUpdateResult.Action.NEW,linkUpdateResult.getStatuses().get(pos).getAction());
+                assertEquals(InstalledStatus.Code.ACTIVE,linkUpdateResult.getStatuses().get(pos).getCode());
+                assertEquals(REFERENCE_DATE.plusHours(12),linkUpdateResult.getStatuses().get(pos).getStartDate());
+                assertEquals(REFERENCE_DATE.plusHours(12).plusMinutes(30),linkUpdateResult.getStatuses().get(pos).getEndDate());
+                assertNull(linkUpdateResult.getStatuses().get(pos).getOldEndDate());
+                //Effective link results
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getCode(),link.getStatuses().get(pos).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getStartDate(),link.getStatuses().get(pos).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getEndDate(),link.getStatuses().get(pos).getEndDate());
+            }
+            ++pos;
+            {
+                //Status check
+                assertEquals(StatusUpdateResult.Action.NEW,linkUpdateResult.getStatuses().get(pos).getAction());
+                assertEquals(InstalledStatus.Code.SUSPENDED,linkUpdateResult.getStatuses().get(pos).getCode());
+                assertEquals(REFERENCE_DATE.plusHours(12).plusMinutes(30),linkUpdateResult.getStatuses().get(pos).getStartDate());
+                assertEquals(REFERENCE_DATE.plusHours(13),linkUpdateResult.getStatuses().get(pos).getEndDate());
+                assertNull(linkUpdateResult.getStatuses().get(pos).getOldEndDate());
+                //Effective link results
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getCode(),link.getStatuses().get(pos).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getStartDate(),link.getStatuses().get(pos).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getEndDate(),link.getStatuses().get(pos).getEndDate());
+            }
+            ++pos;
+            {
+                //Status check
+                assertEquals(StatusUpdateResult.Action.NEW,linkUpdateResult.getStatuses().get(pos).getAction());
+                assertEquals(InstalledStatus.Code.CLOSED,linkUpdateResult.getStatuses().get(pos).getCode());
+                assertEquals(REFERENCE_DATE.plusHours(13),linkUpdateResult.getStatuses().get(pos).getStartDate());
+                assertEquals(IDateTimeService.MAX_TIME,linkUpdateResult.getStatuses().get(pos).getEndDate());
+                assertNull(linkUpdateResult.getStatuses().get(pos).getOldEndDate());
+                //Effective link results
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getCode(),link.getStatuses().get(pos).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getStartDate(),link.getStatuses().get(pos).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(pos).getEndDate(),link.getStatuses().get(pos).getEndDate());
+            }
+            service.updateRevisions(revs.getParent(),revs.getRevisionsToApply());
+        }
+
+
+        dateTimeRef.getAndUpdate(dt->REFERENCE_DATE.plusDays(1));
+        {
+            InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledCompositeOffer> revs = service.findApplicableRevisions(result, offer);
+            revs.sortRevisions();
+            assertEquals(1, revs.getRevisionsToApply().size());
+            try {
+                service.applyLinksFromRevision(ref, revs);
+                fail();
+            }
+            catch(IllegalArgumentException e){
+                assertTrue(e.getMessage().matches("The existing link .*? has bad action ADD"));
+            }
+            service.updateRevisions(revs.getParent(),revs.getRevisionsToApply());
+        }
+
+        dateTimeRef.getAndUpdate(dt->REFERENCE_DATE.plusDays(2));
+        {
+            InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledCompositeOffer> revs = service.findApplicableRevisions(result, offer);
+            revs.sortRevisions();
+            assertEquals(1, revs.getRevisionsToApply().size());
+            try {
+                service.applyLinksFromRevision(ref, revs);
+                fail();
+            }
+            catch(IllegalArgumentException e){
+                assertTrue(e.getMessage().matches("The new link .*? has bad action REMOVE"));
+            }
+            service.updateRevisions(revs.getParent(),revs.getRevisionsToApply());
+        }
+
     }
 }

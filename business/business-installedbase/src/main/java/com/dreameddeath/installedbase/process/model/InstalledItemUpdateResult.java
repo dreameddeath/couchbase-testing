@@ -20,8 +20,8 @@ public class InstalledItemUpdateResult extends IdentifiedItemUpdateResult{
     /**
      *  linkUpdates : list of link updates if any
      */
-    @DocumentProperty("linkUpdates")
-    private ListProperty<LinkUpdateResult> linkUpdates = new ArrayListProperty<>(InstalledItemUpdateResult.this);
+    @DocumentProperty("links")
+    private ListProperty<LinkUpdateResult> links = new ArrayListProperty<>(InstalledItemUpdateResult.this);
 
     /**
      * Getter of attributes
@@ -50,22 +50,22 @@ public class InstalledItemUpdateResult extends IdentifiedItemUpdateResult{
      * Getter of linkUpdates
      * @return the content
      */
-    public List<LinkUpdateResult> getLinkUpdates() { return linkUpdates.get(); }
+    public List<LinkUpdateResult> getLinks() { return links.get(); }
     /**
      * Setter of linkUpdates
      * @param vals the new collection of values
      */
-    public void setLinkUpdates(Collection<LinkUpdateResult> vals) { linkUpdates.set(vals); }
+    public void setLinks(Collection<LinkUpdateResult> vals) { links.set(vals); }
     /**
      * Add a new entry to the property linkUpdates
      * @param val the new entry to be added
      */
-    public boolean addLinkUpdates(LinkUpdateResult val){ return linkUpdates.add(val); }
+    public boolean addLink(LinkUpdateResult val){ return links.add(val); }
     /**
      * Remove an entry to the property linkUpdates
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
-    public boolean removeLinkUpdates(LinkUpdateResult val){ return linkUpdates.remove(val); }
+    public boolean removeLink(LinkUpdateResult val){ return links.remove(val); }
 
 }

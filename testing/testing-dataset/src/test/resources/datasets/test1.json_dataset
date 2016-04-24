@@ -22,6 +22,8 @@ this is a simple comment
               date : 2016-10-10, /*inlined comment*/
               datetime : 2016-10-10T05:00:00,
               datetimeTz : 2016-10-10T05:00:00+02:00,
+              boolean : true,
+              boolean2 : false,
               "toto": @Test "tutut", //Testing
               tata[0..2].tutu : [ "toto", "v@{++generator}", #% generator; %#] //Testing ending
       }

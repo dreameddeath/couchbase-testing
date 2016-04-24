@@ -67,6 +67,7 @@
             },{
                 targetId:"tid1",
                 type:"MIGRATE",
+                isReverse:true,
                 status:"SUSPENDED"    /*implicit add*/
             },{
                 targetId:"tid2",
@@ -74,12 +75,36 @@
                 action:"ADD"//add with implicit status (ACTIVE)
             },{
                 targetId:"tid3",
-                type:"RELIES",
+                type:"AGGREGATE",
                 status:"ACTIVE",
                 statusDate:#% origDate.plus(5); %# //TO use the date give
             }]
         },{
-            orderItemId:"ccoItem2", //Error with add already existing
+              orderItemId:"ccoItem2.1", //Multiple Updates withing the same call
+              revState:"PLANNED",
+              effectiveDate:#% origDate.plusHours(12); %#,
+              links:[{
+                  targetId:"tid1",
+                  type:"RELIES",
+                  action:"CHANGE",
+                  status:"ACTIVE"
+              },{
+                  targetId:"tid1",
+                  type:"RELIES",
+                  status:"SUSPENDED",
+                  statusDate:#% origDate.plusHours(12).plusMinutes(30); %#
+              }]
+        },{
+               orderItemId:"ccoItem2.2", //Second update withing the same call
+               revState:"PLANNED",
+               effectiveDate:#% origDate.plusHours(13); %#,
+               links:[{
+                   targetId:"tid1",
+                   type:"RELIES",
+                   action:"REMOVE"
+               }]
+        },{
+            orderItemId:"ccoItem3", //Error with add already existing
             revState:"PLANNED",
             effectiveDate:#% origDate.plusDays(1); %#,
             links:[{

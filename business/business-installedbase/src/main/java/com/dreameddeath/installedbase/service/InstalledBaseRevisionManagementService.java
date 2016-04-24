@@ -336,7 +336,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                 hasChanges|= (linkUpdateResult!=null);
                 if(linkUpdateResult!=null){
                     hasChanges=true;
-                    itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).addLinkUpdates(linkUpdateResult);
+                    itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).addLink(linkUpdateResult);
                 }
             }
         }
@@ -344,7 +344,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
     }
 
 
-    public <TLINK extends InstalledItemLink,TREV extends InstalledItemRevision & IHasLinkRevision,TITEM extends InstalledItem<TREV> & IHasInstalledItemLink<TLINK>> LinkUpdateResult applyLinkFromRevision(InstalledBase ref,InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs,InstalledItemLinkRevision linkRev,@Nullable DateTime effectiveDate){
+    public <TLINK extends InstalledItemLink,TREV extends InstalledItemRevision & IHasLinkRevision,TITEM extends InstalledItem<TREV> & IHasInstalledItemLink<TLINK>> LinkUpdateResult applyLinkFromRevision(InstalledBase ref,InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs,InstalledItemLinkRevision linkRev,@Nullable DateTime parentRevEffectiveDate){
         boolean hasChanges=false;
         TLINK existingLink=null;
         for(TLINK currLink:itemWithRevs.getParent().getLinks()){
@@ -388,18 +388,41 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                 case REMOVE:statusCode= InstalledStatus.Code.CLOSED;break;
             }
         }
-
+        DateTime effectiveDate=linkRev.getStatusDate();
+        if(effectiveDate==null){
+            effectiveDate=parentRevEffectiveDate;
+        }
         //Changing status
         List<StatusUpdateResult> statusUpdateResults = manageStatusesUpdate(existingLink,statusCode,effectiveDate);
         hasChanges|=(statusUpdateResults.size()>0);
 
         if(hasChanges){
-            LinkUpdateResult result = new LinkUpdateResult();
-            result.setTargetId(existingLink.getTargetId());
-            result.isReverse(existingLink.isReverse());
-            result.setType(existingLink.getType());
-            statusUpdateResults.forEach(result::addStatus);
-            return result;
+            boolean isNew=false;
+            //First find if already link update Result
+            LinkUpdateResult result=null;
+            for(LinkUpdateResult existingResult:itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).getLinks()){
+                if( existingResult.getType().equals(existingLink.getType())
+                    && existingResult.getTargetId().equals(existingLink.getTargetId())
+                    && (
+                        (existingResult.isReverse()==null && (existingLink.isReverse()==null))
+                        || (existingResult.isReverse()==existingLink.isReverse())
+                    )
+                )
+                {
+                    result =existingResult;
+                    break;
+                }
+            }
+
+            if(result==null) {
+                result=new LinkUpdateResult();
+                result.setTargetId(existingLink.getTargetId());
+                result.isReverse(existingLink.isReverse());
+                result.setType(existingLink.getType());
+                isNew=true;
+            }
+            mergeStatusesUpdate(result.getStatuses(),statusUpdateResults).forEach(result::addStatus);
+            return (isNew)?result:null;
         }
         else{
             return null;

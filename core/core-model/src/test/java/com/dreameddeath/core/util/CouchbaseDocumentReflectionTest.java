@@ -89,6 +89,23 @@ public class CouchbaseDocumentReflectionTest {
         // modifiedAccessors accessors
         public String getModifiedAccessors2() { return modifiedAccessors.get(); }
         public void setModifiedAccessors2(String val) { modifiedAccessors.set(val); }
+
+        /**
+         *  fieldBool : special case boolean field with is
+         */
+        @DocumentProperty("fieldBool")
+        private Property<Boolean> fieldBool = new StandardProperty<>(TestInherited.this);
+
+        /**
+         * Getter of fieldBool
+         * @return the value of fieldBool
+         */
+        public Boolean isFieldBool() { return fieldBool.get(); }
+        /**
+         * Setter of fieldBool
+         * @param val the new value of fieldBool
+         */
+        public void isFieldBool(Boolean val) { fieldBool.set(val); }
     }
 
 
@@ -97,8 +114,8 @@ public class CouchbaseDocumentReflectionTest {
     public void testCouchbaseDocumentReflection() throws Exception{
         CouchbaseDocumentReflection refectionResult = CouchbaseDocumentReflection.getReflectionFromClass(TestInherited.class);
 
-        assertEquals(2, refectionResult.getStructure().getDeclaredFields().size());
-        assertEquals(7, refectionResult.getStructure().getFields().size());
+        assertEquals(3, refectionResult.getStructure().getDeclaredFields().size());
+        assertEquals(8, refectionResult.getStructure().getFields().size());
         assertEquals(5,refectionResult.getSuperclassReflection().getStructure().getDeclaredFields().size());
 
         assertEquals(TestElement.class, refectionResult.getStructure().getFieldByPropertyName("testComplexElement").getCollectionElementClass());
@@ -106,7 +123,8 @@ public class CouchbaseDocumentReflectionTest {
         assertEquals(TestInherited.class.getDeclaredMethod("setDocProp", Long.class), refectionResult.getStructure().getFieldByPropertyName("docProp").getSetter().getMember());
         assertEquals(TestInherited.class.getDeclaredMethod("getModifiedAccessors2"),refectionResult.getStructure().getFieldByPropertyName("modifiedAccessors").getGetter().getMember());
         assertEquals(TestInherited.class.getDeclaredMethod("setModifiedAccessors2", String.class), refectionResult.getStructure().getFieldByPropertyName("modifiedAccessors").getSetter().getMember());
-
+        assertEquals(TestInherited.class.getDeclaredMethod("isFieldBool"),refectionResult.getStructure().getFieldByPropertyName("fieldBool").getGetter().getMember());
+        assertEquals(TestInherited.class.getDeclaredMethod("isFieldBool",Boolean.class), refectionResult.getStructure().getFieldByPropertyName("fieldBool").getSetter().getMember());
 
         AnnotationProcessorTestingWrapper wrapper = new AnnotationProcessorTestingWrapper();
         wrapper

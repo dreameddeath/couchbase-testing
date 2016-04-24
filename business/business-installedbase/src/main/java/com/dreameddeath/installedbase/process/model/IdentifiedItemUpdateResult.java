@@ -68,11 +68,6 @@ public abstract class IdentifiedItemUpdateResult extends VersionedDocumentElemen
      */
     public void setStatuses(Collection<StatusUpdateResult> vals) { statuses.set(vals); }
     /**
-     * Size of statuses
-     * @return the curr size of the list
-     */
-    public int sizeOfStatuses() { return statuses.size(); }
-    /**
      * Add a new entry to the property statuses
      * @param val the new entry to be added
      * @return true if the entry has been added

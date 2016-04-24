@@ -7,6 +7,8 @@
     date : 2016-10-10T00:00:00,
     datetime : 2016-10-10T05:00:00,
     datetimeTz : 2016-10-10T03:00:00+00:00,
+    boolean:true,
+    boolean2:false,
     "tata" : [ {
       "tutu" : [ "toto", #% "v"+(++pos);%#, #%pos;%# ]
     }, {

@@ -66,7 +66,10 @@ public class CouchbaseDocumentIntrospector extends DefaultGetterSetterIntrospect
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(CouchbaseDocumentStructureReflection.isReflexible(am.getDeclaringClass())) {
-                    if (am.getName().startsWith("get") && (am.getName().length() > 3)) {
+                    if (    (am.getName().startsWith("get") && (am.getName().length() > 3))
+                            || (am.getName().startsWith("is") && (am.getName().length() > 2))
+                       )
+                    {
                         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) AbstractClassInfo.getClassInfo(am.getDeclaringClass()));
                         CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldByGetterName(am.getName());
                         if ((fieldReflection != null) && (fieldReflection.getGetter() instanceof MethodInfo) && !(fieldReflection.getField().isTransient())){
@@ -98,7 +101,7 @@ public class CouchbaseDocumentIntrospector extends DefaultGetterSetterIntrospect
             if (a instanceof AnnotatedMethod){
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(CouchbaseDocumentStructureReflection.isReflexible(am.getDeclaringClass())) {
-                    if (am.getName().startsWith("set")) {
+                    if (am.getName().startsWith("set") || am.getName().startsWith("is")) {
                         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)AbstractClassInfo.getClassInfo(am.getDeclaringClass()));
                         CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getDeclaredFieldBySetterName(am.getName());
                         if((fieldReflection != null) && (fieldReflection.getSetter() instanceof MethodInfo)) {

@@ -4,8 +4,6 @@ lexer grammar JSON_DATASET_LEXER;
 MVEL_MULTILINE : '#%' -> pushMode(MvelMultilineMode);
 MVEL_MONOLINE_START : '#%%' ->pushMode(MvelMonolineMode);
 
-BASENAME : [a-zA-Z][a-zA-Z0-9_-]* ;
-
 STRING : '"' (ESC | ~["\\])* '"' ;
 fragment ESC : '\\' (["\\/bfnrt] | UNICODE) ;
 fragment UNICODE : 'u' HEX HEX HEX HEX ;
@@ -46,6 +44,7 @@ FIELD_VAL_SEP : ':';
 SPACES : [\r\n\t ] {skip();};
 COMMENT_COMPLEX : '/*' .*? '*/' {skip();};
 COMMENT_SIMPLE : '//' ~([\r]|[\n])* {skip();};
+BASENAME : [a-zA-Z][a-zA-Z0-9_-]* ;
 
 
 mode MvelMultilineMode;

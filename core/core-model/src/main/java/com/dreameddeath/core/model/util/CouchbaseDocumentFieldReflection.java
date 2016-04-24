@@ -30,6 +30,8 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 04/01/2015.
  */
 public class CouchbaseDocumentFieldReflection {
+    private static final String[] GETTER_PREFIXES={"get","is"};
+    private static final String[] SETTER_PREFIXES={"set","is"};
     private String name;
     private FieldInfo field;
     private ParameterizedTypeInfo effectiveType;
@@ -51,18 +53,26 @@ public class CouchbaseDocumentFieldReflection {
         if(field.getAnnotation(DocumentProperty.class)!=null){
             DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
             String getter = prop.getter();
-            if((getter!=null)&& !getter.equals("")){
+            if(StringUtils.isNotEmpty(getter)){
                 result=field.getDeclaringClassInfo().getDeclaredMethod(getter);
             }
             else {
                 String name = nameBuilder(this.name,"get");
                 result= field.getDeclaringClassInfo().getDeclaredMethod(name);
+                if(result==null){
+                    name = nameBuilder(field.getName(),"is");
+                    result = field.getDeclaringClassInfo().getDeclaredMethod(name);
+                }
             }
         }
 
         if(result==null){
             String name = nameBuilder(field.getName(),"get");
             result = field.getDeclaringClassInfo().getDeclaredMethod(name);
+            if(result==null){
+                name = nameBuilder(field.getName(),"is");
+                result = field.getDeclaringClassInfo().getDeclaredMethod(name);
+            }
         }
 
         return result;
@@ -73,18 +83,26 @@ public class CouchbaseDocumentFieldReflection {
         if(field.getAnnotation(DocumentProperty.class)!=null){
             DocumentProperty prop = field.getAnnotation(DocumentProperty.class);
             String setter = prop.setter();
-            if((setter!=null)&& !setter.equals("")){
+            if(StringUtils.isNotEmpty(setter)){
                 result = field.getDeclaringClassInfo().getDeclaredMethod(setter, effectiveType);
             }
             else {
                 String name = nameBuilder(this.name, "set");
                 result= field.getDeclaringClassInfo().getDeclaredMethod(name,effectiveType);
+                if(result==null){
+                    name = nameBuilder(field.getName(),"is");
+                    result = field.getDeclaringClassInfo().getDeclaredMethod(name,effectiveType);
+                }
             }
         }
 
         if(result==null) {
             String name = nameBuilder(field.getName(), "set");
             result = field.getDeclaringClassInfo().getDeclaredMethod(name,effectiveType);
+            if(result==null){
+                name = nameBuilder(field.getName(),"is");
+                result = field.getDeclaringClassInfo().getDeclaredMethod(name,effectiveType);
+            }
         }
         return result;
     }
