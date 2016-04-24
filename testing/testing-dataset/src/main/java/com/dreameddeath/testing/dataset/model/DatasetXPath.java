@@ -16,8 +16,6 @@
 
 package com.dreameddeath.testing.dataset.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,17 +46,6 @@ public class DatasetXPath {
 
     public List<DatasetMeta> getMetas(){
         return Collections.unmodifiableList(metas);
-    }
-
-    public List<JsonNode> getMatchingNodes(JsonNode node){
-        List<JsonNode> result = new ArrayList<>();
-        if(node.isArray()){
-
-        }
-        else if(node.isObject()){
-
-        }
-        return result;
     }
 
     public String getPath(){

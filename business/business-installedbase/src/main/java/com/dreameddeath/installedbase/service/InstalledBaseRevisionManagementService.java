@@ -166,7 +166,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         return hasChanges;
     }
 
-    private boolean applyCommercialParametersFromRevision(InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledOffer> itemWithRevs) {
+    public boolean applyCommercialParametersFromRevision(InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledOffer> itemWithRevs) {
         boolean hasChanges=false;
         for(InstalledOfferRevision offerRevision:itemWithRevs.getRevisionsToApply()){
             for(InstalledAttributeRevision attrRev:offerRevision.getCommercialParameters()){
@@ -206,11 +206,11 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         AttributeUpdateResult result=new AttributeUpdateResult();
         result.setCode(rev.getCode());
         if(isNew){
-            Preconditions.checkArgument(rev.getAction()!=null && rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
+            Preconditions.checkArgument(rev.getAction()==null || rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
             result.setAction(AttributeUpdateResult.Action.ADD);
         }
         else{
-            Preconditions.checkArgument(rev.getAction()!=null && !rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
+            Preconditions.checkArgument(rev.getAction()==null || !rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
             result.setAction(AttributeUpdateResult.Action.MODIFY);
         }
 
@@ -315,6 +315,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                     newValue.setEndDate(newValueEndDate);
                     newValue.setValue(valueRev.getValue());
                     newValue.setKeyType(valueRev.getKeyType());
+                    attribute.addValues(newValue);
                     ValueUpdateResult newValueResult=new ValueUpdateResult(newValue, ValueUpdateResult.Action.ADD);
                     result.addValues(newValueResult);
                 }

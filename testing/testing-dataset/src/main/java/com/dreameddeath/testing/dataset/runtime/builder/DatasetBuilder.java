@@ -30,7 +30,7 @@ public class DatasetBuilder {
     public DatasetBuilder(Dataset dataset,Map<String,Object>params){
         this.rootDataset=dataset;
         context = new MvelRuntimeContext(dataset,params);
-        xPathProcessor = new DatasetXPathProcessor();
+        xPathProcessor = new DatasetXPathProcessor(context);
         result = new DatasetResult(dataset.getManager());
     }
 

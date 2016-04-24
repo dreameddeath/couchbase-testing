@@ -9,6 +9,7 @@
     datetimeTz : 2016-10-10T03:00:00+00:00,
     boolean:true,
     boolean2:false,
+    test."the dynamic field" : "value",
     "tata" : [ {
       "tutu" : [ "toto", #% "v"+(++pos);%#, #%pos;%# ]
     }, {

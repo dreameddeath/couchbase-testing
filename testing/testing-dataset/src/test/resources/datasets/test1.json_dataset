@@ -6,7 +6,9 @@
         /*
          a multiline comment inlined
         */
+        String dynAttr="the dynamic field";
         Integer generator=0;
+        String anNewValue="a new value";
         log.debug(x);
         log.debug(y); // A internal comment
         z+y+x;
@@ -24,6 +26,7 @@ this is a simple comment
               datetimeTz : 2016-10-10T05:00:00+02:00,
               boolean : true,
               boolean2 : false,
+              test.#% dynAttr; %# : "value",
               "toto": @Test "tutut", //Testing
               tata[0..2].tutu : [ "toto", "v@{++generator}", #% generator; %#] //Testing ending
       }

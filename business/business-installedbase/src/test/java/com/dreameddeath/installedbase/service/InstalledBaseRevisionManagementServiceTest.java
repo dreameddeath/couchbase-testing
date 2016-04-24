@@ -8,6 +8,7 @@ import com.dreameddeath.installedbase.model.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.contract.InstalledContractRevision;
 import com.dreameddeath.installedbase.model.offer.InstalledAtomicOffer;
 import com.dreameddeath.installedbase.model.offer.InstalledCompositeOffer;
+import com.dreameddeath.installedbase.model.offer.InstalledOffer;
 import com.dreameddeath.installedbase.model.offer.InstalledOfferRevision;
 import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
 import com.dreameddeath.installedbase.model.productservice.InstalledProductServiceRevision;
@@ -30,6 +31,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
@@ -91,8 +95,7 @@ public class InstalledBaseRevisionManagementServiceTest {
     *  Tests on revisions status updates after execution
     *
     *
-     */
-
+    */
     private Object[] revisionsForClasses() {
         return new Object[]{
                 new Object[]{InstalledContract.class,InstalledContractRevision.class},
@@ -423,7 +426,6 @@ public class InstalledBaseRevisionManagementServiceTest {
                 new Object[]{InstalledProductService.class, InstalledProductServiceRevision.class}
         };
     }
-
     @Test
     @Parameters(method = "linksForClasses")
     @TestCaseName("LinksTest for class {0} and  revision {1}")
@@ -673,9 +675,48 @@ public class InstalledBaseRevisionManagementServiceTest {
     *  Testing on attributes
     *
     *
-     */
-    @Test
-    public void applyAttributeUpdateFromRevision(){
+    */
+    private Object[] attributesForClasses() {
+        return new Object[]{
+                new Object[]{InstalledCompositeOffer.class,InstalledOfferRevision.class,"commercialParameters"},
+                new Object[]{InstalledAtomicOffer.class,InstalledOfferRevision.class,"commercialParameters"},
+                new Object[]{InstalledProductService.class, InstalledProductServiceRevision.class,"functions"}
+        };
+    }
 
+    @Test
+    @Parameters(method = "attributesForClasses")
+    public <TREV extends InstalledItemRevision,TOBJ extends InstalledItem<TREV>> void applyAttributeUpdateFromRevision(Class<TOBJ> objClass,Class<TREV> revClass,String attrFieldName) throws Exception {
+        InstalledBaseUpdateResult result = new InstalledBaseUpdateResult();
+        InstalledBase ref = new InstalledBase();
+        Map<String,Object> params=new HashMap<>();
+        params.put("origDate",dateTimeRef.get());
+        params.put("attrFieldName",attrFieldName);
+        TOBJ installedItem = manager.build(objClass, DATASET_NAME, "installed_offer_for_attributes", params);
+
+        /*
+        *
+        *   Simple creation cases
+        *
+        */
+        dateTimeRef.getAndUpdate(dt->dt.plus(5));
+        {
+            InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
+            revs.sortRevisions();
+            assertEquals(1, revs.getRevisionsToApply().size());
+            boolean modified;
+            List<? extends InstalledAttribute> attributesList;
+            if (installedItem instanceof InstalledOffer) {
+                modified = service.applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledOffer>) revs);
+                attributesList = ((InstalledOffer) installedItem).getCommercialParameters();
+            } else {
+                modified = service.applyFunctionsFromRevision((InstalledItemRevisionsToApply<InstalledProductServiceRevision, InstalledProductService>) revs);
+                attributesList = ((InstalledProductService) installedItem).getFunctions();
+            }
+
+            assertTrue(modified);
+            assertEquals(2, revs.getUpdateResult(InstalledItemUpdateResult.class).getAttributes().size());
+            assertEquals(2, attributesList.size());
+        }
     }
 }

@@ -84,6 +84,7 @@ meta_data returns [ DatasetMeta result ] @init{$result = new DatasetMeta();}:
 
 path_part returns [ DatasetXPathPart result ] @init{$result=new DatasetXPathPart();}:
     basename {$result.setLocalName($basename.text);} |
+    multiline_rule {$result.setMvel($multiline_rule.result);}|
     ARRAY_START range {$result.setRange($range.result);} ARRAY_END
     //basename PARENTHESIS_START predicate PARENTHESIS_END |
     //basename '[' offsets ']' '(' predicate ')'

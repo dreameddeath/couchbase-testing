@@ -124,3 +124,40 @@
         }
     ]
 }
+
+
+#$dataset_elt_name("installed_offer_for_attributes")
+@Declare("attrFieldName","STRING")
+{
+    id:"111_attributes",
+    code:"test_attributes",
+    revisions:[{
+        orderItemId:"ccoItem1",
+        revState:"PLANNED",
+        effectiveDate:#% origDate.plus(5); %#,
+        #% attrFieldName; %# :[{
+            //Attribute 1 is with multiple values
+            code:"attr1",
+            action:"ADD",
+            values:[{
+                value:"attr1Val1",
+                action:"ADD",
+                startDate:#% origDate; %#
+            },{
+                value:"attr1Val2",
+                action:"ADD",
+                startDate:#% origDate;%#,
+                endDate:#% origDate.plusDays(5);%#
+            },{
+                 value:"attr1Val3",
+                 action:"ADD",
+                 endDate:#% origDate.plusDays(5);%#
+            }]
+        },{
+            code:"attr2",
+            values:[{
+                value:"attr2Val1"
+            }]
+        }]
+    }]
+}

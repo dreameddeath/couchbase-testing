@@ -12,8 +12,9 @@ public class DatasetXPathPart {
     private String subPath=null;
 
     private PartType type;
-    private String localName;
+    private String localName=null;
     private DatasetRange range =null;
+    private DatasetMvel mvel=null;
 
     public void setLocalName(String name){
         if("*".equals(name)){
@@ -40,6 +41,11 @@ public class DatasetXPathPart {
         this.type=PartType.ARRAY_RANGE;
     }
 
+    public void setMvel(DatasetMvel mvel){
+        this.mvel=mvel;
+        this.type=PartType.MVEL;
+    }
+
     public String getLocalName() {
         return localName;
     }
@@ -48,6 +54,9 @@ public class DatasetXPathPart {
         StringBuilder sb = new StringBuilder();
         if(type==PartType.ARRAY_RANGE){
             sb.append(range.getPathString());
+        }
+        else if(type==PartType.MVEL){
+            sb.append("$mvel$");
         }
         else{
             sb.append(localName);
@@ -69,6 +78,9 @@ public class DatasetXPathPart {
         this.path = path;
         this.subPath=subPath;
         switch(type){
+            case MVEL:
+                mvel.prepare(parent,parentElt);
+                break;
             case PREDICATE:
                 //TODO
                 break;
@@ -77,10 +89,15 @@ public class DatasetXPathPart {
         }
     }
 
+    public DatasetMvel getMvel() {
+        return mvel;
+    }
+
     public enum PartType{
         ARRAY_RANGE,
         PREDICATE,
         FIELD_NAME,
+        MVEL,
         MATCH_ALL,
         MATCH_ALL_RECURSIVE
     }

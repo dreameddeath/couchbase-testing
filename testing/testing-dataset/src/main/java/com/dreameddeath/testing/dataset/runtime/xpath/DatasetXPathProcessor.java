@@ -4,6 +4,7 @@ import com.dreameddeath.testing.dataset.model.DatasetRange;
 import com.dreameddeath.testing.dataset.model.DatasetValue;
 import com.dreameddeath.testing.dataset.model.DatasetXPath;
 import com.dreameddeath.testing.dataset.model.DatasetXPathPart;
+import com.dreameddeath.testing.dataset.runtime.MvelRuntimeContext;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultArray;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultObject;
 import com.dreameddeath.testing.dataset.runtime.model.DatasetResultValue;
@@ -14,6 +15,11 @@ import java.util.*;
  * Created by Christophe Jeunesse on 18/04/2016.
  */
 public class DatasetXPathProcessor {
+    private MvelRuntimeContext context;
+
+    public DatasetXPathProcessor(MvelRuntimeContext context){
+        this.context=context;
+    }
 
 
     public boolean hasNext(DatasetXPath xpath,int pos){
@@ -44,9 +50,10 @@ public class DatasetXPathProcessor {
         XPathMatchingResult resultValues=new XPathMatchingResult(xPathPartPos!=0);
         if(hasNext(xpath,xPathPartPos)){
             DatasetXPathPart xPathPart = xpath.getParts().get(xPathPartPos);
+            DatasetResultValue value;
             switch (xPathPart.getType()){
                 case FIELD_NAME:
-                    DatasetResultValue value= createMissingParts?object.getOrCreate(xPathPart.getLocalName()):object.get(xPathPart.getLocalName());
+                    value= createMissingParts?object.getOrCreate(xPathPart.getLocalName()):object.get(xPathPart.getLocalName());
                     resultValues.addResults(xPathPart.getLocalName(),applyXPath(value,xpath,xPathPartPos+1,createMissingParts,isInMatchCase));
                     break;
                 case MATCH_ALL:
@@ -61,6 +68,11 @@ public class DatasetXPathProcessor {
                             resultValues.addResults(entry.getKey(),applyXPath(entry.getValue(), xpath, xPathPartPos, createMissingParts,true));
                         }
                     }
+                    break;
+                case MVEL:
+                    String name=(String)context.execute(xPathPart.getMvel());
+                    value= createMissingParts?object.getOrCreate(name):object.get(name);
+                    resultValues.addResults(xPathPart.getLocalName(),applyXPath(value,xpath,xPathPartPos+1,createMissingParts,isInMatchCase));
                     break;
                 case PREDICATE:
                     //TODO
