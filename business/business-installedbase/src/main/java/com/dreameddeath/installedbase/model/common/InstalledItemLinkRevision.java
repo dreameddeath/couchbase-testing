@@ -24,10 +24,10 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
     @DocumentProperty("type")
     private Property<InstalledItemLink.Type> type = new ImmutableProperty<>(InstalledItemLinkRevision.this);
     /**
-     *  direction : direction of the link
+     *  isReverse : if it's the reverse link. Default false
      */
-    @DocumentProperty("direction")
-    private Property<InstalledItemLink.Direction> direction = new ImmutableProperty<>(InstalledItemLinkRevision.this);
+    @DocumentProperty(value = "isReverse",getter = "isReverse",setter = "isReverse")
+    private Property<Boolean> isReverse = new ImmutableProperty<>(InstalledItemLinkRevision.this);
     /**
      *  status : the revision status if any
      */
@@ -66,15 +66,15 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
      */
     public void setType(InstalledItemLink.Type val) { type.set(val); }
     /**
-     * Getter of direction
-     * @return the content
+     * Getter of isReverse
+     * @return the value of isReverse
      */
-    public InstalledItemLink.Direction getDirection() { return direction.get(); }
+    public Boolean isReverse() { return isReverse.get(); }
     /**
-     * Setter of direction
-     * @param val the new content
+     * Setter of isReverse
+     * @param val the new value for isReverse
      */
-    public void setDirection(InstalledItemLink.Direction val) { direction.set(val); }
+    public void isReverse(Boolean val) { isReverse.set(val); }
     /**
      * Getter of status
      * @return the content
@@ -106,19 +106,21 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
      */
     public void setAction(Action val) { action.set(val); }
 
-    public boolean isSame(InstalledItemLinkRevision target){
-        return targetId.equals(target.targetId)
-                && type.equals(target.type)
-                && direction.equals(target.direction)
-                && status.equals(target.status)
-                && action.equals(target.action)
-                ;
-    }
 
     @Override
     public String toString(){
-        return direction+"/"+targetId;
+        boolean reverse=(isReverse.get()!=null)&&(isReverse.get());
+        return type+"/"+(reverse?"from":"to")+"/"+targetId;
     }
+
+    public static boolean isSame(InstalledItemLinkRevision source,InstalledItemLinkRevision target){
+        return source.targetId.equals(target.targetId)
+                && source.type.equals(target.type)
+                && source.isReverse.equals(target.isReverse)
+                && source.status.equals(target.status)
+                && source.action.equals(target.action);
+    }
+
 
     public static boolean isSameLinkList(List<InstalledItemLinkRevision> srcList,List<InstalledItemLinkRevision> targetList){
         int nbTargetLinksMatched=0;
@@ -127,12 +129,12 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
             for(InstalledItemLinkRevision targetLink:targetList){
                 if(
                         link.getTargetId().equals(targetLink.getTargetId())
-                                && link.getType().equals(targetLink.getType())
-                                && link.getDirection().equals(targetLink.getDirection())
-                        )
+                        && link.getType().equals(targetLink.getType())
+                        && link.isReverse.equals(targetLink.isReverse)
+                  )
                 {
                     ++nbTargetLinksMatched;
-                    if(!link.isSame(targetLink)){
+                    if(!isSame(link,targetLink)){
                         return false;
                     }
                     else{

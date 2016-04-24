@@ -46,10 +46,11 @@ public class InstalledItemLink extends CouchbaseDocumentElement implements IHasS
     @DocumentProperty("type")
     private Property<Type> type = new ImmutableProperty<>(InstalledItemLink.this);
     /**
-     *  direction : Direction of the link
+     *  isReverse : tells if it's the reverse link
      */
-    @DocumentProperty("direction")
-    private Property<Direction> direction = new ImmutableProperty<>(InstalledItemLink.this);
+    @DocumentProperty(value = "isReverse",getter = "isReverse",setter = "isReverse")
+    private Property<Boolean> isReverse = new ImmutableProperty<>(InstalledItemLink.this);
+
     /**
      *  statusHistory : history of statuses
      */
@@ -62,9 +63,19 @@ public class InstalledItemLink extends CouchbaseDocumentElement implements IHasS
     // type accessors
     public Type getType() { return type.get(); }
     public void setType(Type val) { type.set(val); }
-    // direction accessors
-    public Direction getDirection() { return direction.get(); }
-    public void setDirection(Direction val) { direction.set(val); }
+    /**
+     * Getter of isReverse
+     * @return the value of isReverse
+     */
+    public Boolean isReverse() { return isReverse.get(); }
+    /**
+     * Setter of isReverse
+     * @param val the new value for isReverse
+     */
+    public void isReverse(Boolean val) { isReverse.set(val); }
+
+
+
     // status accessors
     @JsonIgnore
     public InstalledStatus getStatus(DateTime ref) {
@@ -105,16 +116,12 @@ public class InstalledItemLink extends CouchbaseDocumentElement implements IHasS
 
 
     public enum Type{
-        RELIES, //The item is relying on the targetted item
-        BRINGS, //The item has been automatically added the targetted item
+        RELIES, //The item is relying on the targeted item
+        BRINGS, //The item has been automatically added the targeted item
         MIGRATE,//The item has been migrated to another item
-        AGGREGATE,
-        MOVED, //The item has been moved to a new Parent
-        PARENT //Used for parent history (Atomic offer for ps,composite offer for others)
+        MOVED, //The item has been moved to a new Parent,
+        PARENT, //Used for parent history (Atomic offer for ps,composite offer for others)
+        AGGREGATE
     }
-
-    public enum Direction{
-        FROM,
-        TO
-    }
+    
 }

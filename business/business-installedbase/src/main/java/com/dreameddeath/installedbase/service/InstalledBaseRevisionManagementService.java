@@ -137,12 +137,6 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                 .max(Comparator.naturalOrder())
                 .orElse(-1);
 
-        /*//Update revisions states
-        Optional<? extends InstalledItemRevision> maxRank=installedItem.getRevisions().stream().max(
-                Comparator.comparingInt(
-                        rev->(rev.getRank()!=null)?rev.getRank():-1
-                ));*/
-        //int lastRank=(maxRank!=null)?maxRank:-1;
         for(InstalledItemRevision revision:revisions){
             revision.setRank(++lastRank);
             revision.setRevState(InstalledItemRevision.RevState.DONE);
@@ -334,7 +328,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         }
     }
 
-    public <TREV extends InstalledItemRevision & IHasLinkRevision,TITEM extends InstalledItem<TREV> & IHasInstalledItemLink<InstalledItemLink>> boolean applyLinksFromRevision(InstalledBase ref, InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs){
+    public <TLINK extends InstalledItemLink,TREV extends InstalledItemRevision & IHasLinkRevision,TITEM extends InstalledItem<TREV> & IHasInstalledItemLink<TLINK>> boolean applyLinksFromRevision(InstalledBase ref, InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs){
         boolean hasChanges=false;
         for(IHasLinkRevision itemRev:itemWithRevs.getRevisionsToApply()){
             for(InstalledItemLinkRevision rev:itemRev.getLinks()){
@@ -349,13 +343,17 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         return hasChanges;
     }
 
-    public <TREV extends InstalledItemRevision & IHasLinkRevision,TITEM extends InstalledItem<TREV> & IHasInstalledItemLink<InstalledItemLink>> LinkUpdateResult applyLinkFromRevision(InstalledBase ref,InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs,InstalledItemLinkRevision linkRev,@Nullable DateTime effectiveDate){
+
+    public <TLINK extends InstalledItemLink,TREV extends InstalledItemRevision & IHasLinkRevision,TITEM extends InstalledItem<TREV> & IHasInstalledItemLink<TLINK>> LinkUpdateResult applyLinkFromRevision(InstalledBase ref,InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs,InstalledItemLinkRevision linkRev,@Nullable DateTime effectiveDate){
         boolean hasChanges=false;
-        InstalledItemLink existingLink=null;
-        for(InstalledItemLink currLink:itemWithRevs.getParent().getLinks()){
+        TLINK existingLink=null;
+        for(TLINK currLink:itemWithRevs.getParent().getLinks()){
             if(     currLink.getTargetId().equals(linkRev.getTargetId())
                     && currLink.getType().equals(linkRev.getType())
-                    && currLink.getDirection().equals(linkRev.getDirection())
+                    && (
+                            (currLink.isReverse()==null && (linkRev.isReverse()==null))
+                            || (currLink.isReverse()==linkRev.isReverse())
+                    )
                )
             {
                 existingLink=currLink;
@@ -364,33 +362,41 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         }
         if(existingLink==null){
             //check the fact that it is added
-            Preconditions.checkArgument(linkRev.getAction()!=null && linkRev.getAction().equals(InstalledItemLinkRevision.Action.ADD),"The new link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
+            Preconditions.checkArgument(linkRev.getAction()==null || linkRev.getAction().equals(InstalledItemLinkRevision.Action.ADD),"The new link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
             switch(itemWithRevs.getItemType()){
-                case OFFER: existingLink = new InstalledOfferLink(); break;
-                case PS: existingLink = new InstalledProductServiceLink();break;
+                case OFFER: existingLink = (TLINK)new InstalledOfferLink(); break;
+                case PS: existingLink = (TLINK)new InstalledProductServiceLink();break;
                 case CONTRACT: //TODO;
                 default: throw new RuntimeException("Cannot manage links on type "+itemWithRevs.getItemType()+" for item "+itemWithRevs.getItemUid());
             }
             itemWithRevs.getParent().addLink(existingLink);
             existingLink.setTargetId(linkRev.getTargetId());
             existingLink.setType(linkRev.getType());
-            existingLink.setDirection(linkRev.getDirection());
+            existingLink.isReverse(linkRev.isReverse());
             hasChanges=true;
         }
         else{
-            //check the fact that it is added
-            Preconditions.checkArgument(InstalledItemLinkRevision.Action.ADD.equals(linkRev.getAction()),"The existing link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
+            //check the fact that it is not added
+            Preconditions.checkArgument(!InstalledItemLinkRevision.Action.ADD.equals(linkRev.getAction()),"The existing link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
+        }
+        InstalledStatus.Code statusCode=linkRev.getStatus();
+        if(statusCode==null){
+            Preconditions.checkNotNull(linkRev.getAction(),"The existing link %s on item %s must have an action as status not given",linkRev,itemWithRevs.getItemUid());
+            Preconditions.checkNotNull(linkRev.getAction()== InstalledItemLinkRevision.Action.ADD||linkRev.getAction()== InstalledItemLinkRevision.Action.REMOVE,"The existing link %s on item %s without status must have a valid action and not %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
+            switch (linkRev.getAction()){
+                case ADD: statusCode=InstalledStatus.Code.ACTIVE;break;
+                case REMOVE:statusCode= InstalledStatus.Code.CLOSED;break;
+            }
         }
 
-
         //Changing status
-        List<StatusUpdateResult> statusUpdateResults = manageStatusesUpdate(existingLink,linkRev.getStatus(),effectiveDate);
+        List<StatusUpdateResult> statusUpdateResults = manageStatusesUpdate(existingLink,statusCode,effectiveDate);
         hasChanges|=(statusUpdateResults.size()>0);
 
         if(hasChanges){
             LinkUpdateResult result = new LinkUpdateResult();
             result.setTargetId(existingLink.getTargetId());
-            result.setDirection(existingLink.getDirection());
+            result.isReverse(existingLink.isReverse());
             result.setType(existingLink.getType());
             statusUpdateResults.forEach(result::addStatus);
             return result;

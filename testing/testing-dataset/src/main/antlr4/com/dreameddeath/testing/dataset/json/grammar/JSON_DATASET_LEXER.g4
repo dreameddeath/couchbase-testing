@@ -43,15 +43,15 @@ DOT : '.';
 COMMA : ',';
 DATETIME: [0-9][0-9][0-9][0-9]'-'[0-9][0-9]'-'[0-9][0-9]('T'[0-9][0-9]':'[0-9][0-9]':'[0-9][0-9]([-+:0-9A-Za-z]+)?)?;
 FIELD_VAL_SEP : ':';
-SPACES : [\r\n ] {skip();};
+SPACES : [\r\n\t ] {skip();};
 COMMENT_COMPLEX : '/*' .*? '*/' {skip();};
-COMMENT_SIMPLE : '//' [^\r\n]*? [\r]? [\n]{skip();};
+COMMENT_SIMPLE : '//' ~([\r]|[\n])* {skip();};
 
 
 mode MvelMultilineMode;
 
 MVEL_MULTILINE_COMMENT_COMPLEX : '/*' .*? '*/' ;
-MVEL_MULTILINE_COMMENT_SIMPLE : '//' [^\r\n]*? [\r]? [\n];
+MVEL_MULTILINE_COMMENT_SIMPLE : '//' [^\r\n]*?;
 
 MVEL_MULTILINE_DQ_STRING : '"' (MVEL_MULTILINE_DQ_STRING_ESC | ~["\\])* '"' ;
 fragment MVEL_MULTILINE_DQ_STRING_ESC : '\\' (["\\/bfnrt] | MVEL_MULTILINE_DQ_STRING_UNICODE) ;

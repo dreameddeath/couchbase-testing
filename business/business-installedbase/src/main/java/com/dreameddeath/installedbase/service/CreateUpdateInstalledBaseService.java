@@ -211,7 +211,6 @@ public class CreateUpdateInstalledBaseService {
         //Manage type
         Preconditions.checkNotNull(linkRequest.linkType,"The type of link for element %s isn't defined",workingInfo.getItemUid());
         link.setType(linkRequest.linkType.getType());
-        link.setDirection(linkRequest.linkType.getDirection());
 
         //Manage target
         Preconditions.checkNotNull(linkRequest.target,"The target of link %s for element %s isn't defined",linkRequest.linkType,workingInfo.getItemUid());
@@ -242,27 +241,27 @@ public class CreateUpdateInstalledBaseService {
 
         //Manage direction if given
         if(linkRequest.direction!=null){
-            link.setDirection(linkRequest.direction.getDirection());
+            link.isReverse(linkRequest.direction.isReverse());
         }
 
         //Manage status if given
-        if(linkRequest.status!=null){
-            if(linkRequest.status.code!=null){
-                link.setStatus(linkRequest.status.code.getMappedCode());
-            }
-            else if(InstalledItemLinkRevision.Action.ADD.equals(link.getAction())) {
-                link.setStatus(InstalledStatus.Code.ACTIVE);
-            }
-            else if(InstalledItemLinkRevision.Action.REMOVE.equals(link.getAction())) {
-                link.setStatus(InstalledStatus.Code.REMOVED);
-            }
-            else if(InstalledItemLinkRevision.Action.CHANGE.equals(link.getAction())) {
-                throw new RuntimeException("Cannot change without a status");
-            }
-            if(linkRequest.status.effectiveDate!=null){
-                link.setStatusDate(linkRequest.status.effectiveDate);
-            }
+        if(linkRequest.status!=null &&linkRequest.status.code!=null){
+            link.setStatus(linkRequest.status.code.getMappedCode());
         }
+        else if(InstalledItemLinkRevision.Action.ADD.equals(link.getAction())) {
+            link.setStatus(InstalledStatus.Code.ACTIVE);
+        }
+        else if(InstalledItemLinkRevision.Action.REMOVE.equals(link.getAction())) {
+            link.setStatus(InstalledStatus.Code.REMOVED);
+        }
+        else{
+            throw new RuntimeException("The status or valid action should be given");
+        }
+
+        if(linkRequest.status!=null && linkRequest.status.effectiveDate!=null){
+            link.setStatusDate(linkRequest.status.effectiveDate);
+        }
+
         return link;
     }
 

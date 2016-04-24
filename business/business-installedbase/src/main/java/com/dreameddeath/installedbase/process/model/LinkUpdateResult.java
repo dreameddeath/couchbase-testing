@@ -21,10 +21,10 @@ public class LinkUpdateResult extends CouchbaseDocumentElement {
     @DocumentProperty("targetId")
     private Property<String> targetId = new ImmutableProperty<>(LinkUpdateResult.this);
     /**
-     *  direction : direction of the link
+     *  isReverse : indicate if it's the reverse link
      */
-    @DocumentProperty("direction")
-    private Property<InstalledItemLink.Direction> direction = new ImmutableProperty<>(LinkUpdateResult.this);
+    @DocumentProperty(value = "isReverse",getter = "isReverse",setter = "isReverse")
+    private Property<Boolean> isReverse = new ImmutableProperty<>(LinkUpdateResult.this);
     /**
      *  type : link type
      */
@@ -33,8 +33,8 @@ public class LinkUpdateResult extends CouchbaseDocumentElement {
     /**
      *  status : List of updates on status
      */
-    @DocumentProperty("status")
-    private ListProperty<StatusUpdateResult> status = new ArrayListProperty<>(LinkUpdateResult.this);
+    @DocumentProperty("statuses")
+    private ListProperty<StatusUpdateResult> statuses = new ArrayListProperty<>(LinkUpdateResult.this);
 
     /**
      * Getter of targetId
@@ -48,15 +48,15 @@ public class LinkUpdateResult extends CouchbaseDocumentElement {
     public void setTargetId(String val) { targetId.set(val); }
 
     /**
-     * Getter of direction
-     * @return the content
+     * Getter of isReverse
+     * @return the value of isReverse
      */
-    public InstalledItemLink.Direction getDirection() { return direction.get(); }
+    public Boolean isReverse() { return isReverse.get(); }
     /**
-     * Setter of direction
-     * @param val the new content
+     * Setter of isReverse
+     * @param val the new value for isReverse
      */
-    public void setDirection(InstalledItemLink.Direction val) { direction.set(val); }
+    public void isReverse(Boolean val) { isReverse.set(val); }
 
     /**
      * Getter of type
@@ -72,42 +72,37 @@ public class LinkUpdateResult extends CouchbaseDocumentElement {
      * Getter of status
      * @return the content
      */
-    public List<StatusUpdateResult> getStatus() { return status.get(); }
+    public List<StatusUpdateResult> getStatuses() { return statuses.get(); }
     /**
      * Setter of status
      * @param vals the new collection of values
      */
-    public void setStatus(Collection<StatusUpdateResult> vals) { status.set(vals); }
-    /**
-     * Size of status
-     * @return the curr size of the list
-     */
-    public int sizeOfStatus() { return status.size(); }
+    public void setStatuses(Collection<StatusUpdateResult> vals) { statuses.set(vals); }
     /**
      * Add a new entry to the property status
      * @param val the new entry to be added
      * @return true if the entry has been added
      */
-    public boolean addStatus(StatusUpdateResult val){ return status.add(val); }
+    public boolean addStatus(StatusUpdateResult val){ return statuses.add(val); }
     /**
      * Add a new entry to the property status at the specified position
      * @param index the new entry to be added
      * @param val the new entry to be added
      * @return true if the entry has been added
      */
-    public boolean addStatus(int index,StatusUpdateResult val){ return status.add(val); }
+    public boolean addStatus(int index,StatusUpdateResult val){ return statuses.add(val); }
     /**
      * Remove an entry to the property status
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
-    public boolean removeStatus(StatusUpdateResult val){ return status.remove(val); }
+    public boolean removeStatus(StatusUpdateResult val){ return statuses.remove(val); }
     /**
      * Remove an entry to the property status at the specified position
      * @param index the position of element to be removed
      * @return the entry removed if any
      */
-    public StatusUpdateResult removeStatus(int index){ return status.remove(index); }
+    public StatusUpdateResult removeStatus(int index){ return statuses.remove(index); }
 
 
 }

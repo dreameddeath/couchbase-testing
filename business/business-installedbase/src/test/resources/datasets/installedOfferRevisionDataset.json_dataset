@@ -1,6 +1,6 @@
 #$dataset_name("installed_offer_revision_test")
 
-#$dataset_elt_name("base_installed_offer")
+#$dataset_elt_name("installed_offer_for_status")
 @Declare("origDate","DateTime")
 {
     id:"111",
@@ -51,3 +51,51 @@
     ]
 }
 
+#$dataset_elt_name("installed_offer_for_links")
+{
+    id:"111_links",
+    code:"test_links",
+    revisions :[{
+            orderItemId:"ccoItem1",
+            revState:"PLANNED",
+            effectiveDate:#% origDate; %#,
+            links:[{
+                targetId:"tid1",
+                type:"RELIES",
+                action:"ADD",
+                status:"SUSPENDED"
+            },{
+                targetId:"tid1",
+                type:"MIGRATE",
+                status:"SUSPENDED"    /*implicit add*/
+            },{
+                targetId:"tid2",
+                type:"MIGRATE",
+                action:"ADD"//add with implicit status (ACTIVE)
+            },{
+                targetId:"tid3",
+                type:"RELIES",
+                status:"ACTIVE",
+                statusDate:#% origDate.plus(5); %# //TO use the date give
+            }]
+        },{
+            orderItemId:"ccoItem2", //Error with add already existing
+            revState:"PLANNED",
+            effectiveDate:#% origDate.plusDays(1); %#,
+            links:[{
+                targetId:"tid1",
+                type:"RELIES",
+                action:"ADD"
+            }]
+        },{
+             orderItemId:"ccoItem3", //Error with remove an inexisting item
+             revState:"PLANNED",
+             effectiveDate:#% origDate.plusDays(2); %#,
+             links:[{
+                 targetId:"tidMissing",
+                 type:"RELIES",
+                 action:"REMOVE"
+             }]
+        }
+    ]
+}

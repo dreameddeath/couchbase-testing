@@ -2,11 +2,16 @@ package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.core.date.MockDateTimeServiceImpl;
+import com.dreameddeath.installedbase.model.InstalledBase;
+import com.dreameddeath.installedbase.model.common.InstalledItemLink;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
 import com.dreameddeath.installedbase.model.common.InstalledStatus;
 import com.dreameddeath.installedbase.model.offer.InstalledCompositeOffer;
+import com.dreameddeath.installedbase.model.offer.InstalledOfferLink;
 import com.dreameddeath.installedbase.model.offer.InstalledOfferRevision;
 import com.dreameddeath.installedbase.process.model.InstalledBaseUpdateResult;
+import com.dreameddeath.installedbase.process.model.InstalledItemUpdateResult;
+import com.dreameddeath.installedbase.process.model.LinkUpdateResult;
 import com.dreameddeath.installedbase.process.model.StatusUpdateResult;
 import com.dreameddeath.installedbase.service.utils.InstalledItemRevisionsToApply;
 import com.dreameddeath.testing.dataset.DatasetManager;
@@ -24,6 +29,8 @@ import static org.junit.Assert.*;
  */
 public class InstalledBaseRevisionManagementServiceTest {
     private static final String DATASET_NAME="installed_offer_revision_test";
+    private static final String DATASET_ELT_FOR_STATUS="installed_offer_for_status";
+    private static final String DATASET_ELT_FOR_LINKS="installed_offer_for_links";
     private static final DateTime REFERENCE_DATE = DateTime.parse("2016-01-01T00:00:00");
 
     private final AtomicReference<DateTime> dateTimeRef=new AtomicReference<>(REFERENCE_DATE);
@@ -43,7 +50,7 @@ public class InstalledBaseRevisionManagementServiceTest {
     @Test
     public void testFindApplicableRevision(){
         InstalledBaseUpdateResult result = new InstalledBaseUpdateResult();
-        InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, "base_installed_offer", Collections.singletonMap("origDate", dateTimeRef.get()));
+        InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, DATASET_ELT_FOR_STATUS, Collections.singletonMap("origDate", dateTimeRef.get()));
         assertNotNull(offer);
         {
             InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledCompositeOffer> revs = service.findApplicableRevisions(result, offer);
@@ -63,12 +70,10 @@ public class InstalledBaseRevisionManagementServiceTest {
     }
 
 
-
-
     @Test
     public void applyStatusesFromRevision() throws Exception {
         InstalledBaseUpdateResult result = new InstalledBaseUpdateResult();
-        InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, "base_installed_offer", Collections.singletonMap("origDate", REFERENCE_DATE));
+        InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, DATASET_ELT_FOR_STATUS, Collections.singletonMap("origDate", REFERENCE_DATE));
         assertNotNull(offer);
 
         /*
@@ -281,7 +286,7 @@ public class InstalledBaseRevisionManagementServiceTest {
     @Test
     public void updateRevisions() throws Exception {
         InstalledBaseUpdateResult result = new InstalledBaseUpdateResult();
-        InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, "base_installed_offer", Collections.singletonMap("origDate", REFERENCE_DATE));
+        InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, DATASET_ELT_FOR_STATUS, Collections.singletonMap("origDate", REFERENCE_DATE));
         assertNotNull(offer);
         {
             InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledCompositeOffer> revs = service.findApplicableRevisions(result, offer);
@@ -347,4 +352,45 @@ public class InstalledBaseRevisionManagementServiceTest {
         }
     }
 
+    @Test
+    public void applyLinksFromRevision() throws Exception {
+        InstalledBaseUpdateResult result = new InstalledBaseUpdateResult();
+        InstalledBase ref=new InstalledBase();
+        InstalledCompositeOffer offer = manager.build(InstalledCompositeOffer.class, DATASET_NAME, DATASET_ELT_FOR_LINKS, Collections.singletonMap("origDate", dateTimeRef.get()));
+
+        {
+            InstalledItemRevisionsToApply<InstalledOfferRevision,InstalledCompositeOffer> revs=service.findApplicableRevisions(result,offer);
+            revs.sortRevisions();
+            assertEquals(1,revs.getRevisionsToApply().size());
+            boolean modified=service.applyLinksFromRevision(ref,revs);
+            assertTrue(modified);
+            assertEquals(4, revs.getUpdateResult(InstalledItemUpdateResult.class).getLinkUpdates().size());
+            assertEquals(4, offer.getLinks().size());
+            int pos = 0;
+            {
+                LinkUpdateResult linkUpdateResult = revs.getUpdateResult(InstalledItemUpdateResult.class).getLinkUpdates().get(pos);
+                //update itself
+                assertEquals(InstalledItemLink.Type.RELIES,linkUpdateResult.getType());
+                assertEquals("tid1",linkUpdateResult.getTargetId());
+                assertNull(linkUpdateResult.isReverse());
+                assertEquals(1,linkUpdateResult.getStatuses().size());
+                //Status check
+                assertEquals(StatusUpdateResult.Action.NEW,linkUpdateResult.getStatuses().get(0).getAction());
+                assertEquals(InstalledStatus.Code.SUSPENDED,linkUpdateResult.getStatuses().get(0).getCode());
+                assertEquals(REFERENCE_DATE,linkUpdateResult.getStatuses().get(0).getStartDate());
+                assertEquals(IDateTimeService.MAX_TIME,linkUpdateResult.getStatuses().get(0).getEndDate());
+
+                InstalledOfferLink link = revs.getParent().getLinks().get(pos);
+                assertEquals(linkUpdateResult.getTargetId(),link.getTargetId());
+                assertEquals(linkUpdateResult.getType(),link.getType());
+                assertEquals(linkUpdateResult.isReverse(),link.isReverse());
+                assertEquals(1,link.getStatuses().size());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getCode(),link.getStatuses().get(0).getCode());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getStartDate(),link.getStatuses().get(0).getStartDate());
+                assertEquals(linkUpdateResult.getStatuses().get(0).getEndDate(),link.getStatuses().get(0).getEndDate());
+            }
+
+        }
+        //service.applyLinksFromRevision()
+    }
 }

@@ -1,11 +1,14 @@
 #$dataset_name("test1")
 #$import("subDataset1")
 
-#%% Integer x,y,z; x=1;y=2;log.debug(x+y);z=x+y;
+#%% Integer x,y,z; x=1;y=2;/* internal multiline comment */log.debug(x+y);z=x+y; //Internal ending comment
 #%
+        /*
+         a multiline comment inlined
+        */
         Integer generator=0;
         log.debug(x);
-        log.debug(y);
+        log.debug(y); // A internal comment
         z+y+x;
 %#
 
@@ -16,11 +19,11 @@ this is a simple comment
 {
   "a new test is borned" : [
       {
-              date : 2016-10-10,
+              date : 2016-10-10, /*inlined comment*/
               datetime : 2016-10-10T05:00:00,
               datetimeTz : 2016-10-10T05:00:00+02:00,
-              "toto": @Test "tutut",
-              tata[0..2].tutu : [ "toto", "v@{++generator}", #% generator; %#]
+              "toto": @Test "tutut", //Testing
+              tata[0..2].tutu : [ "toto", "v@{++generator}", #% generator; %#] //Testing ending
       }
   ]
 }

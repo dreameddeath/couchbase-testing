@@ -84,40 +84,35 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
     }
 
     public enum LinkType{
-        RELIES_ON(InstalledItemLink.Type.RELIES,InstalledItemLink.Direction.TO),
-        BRINGS(InstalledItemLink.Type.BRINGS,InstalledItemLink.Direction.TO),
-        AGGREGATE(InstalledItemLink.Type.AGGREGATE,InstalledItemLink.Direction.TO),
-        MIGRATE(InstalledItemLink.Type.MIGRATE,InstalledItemLink.Direction.TO),;
+        RELIES_ON(InstalledItemLink.Type.RELIES),
+        BRINGS(InstalledItemLink.Type.BRINGS),
+        AGGREGATE(InstalledItemLink.Type.AGGREGATE),
+        MIGRATE(InstalledItemLink.Type.MIGRATE);
 
         private InstalledItemLink.Type type;
-        private InstalledItemLink.Direction direction;
 
-        LinkType(InstalledItemLink.Type type,InstalledItemLink.Direction direction){
+        LinkType(InstalledItemLink.Type type){
             this.type=type;
-            this.direction = direction;
         }
 
         public InstalledItemLink.Type getType(){
             return type;
         }
 
-        public InstalledItemLink.Direction getDirection(){
-            return direction;
-        }
     }
 
     public enum LinkDirection{
-        FROM(InstalledItemLink.Direction.FROM),
-        TO(InstalledItemLink.Direction.TO);
+        FROM(true),
+        TO(null);
 
-        private InstalledItemLink.Direction direction;
+        private Boolean isReverse;
 
-        LinkDirection(InstalledItemLink.Direction direction){
-            this.direction=direction;
+        LinkDirection(Boolean isReverse){
+            this.isReverse=isReverse;
         }
 
-        public InstalledItemLink.Direction getDirection() {
-            return direction;
+        public Boolean isReverse() {
+            return isReverse;
         }
     }
 
