@@ -131,7 +131,7 @@ public class CreateUpdateInstalledBaseService {
                 for(CreateUpdateInstalledBaseRequest.IdentifiedItemLink link :offerWorkingInfo.getUpdateRequest().links){
                     InstalledItemLinkRevision linkRevision = buildLinkRevision(ctxt,offerWorkingInfo,link,globalWorkingInfos);
                     if(linkRevision!=null){
-                        offerWorkingInfo.getTargetRevision().addLinks(linkRevision);
+                        offerWorkingInfo.getTargetRevision().addLink(linkRevision);
                     }
                 }
             }
@@ -142,7 +142,7 @@ public class CreateUpdateInstalledBaseService {
                 for(CreateUpdateInstalledBaseRequest.IdentifiedItemLink link :psWorkingInfo.getUpdateRequest().links){
                     InstalledItemLinkRevision linkRevision = buildLinkRevision(ctxt,psWorkingInfo,link,globalWorkingInfos);
                     if(linkRevision!=null){
-                        psWorkingInfo.getTargetRevision().addLinks(linkRevision);
+                        psWorkingInfo.getTargetRevision().addLink(linkRevision);
                     }
                 }
             }

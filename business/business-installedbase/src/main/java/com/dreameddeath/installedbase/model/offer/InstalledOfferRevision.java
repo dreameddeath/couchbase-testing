@@ -69,14 +69,14 @@ public class InstalledOfferRevision extends InstalledItemRevision implements IHa
      * @param val the new entry to be added
      */
     @Override
-    public boolean addLinks(InstalledItemLinkRevision val){ return links.add(val); }
+    public boolean addLink(InstalledItemLinkRevision val){ return links.add(val); }
     /**
      * Remove an entry to the property links
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
     @Override
-    public boolean removeLinks(InstalledItemLinkRevision val){ return links.remove(val); }
+    public boolean removeLink(InstalledItemLinkRevision val){ return links.remove(val); }
 
     /**
      * Getter of parent

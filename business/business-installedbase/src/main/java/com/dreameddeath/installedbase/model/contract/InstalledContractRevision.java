@@ -17,14 +17,54 @@
 package com.dreameddeath.installedbase.model.contract;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.installedbase.annotation.EntityConstants;
+import com.dreameddeath.installedbase.model.common.IHasLinkRevision;
+import com.dreameddeath.installedbase.model.common.InstalledItemLinkRevision;
 import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 31/08/2014.
  */
 @DocumentEntity(domain = EntityConstants.DOMAIN)
-public class InstalledContractRevision extends InstalledItemRevision {
+public class InstalledContractRevision extends InstalledItemRevision implements IHasLinkRevision {
+    /**
+     *  links : list of links attached to the revision
+     */
+    @DocumentProperty("links")
+    private ListProperty<InstalledItemLinkRevision> links = new ArrayListProperty<>(InstalledContractRevision.this);
+    /**
+     * Getter of links
+     * @return the content
+     */
+    @Override
+    public List<InstalledItemLinkRevision> getLinks() { return links.get(); }
+    /**
+     * Setter of links
+     * @param vals the new collection of values
+     */
+    @Override
+    public void setLinks(Collection<InstalledItemLinkRevision> vals) { links.set(vals); }
+    /**
+     * Add a new entry to the property links
+     * @param val the new entry to be added
+     */
+    @Override
+    public boolean addLink(InstalledItemLinkRevision val){ return links.add(val); }
+    /**
+     * Remove an entry to the property links
+     * @param val the entry to be remove
+     * @return true if the entry has been removed
+     */
+    @Override
+    public boolean removeLink(InstalledItemLinkRevision val){ return links.remove(val); }
+
+
     /**
      * comparator of revisions
      * @param revision the target revision to compare with

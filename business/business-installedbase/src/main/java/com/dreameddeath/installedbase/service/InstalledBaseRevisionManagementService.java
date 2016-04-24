@@ -3,6 +3,7 @@ package com.dreameddeath.installedbase.service;
 import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.installedbase.model.InstalledBase;
 import com.dreameddeath.installedbase.model.common.*;
+import com.dreameddeath.installedbase.model.contract.InstalledContractLink;
 import com.dreameddeath.installedbase.model.offer.InstalledCommercialParameter;
 import com.dreameddeath.installedbase.model.offer.InstalledOffer;
 import com.dreameddeath.installedbase.model.offer.InstalledOfferLink;
@@ -200,7 +201,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         return null;
     }
 
-    private AttributeUpdateResult applyAttributeUpdateFromRevision(InstalledItemRevision itemRev,InstalledAttributeRevision rev,InstalledAttribute attribute,boolean isNew){
+    public AttributeUpdateResult applyAttributeUpdateFromRevision(InstalledItemRevision itemRev,InstalledAttributeRevision rev,InstalledAttribute attribute,boolean isNew){
         boolean hasChange=isNew;
         AttributeUpdateResult result=new AttributeUpdateResult();
         result.setCode(rev.getCode());
@@ -366,7 +367,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             switch(itemWithRevs.getItemType()){
                 case OFFER: existingLink = (TLINK)new InstalledOfferLink(); break;
                 case PS: existingLink = (TLINK)new InstalledProductServiceLink();break;
-                case CONTRACT: //TODO;
+                case CONTRACT: existingLink=(TLINK)new InstalledContractLink();break;
                 default: throw new RuntimeException("Cannot manage links on type "+itemWithRevs.getItemType()+" for item "+itemWithRevs.getItemUid());
             }
             itemWithRevs.getParent().addLink(existingLink);

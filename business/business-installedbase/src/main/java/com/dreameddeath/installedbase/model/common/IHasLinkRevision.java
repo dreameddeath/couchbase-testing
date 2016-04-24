@@ -9,6 +9,6 @@ import java.util.List;
 public interface IHasLinkRevision {
     List<InstalledItemLinkRevision> getLinks();
     void setLinks(Collection<InstalledItemLinkRevision> vals);
-    boolean addLinks(InstalledItemLinkRevision val);
-    boolean removeLinks(InstalledItemLinkRevision val);
+    boolean addLink(InstalledItemLinkRevision val);
+    boolean removeLink(InstalledItemLinkRevision val);
 }
