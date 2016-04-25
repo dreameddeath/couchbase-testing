@@ -703,7 +703,7 @@ public class InstalledBaseRevisionManagementServiceTest {
         {
             InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
             revs.sortRevisions();
-            assertEquals(1, revs.getRevisionsToApply().size());
+            assertEquals(2, revs.getRevisionsToApply().size());
             boolean modified;
             List<? extends InstalledAttribute> attributesList;
             if (installedItem instanceof InstalledOffer) {
@@ -715,8 +715,8 @@ public class InstalledBaseRevisionManagementServiceTest {
             }
 
             assertTrue(modified);
-            assertEquals(2, revs.getUpdateResult(InstalledItemUpdateResult.class).getAttributes().size());
-            assertEquals(2, attributesList.size());
+            assertEquals(3, revs.getUpdateResult(InstalledItemUpdateResult.class).getAttributes().size());
+            assertEquals(3, attributesList.size());
         }
     }
 }

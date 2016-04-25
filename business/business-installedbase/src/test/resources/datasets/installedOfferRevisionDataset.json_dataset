@@ -134,7 +134,7 @@
     revisions:[{
         orderItemId:"ccoItem1",
         revState:"PLANNED",
-        effectiveDate:#% origDate.plus(5); %#,
+        effectiveDate:#% origDate.plus(3); %#,
         #% attrFieldName; %# :[{
             //Attribute 1 is with multiple values
             code:"attr1",
@@ -158,6 +158,28 @@
             values:[{
                 value:"attr2Val1"
             }]
+        }]
+    },{
+        orderItemId:"ccoItem1.1",
+        revState:"PLANNED",
+        effectiveDate:#% origDate.plus(5); %#,
+        #% attrFieldName; %# :[{
+          //Attribute 1 is with multiple values
+          code:"attr1",
+          values:[{
+              value:"attr1Val1",
+              action:"MODIFY",
+              startDate:#% origDate; %#,
+              endDate:#% origDate.plusDays(1); %#
+          },{
+              value:"attr1Val1New",
+              action:"ADD"
+          }]
+        },{
+          code:"attr3",
+          values:[{
+              value:"attr3Val2New"
+          }]
         }]
     }]
 }

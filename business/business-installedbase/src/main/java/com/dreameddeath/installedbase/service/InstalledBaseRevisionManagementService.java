@@ -22,10 +22,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 30/03/2016.
@@ -151,16 +148,13 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             for(InstalledAttributeRevision attrRev:psRevision.getFunctions()){
                 boolean isNew=false;
                 InstalledFunction existingAttr=findExistingAttribute(attrRev,itemWithRevs.getParent().getFunctions());
+
                 if(existingAttr==null){
                     existingAttr=initNewAttribute(attrRev,new InstalledFunction());
                     itemWithRevs.getParent().addFunctions(existingAttr);
                     isNew=true;
                 }
-                AttributeUpdateResult result=applyAttributeUpdateFromRevision(psRevision,attrRev,existingAttr,isNew);
-                if(result!=null){
-                    hasChanges=true;
-                    itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).addAttributes(result);
-                }
+                hasChanges|=applyAttributeUpdateFromRevision(itemWithRevs,psRevision,attrRev,existingAttr,isNew);
             }
         }
         return hasChanges;
@@ -177,11 +171,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                     itemWithRevs.getParent().addCommercialParameter(existingAttr);
                     isNew=true;
                 }
-                AttributeUpdateResult result=applyAttributeUpdateFromRevision(offerRevision,attrRev,existingAttr,isNew);
-                if(result!=null){
-                    hasChanges=true;
-                    itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).addAttributes(result);
-                }
+                hasChanges|=applyAttributeUpdateFromRevision(itemWithRevs,offerRevision,attrRev,existingAttr,isNew);
             }
         }
         return hasChanges;
@@ -201,134 +191,221 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         return null;
     }
 
-    public AttributeUpdateResult applyAttributeUpdateFromRevision(InstalledItemRevision itemRev,InstalledAttributeRevision rev,InstalledAttribute attribute,boolean isNew){
+    public boolean applyAttributeUpdateFromRevision(InstalledItemRevisionsToApply<? extends InstalledItemRevision,? extends InstalledItem<? extends InstalledItemRevision>> itemWithRevs, InstalledItemRevision itemRev,InstalledAttributeRevision rev,InstalledAttribute attribute,boolean isNew){
         boolean hasChange=isNew;
-        AttributeUpdateResult result=new AttributeUpdateResult();
-        result.setCode(rev.getCode());
+        boolean isNewUpdateResult=false;
+        AttributeUpdateResult result=null;
+
+        for(AttributeUpdateResult existingUpdate:itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).getAttributes()){
+            if(existingUpdate.getCode().equals(rev.getCode())){
+                result=existingUpdate;
+                break;
+            }
+        }
+
+        if(result==null) {
+            isNewUpdateResult=true;
+            result=new AttributeUpdateResult();
+            result.setAction(isNew? AttributeUpdateResult.Action.ADD: AttributeUpdateResult.Action.MODIFY);
+            result.setCode(rev.getCode());
+        }
+
         if(isNew){
             Preconditions.checkArgument(rev.getAction()==null || rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
-            result.setAction(AttributeUpdateResult.Action.ADD);
         }
         else{
             Preconditions.checkArgument(rev.getAction()==null || !rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
-            result.setAction(AttributeUpdateResult.Action.MODIFY);
         }
 
-        //TODO check consistency between values revisions request
+        int valueRevPos=0;
         for(InstalledValueRevision valueRev:rev.getValues()){
+            ++valueRevPos;
+            List<ValueUpdateResult> valueUpdateResults;
             //Use of action for multiple values
             if(valueRev.getAction()!=null){
-                switch(valueRev.getAction()){
-                    case ADD:break;
-                    case REMOVE: break;
-                    case MODIFY: break;
-                }
+                valueUpdateResults = applyAttributeValueUpdatesFromRevisionByAction(itemWithRevs,itemRev,rev,attribute,valueRev,valueRevPos);
             }
-            //No action : mono value, manage only dates
+            //No action : mono value, manage only using dates
             else {
-                DateTime newValueStartDate=valueRev.getStartDate();
-                DateTime newValueEndDate=valueRev.getEndDate();
-                if(newValueStartDate==null){newValueStartDate=itemRev.getEffectiveDate();}
-                if(newValueStartDate==null){newValueStartDate=dateTimeService.getCurrentDate();}
-                if(newValueEndDate==null)  {newValueEndDate = dateTimeService.max();}
-                // empty value duration
-                if(newValueStartDate.equals(newValueEndDate)){
-                    continue;
-                }
+                valueUpdateResults = applyAttributeValueUpdatesFromRevisionWithoutAction(itemWithRevs,itemRev,rev,attribute,valueRev,valueRevPos);
+            }
 
-                List<InstalledValue> matchingInstalledValues = InstalledBaseTools.Values.findMatchingInstalledValues(attribute.getValues(),newValueStartDate,newValueEndDate);
-                boolean addValue=true;
-                for(InstalledValue value:matchingInstalledValues){
-                    ValueUpdateResult valueUpdateResult=null;
-                    //The installedValue is entirely within the new value
-                    if( newValueStartDate.equals(value.getStartDate()) && newValueEndDate.equals(value.getEndDate()) && value.getValue().equals(valueRev.getValue()))
-                    {
-                        addValue=false; //the exact matching value is existing
-                    }
-                    else if((newValueStartDate.compareTo(value.getStartDate())<=0) && (newValueEndDate.compareTo(value.getEndDate())>=0) ){
-                        hasChange=true;
-                        valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.REMOVE);
-                        attribute.removeValues(value);
-                    }
-                    else{
-                        //It is an extension of currValue
-                        if(value.getValue().equals(valueRev.getValue())){
-                            addValue=false;
-                            valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                            if(!newValueStartDate.equals(value.getStartDate())){
-                                value.setStartDate(newValueStartDate);
-                                valueUpdateResult.setStart(newValueStartDate);
-                            }
-                            if(!newValueEndDate.equals(value.getEndDate())){
-                                value.setEndDate(newValueEndDate);
-                                valueUpdateResult.setEnd(newValueEndDate);
-                            }
-                        }
-                        //Split
-                        else{
-                            //it can be :
-                            //   * change of start date
-                            //   * change of end date
-                            //   * split in two values
-                            //Split in two values
-                            if(value.getStartDate().compareTo(newValueEndDate)<0 && value.getEndDate().compareTo(newValueEndDate)>0){
-                                //Add the new splitted value
-                                InstalledValue newSplittedValue = new InstalledValue();
-                                newSplittedValue.setStartDate(newValueEndDate);
-                                newSplittedValue.setEndDate(value.getEndDate());
-                                newSplittedValue.setValue(value.getValue());
-                                newSplittedValue.setKeyType(value.getKeyType());
-                                ValueUpdateResult splittedValueResult=new ValueUpdateResult(newSplittedValue, ValueUpdateResult.Action.ADD);
-                                result.addValues(splittedValueResult);
-
-                                valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                                splittedValueResult.setEnd(newSplittedValue.getEndDate());
-                                value.setEndDate(newValueStartDate);
-                                valueUpdateResult.setEnd(newValueStartDate);
-
-                            }
-                            //change of start date (insert of the new value in the past)
-                            else if(newValueStartDate.compareTo(value.getStartDate())<0){
-                                valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                                valueUpdateResult.setStart(newValueEndDate);
-                                value.setStartDate(newValueEndDate);
-                            }
-                            //change of end date  of existing value(insert of the new value in the past)
-                            else{
-                                valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                                valueUpdateResult.setEnd(newValueStartDate);
-                                value.setEndDate(newValueStartDate);
-                            }
-                        }
-                    }
-
-                    if(valueUpdateResult!=null){
-                        hasChange=true;
-                        result.addValues(valueUpdateResult);
-                    }
-                }
-
-                if(addValue && valueRev.getValue()!=null){
-                    hasChange=true;
-                    InstalledValue newValue = new InstalledValue();
-                    newValue.setStartDate(newValueStartDate);
-                    newValue.setEndDate(newValueEndDate);
-                    newValue.setValue(valueRev.getValue());
-                    newValue.setKeyType(valueRev.getKeyType());
-                    attribute.addValues(newValue);
-                    ValueUpdateResult newValueResult=new ValueUpdateResult(newValue, ValueUpdateResult.Action.ADD);
-                    result.addValues(newValueResult);
-                }
+            if(valueUpdateResults.size()>0){
+                hasChange|=true;
+                mergeAttributeValuesUpdate(result.getValues(),valueUpdateResults).forEach(result::addValues);
             }
         }
 
-        if(hasChange){
-            return result;
+        if(hasChange && isNewUpdateResult){
+            itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).addAttributes(result);
+        }
+
+        return hasChange;
+    }
+
+
+    public List<ValueUpdateResult> applyAttributeValueUpdatesFromRevisionByAction(InstalledItemRevisionsToApply<?,?> itemWithRevs, InstalledItemRevision itemRev,InstalledAttributeRevision rev,InstalledAttribute attribute,InstalledValueRevision valueRev,int valueRevPos){
+        Preconditions.checkNotNull(valueRev.getValue(),"The value of value rev %s/#%s must have an value defined for item %s",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid());
+        DateTime startDate=valueRev.getStartDate();
+        if(startDate==null){startDate=itemRev.getEffectiveDate();}
+        DateTime endDate=valueRev.getEndDate();
+        if(endDate==null){endDate= dateTimeService.max();}
+
+        List<InstalledValue> matchingInstalledValues = InstalledBaseTools.Values.findMatchingInstalledValues(attribute.getValues(),startDate,startDate.plus(1),valueRev.getValue());
+        ValueUpdateResult valueUpdateResult=null;
+        if(valueRev.getAction()== InstalledValueRevision.Action.ADD){
+            Preconditions.checkArgument(matchingInstalledValues.size()==0,"The existing attribute value creation request %s/#%s on item %s has already matching attribute list <%s>",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),matchingInstalledValues.toString());
+            InstalledValue newInstalledValue= new InstalledValue();
+            newInstalledValue.setValue(valueRev.getValue());
+            newInstalledValue.setStartDate(startDate);
+            newInstalledValue.setEndDate(endDate);
+            attribute.addValues(newInstalledValue);
+            valueUpdateResult = new ValueUpdateResult(newInstalledValue, ValueUpdateResult.Action.ADD);
         }
         else{
-            return null;
+            Preconditions.checkArgument(valueRev.getStartDate()!=null,"The existing attribute value update request %s/#%s on item %s must have a start date as the action is %s",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),valueRev.getAction());
+            Preconditions.checkArgument(matchingInstalledValues.size()==1,"The existing attribute value update request %s/#%s on item %s has wrong matching attribute list <%s>",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),matchingInstalledValues.toString());
+            InstalledValue valueToUpdate=matchingInstalledValues.get(0);
+            ValueUpdateResult.Action effectiveAction;
+            if(valueRev.getAction()== InstalledValueRevision.Action.MODIFY){
+                effectiveAction= ValueUpdateResult.Action.MODIFY_DATES;
+                if(endDate.equals(valueToUpdate.getEndDate())) {
+                    return Collections.emptyList();
+                }
+                else if(endDate.equals(valueToUpdate.getStartDate())){
+                    effectiveAction= ValueUpdateResult.Action.REMOVE;
+                }
+            }
+            else{
+                effectiveAction= ValueUpdateResult.Action.REMOVE;
+            }
+
+            valueUpdateResult = new ValueUpdateResult(valueToUpdate, effectiveAction);
+            if(effectiveAction== ValueUpdateResult.Action.REMOVE){
+                attribute.removeValues(valueToUpdate);
+            }
+            else{
+                valueToUpdate.setEndDate(endDate);
+                valueUpdateResult.setEnd(endDate);
+            }
         }
+
+        List<ValueUpdateResult> result=new ArrayList<>(1);
+        result.add(valueUpdateResult);
+        return result;
     }
+
+
+    public List<ValueUpdateResult> applyAttributeValueUpdatesFromRevisionWithoutAction(InstalledItemRevisionsToApply<?,?> itemWithRevs, InstalledItemRevision itemRev,InstalledAttributeRevision rev,InstalledAttribute attribute,InstalledValueRevision valueRev,int valueRevPos){
+        DateTime newValueStartDate=valueRev.getStartDate();
+        DateTime newValueEndDate=valueRev.getEndDate();
+        if(newValueStartDate==null){newValueStartDate=itemRev.getEffectiveDate();}
+        if(newValueEndDate==null)  {newValueEndDate = dateTimeService.max();}
+
+        // empty value duration
+        if(newValueStartDate.equals(newValueEndDate)){
+            return Collections.emptyList();
+        }
+
+        List<ValueUpdateResult> result=new ArrayList<>();
+        List<InstalledValue> matchingInstalledValues = InstalledBaseTools.Values.findMatchingInstalledValues(attribute.getValues(),newValueStartDate,newValueEndDate);
+
+        boolean addValue=true;
+        for(InstalledValue value:matchingInstalledValues){
+            ValueUpdateResult valueUpdateResult=null;
+            //The installedValue is entirely within the new value
+            if( newValueStartDate.equals(value.getStartDate()) && newValueEndDate.equals(value.getEndDate()) && value.getValue().equals(valueRev.getValue())) {
+                addValue=false; //the exact matching value is existing
+            }
+            else if((newValueStartDate.compareTo(value.getStartDate())<=0) && (newValueEndDate.compareTo(value.getEndDate())>=0) ){
+                valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.REMOVE);
+                attribute.removeValues(value);
+            }
+            else{
+                //It is an extension of currValue
+                if(value.getValue().equals(valueRev.getValue())){
+                    addValue=false;
+                    valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
+                    if(!newValueStartDate.equals(value.getStartDate())){
+                        value.setStartDate(newValueStartDate);
+                        valueUpdateResult.setStart(newValueStartDate);
+                    }
+                    if(!newValueEndDate.equals(value.getEndDate())){
+                        value.setEndDate(newValueEndDate);
+                        valueUpdateResult.setEnd(newValueEndDate);
+                    }
+                }
+                //Split
+                else{
+                    //it can be :
+                    //   * change of start date
+                    //   * change of end date
+                    //   * split in two values
+                    //Split in two values
+                    if(value.getStartDate().compareTo(newValueEndDate)<0 && value.getEndDate().compareTo(newValueEndDate)>0){
+                        //Add the new splitted value
+                        InstalledValue newSplittedValue = new InstalledValue();
+                        newSplittedValue.setStartDate(newValueEndDate);
+                        newSplittedValue.setEndDate(value.getEndDate());
+                        newSplittedValue.setValue(value.getValue());
+                        newSplittedValue.setKeyType(value.getKeyType());
+                        ValueUpdateResult splittedValueResult=new ValueUpdateResult(newSplittedValue, ValueUpdateResult.Action.ADD);
+                        result.add(splittedValueResult);
+
+                        valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
+                        splittedValueResult.setEnd(newSplittedValue.getEndDate());
+                        value.setEndDate(newValueStartDate);
+                        valueUpdateResult.setEnd(newValueStartDate);
+
+                    }
+                    //change of start date (insert of the new value in the past)
+                    else if(newValueStartDate.compareTo(value.getStartDate())<0){
+                        valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
+                        valueUpdateResult.setStart(newValueEndDate);
+                        value.setStartDate(newValueEndDate);
+                    }
+                    //change of end date  of existing value(insert of the new value in the past)
+                    else{
+                        valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
+                        valueUpdateResult.setEnd(newValueStartDate);
+                        value.setEndDate(newValueStartDate);
+                    }
+                }
+            }
+
+            if(valueUpdateResult!=null){
+                result.add(valueUpdateResult);
+            }
+        }
+
+        if(addValue && valueRev.getValue()!=null){
+            InstalledValue newValue = new InstalledValue();
+            newValue.setStartDate(newValueStartDate);
+            newValue.setEndDate(newValueEndDate);
+            newValue.setValue(valueRev.getValue());
+            newValue.setKeyType(valueRev.getKeyType());
+            attribute.addValues(newValue);
+            ValueUpdateResult newValueResult=new ValueUpdateResult(newValue, ValueUpdateResult.Action.ADD);
+            result.add(newValueResult);
+        }
+
+        return result;
+    }
+
+    public List<ValueUpdateResult> mergeAttributeValuesUpdate(List<ValueUpdateResult> origStatusUpdates,List<ValueUpdateResult> newResults){
+        Iterator<ValueUpdateResult> newResultIterator=newResults.iterator();
+        while(newResultIterator.hasNext()) {
+            ValueUpdateResult newResult=newResultIterator.next();
+            for(ValueUpdateResult oldValueUpdate:origStatusUpdates){
+                if(newResult.getValue().equals(oldValueUpdate.getValue()) && newResult.getStart().equals(oldValueUpdate.getStart())){
+                    newResultIterator.remove();
+                    oldValueUpdate.setEnd(newResult.getEnd());
+                }
+            }
+        }
+        return newResults;
+    }
+
 
     public <TLINK extends InstalledItemLink,TREV extends InstalledItemRevision & IHasLinkRevision,TITEM extends InstalledItem<TREV> & IHasInstalledItemLink<TLINK>> boolean applyLinksFromRevision(InstalledBase ref, InstalledItemRevisionsToApply<TREV,TITEM> itemWithRevs){
         boolean hasChanges=false;

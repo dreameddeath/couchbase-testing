@@ -63,4 +63,13 @@ public class InstalledValue extends CouchbaseDocumentElement {
     public String getKeyType() { return keyType.get(); }
     public void setKeyType(String val) { keyType.set(val); }
 
+    @Override
+    public String toString() {
+        return "InstalledValue{" +
+                "value=" + value +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", keyType=" + keyType +
+                '}';
+    }
 }

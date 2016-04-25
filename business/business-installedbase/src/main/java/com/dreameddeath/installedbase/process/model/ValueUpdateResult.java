@@ -22,16 +22,10 @@ public class ValueUpdateResult extends VersionedDocumentElement {
     @DocumentProperty("action")
     private Property<Action> action = new StandardProperty<>(ValueUpdateResult.this);
     /**
-     *  oldStart : the previous start date
-     */
-    @DocumentProperty("oldStart")
-    private Property<DateTime> oldStart = new StandardProperty<>(ValueUpdateResult.this);
-    /**
-     *  start : the new start date
+     *  start : the start date
      */
     @DocumentProperty("start")
     private Property<DateTime> start = new StandardProperty<>(ValueUpdateResult.this);
-
     /**
      *  oldEnd : the previous end date
      */
@@ -49,12 +43,11 @@ public class ValueUpdateResult extends VersionedDocumentElement {
 
     public ValueUpdateResult(InstalledValue value,Action action){
         this.setValue(value.getValue());
+        this.setStart(value.getStartDate());
         if(action.equals(Action.ADD)){
-            this.setStart(value.getStartDate());
             this.setEnd(value.getEndDate());
         }
         else{
-            this.setOldStart(value.getStartDate());
             this.setOldEnd(value.getStartDate());
         }
         this.setAction(action);
@@ -81,16 +74,6 @@ public class ValueUpdateResult extends VersionedDocumentElement {
      * @param val the new content
      */
     public void setAction(Action val) { action.set(val); }
-    /**
-     * Getter of oldStart
-     * @return the content
-     */
-    public DateTime getOldStart() { return oldStart.get(); }
-    /**
-     * Setter of oldStart
-     * @param val the new content
-     */
-    public void setOldStart(DateTime val) { oldStart.set(val); }
     /**
      * Getter of start
      * @return the content

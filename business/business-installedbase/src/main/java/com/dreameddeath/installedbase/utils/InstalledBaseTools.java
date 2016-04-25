@@ -105,6 +105,7 @@ public class InstalledBaseTools {
                     .filter(value->!endDate.isBefore(value.getStartDate()) && !startDate.isAfter(value.getEndDate()) && valueStr.equals(value.getValue()))
                     .collect(Collectors.toList());
         }
+
     }
 
     public static class Statuses{
