@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.List;
+
 /**
  * Created by Christophe Jeunesse on 20/04/2016.
  */
@@ -18,6 +20,11 @@ public abstract class AbstractObjectMapperBasedConverter<T> implements IDatasetR
 
     @Override
     public DatasetResultValue mapObject(T src) {
+        return jsonNodeConverter.mapObject(mapper.valueToTree(src));
+    }
+
+    @Override
+    public DatasetResultValue mapArrayOfObject(List<? extends T> src) {
         return jsonNodeConverter.mapObject(mapper.valueToTree(src));
     }
 

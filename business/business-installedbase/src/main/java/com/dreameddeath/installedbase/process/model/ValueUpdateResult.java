@@ -1,6 +1,7 @@
 package com.dreameddeath.installedbase.process.model;
 
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -10,6 +11,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 08/04/2016.
  */
+@DocumentEntity
 public class ValueUpdateResult extends VersionedDocumentElement {
     /**
      *  value : the value updated
@@ -24,18 +26,18 @@ public class ValueUpdateResult extends VersionedDocumentElement {
     /**
      *  start : the start date
      */
-    @DocumentProperty("start")
-    private Property<DateTime> start = new StandardProperty<>(ValueUpdateResult.this);
+    @DocumentProperty("startDate")
+    private Property<DateTime> startDate = new StandardProperty<>(ValueUpdateResult.this);
     /**
      *  oldEnd : the previous end date
      */
-    @DocumentProperty("oldEnd")
-    private Property<DateTime> oldEnd = new StandardProperty<>(ValueUpdateResult.this);
+    @DocumentProperty("oldEndDate")
+    private Property<DateTime> oldEndDate = new StandardProperty<>(ValueUpdateResult.this);
     /**
      *  end : the new end date
      */
-    @DocumentProperty("end")
-    private Property<DateTime> end = new StandardProperty<>(ValueUpdateResult.this);
+    @DocumentProperty("endDate")
+    private Property<DateTime> endDate = new StandardProperty<>(ValueUpdateResult.this);
 
 
     public ValueUpdateResult() {
@@ -43,12 +45,12 @@ public class ValueUpdateResult extends VersionedDocumentElement {
 
     public ValueUpdateResult(InstalledValue value,Action action){
         this.setValue(value.getValue());
-        this.setStart(value.getStartDate());
+        this.setStartDate(value.getStartDate());
         if(action.equals(Action.ADD)){
-            this.setEnd(value.getEndDate());
+            this.setEndDate(value.getEndDate());
         }
         else{
-            this.setOldEnd(value.getStartDate());
+            this.setOldEndDate(value.getStartDate());
         }
         this.setAction(action);
     }
@@ -78,32 +80,32 @@ public class ValueUpdateResult extends VersionedDocumentElement {
      * Getter of start
      * @return the content
      */
-    public DateTime getStart() { return start.get(); }
+    public DateTime getStartDate() { return startDate.get(); }
     /**
      * Setter of start
      * @param val the new content
      */
-    public void setStart(DateTime val) { start.set(val); }
+    public void setStartDate(DateTime val) { startDate.set(val); }
     /**
      * Getter of oldEnd
      * @return the content
      */
-    public DateTime getOldEnd() { return oldEnd.get(); }
+    public DateTime getOldEndDate() { return oldEndDate.get(); }
     /**
      * Setter of oldEnd
      * @param val the new content
      */
-    public void setOldEnd(DateTime val) { oldEnd.set(val); }
+    public void setOldEndDate(DateTime val) { oldEndDate.set(val); }
     /**
      * Getter of end
      * @return the content
      */
-    public DateTime getEnd() { return end.get(); }
+    public DateTime getEndDate() { return endDate.get(); }
     /**
      * Setter of end
      * @param val the new content
      */
-    public void setEnd(DateTime val) { end.set(val); }
+    public void setEndDate(DateTime val) { endDate.set(val); }
 
 
     public enum Action{

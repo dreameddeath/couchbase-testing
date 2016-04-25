@@ -286,7 +286,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             }
             else{
                 valueToUpdate.setEndDate(endDate);
-                valueUpdateResult.setEnd(endDate);
+                valueUpdateResult.setEndDate(endDate);
             }
         }
 
@@ -328,11 +328,11 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                     valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
                     if(!newValueStartDate.equals(value.getStartDate())){
                         value.setStartDate(newValueStartDate);
-                        valueUpdateResult.setStart(newValueStartDate);
+                        valueUpdateResult.setStartDate(newValueStartDate);
                     }
                     if(!newValueEndDate.equals(value.getEndDate())){
                         value.setEndDate(newValueEndDate);
-                        valueUpdateResult.setEnd(newValueEndDate);
+                        valueUpdateResult.setEndDate(newValueEndDate);
                     }
                 }
                 //Split
@@ -353,21 +353,21 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                         result.add(splittedValueResult);
 
                         valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                        splittedValueResult.setEnd(newSplittedValue.getEndDate());
+                        splittedValueResult.setEndDate(newSplittedValue.getEndDate());
                         value.setEndDate(newValueStartDate);
-                        valueUpdateResult.setEnd(newValueStartDate);
+                        valueUpdateResult.setEndDate(newValueStartDate);
 
                     }
                     //change of start date (insert of the new value in the past)
                     else if(newValueStartDate.compareTo(value.getStartDate())<0){
                         valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                        valueUpdateResult.setStart(newValueEndDate);
+                        valueUpdateResult.setStartDate(newValueEndDate);
                         value.setStartDate(newValueEndDate);
                     }
                     //change of end date  of existing value(insert of the new value in the past)
                     else{
                         valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                        valueUpdateResult.setEnd(newValueStartDate);
+                        valueUpdateResult.setEndDate(newValueStartDate);
                         value.setEndDate(newValueStartDate);
                     }
                 }
@@ -397,9 +397,9 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         while(newResultIterator.hasNext()) {
             ValueUpdateResult newResult=newResultIterator.next();
             for(ValueUpdateResult oldValueUpdate:origStatusUpdates){
-                if(newResult.getValue().equals(oldValueUpdate.getValue()) && newResult.getStart().equals(oldValueUpdate.getStart())){
+                if(newResult.getValue().equals(oldValueUpdate.getValue()) && newResult.getStartDate().equals(oldValueUpdate.getStartDate())){
                     newResultIterator.remove();
-                    oldValueUpdate.setEnd(newResult.getEnd());
+                    oldValueUpdate.setEndDate(newResult.getEndDate());
                 }
             }
         }

@@ -7,10 +7,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.TimeZone;
 
 /**
@@ -42,6 +44,11 @@ public class JsonNodeConverter implements IDatasetResultConverter<JsonNode> {
     @Override
     public DatasetResultValue mapObject(JsonNode src) {
         return mapJsonNodeValue(src);
+    }
+
+    @Override
+    public DatasetResultValue mapArrayOfObject(List<? extends JsonNode> src) {
+        return mapJsonNodeValue(new ArrayNode(OBJECT_MAPPER.getNodeFactory()).addAll(src));
     }
 
     private DatasetResultValue mapJsonNodeValue(JsonNode src) {

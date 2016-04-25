@@ -58,8 +58,8 @@ public class InstalledBaseRevisionManagementServiceTest {
         service.setDateTimeService(new MockDateTimeServiceImpl(MockDateTimeServiceImpl.Calculator.fixedCalculator(dateTimeRef)));
         manager = new DatasetManager();
         manager.addDatasetsFromResourceFilename("datasets/installedOfferRevisionDataset.json_dataset");
+        manager.addDatasetsFromResourceFilename("datasets/installedAttributeValidation.json_dataset");
         manager.prepareDatasets();
-
     }
 
     /*
@@ -713,10 +713,14 @@ public class InstalledBaseRevisionManagementServiceTest {
                 modified = service.applyFunctionsFromRevision((InstalledItemRevisionsToApply<InstalledProductServiceRevision, InstalledProductService>) revs);
                 attributesList = ((InstalledProductService) installedItem).getFunctions();
             }
-
             assertTrue(modified);
-            assertEquals(3, revs.getUpdateResult(InstalledItemUpdateResult.class).getAttributes().size());
-            assertEquals(3, attributesList.size());
+
+            Map<String,Object> paramsValidation=new HashMap<>();
+            paramsValidation.put("origDate",REFERENCE_DATE);
+            paramsValidation.put("MAX_DATE",IDateTimeService.MAX_TIME);
+            assertTrue(manager.validate(revs.getUpdateResult(InstalledItemUpdateResult.class),"installed_offer_attributes_test","installed_attributes_update_result_1_validation",paramsValidation));
+
+            assertTrue(manager.validate(InstalledAttribute.class,attributesList,"installed_offer_attributes_test","installed_attributes_update_final_1_validation",paramsValidation));
         }
     }
 }

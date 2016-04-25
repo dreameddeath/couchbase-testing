@@ -46,7 +46,12 @@ public class DatasetManager {
         initMapper();
     }
 
+
+
     public <T> IDatasetResultConverter<T> getMapperForClass(Class<T> clazz){
+        if(List.class.isAssignableFrom(clazz)){
+            clazz.getTypeParameters();
+        }
         return mapperPerClass.computeIfAbsent(clazz,cls->{
             for(IDatasetResultConverter<?> mapper:mappers){
                 if(mapper.canMap(clazz)){
@@ -189,6 +194,17 @@ public class DatasetManager {
     public boolean validate(DatasetResultValue value,String datasetName,String dataSetElementName){
         return validate(value,datasetName,dataSetElementName, Collections.emptyMap());
     }
+
+    public <T> boolean validate(Class<T> clazz,List<? extends T> value,String datasetName,String dataSetElementName,Map<String,Object> params){
+        IDatasetResultConverter<T> mapper=getMapperForClass(clazz);
+        if(mapper!=null){
+            return validate(mapper.mapArrayOfObject(value),datasetName,dataSetElementName,params);
+        }
+        else{
+            throw new RuntimeException("Cannot convert class List<"+clazz.getName()+">");
+        }
+    }
+
 
     public <T> boolean validate(T value,String datasetName,String dataSetElementName,Map<String,Object> params){
         if(value instanceof DatasetResultValue){

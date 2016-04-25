@@ -1,6 +1,7 @@
 package com.dreameddeath.installedbase.process.model;
 
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 22/03/2016.
  */
+@DocumentEntity
 public class AttributeUpdateResult extends VersionedDocumentElement {
     /**
      *  code : the updated attribute code

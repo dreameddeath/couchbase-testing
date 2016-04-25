@@ -1,5 +1,6 @@
 package com.dreameddeath.testing.dataset.runtime.validator;
 
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.testing.dataset.model.*;
 import com.dreameddeath.testing.dataset.runtime.MvelRuntimeContext;
 import com.dreameddeath.testing.dataset.runtime.builder.DatasetBuilder;
@@ -84,7 +85,7 @@ public class DatasetValidator {
                 case ARRAY:
                     //TODO manage ordering
                     Iterator<DatasetValue> refValIterator=refValue.getArrayVal().iterator();
-                    int arrayPos=0;
+                    int arrayPos=-1;
                     for(DatasetResultValue subVal:source.getArrayVal().getValues()){
                         ++arrayPos;
                         if(refValIterator.hasNext()){
@@ -131,12 +132,14 @@ public class DatasetValidator {
 
     public boolean validateNodes(DatasetResultObject object, List<DatasetObjectNode> nodes,String currSourcepath){
         boolean result=true;
+        currSourcepath= currSourcepath+(StringUtils.isNotEmpty(currSourcepath)?".":"");
         for(DatasetObjectNode node:nodes){
             DatasetXPathProcessor.XPathMatchingResult results = xPathProcessor.applyXPath(object,node.getXPath(),false);
             DatasetValue testingValue = node.getValue();
 
-            result&= validateMetasOnGlobalList(results.getValues(),testingValue.getMetas(),currSourcepath);
+            result&= validateMetasOnGlobalList(results.getValues(),testingValue.getMetas(),currSourcepath+node.getXPath().getPath());
             for(DatasetXPathProcessor.XPathMatchingResult.Entry entry:results){
+
                 result&=validateValue(entry.getValue(),testingValue,currSourcepath+entry.getPath());
             }
         }
@@ -147,6 +150,7 @@ public class DatasetValidator {
 
     public boolean validateMetasOnGlobalList(List<DatasetResultValue> values, List<DatasetMeta> metas,String currSourcepath){
         boolean result =true;
+        boolean hasNotExistingMeta=false;
         for(DatasetMeta meta:metas){
             switch (meta.getType()){
                 case NB_VALUES:
@@ -157,6 +161,7 @@ public class DatasetValidator {
                     }
                     break;
                 case NOT_EXISTING:
+                    hasNotExistingMeta=true;
                     if(values.size()!=0){
                         //TODO manage messages/logs
                         LOG.warn("The number of items in node {} is not the same <actual {},expected 0>",currSourcepath,values.size());
@@ -164,7 +169,10 @@ public class DatasetValidator {
                     }
             }
         }
-
+        if(!hasNotExistingMeta &&(values.size()==0)){
+            LOG.warn("The node {} is not found",currSourcepath);
+            result=false;
+        }
         return result;
     }
 

@@ -1,0 +1,89 @@
+#$dataset_name("installed_offer_attributes_test")
+
+#$dataset_elt_name("installed_attributes_update_result_1_validation")
+@Declare("origDate","DateTime")
+@Declare("MAX_DATE","DateTime")
+{
+    attributes:[{
+        code:"attr1",
+        action:"ADD",
+        values:[{
+            value:"attr1Val1",
+            action:"ADD",
+            startDate:#% origDate; %#,
+            endDate:#% origDate.plusDays(1); %#
+        },{
+            value:"attr1Val2",
+            action:"ADD",
+            startDate:#% origDate;%#,
+            endDate:#% origDate.plusDays(5);%#
+        },{
+            value:"attr1Val3",
+            action:"ADD",
+            startDate:#% origDate.plus(3); %#,
+            endDate:#% origDate.plusDays(5);%#
+        },{
+            value:"attr1Val1New",
+            action:"ADD",
+            startDate:#% origDate.plus(5); %#,
+            endDate:#% MAX_DATE; %#
+        }]
+    },{
+         code:"attr2",
+         action:"ADD",
+         values:[{
+             value:"attr2Val1",
+             action:"ADD",
+             startDate:#% origDate.plus(3); %#,
+             endDate:#% MAX_DATE; %#
+         }]
+    },{
+        code:"attr3",
+        action:"ADD",
+        values:[{
+              value:"attr3Val2New",
+              action:"ADD",
+              startDate:#% origDate.plus(5); %#,
+              endDate:#% MAX_DATE; %#
+        }]
+    }]
+}
+
+
+#$dataset_elt_name("installed_attributes_update_final_1_validation")
+[
+    {
+        code:"attr1",
+        values:[{
+            value:"attr1Val1",
+            startDate:#% origDate; %#,
+            endDate:#% origDate.plusDays(1); %#
+        },{
+            value:"attr1Val2",
+            startDate:#% origDate;%#,
+            endDate:#% origDate.plusDays(5);%#
+        },{
+            value:"attr1Val3",
+            startDate:#% origDate.plus(3); %#,
+            endDate:#% origDate.plusDays(5);%#
+        },{
+            value:"attr1Val1New",
+            startDate:#% origDate.plus(5); %#,
+            endDate:#% MAX_DATE; %#
+        }]
+    },{
+       code:"attr2",
+       values:[{
+           value:"attr2Val1",
+           startDate:#% origDate.plus(3); %#,
+           endDate:#% MAX_DATE; %#
+       }]
+    },{
+      code:"attr3",
+      values:[{
+            value:"attr3Val2New",
+            startDate:#% origDate.plus(5); %#,
+            endDate:#% MAX_DATE; %#
+      }]
+    }
+]

@@ -51,7 +51,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
             return EntityModelId.build(annot, value.getClass()).toString();
         }
         else{
-            throw new RuntimeException("Need the DocumentRef annotation on class "+ value.getClass().getName());
+            throw new RuntimeException("Need the DocumentEntity annotation on class "+ value.getClass().getName());
         }
     }
 

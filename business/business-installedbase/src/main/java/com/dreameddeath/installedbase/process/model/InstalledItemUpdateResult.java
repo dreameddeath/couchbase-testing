@@ -1,5 +1,6 @@
 package com.dreameddeath.installedbase.process.model;
 
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -10,7 +11,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 22/03/2016.
  */
-
+@DocumentEntity
 public class InstalledItemUpdateResult extends IdentifiedItemUpdateResult{
     /**
      *  attributes : List of attributes updates if any

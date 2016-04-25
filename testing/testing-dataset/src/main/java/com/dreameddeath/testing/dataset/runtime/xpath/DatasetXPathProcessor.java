@@ -87,7 +87,10 @@ public class DatasetXPathProcessor {
 
     private XPathMatchingResult applyXPath(DatasetResultValue value, DatasetXPath xpath, int xPathPartPos, boolean createMissingParts,boolean isInMatchCase){
         XPathMatchingResult resultValues=new XPathMatchingResult(xPathPartPos!=0);
-        if(!hasNext(xpath,xPathPartPos)){
+        if(value==null){
+            resultValues.setNoMatchingResult();
+        }
+        else if(!hasNext(xpath,xPathPartPos)){
             resultValues.addResult(value);
         }
         else {
@@ -148,11 +151,16 @@ public class DatasetXPathProcessor {
 
     public static class XPathMatchingResult implements Iterable<XPathMatchingResult.Entry>{
         private final boolean isSubPath;
+        private boolean noMatchingResult=false;
         private List<String> paths=new ArrayList<>();
         private List<DatasetResultValue> resultValues=new ArrayList<>();
 
         public XPathMatchingResult(boolean isSubPath){
             this.isSubPath=isSubPath;
+        }
+
+        public void setNoMatchingResult(){
+            noMatchingResult=true;
         }
 
         public void addResult(DatasetResultValue value){
