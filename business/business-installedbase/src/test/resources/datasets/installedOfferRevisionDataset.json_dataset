@@ -181,5 +181,89 @@
               value:"attr3Val2New"
           }]
         }]
-    }]
+    },{
+         orderItemId:"ccoItem2.1",
+         revState:"PLANNED",
+         effectiveDate:#% origDate.plusHours(11); %#,
+         #% attrFieldName; %# :[{
+           //Attribute 1 is with multiple values
+           code:"attr1",
+           values:[{
+               value:"attr1Val1",
+               action:"MODIFY",
+               startDate:#% origDate; %#,
+               endDate:#% origDate.plusDays(2); %#
+           },{
+               value:"attr1Val1New",
+               action:"REMOVE",
+               startDate:#% origDate.plus(5); %#
+           }]
+         },{
+             code:"attr2",
+             values:[{
+                 value:"attr2Val2New" //Test simple chnage
+             }]
+         },{
+           code:"attr3",
+           values:[{
+               value:"attr3Val2New" //Test unchange
+           }]
+         }]
+     },{
+       orderItemId:"ccoItem2.2",
+       revState:"PLANNED",
+       effectiveDate:#% origDate.plusHours(12); %#,
+       #% attrFieldName; %# :[{
+           code:"attr2",
+           values:[{
+               value:"attr2Val2.2", //insert inside value
+               endDate:#%origDate.plusHours(13); %#
+           }]
+       },{
+           code:"attr3",
+           values:[{
+               value:"attr3Val2New" //Test unchange
+           }]
+       }]
+   },{
+       orderItemId:"ccoItem3.1_Error",
+       revState:"PLANNED",
+       effectiveDate:#% origDate.plusDays(1); %#,
+       #% attrFieldName; %# :[{
+           code:"attr1",
+           action:"ADD"//Already existing attribute
+       }]
+   },{
+        orderItemId:"ccoItem3.2_Error",
+        revState:"PLANNED",
+        effectiveDate:#% origDate.plusDays(2); %#,
+        #% attrFieldName; %# :[{
+            code:"attr1",
+            values:[{ //Add existing value
+                value:"attr1Val1",
+                action:"ADD",
+                startDate:#%origDate;%#
+            }]
+        }]
+    },{
+         orderItemId:"ccoItem3.3_Error",
+         revState:"PLANNED",
+         effectiveDate:#% origDate.plusDays(3); %#,
+         #% attrFieldName; %# :[{
+             code:"attr1",
+             values:[{ //remove unknown existing value
+                 value:"attr1Val1",
+                 action:"REMOVE",
+                 startDate:#%origDate.plus(5);%#
+             }]
+         }]
+     },{
+      orderItemId:"ccoItem3.4_Error",
+      revState:"PLANNED",
+      effectiveDate:#% origDate.plusDays(4); %#,
+      #% attrFieldName; %# :[{
+          code:"attrUnknown",
+          action:"MODIFY"
+      }]
+  }]
 }

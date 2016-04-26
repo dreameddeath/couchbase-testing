@@ -50,6 +50,14 @@ public abstract class InstalledAttribute extends CouchbaseDocumentElement {
     public List<InstalledValue> getValues() { return values.get(); }
     public void setValues(Collection<InstalledValue> vals) { values.set(vals); }
     public boolean addValues(InstalledValue val){ return values.add(val); }
+    public void sortValues(){
+        values.sort((a,b)->{
+            int res=(a.getStartDate().compareTo(b.getStartDate()));
+            if(res==0) res=a.getEndDate().compareTo(b.getEndDate());
+            if(res==0) res=a.getValue().compareTo(b.getValue());
+            return res;
+        });
+    }
     public boolean removeValues(InstalledValue val){ return values.remove(val); }
 
 

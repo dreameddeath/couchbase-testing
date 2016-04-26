@@ -211,10 +211,10 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         }
 
         if(isNew){
-            Preconditions.checkArgument(rev.getAction()==null || rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
+            Preconditions.checkArgument(rev.getAction()==null || rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action %s is not corresponding for NOT existing attribute %s",rev.getAction(),rev.getCode());
         }
         else{
-            Preconditions.checkArgument(rev.getAction()==null || !rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action is not corresponding");
+            Preconditions.checkArgument(rev.getAction()==null || !rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action %s is not corresponding for ALREADY existing attribute %s",rev.getAction(),rev.getCode());
         }
 
         int valueRevPos=0;
@@ -236,8 +236,11 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             }
         }
 
-        if(hasChange && isNewUpdateResult){
-            itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).addAttributes(result);
+        if(hasChange){
+            attribute.sortValues();
+            if(isNewUpdateResult) {
+                itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class).addAttributes(result);
+            }
         }
 
         return hasChange;
@@ -251,7 +254,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         DateTime endDate=valueRev.getEndDate();
         if(endDate==null){endDate= dateTimeService.max();}
 
-        List<InstalledValue> matchingInstalledValues = InstalledBaseTools.Values.findMatchingInstalledValues(attribute.getValues(),startDate,startDate.plus(1),valueRev.getValue());
+        List<InstalledValue> matchingInstalledValues = InstalledBaseTools.Values.findMatchingInstalledValues(attribute.getValues(),startDate,valueRev.getValue());
         ValueUpdateResult valueUpdateResult=null;
         if(valueRev.getAction()== InstalledValueRevision.Action.ADD){
             Preconditions.checkArgument(matchingInstalledValues.size()==0,"The existing attribute value creation request %s/#%s on item %s has already matching attribute list <%s>",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),matchingInstalledValues.toString());
@@ -264,7 +267,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         }
         else{
             Preconditions.checkArgument(valueRev.getStartDate()!=null,"The existing attribute value update request %s/#%s on item %s must have a start date as the action is %s",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),valueRev.getAction());
-            Preconditions.checkArgument(matchingInstalledValues.size()==1,"The existing attribute value update request %s/#%s on item %s has wrong matching attribute list <%s>",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),matchingInstalledValues.toString());
+            Preconditions.checkArgument(matchingInstalledValues.size()==1,"The existing attribute value update request %s/#%s on item %s has wrong matching attribute list <%s> for action %s",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),matchingInstalledValues.toString(),valueRev.getAction());
             InstalledValue valueToUpdate=matchingInstalledValues.get(0);
             ValueUpdateResult.Action effectiveAction;
             if(valueRev.getAction()== InstalledValueRevision.Action.MODIFY){
@@ -325,11 +328,12 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                 //It is an extension of currValue
                 if(value.getValue().equals(valueRev.getValue())){
                     addValue=false;
-                    valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
-                    if(!newValueStartDate.equals(value.getStartDate())){
-                        value.setStartDate(newValueStartDate);
-                        valueUpdateResult.setStartDate(newValueStartDate);
+                    //No change required has the new value is "included in the current one
+                    if(newValueStartDate.compareTo(value.getStartDate())>=0 &&
+                            newValueEndDate.compareTo(value.getEndDate())<=0){
+                        continue;
                     }
+                    valueUpdateResult=new ValueUpdateResult(value, ValueUpdateResult.Action.MODIFY_DATES);
                     if(!newValueEndDate.equals(value.getEndDate())){
                         value.setEndDate(newValueEndDate);
                         valueUpdateResult.setEndDate(newValueEndDate);
@@ -349,6 +353,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                         newSplittedValue.setEndDate(value.getEndDate());
                         newSplittedValue.setValue(value.getValue());
                         newSplittedValue.setKeyType(value.getKeyType());
+                        attribute.addValues(newSplittedValue);
                         ValueUpdateResult splittedValueResult=new ValueUpdateResult(newSplittedValue, ValueUpdateResult.Action.ADD);
                         result.add(splittedValueResult);
 
@@ -388,6 +393,13 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             ValueUpdateResult newValueResult=new ValueUpdateResult(newValue, ValueUpdateResult.Action.ADD);
             result.add(newValueResult);
         }
+
+        result.sort((a,b)->{
+            int res=a.getStartDate().compareTo(b.getStartDate());
+            res=(res==0)?a.getValue().compareTo(b.getValue()):res;
+            res=(res==0)?a.getEndDate().compareTo(b.getEndDate()):res;
+            return res;
+        });
 
         return result;
     }

@@ -143,7 +143,10 @@ public class DatasetBuilder {
         for(DatasetObjectNode node:objectDef.getNodes()){
             List<DatasetResultValue> resultValues = xPathProcessor.applyXPath(result,node.getXPath(),true).getValues();
             for(DatasetResultValue value:resultValues){
-                value.setValue(buildValue(node.getValue()));
+                DatasetResultValue newValue=buildValue(node.getValue());
+                if(newValue!=null) {
+                    value.setValue(buildValue(node.getValue()));
+                }
             }
         }
         return result;
@@ -153,7 +156,10 @@ public class DatasetBuilder {
         //DatasetResultArray result=new DatasetResultArray();
 
         for(DatasetValue currValueDef:valuesDef){
-            result.add(buildValue(currValueDef));
+            DatasetResultValue newValue=buildValue(currValueDef);
+            if(newValue!=null) {
+                result.add(newValue);
+            }
         }
         return result;
     }

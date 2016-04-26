@@ -689,9 +689,9 @@ public class InstalledBaseRevisionManagementServiceTest {
     public <TREV extends InstalledItemRevision,TOBJ extends InstalledItem<TREV>> void applyAttributeUpdateFromRevision(Class<TOBJ> objClass,Class<TREV> revClass,String attrFieldName) throws Exception {
         InstalledBaseUpdateResult result = new InstalledBaseUpdateResult();
         InstalledBase ref = new InstalledBase();
-        Map<String,Object> params=new HashMap<>();
-        params.put("origDate",dateTimeRef.get());
-        params.put("attrFieldName",attrFieldName);
+        Map<String, Object> params = new HashMap<>();
+        params.put("origDate", dateTimeRef.get());
+        params.put("attrFieldName", attrFieldName);
         TOBJ installedItem = manager.build(objClass, DATASET_NAME, "installed_offer_for_attributes", params);
 
         /*
@@ -699,7 +699,7 @@ public class InstalledBaseRevisionManagementServiceTest {
         *   Simple creation cases
         *
         */
-        dateTimeRef.getAndUpdate(dt->dt.plus(5));
+        dateTimeRef.getAndUpdate(dt -> dt.plus(5));
         {
             InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
             revs.sortRevisions();
@@ -715,12 +715,122 @@ public class InstalledBaseRevisionManagementServiceTest {
             }
             assertTrue(modified);
 
-            Map<String,Object> paramsValidation=new HashMap<>();
-            paramsValidation.put("origDate",REFERENCE_DATE);
-            paramsValidation.put("MAX_DATE",IDateTimeService.MAX_TIME);
-            assertTrue(manager.validate(revs.getUpdateResult(InstalledItemUpdateResult.class),"installed_offer_attributes_test","installed_attributes_update_result_1_validation",paramsValidation));
+            Map<String, Object> paramsValidation = new HashMap<>();
+            paramsValidation.put("origDate", REFERENCE_DATE);
+            paramsValidation.put("MAX_DATE", IDateTimeService.MAX_TIME);
+            assertTrue(manager.validate(revs.getUpdateResult(InstalledItemUpdateResult.class), "installed_offer_attributes_test", "installed_attributes_update_result_1_validation", paramsValidation));
 
-            assertTrue(manager.validate(InstalledAttribute.class,attributesList,"installed_offer_attributes_test","installed_attributes_update_final_1_validation",paramsValidation));
+            assertTrue(manager.validate(InstalledAttribute.class, attributesList, "installed_offer_attributes_test", "installed_attributes_update_final_1_validation", paramsValidation));
+            service.updateRevisions(revs.getParent(), revs.getRevisionsToApply());
+        }
+
+        /*
+        *
+        *   Simple update cases
+        *
+        */
+        dateTimeRef.getAndUpdate(dt -> REFERENCE_DATE.plusHours(12));
+        {
+            InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
+            revs.sortRevisions();
+            assertEquals(2, revs.getRevisionsToApply().size());
+            boolean modified;
+            List<? extends InstalledAttribute> attributesList;
+            if (installedItem instanceof InstalledOffer) {
+                modified = service.applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledOffer>) revs);
+                attributesList = ((InstalledOffer) installedItem).getCommercialParameters();
+            } else {
+                modified = service.applyFunctionsFromRevision((InstalledItemRevisionsToApply<InstalledProductServiceRevision, InstalledProductService>) revs);
+                attributesList = ((InstalledProductService) installedItem).getFunctions();
+            }
+            assertTrue(modified);
+
+            Map<String, Object> paramsValidation = new HashMap<>();
+            paramsValidation.put("origDate", REFERENCE_DATE);
+            paramsValidation.put("MAX_DATE", IDateTimeService.MAX_TIME);
+            assertTrue(manager.validate(revs.getUpdateResult(InstalledItemUpdateResult.class), "installed_offer_attributes_test", "installed_attributes_update_result_2_validation", paramsValidation));
+
+            assertTrue(manager.validate(InstalledAttribute.class, attributesList, "installed_offer_attributes_test", "installed_attributes_update_final_2_validation", paramsValidation));
+            service.updateRevisions(revs.getParent(), revs.getRevisionsToApply());
+        }
+
+        /*
+        *
+        *   Simple errors cases
+        *
+        */
+        dateTimeRef.getAndUpdate(dt -> REFERENCE_DATE.plusDays(1));
+        {
+            InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
+            assertEquals(1, revs.getRevisionsToApply().size());
+            try{
+                if (installedItem instanceof InstalledOffer) {
+                    service.applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledOffer>) revs);
+                }
+                else {
+                    service.applyFunctionsFromRevision((InstalledItemRevisionsToApply<InstalledProductServiceRevision, InstalledProductService>) revs);
+                }
+                fail();
+            }
+            catch(IllegalArgumentException e){
+                assertTrue(e.getMessage().equals("The action ADD is not corresponding for ALREADY existing attribute attr1"));
+            }
+            service.updateRevisions(revs.getParent(), revs.getRevisionsToApply());
+        }
+
+        dateTimeRef.getAndUpdate(dt -> dt.plusDays(1));
+        {
+            InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
+            assertEquals(1, revs.getRevisionsToApply().size());
+            try{
+                if (installedItem instanceof InstalledOffer) {
+                    service.applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledOffer>) revs);
+                }
+                else {
+                    service.applyFunctionsFromRevision((InstalledItemRevisionsToApply<InstalledProductServiceRevision, InstalledProductService>) revs);
+                }
+                fail();
+            }
+            catch(IllegalArgumentException e){
+                assertTrue(e.getMessage().matches("The existing attribute value creation request attr1/#\\d on item 111_attributes\\[test_attributes\\] has already matching attribute list <[^>]+>"));
+            }
+            service.updateRevisions(revs.getParent(), revs.getRevisionsToApply());
+        }
+        dateTimeRef.getAndUpdate(dt -> dt.plusDays(1));
+        {
+            InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
+            assertEquals(1, revs.getRevisionsToApply().size());
+            try{
+                if (installedItem instanceof InstalledOffer) {
+                    service.applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledOffer>) revs);
+                }
+                else {
+                    service.applyFunctionsFromRevision((InstalledItemRevisionsToApply<InstalledProductServiceRevision, InstalledProductService>) revs);
+                }
+                fail();
+            }
+            catch(IllegalArgumentException e){
+                assertTrue(e.getMessage().matches("The existing attribute value update request attr1/#\\d on item 111_attributes\\[test_attributes\\] has wrong matching attribute list <\\[]> for action REMOVE"));
+            }
+            service.updateRevisions(revs.getParent(), revs.getRevisionsToApply());
+        }
+        dateTimeRef.getAndUpdate(dt -> dt.plusDays(1));
+        {
+            InstalledItemRevisionsToApply<TREV, TOBJ> revs = service.findApplicableRevisions(result, installedItem);
+            assertEquals(1, revs.getRevisionsToApply().size());
+            try{
+                if (installedItem instanceof InstalledOffer) {
+                    service.applyCommercialParametersFromRevision((InstalledItemRevisionsToApply<InstalledOfferRevision, InstalledOffer>) revs);
+                }
+                else {
+                    service.applyFunctionsFromRevision((InstalledItemRevisionsToApply<InstalledProductServiceRevision, InstalledProductService>) revs);
+                }
+                fail();
+            }
+            catch(IllegalArgumentException e){
+                assertTrue(e.getMessage().matches("The action MODIFY is not corresponding for NOT existing attribute attrUnknown"));
+            }
+            service.updateRevisions(revs.getParent(), revs.getRevisionsToApply());
         }
     }
 }

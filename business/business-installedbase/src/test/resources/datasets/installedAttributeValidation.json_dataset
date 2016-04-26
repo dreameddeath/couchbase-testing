@@ -87,3 +87,102 @@
       }]
     }
 ]
+
+
+#$dataset_elt_name("installed_attributes_update_result_2_validation")
+{
+    attributes:[{
+        code:"attr1",
+        action:"MODIFY",
+        values:[{
+            value:"attr1Val1",
+            action:"MODIFY_DATES",
+            startDate:#% origDate; %#,
+            endDate:#% origDate.plusDays(2); %#,
+            oldEndDate:#% origDate.plusDays(1); %#
+        },{
+            value:"attr1Val1New",
+            action:"REMOVE",
+            startDate:#% origDate;%#,
+            oldEndDate:#% origDate.plusDays(5);%#
+        }]
+    },{
+         code:"attr2",
+         action:"MODIFY",
+         values:[{
+             value:"attr2Val1",
+             action:"MODIFY_DATES",
+             startDate:#% origDate.plus(3); %#,
+             oldEndDate:#% MAX_DATE; %#,
+             endDate:#%origDate.plusHours(11);%#
+         },{
+              value:"attr2Val2New",
+              action:"ADD",
+              startDate:#% origDate.plusHours(11); %#,
+              oldEndDate:@NotExisting,
+              endDate:#%origDate.plusHours(12);%#
+          },{
+             value:"attr2Val2.2",
+             action:"ADD",
+             startDate:#% origDate.plusHours(12); %#,
+             oldEndDate:@NotExisting,
+             endDate:#% origDate.plusHours(13); %#
+         },{
+               value:"attr2Val2New",
+               action:"ADD",
+               startDate:#% origDate.plusHours(13); %#,
+               oldEndDate:@NotExisting,
+               endDate:#%MAX_DATE;%#
+           }]
+    }]
+}
+
+#$dataset_elt_name("installed_attributes_update_final_2_validation")
+[
+    {
+        code:"attr1",
+        values:[{
+            value:"attr1Val1",
+            startDate:#% origDate; %#,
+            endDate:#% origDate.plusDays(2); %#
+        },{
+            value:"attr1Val2",
+            startDate:#% origDate;%#,
+            endDate:#% origDate.plusDays(5);%#
+        },{
+            value:"attr1Val3",
+            startDate:#% origDate.plus(3); %#,
+            endDate:#% origDate.plusDays(5);%#
+        },{
+            value:"attr1Val1New",
+            startDate:#% origDate.plus(5); %#,
+            endDate:#% MAX_DATE; %#
+        }]
+    },{
+       code:"attr2",
+       values:[{
+            value:"attr2Val1",
+            startDate:#% origDate.plus(3); %#,
+            endDate:#%origDate.plusHours(11);%#
+        },{
+             value:"attr2Val2New",
+             startDate:#% origDate.plusHours(11); %#,
+             endDate:#%origDate.plusHours(12);%#
+         },{
+            value:"attr2Val2.2",
+            startDate:#% origDate.plusHours(12); %#,
+            endDate:#% origDate.plusHours(13); %#
+        },{
+              value:"attr2Val2New",
+              startDate:#% origDate.plusHours(13); %#,
+              endDate:#%MAX_DATE;%#
+          }]
+    },{
+      code:"attr3",
+      values:[{
+            value:"attr3Val2New",
+            startDate:#% origDate.plus(5); %#,
+            endDate:#% MAX_DATE; %#
+      }]
+    }
+]

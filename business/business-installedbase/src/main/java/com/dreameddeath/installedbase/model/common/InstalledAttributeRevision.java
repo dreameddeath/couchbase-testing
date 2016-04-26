@@ -108,6 +108,7 @@ public class InstalledAttributeRevision extends CouchbaseDocumentElement {
 
     public enum Action{
         ADD,
+        MODIFY,
         REMOVE
     }
 

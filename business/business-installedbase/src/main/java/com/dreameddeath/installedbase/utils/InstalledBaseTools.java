@@ -100,9 +100,9 @@ public class InstalledBaseTools {
                     .collect(Collectors.toList());
         }
 
-        public static List<InstalledValue> findMatchingInstalledValues(List<InstalledValue> values, DateTime startDate, DateTime endDate,String valueStr){
+        public static List<InstalledValue> findMatchingInstalledValues(List<InstalledValue> values, DateTime startDate,String valueStr){
             return values.stream()
-                    .filter(value->!endDate.isBefore(value.getStartDate()) && !startDate.isAfter(value.getEndDate()) && valueStr.equals(value.getValue()))
+                    .filter(value->startDate.isEqual(value.getStartDate()) && valueStr.equals(value.getValue()))
                     .collect(Collectors.toList());
         }
 
