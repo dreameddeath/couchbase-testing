@@ -833,4 +833,16 @@ public class InstalledBaseRevisionManagementServiceTest {
             service.updateRevisions(revs.getParent(), revs.getRevisionsToApply());
         }
     }
+
+
+    @Test
+    public void applyApplicableRevisions() throws Exception {
+        InstalledBaseUpdateResult result = new InstalledBaseUpdateResult();
+        Map<String, Object> params = new HashMap<>();
+        params.put("origDate", dateTimeRef.get());
+        InstalledBase installedItem = manager.build(InstalledBase.class, DATASET_NAME, "installed_base_full", params);
+        dateTimeRef.getAndUpdate(dt->dt.plusDays(2));
+        service.applyApplicableRevisions(result,installedItem);
+        assertNotNull(result.getContract());
+    }
 }

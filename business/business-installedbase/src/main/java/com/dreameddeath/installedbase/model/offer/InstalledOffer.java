@@ -17,13 +17,19 @@
 package com.dreameddeath.installedbase.model.offer;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.dreameddeath.installedbase.model.common.IHasInstalledItemLink;
 import com.dreameddeath.installedbase.model.common.InstalledItem;
 import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,7 +37,23 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 10/08/2014.
  */
-public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> implements IHasInstalledItemLink<InstalledOfferLink> {
+@JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
+@JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
+public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> implements IHasInstalledItemLink<InstalledOfferLink>, IVersionedEntity {
+    private EntityModelId fullEntityId;
+    @JsonSetter("@t") @Override
+    public final void setDocumentFullVersionId(String typeId){
+        fullEntityId = EntityModelId.build(typeId);
+    }
+    @Override
+    public final String getDocumentFullVersionId(){
+        return fullEntityId!=null?fullEntityId.toString():null;
+    }
+    @Override
+    public final EntityModelId getModelId(){
+        return fullEntityId;
+    }
+
     /**
      *  parent : the current parent of the offer
      */

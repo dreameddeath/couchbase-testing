@@ -51,6 +51,56 @@
     ]
 }
 
+#$dataset_elt_name("installed_base_full")
+{
+    contract:{
+        code:"c1",
+        revisions :[{
+            orderItemId:"ccoItem2",
+            revState:"PLANNED",
+            effectiveDate:#% origDate.plusDays(1); %#,
+            status:"ACTIVE"
+        }]
+    },
+    offers:[{
+        "@t":"installedbase/atomicOffer/1.0.0",
+        code:"o1",
+        revisions :[{
+            orderItemId:"ccoItem2",
+            revState:"PLANNED",
+            effectiveDate:#% origDate.plusDays(1); %#,
+            status:"ACTIVE"
+        }],
+        tariffs:[{
+            code:"t1",
+            revisions :[{
+                orderItemId:"ccoItem2",
+                revState:"PLANNED",
+                effectiveDate:#% origDate.plusDays(1); %#,
+                status:"ACTIVE"
+            }],
+            discounts:[{
+                code:"d1",
+                revisions :[{
+                            orderItemId:"ccoItem2",
+                            revState:"PLANNED",
+                            effectiveDate:#% origDate.plus(1); %#,
+                            status:"ACTIVE"
+                        }]
+            }]
+        }]
+    }],
+    ps:[{
+        code:"ps1",
+        revisions :[{
+            orderItemId:"ccoItem2",
+            revState:"PLANNED",
+            effectiveDate:#% origDate.plusHours(1); %#,
+            status:"ACTIVE"
+        }]
+    }]
+}
+
 #$dataset_elt_name("installed_offer_for_links")
 {
     id:"111_links",

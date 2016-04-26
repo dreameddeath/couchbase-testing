@@ -16,6 +16,7 @@
 
 package com.dreameddeath.installedbase.model.offer;
 
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
@@ -23,6 +24,7 @@ import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 /**
  * Created by Christophe Jeunesse on 21/10/2014.
  */
+@DocumentEntity(name = "atomicOffer")
 public class InstalledAtomicOffer extends InstalledOffer {
     /**
      *  ps : Product service id

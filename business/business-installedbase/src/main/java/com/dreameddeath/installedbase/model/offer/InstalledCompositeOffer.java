@@ -16,6 +16,7 @@
 
 package com.dreameddeath.installedbase.model.offer;
 
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 31/08/2014.
  */
+@DocumentEntity(name = "compositeOffer")
 public class InstalledCompositeOffer extends InstalledOffer {
     /**
      *  children : List of children offers id
