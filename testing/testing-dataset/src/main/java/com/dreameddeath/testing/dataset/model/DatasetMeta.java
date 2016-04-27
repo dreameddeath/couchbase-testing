@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 12/04/2016.
@@ -51,6 +52,20 @@ public class DatasetMeta {
             }
             else if("boolean".equalsIgnoreCase(varType)){
                 parent.getParserContext().addVariable(name,Boolean.class);
+            }
+            else if("map".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,Map.class);
+            }
+            else if("list".equalsIgnoreCase(varType)){
+                parent.getParserContext().addVariable(name,List.class);
+            }
+            else{
+                try {
+                    parent.getParserContext().addVariable(name, this.getClass().getClassLoader().loadClass(varType));
+                }
+                catch(ClassNotFoundException e){
+                    throw new RuntimeException("Cannot find class "+varType);
+                }
             }
         }
     }

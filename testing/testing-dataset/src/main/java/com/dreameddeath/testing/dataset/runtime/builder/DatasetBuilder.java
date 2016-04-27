@@ -187,6 +187,9 @@ public class DatasetBuilder {
             else if((result instanceof Float)||(result instanceof Double)){
                 newValue.setDecimal(new BigDecimal(((Number)result).doubleValue()));
             }
+            else if(result==null){
+                return null;
+            }
             else {
                 throw new RuntimeException("Not managed class type "+result.getClass().getName()+" for node <"+valueDef.getFullPath()+">");
             }

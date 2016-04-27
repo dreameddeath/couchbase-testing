@@ -9,8 +9,8 @@ import com.dreameddeath.installedbase.process.model.TariffUpdateResult;
  * Created by Christophe Jeunesse on 04/04/2016.
  */
 public class TariffUpdateWorkingInfo extends CreateUpdateItemWorkingInfo<InstalledTariffRevision,TariffUpdateResult,CreateUpdateInstalledBaseRequest.Tariff,InstalledTariff> {
-    public TariffUpdateWorkingInfo(TariffUpdateResult result, CreateUpdateInstalledBaseRequest.Tariff updateRequest, InstalledTariff targetItem) {
-        super(result, updateRequest, targetItem);
+    public TariffUpdateWorkingInfo(TariffUpdateResult result, CreateUpdateInstalledBaseRequest.Tariff updateRequest, InstalledTariff targetItem,CreateUpdateItemWorkingInfo parent) {
+        super(result, updateRequest, targetItem,parent);
     }
 
     @Override

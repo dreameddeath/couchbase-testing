@@ -117,12 +117,12 @@ public class InstalledBase extends BusinessDocument {
      * Add a new entry to the property ps
      * @param val the new entry to be added
      */
-    public boolean addPsList(InstalledProductService val){ return psList.add(val); }
+    public boolean addPs(InstalledProductService val){ return psList.add(val); }
     /**
      * Remove an entry to the property ps
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
-    public boolean removePsList(InstalledProductService val){ return psList.remove(val); }
+    public boolean removePs(InstalledProductService val){ return psList.remove(val); }
 
 }

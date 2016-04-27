@@ -42,17 +42,22 @@ public class InstalledItemRevisionsToApply<TREV extends InstalledItemRevision,TI
         IdentifiedItemUpdateResult foundUpdateResult=null;
         if(baseUpdateResult!=null){
             List<? extends IdentifiedItemUpdateResult> existingList=null;
-            switch (itemType){
-                case OFFER:existingList=baseUpdateResult.getOffersUpdates();break;
-                case PS:existingList=baseUpdateResult.getProducts();break;
-                case TARIFF:existingList=baseUpdateResult.getTariffsUpdates();break;
-                case DISCOUNT:existingList=baseUpdateResult.getDiscountsUpdates();break;
+            if(itemType==Type.CONTRACT){
+                foundUpdateResult=baseUpdateResult.getContract();
             }
-            if(existingList!=null){
-                for(IdentifiedItemUpdateResult itemUpdateResult:existingList){
-                    if(itemUpdateResult.getId().equals(item.getId())){
-                        foundUpdateResult=itemUpdateResult;
-                        break;
+            else{
+                switch (itemType){
+                    case OFFER:existingList=baseUpdateResult.getOffersUpdates();break;
+                    case PS:existingList=baseUpdateResult.getProducts();break;
+                    case TARIFF:existingList=baseUpdateResult.getTariffsUpdates();break;
+                    case DISCOUNT:existingList=baseUpdateResult.getDiscountsUpdates();break;
+                }
+                if(existingList!=null){
+                    for(IdentifiedItemUpdateResult itemUpdateResult:existingList){
+                        if(itemUpdateResult.getId().equals(item.getId())){
+                            foundUpdateResult=itemUpdateResult;
+                            break;
+                        }
                     }
                 }
             }

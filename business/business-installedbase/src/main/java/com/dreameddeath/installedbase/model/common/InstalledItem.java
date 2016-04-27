@@ -97,8 +97,8 @@ public abstract class InstalledItem<T extends InstalledItemRevision> extends Cou
     // Revisions Accessors
     public List<T> getRevisions() { return revisions.get(); }
     public void setRevisions(Collection<T> vals) { revisions.set(vals); }
-    public boolean addRevisions(T val){ return revisions.add(val); }
-    public boolean removeRevisions(T val){ return revisions.remove(val); }
+    public boolean addRevision(T val){ return revisions.add(val); }
+    public boolean removeRevision(T val){ return revisions.remove(val); }
 
     /**
      * Getter of statusHistory

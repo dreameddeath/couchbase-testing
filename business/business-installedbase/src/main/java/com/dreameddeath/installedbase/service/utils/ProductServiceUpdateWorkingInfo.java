@@ -9,8 +9,8 @@ import com.dreameddeath.installedbase.process.model.InstalledItemUpdateResult;
  * Created by Christophe Jeunesse on 25/03/2016.
  */
 public class ProductServiceUpdateWorkingInfo extends CreateUpdateItemWorkingInfo<InstalledProductServiceRevision,InstalledItemUpdateResult,CreateUpdateInstalledBaseRequest.ProductService,InstalledProductService> {
-    public ProductServiceUpdateWorkingInfo(InstalledItemUpdateResult result, CreateUpdateInstalledBaseRequest.ProductService updateRequest, InstalledProductService targetItem) {
-        super(result, updateRequest, targetItem);
+    public ProductServiceUpdateWorkingInfo(InstalledItemUpdateResult result, CreateUpdateInstalledBaseRequest.ProductService updateRequest, InstalledProductService targetItem,CreateUpdateItemWorkingInfo parent) {
+        super(result, updateRequest, targetItem,parent);
     }
 
     @Override

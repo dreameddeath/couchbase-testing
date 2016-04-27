@@ -16,7 +16,7 @@
 
 package com.dreameddeath.installedbase.service;
 
-import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.installedbase.model.InstalledBase;
 import com.dreameddeath.installedbase.model.common.*;
 import com.dreameddeath.installedbase.model.contract.InstalledContract;
@@ -41,14 +41,20 @@ public class CreateUpdateInstalledBaseService {
     private final static Logger LOG= LoggerFactory.getLogger(CreateUpdateInstalledBaseService.class);
 
     private IInstalledBaseRevisionManagementService revisionManagementService;
+    private IDateTimeService dateTimeService;
 
     @Autowired
     public void setRevisionManagementService(IInstalledBaseRevisionManagementService service){
         this.revisionManagementService = service;
     }
 
-    public void manageCreateUpdate(TaskContext<CreateUpdateInstalledBaseJob,CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt, InstalledBase ref, CreateUpdateInstalledBaseRequest.Contract reqContract ){
-        CreateUpdateWorkingInfo contractUpdateWorkingInfo=buildWorkingInfoForContract(ctxt,ref,reqContract);
+    @Autowired
+    public void setDateTimeService(IDateTimeService dateTimeService) {
+        this.dateTimeService = dateTimeService;
+    }
+
+    public InstalledBaseUpdateResult manageCreateUpdate(CreateUpdateInstalledBaseRequest request, InstalledBase ref, CreateUpdateInstalledBaseRequest.Contract reqContract){
+        CreateUpdateWorkingInfo contractUpdateWorkingInfo=buildWorkingInfoForContract(request,ref,reqContract);
         for(CreateUpdateItemWorkingInfo<?,?,?,?> workingInfo:contractUpdateWorkingInfo.getWorkingItems()){
             try{
                 //TODO keep track of update of revision
@@ -59,7 +65,7 @@ public class CreateUpdateInstalledBaseService {
                 }
                 if((workingInfo.getUpdateRequest().tempId!=null) || !result.getAction().equals(RevisionUpdateResult.UpdateAction.UNCHANGED)){
                     if(workingInfo instanceof OfferUpdateWorkingInfo){
-                        contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addOfferUpdates((InstalledItemUpdateResult)workingInfo.getResult());
+                        contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addOfferUpdate((InstalledItemUpdateResult)workingInfo.getResult());
                     }
                     else if(workingInfo instanceof TariffUpdateWorkingInfo){
                         contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addTariffs((TariffUpdateResult) workingInfo.getResult());
@@ -70,6 +76,12 @@ public class CreateUpdateInstalledBaseService {
                     else if(workingInfo instanceof ProductServiceUpdateWorkingInfo){
                         contractUpdateWorkingInfo.getInstalledBaseUpdateResult().addProducts((InstalledItemUpdateResult) workingInfo.getResult());
                     }
+                    else if(workingInfo instanceof ContractUpdateWorkingInfo){
+                        contractUpdateWorkingInfo.getInstalledBaseUpdateResult().setContract((InstalledItemUpdateResult) workingInfo.getResult());
+                    }
+                    else{
+                        throw new RuntimeException("Not managed working type "+workingInfo.getClass().getName());
+                    }
                 }
             }
             catch(Throwable e){
@@ -78,35 +90,34 @@ public class CreateUpdateInstalledBaseService {
             }
         }
         revisionManagementService.applyApplicableRevisions(contractUpdateWorkingInfo.getInstalledBaseUpdateResult(),contractUpdateWorkingInfo.getInstalledBase());
-
+        return contractUpdateWorkingInfo.getInstalledBaseUpdateResult();
     }
 
-    public CreateUpdateWorkingInfo buildWorkingInfoForContract(TaskContext<CreateUpdateInstalledBaseJob,CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt, InstalledBase ref, CreateUpdateInstalledBaseRequest.Contract reqContract ){
-        CreateUpdateWorkingInfo globalWorkingInfos = new CreateUpdateWorkingInfo(ctxt,ref,reqContract);
+    public CreateUpdateWorkingInfo buildWorkingInfoForContract(CreateUpdateInstalledBaseRequest request, InstalledBase ref, CreateUpdateInstalledBaseRequest.Contract reqContract ){
+        CreateUpdateWorkingInfo globalWorkingInfos = new CreateUpdateWorkingInfo(request,ref,reqContract);
 
         /*
         * Manage contract update
         */
         if(reqContract.id==null){
             Preconditions.checkArgument(ref.getContract()==null,"The contract shouldn't be existing in the installed base when adding a new one");
-            Preconditions.checkArgument(reqContract.tempId==null,"The contract request creation should have a temporary id");
+            Preconditions.checkNotNull(reqContract.tempId,"The contract request creation should have a temporary id");
             ref.setContract(new InstalledContract());
         }
 
-        ContractUpdateWorkingInfo contractProcessingInfo =  new ContractUpdateWorkingInfo(new InstalledItemUpdateResult(),reqContract,ref.getContract());
+        ContractUpdateWorkingInfo contractProcessingInfo = new ContractUpdateWorkingInfo(new InstalledItemUpdateResult(),reqContract,ref.getContract());
         globalWorkingInfos.addWorkingInfo(contractProcessingInfo);
-        buildExpectedRevisionForIdentifiedItem(ctxt,contractProcessingInfo);
-
+        buildExpectedRevisionForIdentifiedItem(contractProcessingInfo);
 
         /*
         * Perform a first loop to setup offers, ps, and attributes
          */
-        for(CreateUpdateInstalledBaseRequest.Offer offer:ctxt.getParentJob().getRequest().offers){
+        for(CreateUpdateInstalledBaseRequest.Offer offer:request.offers){
             OfferUpdateWorkingInfo<? extends InstalledOffer> workingInfo=null;
-            //Find applicable elements for contract (beware of move of elements from one contract to another)
+            //Find applicable elements for given contract (beware of move of elements from one contract to another)
             // loop on all applicable offer (even the one which are moving to another contract)
             if(globalWorkingInfos.findPath(offer,reqContract).size()>0){
-                workingInfo=initOfferWorkingInfo(ctxt,offer,globalWorkingInfos);
+                workingInfo=initOfferWorkingInfo(offer,globalWorkingInfos);
             }
             else if(offer.comOp.equals(CreateUpdateInstalledBaseRequest.CommercialOperation.MOVE)){
                 //TODO manage move operation if from one contract to another?!?
@@ -123,13 +134,10 @@ public class CreateUpdateInstalledBaseService {
         for(CreateUpdateItemWorkingInfo<? extends InstalledItemRevision,? extends IdentifiedItemUpdateResult,? extends CreateUpdateInstalledBaseRequest.IdentifiedItem,? extends InstalledItem<? extends InstalledItemRevision>> workingInfo:globalWorkingInfos.getWorkingItems()){
             if(workingInfo instanceof OfferUpdateWorkingInfo<?>){
                 OfferUpdateWorkingInfo<?> offerWorkingInfo=(OfferUpdateWorkingInfo<?>)workingInfo;
-                manageParentUpdate(ctxt,offerWorkingInfo,globalWorkingInfos);
-                manageCommercialAttributeUpdates(ctxt,offerWorkingInfo);
-                manageTariffsUpdate(ctxt,offerWorkingInfo,globalWorkingInfos);
-
+                manageParentUpdate(offerWorkingInfo,globalWorkingInfos);
                 //Manage links updates
                 for(CreateUpdateInstalledBaseRequest.IdentifiedItemLink link :offerWorkingInfo.getUpdateRequest().links){
-                    InstalledItemLinkRevision linkRevision = buildLinkRevision(ctxt,offerWorkingInfo,link,globalWorkingInfos);
+                    InstalledItemLinkRevision linkRevision = buildLinkRevision(offerWorkingInfo,link,globalWorkingInfos);
                     if(linkRevision!=null){
                         offerWorkingInfo.getTargetRevision().addLink(linkRevision);
                     }
@@ -137,10 +145,9 @@ public class CreateUpdateInstalledBaseService {
             }
             else if(workingInfo instanceof ProductServiceUpdateWorkingInfo){
                 ProductServiceUpdateWorkingInfo psWorkingInfo = (ProductServiceUpdateWorkingInfo)workingInfo;
-                manageFunctionsUpdates(ctxt,psWorkingInfo);
                 //Manage links updates
                 for(CreateUpdateInstalledBaseRequest.IdentifiedItemLink link :psWorkingInfo.getUpdateRequest().links){
-                    InstalledItemLinkRevision linkRevision = buildLinkRevision(ctxt,psWorkingInfo,link,globalWorkingInfos);
+                    InstalledItemLinkRevision linkRevision = buildLinkRevision(psWorkingInfo,link,globalWorkingInfos);
                     if(linkRevision!=null){
                         psWorkingInfo.getTargetRevision().addLink(linkRevision);
                     }
@@ -168,11 +175,7 @@ public class CreateUpdateInstalledBaseService {
         return globalWorkingInfos;
     }
 
-    private void manageTariffsUpdate(TaskContext<CreateUpdateInstalledBaseJob, CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt, OfferUpdateWorkingInfo<?> workingInfo, CreateUpdateWorkingInfo globalWorkingInfos){
-
-    }
-
-    private void manageParentUpdate(TaskContext<CreateUpdateInstalledBaseJob, CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt, OfferUpdateWorkingInfo<?> workingInfo, CreateUpdateWorkingInfo globalWorkingInfos){
+    public void manageParentUpdate(OfferUpdateWorkingInfo<?> workingInfo, CreateUpdateWorkingInfo globalWorkingInfos){
         CreateUpdateInstalledBaseRequest.Offer offerRequest=workingInfo.getUpdateRequest();
         if(offerRequest.parent!=null){
             if(offerRequest.parent.id!=null) {
@@ -196,7 +199,7 @@ public class CreateUpdateInstalledBaseService {
 
     }
 
-    private InstalledItemLinkRevision buildLinkRevision(TaskContext<CreateUpdateInstalledBaseJob, CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt,CreateUpdateItemWorkingInfo workingInfo,CreateUpdateInstalledBaseRequest.IdentifiedItemLink linkRequest, CreateUpdateWorkingInfo globalWorkingInfos) {
+    public InstalledItemLinkRevision buildLinkRevision(CreateUpdateItemWorkingInfo workingInfo,CreateUpdateInstalledBaseRequest.IdentifiedItemLink linkRequest, CreateUpdateWorkingInfo globalWorkingInfos) {
         InstalledItemLinkRevision link = new InstalledItemLinkRevision();
 
         if(linkRequest.comOp!=null){
@@ -265,51 +268,49 @@ public class CreateUpdateInstalledBaseService {
         return link;
     }
 
-    public OfferUpdateWorkingInfo<? extends InstalledOffer> initOfferWorkingInfo(TaskContext ctxt,CreateUpdateInstalledBaseRequest.Offer offer,CreateUpdateWorkingInfo globalWorkingInfos){
+    public OfferUpdateWorkingInfo<? extends InstalledOffer> initOfferWorkingInfo(CreateUpdateInstalledBaseRequest.Offer offer,CreateUpdateWorkingInfo globalWorkingInfos){
         OfferUpdateWorkingInfo<? extends InstalledOffer> workingInfo;
-        InstalledOffer foundInstalledOffer=null;
+        InstalledOffer foundInstalledOffer;
         if(offer.id!=null) {
             foundInstalledOffer = globalWorkingInfos.getInstalledBaseIndexer().getInstalledOffer(offer.id);
             Preconditions.checkNotNull(foundInstalledOffer,"Cannot find the installed Offer id %s in the installed base",offer.id);
         }
         else{
             Preconditions.checkNotNull(offer.tempId,"The offer request creation should have a temporary id");
+            if(offer.type== CreateUpdateInstalledBaseRequest.OfferType.ATOMIC_OFFER) {
+                Preconditions.checkNotNull(offer.ps, "Cannot find the ps for id %s in the installed base", offer.tempId);
+                foundInstalledOffer = new InstalledAtomicOffer();
+            }
+            else{
+                foundInstalledOffer = new InstalledCompositeOffer();
+            }
+            globalWorkingInfos.getInstalledBaseIndexer().addToInstalledBase(foundInstalledOffer);
         }
 
-        switch (offer.type){
-            case ATOMIC_OFFER:
-                if(offer.id==null){
-                    Preconditions.checkNotNull(offer.ps,"Cannot find the ps for id %s in the installed base",offer.tempId);
-                    foundInstalledOffer = new InstalledAtomicOffer();
-                    globalWorkingInfos.getInstalledBaseIndexer().addToInstalledBase(foundInstalledOffer);
-                }
-                workingInfo=new AtomicOfferUpdateWorkingInfo(new InstalledItemUpdateResult(),offer,(InstalledAtomicOffer)foundInstalledOffer);
-                globalWorkingInfos.addWorkingInfo(workingInfo);
-                buildExpectedRevisionForIdentifiedItem(ctxt,workingInfo);
-                manageCommercialAttributeUpdates(ctxt,workingInfo);
-                if(offer.ps!=null) {
-                    initProductServiceWorkingInfoForAtomicOffer(ctxt, (AtomicOfferUpdateWorkingInfo) workingInfo, globalWorkingInfos);
-                }
-                break;
-            default:
-                if(offer.id==null){
-                    foundInstalledOffer = new InstalledCompositeOffer();
-                    globalWorkingInfos.getInstalledBaseIndexer().addToInstalledBase(foundInstalledOffer);
-                }
-                workingInfo=new CompositeOfferUpdateWorkingInfo(new InstalledItemUpdateResult(),offer,(InstalledCompositeOffer)foundInstalledOffer);
-                globalWorkingInfos.addWorkingInfo(workingInfo);
-                buildExpectedRevisionForIdentifiedItem(ctxt,workingInfo);
-                manageCommercialAttributeUpdates(ctxt,workingInfo);
+        //Create working info
+        if(offer.type== CreateUpdateInstalledBaseRequest.OfferType.ATOMIC_OFFER){
+            workingInfo=new AtomicOfferUpdateWorkingInfo(new InstalledItemUpdateResult(),offer,(InstalledAtomicOffer)foundInstalledOffer);
+        }
+        else{
+            workingInfo=new CompositeOfferUpdateWorkingInfo(new InstalledItemUpdateResult(),offer,(InstalledCompositeOffer)foundInstalledOffer);
+        }
+        //Add working info
+        globalWorkingInfos.addWorkingInfo(workingInfo);
+        buildExpectedRevisionForIdentifiedItem(workingInfo);
+        manageCommercialAttributeUpdates(workingInfo);
+        //Manage Ps updates if required
+        if((offer.type== CreateUpdateInstalledBaseRequest.OfferType.ATOMIC_OFFER) &&(offer.ps!=null)) {
+            initProductServiceWorkingInfoForAtomicOffer((AtomicOfferUpdateWorkingInfo) workingInfo, globalWorkingInfos);
         }
 
         for(CreateUpdateInstalledBaseRequest.Tariff tariffRequest:workingInfo.getUpdateRequest().tariffs){
-            initTariffUpdateWorkingInfoForOffer(ctxt,workingInfo,tariffRequest,globalWorkingInfos);
+            initTariffUpdateWorkingInfoForOffer(workingInfo,tariffRequest,globalWorkingInfos);
         }
 
         return workingInfo;
     }
 
-    public TariffUpdateWorkingInfo initTariffUpdateWorkingInfoForOffer(TaskContext ctxt, OfferUpdateWorkingInfo<?> parentOfferWorkingInfo, CreateUpdateInstalledBaseRequest.Tariff tariff, CreateUpdateWorkingInfo globalWorkingInfos){
+    public TariffUpdateWorkingInfo initTariffUpdateWorkingInfoForOffer(OfferUpdateWorkingInfo<?> parentOfferWorkingInfo, CreateUpdateInstalledBaseRequest.Tariff tariff, CreateUpdateWorkingInfo globalWorkingInfos){
         InstalledTariff tariffItem=null;
         if(tariff.id==null){
             Preconditions.checkNotNull(tariff.tempId,"Cannot find and id for the tariff %s for offer %s/%s",tariff.code,parentOfferWorkingInfo.getTargetItem().getCode(),parentOfferWorkingInfo.getItemUid());
@@ -326,17 +327,17 @@ public class CreateUpdateInstalledBaseService {
             Preconditions.checkNotNull(tariffItem,"Cannot find the tariff %s for the tariff %s for offer %s/%s",tariff.code,tariff.id,parentOfferWorkingInfo.getTargetItem().getCode(),parentOfferWorkingInfo.getItemUid());
         }
         
-        TariffUpdateWorkingInfo workingInfo=new TariffUpdateWorkingInfo (new TariffUpdateResult(),tariff,tariffItem);
+        TariffUpdateWorkingInfo workingInfo=new TariffUpdateWorkingInfo (new TariffUpdateResult(),tariff,tariffItem,parentOfferWorkingInfo);
         globalWorkingInfos.addWorkingInfo(workingInfo);
-        buildExpectedRevisionForIdentifiedItem(ctxt,workingInfo);
+        buildExpectedRevisionForIdentifiedItem(workingInfo);
 
         for(CreateUpdateInstalledBaseRequest.Discount discount:workingInfo.getUpdateRequest().discounts){
-            initDiscountUpdateWorkingInfoForOffer(ctxt,workingInfo,discount,globalWorkingInfos);
+            initDiscountUpdateWorkingInfoForOffer(workingInfo,discount,globalWorkingInfos);
         }
         return workingInfo;
     }
     
-    public DiscountUpdateWorkingInfo initDiscountUpdateWorkingInfoForOffer(TaskContext ctxt, TariffUpdateWorkingInfo parentTariff, CreateUpdateInstalledBaseRequest.Discount discount, CreateUpdateWorkingInfo globalWorkingInfos){
+    public DiscountUpdateWorkingInfo initDiscountUpdateWorkingInfoForOffer(TariffUpdateWorkingInfo parentTariff, CreateUpdateInstalledBaseRequest.Discount discount, CreateUpdateWorkingInfo globalWorkingInfos){
         InstalledDiscount discountItem=null;
         if(discount.id==null){
             Preconditions.checkNotNull(discount.tempId,"Cannot find and id for the discount %s for offer %s/%s",discount.code,parentTariff.getTargetItem().getCode(),parentTariff.getItemUid());
@@ -353,13 +354,13 @@ public class CreateUpdateInstalledBaseService {
             Preconditions.checkNotNull(discountItem,"Cannot find the discount %s for the discount %s for offer %s/%s",discount.code,discount.id,parentTariff.getTargetItem().getCode(),parentTariff.getItemUid());
         }
 
-        DiscountUpdateWorkingInfo workingInfo=new DiscountUpdateWorkingInfo(new DiscountUpdateResult(),discount,discountItem);
+        DiscountUpdateWorkingInfo workingInfo=new DiscountUpdateWorkingInfo(new DiscountUpdateResult(),discount,discountItem,parentTariff);
         globalWorkingInfos.addWorkingInfo(workingInfo);
-        buildExpectedRevisionForIdentifiedItem(ctxt,workingInfo);
+        buildExpectedRevisionForIdentifiedItem(workingInfo);
         return workingInfo;
     }
 
-    public ProductServiceUpdateWorkingInfo initProductServiceWorkingInfoForAtomicOffer(TaskContext ctxt,AtomicOfferUpdateWorkingInfo parentOfferWorkingInfo,CreateUpdateWorkingInfo globalWorkingInfos){
+    public ProductServiceUpdateWorkingInfo initProductServiceWorkingInfoForAtomicOffer(AtomicOfferUpdateWorkingInfo parentOfferWorkingInfo,CreateUpdateWorkingInfo globalWorkingInfos){
         CreateUpdateInstalledBaseRequest.ProductService ps = parentOfferWorkingInfo.getUpdateRequest().ps;
         InstalledProductService psItem;
         if(ps.id==null){
@@ -367,6 +368,7 @@ public class CreateUpdateInstalledBaseService {
             psItem=new InstalledProductService();
             globalWorkingInfos.getInstalledBaseIndexer().addToInstalledBase(psItem);
             parentOfferWorkingInfo.getTargetItem().setPs(psItem.getId());
+            globalWorkingInfos.getInstalledBase().addPs(psItem);
         }
         else{
             String psId=parentOfferWorkingInfo.getTargetItem().getPs();
@@ -376,14 +378,15 @@ public class CreateUpdateInstalledBaseService {
             Preconditions.checkNotNull(psItem,"Cannot find the ps for the ps %s for offer %s",ps.id,parentOfferWorkingInfo.getTargetItem().getCode(),parentOfferWorkingInfo.getItemUid());
         }
 
-        ProductServiceUpdateWorkingInfo workingInfo=new ProductServiceUpdateWorkingInfo(new InstalledItemUpdateResult(),ps,psItem);
+        ProductServiceUpdateWorkingInfo workingInfo=new ProductServiceUpdateWorkingInfo(new InstalledItemUpdateResult(),ps,psItem,parentOfferWorkingInfo);
         globalWorkingInfos.addWorkingInfo(workingInfo);
         globalWorkingInfos.getInstalledBaseIndexer().addToInstalledBase(workingInfo.getTargetItem());
-        buildExpectedRevisionForIdentifiedItem(ctxt,workingInfo);
+        buildExpectedRevisionForIdentifiedItem(workingInfo);
+        manageFunctionsUpdates(workingInfo);
         return workingInfo;
     }
 
-    public void manageFunctionsUpdates(TaskContext ctxt, ProductServiceUpdateWorkingInfo workingInfo){
+    public void manageFunctionsUpdates(ProductServiceUpdateWorkingInfo workingInfo){
         for(CreateUpdateInstalledBaseRequest.Attribute function:workingInfo.getUpdateRequest().attributes){
             InstalledAttributeRevision attrRevision=buildAttributeRevision(workingInfo,function);
             if(attrRevision!=null) {
@@ -395,7 +398,7 @@ public class CreateUpdateInstalledBaseService {
         }
     }
 
-    public void manageCommercialAttributeUpdates(TaskContext ctxt, OfferUpdateWorkingInfo<?> offerWorkingInfo){
+    public void manageCommercialAttributeUpdates(OfferUpdateWorkingInfo<?> offerWorkingInfo){
         if(offerWorkingInfo.isItemItselfUnchanged()){
             return;
         }
@@ -446,7 +449,7 @@ public class CreateUpdateInstalledBaseService {
     }
 
 
-    public void buildExpectedRevisionForIdentifiedItem(TaskContext ctxt, CreateUpdateItemWorkingInfo<? extends InstalledItemRevision, ? extends IdentifiedItemUpdateResult, ? extends CreateUpdateInstalledBaseRequest.IdentifiedItem, ? extends InstalledItem<?>> workingInfo) {
+    public void buildExpectedRevisionForIdentifiedItem(CreateUpdateItemWorkingInfo<? extends InstalledItemRevision, ? extends IdentifiedItemUpdateResult, ? extends CreateUpdateInstalledBaseRequest.IdentifiedItem, ? extends InstalledItem<?>> workingInfo) {
         //Perform some checks
         if(workingInfo.getUpdateRequest().id!=null){
             if(workingInfo.getUpdateRequest().code!=null){
@@ -456,7 +459,6 @@ public class CreateUpdateInstalledBaseService {
 
         if(workingInfo.isItemItselfUnchanged()){
             Preconditions.checkNotNull(workingInfo.getUpdateRequest().id,"Cannot unchange an item (%s) without id",workingInfo.getItemUid());
-
             return;
         }
 
@@ -470,31 +472,20 @@ public class CreateUpdateInstalledBaseService {
             Preconditions.checkNotNull(workingInfo.getUpdateRequest().code,"The identified item %s must have a code",workingInfo.getItemUid());
 
             workingInfo.getTargetItem().setCode(workingInfo.getUpdateRequest().code);
-            workingInfo.getTargetItem().setCreationDate(ctxt.getSession().getCurrentDate());
+            workingInfo.getTargetItem().setCreationDate(dateTimeService.getCurrentDate());
             workingInfo.getResult().setTempId(workingInfo.getUpdateRequest().tempId);
-            workingInfo.getResult().setId(workingInfo.getTargetItem().getId());
         }
 
-        updateIdentifiedItemStatus(ctxt,workingInfo);
+        workingInfo.getResult().setId(workingInfo.getTargetItem().getId());
+
+        updateIdentifiedItemStatus(workingInfo);
     }
 
-    public void updateIdentifiedItemStatus(TaskContext ctxt,CreateUpdateItemWorkingInfo<? extends InstalledItemRevision,? extends IdentifiedItemUpdateResult,? extends CreateUpdateInstalledBaseRequest.IdentifiedItem,? extends InstalledItem<?>> mapElement){
+    public void updateIdentifiedItemStatus(CreateUpdateItemWorkingInfo<? extends InstalledItemRevision,? extends IdentifiedItemUpdateResult,? extends CreateUpdateInstalledBaseRequest.IdentifiedItem,? extends InstalledItem<?>> mapElement){
         InstalledItemRevision targetRevision = mapElement.getTargetRevision();
 
-        //If order id/order item id given, manage by revision
-        if(mapElement.getUpdateRequest().comOp!=null) {
-            switch (mapElement.getUpdateRequest().comOp) {
-                case ADD:case ACTIVATE: targetRevision.setStatus(InstalledStatus.Code.ACTIVE);break;
-                case REMOVE: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
-                case SUSPEND: targetRevision.setStatus(InstalledStatus.Code.SUSPENDED);break;
-                case CANCEL: targetRevision.setStatus(InstalledStatus.Code.REMOVED);break;
-                case MIGRATE: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
-                default://TODO throw an error
-            }
-            targetRevision.setEffectiveDate(mapElement.getUpdateRequest().orderInfo.effectiveDate);
-        }
-        //if status given
-        else if(mapElement.getUpdateRequest().status!=null){
+        //if status given, use it
+        if(mapElement.getUpdateRequest().status!=null && mapElement.getUpdateRequest().status.code!=null){
             switch(mapElement.getUpdateRequest().status.code){
                 case ACTIVE: targetRevision.setStatus(InstalledStatus.Code.ACTIVE);break;
                 case CLOSED: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
@@ -503,7 +494,23 @@ public class CreateUpdateInstalledBaseService {
                 case REMOVED: targetRevision.setStatus(InstalledStatus.Code.REMOVED);break;
                 default://TODO throw an error
             }
-            targetRevision.setEffectiveDate(mapElement.getUpdateRequest().orderInfo.effectiveDate);
+            if(mapElement.getApplicableOrderInfo()!=null) {
+                targetRevision.setEffectiveDate(mapElement.getApplicableOrderInfo().effectiveDate);
+            }
+        }
+        //if not, map using commercial operator if given
+        else if(mapElement.getUpdateRequest().comOp!=null) {
+            switch (mapElement.getUpdateRequest().comOp) {
+                case ADD:case ACTIVATE: targetRevision.setStatus(InstalledStatus.Code.ACTIVE);break;
+                case REMOVE: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
+                case SUSPEND: targetRevision.setStatus(InstalledStatus.Code.SUSPENDED);break;
+                case CANCEL: targetRevision.setStatus(InstalledStatus.Code.REMOVED);break;
+                case MIGRATE: targetRevision.setStatus(InstalledStatus.Code.CLOSED);break;
+                default://ignore
+            }
+            if(mapElement.getApplicableOrderInfo()!=null) {
+                targetRevision.setEffectiveDate(mapElement.getApplicableOrderInfo().effectiveDate);
+            }
         }
     }
 }

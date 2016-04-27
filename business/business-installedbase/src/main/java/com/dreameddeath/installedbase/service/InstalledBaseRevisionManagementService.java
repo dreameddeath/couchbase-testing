@@ -61,16 +61,19 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                     result.setOldRevision(correspondingExistingRevision);
                     result.setAction(RevisionUpdateResult.UpdateAction.REPLACED);
                     //TODO check state of item revision
-                    item.getRevisions().remove(correspondingExistingRevision);
+                    item.removeRevision(correspondingExistingRevision);
                 }
             }
             else{
                 result.setAction(RevisionUpdateResult.UpdateAction.CREATED);
             }
         }
+        else{
+            result.setAction(RevisionUpdateResult.UpdateAction.CREATED);
+        }
 
         //TODO manage ordering to ease future analysis
-        item.addRevisions(targetRevision);
+        item.addRevision(targetRevision);
         return result;
     }
 
@@ -103,6 +106,9 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
     @Override
     public void applyApplicableRevisions(InstalledBaseUpdateResult result,InstalledBase ref,List<InstalledItemRevisionsToApply> revisions) {
         for(InstalledItemRevisionsToApply<? extends InstalledItemRevision,? extends InstalledItem> itemWithRevs:revisions){
+            if(itemWithRevs.getRevisionsToApply().size()==0){
+                continue;
+            }
             itemWithRevs.sortRevisions();
             boolean hasChanges = false;
             hasChanges|=applyStatusesFromRevision(itemWithRevs);
@@ -118,7 +124,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
             if(hasChanges && itemWithRevs.isNewUpdateResult()){
                 switch (itemWithRevs.getItemType()){
                     case CONTRACT:result.setContract(itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class));break;
-                    case OFFER:result.addOfferUpdates(itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class));break;
+                    case OFFER:result.addOfferUpdate(itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class));break;
                     case PS:result.addProducts(itemWithRevs.getUpdateResult(InstalledItemUpdateResult.class));break;
                     case TARIFF:result.addTariffs(itemWithRevs.getUpdateResult(TariffUpdateResult.class));break;
                     case DISCOUNT:result.addDiscounts(itemWithRevs.getUpdateResult(DiscountUpdateResult.class));break;
@@ -303,6 +309,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         DateTime newValueStartDate=valueRev.getStartDate();
         DateTime newValueEndDate=valueRev.getEndDate();
         if(newValueStartDate==null){newValueStartDate=itemRev.getEffectiveDate();}
+        if(newValueStartDate==null){newValueStartDate=dateTimeService.getCurrentDate();}
         if(newValueEndDate==null)  {newValueEndDate = dateTimeService.max();}
 
         // empty value duration
@@ -483,6 +490,9 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
         if(effectiveDate==null){
             effectiveDate=parentRevEffectiveDate;
         }
+        if(effectiveDate==null){
+            effectiveDate=dateTimeService.getCurrentDate();
+        }
         //Changing status
         List<StatusUpdateResult> statusUpdateResults = manageStatusesUpdate(existingLink,statusCode,effectiveDate);
         hasChanges|=(statusUpdateResults.size()>0);
@@ -618,10 +628,10 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
 
 
     public <T extends InstalledItemRevision,TITEM extends InstalledItem<T>> InstalledItemRevisionsToApply<T,TITEM> findApplicableRevisions(InstalledBaseUpdateResult baseResult,TITEM baseItem){
-        InstalledItemRevisionsToApply<T,TITEM> result=new InstalledItemRevisionsToApply<>(baseItem);
+        InstalledItemRevisionsToApply<T,TITEM> result=new InstalledItemRevisionsToApply<>(baseItem,baseResult);
 
         for(T rev:baseItem.getRevisions()){
-            if(rev.getRevState().equals(InstalledItemRevision.RevState.PLANNED)){
+            if(InstalledItemRevision.RevState.PLANNED.equals(rev.getRevState())){
                 if((rev.getEffectiveDate()==null) || (rev.getEffectiveDate().compareTo(dateTimeService.getCurrentDate())<=0)){
                     result.addRevisionToApply(rev);
                 }

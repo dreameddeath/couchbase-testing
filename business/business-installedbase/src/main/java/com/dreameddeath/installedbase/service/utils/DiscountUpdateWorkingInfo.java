@@ -9,8 +9,8 @@ import com.dreameddeath.installedbase.process.model.DiscountUpdateResult;
  * Created by Christophe Jeunesse on 04/04/2016.
  */
 public class DiscountUpdateWorkingInfo extends CreateUpdateItemWorkingInfo<InstalledDiscountRevision,DiscountUpdateResult,CreateUpdateInstalledBaseRequest.Discount,InstalledDiscount> {
-    public DiscountUpdateWorkingInfo(DiscountUpdateResult result, CreateUpdateInstalledBaseRequest.Discount updateRequest, InstalledDiscount targetItem) {
-        super(result, updateRequest, targetItem);
+    public DiscountUpdateWorkingInfo(DiscountUpdateResult result, CreateUpdateInstalledBaseRequest.Discount updateRequest, InstalledDiscount targetItem,CreateUpdateItemWorkingInfo parent) {
+        super(result, updateRequest, targetItem,parent);
     }
 
     @Override

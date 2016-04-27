@@ -41,7 +41,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
     @DocumentProperty("offers")
     public List<Offer> offers = new ArrayList<>();
 
-    public abstract class Item {
+    public static abstract class Item extends CouchbaseDocumentElement{
         @DocumentProperty("status")
         public ItemStatus status=new ItemStatus();
         @DocumentProperty("orderInfo")
@@ -51,7 +51,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
 
     }
 
-    public abstract class IdentifiedItem extends Item{
+    public static abstract class IdentifiedItem extends Item{
         @DocumentProperty("id")
         public String id;
         @DocumentProperty("tempId")
@@ -60,7 +60,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         public String code;
     }
 
-    public class Contract extends IdentifiedItem {
+    public static class Contract extends IdentifiedItem {
         @DocumentProperty("holderId")
         public String holderId;
         @DocumentProperty("billingAccountId")
@@ -70,7 +70,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
     }
 
 
-    public class IdentifiedItemLink{
+    public static class IdentifiedItemLink extends CouchbaseDocumentElement{
         @DocumentProperty("commercialOperation")
         public LinkOperation comOp;
         @DocumentProperty("status")
@@ -116,7 +116,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         }
     }
 
-    public class Offer extends IdentifiedItem {
+    public static class Offer extends IdentifiedItem {
         @DocumentProperty("type")
         public OfferType type;
         @DocumentProperty("tariffs")
@@ -131,7 +131,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         public ProductService ps = new ProductService();
     }
 
-    public class TargetIdentifiedItem {
+    public static class TargetIdentifiedItem extends CouchbaseDocumentElement{
         @DocumentProperty("id")
         public String id;
         @DocumentProperty("tempId")
@@ -145,26 +145,26 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         ATOMIC_OFFER
     }
 
-    public class ProductService extends IdentifiedItem{
+    public static class ProductService extends IdentifiedItem{
         @DocumentProperty("links")
         public List<IdentifiedItemLink> links = new ArrayList<IdentifiedItemLink>();
         @DocumentProperty("attributes")
         public List<Attribute> attributes = new ArrayList<Attribute>();
     }
 
-    public class Tariff extends IdentifiedItem {
+    public static class Tariff extends IdentifiedItem {
         @DocumentProperty("tailorMadeVal")
         public BigDecimal tailorMadeValue;
         @DocumentProperty("discounts")
         public List<Discount> discounts = new ArrayList<Discount>();
     }
 
-    public class Discount extends IdentifiedItem {
+    public static class Discount extends IdentifiedItem {
         @DocumentProperty("tailorMadeVal")
         public BigDecimal tailorMadeValue;
     }
 
-    public class Attribute{
+    public static class Attribute extends CouchbaseDocumentElement{
         @DocumentProperty("code")
         public String code;
         @DocumentProperty("publicKeyType")
@@ -175,7 +175,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         public AttributeOperation comOp;
 
 
-        public class Value{
+        public static class Value extends CouchbaseDocumentElement{
             @DocumentProperty("value")
             public String value;
             @DocumentProperty("startDate")
@@ -189,7 +189,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
 
     }
 
-    public class ItemStatus {
+    public static class ItemStatus extends CouchbaseDocumentElement{
         @DocumentProperty("status")
         public Status code;
         @DocumentProperty("effectiveDate")
@@ -218,7 +218,7 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
         }
     }
 
-    public class OrderItemInfo{
+    public static class OrderItemInfo extends CouchbaseDocumentElement{
         @DocumentProperty("orderItemId")
         public String orderItemId;
         @DocumentProperty("orderId")
@@ -267,6 +267,15 @@ public class CreateUpdateInstalledBaseRequest extends CouchbaseDocumentElement {
                 default:
                     return false;
             }
+        }
+
+        public InstalledItemRevision.RevState toRevState(){
+            for(InstalledItemRevision.RevState target:InstalledItemRevision.RevState.values()){
+                if(isRevTarget(target)){
+                    return target;
+                }
+            }
+            return null;
         }
     }
 

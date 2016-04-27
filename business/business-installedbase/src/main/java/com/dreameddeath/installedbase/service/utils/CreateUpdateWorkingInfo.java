@@ -1,9 +1,7 @@
 package com.dreameddeath.installedbase.service.utils;
 
-import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.installedbase.model.InstalledBase;
 import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.process.model.CreateUpdateInstalledBaseJob;
 import com.dreameddeath.installedbase.process.model.InstalledBaseUpdateResult;
 import com.dreameddeath.installedbase.utils.InstalledBaseTools;
 import com.google.common.base.Preconditions;
@@ -18,7 +16,6 @@ import java.util.*;
 public class CreateUpdateWorkingInfo {
     private final Map<String, CreateUpdateItemWorkingInfo<?,?,?,?>> workingInfoPerIdMap = new TreeMap<>();
     private final Map<String, CreateUpdateItemWorkingInfo<?,?,?,?>> workingInfoPerTempIdMap = new TreeMap<>();
-    private final TaskContext<CreateUpdateInstalledBaseJob, CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt;
 
     private final Multimap<String,CreateUpdateInstalledBaseRequest.IdentifiedItem> reguestOfferPerContract = ArrayListMultimap.create();
     private final Map<String,CreateUpdateInstalledBaseRequest.IdentifiedItem> requestItemPerId = new HashMap<>();
@@ -27,12 +24,19 @@ public class CreateUpdateWorkingInfo {
     private final InstalledBase installedBase;
     private final InstalledBaseTools.InstalledBaseIndexer installedBaseIndexer;
     private final InstalledBaseUpdateResult installedBaseUpdateResult;
-    public CreateUpdateWorkingInfo(TaskContext<CreateUpdateInstalledBaseJob, CreateUpdateInstalledBaseJob.UpdateInstalledBase> ctxt, InstalledBase ref,CreateUpdateInstalledBaseRequest.Contract contract) {
+
+
+    public CreateUpdateWorkingInfo(CreateUpdateInstalledBaseRequest request,InstalledBase ref,CreateUpdateInstalledBaseRequest.Contract contract) {
         this.requestedContract = contract;
-        this.ctxt = ctxt;
         this.installedBase = ref;
         this.installedBaseUpdateResult=new InstalledBaseUpdateResult();
-        for(CreateUpdateInstalledBaseRequest.IdentifiedItem item:ctxt.getParentJob().getRequest().offers){
+        if(requestedContract.tempId!=null){
+            requestItemPerTempId.put(requestedContract.tempId,requestedContract);
+        }
+        if(requestedContract.id!=null){
+            requestItemPerId.put(requestedContract.id,requestedContract);
+        }
+        for(CreateUpdateInstalledBaseRequest.IdentifiedItem item:request.offers){
             if(item.tempId!=null){
                 requestItemPerTempId.put(item.tempId,item);
             }
@@ -58,10 +62,6 @@ public class CreateUpdateWorkingInfo {
         }
     }
 
-
-    public TaskContext<CreateUpdateInstalledBaseJob, CreateUpdateInstalledBaseJob.UpdateInstalledBase> getCtxt() {
-        return ctxt;
-    }
 
     public InstalledBaseUpdateResult getInstalledBaseUpdateResult() {
         return installedBaseUpdateResult;

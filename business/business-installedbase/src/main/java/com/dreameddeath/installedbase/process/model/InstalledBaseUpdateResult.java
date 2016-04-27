@@ -71,13 +71,13 @@ public class InstalledBaseUpdateResult extends VersionedDocumentElement {
      * Add a new entry to the property offers
      * @param val the new entry to be added
      */
-    public boolean addOfferUpdates(InstalledItemUpdateResult val){ return offersUpdates.add(val); }
+    public boolean addOfferUpdate(InstalledItemUpdateResult val){ return offersUpdates.add(val); }
     /**
      * Remove an entry to the property offers
      * @param val the entry to be remove
      * @return true if the entry has been removed
      */
-    public boolean removeOffersUpdates(InstalledItemUpdateResult val){ return offersUpdates.remove(val); }
+    public boolean removeOffersUpdate(InstalledItemUpdateResult val){ return offersUpdates.remove(val); }
 
     /**
      * Getter of products
