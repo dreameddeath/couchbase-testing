@@ -54,8 +54,8 @@ public class EntityDefinitionManager {
 
     public String getDocumentEntityFilename(EntityModelId modelId){
         return String.format("%s/%s/%s/%s/v%s.json", ROOT_PATH, DOCUMENT_DEF_PATH,
-                modelId.getDomain(),
-                modelId.getName(),
+                modelId.getDomain().toLowerCase(),
+                modelId.getName().toLowerCase(),
                 modelId.getEntityVersion().getMajor());
     }
 
