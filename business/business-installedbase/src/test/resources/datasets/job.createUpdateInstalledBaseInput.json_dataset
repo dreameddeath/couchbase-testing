@@ -1,0 +1,13 @@
+#$dataset_name("job_create_update_inputs")
+#$import("create_update_inputs")
+
+#$dataset_elt_name("job_create_update_simple_installed_base")
+@Declare("orderStatus","String")
+@Declare("origDate","DateTime")
+@Declare("tempIdsMap","Map")
+{
+    request : @InitFrom("create_update_simple_installed_base") {
+        creationRequestUid : #% "test_"+orderStatus;%#,
+        requestDate : #% origDate; %#
+    }
+}

@@ -1,13 +1,13 @@
 package com.dreameddeath.installedbase.service.utils;
 
-import com.dreameddeath.installedbase.model.common.InstalledItem;
-import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
-import com.dreameddeath.installedbase.model.contract.InstalledContract;
-import com.dreameddeath.installedbase.model.offer.InstalledOffer;
-import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
-import com.dreameddeath.installedbase.model.tariff.InstalledDiscount;
-import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
-import com.dreameddeath.installedbase.process.model.*;
+import com.dreameddeath.installedbase.model.v1.common.InstalledItem;
+import com.dreameddeath.installedbase.model.v1.common.InstalledItemRevision;
+import com.dreameddeath.installedbase.model.v1.contract.InstalledContract;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
+import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductService;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledDiscount;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledTariff;
+import com.dreameddeath.installedbase.process.model.v1.*;
 
 import java.util.ArrayList;
 import java.util.Collections;

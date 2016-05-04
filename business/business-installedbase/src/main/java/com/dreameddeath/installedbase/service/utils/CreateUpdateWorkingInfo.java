@@ -1,8 +1,8 @@
 package com.dreameddeath.installedbase.service.utils;
 
-import com.dreameddeath.installedbase.model.InstalledBase;
-import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.process.model.InstalledBaseUpdateResult;
+import com.dreameddeath.installedbase.model.v1.InstalledBase;
+import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.process.model.v1.InstalledBaseUpdateResult;
 import com.dreameddeath.installedbase.utils.InstalledBaseTools;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;

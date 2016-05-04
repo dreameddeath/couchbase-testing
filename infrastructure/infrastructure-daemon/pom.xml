@@ -43,6 +43,11 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-date</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-service</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -264,19 +269,7 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>testing-couchbase</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-user</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-helper</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

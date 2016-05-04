@@ -50,9 +50,10 @@ public class BooleanConfigProperty extends AbstractConfigProperty<Boolean> {
         public ExtendedProperty(String name, Boolean defaultValue){
             super(name,defaultValue);
         }
+
         @Override
-        public Boolean getValue() {
-            return prop.getBoolean(defaultValue);
+        public Boolean getValue(Boolean overrideValue){
+            return prop.getBoolean(overrideValue);
         }
     }
 

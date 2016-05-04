@@ -26,6 +26,7 @@ import java.util.Collection;
  */
 public interface IConfigProperty<T> {
     T getValue();
+    T getValue(T defaultValue);
     T getMandatoryValue(String errorMessage,Object ...params) throws ConfigPropertyValueNotFoundException;
     T getDefaultValue();
     String getName();

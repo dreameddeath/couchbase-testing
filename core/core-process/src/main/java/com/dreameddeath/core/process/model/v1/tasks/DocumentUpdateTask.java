@@ -24,13 +24,12 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
-import com.dreameddeath.core.validation.annotation.NotNull;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends AbstractTask {
-    @DocumentProperty("docKey") @NotNull
+    @DocumentProperty("docKey")
     private Property<String> docKey=new ImmutableProperty<String>(DocumentUpdateTask.this);
 
     public String getDocKey(){return docKey.get(); }

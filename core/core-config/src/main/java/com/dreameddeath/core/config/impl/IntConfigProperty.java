@@ -51,8 +51,8 @@ public class IntConfigProperty extends AbstractConfigProperty<Integer> {
             super(name,defaultValue);
         }
         @Override
-        public Integer getValue() {
-            return prop.getInteger(defaultValue);
+        public Integer getValue(Integer overrideDefaultValue) {
+            return prop.getInteger(overrideDefaultValue);
         }
     }
 

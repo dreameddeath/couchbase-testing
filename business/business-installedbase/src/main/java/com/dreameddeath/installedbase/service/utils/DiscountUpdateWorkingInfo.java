@@ -1,9 +1,9 @@
 package com.dreameddeath.installedbase.service.utils;
 
-import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.model.tariff.InstalledDiscount;
-import com.dreameddeath.installedbase.model.tariff.InstalledDiscountRevision;
-import com.dreameddeath.installedbase.process.model.DiscountUpdateResult;
+import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledDiscount;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledDiscountRevision;
+import com.dreameddeath.installedbase.process.model.v1.DiscountUpdateResult;
 
 /**
  * Created by Christophe Jeunesse on 04/04/2016.

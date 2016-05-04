@@ -1,10 +1,10 @@
 package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.MockDateTimeServiceImpl;
-import com.dreameddeath.installedbase.model.InstalledBase;
-import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.process.model.IdentifiedItemUpdateResult;
-import com.dreameddeath.installedbase.process.model.InstalledBaseUpdateResult;
+import com.dreameddeath.installedbase.model.v1.InstalledBase;
+import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.process.model.v1.IdentifiedItemUpdateResult;
+import com.dreameddeath.installedbase.process.model.v1.InstalledBaseUpdateResult;
 import com.dreameddeath.testing.dataset.DatasetManager;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest.OrderStatus.COMPLETED;
-import static com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest.OrderStatus.IN_ORDER;
+import static com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest.OrderStatus.COMPLETED;
+import static com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest.OrderStatus.IN_ORDER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -58,7 +58,7 @@ public class CreateUpdateInstalledBaseServiceTest {
             params.put("origDate", dateTimeRef.get());
             params.put("orderStatus",IN_ORDER.toString());
             params.put("tempIdsMap",tempIdsMap);
-            request = manager.build(CreateUpdateInstalledBaseRequest.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
+            request = manager.build(CreateUpdateInstalledBaseRequest.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params);
             InstalledBaseUpdateResult result = service.manageCreateUpdate(request,installedBase,request.contracts.get(0));
             assertNotNull(installedBase.getContract());
             assertEquals(4,installedBase.getOffers().size());

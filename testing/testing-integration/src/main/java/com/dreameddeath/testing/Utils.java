@@ -271,6 +271,7 @@ public class Utils {
         public ElasticSearchClient getEsClient(){
             return esClient;
         }
+
         public ElasticSearchSessionFactory getEsSessionFactory() {
             return esSessionFactory;
         }

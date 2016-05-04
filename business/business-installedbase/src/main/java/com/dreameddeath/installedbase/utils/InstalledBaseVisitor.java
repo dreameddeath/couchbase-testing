@@ -16,7 +16,7 @@
 
 package com.dreameddeath.installedbase.utils;
 
-import com.dreameddeath.installedbase.model.common.InstalledItem;
+import com.dreameddeath.installedbase.model.v1.common.InstalledItem;
 
 /**
  * Created by Christophe Jeunesse on 21/10/2014.

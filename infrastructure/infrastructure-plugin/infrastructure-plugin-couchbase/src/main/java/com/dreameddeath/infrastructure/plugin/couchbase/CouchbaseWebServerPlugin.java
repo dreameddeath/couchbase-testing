@@ -47,7 +47,10 @@ public class CouchbaseWebServerPlugin extends AbstractWebServerPlugin {
                 .withCuratorFramework(getParentDaemon().getCuratorClient())
                 .build();
 
-        sessionFactory=CouchbaseSessionFactory.builder().withDocumentDaoFactory(documentDaoFactory).build();
+        sessionFactory=CouchbaseSessionFactory.builder()
+                .withDocumentDaoFactory(documentDaoFactory)
+                .withDateTimeServiceFactory(parentServer.getDateTimeServiceFactory())
+                .build();
         getParentWebServer().getLifeCycle().addLifeCycleListener(new CouchbaseWebServerLifeCycle(this));
     }
 

@@ -17,17 +17,17 @@
 package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.IDateTimeService;
-import com.dreameddeath.installedbase.model.InstalledBase;
-import com.dreameddeath.installedbase.model.common.*;
-import com.dreameddeath.installedbase.model.contract.InstalledContract;
-import com.dreameddeath.installedbase.model.offer.InstalledAtomicOffer;
-import com.dreameddeath.installedbase.model.offer.InstalledCompositeOffer;
-import com.dreameddeath.installedbase.model.offer.InstalledOffer;
-import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
-import com.dreameddeath.installedbase.model.tariff.InstalledDiscount;
-import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
-import com.dreameddeath.installedbase.process.model.*;
+import com.dreameddeath.installedbase.model.v1.InstalledBase;
+import com.dreameddeath.installedbase.model.v1.common.*;
+import com.dreameddeath.installedbase.model.v1.contract.InstalledContract;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledAtomicOffer;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledCompositeOffer;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
+import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductService;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledDiscount;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledTariff;
+import com.dreameddeath.installedbase.process.model.v1.*;
 import com.dreameddeath.installedbase.service.utils.*;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Created by Christophe Jeunesse on 16/10/2014.
  */
-public class CreateUpdateInstalledBaseService {
+public class CreateUpdateInstalledBaseService implements ICreateUpdateInstalledBaseService{
     private final static Logger LOG= LoggerFactory.getLogger(CreateUpdateInstalledBaseService.class);
 
     private IInstalledBaseRevisionManagementService revisionManagementService;
@@ -473,6 +473,7 @@ public class CreateUpdateInstalledBaseService {
 
             workingInfo.getTargetItem().setCode(workingInfo.getUpdateRequest().code);
             workingInfo.getTargetItem().setCreationDate(dateTimeService.getCurrentDate());
+            workingInfo.getTargetItem().setLastModificationDate(workingInfo.getTargetItem().getCreationDate());
             workingInfo.getResult().setTempId(workingInfo.getUpdateRequest().tempId);
         }
 

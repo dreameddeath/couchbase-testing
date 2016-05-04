@@ -34,9 +34,9 @@ public abstract class ReferencePropertyWrapper<T> extends ExtendedPropertyWrappe
 
     public abstract T getLocalValue();
 
-    public final T getValue() {
+    public final T getValue(T overrideDefaultValue){
         T res = getLocalValue();
-        return res != null ? res : getDefaultValue();
+        return res !=null ? res : getDefaultValue();
     }
 
     @Override

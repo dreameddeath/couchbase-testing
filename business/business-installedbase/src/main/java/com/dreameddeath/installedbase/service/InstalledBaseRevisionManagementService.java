@@ -1,20 +1,20 @@
 package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.IDateTimeService;
-import com.dreameddeath.installedbase.model.InstalledBase;
-import com.dreameddeath.installedbase.model.common.*;
-import com.dreameddeath.installedbase.model.contract.InstalledContractLink;
-import com.dreameddeath.installedbase.model.offer.InstalledCommercialParameter;
-import com.dreameddeath.installedbase.model.offer.InstalledOffer;
-import com.dreameddeath.installedbase.model.offer.InstalledOfferLink;
-import com.dreameddeath.installedbase.model.offer.InstalledOfferRevision;
-import com.dreameddeath.installedbase.model.productservice.InstalledFunction;
-import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
-import com.dreameddeath.installedbase.model.productservice.InstalledProductServiceLink;
-import com.dreameddeath.installedbase.model.productservice.InstalledProductServiceRevision;
-import com.dreameddeath.installedbase.model.tariff.InstalledDiscount;
-import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
-import com.dreameddeath.installedbase.process.model.*;
+import com.dreameddeath.installedbase.model.v1.InstalledBase;
+import com.dreameddeath.installedbase.model.v1.common.*;
+import com.dreameddeath.installedbase.model.v1.contract.InstalledContractLink;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledCommercialParameter;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledOfferLink;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledOfferRevision;
+import com.dreameddeath.installedbase.model.v1.productservice.InstalledFunction;
+import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductService;
+import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductServiceLink;
+import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductServiceRevision;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledDiscount;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledTariff;
+import com.dreameddeath.installedbase.process.model.v1.*;
 import com.dreameddeath.installedbase.service.utils.InstalledItemRevisionsToApply;
 import com.dreameddeath.installedbase.utils.InstalledBaseTools;
 import com.google.common.base.Preconditions;
@@ -79,7 +79,7 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
 
 
     @Override
-    public List<InstalledItemRevisionsToApply> findApplicableRevisions(InstalledBaseUpdateResult result,InstalledBase ref){
+    public List<InstalledItemRevisionsToApply> findApplicableRevisions(InstalledBaseUpdateResult result, InstalledBase ref){
         List<InstalledItemRevisionsToApply> revisions=new ArrayList<>();
         revisions.add(findApplicableRevisions(result,ref.getContract()));
         for(InstalledOffer item:ref.getOffers()){
@@ -129,6 +129,9 @@ public class InstalledBaseRevisionManagementService implements IInstalledBaseRev
                     case TARIFF:result.addTariffs(itemWithRevs.getUpdateResult(TariffUpdateResult.class));break;
                     case DISCOUNT:result.addDiscounts(itemWithRevs.getUpdateResult(DiscountUpdateResult.class));break;
                 }
+            }
+            if(hasChanges){
+                itemWithRevs.getParent().setLastModificationDate(dateTimeService.getCurrentDate());
             }
             updateRevisions(itemWithRevs.getParent(),itemWithRevs.getRevisionsToApply());
         }

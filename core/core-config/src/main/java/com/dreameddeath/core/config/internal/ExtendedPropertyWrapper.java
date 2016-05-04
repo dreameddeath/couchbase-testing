@@ -36,4 +36,12 @@ public abstract class ExtendedPropertyWrapper<T> extends PropertyWrapper<T> {
     public T getOldValue() {
         return oldValue;
     }
+
+    public abstract T getValue(T overridedDefault);
+
+    @Override
+    public final T getValue() {
+        return getValue(getDefaultValue());
+    }
+
 }

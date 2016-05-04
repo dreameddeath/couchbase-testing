@@ -39,7 +39,7 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
     private String cachedValue=null;
     private List<T> cachedList;
     private String cachedDefaultValue=null;
-    private List<T> defaultValue=null;
+    private volatile List<T> defaultValue=null;
     private final Splitter splitter;
 
     protected abstract List<T> splitValue(Splitter splitter,String value);
@@ -134,9 +134,14 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
 
     @Override
     public List<T> getValue() {
+        return getValue(getDefaultValue());
+    }
+
+    @Override
+    public List<T> getValue(List<T> overrideDefaultValue) {
         String res = stringProp.getValue();
         if(res==null){
-            return getDefaultValue();
+            return overrideDefaultValue;
         }
         else if(!res.equals(cachedValue)){
             cachedValue = res;
@@ -167,9 +172,9 @@ public abstract class AbstractConfigListProperty<T> implements IConfigProperty<L
     @Override
     public List<T> getDefaultValue() {
         String defaultValueStr = stringProp.getDefaultValue();
-        if(!cachedDefaultValue.equals(defaultValueStr)){
+        if((cachedDefaultValue==null && defaultValueStr!=null) || !cachedDefaultValue.equals(defaultValueStr)){
             cachedDefaultValue = defaultValueStr;
-            this.defaultValue = splitValue(splitter,cachedDefaultValue);
+            this.defaultValue = splitValue(splitter, cachedDefaultValue);
         }
         return this.defaultValue;
     }

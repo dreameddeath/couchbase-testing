@@ -1,9 +1,9 @@
 package com.dreameddeath.installedbase.service.utils;
 
-import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.model.tariff.InstalledTariff;
-import com.dreameddeath.installedbase.model.tariff.InstalledTariffRevision;
-import com.dreameddeath.installedbase.process.model.TariffUpdateResult;
+import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledTariff;
+import com.dreameddeath.installedbase.model.v1.tariff.InstalledTariffRevision;
+import com.dreameddeath.installedbase.process.model.v1.TariffUpdateResult;
 
 /**
  * Created by Christophe Jeunesse on 04/04/2016.

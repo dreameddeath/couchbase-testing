@@ -115,6 +115,9 @@ public class DatasetResultValue implements Cloneable {
     @Override
     protected DatasetResultValue clone(){
         DatasetResultValue result = new DatasetResultValue();
+        if(this.type==null){
+            return result;
+        }
         result.type = this.type;
         switch(type){
             case OBJECT: result.objVal=this.objVal.clone();break;

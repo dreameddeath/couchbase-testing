@@ -50,8 +50,8 @@ public class StringConfigProperty extends AbstractConfigProperty<String> {
             super(name,defaultValue);
         }
         @Override
-        public String getValue() {
-            return prop.getString(defaultValue);
+        public String getValue(String overrideDefaultValue) {
+            return prop.getString(overrideDefaultValue);
         }
     }
 

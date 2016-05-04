@@ -18,6 +18,7 @@ package com.dreameddeath.installedbase.process.service;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
@@ -28,12 +29,14 @@ import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
-import com.dreameddeath.installedbase.model.InstalledBase;
-import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.model.process.CreateUpdateInstalledBaseResponse;
-import com.dreameddeath.installedbase.process.model.CreateUpdateInstalledBaseJob;
-import com.dreameddeath.installedbase.process.model.CreateUpdateInstalledBaseJob.InitEmptyInstalledBase;
-import com.dreameddeath.installedbase.process.model.CreateUpdateInstalledBaseJob.UpdateInstalledBase;
+import com.dreameddeath.installedbase.model.v1.InstalledBase;
+import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseResponse;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob.InitEmptyInstalledBase;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask;
+import com.dreameddeath.installedbase.service.ICreateUpdateInstalledBaseService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
@@ -59,12 +62,20 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
 
 
         for (CreateUpdateInstalledBaseRequest.Contract contract : job.getRequest().contracts) {
+
             //Create target contracts if needed
-            if (contract.comOp.equals(CreateUpdateInstalledBaseRequest.CommercialOperation.ADD)) {
+            if (
+                    contract.comOp.equals(CreateUpdateInstalledBaseRequest.CommercialOperation.ADD)
+                    ||(StringUtils.isEmpty(contract.id))
+               )
+            {
                 TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> emptyCreateTaskContext = context.addTask(new InitEmptyInstalledBase());
                 emptyCreateTaskContext.getTask().setContractTempId(contract.tempId);
+                emptyCreateTaskContext.chainWith(
+                        new UpdateInstalledBaseTask()
+                );
             } else {
-                UpdateInstalledBase updateTask = new UpdateInstalledBase();
+                UpdateInstalledBaseTask updateTask = new UpdateInstalledBaseTask();
                 updateTask.setContractUid(contract.id);
 
             }
@@ -103,10 +114,20 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
 
     public static class AfterPreCreateSyncTaskPr extends NoOpTask {}
 
-    public static class UpdateInstalledBaseProcessingService extends DocumentUpdateTaskProcessingService<CreateUpdateInstalledBaseJob,InstalledBase,UpdateInstalledBase> {
+
+    @TaskProcessingForClass(UpdateInstalledBaseTask.class)
+    public static class UpdateInstalledBaseProcessingService extends DocumentUpdateTaskProcessingService<CreateUpdateInstalledBaseJob,InstalledBase,UpdateInstalledBaseTask> {
+        private ICreateUpdateInstalledBaseService service;
+
+
+        @Autowired
+        public void setService(ICreateUpdateInstalledBaseService service) {
+            this.service = service;
+        }
+
         @Override
-        public boolean preprocess(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBase> ctxt ) throws TaskExecutionException{
-            UpdateInstalledBase task=ctxt.getTask();
+        public boolean preprocess(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt ) throws TaskExecutionException{
+            UpdateInstalledBaseTask task=ctxt.getTask();
             if(task.getContractUid()!=null){
                 try {
                     task.setDocKey(ctxt.getSession().getKeyFromUID(task.getContractUid(), InstalledBase.class));
@@ -119,6 +140,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
                 InitEmptyInstalledBase creationInstalledBase = ctxt.getDependentTask(InitEmptyInstalledBase.class);
                 if (creationInstalledBase != null) {
                     task.setDocKey(creationInstalledBase.getDocKey());
+                    task.setTempContractId(creationInstalledBase.getContractTempId());
                 }
                 else{
                     throw new TaskExecutionException(ctxt,"Inconsistent State : neither existing InstalledBase nor InitTask found");
@@ -128,8 +150,22 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
         }
 
         @Override
-        public void processDocument(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBase> ctxt,InstalledBase installBase){
-
+        public void processDocument(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt, InstalledBase installBase) throws TaskExecutionException{
+            CreateUpdateInstalledBaseRequest.Contract refContract=null;
+            for(CreateUpdateInstalledBaseRequest.Contract currContract:ctxt.getParentJob().getRequest().contracts){
+                if (ctxt.getTask().getTempContractId() != null && ctxt.getTask().getTempContractId().equals(currContract.tempId)) {
+                    refContract=currContract;
+                    break;
+                }
+                else if(ctxt.getTask().getContractUid().equals(currContract.id)){
+                    refContract=currContract;
+                    break;
+                }
+            }
+            if(refContract==null){
+                throw new TaskExecutionException(ctxt,"Inconsitent State, cannot find Contract in installed base "+ctxt.getTask().getDocKey());
+            }
+            service.manageCreateUpdate(ctxt.getParentJob().getRequest(),installBase,refContract);
         }
     }
 }

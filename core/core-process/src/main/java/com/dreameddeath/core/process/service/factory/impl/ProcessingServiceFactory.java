@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.process.service.factory.impl;
 
+import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
@@ -63,7 +64,7 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
         for(Class innerClass:serviceClass.getClasses()){
             if(ITaskProcessingService.class.isAssignableFrom(innerClass)){
                 try {
-                    getTaskProcessingServiceForClass(innerClass);
+                    getTaskProcessingServiceForClass(ClassUtils.getEffectiveGenericType(innerClass,ITaskProcessingService.class,1));
                 }
                 catch(ProcessingServiceNotFoundException e){
                     addTaskProcessingService((Class<ITaskProcessingService<TJOB,AbstractTask>>) innerClass);
@@ -74,8 +75,7 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
     }
 
     public <TJOB extends AbstractJob,T extends AbstractTask> ITaskProcessingService<TJOB, T> addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<TJOB,T> service){
-        taskProcessingServicesMap.put(entityClass, service);
-        return service;
+        return (ITaskProcessingService<TJOB, T>)taskProcessingServicesMap.putIfAbsent(entityClass, service);
     }
 
     protected <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T createTaskProcessingService(Class<T> serviceClass){
@@ -95,6 +95,15 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
         T service = createTaskProcessingService(serviceClass);
         return (T)addTaskProcessingServiceFor((Class<TTASK>)ann.value(),service);
     }
+
+    public <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T addTaskProcessingService(T service){
+        TaskProcessingForClass ann = service.getClass().getAnnotation(TaskProcessingForClass.class);
+        if(ann==null){
+            throw new RuntimeException("Cannot find annotation TaskProcessingForClass for processing service class "+service.getClass().getName());
+        }
+        return (T)addTaskProcessingServiceFor((Class<TTASK>)ann.value(),service);
+    }
+
 
 
     public <TJOB extends AbstractJob,T extends AbstractTask> ITaskProcessingService<TJOB,T> getTaskProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException {

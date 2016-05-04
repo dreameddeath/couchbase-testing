@@ -22,6 +22,14 @@ package com.dreameddeath.core.date;
 public class DateTimeServiceFactory {
     private IDateTimeService currService = new DefaultDateTimeServiceImpl();
 
+    public DateTimeServiceFactory(){
+        this(new DefaultDateTimeServiceImpl());
+    }
+
+    public DateTimeServiceFactory(IDateTimeService service){
+        currService = service;
+    }
+
     public void setDateTimeService(IDateTimeService service){
         this.currService=service;
     }

@@ -51,8 +51,8 @@ public class FloatConfigProperty extends AbstractConfigProperty<Float> {
             super(name,defaultValue);
         }
         @Override
-        public Float getValue() {
-            return prop.getFloat(defaultValue);
+        public Float getValue(Float overrideDefaultValue) {
+            return prop.getFloat(overrideDefaultValue);
         }
     }
 

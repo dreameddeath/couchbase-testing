@@ -51,8 +51,8 @@ public class DoubleConfigProperty extends AbstractConfigProperty<Double> {
             super(name,defaultValue);
         }
         @Override
-        public Double getValue() {
-            return prop.getDouble(defaultValue);
+        public Double getValue(Double overrideDefaultValue) {
+            return prop.getDouble(overrideDefaultValue);
         }
     }
 

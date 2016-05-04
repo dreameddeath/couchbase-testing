@@ -1,7 +1,7 @@
 package com.dreameddeath.installedbase.service.utils;
 
-import com.dreameddeath.installedbase.model.common.InstalledValue;
-import com.dreameddeath.installedbase.process.model.ValueUpdateResult;
+import com.dreameddeath.installedbase.model.v1.common.InstalledValue;
+import com.dreameddeath.installedbase.process.model.v1.ValueUpdateResult;
 
 /**
  * Created by Christophe Jeunesse on 08/04/2016.

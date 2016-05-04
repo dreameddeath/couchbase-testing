@@ -1,10 +1,10 @@
 package com.dreameddeath.installedbase.service;
 
-import com.dreameddeath.installedbase.model.InstalledBase;
-import com.dreameddeath.installedbase.model.common.InstalledItem;
-import com.dreameddeath.installedbase.model.common.InstalledItemRevision;
-import com.dreameddeath.installedbase.process.model.InstalledBaseUpdateResult;
-import com.dreameddeath.installedbase.process.model.RevisionUpdateResult;
+import com.dreameddeath.installedbase.model.v1.InstalledBase;
+import com.dreameddeath.installedbase.model.v1.common.InstalledItem;
+import com.dreameddeath.installedbase.model.v1.common.InstalledItemRevision;
+import com.dreameddeath.installedbase.process.model.v1.InstalledBaseUpdateResult;
+import com.dreameddeath.installedbase.process.model.v1.RevisionUpdateResult;
 import com.dreameddeath.installedbase.service.utils.InstalledItemRevisionsToApply;
 
 import java.util.List;

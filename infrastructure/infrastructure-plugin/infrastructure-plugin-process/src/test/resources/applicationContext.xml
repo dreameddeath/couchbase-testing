@@ -44,12 +44,10 @@
         <constructor-arg value="com.dreameddeath.infrastructure.plugin.process.TestDocCreateJobProcess" />
     </bean>
 
-
-    <bean id="remoteKobCreateProcess" class="com.dreameddeath.core.process.service.IJobProcessingService"
+    <bean id="remoteJobCreateProcess" class="com.dreameddeath.core.process.service.IJobProcessingService"
           factory-bean="processingServiceFactory" factory-method="addJobProcessingService">
         <constructor-arg value="com.dreameddeath.infrastructure.plugin.process.RemoteTestDocCreateJobProcess" />
     </bean>
-
 
     <jaxrs:server id="tests" transportId="http://cxf.apache.org/transports/http" address="/tests" >
         <jaxrs:serviceBeans>

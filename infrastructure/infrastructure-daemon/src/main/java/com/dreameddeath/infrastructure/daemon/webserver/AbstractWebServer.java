@@ -21,6 +21,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
+import com.dreameddeath.core.date.DateTimeServiceFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryLifeCycleManager;
@@ -52,6 +53,8 @@ public abstract class AbstractWebServer {
     public static final String GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME = "propertySources";
     public static final String GLOBAL_USER_FACTORY_PARAM_NAME = "userFactory";
     public static final String GLOBAL_METRICS_REGISTRY_PARAM_NAME = "metricsRegistry";
+    public static final String GLOBAL_DATETIME_FACTORY_PARAM_NAME = "dateTimeFactory";
+
 
     private final AbstractDaemon parentDaemon;
     private final MetricRegistry metricRegistry = new MetricRegistry();
@@ -61,7 +64,7 @@ public abstract class AbstractWebServer {
     private final ServerConnector serverConnector;
     private final PropertySources propertySources;
     private final ServiceDiscoveryManager serviceDiscoveryManager;
-
+    private final DateTimeServiceFactory dateTimeServiceFactory;
     private final List<AbstractWebServerPlugin> plugins = new ArrayList<>();
 
 
@@ -126,6 +129,13 @@ public abstract class AbstractWebServer {
         }
         serviceDiscoveryManager = manager;
 
+        if(builder.dateTimeServiceFactory!=null){
+            dateTimeServiceFactory = builder.dateTimeServiceFactory;
+        }
+        else{
+            dateTimeServiceFactory = new DateTimeServiceFactory();
+        }
+
         for(IWebServerPluginBuilder pluginBuilder : builder.pluginBuilders){
             AbstractWebServerPlugin plugin = pluginBuilder.build(this);
             this.plugins.add(plugin);
@@ -171,6 +181,9 @@ public abstract class AbstractWebServer {
         return serviceDiscoveryManager;
     }
 
+    public DateTimeServiceFactory getDateTimeServiceFactory() {
+        return dateTimeServiceFactory;
+    }
 
     public void start() throws Exception{
         getMetricRegistry().removeMatching(MetricFilter.ALL);
@@ -243,6 +256,7 @@ public abstract class AbstractWebServer {
         private boolean withServiceDiscoveryManager=false;
         private int port=0;
         private List<IWebServerPluginBuilder> pluginBuilders = new ArrayList<>();
+        private DateTimeServiceFactory dateTimeServiceFactory=null;
 
         public T withAddress(String address) {
             this.address = address;
@@ -286,6 +300,11 @@ public abstract class AbstractWebServer {
 
         public T withServiceDiscoveryManager(boolean withServiceDiscoveryManager){
             this.withServiceDiscoveryManager = withServiceDiscoveryManager;
+            return (T)this;
+        }
+
+        public T withDateTimeServiceFactory(DateTimeServiceFactory dateTimeServiceFactory) {
+            this.dateTimeServiceFactory = dateTimeServiceFactory;
             return (T)this;
         }
     }

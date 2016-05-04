@@ -39,7 +39,8 @@ public class AbstractServletContextHandler extends ServletContextHandler {
         this.setAttribute(AbstractWebServer.GLOBAL_DAEMON_PROPERTY_SOURCE_PARAM_NAME,parentServer.getPropertySources());
         this.setAttribute(AbstractWebServer.GLOBAL_USER_FACTORY_PARAM_NAME,parentServer.getParentDaemon().getUserFactory());
         this.setAttribute(AbstractWebServer.GLOBAL_METRICS_REGISTRY_PARAM_NAME,parentServer.getMetricRegistry());
-
+        this.setAttribute(AbstractWebServer.GLOBAL_DATETIME_FACTORY_PARAM_NAME,parentServer.getDateTimeServiceFactory());
+        
         for(AbstractDaemonPlugin plugin:parentServer.getParentDaemon().getPlugins()){
             plugin.enrich(this);
         }

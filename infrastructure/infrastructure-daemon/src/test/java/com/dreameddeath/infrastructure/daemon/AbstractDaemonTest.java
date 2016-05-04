@@ -17,7 +17,6 @@
 package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
-import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
@@ -31,7 +30,6 @@ import com.dreameddeath.infrastructure.daemon.services.model.daemon.StatusUpdate
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
-import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -52,13 +50,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AbstractDaemonTest extends Assert {
     private static final Logger LOG =  LoggerFactory.getLogger(AbstractDaemonTest.class);
     private CuratorTestUtils testUtils;
-    private CouchbaseBucketFactorySimulator couchbaseBucketFactory;
 
     @Before
     public void setup() throws Exception{
         testUtils = new CuratorTestUtils();
         testUtils.prepare(1);
-        couchbaseBucketFactory = new CouchbaseBucketFactorySimulator();
     }
 
     @Test
@@ -113,7 +109,7 @@ public class AbstractDaemonTest extends Assert {
             }
             try {
 
-                Integer response = ((RestWebServer)daemon.getAdditionalWebServers().get(0)).getServiceDiscoveryManager().getClientFactory("tests")
+                Integer response = daemon.getAdditionalWebServers().get(0).getServiceDiscoveryManager().getClientFactory("tests")
                         .getClient("tests#tests#tests", "1.0")
                         .getInstance()
                         //.path("/status")

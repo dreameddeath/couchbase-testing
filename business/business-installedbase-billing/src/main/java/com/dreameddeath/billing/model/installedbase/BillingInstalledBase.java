@@ -32,7 +32,7 @@ import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardLongProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.dreameddeath.installedbase.model.common.InstalledBaseLink;
+import com.dreameddeath.installedbase.model.v1.common.InstalledBaseLink;
 
 import java.util.Collection;
 import java.util.List;

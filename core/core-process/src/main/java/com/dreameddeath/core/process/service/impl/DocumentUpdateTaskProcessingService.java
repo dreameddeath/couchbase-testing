@@ -27,6 +27,7 @@ import com.dreameddeath.core.process.model.v1.base.CouchbaseDocumentAttachedTask
 import com.dreameddeath.core.process.model.v1.base.IDocumentWithLinkedTasks;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.google.common.base.Preconditions;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
@@ -36,6 +37,7 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
     @Override
     public boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
         DocumentUpdateTask<TDOC> task = ctxt.getTask();
+        Preconditions.checkNotNull(task.getDocKey(),"The document to update hasn't key for task %s of type %s",task.getId(),task.getClass().getName());
         try {
             TDOC doc = (TDOC)ctxt.getSession().get(task.getDocKey());
 
@@ -96,5 +98,5 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
     }
 
 
-    protected abstract void processDocument(TaskContext<TJOB,T> ctxt,TDOC doc) throws DaoException,StorageException;
+    protected abstract void processDocument(TaskContext<TJOB,T> ctxt,TDOC doc) throws DaoException,StorageException,TaskExecutionException;
 }

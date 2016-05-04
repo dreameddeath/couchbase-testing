@@ -49,8 +49,8 @@ public class LongConfigProperty extends AbstractConfigProperty<Long> {
             super(name,defaultValue);
         }
         @Override
-        public Long getValue() {
-            return prop.getLong(defaultValue);
+        public Long getValue(Long overrideDefaultValue) {
+            return prop.getLong(overrideDefaultValue);
         }
     }
 

@@ -39,6 +39,7 @@
         <module>testing-elasticsearch</module>
         <module>testing-doclet</module>
         <module>testing-user</module>
+        <module>testing-daemon</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

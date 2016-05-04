@@ -86,65 +86,62 @@ public class ProcessesWebServerPluginTest {
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withApplicationContextConfig("applicationContext.xml"));
 
-        Thread stopping_thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        Thread stopping_thread = new Thread(() -> {
 
-                try {
-                    ProcessesWebServerPlugin plugin=daemon.getAdditionalWebServers().get(0).getPlugin(ProcessesWebServerPlugin.class);
-                    CouchbaseWebServerPlugin cbPlugin=daemon.getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
-                    {
-                        IJobExecutorClient<TestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(TestDocCreateJob.class);
-                        TestDocCreateJob createJob = new TestDocCreateJob();
-                        createJob.name = "test";
-                        JobContext<TestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
-                        ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                        TestDocProcess processDoc = session.get(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(), TestDocProcess.class);
-                        assertEquals(processDoc.name, createJob.name);
-                    }
-
-                    {
-                        IJobExecutorClient<RemoteTestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(RemoteTestDocCreateJob.class);
-                        RemoteTestDocCreateJob createJob = new RemoteTestDocCreateJob();
-                        createJob.remoteName = "test2";
-                        JobContext<RemoteTestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
-                        ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                        TestDocProcess processDoc = session.get(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).key, TestDocProcess.class);
-                        assertEquals(processDoc.name, createJob.remoteName);
-                    }
-                    {
-                        List<JobExecutorClientInfo> jobClients = ClientBuilder.newClient()
-                                .register(JsonProviderFactory.getProvider("service"))
-                                .target("http://"+ ServerConnectorUtils.getUrl(daemon.getAdditionalWebServers().get(0).getServerConnector()))
-                                .path("/apis/tests/processors/jobs")
-                                .request()
-                                .accept(MediaType.APPLICATION_JSON)
-                                .get(new GenericType<List<JobExecutorClientInfo>>(){});
-                        assertEquals(2L, jobClients.size());
-                    }
-
-                    {
-                        List<TaskExecutorClientInfo> taskClients = ClientBuilder.newClient()
-                                .register(JsonProviderFactory.getProvider("service"))
-                                .target("http://" + ServerConnectorUtils.getUrl(daemon.getAdditionalWebServers().get(0).getServerConnector()))
-                                .path("/apis/tests/processors/tasks")
-                                .request()
-                                .accept(MediaType.APPLICATION_JSON)
-                                .get(new GenericType<List<TaskExecutorClientInfo>>() {
-                                });
-                        assertEquals(2L, taskClients.size());
-                    }
-
-                } catch (Throwable e) {
-                    nbErrors.incrementAndGet();
-                    LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+            try {
+                ProcessesWebServerPlugin plugin=daemon.getAdditionalWebServers().get(0).getPlugin(ProcessesWebServerPlugin.class);
+                CouchbaseWebServerPlugin cbPlugin=daemon.getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
+                {
+                    IJobExecutorClient<TestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(TestDocCreateJob.class);
+                    TestDocCreateJob createJob = new TestDocCreateJob();
+                    createJob.name = "test";
+                    JobContext<TestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
+                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+                    TestDocProcess processDoc = session.get(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(), TestDocProcess.class);
+                    assertEquals(processDoc.name, createJob.name);
                 }
-                try {
-                    daemon.getDaemonLifeCycle().stop();
-                }
-                catch(Exception e){
 
+                {
+                    IJobExecutorClient<RemoteTestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(RemoteTestDocCreateJob.class);
+                    RemoteTestDocCreateJob createJob = new RemoteTestDocCreateJob();
+                    createJob.remoteName = "test2";
+                    JobContext<RemoteTestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
+                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+                    TestDocProcess processDoc = session.get(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).key, TestDocProcess.class);
+                    assertEquals(processDoc.name, createJob.remoteName);
                 }
+                {
+                    List<JobExecutorClientInfo> jobClients = ClientBuilder.newClient()
+                            .register(JsonProviderFactory.getProvider("service"))
+                            .target("http://"+ ServerConnectorUtils.getUrl(daemon.getAdditionalWebServers().get(0).getServerConnector()))
+                            .path("/apis/tests/processors/jobs")
+                            .request()
+                            .accept(MediaType.APPLICATION_JSON)
+                            .get(new GenericType<List<JobExecutorClientInfo>>(){});
+                    assertEquals(2L, jobClients.size());
+                }
+
+                {
+                    List<TaskExecutorClientInfo> taskClients = ClientBuilder.newClient()
+                            .register(JsonProviderFactory.getProvider("service"))
+                            .target("http://" + ServerConnectorUtils.getUrl(daemon.getAdditionalWebServers().get(0).getServerConnector()))
+                            .path("/apis/tests/processors/tasks")
+                            .request()
+                            .accept(MediaType.APPLICATION_JSON)
+                            .get(new GenericType<List<TaskExecutorClientInfo>>() {
+                            });
+                    assertEquals(2L, taskClients.size());
+                }
+
+            } catch (Throwable e) {
+                nbErrors.incrementAndGet();
+                LOG.error("!!!!! ERROR !!!!!Error during status read", e);
+            }
+            try {
+                daemon.getDaemonLifeCycle().stop();
+            }
+            catch(Exception e){
+
             }
         });
         daemon.getDaemonLifeCycle().addLifeCycleListener(new IDaemonLifeCycle.DefaultListener(1000000) {

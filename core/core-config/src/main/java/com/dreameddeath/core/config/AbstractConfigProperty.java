@@ -41,12 +41,12 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
             private Class<T> clazz=null;
             @Override
             @SuppressWarnings("unchecked")
-            public T getValue() {
+            public T getValue(T overrideDefaultValue) {
                 if(clazz==null){
-                    clazz=(Class<T>) defaultValue.getClass();
+                    clazz=(Class<T>) overrideDefaultValue.getClass();
                 }
                 T res = prop.getCachedValue(clazz).get();
-                return res!=null?res:defaultValue;
+                return res!=null?res:overrideDefaultValue;
             }
         };
     }
@@ -98,6 +98,11 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
     @Override
     public T getValue() {
         return wrapper.getValue();
+    }
+
+    public T getValue(T defaultValue){
+        T result=this.getValue();
+        return result!=null?result:defaultValue;
     }
 
     @Override

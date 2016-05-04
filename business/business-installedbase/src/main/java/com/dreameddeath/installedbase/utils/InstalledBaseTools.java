@@ -1,12 +1,12 @@
 package com.dreameddeath.installedbase.utils;
 
 import com.dreameddeath.core.date.IDateTimeService;
-import com.dreameddeath.installedbase.model.InstalledBase;
-import com.dreameddeath.installedbase.model.common.InstalledStatus;
-import com.dreameddeath.installedbase.model.common.InstalledValue;
-import com.dreameddeath.installedbase.model.offer.InstalledAtomicOffer;
-import com.dreameddeath.installedbase.model.offer.InstalledOffer;
-import com.dreameddeath.installedbase.model.productservice.InstalledProductService;
+import com.dreameddeath.installedbase.model.v1.InstalledBase;
+import com.dreameddeath.installedbase.model.v1.common.InstalledStatus;
+import com.dreameddeath.installedbase.model.v1.common.InstalledValue;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledAtomicOffer;
+import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
+import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductService;
 import com.google.common.base.Preconditions;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;

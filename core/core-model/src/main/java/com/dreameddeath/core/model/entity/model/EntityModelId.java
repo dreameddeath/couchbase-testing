@@ -95,7 +95,10 @@ public class EntityModelId {
     }
 
     private static String getInfo(DocumentEntity documentEntity, AbstractClassInfo cls, boolean isVersion) {
-        String info = isVersion?documentEntity.version(): documentEntity.domain();
+        String info = null;
+        if(documentEntity!=null) {
+            info = isVersion ? documentEntity.version() : documentEntity.domain();
+        }
 
         if (StringUtils.isEmpty(info)) {
             PackageInfo packageInfo=cls.getPackageInfo();
@@ -118,7 +121,7 @@ public class EntityModelId {
     public EntityModelId(DocumentEntity documentEntity, AbstractClassInfo classInfo) {
         this(
                 getInfo(documentEntity,classInfo,false),
-                StringUtils.isEmpty(documentEntity.name()) ? classInfo.getSimpleName().toLowerCase() : documentEntity.name(),
+                ((documentEntity==null) ||StringUtils.isEmpty(documentEntity.name())) ? classInfo.getSimpleName().toLowerCase() : documentEntity.name(),
                 getInfo(documentEntity,classInfo,true));
     }
 

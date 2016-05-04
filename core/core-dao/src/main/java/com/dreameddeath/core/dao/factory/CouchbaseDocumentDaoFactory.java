@@ -194,8 +194,12 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             Class<? extends CouchbaseDocumentDao> daoClass = (Class<? extends CouchbaseDocumentDao>)Thread.currentThread().getContextClassLoader().loadClass(daoInfo.getClassName());
             Class<? extends CouchbaseDocument> entityClass = (Class<? extends CouchbaseDocument>) Thread.currentThread().getContextClassLoader().loadClass(daoInfo.getEntityDef().getClassName());
             String bucketName = CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME_FOR_FLAVOR.getProperty(domain, name,flavor).getMandatoryValue("Cannot find entity class for domain {} / name {} / flavor {}", domain, name, flavor);
+            Boolean readonly = CouchbaseDaoConfigProperties.COUCHBASE_DAO_READ_ONLY_FOR_FLAVOR.getProperty(domain, name,flavor).getValue();
             ICouchbaseBucket bucket = bucketFactory.getBucket(bucketName);
             CouchbaseDocumentDao dao = daoClass.newInstance();
+            if(readonly!=null){
+                dao.isReadOnly(readonly);
+            }
             dao.setClient(bucket);
             addDaoFor(entityClass, dao);
             return dao;
