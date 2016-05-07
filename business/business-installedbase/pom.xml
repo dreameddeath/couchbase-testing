@@ -107,5 +107,10 @@
           <version>${project.version}</version>
           <scope>test</scope>
       </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>testing-daemon</artifactId>
+          <version>${project.version}</version>
+      </dependency>
   </dependencies>
 </project>

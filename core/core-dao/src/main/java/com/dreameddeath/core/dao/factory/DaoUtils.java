@@ -47,7 +47,7 @@ public class DaoUtils {
     }
 
     public static String getTargetDaoPerModelRegisteringFilename(String domain,String name){
-        return String.format("%s/%s/%s.json", ROOT_FILENAME_PER_MODEL, domain, name);
+        return String.format("%s/%s/%s.json", ROOT_FILENAME_PER_MODEL, domain.toLowerCase(), name.toLowerCase());
     }
 
     public static String getTargetDaoPerModelRegisteringFilename(DaoForClass annot){

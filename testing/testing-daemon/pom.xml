@@ -61,10 +61,5 @@
             <artifactId>testing-user</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>testing-user</artifactId>
-            <version>0.1</version>
-        </dependency>
     </dependencies>
 </project>

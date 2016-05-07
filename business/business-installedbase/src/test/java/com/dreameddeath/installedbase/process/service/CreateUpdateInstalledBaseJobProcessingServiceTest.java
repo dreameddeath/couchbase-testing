@@ -9,9 +9,9 @@ import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.StandardMockUserFactory;
+import com.dreameddeath.couchbase.testing.daemon.DaemonWrapperForTesting;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
-import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest.OrderStatus.COMPLETED;
@@ -51,7 +50,8 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
     private CouchbaseBucketFactorySimulator couchbaseBucketFactory;
     private static final DateTime REFERENCE_DATE = DateTime.parse("2016-01-01T00:00:00");
     private final AtomicReference<DateTime> dateTimeRef=new AtomicReference<>(REFERENCE_DATE);
-    private AbstractDaemon daemon;
+    //private AbstractDaemon daemon;
+    private DaemonWrapperForTesting daemonWrapper;
 
     @Before
     public void setup() throws Exception {
@@ -69,7 +69,7 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("installedbase").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
-        daemon = AbstractDaemon.builder()
+        AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
                 .withUserFactory(new StandardMockUserFactory())
                 .withPlugin(CouchbaseDaemonPlugin.builder().withBucketFactory(couchbaseBucketFactory))
@@ -81,82 +81,61 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withDateTimeServiceFactory(new DateTimeServiceFactory(new MockDateTimeServiceImpl(MockDateTimeServiceImpl.Calculator.fixedCalculator(dateTimeRef))))
                 .withApplicationContextConfig("META-INF/spring/webserver.installedbase.processes.applicationContext.xml"));
+
+        daemonWrapper = new DaemonWrapperForTesting(daemon);
+        daemonWrapper.start();
     }
 
     @Test
     public void testDaemon() throws Exception {
-        final AtomicInteger nbErrors = new AtomicInteger(0);
+        final Map<String,String> tempIdsMap=new HashMap<>();
+        CreateUpdateInstalledBaseJob request;
+        ProcessesWebServerPlugin plugin=daemonWrapper.getDaemon().getAdditionalWebServers().get(0).getPlugin(ProcessesWebServerPlugin.class);
+        CouchbaseWebServerPlugin cbPlugin=daemonWrapper.getDaemon().getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
+        IJobExecutorClient<CreateUpdateInstalledBaseJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(CreateUpdateInstalledBaseJob.class);
 
-        Thread stopping_thread = new Thread(() -> {
-            final Map<String,String> tempIdsMap=new HashMap<>();
-            CreateUpdateInstalledBaseJob request;
-            try {
-                ProcessesWebServerPlugin plugin=daemon.getAdditionalWebServers().get(0).getPlugin(ProcessesWebServerPlugin.class);
-                CouchbaseWebServerPlugin cbPlugin=daemon.getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
-                IJobExecutorClient<CreateUpdateInstalledBaseJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(CreateUpdateInstalledBaseJob.class);
+        {
+            Map<String, Object> params = new HashMap<>();
+            params.put("origDate", dateTimeRef.get());
+            params.put("orderStatus",IN_ORDER.toString());
+            params.put("tempIdsMap",tempIdsMap);
+            request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
+            JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
 
-                {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put("origDate", dateTimeRef.get());
-                    params.put("orderStatus",IN_ORDER.toString());
-                    params.put("tempIdsMap",tempIdsMap);
-                    request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
-                    JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
+            ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getDocument(session);
+            //assertEquals(processDoc.name, createJob.name);
+            assertNotNull(installedBase.getContract());
+            assertEquals(4,installedBase.getOffers().size());
+            assertEquals(2,installedBase.getPsList().size());
+            assertEquals(0,installedBase.getContract().getStatuses().size());
+            assertEquals(0,installedBase.getOffers().stream().flatMap(elt->elt.getStatuses().stream()).count());
+            assertEquals(0,installedBase.getPsList().stream().flatMap(elt->elt.getStatuses().stream()).count());
+        }
+        {
+            Map<String, Object> params = new HashMap<>();
+            params.put("origDate", dateTimeRef.get());
+            params.put("orderStatus",COMPLETED.toString());
+            params.put("tempIdsMap",tempIdsMap);
+            request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
 
-                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                    InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getDocument(session);
-                    //assertEquals(processDoc.name, createJob.name);
-                    assertNotNull(installedBase.getContract());
-                    assertEquals(4,installedBase.getOffers().size());
-                    assertEquals(2,installedBase.getPsList().size());
-                    assertEquals(0,installedBase.getContract().getStatuses().size());
-                    assertEquals(0,installedBase.getOffers().stream().flatMap(elt->elt.getStatuses().stream()).count());
-                    assertEquals(0,installedBase.getPsList().stream().flatMap(elt->elt.getStatuses().stream()).count());
-                }
-                {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put("origDate", dateTimeRef.get());
-                    params.put("orderStatus",COMPLETED.toString());
-                    params.put("tempIdsMap",tempIdsMap);
-                    request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
+            JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
+            ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getDocument(session);
+            //assertEquals(processDoc.name, createJob.name);
+            assertNotNull(installedBase.getContract());
+            assertEquals(4,installedBase.getOffers().size());
+            assertEquals(2,installedBase.getPsList().size());
+            assertEquals(1,installedBase.getContract().getStatuses().size());
+            assertEquals(4,installedBase.getOffers().stream().flatMap(elt->elt.getStatuses().stream()).count());
+            assertEquals(2,installedBase.getPsList().stream().flatMap(elt->elt.getStatuses().stream()).count());
+        }
 
-                    JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
-                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                    InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getDocument(session);
-                    //assertEquals(processDoc.name, createJob.name);
-                    assertNotNull(installedBase.getContract());
-                    assertEquals(4,installedBase.getOffers().size());
-                    assertEquals(2,installedBase.getPsList().size());
-                    assertEquals(1,installedBase.getContract().getStatuses().size());
-                    assertEquals(4,installedBase.getOffers().stream().flatMap(elt->elt.getStatuses().stream()).count());
-                    assertEquals(2,installedBase.getPsList().stream().flatMap(elt->elt.getStatuses().stream()).count());
-                }
-
-
-            } catch (Throwable e) {
-                nbErrors.incrementAndGet();
-                LOG.error("!!!!! ERROR !!!!!Error during status read", e);
-            }
-            try {
-                daemon.getDaemonLifeCycle().stop();
-            }
-            catch(Exception e){
-
-            }
-        });
-        daemon.getDaemonLifeCycle().addLifeCycleListener(new IDaemonLifeCycle.DefaultListener(1000000) {
-            @Override
-            public void lifeCycleStarted(final IDaemonLifeCycle lifeCycle) {
-                stopping_thread.start();
-            }
-        });
-        daemon.startAndJoin();
-        stopping_thread.join();
-        assertEquals(0L, nbErrors.get());
     }
 
     @After
     public void close() throws Exception {
+        if(daemonWrapper!=null) daemonWrapper.stop();
         if (testUtils != null) testUtils.stop();
     }
 
