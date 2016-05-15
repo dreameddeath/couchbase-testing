@@ -27,7 +27,7 @@ import com.dreameddeath.core.process.business.DocumentCreateTask;
 import com.dreameddeath.core.process.business.DocumentUpdateTask;
 import com.dreameddeath.core.process.common.AbstractJob;
 import com.dreameddeath.core.process.common.SubJobProcessTask;
-import com.dreameddeath.party.model.base.Party;
+import com.dreameddeath.party.model.v1.Party;
 
 /**
  * Created by Christophe Jeunesse on 29/05/2014.

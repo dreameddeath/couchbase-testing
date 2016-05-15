@@ -19,6 +19,8 @@ package com.dreameddeath.couchbase.core.process.remote.annotation.processor.mode
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
 
+import java.util.Map;
+
 /**
  * Created by Christophe Jeunesse on 04/03/2016.
  */
@@ -40,7 +42,6 @@ public class RemoteServiceInfo {
         className = "Remote"+classInfo.getSimpleName()+"Service";
         packageName = classInfo.getPackageInfo().getName().replaceAll("\\.model\\b",".service.rest");
         jobInfo = new JobInfo(classInfo);
-
     }
 
     public String getPath() {
@@ -74,11 +75,18 @@ public class RemoteServiceInfo {
         return jobInfo;
     }
 
+    public Map<String,RestModel> getModels(){
+        return jobInfo.getModels();
+    }
+
+    public Map<String,EnumModel> getEnums(){return jobInfo.getEnums();}
+
     public RestModel getRequest(){
         return jobInfo.getRequest();
     }
 
     public RestModel getResponse(){
-        return getJob().getResponse();
+        return jobInfo.getResponse();
     }
+
 }

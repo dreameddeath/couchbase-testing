@@ -45,7 +45,7 @@ public class AnnotationProcessorTestingWrapper {
     public Result run(Iterable<JavaFileObject> files) throws Exception{
         Result result = new Result();
 
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         result.setDiagnostics(diagnostics);
 
         result.setSourceFiles(files);

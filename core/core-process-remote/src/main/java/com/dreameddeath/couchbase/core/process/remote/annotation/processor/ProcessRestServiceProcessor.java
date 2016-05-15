@@ -21,7 +21,9 @@ import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessorVe
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
+import com.dreameddeath.couchbase.core.process.remote.annotation.processor.model.EnumModel;
 import com.dreameddeath.couchbase.core.process.remote.annotation.processor.model.RemoteServiceInfo;
+import com.dreameddeath.couchbase.core.process.remote.annotation.processor.model.RestModel;
 import org.apache.velocity.VelocityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -44,6 +47,7 @@ public class ProcessRestServiceProcessor extends AbstractAnnotationProcessor{
     private static final Logger LOG = LoggerFactory.getLogger(ProcessRestServiceProcessor.class);
     private static final String TEMPLATE_SERVICE_REST_FILENAME = "core/templates/rest.process.server.vm";
     private static final String TEMPLATE_MODEL_REST_FILENAME = "core/templates/rest.process.model.vm";
+    private static final String TEMPLATE_ENUM_REST_FILENAME = "core/templates/rest.process.enum.vm";
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -57,15 +61,17 @@ public class ProcessRestServiceProcessor extends AbstractAnnotationProcessor{
                     context.put("service", serviceInfo);
                     AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_SERVICE_REST_FILENAME, serviceInfo.getFullName(), classElem);
                 }
-                {
-                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + jobClassInfo.getImportName());
-                    context.put("model", serviceInfo.getRequest());
-                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_MODEL_REST_FILENAME, serviceInfo.getRequest().getImportName(), classElem);
+                for(Map.Entry<String,RestModel> modelEntry:serviceInfo.getModels().entrySet()){
+                    if(modelEntry.getValue().isUnwrapped){continue;}
+                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + jobClassInfo.getImportName() + " for "+modelEntry.getKey());
+                    context.put("model", modelEntry.getValue());
+                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_MODEL_REST_FILENAME, modelEntry.getValue().getImportName(), classElem);
                 }
-                {
-                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + jobClassInfo.getImportName());
-                    context.put("model", serviceInfo.getResponse());
-                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_MODEL_REST_FILENAME, serviceInfo.getResponse().getImportName(), classElem);
+
+                for(Map.Entry<String,EnumModel> modelEntry:serviceInfo.getJob().getEnums().entrySet()){
+                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + jobClassInfo.getImportName() + " for "+modelEntry.getKey());
+                    context.put("model", modelEntry.getValue());
+                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_ENUM_REST_FILENAME, modelEntry.getValue().getImportName(), classElem);
                 }
             }
             catch(Throwable e){

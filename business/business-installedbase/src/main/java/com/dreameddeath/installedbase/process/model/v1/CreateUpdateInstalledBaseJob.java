@@ -26,8 +26,6 @@ import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.process.model.v1.tasks.NoOpTask;
 import com.dreameddeath.installedbase.model.v1.InstalledBase;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseResponse;
 
 /**
  * Created by Christophe Jeunesse on 04/09/2014.

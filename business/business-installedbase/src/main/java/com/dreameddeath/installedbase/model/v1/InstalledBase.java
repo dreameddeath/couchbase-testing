@@ -33,7 +33,7 @@ import com.dreameddeath.installedbase.annotation.EntityConstants;
 import com.dreameddeath.installedbase.model.v1.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
 import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductService;
-import com.dreameddeath.party.model.base.PartyLink;
+import com.dreameddeath.party.model.v1.PartyLink;
 
 import java.util.Collection;
 import java.util.List;

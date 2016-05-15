@@ -14,37 +14,48 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.account;
+package com.dreameddeath.party.model.v1.roles;
 
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
-import com.dreameddeath.party.model.base.PartyRole;
+import com.dreameddeath.core.validation.annotation.NotNull;
+import com.dreameddeath.party.model.v1.PartyRole;
 
 import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 27/07/2014.
  */
+@DocumentEntity
 public class BillingAccountPartyRole extends PartyRole {
     @DocumentProperty("roles")
     private ListProperty<RoleType> roles = new ArrayListProperty<>(BillingAccountPartyRole.this);
-    @DocumentProperty("ba")
-    private Property<BillingAccountLink> ba=new ImmutableProperty<>(BillingAccountPartyRole.this);
+    @DocumentProperty("baUid") @NotNull
+    private Property<String> baUid =new ImmutableProperty<>(BillingAccountPartyRole.this);
 
 
-    public List<RoleType> getRoles(){ return roles.get();}
-    public void setRoles(List<RoleType> roles){this.roles.set(roles);}
+    public List<RoleType> getRoles(){
+        return roles.get();
+    }
+    public void setRoles(List<RoleType> roles){
+        this.roles.set(roles);
+    }
     public void addRole(RoleType role){
         if(roles.indexOf(role)<0){
             roles.add(role);
         }
     }
 
-    public void setBa(BillingAccountLink baLink){ba.set(baLink);}
-    public BillingAccountLink getBa(){return ba.get();}
+    public void setBaUid(String baId){
+        baUid.set(baId);
+    }
+    public String getBaUid(){
+        return baUid.get();
+    }
 
     public enum RoleType{
         HOLDER,

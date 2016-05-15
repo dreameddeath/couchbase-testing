@@ -32,8 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest.OrderStatus.COMPLETED;
-import static com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest.OrderStatus.IN_ORDER;
+import static com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest.OrderStatus.COMPLETED;
+import static com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest.OrderStatus.IN_ORDER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -48,10 +48,9 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
 
     private CuratorTestUtils testUtils;
     private CouchbaseBucketFactorySimulator couchbaseBucketFactory;
+    private DaemonWrapperForTesting daemonWrapper;
     private static final DateTime REFERENCE_DATE = DateTime.parse("2016-01-01T00:00:00");
     private final AtomicReference<DateTime> dateTimeRef=new AtomicReference<>(REFERENCE_DATE);
-    //private AbstractDaemon daemon;
-    private DaemonWrapperForTesting daemonWrapper;
 
     @Before
     public void setup() throws Exception {

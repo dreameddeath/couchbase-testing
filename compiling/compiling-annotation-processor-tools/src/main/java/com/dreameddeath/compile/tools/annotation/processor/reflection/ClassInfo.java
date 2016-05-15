@@ -30,11 +30,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static javax.lang.model.element.ElementKind.ENUM;
+
 /**
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class ClassInfo extends AbstractClassInfo {
     private ClassInfo superClass=null;
+    private boolean isEnum=false;
     private List<FieldInfo> declaredFields = null;
 
     @Override
@@ -48,9 +51,11 @@ public class ClassInfo extends AbstractClassInfo {
             if(superClassTypeMirror.getKind()!= TypeKind.NONE){
                 superClass = (ClassInfo) getClassInfo((TypeElement) ((DeclaredType)superClassTypeMirror).asElement());
             }
+            isEnum=getTypeElement().getKind()==ENUM;
         }
         else if(getCurrentClass().getSuperclass()!=null){
             superClass = (ClassInfo) getClassInfo(getCurrentClass().getSuperclass());
+            isEnum = this.getClass().isEnum();
         }
     }
 
@@ -118,5 +123,9 @@ public class ClassInfo extends AbstractClassInfo {
 
     public ClassInfo getSuperClass() {
         return superClass;
+    }
+
+    public boolean isEnum() {
+        return isEnum;
     }
 }

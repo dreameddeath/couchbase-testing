@@ -18,6 +18,7 @@ package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 import com.dreameddeath.compile.tools.annotation.exception.AnnotationProcessorException;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,6 +158,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     private String simpleName;
     private String fullName;
     private String compiledFileName;
+    private boolean isBaseType;
     private Class<?> clazz = null;
     private DeclaredType declaredType = null;
     private TypeElement typeElement = null;
@@ -204,6 +206,15 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
         else{
             //TODO throw exception
         }
+
+        //manage isBaseType
+        this.isBaseType =
+                AbstractClassInfo.getClassInfo(String.class).isAssignableFrom(this)
+                || AbstractClassInfo.getClassInfo(Boolean.class).isAssignableFrom(this)
+                || AbstractClassInfo.getClassInfo(DateTime.class).isAssignableFrom(this)
+                || AbstractClassInfo.getClassInfo(Number.class).isAssignableFrom(this)
+                || AbstractClassInfo.getClassInfo(Map.class).isAssignableFrom(this)
+                || AbstractClassInfo.getClassInfo(Collection.class).isAssignableFrom(this);
     }
 
     public AbstractClassInfo(TypeElement element){
@@ -397,5 +408,9 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     @Override
     public int hashCode(){
         return (this.clazz!=null)?clazz.hashCode():typeElement.getQualifiedName().toString().hashCode();
+    }
+
+    public boolean isBaseType() {
+        return isBaseType;
     }
 }

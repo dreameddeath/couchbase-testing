@@ -27,4 +27,8 @@ public class StringUtils {
     public static boolean isNotEmpty(String str){
         return (str!=null) && (!"".equals(str));
     }
+
+    public static String capitalizeFirst(String variableName) {
+        return variableName.substring(0,1).toUpperCase()+variableName.substring(1);
+    }
 }

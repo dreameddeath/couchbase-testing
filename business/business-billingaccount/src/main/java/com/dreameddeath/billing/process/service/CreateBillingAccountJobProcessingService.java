@@ -17,7 +17,6 @@
 package com.dreameddeath.billing.process.service;
 
 import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.account.BillingAccountPartyRole;
 import com.dreameddeath.billing.process.model.CreateBillingAccountJob;
 import com.dreameddeath.billing.process.model.CreateBillingAccountJob.CreateBillingAccountTask;
 import com.dreameddeath.billing.process.model.CreateBillingAccountJob.CreateBillingCycleJobTask;
@@ -34,7 +33,8 @@ import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingSe
 import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardSubJobProcessTaskProcessingService;
-import com.dreameddeath.party.model.base.Party;
+import com.dreameddeath.party.model.v1.Party;
+import com.dreameddeath.party.model.v1.roles.BillingAccountPartyRole;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
@@ -79,7 +79,7 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
         @Override
         protected void processDocument(TaskContext<CreateBillingAccountJob,CreatePartyRolesTask> ctxt,Party party) throws DaoException, StorageException {
             BillingAccountPartyRole newPartyRole = new BillingAccountPartyRole();
-            newPartyRole.setBa(ctxt.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession()).newLink());
+            newPartyRole.setBaUid(ctxt.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession()).getUid());
             newPartyRole.addRole(BillingAccountPartyRole.RoleType.HOLDER);
             newPartyRole.addRole(BillingAccountPartyRole.RoleType.PAYER);
             party.addPartyRole(newPartyRole);

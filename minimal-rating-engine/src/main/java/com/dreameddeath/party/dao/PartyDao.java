@@ -24,7 +24,7 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.BaseCouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.exception.dao.DaoException;
 import com.dreameddeath.core.model.document.BucketDocument;
-import com.dreameddeath.party.model.base.Party;
+import com.dreameddeath.party.model.v1.Party;
 
 public class PartyDao extends CouchbaseDocumentDaoWithUID<Party> {
     public static final String PARTY_CNT_KEY="party/cnt";

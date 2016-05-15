@@ -31,7 +31,7 @@ import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.dreameddeath.party.model.base.PartyLink;
+import com.dreameddeath.party.model.v1.PartyLink;
 import org.joda.time.DateTime;
 
 import java.util.Collection;

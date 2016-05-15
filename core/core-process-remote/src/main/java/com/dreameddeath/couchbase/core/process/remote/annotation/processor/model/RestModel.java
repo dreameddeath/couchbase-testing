@@ -16,20 +16,33 @@
 
 package com.dreameddeath.couchbase.core.process.remote.annotation.processor.model;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 04/03/2016.
  */
 public class RestModel {
-    private Map<String,Field> stringFieldMap = new HashMap<>();
+    private Map<String,Field> stringFieldForMapping = new HashMap<>();
+    private Map<String,Field> stringFieldForClassMap = new HashMap<>();
 
+    public CouchbaseDocumentStructureReflection origStructInfo;
+    public ClassInfo origClassInfo;
     public String shortName;
     public String packageName;
+    public boolean isRequest;
+    public boolean isUnwrapped;
+    public List<RestModel> unwrappedRootModels=new ArrayList<>();
 
     public String getShortName() {
         return shortName;
     }
+
+    public String getUnwrappedSourceShortName(){ return unwrappedRootModels.get(0).shortName;}
 
     public String getPackageName() {
         return packageName;
@@ -39,28 +52,101 @@ public class RestModel {
         return packageName+"."+shortName;
     }
 
-    public List<String> getImports(){
-        List<String> result = new ArrayList<>();
-        for(Field field:stringFieldMap.values()){
-            result.add(field.typeImport);
+    public Set<String> getImports(){
+        Set<String> result = new HashSet<>();
+        for(Field field: stringFieldForClassMap.values()){
+            result.addAll(field.typeImports);
         }
         return result;
     }
 
-    public Collection<Field> getFields(){
-        return stringFieldMap.values();
+    public Collection<Field> getFieldsForMapping(){
+        return stringFieldForMapping.values();
+    }
+    public Collection<Field> getFieldsForClass(){
+        return stringFieldForClassMap.values();
     }
 
-    public void addField(Field field){
-        stringFieldMap.put(field.jobFieldName,field);
+    public void addFieldForClass(Field field){
+        stringFieldForClassMap.put(field.jobFieldName,field);
+    }
+
+    public void addFieldsForClass(Collection<Field> fields) {
+        for(Field field:fields){
+            if(!stringFieldForClassMap.containsKey(field.jobFieldName)){
+                addFieldForClass(field);
+            }
+        }
+    }
+
+
+    public void addFieldForMapping(Field field){
+        stringFieldForMapping.put(field.jobFieldName,field);
+    }
+
+    public void addFieldsForMapping(Collection<Field> fields) {
+        for(Field field:fields){
+            if(!stringFieldForMapping.containsKey(field.jobFieldName)){
+                addFieldForMapping(field);
+            }
+        }
+    }
+
+    public String getMapFctName(){
+        return isRequest?
+                "mapFromRequest"+
+                        (isUnwrapped?"For"+unwrappedRootModels.stream().map(RestModel::getShortName).map(StringUtils::capitalizeFirst).collect(Collectors.joining("And"))
+                                :"")
+                :"mapToResponse";
+    }
+
+
+    public String getOrigClassSimpleName(){
+        return origClassInfo.getSimpleName();
+    }
+
+    public String getOrigClassImportName(){
+        return origClassInfo.getImportName();
+    }
+
+    public boolean isRequest() {
+        return isRequest;
+    }
+
+    public boolean isUnwrapped() {
+        return isUnwrapped;
     }
 
     public static class Field{
+        public List<String> typeImports = new ArrayList<>();
+        public RestModel parentModel;
         public String jobFieldName;
         public String variableName;
         public String jsonName;
         public String type;
-        public String typeImport;
+        public Type typeStructure;
+        public RestModel complexTypeModel;
+        public boolean isComplexType;
+        public boolean isEnum;
+        public UnwrapMode unwrapMode =UnwrapMode.NONE;
+        public RestModel unwrappedModel=null;
+        public RestModel.Field unwrappedRootField =null;
+
+        public Field(){}
+
+        public Field(Field source,UnwrapMode mode,RestModel sourceModel,Field rootField){
+            jobFieldName=source.jobFieldName;
+            variableName=source.variableName;
+            jsonName=source.jsonName;
+            type=source.type;
+            typeImports.addAll(source.typeImports);
+            typeStructure=source.typeStructure;
+            isComplexType=source.isComplexType;
+            isEnum=source.isEnum;
+            unwrapMode=mode;
+            unwrappedModel=sourceModel;
+            unwrappedRootField=rootField;
+        }
 
         public String buildGetter(String variableName){
             return variableName+"."+getGetterName()+"()";
@@ -90,8 +176,21 @@ public class RestModel {
             return type;
         }
 
-        public String getTypeImport() {
-            return typeImport;
+        public List<String> getTypeImports() {
+            return typeImports;
         }
+
+        public enum Type{
+            SIMPLE,
+            COLLECTION,
+            MAP
+        }
+
+        public enum UnwrapMode{
+            NONE,
+            UNWRAP_SOURCE,
+            UNWRAP_CHILD
+        }
+
     }
 }

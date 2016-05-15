@@ -23,7 +23,6 @@ import com.dreameddeath.installedbase.model.v1.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.v1.offer.InstalledAtomicOffer;
 import com.dreameddeath.installedbase.model.v1.offer.InstalledCompositeOffer;
 import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductService;
 import com.dreameddeath.installedbase.model.v1.tariff.InstalledDiscount;
 import com.dreameddeath.installedbase.model.v1.tariff.InstalledTariff;

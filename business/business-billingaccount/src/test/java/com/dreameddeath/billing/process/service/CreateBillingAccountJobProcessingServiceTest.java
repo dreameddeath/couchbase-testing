@@ -29,9 +29,11 @@ import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
 import com.dreameddeath.core.process.utils.ProcessUtils;
-import com.dreameddeath.party.dao.base.PartyDao;
-import com.dreameddeath.party.process.model.CreatePartyJob;
-import com.dreameddeath.party.process.service.CreatePartyJobProcessingService;
+import com.dreameddeath.party.dao.v1.PartyDao;
+import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob;
+import com.dreameddeath.party.process.model.v1.party.CreateUpdatePartyRequest;
+import com.dreameddeath.party.process.service.CreateUpdatePartyJobProcessingService;
+import com.dreameddeath.party.service.impl.PartyManagementService;
 import com.dreameddeath.testing.Utils;
 import org.junit.After;
 import org.junit.Before;
@@ -57,8 +59,12 @@ public class CreateBillingAccountJobProcessingServiceTest {
         env.start();
         ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
         ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
+        CreateUpdatePartyJobProcessingService.CreatePartyTaskProcessingService createPartyTaskProcessingService=new CreateUpdatePartyJobProcessingService.CreatePartyTaskProcessingService();
+        createPartyTaskProcessingService.setPartyManagementService(new PartyManagementService());
+        processFactory.addTaskProcessingService(createPartyTaskProcessingService);
+        processFactory.addJobProcessingService(CreateUpdatePartyJobProcessingService.class);
+        //processFactory.getTaskProcessingServiceForClass(CreateUpdatePartyJob.CreatePartyTask.class);
 
-        processFactory.addJobProcessingService(CreatePartyJobProcessingService.class);
         processFactory.addJobProcessingService(CreateBillingAccountJobProcessingService.class);
         processFactory.addJobProcessingService(CreateBillingCycleJobProcessingService.class);
         executorClientFactory = new ExecutorClientFactory(env.getSessionFactory(),execFactory,processFactory);
@@ -68,14 +74,16 @@ public class CreateBillingAccountJobProcessingServiceTest {
     @Test
     public void JobTest() throws Exception{
         ICouchbaseSession session =env.getSessionFactory().newReadWriteSession(null);
-        CreatePartyJob createPartyJob = session.newEntity(CreatePartyJob.class);
-        createPartyJob.type = CreatePartyJob.Type.person;
-        createPartyJob.person = new CreatePartyJob.Person();
-        createPartyJob.person.firstName = "christophe";
-        createPartyJob.person.lastName = "jeunesse";
+        CreateUpdatePartyJob createUpdatePartyJob = session.newEntity(CreateUpdatePartyJob.class);
+        CreateUpdatePartyRequest createUpdatePartyRequest = new CreateUpdatePartyRequest();
+        createUpdatePartyJob.setRequest(createUpdatePartyRequest);
+        createUpdatePartyRequest.type = CreateUpdatePartyRequest.Type.person;
+        createUpdatePartyRequest.person = new CreateUpdatePartyRequest.Person();
+        createUpdatePartyRequest.person.firstName = "christophe";
+        createUpdatePartyRequest.person.lastName = "jeunesse";
 
-        executorClientFactory.buildJobClient(CreatePartyJob.class).executeJob(createPartyJob,null);
-        CreatePartyJob.CreatePartyTask createPartyTask=ProcessUtils.loadTask(session,createPartyJob,1,CreatePartyJob.CreatePartyTask.class);
+        executorClientFactory.buildJobClient(CreateUpdatePartyJob.class).executeJob(createUpdatePartyJob,null);
+        CreateUpdatePartyJob.CreatePartyTask createPartyTask=ProcessUtils.loadTask(session, createUpdatePartyJob,1,CreateUpdatePartyJob.CreatePartyTask.class);
         CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
         createBaJob.billDay=2;
 

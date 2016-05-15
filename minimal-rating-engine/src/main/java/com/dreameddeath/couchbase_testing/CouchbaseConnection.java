@@ -44,7 +44,7 @@ import com.dreameddeath.core.process.service.ProcessingServiceFactory;
 import com.dreameddeath.core.user.User;
 import com.dreameddeath.installedbase.process.CreateUpdateInstalledBaseJob;
 import com.dreameddeath.party.dao.PartyDao;
-import com.dreameddeath.party.model.base.Party;
+import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
 import com.dreameddeath.party.process.CreatePartyJob;
 import com.dreameddeath.rating.dao.RatingContextDao;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.party.model.base;
+package com.dreameddeath.party.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
@@ -26,7 +26,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
-@DocumentEntity(domain = "party")
+@DocumentEntity
 public class Person extends Party {
     @DocumentProperty("firstName") @NotNull
     private Property<String> firstName=new StandardProperty<String>(Person.this);

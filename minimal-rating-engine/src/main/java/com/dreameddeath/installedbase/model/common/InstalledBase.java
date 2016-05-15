@@ -25,7 +25,7 @@ import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.installedbase.model.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.offer.InstalledOffer;
-import com.dreameddeath.party.model.base.PartyLink;
+import com.dreameddeath.party.model.v1.PartyLink;
 
 import java.util.Collection;
 import java.util.List;

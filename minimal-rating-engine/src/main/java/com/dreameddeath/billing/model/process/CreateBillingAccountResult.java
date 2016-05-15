@@ -19,7 +19,7 @@ package com.dreameddeath.billing.model.process;
 import com.dreameddeath.billing.model.account.BillingAccountLink;
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;
-import com.dreameddeath.party.model.base.PartyLink;
+import com.dreameddeath.party.model.v1.PartyLink;
 
 /**
  * Created by Christophe Jeunesse on 13/08/2014.

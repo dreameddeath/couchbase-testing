@@ -1,7 +1,7 @@
 package com.dreameddeath.installedbase.service.utils;
 
 import com.dreameddeath.installedbase.model.v1.offer.InstalledCompositeOffer;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.process.model.v1.InstalledItemUpdateResult;
 
 /**

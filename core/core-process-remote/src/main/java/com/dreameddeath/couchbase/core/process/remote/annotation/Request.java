@@ -32,4 +32,14 @@ public @interface Request {
      * @return the external name of the field
      */
     String value() default "";
+    /**
+     * allow the unwrapping of the field (ignore the level)
+     * @return the marker telling to unwrap or not
+     */
+    boolean unwrap() default false;
+    /**
+     * determine the way to export fields
+     * @return the mode of field export/filter
+     */
+    FieldFilteringMode mode() default FieldFilteringMode.INHERIT;
 }

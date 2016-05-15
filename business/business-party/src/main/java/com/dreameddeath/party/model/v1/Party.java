@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.party.model.base;
+package com.dreameddeath.party.model.v1;
 
 import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
@@ -29,7 +29,6 @@ import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,27 +37,26 @@ import java.util.List;
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "party/",idPattern = "\\d{10}",idFormat = "%010d")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")
-@DocumentEntity(domain="party")
+@DocumentEntity
 public abstract class Party extends BusinessDocument {
     @DocumentProperty("uid")
     private transient ImmutableProperty<String> uid=new ImmutableProperty<String>(Party.this);
     @DocumentProperty(value="partyRoles")
-    private List<PartyRole> partyRoles = new ArrayListProperty<PartyRole>(Party.this);
+    private ListProperty<PartyRole> partyRoles = new ArrayListProperty<>(Party.this);
     /**
      *  externalIds : List of Party external ids
      */
     @DocumentProperty("externalIds")
-    private ListProperty<ExternalId> externalIds = new ArrayListProperty<ExternalId>(Party.this);
+    private ListProperty<ExternalId> externalIds = new ArrayListProperty<>(Party.this);
 
 
 
     public String getUid() { return uid.get(); }
     public void setUid(String uid) { this.uid.set(uid); }
 
-    public List<PartyRole> getPartyRoles() { return Collections.unmodifiableList(partyRoles); }
+    public List<PartyRole> getPartyRoles() { return partyRoles.get(); }
     public void setPartyRoles(Collection<PartyRole> partyRoles){
-        partyRoles.clear();
-        partyRoles.addAll(partyRoles);
+        this.partyRoles.set(partyRoles);
     }
     public void addPartyRole(PartyRole partyRole){
         partyRoles.add(partyRole);

@@ -30,11 +30,11 @@ import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingSe
 import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 import com.dreameddeath.installedbase.model.v1.InstalledBase;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseResponse;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob.InitEmptyInstalledBase;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseResponse;
 import com.dreameddeath.installedbase.service.ICreateUpdateInstalledBaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 

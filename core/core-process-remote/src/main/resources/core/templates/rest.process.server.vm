@@ -22,10 +22,13 @@ import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.couchbase.core.process.remote.service.AbstractRemoteJobRestService;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 
+import java.util.stream.Collectors;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map;
 
-import ${service.job.importName};
-import ${service.request.importName};
-import ${service.response.importName};
+#foreach($importName in $service.job.getServiceImports())
+import ${importName};
+#end
 
 import javax.ws.rs.Path;
 
@@ -40,20 +43,13 @@ import javax.ws.rs.Path;
 public class ${service.className} extends AbstractRemoteJobRestService<${service.job.shortName},${service.request.shortName},${service.response.shortName}> {
     @Override
     protected ${service.job.shortName} buildJobFromRequest(${service.request.shortName} request) {
-        ${service.job.shortName} resultJob = new ${service.job.shortName}();
-#foreach($requestField in ${service.request.fields})
-        resultJob.${service.job.buildSetter($requestField,$requestField.buildGetter("request"))};
-#end
-        return resultJob;
+        return ${service.request.mapFctName}(request);
     }
+
 
     @Override
     protected ${service.response.shortName} buildResponse(${service.job.shortName} job) {
-        ${service.response.shortName} resultResponse = new ${service.response.shortName}();
-#foreach($responseField in ${service.response.fields})
-        resultResponse.${responseField.setterName}($service.job.buildGetter("job",$responseField));
-#end
-        return resultResponse;
+        return ${service.response.mapFctName}(job);
     }
 
     public static class WrappedResponse extends RemoteJobResultWrapper<${service.response.shortName}> {
@@ -66,4 +62,52 @@ public class ${service.className} extends AbstractRemoteJobRestService<${service
     protected final Class<WrappedResponse> getResponseClass(){
         return WrappedResponse.class;
     }
+
+#foreach($model in $service.models.values())
+#if($model.isRequest())
+    private $model.origClassSimpleName ${model.mapFctName}(#if($model.isUnwrapped())${model.getUnwrappedSourceShortName()} #else ${model.shortName} #end source){
+        ${model.origClassSimpleName} result = new ${model.origClassSimpleName}();
+#foreach($field in ${model.fieldsForMapping})
+        ${service.job.buildSetter("result",$model,$field,$service.job.buildGetterWithMapping("source",$model,$field))};
+#end
+        return result;
+    }
+#else
+    private #if($model.isUnwrapped())${model.getUnwrappedSourceShortName()} #else ${model.shortName} #end ${model.mapFctName}(#if($model.isUnwrapped())${model.getUnwrappedSourceShortName()} result,#end ${model.origClassSimpleName} source){
+#if(!$model.isUnwrapped())
+        ${model.shortName} result = new ${model.shortName}();
+#end
+#foreach($field in ${model.fieldsForMapping})
+        ${service.job.buildSetter("result",$model,$field,$service.job.buildGetterWithMapping("source",$model,$field))};
+#end
+        return result;
+    }
+#end
+#end
+
+#foreach($enum in $service.enums.values())
+#if($enum.isForRequest())
+    private ${enum.origClassSimpleName} mapEnum(${enum.shortName} source){
+        String sourceValue = (source==null)?null:source.toString();
+        for(${enum.origClassSimpleName} value:${enum.origClassSimpleName}.values()){
+            if(value.toString().equals(sourceValue)){
+                return value;
+            }
+        }
+        return null;
+    }
+#end
+
+#if($enum.isForResponse())
+    private ${enum.getShortName()} mapEnum(${enum.origClassSimpleName} source){
+        String sourceValue = (source==null)?null:source.toString();
+        for(${enum.getShortName()} value:${enum.getShortName()}.values()){
+            if(value.toString().equals(sourceValue)){
+                return value;
+            }
+        }
+        return null;
+    }
+#end
+#end
 }

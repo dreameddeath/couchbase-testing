@@ -20,9 +20,9 @@ import com.dreameddeath.core.exception.process.JobExecutionException;
 import com.dreameddeath.core.model.process.EmptyJobResult;
 import com.dreameddeath.core.process.business.DocumentCreateTask;
 import com.dreameddeath.core.process.common.AbstractJob;
-import com.dreameddeath.party.model.base.Organization;
-import com.dreameddeath.party.model.base.Party;
-import com.dreameddeath.party.model.base.Person;
+import com.dreameddeath.party.model.v1.Organization;
+import com.dreameddeath.party.model.v1.Party;
+import com.dreameddeath.party.model.v1.Person;
 import com.dreameddeath.party.model.process.CreatePartyRequest;
 
 /**

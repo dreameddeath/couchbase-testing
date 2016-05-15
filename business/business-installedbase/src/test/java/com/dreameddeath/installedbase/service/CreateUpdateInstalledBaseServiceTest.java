@@ -2,7 +2,7 @@ package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.MockDateTimeServiceImpl;
 import com.dreameddeath.installedbase.model.v1.InstalledBase;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.process.model.v1.IdentifiedItemUpdateResult;
 import com.dreameddeath.installedbase.process.model.v1.InstalledBaseUpdateResult;
 import com.dreameddeath.testing.dataset.DatasetManager;
@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest.OrderStatus.COMPLETED;
-import static com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest.OrderStatus.IN_ORDER;
+import static com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest.OrderStatus.COMPLETED;
+import static com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest.OrderStatus.IN_ORDER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 

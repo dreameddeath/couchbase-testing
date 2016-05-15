@@ -21,7 +21,7 @@ import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.party.model.base.PartyRole;
+import com.dreameddeath.party.model.v1.PartyRole;
 
 import java.util.Collection;
 import java.util.List;

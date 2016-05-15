@@ -34,14 +34,14 @@ import ${importName};
 )
 
 public class ${model.shortName}{
-#foreach($field in ${model.fields})
+#foreach($field in ${model.fieldsForClass})
     @JsonProperty("${field.jsonName}")
     private ${field.type} ${field.variableName};
 #end
 
 
 
-#foreach($field in ${model.fields})
+#foreach($field in ${model.fieldsForClass})
     @JsonSetter("${field.jsonName}")
     public void ${field.setterName}(${field.type} val){
         ${field.variableName} = val;

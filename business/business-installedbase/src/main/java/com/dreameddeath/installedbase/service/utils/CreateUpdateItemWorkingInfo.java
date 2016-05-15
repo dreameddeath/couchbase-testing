@@ -2,7 +2,7 @@ package com.dreameddeath.installedbase.service.utils;
 
 import com.dreameddeath.installedbase.model.v1.common.InstalledItem;
 import com.dreameddeath.installedbase.model.v1.common.InstalledItemRevision;
-import com.dreameddeath.installedbase.model.v1.process.CreateUpdateInstalledBaseRequest;
+import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.process.model.v1.IdentifiedItemUpdateResult;
 import com.dreameddeath.installedbase.process.model.v1.RevisionUpdateResult;
 
