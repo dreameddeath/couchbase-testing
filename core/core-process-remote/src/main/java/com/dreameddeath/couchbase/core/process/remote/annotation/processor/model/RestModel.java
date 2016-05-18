@@ -19,6 +19,9 @@ package com.dreameddeath.couchbase.core.process.remote.annotation.processor.mode
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,6 +40,13 @@ public class RestModel {
     public boolean isRequest;
     public boolean isUnwrapped;
     public List<RestModel> unwrappedRootModels=new ArrayList<>();
+    public boolean isRoot;
+    public boolean hasRemoteInfo=false;
+    public String remoteDomain;
+    public String remoteName;
+    public String remoteVersion;
+    public List<RestModel> listChildClasses=new ArrayList<>();
+    public RestModel parentModel=null;
 
     public String getShortName() {
         return shortName;
@@ -54,6 +64,20 @@ public class RestModel {
 
     public Set<String> getImports(){
         Set<String> result = new HashSet<>();
+        if(hasRemoteInfo){
+            result.add(ClassInfo.getClassInfo(RemoteServiceInfo.class).getImportName());
+        }
+        if(hasChildClasses()){
+            result.add(ClassInfo.getClassInfo(JsonSubTypes.class).getImportName());
+            result.add(ClassInfo.getClassInfo(JsonTypeInfo.class).getImportName());
+            for(RestModel childModel:listChildClasses){
+                result.add(childModel.getImportName());
+            }
+        }
+
+        if(hasParentModel()){
+            result.add(parentModel.getImportName());
+        }
         for(Field field: stringFieldForClassMap.values()){
             result.addAll(field.typeImports);
         }
@@ -100,6 +124,13 @@ public class RestModel {
                 :"mapToResponse";
     }
 
+    public boolean hasChildClasses(){
+        return (listChildClasses!=null) && (listChildClasses.size()>0);
+    }
+
+    public List<RestModel> getListChildClasses() {
+        return listChildClasses;
+    }
 
     public String getOrigClassSimpleName(){
         return origClassInfo.getSimpleName();
@@ -115,6 +146,49 @@ public class RestModel {
 
     public boolean isUnwrapped() {
         return isUnwrapped;
+    }
+
+
+    public boolean hasRemoteInfo() {
+        return hasRemoteInfo;
+    }
+
+    public String getRemoteDomain() {
+        return remoteDomain;
+    }
+
+    public String getRemoteName() {
+        return remoteName;
+    }
+
+    public String getRemoteVersion() {
+        return remoteVersion;
+    }
+
+    public String getSubClassTypeName(){
+        return origStructInfo.getEntityModelId().getName();
+    }
+
+    public List<RestModel> getFirstLevelChilds(){
+        //final EntityDef currentEntityDef = EntityDef.build(this.origStructInfo);
+        return listChildClasses.stream()
+                .filter(
+                        elt->
+                                elt.origStructInfo.getSuperclassReflexion().getClassInfo().equals(this.origStructInfo.getClassInfo())
+                )
+                .collect(Collectors.toList());
+    }
+
+    public boolean hasParentModel(){
+        return parentModel!=null;
+    }
+
+    public String getParentModelShortName(){
+        return parentModel.getShortName();
+    }
+
+    public boolean isAbstract(){
+        return origClassInfo.isAbstract();
     }
 
     public static class Field{

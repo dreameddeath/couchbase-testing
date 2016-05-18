@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.cycle;
+package com.dreameddeath.billing.model.v1.cycle;
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
@@ -30,7 +30,7 @@ import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;
 
-@DocumentEntity(domain = "billing",name="cycle",version="1.0.0")
+@DocumentEntity(name="cycle")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDao.class,dbPath = "cycle/",idPattern = "\\d{5}",idFormat = "%05d")
 @ParentEntity(c= BillingAccount.class,keyPath = "ba.key",separator = "/")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)

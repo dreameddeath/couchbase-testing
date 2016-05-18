@@ -28,7 +28,7 @@ import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
 import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.process.model.v1.party.CreateUpdatePartyRequest;
-import com.dreameddeath.party.service.model.PartyUpdateResult;
+import com.dreameddeath.party.process.model.v1.roles.tasks.PartyUpdateResult;
 
 /**
  * Created by Christophe Jeunesse on 01/08/2014.

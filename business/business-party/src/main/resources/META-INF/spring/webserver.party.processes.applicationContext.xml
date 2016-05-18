@@ -20,23 +20,13 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
     <import resource="classpath:META-INF/spring/webserver.base.applicationContext.xml"/>
-    <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
+    <import resource="classpath:META-INF/spring/webserver.party.couchbase.applicationContext.xml" />
     <import resource="classpath:META-INF/spring/webserver.processes.applicationContext.xml" />
 
 
     <bean id="partyManagementService" class="com.dreameddeath.party.service.impl.PartyManagementService" />
 
     <bean id="createUpdateInstalledBaseService" class="com.dreameddeath.party.process.service.CreateUpdatePartyJobProcessingService$CreatePartyTaskProcessingService" />
-
-    <bean id="partyDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
-          factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntities">
-        <constructor-arg>
-            <list>
-                <value>party/party</value>
-            </list>
-        </constructor-arg>
-    </bean>
-
 
     <bean id="createUpdatePartyTask" class="com.dreameddeath.core.process.service.ITaskProcessingService"
           factory-bean="processingServiceFactory" factory-method="addTaskProcessingService">

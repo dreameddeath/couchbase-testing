@@ -20,6 +20,10 @@ import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationPro
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessorVelocityEngine;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.entity.EntityDefinitionManager;
+import com.dreameddeath.core.model.entity.model.EntityDef;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
 import com.dreameddeath.couchbase.core.process.remote.annotation.processor.model.EnumModel;
 import com.dreameddeath.couchbase.core.process.remote.annotation.processor.model.RemoteServiceInfo;
@@ -34,6 +38,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,10 +57,21 @@ public class ProcessRestServiceProcessor extends AbstractAnnotationProcessor{
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
+        EntityDefinitionManager entityManager = new EntityDefinitionManager();
+        Set<EntityDef> modelIds = new HashSet<>();
+        modelIds.addAll(entityManager.getEntities());
+        for(Element localEntityElement:roundEnv.getElementsAnnotatedWith(DocumentEntity.class)){
+            if(CouchbaseDocumentStructureReflection.isReflexible(localEntityElement)) {
+                CouchbaseDocumentStructureReflection documentStructureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)AbstractClassInfo.getClassInfo((TypeElement)localEntityElement));
+                modelIds.add(EntityDef.build(documentStructureReflection));
+            }
+        }
+
+
         for(Element classElem : roundEnv.getElementsAnnotatedWith(RestExpose.class)) {
             try{
                 ClassInfo jobClassInfo = (ClassInfo)AbstractClassInfo.getClassInfo((TypeElement) classElem);
-                RemoteServiceInfo serviceInfo = new RemoteServiceInfo(jobClassInfo);
+                RemoteServiceInfo serviceInfo = new RemoteServiceInfo(jobClassInfo,modelIds);
                 {
                     VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + jobClassInfo.getImportName());
                     context.put("service", serviceInfo);
@@ -85,6 +101,6 @@ public class ProcessRestServiceProcessor extends AbstractAnnotationProcessor{
                 throw new RuntimeException("Error during annotation processor",e);
             }
         }
-        return false;
+        return true;
     }
 }

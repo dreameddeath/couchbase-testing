@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.account;
+package com.dreameddeath.billing.model.v1.account;
 
-import com.dreameddeath.billing.model.cycle.BillingCycleLink;
+import com.dreameddeath.billing.model.v1.cycle.BillingCycleLink;
 import com.dreameddeath.billing.model.installedbase.BillingInstalledBaseLink;
 import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.annotation.DocumentProperty;

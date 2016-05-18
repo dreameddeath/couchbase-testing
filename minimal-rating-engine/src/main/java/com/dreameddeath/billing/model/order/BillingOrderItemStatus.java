@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.order;
+package com.dreameddeath.billing.model.v1.order;
 
 import com.dreameddeath.core.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.BaseCouchbaseDocumentElement;

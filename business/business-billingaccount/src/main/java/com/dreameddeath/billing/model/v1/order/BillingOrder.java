@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.order;
+package com.dreameddeath.billing.model.v1.order;
 
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 01/09/2014.
  */
-@DocumentEntity(domain = "billing",name="order",version = "1.0.0")
+@DocumentEntity(name="order")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDao.class,dbPath = "order/",idPattern = "\\d{5}",idFormat = "%05d")
 @ParentEntity(c= BillingAccount.class,keyPath = "billingAccount.key",separator = "/")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)

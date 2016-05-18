@@ -29,8 +29,8 @@ import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob;
 import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob.CreatePartyTask;
+import com.dreameddeath.party.process.model.v1.roles.tasks.PartyUpdateResult;
 import com.dreameddeath.party.service.IPartyManagementService;
-import com.dreameddeath.party.service.model.PartyUpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

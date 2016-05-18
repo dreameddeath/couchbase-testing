@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.order;
+package com.dreameddeath.billing.model.v1.order;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
@@ -29,25 +28,26 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 01/09/2014.
  */
-public class BillingOrderItem extends CouchbaseDocumentElement {
+public class BillingOrderItemFee extends BillingOrderItem {
     /**
-     *  id : The internal id of the order being billed
+     *  tariffId : The tariff id being billed
      */
-    @DocumentProperty("id")
-    private Property<Long> id = new StandardProperty<>(BillingOrderItem.this);
+    @DocumentProperty("tariffId")
+    private Property<String> tariffId = new StandardProperty<>(BillingOrderItemFee.this);
     /**
-     *  statuses : Statuses of the order item
+     *  discountIds : The list of applicable billing item ids
      */
-    @DocumentProperty("statuses")
-    private ListProperty<BillingOrderItemStatus> statuses = new ArrayListProperty<>(BillingOrderItem.this);
+    @DocumentProperty("discountIds")
+    private ListProperty<Long> discountIds = new ArrayListProperty<>(BillingOrderItemFee.this);
+
+    // tariffId accessors
+    public String getTariffId() { return tariffId.get(); }
+    public void setTariffId(String val) { tariffId.set(val); }
+    // DiscountIds Accessors
+    public List<Long> getDiscountIds() { return discountIds.get(); }
+    public void setDiscountIds(Collection<Long> vals) { discountIds.set(vals); }
+    public boolean addDiscountIds(Long val){ return discountIds.add(val); }
+    public boolean removeDiscountIds(Long val){ return discountIds.remove(val); }
 
 
-    // id accessors
-    public Long getId() { return id.get(); }
-    public void setId(Long val) { id.set(val); }
-    // Statuses Accessors
-    public List<BillingOrderItemStatus> getStatuses() { return statuses.get(); }
-    public void setStatuses(Collection<BillingOrderItemStatus> vals) { statuses.set(vals); }
-    public boolean addStatuses(BillingOrderItemStatus val){ return statuses.add(val); }
-    public boolean removeStatuses(BillingOrderItemStatus val){ return statuses.remove(val); }
 }

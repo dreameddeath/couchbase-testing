@@ -16,8 +16,8 @@
 
 package com.dreameddeath.billing.process;
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.cycle.BillingCycle;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.cycle.BillingCycle;
 import com.dreameddeath.billing.model.process.CreateBillingCycleRequest;
 import com.dreameddeath.billing.util.BillCycleUtils;
 import com.dreameddeath.core.couchbase.exception.StorageException;

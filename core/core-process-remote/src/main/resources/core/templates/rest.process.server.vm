@@ -66,7 +66,20 @@ public class ${service.className} extends AbstractRemoteJobRestService<${service
 #foreach($model in $service.models.values())
 #if($model.isRequest())
     private $model.origClassSimpleName ${model.mapFctName}(#if($model.isUnwrapped())${model.getUnwrappedSourceShortName()} #else ${model.shortName} #end source){
+        if(source==null) return null;
+#if($model.hasChildClasses())
+        ${model.origClassSimpleName} result;
+#foreach($subModel in $model.getFirstLevelChilds())
+        if(source instanceof ${subModel.shortName}){
+            result = ${model.mapFctName}((${subModel.shortName})source);
+        } #if($foreach.hasNext) else #end
+#end
+        else {
+            throw new RuntimeException("Unmanage class mapping " + source.getClass().getName());
+        }
+#else
         ${model.origClassSimpleName} result = new ${model.origClassSimpleName}();
+#end
 #foreach($field in ${model.fieldsForMapping})
         ${service.job.buildSetter("result",$model,$field,$service.job.buildGetterWithMapping("source",$model,$field))};
 #end
@@ -74,8 +87,21 @@ public class ${service.className} extends AbstractRemoteJobRestService<${service
     }
 #else
     private #if($model.isUnwrapped())${model.getUnwrappedSourceShortName()} #else ${model.shortName} #end ${model.mapFctName}(#if($model.isUnwrapped())${model.getUnwrappedSourceShortName()} result,#end ${model.origClassSimpleName} source){
+        if(source==null) return null;
 #if(!$model.isUnwrapped())
+#if($model.hasChildClasses())
+        ${model.shortName} result;
+#foreach($subModel in $model.getFirstLevelChilds())
+        if(source instanceof ${subModel.origClassSimpleName}){
+            result = ${model.mapFctName}((${subModel.origClassSimpleName})source);
+        } #if($foreach.hasNext) else #end
+#end
+        else {
+            throw new RuntimeException("Unmanage class mapping " + source.getClass().getName());
+        }
+#else
         ${model.shortName} result = new ${model.shortName}();
+#end
 #end
 #foreach($field in ${model.fieldsForMapping})
         ${service.job.buildSetter("result",$model,$field,$service.job.buildGetterWithMapping("source",$model,$field))};
@@ -83,6 +109,7 @@ public class ${service.className} extends AbstractRemoteJobRestService<${service
         return result;
     }
 #end
+
 #end
 
 #foreach($enum in $service.enums.values())

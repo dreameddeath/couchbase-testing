@@ -9,9 +9,9 @@ import com.dreameddeath.party.model.v1.roles.BillingAccountPartyRole;
 import com.dreameddeath.party.process.model.v1.party.CreateUpdatePartyRequest;
 import com.dreameddeath.party.process.model.v1.roles.BillingAccountCreateUpdateRoleRequest;
 import com.dreameddeath.party.process.model.v1.roles.CreateUpdateRoleRequest;
+import com.dreameddeath.party.process.model.v1.roles.tasks.PartyRolesUpdateResult;
+import com.dreameddeath.party.process.model.v1.roles.tasks.PartyUpdateResult;
 import com.dreameddeath.party.service.IPartyManagementService;
-import com.dreameddeath.party.service.model.PartyRolesUpdateResult;
-import com.dreameddeath.party.service.model.PartyUpdateResult;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;

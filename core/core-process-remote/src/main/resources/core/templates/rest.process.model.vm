@@ -32,13 +32,24 @@ import ${importName};
     date = "${generator.date}",
     comments = "${generator.comment}"
 )
+#if($model.hasRemoteInfo())
+@RemoteServiceInfo(domain="${esc.java($model.remoteDomain)}",name="${esc.java($model.remoteName)}",version="${esc.java($model.remoteVersion)}")
+#end
+#if($model.hasChildClasses())
+@JsonTypeInfo(use= JsonTypeInfo.Id.NAME)
+@JsonSubTypes({
+#foreach($subModel in $model.getListChildClasses())
+    @JsonSubTypes.Type(value = ${subModel.shortName}.class,name = "${esc.java($subModel.subClassTypeName)}")#if($foreach.hasNext),#end
+#end
 
-public class ${model.shortName}{
+})
+#end
+
+public #if($model.isAbstract()) abstract #end class ${model.shortName} #if($model.hasParentModel()) extends $model.getParentModelShortName() #end{
 #foreach($field in ${model.fieldsForClass})
     @JsonProperty("${field.jsonName}")
     private ${field.type} ${field.variableName};
 #end
-
 
 
 #foreach($field in ${model.fieldsForClass})

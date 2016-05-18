@@ -16,7 +16,7 @@
 
 package com.dreameddeath.billing.dao;
 
-import com.dreameddeath.billing.model.cycle.BillingCycle;
+import com.dreameddeath.billing.model.v1.cycle.BillingCycle;
 import com.dreameddeath.core.couchbase.CouchbaseBucketWrapper;
 import com.dreameddeath.core.couchbase.GenericJacksonTranscoder;
 import com.dreameddeath.core.couchbase.GenericTranscoder;

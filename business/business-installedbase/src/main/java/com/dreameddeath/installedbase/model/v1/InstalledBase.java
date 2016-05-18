@@ -16,7 +16,7 @@
 
 package com.dreameddeath.installedbase.model.v1;
 
-import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;

@@ -17,8 +17,8 @@
 package com.dreameddeath.billing.process.service;
 
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.process.model.CreateBillingAccountJob;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.dao.JobDao;
@@ -51,9 +51,9 @@ public class CreateBillingAccountJobProcessingServiceTest {
         env.addDocumentDao(new PartyDao());
         env.addDocumentDao(new JobDao());
         env.addDocumentDao(new TaskDao());
-        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
-        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.cycle.BillingCycleDao").newInstance());
-        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.account.BillingAccountDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.cycle.BillingCycleDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.order.BillingOrderDao").newInstance());
         //_env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
         // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
         env.start();

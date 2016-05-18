@@ -1,4 +1,4 @@
-package com.dreameddeath.party.service.model;
+package com.dreameddeath.party.process.model.v1.roles.tasks;
 
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
 

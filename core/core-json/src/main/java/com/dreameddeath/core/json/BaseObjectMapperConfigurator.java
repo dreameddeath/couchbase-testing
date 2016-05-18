@@ -54,6 +54,7 @@ public class BaseObjectMapperConfigurator implements IObjectMapperConfigurator{
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false);
         mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS,false);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         //mapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         mapper.setTimeZone(TimeZone.getDefault());

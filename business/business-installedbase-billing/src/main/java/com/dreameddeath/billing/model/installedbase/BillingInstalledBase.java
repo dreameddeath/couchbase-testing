@@ -16,9 +16,9 @@
 
 package com.dreameddeath.billing.model.installedbase;
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.account.BillingAccountContributor;
-import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.account.BillingAccountContributor;
+import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.helper.annotation.dao.Counter;
 import com.dreameddeath.core.helper.annotation.dao.DaoEntity;

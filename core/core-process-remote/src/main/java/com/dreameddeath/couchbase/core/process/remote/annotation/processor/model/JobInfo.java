@@ -21,6 +21,7 @@ import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
@@ -36,13 +37,15 @@ import java.util.stream.Collectors;
  * Created by Christophe Jeunesse on 04/03/2016.
  */
 public class JobInfo {
+    private final Set<EntityDef> entities;
     private CouchbaseDocumentReflection reflectionInfo;
     private Map<String,RestModel> models=new HashMap<>();
     private Map<String,EnumModel> enums = new HashMap<>();
     private RestModel request;
     private RestModel response;
 
-    public JobInfo(ClassInfo info){
+    public JobInfo(ClassInfo info, Set<EntityDef> entityDefs){
+        this.entities = Collections.unmodifiableSet(entityDefs);
         reflectionInfo = CouchbaseDocumentReflection.getReflectionFromClassInfo(info);
         String packageName =reflectionInfo.getClassInfo().getPackageInfo().getName()+".published";
         request=buildModel(reflectionInfo.getStructure(),packageName,new GenMode(FieldFilteringMode.STANDARD,true));
@@ -154,20 +157,27 @@ public class JobInfo {
         return response;
     }
 
-
-    private  RestModel buildModel(CouchbaseDocumentStructureReflection clazz,String packageName,GenMode mode){
+    private RestModel buildModel(CouchbaseDocumentStructureReflection clazz,String packageName,GenMode mode){
         RestModel resultModel = new RestModel();
         resultModel.shortName = clazz.getSimpleName().replaceAll("\\$","")
                 +(!mode.forUnwrap?((mode.isRequest)?"Request":"Response"):"");
+        resultModel.listChildClasses = buildChildModels(resultModel,clazz,packageName,mode);
         resultModel.packageName = packageName;
         resultModel.origStructInfo=clazz;
         resultModel.origClassInfo = clazz.getClassInfo();
         resultModel.isRequest=mode.isRequest;
         resultModel.isUnwrapped=mode.forUnwrap;
+        resultModel.isRoot = mode.isRoot;
         resultModel.unwrappedRootModels.addAll(mode.unwrapSourceRestModels);
         models.put(buildKey(clazz.getClassInfo(), mode), resultModel);
 
-        for(CouchbaseDocumentFieldReflection jobField:clazz.getFields()){
+        if(resultModel.hasChildClasses()) {
+            for (RestModel childModel : resultModel.getFirstLevelChilds()) {
+                childModel.parentModel = resultModel;
+            }
+        }
+
+        for(CouchbaseDocumentFieldReflection jobField:((mode.isForChild)?clazz.getDeclaredFields():clazz.getFields())){
             Annotation resultAnnot = jobField.getField().getAnnotation((Class<? extends Annotation>)(mode.isRequest?Request.class:Result.class));
             if(getUnwrap(resultAnnot)){
                 if(jobField.isCollection() || jobField.isMap()){
@@ -193,6 +203,42 @@ public class JobInfo {
         }
         return resultModel;
     }
+
+    private List<RestModel> buildChildModels(RestModel parent,CouchbaseDocumentStructureReflection clazz,String packageName,GenMode mode) {
+        List<RestModel> resultList = new ArrayList<>();
+        for(EntityDef entity:entities){
+            boolean isChild = entity.getParentEntities().contains(clazz.getEntityModelId());
+            if(!isChild){
+                try {
+                    AbstractClassInfo entityClassInfo = AbstractClassInfo.getClassInfo(entity.getClassName());
+
+                    if(!clazz.getClassInfo().getFullName().equals(entityClassInfo.getFullName()) && clazz.getClassInfo().isAssignableFrom(entityClassInfo)){
+                        isChild=true;
+                    }
+                }
+                catch(ClassNotFoundException e){
+                    //Ignore
+                }
+            }
+            if(isChild){
+                try {
+                    CouchbaseDocumentStructureReflection subClass = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)ClassInfo.getClassInfo(entity.getClassName()));
+                    RestModel childModel = models.get(buildKey(subClass.getClassInfo(),mode));
+                    if(childModel==null){
+                        resultList.add(buildModel(subClass,packageName,new GenMode(mode,FieldFilteringMode.INHERIT).childFor(parent)));
+                    }
+                    else{
+                        resultList.add(childModel);
+                    }
+                }
+                catch(ClassNotFoundException e){
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return resultList;
+    }
+
 
     private RestModel.Field buildField(RestModel parent, CouchbaseDocumentFieldReflection jobField, String annotatedName, GenMode mode){
         RestModel.Field resultField = new RestModel.Field();
@@ -309,19 +355,23 @@ public class JobInfo {
 
     private static class GenMode{
         private final FieldFilteringMode fieldMode;
+        private boolean isRoot=false;
         private boolean isRequest;
         private boolean forUnwrap=false;
         private List<RestModel> unwrapSourceRestModels=new ArrayList<>();
+        private boolean isForChild=false;
+        private RestModel parentForChild=null;
 
         public GenMode(FieldFilteringMode mode,boolean isRequest){
             this.fieldMode = mode;
             this.isRequest = isRequest;
+            this.isRoot = true;
         }
 
         public GenMode(GenMode parent, FieldFilteringMode mode){
             this.isRequest=parent.isRequest;
             if(mode==FieldFilteringMode.INHERIT){
-                this.fieldMode = mode;
+                this.fieldMode = parent.fieldMode;
             }
             else{
                 this.fieldMode=mode;
@@ -332,6 +382,12 @@ public class JobInfo {
             this.forUnwrap=true;
             this.unwrapSourceRestModels.addAll(parentMode.unwrapSourceRestModels);
             this.unwrapSourceRestModels.add(parent);
+            return this;
+        }
+
+        public GenMode childFor(RestModel model){
+            this.isForChild=true;
+            this.parentForChild=model;
             return this;
         }
     }

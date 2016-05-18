@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.account;
+package com.dreameddeath.billing.model.v1.account;
 
 
 import com.dreameddeath.core.model.business.CouchbaseDocumentLink;

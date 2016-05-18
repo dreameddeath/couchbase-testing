@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.account;
+package com.dreameddeath.billing.model.v1.account;
 
-import com.dreameddeath.billing.model.cycle.BillingCycleLink;
+import com.dreameddeath.billing.model.v1.cycle.BillingCycleLink;
 import com.dreameddeath.common.model.ExternalId;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.business.model.BusinessDocument;
@@ -38,7 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-@DocumentEntity(domain = "billing",name="ba",version="1.0.0")
+@DocumentEntity(name="ba")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentDaoWithUID.class,dbPath = "ba/",idPattern = "\\d{10}",idFormat = "%010d")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")

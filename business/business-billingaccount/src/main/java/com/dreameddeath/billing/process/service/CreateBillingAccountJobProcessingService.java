@@ -16,12 +16,12 @@
 
 package com.dreameddeath.billing.process.service;
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.process.model.CreateBillingAccountJob;
-import com.dreameddeath.billing.process.model.CreateBillingAccountJob.CreateBillingAccountTask;
-import com.dreameddeath.billing.process.model.CreateBillingAccountJob.CreateBillingCycleJobTask;
-import com.dreameddeath.billing.process.model.CreateBillingAccountJob.CreatePartyRolesTask;
-import com.dreameddeath.billing.process.model.CreateBillingCycleJob;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob;
+import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreateBillingAccountTask;
+import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreateBillingCycleJobTask;
+import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreatePartyRolesTask;
+import com.dreameddeath.billing.process.model.v1.CreateBillingCycleJob;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;

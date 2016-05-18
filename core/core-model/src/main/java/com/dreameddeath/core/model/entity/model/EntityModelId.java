@@ -100,15 +100,22 @@ public class EntityModelId {
             info = isVersion ? documentEntity.version() : documentEntity.domain();
         }
 
+        if(StringUtils.isEmpty(info) && cls.getEnclosingClass()!=null){
+            info = getInfo(cls.getEnclosingClass().getAnnotation(DocumentEntity.class),cls.getEnclosingClass(),isVersion);
+        }
         if (StringUtils.isEmpty(info)) {
-            PackageInfo packageInfo=cls.getPackageInfo();
-            info=getInfo(packageInfo,isVersion);
+            //PackageInfo packageInfo=cls.getPackageInfo();
+            info=getInfo(cls.getPackageInfo(),isVersion);
         }
         if (StringUtils.isEmpty(info)) {
             StringBuilder parents = new StringBuilder();
             PackageInfo currPackageInfo = cls.getPackageInfo();
             while(currPackageInfo!=null){
+                if(parents.length()!=0){
+                    parents.append(";");
+                }
                 parents.append(currPackageInfo.getName());
+                currPackageInfo = currPackageInfo.getParentPackage();
             }
             throw new RuntimeException("Cannot get "+ (isVersion?"version":"domain")+ " of element "+cls.getImportName()+ " in parents <"+parents+">");
         }

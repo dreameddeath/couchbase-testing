@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.process.model;
+package com.dreameddeath.billing.process.model.v1;
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.account.BillingAccountLink;
-import com.dreameddeath.billing.model.cycle.BillingCycle;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
+import com.dreameddeath.billing.model.v1.cycle.BillingCycle;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -30,7 +30,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 03/08/2014.
  */
-@DocumentEntity(domain = "billing",version="1.0.0")
+@DocumentEntity
 public class CreateBillingCycleJob extends AbstractJob {
     @DocumentProperty("ba")
     public BillingAccountLink baLink;
@@ -38,7 +38,7 @@ public class CreateBillingCycleJob extends AbstractJob {
     public DateTime startDate;
 
 
-    @DocumentEntity(domain = "billing",version="1.0.0")
+    @DocumentEntity
     public static class CreateBillingCycleTask extends ChildDocumentCreateTask<BillingCycle,BillingAccount> {
         @JsonCreator
         public CreateBillingCycleTask(@JsonProperty("parent") String parentKey) {

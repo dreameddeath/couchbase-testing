@@ -26,6 +26,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +39,7 @@ import static javax.lang.model.element.ElementKind.ENUM;
 public class ClassInfo extends AbstractClassInfo {
     private ClassInfo superClass=null;
     private boolean isEnum=false;
+    private boolean isAbstract=false;
     private List<FieldInfo> declaredFields = null;
 
     @Override
@@ -52,10 +54,12 @@ public class ClassInfo extends AbstractClassInfo {
                 superClass = (ClassInfo) getClassInfo((TypeElement) ((DeclaredType)superClassTypeMirror).asElement());
             }
             isEnum=getTypeElement().getKind()==ENUM;
+            isAbstract=getTypeElement().getModifiers().contains(javax.lang.model.element.Modifier.ABSTRACT);
         }
         else if(getCurrentClass().getSuperclass()!=null){
             superClass = (ClassInfo) getClassInfo(getCurrentClass().getSuperclass());
             isEnum = this.getClass().isEnum();
+            isAbstract = (this.getClass().getModifiers() & Modifier.ABSTRACT) !=0;
         }
     }
 
@@ -127,5 +131,9 @@ public class ClassInfo extends AbstractClassInfo {
 
     public boolean isEnum() {
         return isEnum;
+    }
+
+    public boolean isAbstract(){
+        return isAbstract;
     }
 }

@@ -63,6 +63,8 @@ public class TestGeneration extends AbstractJob {
     private ListProperty<NewEnumType> listEnum = new ArrayListProperty<>(TestGeneration.this);
     @DocumentProperty("unwrapped") @Request(unwrap = true,mode = FieldFilteringMode.FULL) @Result(unwrap = true,mode=FieldFilteringMode.STANDARD)
     private Property<UnwrappedClass> unwrapped = new StandardProperty<>(TestGeneration.this);
+    @DocumentProperty("inheritedList") @Result(mode = FieldFilteringMode.FULL) @Request(mode = FieldFilteringMode.FULL)
+    private ListProperty<InheritedClass> inheritedList = new ArrayListProperty<>(TestGeneration.this);
 
     public String getDocKey(){
         return docKey;
@@ -97,6 +99,9 @@ public class TestGeneration extends AbstractJob {
 
     public UnwrappedClass getUnwrapped() { return unwrapped.get(); }
     public void setUnwrapped(UnwrappedClass val) { unwrapped.set(val); }
+
+    public List<InheritedClass> getInheritedList() { return inheritedList.get(); }
+    public void setInheritedList(Collection<InheritedClass> newInheritedList) { inheritedList.set(newInheritedList); }
 
 
     public static class TestSubGenerator extends CouchbaseDocumentElement{
@@ -137,6 +142,87 @@ public class TestGeneration extends AbstractJob {
 
         public List<String> getSubListString() { return subListString.get(); }
         public void setSubListString(Collection<String> newSubListString) { subListString.set(newSubListString); }
+    }
+    
+
+    public abstract static class InheritedClass extends CouchbaseDocumentElement{
+        /**
+         *  test : sublevel 1
+         */
+        @DocumentProperty("testLvl1")
+        private Property<String> testLvl1 = new StandardProperty<>(InheritedClass.this);
+        
+        /**
+         * Getter of test 
+         * @return the value of test
+         */
+        public String getTestLvl1() { return testLvl1.get(); }
+        /**
+         * Setter of test 
+         * @param val the new value of test
+         */
+        public void setTestLvl1(String val) { testLvl1.set(val); }
+    }
+
+    @DocumentEntity
+    public static class InheritedSubLvl1Class extends InheritedClass{
+        /**
+         *  testLvl2 : sublevel field
+         */
+        @DocumentProperty("testLvl2")
+        private Property<String> testLvl2 = new StandardProperty<>(InheritedSubLvl1Class.this);
+
+        /**
+         * Getter of testLvl2
+         * @return the value of testLvl2
+         */
+        public String getTestLvl2() { return testLvl2.get(); }
+        /**
+         * Setter of testLvl2
+         * @param val the new value of testLvl2
+         */
+        public void setTestLvl2(String val) { testLvl2.set(val); }
+    }
+
+    @DocumentEntity
+    public abstract static class InheritedSubLvl1BisClass extends InheritedClass{
+        /**
+         *  testLevel2Bis : sub level field
+         */
+        @DocumentProperty("testLevel2Bis")
+        private Property<String> testLevel2Bis = new StandardProperty<>(InheritedSubLvl1BisClass.this);
+
+        /**
+         * Getter of testLevel2Bis
+         * @return the value of testLevel2Bis
+         */
+        public String getTestLevel2Bis() { return testLevel2Bis.get(); }
+        /**
+         * Setter of testLevel2Bis
+         * @param val the new value of testLevel2Bis
+         */
+        public void setTestLevel2Bis(String val) { testLevel2Bis.set(val); }
+    }
+
+
+    @DocumentEntity
+    public static class InheritedSubLvl2Class extends InheritedSubLvl1BisClass{
+        /**
+         *  testLvl3 : Level 3 testing
+         */
+        @DocumentProperty("testLvl3")
+        private Property<String> testLvl3 = new StandardProperty<>(InheritedSubLvl2Class.this);
+
+        /**
+         * Getter of testLvl3
+         * @return the value of testLvl3
+         */
+        public String getTestLvl3() { return testLvl3.get(); }
+        /**
+         * Setter of testLvl3
+         * @param val the new value of testLvl3
+         */
+        public void setTestLvl3(String val) { testLvl3.set(val); }
     }
 
 }

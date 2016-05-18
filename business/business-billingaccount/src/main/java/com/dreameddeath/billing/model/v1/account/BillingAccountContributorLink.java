@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.account;
+package com.dreameddeath.billing.model.v1.account;
 
-import com.dreameddeath.billing.model.account.BillingAccountContributor.ContributorType;
+import com.dreameddeath.billing.model.v1.account.BillingAccountContributor.ContributorType;
 import com.dreameddeath.core.business.model.BusinessDocumentLink;
 import com.dreameddeath.core.business.model.property.impl.SynchronizedLinkProperty;
 import com.dreameddeath.core.model.annotation.DocumentProperty;

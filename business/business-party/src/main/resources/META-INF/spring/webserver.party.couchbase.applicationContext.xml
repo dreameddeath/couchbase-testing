@@ -19,17 +19,16 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
-
-    <import resource="classpath:META-INF/cxf/cxf.xml"/>
-    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
     <import resource="classpath:META-INF/spring/webserver.base.applicationContext.xml"/>
+    <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
 
-    <bean id="serviceDiscovererManager" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="serviceDiscovererManager" />
-    </bean>
-
-    <bean id="endPoint" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="endPointInfo" />
+    <bean id="partyDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
+          factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntities">
+        <constructor-arg>
+            <list>
+                <value>party/party</value>
+            </list>
+        </constructor-arg>
     </bean>
 
 </beans>

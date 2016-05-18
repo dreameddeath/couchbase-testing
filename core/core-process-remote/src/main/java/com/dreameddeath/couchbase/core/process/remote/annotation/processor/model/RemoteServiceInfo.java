@@ -17,9 +17,11 @@
 package com.dreameddeath.couchbase.core.process.remote.annotation.processor.model;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Christophe Jeunesse on 04/03/2016.
@@ -33,7 +35,7 @@ public class RemoteServiceInfo {
     private String packageName;
     private JobInfo jobInfo;
 
-    public RemoteServiceInfo(ClassInfo classInfo){
+    public RemoteServiceInfo(ClassInfo classInfo, Set<EntityDef> entityDefs){
         RestExpose restInfoAnnot = classInfo.getAnnotation(RestExpose.class);
         path = restInfoAnnot.rootPath();
         domain = restInfoAnnot.domain();
@@ -41,7 +43,11 @@ public class RemoteServiceInfo {
         version = restInfoAnnot.version();
         className = "Remote"+classInfo.getSimpleName()+"Service";
         packageName = classInfo.getPackageInfo().getName().replaceAll("\\.model\\b",".service.rest");
-        jobInfo = new JobInfo(classInfo);
+        jobInfo = new JobInfo(classInfo,entityDefs);
+        jobInfo.getRequest().hasRemoteInfo = true;
+        jobInfo.getRequest().remoteDomain = this.domain;
+        jobInfo.getRequest().remoteName = this.name;
+        jobInfo.getRequest().remoteVersion = this.version;
     }
 
     public String getPath() {

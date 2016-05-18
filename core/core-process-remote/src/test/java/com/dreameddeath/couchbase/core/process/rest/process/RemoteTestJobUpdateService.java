@@ -42,7 +42,6 @@ import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
-import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateJob;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdateRequest;
@@ -68,7 +67,7 @@ public class RemoteTestJobUpdateService extends StandardJobProcessingService<Rem
         }
     }
 
-    @TaskProcessingForClass(RemoteUpdateJob.RemoteTestJobUpdateTask.class) @RemoteServiceInfo(domain = "test",name = "testdocjobupdate", version = "1.0.0")
+    @TaskProcessingForClass(RemoteUpdateJob.RemoteTestJobUpdateTask.class)
     public static class TestJobUpdateTaskService extends RemoteJobTaskProcessing<TestDocJobUpdateRequest,TestDocJobUpdateResult,RemoteUpdateJob,RemoteUpdateJob.RemoteTestJobUpdateTask> {
         @Override
         protected TestDocJobUpdateRequest getRequest(TaskContext<RemoteUpdateJob, RemoteUpdateJob.RemoteTestJobUpdateTask> ctxt) {

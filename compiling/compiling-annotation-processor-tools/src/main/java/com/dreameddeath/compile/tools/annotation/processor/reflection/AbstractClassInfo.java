@@ -59,7 +59,8 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     public static AbstractClassInfo getClassInfo(String name) throws ClassNotFoundException{
         if(AnnotationElementType.CURRENT_ELEMENT_UTILS.get()!=null){
             try {
-                TypeElement elt = AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getTypeElement(name);
+                String elementName = name.replaceAll("\\$",".");
+                TypeElement elt = AnnotationElementType.CURRENT_ELEMENT_UTILS.get().getTypeElement(elementName);
                 if (elt != null) {
                     return getClassInfo(elt);
                 }

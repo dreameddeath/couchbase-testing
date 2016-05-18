@@ -226,4 +226,5 @@ public class CouchbaseDocumentStructureReflection {
     public CouchbaseDocumentStructureReflection getSuperclassReflexion() {
         return parentClassReflexion;
     }
+
 }

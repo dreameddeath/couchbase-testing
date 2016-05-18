@@ -16,6 +16,7 @@
 
 package com.dreameddeath.infrastructure.plugin.process;
 
+import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
@@ -51,6 +52,10 @@ public class RemoteServiceClientFactoryWithManager implements IRemoteClientFacto
     @Override
     public IServiceClient getClient(RemoteJobTaskProcessing forProcessing) {
         RemoteServiceInfo annot = forProcessing.getClass().getAnnotation(RemoteServiceInfo.class);
+        if (annot == null) {
+            Class<?> requestClass = ClassUtils.getEffectiveGenericType(forProcessing.getClass(),RemoteJobTaskProcessing.class,0);
+            annot = requestClass.getAnnotation(RemoteServiceInfo.class);
+        }
         if(annot==null){
             throw new RuntimeException("Cannot find annot RemoteServiceInfo for class "+forProcessing.getClass().getName());
         }

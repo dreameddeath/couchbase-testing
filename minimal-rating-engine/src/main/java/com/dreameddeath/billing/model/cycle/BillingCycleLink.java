@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.cycle;
+package com.dreameddeath.billing.model.v1.cycle;
 
 
 import com.dreameddeath.core.annotation.DocumentProperty;

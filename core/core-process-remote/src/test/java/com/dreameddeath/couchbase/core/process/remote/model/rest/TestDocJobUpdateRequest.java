@@ -16,12 +16,14 @@
 
 package com.dreameddeath.couchbase.core.process.remote.model.rest;
 
+import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDocJobUpdate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Created by Christophe Jeunesse on 15/01/2016.
  */
+@RemoteServiceInfo(domain = "test",name = "testdocjobupdate", version = "1.0.0")
 public class TestDocJobUpdateRequest {
     @JsonProperty
     public Integer incrIntValue;

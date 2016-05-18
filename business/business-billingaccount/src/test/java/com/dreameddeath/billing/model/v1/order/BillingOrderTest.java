@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.model.order;
+package com.dreameddeath.billing.model.v1.order;
 
 
-import com.dreameddeath.billing.model.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.party.dao.v1.PartyDao;
@@ -35,8 +35,8 @@ public class BillingOrderTest extends Assert {
     public void initTest() throws  Exception{
         env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
         env.addDocumentDao(new PartyDao());
-        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
-        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.order.BillingOrderDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.account.BillingAccountDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.order.BillingOrderDao").newInstance());
         // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
         env.start();
     }

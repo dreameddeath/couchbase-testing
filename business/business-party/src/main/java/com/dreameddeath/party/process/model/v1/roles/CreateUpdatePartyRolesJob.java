@@ -5,6 +5,9 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.couchbase.core.process.remote.annotation.FieldFilteringMode;
+import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
+import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
 
 import java.util.Collection;
 import java.util.List;
@@ -12,12 +15,12 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 09/05/2016.
  */
-@DocumentEntity
+@DocumentEntity @RestExpose(rootPath = "partyjobs/createupdateroles",domain = "party",name = "createupdatepartyrolesjob")
 public class CreateUpdatePartyRolesJob extends AbstractJob {
     /**
      *  roles : roles to create or update
      */
-    @DocumentProperty("roleRequests")
+    @DocumentProperty("roleRequests") @Request(mode= FieldFilteringMode.FULL)
     private ListProperty<CreateUpdateRoleRequest> roleRequests = new ArrayListProperty<>(CreateUpdatePartyRolesJob.this);
 
     /**

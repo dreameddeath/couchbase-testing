@@ -1,5 +1,7 @@
 package com.dreameddeath.couchbase.testing.daemon;
 
+import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 
 import java.util.concurrent.CountDownLatch;
@@ -50,5 +52,20 @@ public class DaemonWrapperForTesting {
         if(startingThread!=null && startingThread.isAlive()){
             startingThread.join(60*1000,0);
         }
+    }
+
+    public ServiceDiscoverer getServiceDiscoveryForDomain(String domain){
+        ServiceDiscoverer discoverer = new ServiceDiscoverer(daemon.getCuratorClient(),domain);
+        try {
+            discoverer.start();
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
+        return discoverer;
+    }
+
+    public ServiceClientFactory getServiceFactoryForDomain(String domain){
+        return new ServiceClientFactory(getServiceDiscoveryForDomain(domain));
     }
 }

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.billing.process.model;
+package com.dreameddeath.billing.process.model.v1;
 
-import com.dreameddeath.billing.model.account.BillingAccount;
-import com.dreameddeath.billing.model.account.BillingAccountLink;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -30,7 +30,7 @@ import com.dreameddeath.party.model.v1.PartyLink;
 /**
  * Created by Christophe Jeunesse on 29/05/2014.
  */
-@DocumentEntity(domain = "billing",version="1.0.0")
+@DocumentEntity
 public class CreateBillingAccountJob extends AbstractJob {
     @DocumentProperty("partyId")
     public String partyId;
@@ -44,12 +44,12 @@ public class CreateBillingAccountJob extends AbstractJob {
     @DocumentProperty("partyLink")
     public PartyLink partyLink;
 
-    @DocumentEntity(domain = "billing",version="1.0.0")
+    @DocumentEntity
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> { }
 
-    @DocumentEntity(domain = "billing",version="1.0.0")
+    @DocumentEntity
     public static class CreatePartyRolesTask extends DocumentUpdateTask<Party> { }
 
-    @DocumentEntity(domain = "billing",version="1.0.0")
+    @DocumentEntity
     public static class CreateBillingCycleJobTask extends SubJobProcessTask<CreateBillingCycleJob> { }
 }
