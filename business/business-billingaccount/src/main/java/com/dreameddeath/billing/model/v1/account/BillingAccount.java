@@ -31,11 +31,9 @@ import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.dreameddeath.party.model.v1.PartyLink;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @DocumentEntity(name="ba")
@@ -63,8 +61,12 @@ public class BillingAccount extends BusinessDocument {
     private Property<String> paymentMethod = new StandardProperty<>(BillingAccount.this);
     @DocumentProperty(value="billCycles",setter="setBillingCycleLinks",getter="getBillingCycleLinks")
     private ListProperty<BillingCycleLink> billingCycleLinks = new ArrayListProperty<>(BillingAccount.this);
-    @DocumentProperty(value="partys",setter="setPartyLinks",getter="getPartyLinks")
-    private ListProperty<PartyLink> partyLinks = new ArrayListProperty<>(BillingAccount.this);
+    /**
+     *  partyRoles : the linked roles
+     */
+    @DocumentProperty("partyRoles")
+    private ListProperty<PartyRoleLink> partyRoles = new ArrayListProperty<>(BillingAccount.this);
+
     /**
      *  externalIds : List of external ids of the billing account
      */
@@ -134,10 +136,45 @@ public class BillingAccount extends BusinessDocument {
         return new BillingAccountLink(this);
     }
 
+    /**
+     * Getter of partyRoles
+     * @return the whole (immutable) list of partyRoles
+     */
+    public List<PartyRoleLink> getPartyRoles() { return partyRoles.get(); }
+    /**
+     * Setter of partyRoles
+     * @param newPartyRoles the new collection of partyRoles
+     */
+    public void setPartyRoles(Collection<PartyRoleLink> newPartyRoles) { partyRoles.set(newPartyRoles); }
+    /**
+     * Add a new entry to the property partyRoles
+     * @param newPartyRoles the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addPartyRoles(PartyRoleLink newPartyRoles){ return partyRoles.add(newPartyRoles); }
+    /**
+     * Add a new entry to the property partyRoles at the specified position
+     * @param index the new entry to be added
+     * @param newPartyRoles the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addPartyRoles(int index,PartyRoleLink newPartyRoles){ return partyRoles.add(newPartyRoles); }
+    /**
+     * Remove an entry to the property partyRoles
+     * @param oldPartyRoles the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removePartyRoles(PartyRoleLink oldPartyRoles){ return partyRoles.remove(oldPartyRoles); }
+    /**
+     * Remove an entry to the property partyRoles at the specified position
+     * @param index the position of element to be removed
+     * @return the entry removed if any
+     */
+    public PartyRoleLink removePartyRoles(int index){ return partyRoles.remove(index); }
 
-    public List<PartyLink> getPartyLinks() { return Collections.unmodifiableList(partyLinks); }
-    public void setPartyLinks(List<PartyLink> links) { partyLinks.clear();partyLinks.addAll(links);}
-    public void addPartyLink(PartyLink link){partyLinks.add(link);}
+
+
+
 
     // Contributors Accessors
     public List<BillingAccountContributorLink> getContributors() { return contributors.get(); }

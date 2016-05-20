@@ -65,21 +65,25 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
         return service;
     }
 
-    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T> getTaskExecutorServiceForClass(Class<T> entityClass) throws ExecutorServiceNotFoundException{
+    private <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T> getTaskExecutorServiceForClass(Class<T> entityClass,Class<?> origClass) throws ExecutorServiceNotFoundException{
         ITaskExecutorService<TJOB,T> result = (ITaskExecutorService<TJOB,T>) taskExecutorServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractTask.class.isAssignableFrom(parentClass)) {
-                result = getTaskExecutorServiceForClass(parentClass.asSubclass(AbstractTask.class));
+                result = getTaskExecutorServiceForClass(parentClass.asSubclass(AbstractTask.class),origClass);
                 if (result != null) {
                     addTaskExecutorServiceFor(entityClass, result);
                 }
             }
         }
         if(result==null){
-            throw new ExecutorServiceNotFoundException("Cannot find execution class for job <"+entityClass.getName()+">");
+            throw new ExecutorServiceNotFoundException("Cannot find execution class for job <"+origClass.getName()+">");
         }
         return result;
+    }
+
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T> getTaskExecutorServiceForClass(Class<T> entityClass) throws ExecutorServiceNotFoundException{
+        return getTaskExecutorServiceForClass(entityClass,entityClass);
     }
 
     public <T extends AbstractJob> IJobExecutorService<T> addJobExecutorService(Class<T> entityClass, Class<IJobExecutorService<T>> serviceClass){
@@ -99,21 +103,25 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
         return service;
     }
 
-    public <T extends AbstractJob> IJobExecutorService<T> getJobExecutorServiceForClass(Class<T> entityClass) throws ExecutorServiceNotFoundException {
+    private <T extends AbstractJob> IJobExecutorService<T> getJobExecutorServiceForClass(Class<T> entityClass,Class<?>origClass) throws ExecutorServiceNotFoundException {
         IJobExecutorService<T> result = (IJobExecutorService<T>) jobExecutorServicesMap.get(entityClass);
         if (result == null) {
             Class parentClass = entityClass.getSuperclass();
             if (AbstractJob.class.isAssignableFrom(parentClass)) {
-                result = getJobExecutorServiceForClass(parentClass.asSubclass(AbstractJob.class));
+                result = getJobExecutorServiceForClass(parentClass.asSubclass(AbstractJob.class),origClass);
                 if (result != null) {
                     jobExecutorServicesMap.put(entityClass, result);
                 }
             }
         }
         if(result==null){
-            throw new ExecutorServiceNotFoundException("Cannot find execution class for job <"+entityClass.getName()+">");
+            throw new ExecutorServiceNotFoundException("Cannot find execution class for job <"+origClass.getName()+">");
         }
         return result;
+    }
+
+    public <T extends AbstractJob> IJobExecutorService<T> getJobExecutorServiceForClass(Class<T> entityClass) throws ExecutorServiceNotFoundException {
+        return getJobExecutorServiceForClass(entityClass,entityClass);
     }
 
 

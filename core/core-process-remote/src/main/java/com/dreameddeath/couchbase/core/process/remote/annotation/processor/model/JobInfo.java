@@ -247,13 +247,13 @@ public class JobInfo {
         resultField.parentModel = parent;
         resultField.jsonName = StringUtils.isNotEmpty(annotatedName)?annotatedName:jobField.getName();
         if(jobField.isCollection()){
-            resultField.typeStructure = RestModel.Field.Type.COLLECTION;
+            resultField.setTypeStructure(RestModel.Field.Type.COLLECTION);
             resultField.typeImports.add(jobField.getEffectiveTypeInfo().getMainType().getImportName());
             buildFieldType(parent,resultField,jobField.getCollectionElementTypeInfo().getMainType(),
                             jobField.getEffectiveTypeInfo().getMainType().getSimpleName()+"<%s>",mode);
         }
         else if(jobField.isMap()){
-            resultField.typeStructure = RestModel.Field.Type.MAP;
+            resultField.setTypeStructure(RestModel.Field.Type.MAP);
             resultField.typeImports.add(jobField.getMapKeyTypeInfo().getMainType().getImportName());
             resultField.typeImports.add(jobField.getEffectiveTypeInfo().getMainType().getImportName());
             buildFieldType(parent,resultField,jobField.getMapValueTypeInfo().getMainType(),
@@ -263,7 +263,7 @@ public class JobInfo {
 
         }
         else {
-            resultField.typeStructure = RestModel.Field.Type.SIMPLE;
+            resultField.setTypeStructure(RestModel.Field.Type.SIMPLE);
             buildFieldType(parent,resultField,jobField.getEffectiveTypeInfo().getMainType(),"%s",mode);
         }
         return resultField;

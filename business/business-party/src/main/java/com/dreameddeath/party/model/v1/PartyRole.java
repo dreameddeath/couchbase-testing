@@ -23,12 +23,14 @@ import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import org.joda.time.DateTime;
 
+import java.util.UUID;
+
 /**
  * Created by Christophe Jeunesse on 27/07/2014.
  */
 public abstract class PartyRole extends VersionedDocumentElement {
     @DocumentProperty("uid")
-    private ImmutableProperty<String> uid=new ImmutableProperty<>(PartyRole.this);
+    private ImmutableProperty<String> uid=new ImmutableProperty<>(PartyRole.this, UUID.randomUUID().toString());
     @DocumentProperty("startDate")
     private Property<DateTime> startDate = new StandardProperty<>(PartyRole.this);
     @DocumentProperty("endDate")

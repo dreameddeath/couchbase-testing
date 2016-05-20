@@ -40,8 +40,17 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
                     return false;
                 }
             }
+            TDOC doc;
+            try {
+                ctxt.getTask().getBaseMeta().freeze();
+                ctxt.getSession().setTemporaryReadOnlyMode(true);
+                doc=buildDocument(ctxt);
+            }
+            finally {
+                ctxt.getSession().setTemporaryReadOnlyMode(false);
+                ctxt.getTask().getBaseMeta().unfreeze();
+            }
 
-            TDOC doc = buildDocument(ctxt);
             //Prebuild key
             task.setDocKey(ctxt.getSession().buildKey(doc).getBaseMeta().getKey());
             //Attach it to the document
@@ -57,6 +66,10 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
         }
         catch(StorageException e){
             throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Storage error", e);
+        }
+        finally {
+            ctxt.getSession().setTemporaryReadOnlyMode(false);
+            ctxt.getTask().getBaseMeta().unfreeze();
         }
         return false; //No need to save (retry allowed)
     }

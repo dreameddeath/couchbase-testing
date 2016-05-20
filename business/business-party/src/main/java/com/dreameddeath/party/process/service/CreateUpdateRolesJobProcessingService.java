@@ -14,6 +14,7 @@ import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.process.model.v1.roles.CreateUpdatePartyRolesJob;
 import com.dreameddeath.party.process.model.v1.roles.CreateUpdateRoleRequest;
 import com.dreameddeath.party.process.model.v1.roles.tasks.CreateUpdatePartyRolesTask;
+import com.dreameddeath.party.process.model.v1.roles.tasks.PartyRolesUpdateResult;
 import com.dreameddeath.party.service.IPartyManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,7 +57,8 @@ public class CreateUpdateRolesJobProcessingService extends StandardJobProcessing
 
         @Override
         protected void processDocument(TaskContext<CreateUpdatePartyRolesJob, CreateUpdatePartyRolesTask> ctxt, Party doc) throws DaoException, StorageException, TaskExecutionException {
-            service.managePartyRolesUpdate(ctxt.getParentJob().getRoleRequests(),doc);
+            PartyRolesUpdateResult result = service.managePartyRolesUpdate(ctxt.getParentJob().getRoleRequests(),doc);
+            //TODO manage task update in //
         }
     }
 }

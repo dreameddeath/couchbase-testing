@@ -55,6 +55,7 @@ public class CouchbaseDocument implements HasParent {
         private Set<DocumentFlag> flags =EnumSet.noneOf(DocumentFlag.class);
         private int expiry;
         private DocumentState docState = DocumentState.NEW;
+        private boolean isFrozen = false;
 
         public final String getKey(){ return key; }
         public final void setKey(String key){ this.key=key;}
@@ -84,12 +85,14 @@ public class CouchbaseDocument implements HasParent {
         public void setExpiry(int expiry){ this.expiry=expiry;}
 
         public void setStateDirty(){
+            checkFrozen();
             if(docState.equals(DocumentState.SYNC)){
                 docState = DocumentState.DIRTY;
             }
         }
 
         public void setStateDeleted(){
+            checkFrozen();
             docState = DocumentState.DELETED;
         }
 
@@ -132,6 +135,23 @@ public class CouchbaseDocument implements HasParent {
                     "flags : "+flags.toString();
         }
 
+        public void freeze(){
+            this.isFrozen = true;
+        }
+
+        public void unfreeze(){
+            this.isFrozen = false;
+        }
+
+        public boolean isFrozen() {
+            return isFrozen;
+        }
+
+        private final void checkFrozen(){
+            if(isFrozen){
+                throw new IllegalStateException("The modification on the document isn't allowed");
+            }
+        }
     }
 
     public boolean equals(CouchbaseDocument doc){

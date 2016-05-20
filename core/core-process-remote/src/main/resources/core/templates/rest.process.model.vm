@@ -48,7 +48,7 @@ import ${importName};
 public #if($model.isAbstract()) abstract #end class ${model.shortName} #if($model.hasParentModel()) extends $model.getParentModelShortName() #end{
 #foreach($field in ${model.fieldsForClass})
     @JsonProperty("${field.jsonName}")
-    private ${field.type} ${field.variableName};
+    private ${field.type} ${field.variableName} ${field.getInitValue()};
 #end
 
 

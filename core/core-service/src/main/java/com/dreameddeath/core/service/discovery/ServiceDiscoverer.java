@@ -148,7 +148,7 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
         ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceProviderMap.get(name);
         if(provider==null){
             LOG.error("Cannot find provider for service name {}",name);
-            throw new ServiceDiscoveryException("Cannot find provider for service name "+name);
+            throw new ServiceDiscoveryException("Cannot find provider for service name "+name+" in domain "+ domain);
         }
         return provider;
     }

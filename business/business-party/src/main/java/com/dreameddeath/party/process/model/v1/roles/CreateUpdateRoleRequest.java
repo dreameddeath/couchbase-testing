@@ -20,6 +20,12 @@ public abstract class CreateUpdateRoleRequest extends VersionedDocumentElement{
      */
     @DocumentProperty("roleUid")
     private Property<String> roleUid = new ImmutableProperty<>(CreateUpdateRoleRequest.this);
+    /**
+     *  tempUid : temporary role uid
+     */
+    @DocumentProperty("tempUid")
+    private Property<String> tempUid = new ImmutableProperty<>(CreateUpdateRoleRequest.this);
+
 
 
     /**
@@ -42,4 +48,14 @@ public abstract class CreateUpdateRoleRequest extends VersionedDocumentElement{
      * @param val the new value for roleUid
      */
     public void setRoleUid(String val) { roleUid.set(val); }
+    /**
+     * Getter of tempUid
+     * @return the value of tempUid
+     */
+    public String getTempUid() { return tempUid.get(); }
+    /**
+     * Setter of tempUid
+     * @param val the new value for tempUid
+     */
+    public void setTempUid(String val) { tempUid.set(val); }
 }

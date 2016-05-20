@@ -8,6 +8,7 @@ import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.couchbase.core.process.remote.annotation.FieldFilteringMode;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
+import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,8 +21,13 @@ public class CreateUpdatePartyRolesJob extends AbstractJob {
     /**
      *  roles : roles to create or update
      */
-    @DocumentProperty("roleRequests") @Request(mode= FieldFilteringMode.FULL)
+    @DocumentProperty("roleRequests") @Request(mode = FieldFilteringMode.FULL)
     private ListProperty<CreateUpdateRoleRequest> roleRequests = new ArrayListProperty<>(CreateUpdatePartyRolesJob.this);
+    /**
+     *  results : result of roles create
+     */
+    @DocumentProperty("results") @Result(mode = FieldFilteringMode.FULL)
+    private ListProperty<CreateUpdateRoleResult> results = new ArrayListProperty<>(CreateUpdatePartyRolesJob.this);
 
     /**
      * Getter of roles
@@ -58,5 +64,42 @@ public class CreateUpdatePartyRolesJob extends AbstractJob {
      * @return the entry removed if any
      */
     public CreateUpdateRoleRequest removeRoleRequest(int index){ return roleRequests.remove(index); }
+
+    /**
+     * Getter of results
+     * @return the whole (immutable) list of results
+     */
+    public List<CreateUpdateRoleResult> getResults() { return results.get(); }
+    /**
+     * Setter of results
+     * @param newResults the new collection of results
+     */
+    public void setResults(Collection<CreateUpdateRoleResult> newResults) { results.set(newResults); }
+    /**
+     * Add a new entry to the property results
+     * @param newResults the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addResults(CreateUpdateRoleResult newResults){ return results.add(newResults); }
+    /**
+     * Add a new entry to the property results at the specified position
+     * @param index the new entry to be added
+     * @param newResults the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addResults(int index,CreateUpdateRoleResult newResults){ return results.add(newResults); }
+    /**
+     * Remove an entry to the property results
+     * @param oldResults the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeResults(CreateUpdateRoleResult oldResults){ return results.remove(oldResults); }
+    /**
+     * Remove an entry to the property results at the specified position
+     * @param index the position of element to be removed
+     * @return the entry removed if any
+     */
+    public CreateUpdateRoleResult removeResults(int index){ return results.remove(index); }
+
 
 }

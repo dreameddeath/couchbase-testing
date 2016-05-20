@@ -12,6 +12,7 @@ import com.dreameddeath.couchbase.testing.daemon.DaemonWrapperForTesting;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
+import com.dreameddeath.infrastructure.plugin.config.InfrastructureProcessPluginConfigProperties;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
@@ -62,6 +63,7 @@ public class RemoteJobTests {
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("party").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty("party").getName(),"test");
         AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
                 .withUserFactory(new StandardMockUserFactory())

@@ -38,6 +38,7 @@
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>business-party</artifactId>
           <version>${project.version}</version>
+          <classifier>published</classifier>
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
@@ -74,6 +75,10 @@
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
     </dependency>
+      <!--
+      -
+      - Testing
+      -->
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>testing-couchbase</artifactId>
@@ -82,15 +87,41 @@
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>testing-annotation-processor</artifactId>
+          <artifactId>testing-daemon</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
       </dependency>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>testing-integration</artifactId>
+          <artifactId>testing-curator</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
       </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>business-party</artifactId>
+          <version>${project.version}</version>
+          <classifier>tests</classifier>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>business-party</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>infrastructure-plugin-couchbase</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>infrastructure-plugin-process</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+      </dependency>
+
   </dependencies>
 </project>

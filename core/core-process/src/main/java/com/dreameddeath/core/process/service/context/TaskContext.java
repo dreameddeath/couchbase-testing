@@ -75,7 +75,9 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
             }
         }
         if(task.getId()==null){
+            jobContext.getJob().getBaseMeta().unfreeze();
             jobContext.assignIds(Collections.singletonList(task));
+            jobContext.getJob().getBaseMeta().freeze();
         }
         getSession().save(task);
     }

@@ -17,6 +17,7 @@
 package com.dreameddeath.billing.process.service;
 
 import com.dreameddeath.billing.model.v1.account.BillingAccount;
+import com.dreameddeath.billing.model.v1.account.PartyRoleLink;
 import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob;
 import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreateBillingAccountTask;
 import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreateBillingCycleJobTask;
@@ -27,14 +28,22 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
 import com.dreameddeath.core.process.service.impl.StandardSubJobProcessTaskProcessingService;
-import com.dreameddeath.party.model.v1.Party;
-import com.dreameddeath.party.model.v1.roles.BillingAccountPartyRole;
+import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
+import com.dreameddeath.party.process.model.v1.roles.published.BillingAccountCreateUpdateRoleRequestRequest;
+import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobRequest;
+import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobResponse;
+import com.dreameddeath.party.process.model.v1.roles.published.RoleTypePublished;
+import com.fasterxml.jackson.annotation.JsonCreator;
+
+import java.util.ArrayList;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
@@ -43,14 +52,11 @@ import com.dreameddeath.party.model.v1.roles.BillingAccountPartyRole;
 public class CreateBillingAccountJobProcessingService extends StandardJobProcessingService<CreateBillingAccountJob> {
     @Override
     public boolean init(JobContext<CreateBillingAccountJob> context) throws JobExecutionException {
-        try{
-            context.addTask(new CreateBillingAccountJob.CreateBillingAccountTask())
-                    .chainWith(new CreateBillingAccountJob.CreatePartyRolesTask().setDocKey(context.getSession().getKeyFromUID(context.getJob().partyId, Party.class)))
-                    .chainWith(new CreateBillingCycleJobTask());
-        }
-        catch(DaoException e){
-            throw new JobExecutionException(context,"Cannot find Key from party id <"+context.getJob().partyId+">",e);
-        }
+        context.addTask(new CreateBillingAccountJob.CreateBillingAccountTask())
+                .chainWith(new CreateBillingAccountJob.CreatePartyRolesTask())
+                .chainWith(new CreateBillingAccountJob.UpdateBaPartyRolesTask())
+                .chainWith(new CreateBillingCycleJobTask());
+
         return false;
     }
 
@@ -65,24 +71,76 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
             CreateBillingAccountJob job= ctxt.getParentJob();
             newBa.setBillDay((job.billDay!=null)?job.billDay:1);
             newBa.setBillCycleLength((job.cycleLength != null) ? job.cycleLength : 1);
-
-            Party party = ctxt.getSession().getFromUID(job.partyId, Party.class);
-            job.partyLink = party.newLink();
-            newBa.addPartyLink(job.partyLink);
-            job.baLink = newBa.newLink();
             return newBa;
+        }
+
+        @Override
+        public boolean updatejob(TaskContext<CreateBillingAccountJob, CreateBillingAccountTask> context) throws TaskExecutionException {
+            try {
+                context.getParentJob().baLink = context.getTask().getDocument(context.getSession()).newLink();
+            }
+            catch(DaoException|StorageException e){
+                throw new TaskExecutionException(context,"Cannot read back object "+context.getTask().getDocKey(),e);
+            }
+            return super.updatejob(context);
         }
     }
 
     @TaskProcessingForClass(CreatePartyRolesTask.class)
-    public static class CreatePartyRolesTaskProcessingService extends DocumentUpdateTaskProcessingService<CreateBillingAccountJob,Party,CreatePartyRolesTask>{
+    public static class CreatePartyRolesTaskProcessingService extends RemoteJobTaskProcessing<CreateUpdatePartyRolesJobRequest,CreateUpdatePartyRolesJobResponse,CreateBillingAccountJob,CreatePartyRolesTask> {
+        public static class Wrapper extends RemoteJobResultWrapper<CreateUpdatePartyRolesJobResponse>{
+            @JsonCreator
+            public Wrapper(CreateUpdatePartyRolesJobResponse result) {
+                super(result);
+            }
+        }
         @Override
-        protected void processDocument(TaskContext<CreateBillingAccountJob,CreatePartyRolesTask> ctxt,Party party) throws DaoException, StorageException {
-            BillingAccountPartyRole newPartyRole = new BillingAccountPartyRole();
-            newPartyRole.setBaUid(ctxt.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession()).getUid());
-            newPartyRole.addRole(BillingAccountPartyRole.RoleType.HOLDER);
-            newPartyRole.addRole(BillingAccountPartyRole.RoleType.PAYER);
-            party.addPartyRole(newPartyRole);
+        protected Class<Wrapper> getResponseClass() {
+            return Wrapper.class;
+        }
+
+        @Override
+        protected CreateUpdatePartyRolesJobRequest getRequest(TaskContext<CreateBillingAccountJob, CreatePartyRolesTask> ctxt) throws TaskExecutionException{
+            CreateUpdatePartyRolesJobRequest request = new CreateUpdatePartyRolesJobRequest();
+            request.setRoleRequests(new ArrayList<>());
+            try {
+                BillingAccountCreateUpdateRoleRequestRequest newPartyRole = new BillingAccountCreateUpdateRoleRequestRequest();
+                newPartyRole.setPartyId(ctxt.getParentJob().partyId);
+                newPartyRole.setBaId(ctxt.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession()).getUid());
+                newPartyRole.setTypes(new ArrayList<>());
+                newPartyRole.getTypes().add(RoleTypePublished.BILL_RECEIVER);
+                newPartyRole.getTypes().add(RoleTypePublished.HOLDER);
+                newPartyRole.getTypes().add(RoleTypePublished.PAYER);
+            }
+            catch(StorageException|DaoException e){
+                throw new TaskExecutionException(ctxt,"Cannot access data",e);
+            }
+            return request;
+        }
+
+        @Override
+        protected void updateTaskWithResponse(CreatePartyRolesTask task, CreateUpdatePartyRolesJobResponse resp) {
+            if(resp.getResults().size()>0) {
+                task.roleUid = resp.getResults().get(0).getRoleUid();
+            }
+        }
+    }
+
+
+    @TaskProcessingForClass(CreateBillingAccountJob.UpdateBaPartyRolesTask.class)
+    public static class CreateUpdateBaPartyRolesService extends DocumentUpdateTaskProcessingService<CreateBillingAccountJob,BillingAccount,CreateBillingAccountJob.UpdateBaPartyRolesTask>{
+        @Override
+        public boolean preprocess(TaskContext<CreateBillingAccountJob, CreateBillingAccountJob.UpdateBaPartyRolesTask> context) throws TaskExecutionException {
+            context.getTask().setDocKey(context.getParentJob().baLink.getKey());
+            return true;
+        }
+
+        @Override
+        protected void processDocument(TaskContext<CreateBillingAccountJob, CreateBillingAccountJob.UpdateBaPartyRolesTask> ctxt, BillingAccount doc) throws DaoException, StorageException, TaskExecutionException {
+            PartyRoleLink roleLink = new PartyRoleLink();
+            roleLink.setPid(ctxt.getParentJob().partyId);
+            roleLink.setRoleUid(ctxt.getDependentTask(CreatePartyRolesTask.class).roleUid);
+            ctxt.getTask().getDocument(ctxt.getSession()).addPartyRoles(roleLink);
         }
     }
 
@@ -98,4 +156,6 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
             return job;
         }
     }
+
+
 }

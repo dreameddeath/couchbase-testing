@@ -19,97 +19,134 @@ package com.dreameddeath.billing.process.service;
 
 import com.dreameddeath.billing.model.v1.account.BillingAccount;
 import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.process.dao.JobDao;
-import com.dreameddeath.core.process.dao.TaskDao;
-import com.dreameddeath.core.process.model.v1.base.ProcessState;
+import com.dreameddeath.core.config.ConfigManagerFactory;
+import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
+import com.dreameddeath.core.date.DateTimeServiceFactory;
+import com.dreameddeath.core.date.MockDateTimeServiceImpl;
+import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
-import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
-import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
-import com.dreameddeath.core.process.utils.ProcessUtils;
-import com.dreameddeath.party.dao.v1.PartyDao;
+import com.dreameddeath.core.user.AnonymousUser;
+import com.dreameddeath.core.user.StandardMockUserFactory;
+import com.dreameddeath.couchbase.testing.daemon.DaemonWrapperForTesting;
+import com.dreameddeath.infrastructure.common.CommonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
+import com.dreameddeath.infrastructure.plugin.config.InfrastructureProcessPluginConfigProperties;
+import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
+import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
+import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
 import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob;
 import com.dreameddeath.party.process.model.v1.party.CreateUpdatePartyRequest;
-import com.dreameddeath.party.process.service.CreateUpdatePartyJobProcessingService;
-import com.dreameddeath.party.service.impl.PartyManagementService;
-import com.dreameddeath.testing.Utils;
+import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
+import com.dreameddeath.testing.curator.CuratorTestUtils;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.junit.Assert.assertEquals;
 
 public class CreateBillingAccountJobProcessingServiceTest {
-    private Utils.TestEnvironment env;
-    private ExecutorClientFactory executorClientFactory;
+    private CuratorTestUtils testUtils;
+    private DaemonWrapperForTesting daemonWrapper;
+    private static final DateTime REFERENCE_DATE = DateTime.parse("2016-01-01T00:00:00");
+
+    private final AtomicReference<DateTime> dateTimeRef=new AtomicReference<>(REFERENCE_DATE);
 
     @Before
-    public void initTest() throws  Exception{
-        env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
-        env.addDocumentDao(new PartyDao());
-        env.addDocumentDao(new JobDao());
-        env.addDocumentDao(new TaskDao());
-        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.account.BillingAccountDao").newInstance());
-        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.cycle.BillingCycleDao").newInstance());
-        env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.order.BillingOrderDao").newInstance());
-        //_env.addDocumentDao((CouchbaseDocumentDao) CreateBillingAccountJobProcessingServiceTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.account.BillingAccountDao").newInstance());
-        // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
-        env.start();
-        ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
-        ProcessingServiceFactory processFactory=new ProcessingServiceFactory();
-        CreateUpdatePartyJobProcessingService.CreatePartyTaskProcessingService createPartyTaskProcessingService=new CreateUpdatePartyJobProcessingService.CreatePartyTaskProcessingService();
-        createPartyTaskProcessingService.setPartyManagementService(new PartyManagementService());
-        processFactory.addTaskProcessingService(createPartyTaskProcessingService);
-        processFactory.addJobProcessingService(CreateUpdatePartyJobProcessingService.class);
-        //processFactory.getTaskProcessingServiceForClass(CreateUpdatePartyJob.CreatePartyTask.class);
+    public void setup() throws Exception{
+        testUtils = new CuratorTestUtils();
+        testUtils.prepare(1);
+        CouchbaseBucketFactorySimulator couchbaseBucketFactory = new CouchbaseBucketFactorySimulator();
 
-        processFactory.addJobProcessingService(CreateBillingAccountJobProcessingService.class);
-        processFactory.addJobProcessingService(CreateBillingCycleJobProcessingService.class);
-        executorClientFactory = new ExecutorClientFactory(env.getSessionFactory(),execFactory,processFactory);
+        String connectionString = testUtils.getCluster().getConnectString();
 
+        ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("party").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("billing").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty("party").getName(),"test");
+        AbstractDaemon daemon = AbstractDaemon.builder()
+                .withName("testing Daemon")
+                .withUserFactory(new StandardMockUserFactory())
+                .withPlugin(CouchbaseDaemonPlugin.builder().withBucketFactory(couchbaseBucketFactory))
+                .build();
+
+        daemon.addWebServer(RestWebServer.builder().withName("testParty")
+                //.withServiceDiscoveryManager(true)
+                .withPlugin(CouchbaseWebServerPlugin.builder())
+                .withPlugin(ProcessesWebServerPlugin.builder())
+                .withDateTimeServiceFactory(new DateTimeServiceFactory(new MockDateTimeServiceImpl(MockDateTimeServiceImpl.Calculator.fixedCalculator(dateTimeRef))))
+                .withApplicationContextConfig("META-INF/spring/party.test.applicationContext.xml"));
+
+
+        daemon.addWebServer(RestWebServer.builder().withName("testBillingAccount")
+                //.withServiceDiscoveryManager(true)
+                .withPlugin(CouchbaseWebServerPlugin.builder())
+                .withPlugin(ProcessesWebServerPlugin.builder())
+                .withDateTimeServiceFactory(new DateTimeServiceFactory(new MockDateTimeServiceImpl(MockDateTimeServiceImpl.Calculator.fixedCalculator(dateTimeRef))))
+                .withApplicationContextConfig("META-INF/spring/ba.test.applicationContext.xml"));
+
+
+
+        daemonWrapper = new DaemonWrapperForTesting(daemon);
+        daemonWrapper.start();
     }
 
     @Test
     public void JobTest() throws Exception{
-        ICouchbaseSession session =env.getSessionFactory().newReadWriteSession(null);
-        CreateUpdatePartyJob createUpdatePartyJob = session.newEntity(CreateUpdatePartyJob.class);
-        CreateUpdatePartyRequest createUpdatePartyRequest = new CreateUpdatePartyRequest();
-        createUpdatePartyJob.setRequest(createUpdatePartyRequest);
-        createUpdatePartyRequest.type = CreateUpdatePartyRequest.Type.person;
-        createUpdatePartyRequest.person = new CreateUpdatePartyRequest.Person();
-        createUpdatePartyRequest.person.firstName = "christophe";
-        createUpdatePartyRequest.person.lastName = "jeunesse";
+        String createdPartyId;
+        {
+            ProcessesWebServerPlugin plugin = daemonWrapper.getDaemon().getAdditionalWebServers("testParty").get(0).getPlugin(ProcessesWebServerPlugin.class);
+            CouchbaseWebServerPlugin cbPlugin = daemonWrapper.getDaemon().getAdditionalWebServers("testParty").get(0).getPlugin(CouchbaseWebServerPlugin.class);
 
-        executorClientFactory.buildJobClient(CreateUpdatePartyJob.class).executeJob(createUpdatePartyJob,null);
-        CreateUpdatePartyJob.CreatePartyTask createPartyTask=ProcessUtils.loadTask(session, createUpdatePartyJob,1,CreateUpdatePartyJob.CreatePartyTask.class);
-        CreateBillingAccountJob createBaJob = session.newEntity(CreateBillingAccountJob.class);
-        createBaJob.billDay=2;
+            IJobExecutorClient<CreateUpdatePartyJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(CreateUpdatePartyJob.class);
 
-        createBaJob.partyId = createPartyTask.getDocument(session).getUid();
-        JobContext<CreateBillingAccountJob> createBaJobContext =  executorClientFactory.buildJobClient(CreateBillingAccountJob.class).executeJob(createBaJob,null);
+            CreateUpdatePartyJob createUpdatePartyJob = new CreateUpdatePartyJob();
+            CreateUpdatePartyRequest request = new CreateUpdatePartyRequest();
+            createUpdatePartyJob.setRequest(request);
+            request.type = CreateUpdatePartyRequest.Type.person;
+            request.person = new CreateUpdatePartyRequest.Person();
+            request.person.firstName = "christophe";
+            request.person.lastName = "jeunesse";
 
-        session.reset();
-        CreateBillingAccountJob inDbJob = session.get(createBaJob.getBaseMeta().getKey(),CreateBillingAccountJob.class);
-        assertEquals(inDbJob.getStateInfo().getState(), ProcessState.State.DONE);
-        CreateBillingAccountJob.CreateBillingAccountTask baTask = session.get(createBaJob.getBaseMeta().getKey()+"/task/1",CreateBillingAccountJob.CreateBillingAccountTask.class);
+            JobContext<CreateUpdatePartyJob> createPartyJobContext = executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE);
+            createdPartyId=createPartyJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).getDocument(cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE)).getUid();
+        }
 
-        BillingAccount inDbBA = session.get(baTask.getDocKey(),BillingAccount.class);
+        {
+            ProcessesWebServerPlugin plugin = daemonWrapper.getDaemon().getAdditionalWebServers("testBillingAccount").get(0).getPlugin(ProcessesWebServerPlugin.class);
+            CouchbaseWebServerPlugin cbPlugin = daemonWrapper.getDaemon().getAdditionalWebServers("testBillingAccount").get(0).getPlugin(CouchbaseWebServerPlugin.class);
 
-        assertEquals(inDbBA.getBillDay(),createBaJob.billDay);
-        assertEquals((long)inDbBA.getBillCycleLength(),1);
-        assertEquals(1,inDbBA.getBillingCycleLinks().size());
-        assertEquals(1,inDbBA.getPartyLinks().size());
-        assertEquals(createPartyTask.getDocKey(),inDbBA.getPartyLinks().get(0).getKey());
+            IJobExecutorClient<CreateBillingAccountJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(CreateBillingAccountJob.class);
+
+            CreateBillingAccountJob baJobCreate = new CreateBillingAccountJob();
+            baJobCreate.partyId=createdPartyId;
+            baJobCreate.billDay=2;
+            JobContext<CreateBillingAccountJob> createBaJobContext = executorClient.executeJob(baJobCreate, AnonymousUser.INSTANCE);
+
+            BillingAccount inDbBA = createBaJobContext.getTasks(CreateBillingAccountJob.CreateBillingAccountTask.class).get(0).getDocument(cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE));
+
+            assertEquals(inDbBA.getBillDay(),baJobCreate.billDay);
+            assertEquals((long)inDbBA.getBillCycleLength(),1);
+            assertEquals(1,inDbBA.getBillingCycleLinks().size());
+            assertEquals(1,inDbBA.getPartyRoles().size());
+            assertEquals(createdPartyId,inDbBA.getPartyRoles().get(0).getPid());
+            //assertNotNull(inDbBA.getPartyRoles().get(0).getRoleUid());
+        }
     }
 
 
     @After
-    public void end() throws Exception{
-        if(env!=null){
-            env.shutdown(true);
+    public void close() throws Exception{
+        if(daemonWrapper!=null){
+            daemonWrapper.stop();
+        }
+        if(testUtils!=null){
+            testUtils.stop();
         }
     }
-
 }

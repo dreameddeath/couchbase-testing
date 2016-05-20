@@ -50,7 +50,16 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
                         throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
                     }
                 }
-                processDocument(ctxt,doc);
+                try {
+                    ctxt.getTask().getBaseMeta().freeze();
+                    ctxt.getSession().setTemporaryReadOnlyMode(true);
+                    processDocument(ctxt, doc);
+                }
+                finally {
+                    ctxt.getSession().setTemporaryReadOnlyMode(false);
+                    ctxt.getTask().getBaseMeta().unfreeze();
+                }
+
                 CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
                 attachedTaskRef.setJobUid(ctxt.getParentJob().getUid());
                 attachedTaskRef.setJobClass(ctxt.getParentJob().getClass().getName());
@@ -73,6 +82,10 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         }
         catch(StorageException e){
             throw new TaskExecutionException(ctxt, "Storage exception", e);
+        }
+        finally{
+            ctxt.getSession().setTemporaryReadOnlyMode(false);
+            ctxt.getTask().getBaseMeta().unfreeze();
         }
         return false;
     }

@@ -37,7 +37,16 @@ public abstract class TaskCreatorTaskProcessingService<TJOB extends AbstractJob,
     private static final Logger LOG = LoggerFactory.getLogger(TaskCreatorTaskProcessingService.class);
     @Override
     final public boolean process(TaskContext<TJOB, TTASK> ctxt) throws TaskExecutionException {
-        Collection<AbstractTask> tasks = buildAdditionnalTasks(ctxt);
+        Collection<AbstractTask> tasks;
+        try {
+            ctxt.getTask().getBaseMeta().freeze();
+            ctxt.getSession().setTemporaryReadOnlyMode(true);
+            tasks = buildAdditionnalTasks(ctxt);
+        }
+        finally {
+            ctxt.getSession().setTemporaryReadOnlyMode(false);
+            ctxt.getTask().getBaseMeta().unfreeze();
+        }
         try {
             tasks = ctxt.getJobContext().assignIds(tasks);
             final AtomicInteger nbErrors=new AtomicInteger();

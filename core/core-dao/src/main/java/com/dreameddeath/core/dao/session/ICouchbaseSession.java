@@ -84,6 +84,9 @@ public interface ICouchbaseSession {
     String getKeyPrefix();
 
     SessionType getSessionType();
+    void setTemporaryReadOnlyMode(boolean active);
+    boolean isTemporaryReadOnlyMode();
+
     IUser getUser();
     <TKEY,TVALUE,T extends CouchbaseDocument> IViewQuery<TKEY,TVALUE,T> initViewQuery(Class<T> forClass, String viewName) throws DaoException;
     <TKEY,TVALUE,T extends CouchbaseDocument> IViewQueryResult<TKEY,TVALUE,T> executeQuery(IViewQuery<TKEY, TVALUE, T> query) throws DaoException,StorageException;

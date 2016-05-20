@@ -234,6 +234,16 @@ public class RestModel {
             return "set"+variableName.substring(0,1).toUpperCase()+variableName.substring(1);
         }
 
+        public String getInitValue(){
+            if(typeStructure==Type.COLLECTION){
+                return "= new ArrayList<>();";
+            }
+            else if(typeStructure==Type.MAP){
+                return "= new HashMap<>();";
+            }
+            return "";
+        }
+
         public String getJobFieldName() {
             return jobFieldName;
         }
@@ -252,6 +262,16 @@ public class RestModel {
 
         public List<String> getTypeImports() {
             return typeImports;
+        }
+
+        public void setTypeStructure(Type typeStructure) {
+            if(typeStructure==Type.COLLECTION) {
+                typeImports.add("java.util.ArrayList");
+            }
+            else if(typeStructure==Type.MAP){
+                typeImports.add("java.util.HashMap");
+            }
+            this.typeStructure = typeStructure;
         }
 
         public enum Type{

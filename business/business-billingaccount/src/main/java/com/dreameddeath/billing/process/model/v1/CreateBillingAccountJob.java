@@ -24,8 +24,9 @@ import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.process.model.v1.tasks.SubJobProcessTask;
-import com.dreameddeath.party.model.v1.Party;
-import com.dreameddeath.party.model.v1.PartyLink;
+import com.dreameddeath.couchbase.core.process.remote.model.RemoteJobProcessTask;
+import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobRequest;
+import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobResponse;
 
 /**
  * Created by Christophe Jeunesse on 29/05/2014.
@@ -41,15 +42,21 @@ public class CreateBillingAccountJob extends AbstractJob {
 
     @DocumentProperty("baCreated")
     public BillingAccountLink baLink;
-    @DocumentProperty("partyLink")
-    public PartyLink partyLink;
+    @DocumentProperty("partyRoleId")
+    public String partyRoleId;
 
     @DocumentEntity
     public static class CreateBillingAccountTask extends DocumentCreateTask<BillingAccount> { }
 
     @DocumentEntity
-    public static class CreatePartyRolesTask extends DocumentUpdateTask<Party> { }
+    public static class CreatePartyRolesTask extends RemoteJobProcessTask<CreateUpdatePartyRolesJobRequest,CreateUpdatePartyRolesJobResponse> {
+        @DocumentProperty("roleUid")
+        public String roleUid;
+    }
 
     @DocumentEntity
     public static class CreateBillingCycleJobTask extends SubJobProcessTask<CreateBillingCycleJob> { }
+
+    @DocumentEntity
+    public static class UpdateBaPartyRolesTask extends DocumentUpdateTask<BillingAccount> {}
 }

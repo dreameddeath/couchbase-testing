@@ -9,6 +9,7 @@ import com.dreameddeath.party.model.v1.roles.BillingAccountPartyRole;
 import com.dreameddeath.party.process.model.v1.party.CreateUpdatePartyRequest;
 import com.dreameddeath.party.process.model.v1.roles.BillingAccountCreateUpdateRoleRequest;
 import com.dreameddeath.party.process.model.v1.roles.CreateUpdateRoleRequest;
+import com.dreameddeath.party.process.model.v1.roles.CreateUpdateRoleResult;
 import com.dreameddeath.party.process.model.v1.roles.tasks.PartyRolesUpdateResult;
 import com.dreameddeath.party.process.model.v1.roles.tasks.PartyUpdateResult;
 import com.dreameddeath.party.service.IPartyManagementService;
@@ -76,6 +77,9 @@ public class PartyManagementService implements IPartyManagementService {
     }
 
     private void manageCreateUpdateBillingAccountRoles(PartyRolesUpdateResult result, BillingAccountCreateUpdateRoleRequest request, Party party) {
+        CreateUpdateRoleResult roleResult = new CreateUpdateRoleResult();
+        result.addRoles(roleResult);
+        roleResult.setTempUid(request.getTempUid());
         String baId=request.getBaId();
         BillingAccountPartyRole existingRole=null;
         for(BillingAccountPartyRole role:getPartyRoles(party,BillingAccountPartyRole.class)){
@@ -91,7 +95,7 @@ public class PartyManagementService implements IPartyManagementService {
             party.addPartyRole(existingRole);
             existingRole.setBaUid(baId);
         }
-
+        roleResult.setRoleUid(existingRole.getUid());
         List<BillingAccountPartyRole.RoleType> typesToAdd=new ArrayList<>(request.getTypes().size());
         for(BillingAccountPartyRole.RoleType type :request.getTypes()){
             if(!existingRole.getRoles().contains(type)){

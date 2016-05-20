@@ -72,7 +72,7 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
     }
 
     protected abstract <T extends RemoteJobResultWrapper<TRESP>> Class<T> getResponseClass();
-    protected abstract TREQ getRequest(TaskContext<TJOB,TTASK> ctxt);
+    protected abstract TREQ getRequest(TaskContext<TJOB,TTASK> ctxt) throws TaskExecutionException;
     protected void updateTaskWithResponse(TTASK task, TRESP resp){}
     protected void onResponseReceived(TaskContext<TJOB,TTASK> ctxt, TRESP resp){}
 

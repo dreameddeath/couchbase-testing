@@ -242,4 +242,14 @@ public class DummySession implements ICouchbaseSession {
     public IUser getUser() {
         return null;
     }
+
+    @Override
+    public void setTemporaryReadOnlyMode(boolean active) {
+
+    }
+
+    @Override
+    public boolean isTemporaryReadOnlyMode() {
+        return false;
+    }
 }

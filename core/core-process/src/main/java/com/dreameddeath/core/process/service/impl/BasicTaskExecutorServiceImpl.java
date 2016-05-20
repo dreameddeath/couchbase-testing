@@ -47,6 +47,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
 
     @Override
     public void execute(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
+        ctxt.getParentJob().getBaseMeta().freeze();
         T task = ctxt.getTask();
         ProcessState taskState = ctxt.getTaskState();
         taskState.setLastRunError(null);
@@ -102,10 +103,12 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
 
             if (!taskState.isJobUpdated()) {
                 try {
+                    ctxt.getParentJob().getBaseMeta().unfreeze();
                     boolean saveAsked=ctxt.getProcessingService().updatejob(ctxt);
                     if(saveAsked){
                         ctxt.getJobContext().save();
                     }
+                    ctxt.getParentJob().getBaseMeta().freeze();
                     manageStateExecutionEnd(ctxt,State.JOBUPDATED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.JOBUPDATED, e);
@@ -126,6 +129,9 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
             throw e;
         } catch (Throwable e){
             throw new TaskExecutionException(task,State.UNKNOWN,e);
+        }
+        finally {
+            ctxt.getParentJob().getBaseMeta().unfreeze();
         }
     }
 }

@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 05/02/2015.
@@ -130,6 +131,11 @@ public class AbstractDaemon {
     public List<AbstractWebServer> getAdditionalWebServers(){
         return Collections.unmodifiableList(additionalWebServers);
     }
+
+    public List<AbstractWebServer> getAdditionalWebServers(final String name){
+        return additionalWebServers.stream().filter(srv->srv.getName().equals(name)).collect(Collectors.toList());
+    }
+
 
     public UUID getUuid() {
         return uuid;

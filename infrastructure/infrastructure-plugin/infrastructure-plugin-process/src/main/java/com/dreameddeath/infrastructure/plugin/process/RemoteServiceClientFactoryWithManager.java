@@ -27,6 +27,8 @@ import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.dreameddeath.infrastructure.plugin.config.InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN;
+
 /**
  * Created by Christophe Jeunesse on 13/03/2016.
  */
@@ -41,7 +43,7 @@ public class RemoteServiceClientFactoryWithManager implements IRemoteClientFacto
     private IRemoteClientFactory setupFactory(String domain){
         try {
             BaseRemoteClientFactory result = new BaseRemoteClientFactory();
-            result.setClientFactory(manager.getClientFactory(domain));
+            result.setClientFactory(manager.getClientFactory(REMOTE_SERVICE_FOR_DOMAIN.getProperty(domain).getMandatoryValue("Cannot find the service domain")));
             return result;
         }
         catch (Exception e){

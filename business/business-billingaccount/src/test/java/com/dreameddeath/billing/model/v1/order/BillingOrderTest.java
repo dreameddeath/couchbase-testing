@@ -17,20 +17,11 @@
 package com.dreameddeath.billing.model.v1.order;
 
 
-import com.dreameddeath.billing.model.v1.account.BillingAccount;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.party.dao.v1.PartyDao;
-import com.dreameddeath.party.model.v1.Person;
-import com.dreameddeath.testing.Utils;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 public class BillingOrderTest extends Assert {
 
-    Utils.TestEnvironment env;
+    /*Utils.TestEnvironment env;
     @Before
     public void initTest() throws  Exception{
         env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
@@ -68,5 +59,5 @@ public class BillingOrderTest extends Assert {
         if(env!=null){
             env.shutdown(true);
         }
-    }
+    }*/
 }

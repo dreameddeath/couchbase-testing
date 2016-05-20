@@ -58,6 +58,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     private Map<String,CouchbaseDocument> sessionCache = new ConcurrentHashMap<>();
     private Map<String,CouchbaseUniqueKey> keyCache = new ConcurrentHashMap<>();
     private Map<String,Long> counters = new ConcurrentHashMap<>();
+    private boolean temporaryReadOnlyMode;
 
     public CouchbaseSession(CouchbaseSessionFactory factory, IUser user){
         this(factory, SessionType.READ_ONLY,user);
@@ -102,11 +103,20 @@ public class CouchbaseSession implements ICouchbaseSession {
         return sessionType;
     }
 
+    @Override
+    public void setTemporaryReadOnlyMode(boolean active) {
+        this.temporaryReadOnlyMode=active;
+    }
+
+    public boolean isTemporaryReadOnlyMode() {
+        return temporaryReadOnlyMode;
+    }
+
     public boolean isCalcOnly(){
         return sessionType== SessionType.CALC_ONLY;
     }
     public boolean isReadOnly(){
-        return sessionType== SessionType.READ_ONLY;
+        return (sessionType== SessionType.READ_ONLY)||isTemporaryReadOnlyMode();
     }
     protected void checkReadOnly(CouchbaseDocument doc) throws ReadOnlyException{
         if(isReadOnly()){
