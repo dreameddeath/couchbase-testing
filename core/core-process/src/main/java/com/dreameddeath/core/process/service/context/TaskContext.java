@@ -80,6 +80,19 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
             jobContext.getJob().getBaseMeta().freeze();
         }
         getSession().save(task);
+        boolean isJobFrozen = getParentJob().getBaseMeta().isFrozen();
+        if(isJobFrozen) {
+            getParentJob().getBaseMeta().unfreeze();
+        }
+        try {
+            getJobContext().save();
+        }
+        finally {
+            if(isJobFrozen) {
+                getParentJob().getBaseMeta().freeze();
+            }
+        }
+
     }
 
     public Collection<AbstractTask> assignIds(Collection<AbstractTask> tasks) throws DaoException,StorageException{

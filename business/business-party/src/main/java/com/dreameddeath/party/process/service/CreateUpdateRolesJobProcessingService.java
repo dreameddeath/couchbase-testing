@@ -56,9 +56,10 @@ public class CreateUpdateRolesJobProcessingService extends StandardJobProcessing
         }
 
         @Override
-        protected void processDocument(TaskContext<CreateUpdatePartyRolesJob, CreateUpdatePartyRolesTask> ctxt, Party doc) throws DaoException, StorageException, TaskExecutionException {
+        protected boolean processDocument(TaskContext<CreateUpdatePartyRolesJob, CreateUpdatePartyRolesTask> ctxt, Party doc) throws DaoException, StorageException, TaskExecutionException {
             PartyRolesUpdateResult result = service.managePartyRolesUpdate(ctxt.getParentJob().getRoleRequests(),doc);
             //TODO manage task update in //
+            return true;
         }
     }
 }

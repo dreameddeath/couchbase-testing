@@ -19,11 +19,11 @@ package com.dreameddeath.core.process.service.impl;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyStorageException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
-import com.dreameddeath.core.process.annotation.JobWithDuplicateCheck;
+import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
@@ -80,13 +80,13 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
         );
-        if(job.getClass().isAnnotationPresent(JobWithDuplicateCheck.class)){
+        if(StringUtils.isNotEmpty(job.getRequestUid())){
             ctxt.getJob().getStateInfo().setState(ProcessState.State.NEW);
             try {
                 ctxt.save();
             }
             catch(ValidationFailedException e){
-                DuplicateUniqueKeyStorageException duplicate = e.findException(DuplicateUniqueKeyStorageException.class);
+                DuplicateUniqueKeyException duplicate = e.findException(DuplicateUniqueKeyException.class);
                 if(duplicate!=null){
                     throw new DuplicateJobExecutionException(ctxt,"DuplicateJob creation",duplicate);
                 }
@@ -97,6 +97,7 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
             catch(DaoException|StorageException|ValidationException e){
                 throw new JobExecutionException(ctxt,"Cannot perform initial save",e);
             }
+
         }
         ctxt.execute();
         return ctxt;

@@ -101,7 +101,7 @@ public class ValidationFailedException extends ValidationException {
 
     public <T extends Throwable> T findException(Class<T> exceptionClass){
         for(ValidationException e : childList){
-            if(exceptionClass.isAssignableFrom(e.getCause().getClass())){
+            if(e.getCause()!=null && exceptionClass.isAssignableFrom(e.getCause().getClass())){
                 return (T) e.getCause();
             }
             else if(e instanceof ValidationFailedException){

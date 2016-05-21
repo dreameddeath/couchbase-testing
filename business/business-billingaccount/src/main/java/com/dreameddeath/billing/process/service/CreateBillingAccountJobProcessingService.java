@@ -136,11 +136,12 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
         }
 
         @Override
-        protected void processDocument(TaskContext<CreateBillingAccountJob, CreateBillingAccountJob.UpdateBaPartyRolesTask> ctxt, BillingAccount doc) throws DaoException, StorageException, TaskExecutionException {
+        protected boolean processDocument(TaskContext<CreateBillingAccountJob, CreateBillingAccountJob.UpdateBaPartyRolesTask> ctxt, BillingAccount doc) throws DaoException, StorageException, TaskExecutionException {
             PartyRoleLink roleLink = new PartyRoleLink();
             roleLink.setPid(ctxt.getParentJob().partyId);
             roleLink.setRoleUid(ctxt.getDependentTask(CreatePartyRolesTask.class).roleUid);
             ctxt.getTask().getDocument(ctxt.getSession()).addPartyRoles(roleLink);
+            return false;
         }
     }
 

@@ -16,11 +16,10 @@
 
 package com.dreameddeath.couchbase.core.process.rest.process;
 
-import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
@@ -45,8 +44,29 @@ public class TestJobUpdateGenService extends StandardJobProcessingService<TestDo
     @TaskProcessingForClass(TestDocJobUpdateGen.TestJobUpdateTaskGen.class)
     public static class TestJobUpdateTaskService extends DocumentUpdateTaskProcessingService<TestDocJobUpdateGen,TestDoc,TestDocJobUpdateGen.TestJobUpdateTaskGen>{
         @Override
-        protected void processDocument(TaskContext<TestDocJobUpdateGen, TestDocJobUpdateGen.TestJobUpdateTaskGen> ctxt, TestDoc doc) throws DaoException, StorageException {
-            doc.intValue-=ctxt.getParentJob().decrIntValue;
+        protected void cleanTaskBeforeRetryProcessing(TaskContext<TestDocJobUpdateGen, TestDocJobUpdateGen.TestJobUpdateTaskGen> ctxt, TestDoc doc) {
+            ctxt.getTask().isFirstCall=false;
+        }
+
+        @Override
+        protected boolean processDocument(TaskContext<TestDocJobUpdateGen, TestDocJobUpdateGen.TestJobUpdateTaskGen> ctxt, TestDoc doc) throws TaskExecutionException {
+            if(ctxt.getTask().isFirstCall){
+                ctxt.getTask().setUpdatedWithDoc(true);
+                try {
+                    ctxt.getSession().setTemporaryReadOnlyMode(false);
+                    ctxt.save();
+                }catch(Throwable e){
+                    throw new TaskExecutionException(ctxt,"error saved");
+                }
+                finally {
+                    ctxt.getSession().setTemporaryReadOnlyMode(true);
+                }
+                throw new TaskExecutionException(ctxt,"First call test");
+            }
+            else {
+                doc.intValue -= ctxt.getParentJob().decrIntValue;
+            }
+            return true;
         }
     }
 }

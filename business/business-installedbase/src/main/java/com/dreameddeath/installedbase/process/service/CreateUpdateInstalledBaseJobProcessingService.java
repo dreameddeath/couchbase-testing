@@ -150,7 +150,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
         }
 
         @Override
-        public void processDocument(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt, InstalledBase installBase) throws TaskExecutionException{
+        public boolean processDocument(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt, InstalledBase installBase) throws TaskExecutionException{
             CreateUpdateInstalledBaseRequest.Contract refContract=null;
             for(CreateUpdateInstalledBaseRequest.Contract currContract:ctxt.getParentJob().getRequest().contracts){
                 if (ctxt.getTask().getTempContractId() != null && ctxt.getTask().getTempContractId().equals(currContract.tempId)) {
@@ -166,6 +166,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
                 throw new TaskExecutionException(ctxt,"Inconsitent State, cannot find Contract in installed base "+ctxt.getTask().getDocKey());
             }
             service.manageCreateUpdate(ctxt.getParentJob().getRequest(),installBase,refContract);
+            return true;
         }
     }
 }

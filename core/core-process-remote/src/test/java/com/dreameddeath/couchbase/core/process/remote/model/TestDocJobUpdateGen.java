@@ -40,5 +40,8 @@ public class TestDocJobUpdateGen extends AbstractJob {
     public Integer resultIncrValue;
 
     @DocumentEntity(domain = "test")
-    public static class TestJobUpdateTaskGen extends DocumentUpdateTask<TestDoc> {}
+    public static class TestJobUpdateTaskGen extends DocumentUpdateTask<TestDoc> {
+        @DocumentProperty
+        public boolean isFirstCall=true;
+    }
 }

@@ -411,7 +411,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException {
-        return asyncSave(obj).toBlocking().first();
+        return manageAsyncResult(obj,asyncSave(obj));
     }
 
     @Override

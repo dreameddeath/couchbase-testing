@@ -76,8 +76,8 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
                 try {
                     TaskContext<T,?> taskCtxt;
                     while ((taskCtxt = ctxt.getNextExecutableTask()) != null) {
-                        if(job.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
-                            ctxt.save();
+                        if(taskCtxt.getTask().getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
+                            taskCtxt.save();
                         }
                         taskCtxt.execute();
                     }
@@ -114,10 +114,12 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
             }
         }
         catch(JobExecutionException e){
+            job.getBaseMeta().unfreeze();
             jobState.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
             throw e;
         }
         catch(Throwable e){
+            job.getBaseMeta().unfreeze();
             jobState.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
             throw new JobExecutionException(job,State.UNKNOWN,e);
         }

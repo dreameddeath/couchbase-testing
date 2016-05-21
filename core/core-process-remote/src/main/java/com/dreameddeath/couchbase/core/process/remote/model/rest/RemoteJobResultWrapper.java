@@ -31,7 +31,6 @@ public class RemoteJobResultWrapper<T> {
     private StateInfo jobStateInfo;
     private UUID jobId;
 
-
     public RemoteJobResultWrapper(T result){
         this.result = result;
     }

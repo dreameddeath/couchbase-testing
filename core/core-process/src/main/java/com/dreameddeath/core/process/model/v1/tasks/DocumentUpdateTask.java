@@ -23,6 +23,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 
 /**
@@ -30,10 +31,28 @@ import com.dreameddeath.core.process.model.v1.base.AbstractTask;
  */
 public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends AbstractTask {
     @DocumentProperty("docKey")
-    private Property<String> docKey=new ImmutableProperty<String>(DocumentUpdateTask.this);
+    private Property<String> docKey=new ImmutableProperty<>(DocumentUpdateTask.this);
+    /**
+     *  updatedWithDoc : tell if it has been updated during doc update
+     */
+    @DocumentProperty("updatedWithDoc")
+    private Property<Boolean> updatedWithDoc = new StandardProperty<>(DocumentUpdateTask.this,Boolean.FALSE);
+
 
     public String getDocKey(){return docKey.get(); }
     public DocumentUpdateTask<T> setDocKey(String docKey){this.docKey.set(docKey); return this;}
 
     public T getDocument(ICouchbaseSession session)throws DaoException, StorageException {return (T)session.get(getDocKey());}
+
+    /**
+     * Getter of updatedWithDoc
+     * @return the value of updatedWithDoc
+     */
+    public Boolean getUpdatedWithDoc() { return updatedWithDoc.get(); }
+    /**
+     * Setter of updatedWithDoc
+     * @param val the new value of updatedWithDoc
+     */
+    public void setUpdatedWithDoc(Boolean val) { updatedWithDoc.set(val); }
+
 }

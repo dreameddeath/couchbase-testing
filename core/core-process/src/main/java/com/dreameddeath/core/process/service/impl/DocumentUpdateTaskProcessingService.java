@@ -39,8 +39,10 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         DocumentUpdateTask<TDOC> task = ctxt.getTask();
         Preconditions.checkNotNull(task.getDocKey(),"The document to update hasn't key for task %s of type %s",task.getId(),task.getClass().getName());
         try {
+            @SuppressWarnings("unchecked")
             TDOC doc = (TDOC)ctxt.getSession().get(task.getDocKey());
 
+            //Check if the task is already done on the documment
             CouchbaseDocumentAttachedTaskRef reference = doc.getAttachedTaskRef(task);
             if (reference == null) {
                 if(ctxt.getTask().getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
@@ -50,16 +52,36 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
                         throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
                     }
                 }
+                if(ctxt.getTask().getUpdatedWithDoc()){
+                    cleanTaskBeforeRetryProcessing(ctxt,doc);
+                    ctxt.getTask().setUpdatedWithDoc(false);
+                    try {
+                        ctxt.save();
+                    }
+                    catch(ValidationException e){
+                        throw new TaskExecutionException(ctxt, "Cleaned up Task Validation exception", e);
+                    }
+                }
+                boolean taskUpdated;
                 try {
-                    ctxt.getTask().getBaseMeta().freeze();
                     ctxt.getSession().setTemporaryReadOnlyMode(true);
-                    processDocument(ctxt, doc);
+                    taskUpdated=processDocument(ctxt, doc);
                 }
                 finally {
                     ctxt.getSession().setTemporaryReadOnlyMode(false);
-                    ctxt.getTask().getBaseMeta().unfreeze();
                 }
 
+                if(taskUpdated){
+                    try {
+                        ctxt.getTask().setUpdatedWithDoc(true);
+                        ctxt.save();
+                    }
+                    catch(ValidationException e){
+                        throw new TaskExecutionException(ctxt, "Updated Task Validation exception", e);
+                    }
+                }
+
+                //Tell that the document has been updated
                 CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
                 attachedTaskRef.setJobUid(ctxt.getParentJob().getUid());
                 attachedTaskRef.setJobClass(ctxt.getParentJob().getClass().getName());
@@ -71,7 +93,6 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
                 } catch (ValidationException e) {
                     throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
                 }
-                return true;
             }
         }
         catch (DuplicateAttachedTaskException e){
@@ -83,11 +104,15 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         catch(StorageException e){
             throw new TaskExecutionException(ctxt, "Storage exception", e);
         }
-        finally{
-            ctxt.getSession().setTemporaryReadOnlyMode(false);
-            ctxt.getTask().getBaseMeta().unfreeze();
-        }
-        return false;
+        return false; //No need to save, retry allowed
+    }
+
+    /**
+     * Allow a clean up of task result before retry the processing of the document
+     * @param ctxt
+     * @param doc
+     */
+    protected void cleanTaskBeforeRetryProcessing(TaskContext<TJOB, T> ctxt, TDOC doc) {
     }
 
     @Override
@@ -110,6 +135,14 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         return false;
     }
 
-
-    protected abstract void processDocument(TaskContext<TJOB,T> ctxt,TDOC doc) throws DaoException,StorageException,TaskExecutionException;
+    /**
+     * Implement the document update processing
+     * @param ctxt
+     * @param doc
+     * @return a value telling to save or not the task
+     * @throws DaoException
+     * @throws StorageException
+     * @throws TaskExecutionException
+     */
+    protected abstract boolean processDocument(TaskContext<TJOB,T> ctxt,TDOC doc) throws DaoException,StorageException,TaskExecutionException;
 }

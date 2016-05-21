@@ -102,16 +102,23 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
             }
 
             if (!taskState.isJobUpdated()) {
+                boolean isJobFrozen = ctxt.getParentJob().getBaseMeta().isFrozen();
                 try {
-                    ctxt.getParentJob().getBaseMeta().unfreeze();
+                    if(isJobFrozen){
+                        ctxt.getParentJob().getBaseMeta().unfreeze();
+                    }
                     boolean saveAsked=ctxt.getProcessingService().updatejob(ctxt);
                     if(saveAsked){
                         ctxt.getJobContext().save();
                     }
-                    ctxt.getParentJob().getBaseMeta().freeze();
                     manageStateExecutionEnd(ctxt,State.JOBUPDATED,saveAsked);
                 } catch (Throwable e) {
                     throw new TaskExecutionException(task, State.JOBUPDATED, e);
+                }
+                finally {
+                    if(isJobFrozen) {
+                        ctxt.getParentJob().getBaseMeta().freeze();
+                    }
                 }
             }
 

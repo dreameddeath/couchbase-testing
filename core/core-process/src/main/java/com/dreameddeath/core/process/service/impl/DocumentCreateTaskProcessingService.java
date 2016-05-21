@@ -30,6 +30,7 @@ import com.dreameddeath.core.process.service.context.TaskContext;
  * Created by Christophe Jeunesse on 23/11/2014.
  */
 public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJob,TDOC extends CouchbaseDocument,T extends DocumentCreateTask<TDOC>> extends StandardTaskProcessingService<TJOB,T> {
+
     @Override
     public final boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
         T task = ctxt.getTask();
@@ -39,16 +40,19 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
                 if(ctxt.getSession().get(task.getDocKey())!=null){
                     return false;
                 }
+                else{
+                    cleanupBeforeRetryBuildDocument(ctxt);
+                    task.setDocKey(null);
+                    ctxt.save();
+                }
             }
             TDOC doc;
             try {
-                ctxt.getTask().getBaseMeta().freeze();
                 ctxt.getSession().setTemporaryReadOnlyMode(true);
                 doc=buildDocument(ctxt);
             }
             finally {
                 ctxt.getSession().setTemporaryReadOnlyMode(false);
-                ctxt.getTask().getBaseMeta().unfreeze();
             }
 
             //Prebuild key
@@ -67,11 +71,11 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
         catch(StorageException e){
             throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Storage error", e);
         }
-        finally {
-            ctxt.getSession().setTemporaryReadOnlyMode(false);
-            ctxt.getTask().getBaseMeta().unfreeze();
-        }
         return false; //No need to save (retry allowed)
+    }
+
+    protected void cleanupBeforeRetryBuildDocument(TaskContext<TJOB, T> ctxt) {
+
     }
 
     protected abstract TDOC buildDocument(TaskContext<TJOB,T> ctxt) throws DaoException,StorageException;

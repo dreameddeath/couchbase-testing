@@ -22,6 +22,7 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.java.utils.ClassUtils;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -32,6 +33,7 @@ import com.dreameddeath.core.process.utils.ProcessUtils;
 import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.ActionRequest;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExistingJob;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.StateInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,8 @@ import java.lang.reflect.InvocationTargetException;
  * Created by Christophe Jeunesse on 15/01/2016.
  */
 public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ,TRESP> extends AbstractExposableService {
+    public static final String REQUEST_UID_QUERY_PARAM = "requestUid";
+    public static final String SUBMIT_ONLY_QUERY_PARAM = "submitOnly";
     private final Class<TJOB> jobClass;
     private final Constructor<? extends RemoteJobResultWrapper<TRESP>> jobResultWrapperConstructor;
     private ICouchbaseSessionFactory sessionFactory;
@@ -105,11 +109,15 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response runJobCreate(@Context IUser user,
-                                 @QueryParam("submitOnly") Boolean submitOnly,
+                                 @QueryParam(SUBMIT_ONLY_QUERY_PARAM) Boolean submitOnly,
+                                 @QueryParam(REQUEST_UID_QUERY_PARAM) String requestUid,
                                  TREQ request) {
         try {
             JobContext<TJOB> result;
             TJOB job = buildJobFromRequest(request);
+            if(StringUtils.isNotEmpty(requestUid)){
+                job.setRequestUid(requestUid);
+            }
             if (submitOnly!=null && submitOnly) {
                 result = jobExecutorClient.submitJob(job, user);
             }
@@ -119,7 +127,19 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
             return buildJaxrsResponse(result.getJob());
         }
         catch (DuplicateJobExecutionException e) {
-            throw new NotAllowedException("The job " + e.getKey() + " is already existing with job key <" + e.getOwnerDocumentKey() + ">", e, "PUT", "GET");
+            AlreadyExistingJob result = new AlreadyExistingJob();
+            result.key=e.getOwnerDocumentKey();
+            try {
+                ICouchbaseSession session=sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
+                AbstractJob conflictingJob = session.get(e.getOwnerDocumentKey(),AbstractJob.class);
+                result.requestUid = conflictingJob.getRequestUid();
+                result.uid=conflictingJob.getUid().toString();
+                result.jobModelId=conflictingJob.getModelId().toString();
+            }
+            catch(Throwable lookupError){
+                //ignore error
+            }
+            return Response.status(Response.Status.CONFLICT).entity(result).build();
         }
         catch (JobExecutionException e) {
             throw new RuntimeException(e);
@@ -130,7 +150,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
     @Path("/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJob(@Context IUser user,
-                              @PathParam("uid") String uid) {
+                           @PathParam("uid") String uid) {
         ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
         try {
             TJOB job = ProcessUtils.loadJob(session, uid, jobClass);
@@ -148,14 +168,23 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
     @Path("/{uid}/{action:cancel|resume}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateJob(@Context IUser user,
-                                 @PathParam("uid")String uid,
-                                 @PathParam("action") ActionRequest actionRequest){
+                                @PathParam("uid")String uid,
+                                @QueryParam(REQUEST_UID_QUERY_PARAM) String requestUid,
+                                @PathParam("action") ActionRequest actionRequest){
         if(actionRequest==null){
             throw new BadRequestException("The action is inconsistent");
         }
         try {
             ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
             TJOB job = ProcessUtils.loadJob(session, uid, jobClass);
+            if(job==null){
+                throw new NotFoundException("The job "+uid+ " isn't existing");
+            }
+            if(StringUtils.isNotEmpty(requestUid)){
+                if(!requestUid.equals(job.getRequestUid())){
+                    throw new NotFoundException("The job "+job.getBaseMeta().getKey()+ " hasn't right request id <"+requestUid+"> but <"+job.getRequestUid());
+                }
+            }
             JobContext<TJOB> result;
             switch (actionRequest) {
                 case RESUME:

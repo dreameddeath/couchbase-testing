@@ -45,8 +45,9 @@ public class TestJobUpdateService extends StandardJobProcessingService<TestDocJo
     @TaskProcessingForClass(TestDocJobUpdate.TestJobUpdateTask.class)
     public static class TestJobUpdateTaskService extends DocumentUpdateTaskProcessingService<TestDocJobUpdate,TestDoc,TestDocJobUpdate.TestJobUpdateTask>{
         @Override
-        protected void processDocument(TaskContext<TestDocJobUpdate, TestDocJobUpdate.TestJobUpdateTask> ctxt, TestDoc doc) throws DaoException, StorageException {
+        protected boolean processDocument(TaskContext<TestDocJobUpdate, TestDocJobUpdate.TestJobUpdateTask> ctxt, TestDoc doc) throws DaoException, StorageException {
             doc.intValue+=ctxt.getParentJob().incrIntValue;
+            return false;
         }
     }
 }

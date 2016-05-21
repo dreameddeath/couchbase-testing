@@ -191,6 +191,9 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             if(doc instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc).addDocUniqKeys(internalKey);}
             return existingKeyDoc;
         }
+        catch(DuplicateUniqueKeyStorageException e){
+            throw e.getCause();
+        }
     }
 
     public String getKeyPattern(){

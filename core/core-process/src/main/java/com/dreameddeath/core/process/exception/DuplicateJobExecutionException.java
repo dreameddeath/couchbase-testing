@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.process.exception;
 
-import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyStorageException;
+import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
@@ -30,11 +30,11 @@ public class DuplicateJobExecutionException extends JobExecutionException {
         super(ctxt, message);
     }
 
-    public DuplicateJobExecutionException(JobContext<?> ctxt, String message, DuplicateUniqueKeyStorageException e) {
+    public DuplicateJobExecutionException(JobContext<?> ctxt, String message, DuplicateUniqueKeyException e) {
         super(ctxt, message, e);
     }
 
-    public DuplicateJobExecutionException(JobContext<?> ctxt, DuplicateUniqueKeyStorageException e) {
+    public DuplicateJobExecutionException(JobContext<?> ctxt, DuplicateUniqueKeyException e) {
         super(ctxt, e);
     }
 
@@ -42,17 +42,17 @@ public class DuplicateJobExecutionException extends JobExecutionException {
         super(job, state, message);
     }
 
-    public DuplicateJobExecutionException(AbstractJob job, ProcessState.State state, String message, DuplicateUniqueKeyStorageException e) {
+    public DuplicateJobExecutionException(AbstractJob job, ProcessState.State state, String message, DuplicateUniqueKeyException e) {
         super(job, state, message, e);
     }
 
-    public DuplicateJobExecutionException(AbstractJob job, ProcessState.State state, DuplicateUniqueKeyStorageException e) {
+    public DuplicateJobExecutionException(AbstractJob job, ProcessState.State state, DuplicateUniqueKeyException e) {
         super(job, state, e);
     }
 
     @Override
-    public DuplicateUniqueKeyStorageException getCause(){
-        return (DuplicateUniqueKeyStorageException) super.getCause();
+    public DuplicateUniqueKeyException getCause(){
+        return (DuplicateUniqueKeyException) super.getCause();
     }
 
 

@@ -26,6 +26,7 @@ import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.TreeSetProperty;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
+import com.dreameddeath.core.validation.annotation.Unique;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
@@ -57,6 +58,11 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
 
     @DocumentProperty("uid")
     private transient Property<UUID> uid=new ImmutableProperty<>(AbstractJob.this,UUID.randomUUID());
+    /**
+     *  requestUid : The external job request uid
+     */
+    @DocumentProperty("requestUid") @Unique(nameSpace = "jobRequestlId")
+    private Property<String> requestUid = new ImmutableProperty<>(AbstractJob.this);
     /**
      *  stateInfo : Gives job current state info
      */
@@ -96,6 +102,16 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
      * @return true if the entry has been removed
      */
     public boolean removeTask(String val){ return tasks.remove(val); }
+    /**
+     * Getter of requestUid
+     * @return the value of requestUid
+     */
+    public String getRequestUid() { return requestUid.get(); }
+    /**
+     * Setter of requestUid
+     * @param val the new value of requestUid
+     */
+    public void setRequestUid(String val) { requestUid.set(val); }
 
 
 }

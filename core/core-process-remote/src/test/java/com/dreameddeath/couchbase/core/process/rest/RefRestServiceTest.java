@@ -18,6 +18,7 @@ package com.dreameddeath.couchbase.core.process.rest;
 
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
+import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
@@ -135,7 +136,15 @@ public class RefRestServiceTest extends Assert {
             RemoteUpdateGenJob updateJob = new RemoteUpdateGenJob();
             updateJob.descrIntValue = 3;
             updateJob.key = createdKey;
-            JobContext<RemoteUpdateGenJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE);
+            JobContext<RemoteUpdateGenJob> updateContext = updateJobClient.submitJob(updateJob, AnonymousUser.INSTANCE);
+            try{
+                updateContext = updateJobClient.resumeJob(updateContext.getJob(), AnonymousUser.INSTANCE);
+                fail();
+            }catch (JobExecutionException e){
+                //Ignore
+            }
+            updateContext = updateJobClient.resumeJob(updateContext.getJob(), AnonymousUser.INSTANCE);
+
             assertTrue(updateContext.getJobState().isDone());
             TestDoc updatedDoc = cbSimulator.get(createdKey, TestDoc.class);
             assertEquals(job.initIntValue + 20 - 3 , (long) updatedDoc.intValue);
