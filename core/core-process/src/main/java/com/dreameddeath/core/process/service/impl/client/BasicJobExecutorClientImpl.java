@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service.impl;
+package com.dreameddeath.core.process.service.impl.client;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.couchbase.exception.StorageException;
@@ -45,7 +45,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 31/12/2015.
  */
-public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecutorClient<T> {
+public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobExecutorClient<T> {
     private final UUID instanceUUID=UUID.randomUUID();
     private final Class<T> jobClass;
     private final ExecutorClientFactory parentClientFactory;
@@ -56,7 +56,7 @@ public class BasicJobExecutorClient<T extends AbstractJob> implements IJobExecut
     private final IJobProcessingService<T> processingService;
     private final MetricRegistry metricRegistry;
 
-    public BasicJobExecutorClient(Class<T> jobClass, ExecutorClientFactory clientFactory,ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
+    public BasicJobExecutorClientImpl(Class<T> jobClass, ExecutorClientFactory clientFactory, ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
         this.jobClass = jobClass;
         this.parentClientFactory = clientFactory;
         this.sessionFactory =sessionFactory;

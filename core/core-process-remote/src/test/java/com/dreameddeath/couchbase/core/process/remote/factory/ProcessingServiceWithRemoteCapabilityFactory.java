@@ -29,7 +29,7 @@ import javax.inject.Inject;
 /**
  * Created by Christophe Jeunesse on 27/02/2016.
  */
-public class ProcessingServiceWithRemoteCapabiltyFactory extends ProcessingServiceFactory {
+public class ProcessingServiceWithRemoteCapabilityFactory extends ProcessingServiceFactory {
     private IRemoteClientFactory clientFactory;
 
     @Inject

@@ -30,7 +30,7 @@ import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.couchbase.core.process.remote.annotation.processor.ProcessRestServiceProcessor;
 import com.dreameddeath.couchbase.core.process.remote.dao.TestDocDao;
 import com.dreameddeath.couchbase.core.process.remote.factory.BaseRemoteClientFactory;
-import com.dreameddeath.couchbase.core.process.remote.factory.ProcessingServiceWithRemoteCapabiltyFactory;
+import com.dreameddeath.couchbase.core.process.remote.factory.ProcessingServiceWithRemoteCapabilityFactory;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteCreateJob;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateGenJob;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteUpdateJob;
@@ -86,7 +86,7 @@ public class RefRestServiceTest extends Assert {
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
 
         ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
-        ProcessingServiceWithRemoteCapabiltyFactory processFactory=new ProcessingServiceWithRemoteCapabiltyFactory();
+        ProcessingServiceWithRemoteCapabilityFactory processFactory=new ProcessingServiceWithRemoteCapabilityFactory();
         processFactory.setRemoteClientFactory(remoteClientFactory);
 
         processFactory.addJobProcessingService(TestJobCreateService.class);

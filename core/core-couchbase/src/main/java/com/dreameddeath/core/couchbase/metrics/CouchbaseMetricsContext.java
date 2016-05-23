@@ -82,7 +82,7 @@ public class CouchbaseMetricsContext implements Closeable {
             }
         }
 
-        public void stop(boolean success,Long size){
+        public void stopWithSize(boolean success, Long size){
             long endTime=System.nanoTime();
             long duration=endTime-startTime;
             if(registry!=null) {
@@ -104,7 +104,7 @@ public class CouchbaseMetricsContext implements Closeable {
                     exchangedSize = size.longValue();
                 }
             }
-            stop(true,exchangedSize);
+            stopWithSize(true,exchangedSize);
         }
 
         public void stopCounter(Notification<? super JsonLongDocument> notif){
@@ -112,12 +112,11 @@ public class CouchbaseMetricsContext implements Closeable {
             if((notif.getValue()!=null) && (notif.getValue() instanceof JsonLongDocument)){
                 exchangedSize =(long)((JsonLongDocument)notif.getValue()).content().toString().length();
             }
-            stop(true,exchangedSize);
+            stopWithSize(true,exchangedSize);
         }
 
-        public void stop(Throwable e){
-            stop(false,null);
+        public void stopWithError(Throwable e){
+            stopWithSize(false,null);
         }
-
     }
 }

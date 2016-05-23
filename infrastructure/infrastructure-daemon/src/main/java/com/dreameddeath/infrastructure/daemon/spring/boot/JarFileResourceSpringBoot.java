@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.springboot;
+package com.dreameddeath.infrastructure.daemon.spring.boot;
 
 import org.eclipse.jetty.util.resource.URLResource;
 

@@ -283,8 +283,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,Class<T> entity){
         CouchbaseMetricsContext.MetricsContext mCtxt = getContext.start();
         return bucket.async().get(id,getTranscoder(entity).documentType())
-                .doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+                .doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(BucketDocument::content)
                 .map(val-> {
                     if (val == null) {
@@ -317,8 +317,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
             result.map(doc->doc.withKeyPrefix(params.getKeyPrefix()));
         }
 
-        return result.doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+        return result.doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(BucketDocument::content)
                 .map(val-> {
                     if (val == null) {
@@ -347,8 +347,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         if(params.getTimeOutUnit()!=null){
             obs = obs.timeout(params.getTimeOut(),params.getTimeOutUnit());
         }
-        return obs.doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+        return obs.doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(new DocumentResync<>(bucketDoc));
     }
 
@@ -376,8 +376,9 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc){
         BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = createContext.start();
-        return bucket.async().insert(bucketDoc).doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+        return bucket.async().insert(bucketDoc)
+                .doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(new DocumentResync<>(bucketDoc));
     }
 
@@ -405,10 +406,10 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc){
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
-        CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
+        final CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
         return bucket.async().upsert(bucketDoc)
-                .doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+                .doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(new DocumentResync<>(bucketDoc));
     }
 
@@ -438,8 +439,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
         return bucket.async().replace(bucketDoc)
-                .doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+                .doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(new DocumentResync<>(bucketDoc));
     }
 
@@ -481,8 +482,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = deleteContext.start();
         return bucket.async().remove(bucketDoc)
-                .doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+                .doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(new DocumentResync<>(bucketDoc));
     }
 
@@ -513,8 +514,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
         return bucket.async().append(bucketDoc)
-                .doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+                .doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(new DocumentResync<>(bucketDoc));
     }
 
@@ -543,8 +544,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
         return bucket.async().prepend(bucketDoc)
-                .doOnEach(mCtxt::stop)
-                .doOnError(mCtxt::stop)
+                .doOnEach(notif->mCtxt.stop(notif))
+                .doOnError(mCtxt::stopWithError)
                 .map(new DocumentResync<>(bucketDoc));
     }
 
@@ -583,7 +584,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiry){
         CouchbaseMetricsContext.MetricsContext mCtxt = counterContext.start();
         return bucket.async().counter(key, by, defaultValue, expiry).doOnEach(mCtxt::stopCounter)
-                .doOnError(mCtxt::stop)
+                .doOnError(mCtxt::stopWithError)
                 .map(JsonLongDocument::content);
     }
 
@@ -599,7 +600,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         }
 
         return result.doOnEach(mCtxt::stopCounter)
-                .doOnError(mCtxt::stop)
+                .doOnError(mCtxt::stopWithError)
                 .map(JsonLongDocument::content);
     }
 

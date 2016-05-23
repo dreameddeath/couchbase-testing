@@ -16,7 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.servlet;
 
-import com.dreameddeath.infrastructure.daemon.springboot.JarFileResourceSpringBoot;
+import com.dreameddeath.infrastructure.daemon.spring.boot.JarFileResourceSpringBoot;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.util.Loader;
 import org.eclipse.jetty.util.resource.Resource;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service.impl;
+package com.dreameddeath.core.process.service.impl.client;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
@@ -38,7 +38,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
  */
-public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends AbstractTask> implements ITaskExecutorClient<TJOB,TTASK> {
+public class BasicTaskExecutorClientImpl<TJOB extends AbstractJob,TTASK extends AbstractTask> implements ITaskExecutorClient<TJOB,TTASK> {
     private final UUID uuid=UUID.randomUUID();
     private final ExecutorClientFactory clientFactory;
     private final Class<TTASK> taskClass;
@@ -51,7 +51,7 @@ public class BasicTaskExecutorClient<TJOB extends AbstractJob,TTASK extends Abst
     private final ITaskProcessingService<TJOB,TTASK> processingService;
     private final MetricRegistry metricRegistry;
 
-    public BasicTaskExecutorClient(Class<TJOB> jobClass,Class<TTASK> taskClass,ExecutorClientFactory clientFactory,ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
+    public BasicTaskExecutorClientImpl(Class<TJOB> jobClass, Class<TTASK> taskClass, ExecutorClientFactory clientFactory, ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
         this.clientFactory = clientFactory;
         this.taskClass = taskClass;
         this.sessionFactory =sessionFactory;

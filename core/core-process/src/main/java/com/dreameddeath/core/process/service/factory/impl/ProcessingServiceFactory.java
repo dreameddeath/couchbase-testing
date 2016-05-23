@@ -16,6 +16,8 @@
 
 package com.dreameddeath.core.process.service.factory.impl;
 
+import com.dreameddeath.core.depinjection.IDependencyInjector;
+import com.dreameddeath.core.depinjection.impl.NotManagedDependencyInjector;
 import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
@@ -25,6 +27,7 @@ import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,11 +36,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Christophe Jeunesse on 01/08/2014.
  */
 public class ProcessingServiceFactory implements IProcessingServiceFactory {
+    private IDependencyInjector dependencyInjector=new NotManagedDependencyInjector();
     private Map<Class<? extends AbstractJob>, IJobProcessingService<?>> jobProcessingServicesMap
             = new ConcurrentHashMap<>();
     private Map<Class<? extends AbstractTask>, ITaskProcessingService<?,?>> taskProcessingServicesMap
             = new ConcurrentHashMap<>();
 
+
+    @Autowired(required = false)
+    public void setDependencyInjector(IDependencyInjector dependencyInjector){
+        this.dependencyInjector=dependencyInjector;
+    }
 
     public <T extends AbstractJob> IJobProcessingService<T> addJobProcessingServiceFor(Class<T> entityClass, IJobProcessingService<T> service){
         jobProcessingServicesMap.put(entityClass, service);
@@ -45,12 +54,7 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
     }
 
     protected <T extends IJobProcessingService<? extends AbstractJob>> T  createJobProcessingService(Class<T> serviceClass){
-        try {
-            return serviceClass.newInstance();
-        }
-        catch(IllegalAccessException|InstantiationException e){
-            throw new RuntimeException("Cannot instantiate class <"+serviceClass.getName()+">",e);
-        }
+        return dependencyInjector.getBeanOfType(serviceClass); //serviceClass.newInstance();
     }
 
     public <TJOB extends AbstractJob,T extends IJobProcessingService<TJOB>> T addJobProcessingService(Class<T> serviceClass){
@@ -79,12 +83,7 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
     }
 
     protected <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T createTaskProcessingService(Class<T> serviceClass){
-        try {
-            return serviceClass.newInstance();
-        }
-        catch(IllegalAccessException|InstantiationException e){
-            throw new RuntimeException("Cannot instantiate class <"+serviceClass.getName()+">",e);
-        }
+        return dependencyInjector.getBeanOfType(serviceClass);
     }
 
     public <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> T addTaskProcessingService(Class<T> serviceClass){
@@ -103,6 +102,7 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
         }
         return (T)addTaskProcessingServiceFor((Class<TTASK>)ann.value(),service);
     }
+
 
 
 

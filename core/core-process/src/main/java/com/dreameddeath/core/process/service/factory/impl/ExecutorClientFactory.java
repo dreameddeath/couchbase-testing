@@ -30,8 +30,8 @@ import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.IJobExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.ITaskExecutorClientFactory;
-import com.dreameddeath.core.process.service.impl.BasicJobExecutorClient;
-import com.dreameddeath.core.process.service.impl.BasicTaskExecutorClient;
+import com.dreameddeath.core.process.service.impl.client.BasicJobExecutorClientImpl;
+import com.dreameddeath.core.process.service.impl.client.BasicTaskExecutorClientImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +72,7 @@ public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExe
 
 
     private <TJOB extends AbstractJob> IJobExecutorClient<TJOB> createJobClient(Class<TJOB> jobClass){
-        IJobExecutorClient<TJOB> jobClient = new BasicJobExecutorClient<>(jobClass, this, couchbaseSessionFactory, executorServiceFactory, processingServiceFactory, metricRegistry);
+        IJobExecutorClient<TJOB> jobClient = new BasicJobExecutorClientImpl<>(jobClass, this, couchbaseSessionFactory, executorServiceFactory, processingServiceFactory, metricRegistry);
         if(jobRegistrar!=null) {
             try {
 
@@ -96,7 +96,7 @@ public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExe
 
 
     private <TJOB extends AbstractJob,TTASK extends AbstractTask> ITaskExecutorClient<TJOB,TTASK> createTaskClient(TaskClientKey<TJOB,TTASK> clientKey){
-        ITaskExecutorClient<TJOB,TTASK> taskClient = new BasicTaskExecutorClient<>(clientKey.jobClass,clientKey.taskClass,this,couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,metricRegistry);
+        ITaskExecutorClient<TJOB,TTASK> taskClient = new BasicTaskExecutorClientImpl<>(clientKey.jobClass,clientKey.taskClass,this,couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,metricRegistry);
         if(taskRegistrar!=null) {
             try {
                 TaskExecutorClientInfo info = new TaskExecutorClientInfo(taskClient);

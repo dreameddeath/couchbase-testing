@@ -23,8 +23,8 @@ import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
-import com.dreameddeath.core.process.service.impl.DocumentUpdateTaskProcessingService;
-import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDoc;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDocJobUpdate;
 

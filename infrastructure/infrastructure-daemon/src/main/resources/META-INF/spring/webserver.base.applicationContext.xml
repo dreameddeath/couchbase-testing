@@ -26,6 +26,8 @@
 
     <context:annotation-config/>
 
+    <bean name="depInjector" class="com.dreameddeath.core.depinjection.impl.SpringDependencyInjector" />
+
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 

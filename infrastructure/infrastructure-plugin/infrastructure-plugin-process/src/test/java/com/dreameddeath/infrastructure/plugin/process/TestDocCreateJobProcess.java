@@ -24,8 +24,9 @@ import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
-import com.dreameddeath.core.process.service.impl.DocumentCreateTaskProcessingService;
-import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
@@ -40,11 +41,16 @@ public class TestDocCreateJobProcess extends StandardJobProcessingService<TestDo
 
     @TaskProcessingForClass(TestDocCreateJob.TestDocCreateTask.class)
     public static class TestDocCreateTaskProcess extends DocumentCreateTaskProcessingService<TestDocCreateJob,TestDocProcess,TestDocCreateJob.TestDocCreateTask> {
+        private ExternalDocCreateJobService service;
+
+        @Autowired
+        public void setService(ExternalDocCreateJobService service) {
+            this.service = service;
+        }
+
         @Override
         protected TestDocProcess buildDocument(TaskContext<TestDocCreateJob, TestDocCreateJob.TestDocCreateTask> ctxt) throws DaoException, StorageException {
-            TestDocProcess doc = new TestDocProcess();
-            doc.name = ctxt.getParentJob().name;
-            return doc;
+            return service.createDoc(ctxt.getParentJob().name);
         }
 
         @Override

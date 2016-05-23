@@ -36,19 +36,24 @@
         <constructor-arg value="abstracttask" />
     </bean>
 
-    <bean id="executorServiceFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+
+    <bean id="remoteClientFactory" class="com.dreameddeath.infrastructure.daemon.spring.ServletContextAttributeFactoryBeanWithAutowire">
+        <property name="attributeName" value="remoteClientFactory" />
+    </bean>
+
+    <bean id="executorServiceFactory" class="com.dreameddeath.infrastructure.daemon.spring.ServletContextAttributeFactoryBeanWithAutowire">
         <property name="attributeName" value="executorServiceFactory" />
     </bean>
 
-    <bean id="processingServiceFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+    <bean id="processingServiceFactory" class="com.dreameddeath.infrastructure.daemon.spring.ServletContextAttributeFactoryBeanWithAutowire">
         <property name="attributeName" value="processingServiceFactory" />
     </bean>
 
-    <bean id="executorClientFactory" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+    <bean id="executorClientFactory" class="com.dreameddeath.infrastructure.daemon.spring.ServletContextAttributeFactoryBeanWithAutowire">
         <property name="attributeName" value="executorClientFactory" />
     </bean>
 
-    <bean id="executorClientsPreInit" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+    <bean id="executorClientsPreInit" class="com.dreameddeath.infrastructure.daemon.spring.ServletContextAttributeFactoryBeanWithAutowire">
         <property name="attributeName" value="executorClientsPreInit" />
     </bean>
 
@@ -57,7 +62,7 @@
           factory-bean="executorServiceFactory"
           factory-method="addJobExecutorService">
         <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.model.v1.base.AbstractJob" />
-        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.service.impl.BasicJobExecutorServiceImpl" />
+        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.service.impl.executor.BasicJobExecutorServiceImpl" />
     </bean>
 
 
@@ -65,7 +70,7 @@
           factory-bean="executorServiceFactory"
           factory-method="addTaskExecutorService">
         <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.model.v1.base.AbstractTask" />
-        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.service.impl.BasicTaskExecutorServiceImpl" />
+        <constructor-arg type="java.lang.Class" value="com.dreameddeath.core.process.service.impl.executor.BasicTaskExecutorServiceImpl" />
     </bean>
 
 

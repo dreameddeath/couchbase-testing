@@ -71,8 +71,6 @@
         </plugins>
     </build>
 
-
-
     <dependencies>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>

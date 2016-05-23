@@ -29,8 +29,8 @@ import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.TaskContext;
-import com.dreameddeath.core.process.service.impl.ChildDocumentCreateTaskProcessingService;
-import com.dreameddeath.core.process.service.impl.StandardJobProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.ChildDocumentCreateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.

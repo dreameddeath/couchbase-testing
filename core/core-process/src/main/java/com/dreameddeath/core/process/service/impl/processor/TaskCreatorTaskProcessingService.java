@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.process.service.impl;
+package com.dreameddeath.core.process.service.impl.processor;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class TaskCreatorTaskProcessingService<TJOB extends AbstractJob,TTASK extends SubTaskCreatorTask> extends StandardTaskProcessingService<TJOB,TTASK> {
     private static final Logger LOG = LoggerFactory.getLogger(TaskCreatorTaskProcessingService.class);
+
     @Override
     final public boolean process(TaskContext<TJOB, TTASK> ctxt) throws TaskExecutionException {
         Collection<AbstractTask> tasks;
@@ -48,7 +49,7 @@ public abstract class TaskCreatorTaskProcessingService<TJOB extends AbstractJob,
             ctxt.getTask().getBaseMeta().unfreeze();
         }
         try {
-            tasks = ctxt.getJobContext().assignIds(tasks);
+            tasks = ctxt.assignIds(tasks);
             final AtomicInteger nbErrors=new AtomicInteger();
             tasks.forEach(subTask-> {
                     ctxt.getTask().addSubTasks(subTask.getId());

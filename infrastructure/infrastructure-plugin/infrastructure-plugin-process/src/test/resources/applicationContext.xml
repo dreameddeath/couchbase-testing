@@ -26,6 +26,8 @@
     <import resource="classpath:META-INF/spring/webserver.couchbase.applicationContext.xml" />
     <import resource="classpath:META-INF/spring/webserver.processes.applicationContext.xml" />
 
+    <bean class="com.dreameddeath.infrastructure.plugin.process.ExternalDocCreateJobService" />
+
     <bean id="serviceRegistrar"
           class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
           factory-bean="serviceDiscovererManager"

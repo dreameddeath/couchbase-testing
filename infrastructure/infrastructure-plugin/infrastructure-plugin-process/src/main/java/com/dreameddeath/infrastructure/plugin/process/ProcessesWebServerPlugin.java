@@ -21,7 +21,7 @@ import com.dreameddeath.core.process.registrar.TaskExecutorClientRegistrar;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
-import com.dreameddeath.couchbase.core.process.remote.factory.ProcessingServiceWithRemoteCapabiltyFactory;
+import com.dreameddeath.couchbase.core.process.remote.factory.IRemoteClientFactory;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
@@ -37,20 +37,25 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
     public static final String GLOBAL_PROCESSING_FACTORY_PARAM_NAME = "processingServiceFactory";
     public static final String GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME = "executorClientFactory";
     public static final String GLOBAL_EXECUTOR_CLIENT_PREINIT_PARAM_NAME = "executorClientsPreInit";
+    public static final String GLOBAL_REMOTE_CLIENT_FACTORY_PARAM_NAME = "remoteClientFactory";
 
     private final ExecutorClientFactory executorClientFactory;
     private final ExecutorServiceFactory executorServiceFactory;
     private final ProcessingServiceFactory processingServiceFactory;
     private final ProcessorClientPreInit executorClientsPreInit;
+    private final IRemoteClientFactory remoteClientFactory;
 
     public ProcessesWebServerPlugin(AbstractWebServer server,Builder builder) {
         super(server);
         CouchbaseWebServerPlugin couchbasePlugin = server.getPlugin(CouchbaseWebServerPlugin.class);
         Preconditions.checkNotNull(couchbasePlugin,"The couchbase Plugin must be define to create the Process Plugin");
         executorServiceFactory = new ExecutorServiceFactory();
-        ProcessingServiceWithRemoteCapabiltyFactory processingFactory = new ProcessingServiceWithRemoteCapabiltyFactory();
+        ProcessingServiceFactory processingFactory = new ProcessingServiceFactory();
         if(this.getParentWebServer().getServiceDiscoveryManager()!=null){
-            processingFactory.setRemoteClientFactory(new RemoteServiceClientFactoryWithManager(getParentWebServer().getServiceDiscoveryManager()));
+            remoteClientFactory=new RemoteServiceClientFactoryWithManager(getParentWebServer().getServiceDiscoveryManager());
+        }
+        else{
+            remoteClientFactory=null;
         }
         processingServiceFactory = processingFactory;
         executorClientFactory = new ExecutorClientFactory(
@@ -73,6 +78,7 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
         handler.setAttribute(GLOBAL_PROCESSING_FACTORY_PARAM_NAME,processingServiceFactory);
         handler.setAttribute(GLOBAL_EXECUTOR_CLIENT_FACTORY_PARAM_NAME, executorClientFactory);
         handler.setAttribute(GLOBAL_EXECUTOR_CLIENT_PREINIT_PARAM_NAME, executorClientsPreInit);
+        handler.setAttribute(GLOBAL_REMOTE_CLIENT_FACTORY_PARAM_NAME, remoteClientFactory);
     }
 
     public static Builder builder(){
