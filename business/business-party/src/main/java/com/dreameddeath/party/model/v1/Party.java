@@ -16,7 +16,7 @@
 
 package com.dreameddeath.party.model.v1;
 
-import com.dreameddeath.common.model.ExternalId;
+import com.dreameddeath.common.model.v1.ExternalId;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.helper.annotation.dao.Counter;

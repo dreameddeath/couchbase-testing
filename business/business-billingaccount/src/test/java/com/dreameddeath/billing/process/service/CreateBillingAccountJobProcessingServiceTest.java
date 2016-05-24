@@ -35,6 +35,7 @@ import com.dreameddeath.infrastructure.plugin.config.InfrastructureProcessPlugin
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
+import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob;
 import com.dreameddeath.party.process.model.v1.party.CreateUpdatePartyRequest;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
@@ -47,6 +48,7 @@ import org.junit.Test;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class CreateBillingAccountJobProcessingServiceTest {
     private CuratorTestUtils testUtils;
@@ -99,9 +101,10 @@ public class CreateBillingAccountJobProcessingServiceTest {
     @Test
     public void JobTest() throws Exception{
         String createdPartyId;
+        CouchbaseWebServerPlugin cbPluginParty;
         {
             ProcessesWebServerPlugin plugin = daemonWrapper.getDaemon().getAdditionalWebServers("testParty").get(0).getPlugin(ProcessesWebServerPlugin.class);
-            CouchbaseWebServerPlugin cbPlugin = daemonWrapper.getDaemon().getAdditionalWebServers("testParty").get(0).getPlugin(CouchbaseWebServerPlugin.class);
+            cbPluginParty = daemonWrapper.getDaemon().getAdditionalWebServers("testParty").get(0).getPlugin(CouchbaseWebServerPlugin.class);
 
             IJobExecutorClient<CreateUpdatePartyJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(CreateUpdatePartyJob.class);
 
@@ -114,7 +117,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
             request.person.lastName = "jeunesse";
 
             JobContext<CreateUpdatePartyJob> createPartyJobContext = executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE);
-            createdPartyId=createPartyJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).getDocument(cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE)).getUid();
+            createdPartyId=createPartyJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).getDocument(cbPluginParty.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE)).getUid();
         }
 
         {
@@ -135,7 +138,11 @@ public class CreateBillingAccountJobProcessingServiceTest {
             assertEquals(1,inDbBA.getBillingCycleLinks().size());
             assertEquals(1,inDbBA.getPartyRoles().size());
             assertEquals(createdPartyId,inDbBA.getPartyRoles().get(0).getPid());
-            //assertNotNull(inDbBA.getPartyRoles().get(0).getRoleUid());
+            assertNotNull(inDbBA.getPartyRoles().get(0).getRoleUid());
+
+            Party inParty = cbPluginParty.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).getFromUID(createdPartyId,Party.class);
+            assertEquals(1,inParty.getPartyRoles().size());
+            assertEquals(inParty.getPartyRoles().get(0).getUid(),inDbBA.getPartyRoles().get(0).getRoleUid());
         }
     }
 

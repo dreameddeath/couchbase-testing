@@ -22,10 +22,10 @@
         <artifactId>business</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>business-installedbase-billing</artifactId>
+  <artifactId>business-billing-installedbase</artifactId>
   <packaging>jar</packaging>
 
-  <name>business-installedbase-billing</name>
+  <name>business-billing-installedbase</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
 
   <properties>

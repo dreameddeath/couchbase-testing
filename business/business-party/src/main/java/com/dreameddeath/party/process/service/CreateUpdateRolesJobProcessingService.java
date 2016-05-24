@@ -56,9 +56,20 @@ public class CreateUpdateRolesJobProcessingService extends StandardJobProcessing
         }
 
         @Override
+        protected void cleanTaskBeforeRetryProcessing(TaskContext<CreateUpdatePartyRolesJob, CreateUpdatePartyRolesTask> ctxt, Party doc) {
+            ctxt.getTask().getCreateUpdateRoles().clear();
+        }
+
+        @Override
         protected boolean processDocument(TaskContext<CreateUpdatePartyRolesJob, CreateUpdatePartyRolesTask> ctxt, Party doc) throws DaoException, StorageException, TaskExecutionException {
             PartyRolesUpdateResult result = service.managePartyRolesUpdate(ctxt.getParentJob().getRoleRequests(),doc);
-            //TODO manage task update in //
+            result.getRoles().forEach(ctxt.getTask()::addCreateUpdateRoles);
+            return true;
+        }
+
+        @Override
+        public boolean updatejob(TaskContext<CreateUpdatePartyRolesJob, CreateUpdatePartyRolesTask> context) throws TaskExecutionException {
+            context.getTask().getCreateUpdateRoles().forEach(context.getParentJob()::addResults);
             return true;
         }
     }

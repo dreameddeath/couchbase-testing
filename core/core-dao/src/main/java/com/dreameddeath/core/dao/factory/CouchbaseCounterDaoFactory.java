@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  */
 public class CouchbaseCounterDaoFactory implements IDaoFactory{
     private Map<Pattern,CouchbaseCounterDao> patternsMap
-            = new ConcurrentHashMap<Pattern,CouchbaseCounterDao>();
+            = new ConcurrentHashMap<>();
 
     private final IDocumentInfoMapper documentInfoMapper;
 

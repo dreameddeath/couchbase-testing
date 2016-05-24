@@ -105,6 +105,7 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
             request.setRoleRequests(new ArrayList<>());
             try {
                 BillingAccountCreateUpdateRoleRequestRequest newPartyRole = new BillingAccountCreateUpdateRoleRequestRequest();
+                request.getRoleRequests().add(newPartyRole);
                 newPartyRole.setPartyId(ctxt.getParentJob().partyId);
                 newPartyRole.setBaId(ctxt.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession()).getUid());
                 newPartyRole.setTypes(new ArrayList<>());

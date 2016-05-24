@@ -33,7 +33,7 @@
         <module>business-party</module>
         <module>business-billingaccount</module>
         <module>business-installedbase</module>
-        <module>business-installedbase-billing</module>
+        <module>business-billing-installedbase</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

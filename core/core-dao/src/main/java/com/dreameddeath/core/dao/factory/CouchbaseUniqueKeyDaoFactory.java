@@ -37,12 +37,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
     private IDocumentInfoMapper documentInfoMapper;
-    private Map<String, CouchbaseUniqueKeyDao> daosMap  = new ConcurrentHashMap<String, CouchbaseUniqueKeyDao>();
+    private Map<String, CouchbaseUniqueKeyDao> daosMap  = new ConcurrentHashMap<>();
 
     public CouchbaseUniqueKeyDaoFactory(Builder builder){
         documentInfoMapper = builder.documentInfoMapper;
     }
-
 
     public void addDaoFor(String nameSpace,CouchbaseUniqueKeyDao dao){
         daosMap.put(nameSpace,dao);

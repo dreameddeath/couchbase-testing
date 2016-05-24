@@ -23,7 +23,6 @@ import com.dreameddeath.core.model.property.MapProperty;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -112,7 +111,7 @@ public class ArrayListProperty<T> extends ArrayList<T> implements ListProperty<T
 
     @Override
     public List<T> get(){
-        return Collections.unmodifiableList(this);
+        return this;
     }
 
     @Override

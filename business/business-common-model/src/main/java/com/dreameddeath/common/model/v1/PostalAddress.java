@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.common.model;
+package com.dreameddeath.common.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;

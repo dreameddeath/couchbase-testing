@@ -28,23 +28,9 @@
 
     <bean id="createUpdatePartyService" class="com.dreameddeath.party.process.service.CreateUpdatePartyJobProcessingService$CreatePartyTaskProcessingService" />
 
-    <bean id="createUpdatePartyTask" class="com.dreameddeath.core.process.service.ITaskProcessingService"
-          factory-bean="processingServiceFactory" factory-method="addTaskProcessingService">
-        <constructor-arg>
-            <bean class="com.dreameddeath.party.process.service.CreateUpdatePartyJobProcessingService$CreatePartyTaskProcessingService" />
-        </constructor-arg>
-    </bean>
-
     <bean id="jobCreatePartyJobProcess" class="com.dreameddeath.core.process.service.IJobProcessingService"
           factory-bean="processingServiceFactory" factory-method="addJobProcessingService">
         <constructor-arg value="com.dreameddeath.party.process.service.CreateUpdatePartyJobProcessingService" />
-    </bean>
-
-    <bean id="createUpdatePartyRolesTask" class="com.dreameddeath.core.process.service.ITaskProcessingService"
-          factory-bean="processingServiceFactory" factory-method="addTaskProcessingService">
-        <constructor-arg>
-            <bean class="com.dreameddeath.party.process.service.CreateUpdateRolesJobProcessingService$CreateUpdateRolesTaskProcessingService" />
-        </constructor-arg>
     </bean>
 
     <bean id="jobCreatePartyRolesProcess" class="com.dreameddeath.core.process.service.IJobProcessingService"

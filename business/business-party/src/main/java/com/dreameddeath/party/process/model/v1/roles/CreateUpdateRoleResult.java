@@ -1,14 +1,14 @@
 package com.dreameddeath.party.process.model.v1.roles;
 
-import com.dreameddeath.core.business.model.VersionedDocumentElement;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 
 /**
  * Created by Christophe Jeunesse on 19/05/2016.
  */
-public class CreateUpdateRoleResult extends VersionedDocumentElement {
+public class CreateUpdateRoleResult extends CouchbaseDocumentElement {
     /**
      *  tempUid : The temporary id of the created role if any
      */

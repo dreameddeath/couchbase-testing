@@ -33,6 +33,5 @@
           factory-bean="processingServiceFactory" factory-method="addJobProcessingService">
         <constructor-arg value="com.dreameddeath.billing.process.service.CreateBillingAccountJobProcessingService" />
     </bean>
-
-
+    
 </beans>
