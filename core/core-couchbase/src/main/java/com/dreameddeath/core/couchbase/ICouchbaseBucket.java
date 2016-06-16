@@ -146,13 +146,20 @@ public interface ICouchbaseBucket {
             return doc;
         }
 
-        public static <T extends CouchbaseDocument> StorageException mapStorageException(T doc,Throwable e){
+
+        public static <T extends CouchbaseDocument> Observable<T> mapObservableStorageException(T doc,Throwable e){
+            throw new StorageObservableException(mapStorageException(doc,e));
+        }
+
+
+        private static <T extends CouchbaseDocument> StorageException mapStorageException(T doc,Throwable e){
             if(e instanceof StorageException){
                 return (StorageException)e;
             }
             else if(e instanceof StorageObservableException){
                 return (StorageException)e.getCause();
             }
+
             Throwable rootException =e.getCause();
             if(rootException == null){
                 rootException = e;
@@ -172,7 +179,12 @@ public interface ICouchbaseBucket {
             return new DocumentStorageException(doc,"Error during storage attempt execution",e);
         }
 
-        public static StorageException mapStorageException(String key,Throwable e){
+        public static <T extends CouchbaseDocument> Observable<Long> mapObservableStorageException(String key,Throwable e){
+            throw new StorageObservableException(mapStorageException(key,e));
+        }
+
+
+        private static StorageException mapStorageException(String key,Throwable e){
             if(e instanceof StorageException){
                 return (StorageException)e;
             }
@@ -193,6 +205,11 @@ public interface ICouchbaseBucket {
                 return new DocumentNotFoundException(key,rootException);
             }
             return new DocumentStorageException(key,"Error during storage attempt execution",e);
+        }
+
+
+        public static <T extends CouchbaseDocument> Observable<T>  mapObservableAccessException(String key,Throwable e,Class<T> clazz){
+            throw new StorageObservableException(mapAccessException(key,e));
         }
 
         public static StorageException mapAccessException(String key,Throwable e){

@@ -211,4 +211,12 @@ public class CouchbaseDocument implements HasParent {
     public HasParent getParentElement(){return null;}
     @Override
     public void setParentElement(HasParent parent){throw new UnsupportedOperationException();}
+
+    public static class Utils {
+        public static <T extends CouchbaseDocument> T freeze(T doc){
+            doc.getBaseMeta().freeze();
+            return doc;
+        }
+
+    }
 }

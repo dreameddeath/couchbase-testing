@@ -309,7 +309,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
            return Observable.just((BucketDocument<T>) performImpact(bucketDoc,transcoder.documentType(), ImpactMode.ADD, 0))
                    .doOnEach(notif->mCtxt.stop(notif))
                    .doOnError(mCtxt::stopWithError)
-                   .map(new DocumentResync<>(bucketDoc));
+                   .map(new DocumentResync<>(bucketDoc))
+                   .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
             mCtxt.stopWithSize(false,null);
@@ -331,7 +332,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.UPDATE, 0))
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc));
+                    .map(new DocumentResync<>(bucketDoc))
+                    .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
             mCtxt.stopWithSize(false,null);
@@ -354,7 +356,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.REPLACE, 0))
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc));
+                    .map(new DocumentResync<>(bucketDoc))
+                    .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
             mCtxt.stopWithSize(false,null);
@@ -376,7 +379,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
             return Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.DELETE, 0))
                     .doOnEach(notif->mCtxt.stop(notif))
-                    .doOnError(mCtxt::stopWithError).map(new DocumentResync<>(bucketDoc));
+                    .doOnError(mCtxt::stopWithError).map(new DocumentResync<>(bucketDoc))
+                    .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
             mCtxt.stopWithSize(false,null);
@@ -394,7 +398,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return (Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.APPEND, 0))
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc)));
+                    .map(new DocumentResync<>(bucketDoc)))
+                    .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
             mCtxt.stopWithSize(false,null);
@@ -423,7 +428,8 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return (Observable.just((BucketDocument<T>) performImpact(bucketDoc, transcoder.documentType(), ImpactMode.PREPEND, 0))
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc)));
+                    .map(new DocumentResync<>(bucketDoc)))
+                    .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
             mCtxt.stopWithSize(false,null);

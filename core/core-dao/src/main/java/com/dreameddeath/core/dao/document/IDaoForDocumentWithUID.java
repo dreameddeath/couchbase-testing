@@ -28,5 +28,5 @@ import rx.Observable;
 public interface IDaoForDocumentWithUID<T extends CouchbaseDocument> {
     String getKeyFromUID(String uid);
     T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException;
-    Observable<T> asyncGetFromUid(ICouchbaseSession session,String uid) throws DaoException;
+    Observable<T> asyncGetFromUid(ICouchbaseSession session,String uid);
 }

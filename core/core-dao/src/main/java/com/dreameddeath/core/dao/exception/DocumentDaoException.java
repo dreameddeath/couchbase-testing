@@ -22,25 +22,25 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class DocumentStorageException extends DaoException {
+public class DocumentDaoException extends DaoException {
     CouchbaseDocument doc;
 
-    public DocumentStorageException(CouchbaseDocument doc,String message) {
+    public DocumentDaoException(CouchbaseDocument doc, String message) {
         super(message);
         this.doc = doc;
     }
 
-    public DocumentStorageException(CouchbaseDocument doc,String message,Throwable e) {
+    public DocumentDaoException(CouchbaseDocument doc, String message, Throwable e) {
         super(message,e);
         this.doc = doc;
     }
 
-    public DocumentStorageException(CouchbaseDocument doc,Throwable e) {
+    public DocumentDaoException(CouchbaseDocument doc, Throwable e) {
         super(e);
         this.doc = doc;
     }
 
-    public DocumentStorageException(CouchbaseDocument doc) {
+    public DocumentDaoException(CouchbaseDocument doc) {
         this.doc = doc;
     }
 

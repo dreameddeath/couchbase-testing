@@ -17,10 +17,19 @@
 package com.dreameddeath.core.validation;
 
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public interface Validator<T> {
-    void validate(ValidatorContext context, T value) throws ValidationException;
+    default void  validate(ValidatorContext context, T value) throws ValidationException {
+        ValidationFailure validationFailure = this.asyncValidate(context, value).toBlocking().firstOrDefault(null);
+        if(validationFailure!=null){
+            throw new ValidationException(validationFailure);
+        }
+    }
+
+    Observable<? extends ValidationFailure> asyncValidate(ValidatorContext context, T value);
 }

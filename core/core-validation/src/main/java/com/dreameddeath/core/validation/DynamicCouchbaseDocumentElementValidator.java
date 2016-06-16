@@ -16,8 +16,9 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import rx.Observable;
 
 import java.lang.reflect.Field;
 
@@ -33,14 +34,12 @@ public class DynamicCouchbaseDocumentElementValidator implements Validator<Objec
         this.factory = factory;
     }
 
-    public void validate(ValidatorContext ctxt,Object elt) throws ValidationException{
+    @Override
+    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext context, Object elt) {
         if(elt instanceof CouchbaseDocumentElement){
             Validator<CouchbaseDocumentElement> validator = factory.getValidator((CouchbaseDocumentElement)elt);
-            validator.validate(ctxt,(CouchbaseDocumentElement)elt);
+            return validator.asyncValidate(context,(CouchbaseDocumentElement)elt);
         }
+        return Observable.empty();
     }
-    /*public void validate(Object elt,RawCouchbaseDocumentElement parent) throws ValidationFailedException {
-        if(elt instanceof RawCouchbaseDocumentElement)
-            _factory.getValidator((RawCouchbaseDocumentElement)elt).validate((RawCouchbaseDocumentElement)elt,parent);
-    }*/
 }

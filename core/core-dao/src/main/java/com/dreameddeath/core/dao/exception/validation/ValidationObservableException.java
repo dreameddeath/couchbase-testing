@@ -23,4 +23,13 @@ public class ValidationObservableException extends RuntimeException {
     public ValidationObservableException(ValidationException e){
         super(e);
     }
+
+    public ValidationObservableException(ValidationFailure e){
+        super(new ValidationException(e));
+    }
+
+    @Override
+    public ValidationException getCause(){
+        return (ValidationException)super.getCause();
+    }
 }

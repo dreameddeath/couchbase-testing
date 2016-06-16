@@ -23,4 +23,9 @@ public class DaoObservableException extends RuntimeException {
     public DaoObservableException(DaoException e){
         super(e);
     }
+
+    @Override
+    public DaoException getCause(){
+        return (DaoException)super.getCause();
+    }
 }

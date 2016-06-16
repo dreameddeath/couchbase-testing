@@ -16,8 +16,10 @@
 
 package com.dreameddeath.core.validation;
 
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.dreameddeath.core.validation.exception.ValidationFailedException;
+import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
+import rx.Observable;
 
 import java.lang.reflect.Field;
 
@@ -30,9 +32,10 @@ public class NotNullValidator<T> implements Validator<T> {
         this.field = field;
     }
 
-    public void validate(ValidatorContext ctxt,T value) throws ValidationFailedException {
+    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, T value)  {
         if(value==null){
-            throw new ValidationFailedException(ctxt.head(),field,"The field should be set");
+            return Observable.just(new ValidationCompositeFailure(ctxt.head(),field,"The field should be set"));
         }
+        return Observable.empty();
     }
 }

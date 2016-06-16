@@ -52,7 +52,7 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
     }
 
     @Override
-    public Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params)throws DaoException{
+    public Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params){
         return asyncGet(session,getKeyFromParams(params));
     }
 
@@ -67,7 +67,7 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
     }
 
     @Override
-    public Observable<T> asyncGet(ICouchbaseSession session, String key) throws DaoException {
+    public Observable<T> asyncGet(ICouchbaseSession session, String key){
         return super.asyncGet(session,key).map(obj->updateTransientFromKeyPattern(obj,keyPattern.extractParamsArrayFromKey(key)));
     }
 

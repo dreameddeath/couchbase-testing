@@ -35,7 +35,7 @@ public abstract class CouchbaseDocumentDaoWithUID<T extends CouchbaseDocument> e
     }
 
     @Override
-    public Observable<T> asyncGetFromUid(ICouchbaseSession session, String uid) throws DaoException {
+    public Observable<T> asyncGetFromUid(ICouchbaseSession session, String uid){
         return asyncGet(session,getKeyFromParams(uid));
     }
 }

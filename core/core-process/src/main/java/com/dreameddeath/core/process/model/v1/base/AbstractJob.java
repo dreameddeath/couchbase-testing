@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.process.model.v1.base;
 
+import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
@@ -23,6 +24,7 @@ import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.SetProperty;
+import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.TreeSetProperty;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
@@ -32,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,7 +44,7 @@ import java.util.UUID;
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 @DocumentEntity
-public abstract class AbstractJob extends CouchbaseDocument implements IVersionedEntity {
+public abstract class AbstractJob extends CouchbaseDocument implements IVersionedEntity,IHasUniqueKeysRef {
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
@@ -54,6 +57,11 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
     @Override
     public final EntityModelId getModelId(){
         return fullEntityId;
+    }
+
+    public AbstractJob(){
+        super(null);
+        super.setBaseMeta(AbstractJob.this.new MetaInfo());
     }
 
     @DocumentProperty("uid")
@@ -73,6 +81,12 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
      */
     @DocumentProperty("tasks")
     private SetProperty<String> tasks = new TreeSetProperty<>(AbstractJob.this);
+    /**
+     *  docUniqKeys : List of uniqueness Keys attached to this document
+     */
+    @DocumentProperty("docUniqKeys")
+    private SetProperty<String> docUniqKeys = new HashSetProperty<>(AbstractJob.this);
+    private Set<String> inDbUniqKeys = new HashSet<>();
 
     // uid accessors
     public UUID getUid() { return uid.get(); }
@@ -113,5 +127,53 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
      */
     public void setRequestUid(String val) { requestUid.set(val); }
 
+    // DocUniqKeys Accessors
+    public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
+    public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
+    @Override
+    public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
 
+    protected void syncKeyWithDb(){
+        inDbUniqKeys.clear();
+        inDbUniqKeys.addAll(docUniqKeys.get());
+        docUniqKeys.clear();
+    }
+
+    public Set<String> getToBeDeletedUniqueKeys(){
+        Set<String> toRemoveKeyList=new HashSet<>(inDbUniqKeys);
+        toRemoveKeyList.addAll(docUniqKeys.get());
+        return toRemoveKeyList;
+    }
+
+    @Override
+    public Set<String> getRemovedUniqueKeys(){
+        Set<String> removed=new HashSet<>(inDbUniqKeys);
+        removed.removeAll(docUniqKeys.get());
+        return removed;
+    }
+
+    @Override
+    public boolean isInDbKey(String key) {
+        return inDbUniqKeys.contains(key);
+    }
+
+
+    public MetaInfo getMeta(){
+        return (MetaInfo) getBaseMeta();
+    }
+
+    public class MetaInfo extends BaseMetaInfo {
+
+        @Override
+        public void setStateDeleted(){
+            //syncKeyWithDb(); voluntary to key in db values up to date
+            super.setStateDeleted();
+        }
+
+        @Override
+        public void setStateSync(){
+            syncKeyWithDb();
+            super.setStateSync();
+        }
+    }
 }

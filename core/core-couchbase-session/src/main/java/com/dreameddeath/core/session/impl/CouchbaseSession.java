@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.session.impl;
 
-import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.IDaoForDocumentWithUID;
@@ -118,17 +118,13 @@ public class CouchbaseSession implements ICouchbaseSession {
     public boolean isReadOnly(){
         return (sessionType== SessionType.READ_ONLY)||isTemporaryReadOnlyMode();
     }
+
     protected void checkReadOnly(CouchbaseDocument doc) throws ReadOnlyException{
         if(isReadOnly()){
             throw new ReadOnlyException(doc);
         }
     }
 
-    protected void checkReadOnly(Class docClass) throws ReadOnlyException{
-        if(isReadOnly()){
-            throw new ReadOnlyException(docClass);
-        }
-    }
 
     protected void checkReadOnly(String counterKey) throws ReadOnlyException{
         if(isReadOnly()){
@@ -233,16 +229,21 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException {
-        return manageAsyncResult(obj,asyncCreate(obj));
+        return manageAsyncWriteResult(obj,asyncCreate(obj));
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncCreate(T obj) throws DaoException {
-        checkReadOnly(obj);
-        CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>)obj.getClass());
-        Observable<T> result = dao.asyncCreate(this,obj,isCalcOnly());
-        result = result.map(this::attachDocument);
-        return result;
+    public <T extends CouchbaseDocument> Observable<T> asyncCreate(T obj){
+        try {
+            checkReadOnly(obj);
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+            Observable<T> result = dao.asyncCreate(this, obj, isCalcOnly());
+            result = result.map(this::attachDocument);
+            return result;
+        }
+        catch (DaoException e){
+            throw new DaoObservableException(e);
+        }
     }
 
     @Override
@@ -251,9 +252,14 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncBuildKey(T obj) throws DaoException {
+    public <T extends CouchbaseDocument> Observable<T> asyncBuildKey(T obj) {
         if(obj.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
-            return sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>)obj.getClass()).asyncBuildKey(this, obj);
+            try {
+                return sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass()).asyncBuildKey(this, obj);
+            }
+            catch(DaoException e){
+                throw new DaoObservableException(e);
+            }
         }
         else{
             return Observable.just(obj);
@@ -262,99 +268,156 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public CouchbaseDocument get(String key) throws DaoException,StorageException {
-        return asyncGet(key).toBlocking().first();
+        return manageAsyncReadResult(asyncGet(key));
     }
 
     @Override
-    public Observable<CouchbaseDocument> asyncGet(String key) throws DaoException {
-        CouchbaseDocument cachedObj = sessionCache.get(key);
-        if(cachedObj!=null) {
-            return Observable.just(cachedObj);
+    public Observable<CouchbaseDocument> asyncGet(String key){
+        try {
+            CouchbaseDocument cachedObj = sessionCache.get(key);
+            if (cachedObj != null) {
+                return Observable.just(cachedObj);
+            } else {
+                CouchbaseDocumentDao dao = sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
+                Observable<CouchbaseDocument> result = (Observable<CouchbaseDocument>) dao.asyncGet(this, key);
+                result.doOnNext(this::attachDocument);
+                return result;
+            }
         }
-        else{
-            CouchbaseDocumentDao dao = sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
-            Observable<CouchbaseDocument> result = (Observable<CouchbaseDocument>)dao.asyncGet(this,key);
-            result.doOnNext(this::attachDocument);
-            return result;
+        catch(DaoException e){
+            throw new DaoObservableException(e);
         }
     }
 
     @Override
     public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException {
-        return asyncGet(key,targetClass).toBlocking().first();
+        return manageAsyncReadResult(asyncGet(key, targetClass));
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGet(String key, Class<T> targetClass) throws DaoException {
-        CouchbaseDocument cacheResult = sessionCache.get(key);
-        if(cacheResult !=null){
-            return Observable.just((T)cacheResult);
+    public <T extends CouchbaseDocument> Observable<T> asyncGet(String key, Class<T> targetClass){
+        try {
+            CouchbaseDocument cacheResult = sessionCache.get(key);
+            if (cacheResult != null) {
+                return Observable.just((T) cacheResult);
+            } else {
+                CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+                Observable<T> result = dao.asyncGet(this, key);
+                result.doOnNext(this::attachDocument);
+                return result;
+            }
         }
-        else{
-            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
-            Observable<T> result = dao.asyncGet(this,key);
-            result.doOnNext(this::attachDocument);
-            return result;
+        catch(DaoException e){
+            throw new DaoObservableException(e);
         }
     }
 
 
     @Override
     public <T extends CouchbaseDocument> T refresh(T doc) throws DaoException, StorageException {
-        return asyncRefresh(doc).toBlocking().first();
+        return manageAsyncReadResult(asyncRefresh(doc));
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc) throws DaoException, StorageException {
-        CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>)doc.getClass());
-        Observable<T> result = dao.asyncGet(this,doc.getBaseMeta().getKey());
-        result.doOnNext(this::attachDocument);
-        return result;
+    public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc){
+        try {
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) doc.getClass());
+            Observable<T> result = dao.asyncGet(this, doc.getBaseMeta().getKey());
+            result.doOnNext(this::attachDocument);
+            return result;
+        }
+        catch(DaoException e){
+            throw new DaoObservableException(e);
+        }
     }
 
     @Override
     public <T extends CouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException {
-        return manageAsyncResult(obj,asyncUpdate(obj));
+        return manageAsyncWriteResult(obj,asyncUpdate(obj));
     }
 
-    public <T extends CouchbaseDocument> T manageAsyncResult(final T obj,Observable<T> obs)throws ValidationException,DaoException,StorageException {
+    public <T extends CouchbaseDocument> T manageAsyncValidationResult(final T obj, Observable<T> obs)throws ValidationException {
+        try{
+            return obs.toBlocking().first();
+        }
+        catch(ValidationObservableException e){
+            throw e.getCause();
+        }
+    }
+
+    public <T extends CouchbaseDocument> T manageAsyncReadResult(Observable<T> obs)throws DaoException,StorageException {
         try{
             return obs.toBlocking().first();
         }
         catch(DaoObservableException e){
-            throw (DaoException) e.getCause();
+            throw e.getCause();
+        }
+        catch (StorageObservableException e){
+            throw e.getCause();
+        }
+    }
+
+    public <T extends CouchbaseDocument> T manageAsyncWriteResult(final T obj, Observable<T> obs)throws ValidationException,DaoException,StorageException {
+        try{
+            return obs.toBlocking().first();
+        }
+        catch(DaoObservableException e){
+            throw e.getCause();
         }
         catch(ValidationObservableException e){
-            throw (ValidationException) e.getCause();
+            throw e.getCause();
         }
-        catch (Throwable e){
-            throw ICouchbaseBucket.Utils.mapStorageException(obj,e);
+        catch (StorageObservableException e){
+            throw e.getCause();
         }
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncUpdate(T obj) throws DaoException {
-        checkReadOnly(obj);
-        CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
-        return dao.asyncUpdate(this, obj, isCalcOnly());
+    public <T extends CouchbaseDocument> Observable<T> asyncUpdate(T obj){
+        try {
+            checkReadOnly(obj);
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+            return dao.asyncUpdate(this, obj, isCalcOnly());
+        }
+        catch(DaoException e){
+            throw new DaoObservableException(e);
+        }
     }
 
     @Override
     public <T extends CouchbaseDocument> T delete(T obj)throws ValidationException,DaoException,StorageException {
-        return manageAsyncResult(obj,asyncDelete(obj));
+        return manageAsyncWriteResult(obj,asyncDelete(obj));
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T obj) throws DaoException {
-        checkReadOnly(obj);
-        CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
-        return dao.asyncDelete(this, obj, isCalcOnly());
+    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T obj) {
+        try {
+            checkReadOnly(obj);
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+            return dao.asyncDelete(this, obj, isCalcOnly());
+        }
+        catch(DaoException e){
+            throw new DaoObservableException(e);
+        }
     }
 
     @Override
-    public void validate(CouchbaseDocument doc) throws ValidationException {
-        sessionFactory.getValidatorFactory().getValidator((Class<CouchbaseDocument>)doc.getClass()).validate(ValidatorContext.buildContext(this),doc);
+    public <T extends CouchbaseDocument>  T validate(T doc) throws ValidationException {
+        return manageAsyncValidationResult(doc,asyncValidate(doc));
     }
+
+    @Override
+    public <T extends CouchbaseDocument>  Observable<T> asyncValidate(final T doc){
+        return
+                sessionFactory.getValidatorFactory().getValidator((Class<T>)doc.getClass())
+                        .asyncValidate(ValidatorContext.buildContext(this),doc)
+                        .doOnNext(validation->{
+                            throw new ValidationObservableException(validation);}
+                        )
+                        .map(validation->doc)
+                        .firstOrDefault(doc);
+    }
+
 
     @Override
     public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException {
@@ -363,16 +426,20 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass) throws DaoException, StorageException {
-        @SuppressWarnings("unchecked")
-        IDaoForDocumentWithUID<T> dao = (IDaoForDocumentWithUID<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
-        final String key = dao.getKeyFromUID(uid);
-        CouchbaseDocument cacheResult = sessionCache.get(key);
-        if(cacheResult !=null){
-            return Observable.just((T)cacheResult);
+    public <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass){
+        try {
+            @SuppressWarnings("unchecked")
+            IDaoForDocumentWithUID<T> dao = (IDaoForDocumentWithUID<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+            final String key = dao.getKeyFromUID(uid);
+            CouchbaseDocument cacheResult = sessionCache.get(key);
+            if (cacheResult != null) {
+                return Observable.just((T) cacheResult);
+            } else {
+                return dao.asyncGetFromUid(this, uid).doOnNext(this::attachDocument);
+            }
         }
-        else {
-            return dao.asyncGetFromUid(this, uid).doOnNext(this::attachDocument);
+        catch(DaoException e){
+            throw new DaoObservableException(e);
         }
     }
 
@@ -385,20 +452,24 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
-        return asyncGetFromKeyParams(targetClass,params).toBlocking().first();
+        return manageAsyncReadResult(asyncGetFromKeyParams(targetClass,params));
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
-        @SuppressWarnings("unchecked")
-        IDaoWithKeyPattern<T> dao = (IDaoWithKeyPattern<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
-        final String key = dao.getKeyFromParams(params);
-        CouchbaseDocument cacheResult = sessionCache.get(key);
-        if(cacheResult !=null){
-            return Observable.just((T)cacheResult);
+    public <T extends CouchbaseDocument> Observable<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params){
+        try {
+            @SuppressWarnings("unchecked")
+            IDaoWithKeyPattern<T> dao = (IDaoWithKeyPattern<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+            final String key = dao.getKeyFromParams(params);
+            CouchbaseDocument cacheResult = sessionCache.get(key);
+            if (cacheResult != null) {
+                return Observable.just((T) cacheResult);
+            } else {
+                return dao.asyncGetFromKeyParams(this, params).doOnNext(this::attachDocument);
+            }
         }
-        else {
-            return dao.asyncGetFromKeyParams(this, params).doOnNext(this::attachDocument);
+        catch(DaoException e){
+            throw new DaoObservableException(e);
         }
     }
 
@@ -411,11 +482,11 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException {
-        return manageAsyncResult(obj,asyncSave(obj));
+        return manageAsyncWriteResult(obj,asyncSave(obj));
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncSave(T obj) throws DaoException {
+    public <T extends CouchbaseDocument> Observable<T> asyncSave(T obj){
         if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
             return asyncCreate(obj);
         }
@@ -429,11 +500,34 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException{
+        manageAsyncWriteResult(doc,asyncAddOrUpdateUniqueKey(doc, value, nameSpace));
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> String buildUniqueKey(T doc,String value, String nameSpace) throws DaoException{
+        CouchbaseUniqueKeyDao dao;
+        try {
+            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace);
+        }
+        catch(DaoNotFoundException e){
+            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace, sessionFactory.getDocumentDaoFactory().getDaoForClass(doc.getClass()));
+        }
+
+        return dao.buildInternalKey(nameSpace,value);
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Observable<T> asyncAddOrUpdateUniqueKey(final T doc, String value, String nameSpace) {
         //Skip null value
         if(value==null){
-            return;
+            return Observable.just(doc);
         }
-        checkReadOnly(doc);
+        try {
+            checkReadOnly(doc);
+        }
+        catch(ReadOnlyException e){
+            throw new DaoObservableException(e);
+        }
         CouchbaseUniqueKeyDao dao;
         try {
             dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace);
@@ -442,35 +536,73 @@ public class CouchbaseSession implements ICouchbaseSession {
             try {
                 dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace, sessionFactory.getDocumentDaoFactory().getDaoForClass(doc.getClass()));
             }
-            catch(Throwable e1){
-                throw e;
+            catch(DaoNotFoundException e1){
+                throw new DaoObservableException(e);
             }
         }
-        CouchbaseUniqueKey keyDoc = dao.addOrUpdateUniqueKey(this, nameSpace, value.toString(), doc, isCalcOnly());
-        keyCache.put(keyDoc.getBaseMeta().getKey(),keyDoc);
-    }
+        Observable<CouchbaseUniqueKey> keyDocObservable = dao.asyncAddOrUpdateUniqueKey(this, nameSpace, value.toString(), doc, isCalcOnly());
 
+        //keyCache.put(keyDoc.getBaseMeta().getKey(),keyDoc);
+        return keyDocObservable.map(keyDoc->{
+            keyCache.put(keyDoc.getBaseMeta().getKey(),keyDoc);
+            return doc;
+        });
+    }
 
 
     @Override
     public CouchbaseUniqueKey getUniqueKey(String internalKey)throws DaoException,StorageException {
-        CouchbaseUniqueKey keyDoc =keyCache.get(sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey).buildKey(internalKey));
-        if(keyDoc==null){
-            CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
-            return dao.getFromInternalKey(this,internalKey);
+        return manageAsyncReadResult(asyncGetUniqueKey(internalKey));
+    }
+
+    @Override
+    public Observable<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
+        try {
+            CouchbaseUniqueKey keyDoc = keyCache.get(sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey).buildKey(internalKey));
+            if (keyDoc == null) {
+                CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
+                return dao.asyncGetFromInternalKey(this, internalKey);
+            }
+            return Observable.just(keyDoc);
         }
-        return keyDoc;
+        catch(DaoException e){
+            throw new DaoObservableException(e);
+        }
+
     }
 
 
     @Override
-    public void removeUniqueKey(String internalKey) throws ValidationException,DaoException,StorageException {
-        CouchbaseUniqueKey obj = getUniqueKey(internalKey);
-        checkReadOnly(obj);
-        CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
-        dao.removeUniqueKey(this,obj,internalKey,isCalcOnly());
-        if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
-            keyCache.remove(obj.getBaseMeta().getKey());
+    public void removeUniqueKey(String internalKey) throws DaoException,StorageException {
+        try {
+            asyncRemoveUniqueKey(internalKey).toBlocking().first();
+        }
+        catch(DaoObservableException e){
+            throw e.getCause();
+        }
+        catch (StorageObservableException e){
+            throw e.getCause();
+        }
+    }
+
+    @Override
+    public Observable<Boolean> asyncRemoveUniqueKey(String internalKey) {
+        try {
+            final CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
+            //CouchbaseUniqueKey obj = ;
+            return asyncGetUniqueKey(internalKey).map(keyDoc -> {
+                        try {
+                            checkReadOnly(keyDoc);
+                        } catch (ReadOnlyException e) {
+                            throw new DaoObservableException(e);
+                        }
+                        return keyDoc;
+                    })
+                    .flatMap(keyDoc -> dao.asyncRemoveUniqueKey(this, keyDoc, internalKey, isCalcOnly()))
+                    .map(keyDoc -> keyCache.remove(keyDoc.getBaseMeta().getKey()) != null);
+        }
+        catch(DaoNotFoundException e){
+            throw new DaoObservableException(e);
         }
     }
 
@@ -493,7 +625,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     @Override
-    public <TKEY,TVALUE,T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY,TVALUE,T >> executeAsyncQuery(IViewQuery<TKEY,TVALUE,T> query) throws DaoException,StorageException {
+    public <TKEY,TVALUE,T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY,TVALUE,T >> executeAsyncQuery(IViewQuery<TKEY,TVALUE,T> query) {
         return query.getDao().asyncQuery(this,isCalcOnly(),query);
     }
 }

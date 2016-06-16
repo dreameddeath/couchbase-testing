@@ -111,10 +111,6 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
     }
 
     public class MetaInfo extends BaseMetaInfo {
-        private String typeId;
-
-        public void setTypeId(String typeId){this.typeId = typeId;}
-        public String getTypeId(){return typeId;}
 
         private Collection<BusinessDocumentLink> reverseLinks=new HashSet<>();
 

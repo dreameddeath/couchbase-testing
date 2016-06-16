@@ -264,8 +264,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         try{
             return asyncGet(key,entity).toBlocking().first();
         }
-        catch(Throwable e){
-            throw ICouchbaseBucket.Utils.mapAccessException(key,e);
+        catch(StorageObservableException e){
+            throw e.getCause();
         }
     }
 
@@ -274,8 +274,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         try{
             return asyncGet(key,entity,params).toBlocking().single();
         }
-        catch(Throwable e){
-            throw ICouchbaseBucket.Utils.mapAccessException(key,e);
+        catch(StorageObservableException e){
+            throw e.getCause();
         }
     }
 
@@ -286,6 +286,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
                 .map(BucketDocument::content)
+                .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableAccessException(id,throwable,entity))
                 .map(val-> {
                     if (val == null) {
                         throw new StorageObservableException(new DocumentNotFoundException(id, "Cannot find document using key <" + id + ">"));
@@ -320,6 +321,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return result.doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
                 .map(BucketDocument::content)
+                .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableAccessException(id,throwable,entity))
                 .map(val-> {
                     if (val == null) {
                         throw new StorageObservableException(new DocumentNotFoundException(id, "Cannot find document using key <" + id + ">"));
@@ -349,15 +351,16 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         }
         return obs.doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc));
+                .map(new DocumentResync<>(bucketDoc))
+                .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(bucketDoc.getDocument(),throwable));
     }
 
     protected <T extends CouchbaseDocument> T syncDocumentObserverManage(final T doc, Observable<T> obj) throws StorageException{
         try{
             return obj.toBlocking().single();
         }
-        catch(Throwable e) {
-            throw ICouchbaseBucket.Utils.mapStorageException(doc,e);
+        catch(StorageObservableException e) {
+            throw e.getCause();
         }
     }
 
@@ -379,7 +382,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return bucket.async().insert(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc));
+                .map(new DocumentResync<>(bucketDoc))
+                .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
     @Override
@@ -410,7 +414,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return bucket.async().upsert(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc));
+                .map(new DocumentResync<>(bucketDoc))
+                .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
     @Override
@@ -441,7 +446,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return bucket.async().replace(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc));
+                .map(new DocumentResync<>(bucketDoc))
+                .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
     @Override
@@ -484,7 +490,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return bucket.async().remove(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc));
+                .map(new DocumentResync<>(bucketDoc))
+                .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
     @Override
@@ -516,7 +523,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return bucket.async().append(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc));
+                .map(new DocumentResync<>(bucketDoc))
+                .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
     @Override
@@ -546,7 +554,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return bucket.async().prepend(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc));
+                .map(new DocumentResync<>(bucketDoc))
+                .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
     @Override
@@ -564,8 +573,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         try{
             return obj.toBlocking().single();
         }
-        catch(Throwable e) {
-            throw ICouchbaseBucket.Utils.mapStorageException(key,e);
+        catch(StorageObservableException e) {
+            throw e.getCause();
         }
     }
 
@@ -585,14 +594,15 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         CouchbaseMetricsContext.MetricsContext mCtxt = counterContext.start();
         return bucket.async().counter(key, by, defaultValue, expiry).doOnEach(mCtxt::stopCounter)
                 .doOnError(mCtxt::stopWithError)
-                .map(JsonLongDocument::content);
+                .map(JsonLongDocument::content)
+                .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(key,throwable));
     }
 
     @Override
-    public Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) {
+    public Observable<Long> asyncCounter(String origKey, Long by, Long defaultValue, Integer expiration, WriteParams params) {
         CouchbaseMetricsContext.MetricsContext mCtxt = counterContext.start();
 
-        key = ICouchbaseBucket.Utils.buildKey(params.getKeyPrefix(),key);
+        final String key = ICouchbaseBucket.Utils.buildKey(params.getKeyPrefix(),origKey);
         Observable<JsonLongDocument> result = bucket.async().counter(key, by, defaultValue, expiration);
 
         if(params.getTimeOutUnit()!=null){
@@ -601,7 +611,8 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
         return result.doOnEach(mCtxt::stopCounter)
                 .doOnError(mCtxt::stopWithError)
-                .map(JsonLongDocument::content);
+                .map(JsonLongDocument::content)
+                .onErrorResumeNext(throwable->ICouchbaseBucket.Utils.mapObservableStorageException(key,throwable));
     }
 
     @Override

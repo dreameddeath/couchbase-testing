@@ -90,7 +90,7 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
                 try {
                     ctxt.save();
                 }
-                catch(ValidationException|DaoException|StorageException e){
+                catch(ValidationException |DaoException|StorageException e){
                     throw new TaskExecutionException(ctxt,"Cannot save task before processing",e);
                 }
             }

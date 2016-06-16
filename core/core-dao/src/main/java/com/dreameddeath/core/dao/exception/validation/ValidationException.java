@@ -19,9 +19,23 @@ package com.dreameddeath.core.dao.exception.validation;
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class ValidationException extends Exception {
-    public ValidationException(Throwable e){ super(e);}
-    public ValidationException(String message,Throwable e){ super(message,e);}
-    public ValidationException(String message){ super(message);}
-    public ValidationException(){ super();}
+public class ValidationException extends Exception{
+    private final ValidationFailure failure;
+
+
+    public ValidationException(ValidationFailure failure){
+        super(failure.getMessage(),failure.getCause());
+        this.failure = failure;
+    }
+
+
+    public String getMessage(){
+        return failure.getMessage();
+    }
+
+
+    public ValidationFailure getFailure(){
+        return failure;
+    }
+
 }

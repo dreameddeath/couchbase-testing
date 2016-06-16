@@ -19,6 +19,7 @@ package com.dreameddeath.core.dao.counter;
 
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -87,10 +88,10 @@ public class CouchbaseCounterDao{
             throw e;
         }
         catch(DaoObservableException e){
-            throw (DaoException)e.getCause();
+            throw e.getCause();
         }
-        catch(Throwable e){
-            throw ICouchbaseBucket.Utils.mapStorageException(key,e);
+        catch(StorageObservableException e){
+            throw e.getCause();
         }
     }
 

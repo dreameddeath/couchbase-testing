@@ -29,5 +29,5 @@ public interface IDaoWithKeyPattern<T> {
     KeyPattern getKeyPattern();
     String getKeyFromParams(Object ...params);
     T getFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException;
-    Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException;
+    Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params);
 }

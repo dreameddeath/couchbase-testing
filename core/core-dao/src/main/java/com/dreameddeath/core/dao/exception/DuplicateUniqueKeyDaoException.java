@@ -23,9 +23,9 @@ import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class DuplicateUniqueKeyStorageException extends DocumentStorageException {
-    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc, String message, DuplicateUniqueKeyException e){ super(doc,message,e);}
-    public DuplicateUniqueKeyStorageException(CouchbaseDocument doc, DuplicateUniqueKeyException e){ super(doc,e);}
+public class DuplicateUniqueKeyDaoException extends DocumentDaoException {
+    public DuplicateUniqueKeyDaoException(CouchbaseDocument doc, String message, DuplicateUniqueKeyException e){ super(doc,message,e);}
+    public DuplicateUniqueKeyDaoException(CouchbaseDocument doc, DuplicateUniqueKeyException e){ super(doc,e);}
 
     @Override
     public DuplicateUniqueKeyException getCause(){
@@ -47,4 +47,5 @@ public class DuplicateUniqueKeyStorageException extends DocumentStorageException
     public String getOwnerDocumentKey() {
         return (getCause()!=null)?getCause().getOwnerDocumentKey():null;
     }
+
 }

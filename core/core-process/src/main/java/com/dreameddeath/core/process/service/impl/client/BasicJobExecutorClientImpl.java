@@ -19,11 +19,11 @@ package com.dreameddeath.core.process.service.impl.client;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.java.utils.StringUtils;
-import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
@@ -38,7 +38,7 @@ import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.validation.exception.ValidationFailedException;
+import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
 
 import java.util.UUID;
 
@@ -85,16 +85,17 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
             try {
                 ctxt.save();
             }
-            catch(ValidationFailedException e){
-                DuplicateUniqueKeyException duplicate = e.findException(DuplicateUniqueKeyException.class);
-                if(duplicate!=null){
-                    throw new DuplicateJobExecutionException(ctxt,"DuplicateJob creation",duplicate);
+            catch(ValidationException e){
+                if((e.getFailure()!=null) && (e.getFailure() instanceof ValidationCompositeFailure)){
+                    DuplicateUniqueKeyDaoException duplicate = (((ValidationCompositeFailure) e.getFailure()).findException(DuplicateUniqueKeyDaoException.class));
+                    if(duplicate!=null){
+                        throw new DuplicateJobExecutionException(ctxt,"DuplicateJob creation",duplicate.getCause());
+                    }
                 }
-                else{
-                    throw new JobExecutionException(ctxt,"Cannot perform initial save",e);
-                }
+                throw new JobExecutionException(ctxt,"Cannot perform initial save",e);
+
             }
-            catch(DaoException|StorageException|ValidationException e){
+            catch(DaoException|StorageException e){
                 throw new JobExecutionException(ctxt,"Cannot perform initial save",e);
             }
 

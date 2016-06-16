@@ -50,6 +50,7 @@
         <module>core-elasticsearch-session</module>
         <module>core-kafka</module>
         <module>core-dep-injection</module>
+        <module>core-notification</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

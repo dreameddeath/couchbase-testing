@@ -16,14 +16,16 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.validation.exception.ValidationFailedException;
+import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
+import rx.Observable;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 01/09/2014.
@@ -40,21 +42,17 @@ public class PropertyValidator<T> implements Validator<Property<T>>{
     }
 
     @Override
-    public void validate(ValidatorContext ctxt,Property<T> elt)throws ValidationException {
-        T obj = elt.get();
-        List<ValidationException> eltErrors = null;
-        for (Validator<Object> validator : validationRules) {
-            try {
-                validator.validate(ctxt, obj);
-            } catch (ValidationFailedException e) {
-                if (eltErrors == null) {
-                    eltErrors = new ArrayList<ValidationException>();
-                }
-                eltErrors.add(e);
-            }
-        }
-        if (eltErrors != null) {
-            throw new ValidationFailedException(ctxt.head(), (AccessibleObject) field, "Errors in Property", eltErrors);
-        }
+    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, Property<T> elt){
+        final T obj = elt.get();
+        List<Observable<? extends ValidationFailure>> eltErrors=
+                validationRules.stream()
+                        .map(validator->validator.asyncValidate(ctxt,obj))
+                        .collect(Collectors.toList());
+
+        return Observable.merge(eltErrors)
+                .reduce(new ValidationCompositeFailure(ctxt.head(), (AccessibleObject) field, "Errors in Property"),
+                        (global,res)->global.addChildElement(res))
+                .filter(ValidationCompositeFailure::hasError);
+
     }
 }

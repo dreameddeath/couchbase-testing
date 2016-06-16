@@ -50,12 +50,12 @@ public abstract class BusinessCouchbaseDocumentWithKeyPatternDao<T extends Busin
     }
 
     @Override
-    final public Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException{
+    final public Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params){
         return asyncGet(session,getKeyFromParams(params));
     }
 
     @Override
-    public Observable<T> asyncGet(ICouchbaseSession session, String key) throws DaoException {
+    public Observable<T> asyncGet(ICouchbaseSession session, String key) {
         return super.asyncGet(session,key).map(obj->updateTransientFromKeyPattern(obj,keyPattern.extractParamsArrayFromKey(key)));
     }
 

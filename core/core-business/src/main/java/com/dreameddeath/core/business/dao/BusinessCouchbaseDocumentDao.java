@@ -18,7 +18,6 @@ package com.dreameddeath.core.business.dao;
 
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
-import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public abstract class BusinessCouchbaseDocumentDao<T extends BusinessDocument> e
     }
 
     @Override
-    public Observable<T> asyncUpdate(ICouchbaseSession session,T obj,boolean isCalcOnly) throws DaoException{
+    public Observable<T> asyncUpdate(ICouchbaseSession session,T obj,boolean isCalcOnly){
         updateRevision(session,obj);
         Set<String> keysToRemove=obj.getRemovedUniqueKeys();
         Observable<T> result = super.asyncUpdate(session,obj, isCalcOnly);
@@ -45,7 +44,7 @@ public abstract class BusinessCouchbaseDocumentDao<T extends BusinessDocument> e
     }
 
     @Override
-    public Observable<T> asyncDelete(ICouchbaseSession session, final T doc, boolean isCalcOnly) throws DaoException{
+    public Observable<T> asyncDelete(ICouchbaseSession session, final T doc, boolean isCalcOnly){
         Set<String> keysToRemove=doc.getRemovedUniqueKeys();
         Observable<T> result = super.asyncDelete(session,doc,isCalcOnly);
         result.doOnNext(new CleanKeysAction(session,keysToRemove));

@@ -23,4 +23,9 @@ public class StorageObservableException extends RuntimeException {
     public StorageObservableException(StorageException e){
         super(e);
     }
+
+    @Override
+    public StorageException getCause(){
+        return (StorageException)super.getCause();
+    }
 }

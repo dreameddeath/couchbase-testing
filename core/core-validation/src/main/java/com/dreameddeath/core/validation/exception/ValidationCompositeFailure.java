@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.validation.exception;
 
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.HasParent;
@@ -24,88 +24,116 @@ import com.dreameddeath.core.model.property.HasParent;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class ValidationFailedException extends ValidationException {
-    HasParent docElt;
-    AccessibleObject field;
-    Object value;
-    Long iterablePos;
-    List<ValidationException> childList;
+public class ValidationCompositeFailure extends ValidationFailure {
+    private final HasParent docElt;
+    private final AccessibleObject field;
+    private final Long iterablePos;
+    private final List<ValidationFailure> childList=new ArrayList<>();
 
-    public ValidationFailedException(HasParent docElt, AccessibleObject field, String message, List<ValidationException> listChildException){
+    public ValidationCompositeFailure(HasParent docElt, AccessibleObject field, String message, List<ValidationFailure> listChildException){
         super(message);
         this.docElt = docElt;
         this.field = field;
-        childList = listChildException;
+        this.childList.addAll(listChildException);
+        this.iterablePos=null;
     }
 
-    public ValidationFailedException(HasParent docElt, String message, List<ValidationException> listChildException){
+    public ValidationCompositeFailure(HasParent docElt, String message){
         super(message);
         this.docElt = docElt;
-        childList = listChildException;
+        this.field=null;
+        this.iterablePos=null;
     }
 
-    public ValidationFailedException(HasParent docElt, Long iterablePos, String message, List<ValidationException> listChildException){
+
+    public ValidationCompositeFailure(HasParent docElt, String message, List<ValidationFailure> listChildException){
+        super(message);
+        this.docElt = docElt;
+        this.childList.addAll(listChildException);
+        this.field=null;
+        this.iterablePos=null;
+    }
+
+    public ValidationCompositeFailure(HasParent docElt, Long iterablePos, String message, List<ValidationFailure> listChildException){
         super(message);
         this.docElt = docElt;
         this.iterablePos = iterablePos;
-        childList = listChildException;
+        this.childList.addAll(listChildException);
+        this.field=null;
+    }
+
+    public ValidationCompositeFailure(HasParent docElt, Long iterablePos, String message){
+        super(message);
+        this.docElt = docElt;
+        this.iterablePos = iterablePos;
+        this.field=null;
     }
 
 
-    public ValidationFailedException(HasParent docElt, AccessibleObject field, String message){
+    public ValidationCompositeFailure(HasParent docElt, AccessibleObject field, String message){
         super(message);
         this.docElt = docElt;
         this.field = field;
+        this.iterablePos=null;
     }
 
-    public ValidationFailedException(HasParent docElt, AccessibleObject field, String message, Throwable e){
+    public ValidationCompositeFailure(HasParent docElt, AccessibleObject field, String message, Throwable e){
         super(message,e);
         this.docElt = docElt;
         this.field = field;
+        this.iterablePos=null;
     }
 
-    public ValidationFailedException(HasParent docElt, AccessibleObject field, Throwable e){
+    public ValidationCompositeFailure(HasParent docElt, AccessibleObject field, Throwable e){
         super(e);
         this.docElt = docElt;
         this.field = field;
+        this.iterablePos=null;
     }
 
-
-
-    public ValidationFailedException(HasParent docElt, AccessibleObject field, Object value, String message){
+    public ValidationCompositeFailure(HasParent docElt, AccessibleObject field, Object value, String message){
         super(message);
         this.docElt = docElt;
         this.field = field;
-        this.value = value;
+        this.iterablePos=null;
     }
 
-    public ValidationFailedException(HasParent docElt, AccessibleObject field, Object value, String message, Throwable e){
+    public ValidationCompositeFailure(HasParent docElt, AccessibleObject field, Object value, String message, Throwable e){
         super(message,e);
         this.docElt = docElt;
         this.field = field;
-        this.value = value;
+        this.iterablePos=null;
     }
 
-    public ValidationFailedException(HasParent docElt, AccessibleObject field, Object value, Throwable e){
+    public ValidationCompositeFailure(HasParent docElt, AccessibleObject field, Object value, Throwable e){
         super(e);
         this.docElt = docElt;
         this.field = field;
-        this.value = value;
+        this.iterablePos=null;
     }
 
+
+    public synchronized ValidationCompositeFailure addChildElement(ValidationFailure e){
+        if(e instanceof ValidationCompositeFailure && !e.hasError()){
+            return this;
+        }
+        this.childList.add(e);
+        return this;
+    }
 
     public <T extends Throwable> T findException(Class<T> exceptionClass){
-        for(ValidationException e : childList){
+        for(ValidationFailure e : childList){
             if(e.getCause()!=null && exceptionClass.isAssignableFrom(e.getCause().getClass())){
                 return (T) e.getCause();
             }
-            else if(e instanceof ValidationFailedException){
-                T result = ((ValidationFailedException) e).findException(exceptionClass);
+            else if(e instanceof ValidationCompositeFailure){
+                T result = ((ValidationCompositeFailure) e).findException(exceptionClass);
                 if(result!=null){
                     return result;
                 }
@@ -159,9 +187,9 @@ public class ValidationFailedException extends ValidationException {
         if(hasSubBlock){ buf.append(" {\n"); }
 
         if(childList!=null) {
-            for (ValidationException a_childList : childList) {
-                if(a_childList instanceof ValidationFailedException) {
-                    buf.append(((ValidationFailedException) a_childList).formatValidationIssues(field, level + 1));
+            for (ValidationFailure a_childList : childList) {
+                if(a_childList instanceof ValidationCompositeFailure) {
+                    buf.append(((ValidationCompositeFailure) a_childList).formatValidationIssues(field, level + 1));
                 }
             }
         }
@@ -182,4 +210,8 @@ public class ValidationFailedException extends ValidationException {
         return formatValidationIssues(null,0);
     }
 
+    @Override
+    public boolean hasError() {
+        return childList.stream().filter(ValidationFailure::hasError).count()>0 || this.getCause()!=null;
+    }
 }

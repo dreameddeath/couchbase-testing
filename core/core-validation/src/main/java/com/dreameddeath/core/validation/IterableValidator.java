@@ -16,14 +16,15 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
-import com.dreameddeath.core.validation.exception.ValidationFailedException;
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
+import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
+import rx.Observable;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 29/08/2014.
@@ -41,70 +42,29 @@ public class IterableValidator implements Validator<Iterable<?>> {
     }
 
     @Override
-    public void validate(ValidatorContext ctxt,Iterable value) throws ValidationException{
-        List<ValidationException> iterableExceptions=null;
+    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, Iterable value){
+        List<Observable<? extends ValidationFailure>> iterableExceptions=new ArrayList<>();
 
         Iterator iter =value.iterator();
         Long pos=0L;
         while(iter.hasNext()){
+            final Long currPos=pos;
             Object obj = iter.next();
-            List<ValidationException> eltErrors=null;
-            for(Validator<Object> validator:validationRules){
-                try {
-                    validator.validate(ctxt,obj);
-                }
-                catch(ValidationException e){
-                    if(eltErrors==null){
-                        eltErrors = new ArrayList<ValidationException>();
-                    }
-                    eltErrors.add(e);
-                }
-            }
-            if(eltErrors!=null){
-                if(iterableExceptions==null){
-                    iterableExceptions = new ArrayList<ValidationException>();
-                }
-                iterableExceptions.add(new ValidationFailedException(ctxt.head(),pos,"",eltErrors));
-            }
-
+            List<Observable<? extends ValidationFailure>> eltErrors=
+                    validationRules.stream()
+                            .map(validator->validator.asyncValidate(ctxt,obj))
+                            .collect(Collectors.toList());
+            iterableExceptions.add(Observable.merge(eltErrors)
+                    .reduce(new ValidationCompositeFailure(ctxt.head(),currPos,""),
+                            ValidationCompositeFailure::addChildElement)
+                    .filter(ValidationCompositeFailure::hasError)
+            );
             ++pos;
         }
-        if(iterableExceptions!=null){
-            throw new ValidationFailedException(ctxt.head(),(AccessibleObject)field,"Errors in iterable",iterableExceptions);
-        }
+        return Observable.merge(iterableExceptions)
+                .reduce(new ValidationCompositeFailure(ctxt.head(),"error in iterable"),
+                        ValidationCompositeFailure::addChildElement)
+                .filter(ValidationCompositeFailure::hasError);
     }
-
-    /*public void validate(Iterable value, RawCouchbaseDocumentElement parent) throws ValidationFailedException {
-        List<ValidationFailedException> iterableExceptions=null;
-
-        Iterator iter =value.iterator();
-        Long pos=0L;
-        while(iter.hasNext()){
-            Object obj = iter.next();
-            List<ValidationFailedException> eltErrors=null;
-            for(Validator<Object> validator:_validationRules){
-                try {
-                    validator.validate(obj, parent);
-                }
-                catch(ValidationFailedException e){
-                    if(eltErrors==null){
-                        eltErrors = new ArrayList<ValidationFailedException>();
-                    }
-                    eltErrors.add(e);
-                }
-            }
-            if(eltErrors!=null){
-                if(iterableExceptions==null){
-                    iterableExceptions = new ArrayList<ValidationFailedException>();
-                }
-                iterableExceptions.add(new ValidationFailedException(parent,pos,"",eltErrors));
-            }
-
-            ++pos;
-        }
-        if(iterableExceptions!=null){
-            throw new ValidationFailedException(parent,(AccessibleObject)_field,"Errors in iterable",iterableExceptions);
-        }
-    }*/
 
 }

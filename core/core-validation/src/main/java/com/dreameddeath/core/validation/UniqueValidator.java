@@ -16,13 +16,16 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.exception.DaoObservableException;
+import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.property.HasParent;
 import com.dreameddeath.core.validation.annotation.Unique;
-import com.dreameddeath.core.validation.exception.ValidationFailedException;
+import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
+import rx.Observable;
 
 import java.lang.reflect.Field;
 
@@ -38,25 +41,31 @@ public class UniqueValidator<T> implements Validator<T> {
     }
 
     @Override
-    public void validate(ValidatorContext ctxt,T value) throws ValidationException{
+    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, T value){
         if(value!=null){
             try {
-                String valueStr=value.toString();
+                String valueStr = value.toString();
                 CouchbaseDocument root = HasParent.Helper.getParentDocument(ctxt.head());
-                if((root instanceof IHasUniqueKeysRef) && ((IHasUniqueKeysRef)root).isInDbKey(valueStr)){
-                    ((IHasUniqueKeysRef) root).addDocUniqKeys(valueStr);
-                    return;
-                }
-                else {
-                    ctxt.getSession().addOrUpdateUniqueKey(root, valueStr, annotation.nameSpace());
+                String uniqueKey = ctxt.getSession().buildUniqueKey(root, valueStr,annotation.nameSpace());
+                if ((root instanceof IHasUniqueKeysRef) && ((IHasUniqueKeysRef) root).isInDbKey(uniqueKey)) {
+                    ((IHasUniqueKeysRef) root).addDocUniqKeys(uniqueKey);
+                    return Observable.empty();
+                } else {
+                    return ctxt.getSession().asyncAddOrUpdateUniqueKey(root, valueStr, annotation.nameSpace())
+                            .filter(foundKey -> false)
+                            .map(foundKey -> new ValidationCompositeFailure(root, "Shouldn't occur"))
+                            .onErrorResumeNext(throwable -> {
+                                if (throwable instanceof DaoObservableException && throwable.getCause() instanceof DuplicateUniqueKeyDaoException) {
+                                    return Observable.just(new ValidationCompositeFailure(ctxt.head(), field, "Duplicate Exception for value", throwable.getCause()));
+                                }
+                                return Observable.just(new ValidationCompositeFailure(ctxt.head(), field, "Other Exception", throwable));
+                            });
                 }
             }
-            catch(DuplicateUniqueKeyException e){
-                throw new ValidationFailedException(ctxt.head(),field,"Duplicate Exception for value" ,e);
-            }
-            catch(Exception e){
-                throw new ValidationFailedException(ctxt.head(),field,"Other Exception",e);
+            catch(DaoException e){
+                throw new DaoObservableException(e);
             }
         }
+        return Observable.empty();
     }
 }

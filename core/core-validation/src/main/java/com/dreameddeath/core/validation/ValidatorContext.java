@@ -19,34 +19,33 @@ package com.dreameddeath.core.validation;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.property.HasParent;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Created by Christophe Jeunesse on 20/11/2014.
  */
 public class ValidatorContext {
-    private ICouchbaseSession session;
-    private List<HasParent> stack = new LinkedList<>();
+    private final ICouchbaseSession session;
+    private final HasParent currParentElement;
+    private final ValidatorContext parentContext;
+
+    public ValidatorContext(ValidatorContext parentContext,HasParent currParentElement) {
+        this.session = parentContext.session;
+        this.currParentElement = currParentElement;
+        this.parentContext = parentContext;
+    }
+
+    public ValidatorContext(ICouchbaseSession session){
+        this.session=session;
+        this.currParentElement=null;
+        this.parentContext=null;
+    }
 
     public ICouchbaseSession getSession(){return session;}
-    public void setSession(ICouchbaseSession session){ this.session = session;}
-
-    public void push(HasParent parent){
-        stack.add(0,parent);
-    }
-
-    public HasParent head(){
-        return stack.get(0);
-    }
-
-    public HasParent pop(){
-        return stack.remove(0);
-    }
 
     public static ValidatorContext buildContext(ICouchbaseSession session){
-        ValidatorContext context = new ValidatorContext();
-        context.setSession(session);
-        return context;
+        return new ValidatorContext(session);
+    }
+
+    public HasParent head() {
+        return currParentElement;
     }
 }

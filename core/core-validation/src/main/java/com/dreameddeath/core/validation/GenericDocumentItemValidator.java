@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.validation;
 
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
@@ -26,10 +26,13 @@ import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.core.validation.annotation.Unique;
 import com.dreameddeath.core.validation.annotation.Validate;
 import com.dreameddeath.core.validation.annotation.ValidationConstraint;
-import com.dreameddeath.core.validation.exception.ValidationFailedException;
+import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
+import rx.Observable;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
@@ -38,7 +41,7 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
     Map<AccessibleObject,CouchbaseDocumentValidatorFieldEntry> validationRules = new HashMap<AccessibleObject,CouchbaseDocumentValidatorFieldEntry>();
 
     public static class CouchbaseDocumentValidatorFieldEntry{
-        private List<Validator> validationRules=new ArrayList<>();
+        private List<Validator<Object>> validationRules=new ArrayList<>();
         private String fieldName;
         private Field field;
 
@@ -61,9 +64,10 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
             return field;
         }
 
-        public List<Validator> getValidators(){
+        public List<Validator<Object>> getValidators(){
             return Collections.unmodifiableList(validationRules);
         }
+
         public void addValidator(Validator validator){
             validationRules.add(validator);
         }
@@ -240,55 +244,49 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
     }
 
     @Override
-    public void validate(ValidatorContext ctxt,HasParent element) throws ValidationException {
-        List<ValidationException> fieldsErrors=null;
+    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, T element){
+        List<Observable<? extends ValidationFailure>> fieldsErrors=new ArrayList<>();
         for(AccessibleObject elt:validationRules.keySet()){
-            Object obj=null;
+            ValidatorContext subContext = new ValidatorContext(ctxt,element);
             try {
+                final Object obj;
                 if (elt instanceof Field) {
                     obj = ((Field) elt).get(element);
                 } else if (elt instanceof Method) {
                     obj = ((Method) elt).invoke(element);
                 }
+                else{
+                    continue;
+                }
 
-                List<ValidationException> fldErrors=null;
-                for (Validator validator : validationRules.get(elt).getValidators()) {
-                    try {
-                        ctxt.push(element);
-                        validator.validate(ctxt,obj);
-                        ctxt.pop();
-                    }
-                    catch(ValidationException e){
-                        if(fldErrors==null){
-                            fldErrors = new ArrayList<>();
-                        }
-                        fldErrors.add(e);
-                    }
-                }
-                if(fldErrors!=null){
-                    if(fieldsErrors==null){
-                        fieldsErrors=new ArrayList<>();
-                    }
-                    fieldsErrors.add(new ValidationFailedException(element,validationRules.get(elt).getField(),"Errors of field",fldErrors));
-                }
+                List<Observable<? extends ValidationFailure>> validationResult = ((Stream<Validator<Object>>)validationRules
+                        .get(elt).getValidators().stream())
+                        .map(
+                                validator->validator.asyncValidate(subContext,obj)
+                        )
+                        .collect(Collectors.toList());
+
+                Observable<ValidationCompositeFailure>result= Observable
+                        .merge(validationResult)
+                        .reduce(
+                            new ValidationCompositeFailure(element,validationRules.get(elt).getField(),"Error of field"),
+                            ValidationCompositeFailure::addChildElement
+                        )
+                        .filter(ValidationCompositeFailure::hasError);
+                fieldsErrors.add(result);
             }
             catch(IllegalAccessException e){
-                if(fieldsErrors==null){
-                    fieldsErrors=new ArrayList<>();
-                }
-                fieldsErrors.add(new ValidationFailedException(element,validationRules.get(elt).getField(),"Cannot access to the value of the field",e));
+                fieldsErrors.add(Observable.just(new ValidationCompositeFailure(element,validationRules.get(elt).getField(),"Cannot access to the value of the field",e)));
             }
             catch(InvocationTargetException e){
-                if(fieldsErrors==null){
-                    fieldsErrors=new ArrayList<>();
-                }
-                fieldsErrors.add(new ValidationFailedException(element,validationRules.get(elt).getField(),"Cannot access to the target of the field",e));
-            }
-
-            if(fieldsErrors!=null){
-                throw new ValidationFailedException(element,"has errors",fieldsErrors);
+                fieldsErrors.add(Observable.just(new ValidationCompositeFailure(element,validationRules.get(elt).getField(),"Cannot access to the target of the field",e)));
             }
         }
+        return Observable.merge(fieldsErrors)
+                .reduce(new ValidationCompositeFailure(element,"has errors"),
+                        ValidationCompositeFailure::addChildElement)
+                .filter(ValidationCompositeFailure::hasError);
+        //return Observable.empty();
     }
 
 
