@@ -120,7 +120,7 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
     }
 
     public IViewQueryResult<TKEY,TVALUE,TDOC> query(ICouchbaseSession session,boolean isCalcOnly,IViewQuery<TKEY,TVALUE,TDOC> query){
-        return ViewQueryResult.from(query,getClient().query(query.toCouchbaseQuery()));
+        return ViewQueryResult.from(query,getClient().toBlocking().query(query.toCouchbaseQuery()));
     }
 
     public Observable<IViewAsyncQueryResult<TKEY,TVALUE,TDOC>> asyncQuery(ICouchbaseSession session,boolean isCalcOnly,IViewQuery<TKEY,TVALUE,TDOC> query){

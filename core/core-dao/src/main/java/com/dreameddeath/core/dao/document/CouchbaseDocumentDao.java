@@ -65,6 +65,12 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         baseClass=ClassUtils.getEffectiveGenericType(this.getClass(),CouchbaseDocumentDao.class,0);
     }
 
+
+    public BlockingDao toBlocking(){
+        return new BlockingDao();
+    }
+
+
     public final Class<T> getBaseClass(){
         return baseClass;
     }
@@ -102,7 +108,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return uuid;
     }
 
-    public void checkUpdatableState(T obj) throws InconsistentStateException {
+    public T checkUpdatableState(T obj) throws InconsistentStateException {
         if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
             throw new InconsistentStateException(obj,"The document is new and then cannot be updated");
         }
@@ -116,6 +122,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         if(isReadOnly){
             throw new InconsistentStateException(obj,"Cannot update document in readonly mode");
         }
+        return obj;
     }
 
     public T checkCreatableState(T obj) throws InconsistentStateException{
@@ -194,25 +201,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
     }
 
-
-    public class FuncValidate implements Func1<T,T> {
-        private final ICouchbaseSession session;
-
-        public FuncValidate(ICouchbaseSession session){
-            this.session  = session;
-        }
-        @Override
-        public T call(T t) {
-            try {
-                session.validate(t);
-                return t;
-            }
-            catch(ValidationException e){
-                throw new ValidationObservableException(e);
-            }
-        }
-    }
-
     public Observable<T> asyncCreate(ICouchbaseSession session, T obj, boolean isCalcOnly){
         Observable<T> result=Observable.just(obj);
         result = result.map(new FuncCheckCreatable());
@@ -226,7 +214,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                     }
             );
         }
-        result = result.map(new FuncValidate(session));
+        result = result.flatMap(session::asyncValidate);
         if(!isCalcOnly) {
             final String keyPrefix = session.getKeyPrefix();
             if(session.getKeyPrefix()!=null) {
@@ -236,8 +224,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 result = result.flatMap(val -> getClient().asyncAdd(val));
             }
         }
-        result = result.map(new FuncUpdateStateSync());
-        return result.onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
+        return result.map(new FuncUpdateStateSync()).onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
     }
 
     public <T extends CouchbaseDocument> Observable<T> mapObservableException(T doc,Throwable e){
@@ -248,33 +235,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             throw (DaoObservableException)e;
         }
         return ICouchbaseBucket.Utils.mapObservableStorageException(doc,e);
-    }
-
-    public T create(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
-        try {
-            return asyncCreate(session, obj, isCalcOnly).toBlocking().first();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch(ValidationObservableException e){
-            throw e.getCause();
-        }
-        catch(StorageObservableException e){
-            throw e.getCause();
-        }
-    }
-
-    public T get(ICouchbaseSession session,String key) throws DaoException,StorageException{
-        try{
-            return asyncGet(session,key).toBlocking().first();
-        }
-        catch (StorageObservableException e) {
-            throw e.getCause();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
     }
 
     public Observable<T> asyncGet(ICouchbaseSession session,String key){
@@ -304,26 +264,11 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
     }
 
-    public T update(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
-        try {
-            return asyncUpdate(session, obj, isCalcOnly).toBlocking().first();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch(ValidationObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
-        }
-    }
-
     public Observable<T> asyncUpdate(ICouchbaseSession session,T obj,boolean isCalcOnly){
         try {
             Observable<T> result = Observable.just(obj);
             result = result.map(new FuncCheckUpdatable());
-            result = result.map(new FuncValidate(session));
+            result = result.flatMap(session::asyncValidate);
             if (!isCalcOnly) {
                 final String keyPrefix = session.getKeyPrefix();
                 if (keyPrefix != null) {
@@ -363,22 +308,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         }
     }
 
-    //Should only be used through DeletionJob
-    public T delete(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
-        try {
-            return asyncDelete(session, obj, isCalcOnly).toBlocking().first();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch(ValidationObservableException e){
-            throw e.getCause();
-        }
-        catch(StorageObservableException e){
-            throw e.getCause();
-        }
-    }
-
     public boolean isReadOnly() {
         return isReadOnly;
     }
@@ -387,5 +316,66 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         this.isReadOnly=isReadOnly;
     }
 
+
+    public class BlockingDao{
+        public T get(ICouchbaseSession session,String key) throws DaoException,StorageException{
+            try{
+                return asyncGet(session,key).toBlocking().first();
+            }
+            catch (StorageObservableException e) {
+                throw e.getCause();
+            }
+            catch(DaoObservableException e){
+                throw e.getCause();
+            }
+        }
+
+        public T create(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+            try {
+                return asyncCreate(session, obj, isCalcOnly).toBlocking().first();
+            }
+            catch(DaoObservableException e){
+                throw e.getCause();
+            }
+            catch(ValidationObservableException e){
+                throw e.getCause();
+            }
+            catch(StorageObservableException e){
+                throw e.getCause();
+            }
+        }
+
+        public T update(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+            try {
+                return asyncUpdate(session, obj, isCalcOnly).toBlocking().first();
+            }
+            catch(DaoObservableException e){
+                throw e.getCause();
+            }
+            catch(ValidationObservableException e){
+                throw e.getCause();
+            }
+            catch (StorageObservableException e){
+                throw e.getCause();
+            }
+        }
+
+        //Should only be used through DeletionJob
+        public T delete(ICouchbaseSession session,T obj,boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
+            try {
+                return asyncDelete(session, obj, isCalcOnly).toBlocking().first();
+            }
+            catch(DaoObservableException e){
+                throw e.getCause();
+            }
+            catch(ValidationObservableException e){
+                throw e.getCause();
+            }
+            catch(StorageObservableException e){
+                throw e.getCause();
+            }
+        }
+
+    }
 
 }

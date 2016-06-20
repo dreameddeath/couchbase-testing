@@ -33,6 +33,11 @@ import java.util.Arrays;
 public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocument> extends CouchbaseDocumentDao<T> implements IDaoWithKeyPattern<T> {
     private final KeyPattern keyPattern;
 
+    @Override
+    public BlockingDao toBlocking(){
+        return new BlockingDao();
+    }
+
     protected abstract String getKeyRawPattern();
 
     public CouchbaseDocumentWithKeyPatternDao() {
@@ -47,18 +52,8 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
     public  abstract String getKeyFromParams(Object ...params);
 
     @Override
-    public T getFromKeyParams(ICouchbaseSession session,Object ...params) throws DaoException,StorageException{
-        return get(session,getKeyFromParams(params));
-    }
-
-    @Override
     public Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params){
         return asyncGet(session,getKeyFromParams(params));
-    }
-
-    @Override
-    public void init() {
-        super.init();
     }
 
     @Override
@@ -92,5 +87,14 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
             CouchbaseDocumentWithKeyPatternDao.this.updateTransientFromKeyPattern(obj,keyPattern.extractParamsArrayFromKey(obj.getBaseMeta().getKey()));
             return obj;
         }
+    }
+
+
+    public class BlockingDao extends CouchbaseDocumentDao<T>.BlockingDao implements IBlockingDaoWithKeyPattern<T>{
+        @Override
+        public T getFromKeyParams(ICouchbaseSession session,Object ...params) throws DaoException,StorageException{
+            return get(session,getKeyFromParams(params));
+        }
+
     }
 }

@@ -185,12 +185,12 @@ public class DummySession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncValidate(T doc) {
-        return null;
+        return Observable.just(doc);
     }
 
     @Override
     public CouchbaseDocument validate(CouchbaseDocument doc) {
-        return null;
+        return doc;
     }
 
     @Override

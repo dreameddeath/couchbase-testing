@@ -117,7 +117,7 @@ public class RefRestServiceTest extends Assert {
 
         assertTrue(context.getJobState().isDone());
         String createdKey = context.getTasks(RemoteCreateJob.RemoteTestJobCreateTask.class).get(0).key;
-        TestDoc createdDoc = cbSimulator.get(createdKey,TestDoc.class);
+        TestDoc createdDoc = cbSimulator.toBlocking().get(createdKey,TestDoc.class);
         assertEquals(job.initIntValue,createdDoc.intValue);
         assertEquals(job.name,createdDoc.name);
 
@@ -128,7 +128,7 @@ public class RefRestServiceTest extends Assert {
             updateJob.key = createdKey;
             JobContext<RemoteUpdateJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE);
             assertTrue(updateContext.getJobState().isDone());
-            TestDoc updatedDoc = cbSimulator.get(createdKey, TestDoc.class);
+            TestDoc updatedDoc = cbSimulator.toBlocking().get(createdKey, TestDoc.class);
             assertEquals(job.initIntValue + updateJob.incrIntValue, (long) updatedDoc.intValue);
         }
         {
@@ -146,7 +146,7 @@ public class RefRestServiceTest extends Assert {
             updateContext = updateJobClient.resumeJob(updateContext.getJob(), AnonymousUser.INSTANCE);
 
             assertTrue(updateContext.getJobState().isDone());
-            TestDoc updatedDoc = cbSimulator.get(createdKey, TestDoc.class);
+            TestDoc updatedDoc = cbSimulator.toBlocking().get(createdKey, TestDoc.class);
             assertEquals(job.initIntValue + 20 - 3 , (long) updatedDoc.intValue);
         }
     }

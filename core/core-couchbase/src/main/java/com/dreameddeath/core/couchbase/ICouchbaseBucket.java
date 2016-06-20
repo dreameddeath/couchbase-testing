@@ -21,7 +21,6 @@ import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import com.couchbase.client.java.error.DocumentDoesNotExistException;
 import com.couchbase.client.java.view.AsyncViewResult;
 import com.couchbase.client.java.view.ViewQuery;
-import com.couchbase.client.java.view.ViewResult;
 import com.dreameddeath.core.couchbase.exception.*;
 import com.dreameddeath.core.couchbase.impl.ReadParams;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
@@ -36,69 +35,40 @@ import java.util.concurrent.TimeUnit;
  */
 public interface ICouchbaseBucket {
     ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder);
-
-    <T extends CouchbaseDocument> T get(final String key,Class<T> entity) throws StorageException;
-    <T extends CouchbaseDocument> T get(final String key,Class<T> entity, ReadParams params) throws StorageException;
+    IBlockingCouchbaseBucket toBlocking();
     <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,Class<T> entity);
     <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,Class<T> entity, ReadParams params);
-    //Observable<JsonDocument> getAndTouch(String id, int expiry);
-    //<D extends Document<?>> Observable<Boolean> touch(String id, int expiry);
-    //<D extends Document<?>> Observable<Boolean> touch(D document);
 
-
-    //Observable<JsonDocument> getAndLock(String id, int lockTime);
-    //Observable<Boolean> unlock(D document);
-    //Observable<Boolean> unlock(String id,long cas);
-
-    <T extends CouchbaseDocument> T add(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> T add(final T doc, WriteParams params) throws StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc);
     <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, WriteParams params);
 
 
-    <T extends CouchbaseDocument> T set(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> T set(final T doc, WriteParams params) throws StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc);
     <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, WriteParams params);
 
-    <T extends CouchbaseDocument> T replace(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> T replace(final T doc, WriteParams params) throws StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc);
     <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, WriteParams params);
 
-    <T extends CouchbaseDocument> T delete(T bucketDoc) throws StorageException;
-    <T extends CouchbaseDocument> T delete(T bucketDoc, WriteParams params) throws StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc);
     <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, WriteParams params);
 
-    <T extends CouchbaseDocument> T append(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> T append(final T doc, WriteParams params) throws StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc);
     <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, WriteParams params);
 
-    <T extends CouchbaseDocument> T prepend(final T doc) throws StorageException;
-    <T extends CouchbaseDocument> T prepend(final T doc, WriteParams params) throws StorageException;
     <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc);
     <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, WriteParams params);
 
-    Long counter(String key, Long by, Long defaultValue, Integer expiration) throws StorageException;
-    Long counter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params) throws StorageException;
 
     Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration);
     Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params);
-    Long counter(String key, Long by, Long defaultValue) throws StorageException;
-    Long counter(String key, Long by, Long defaultValue, WriteParams params) throws StorageException;
     Observable<Long> asyncCounter(String key, Long by, Long defaultValue);
     Observable<Long> asyncCounter(String key, Long by, Long defaultValue, WriteParams params);
-    Long counter(String key, Long by) throws StorageException;
-    Long counter(String key, Long by, WriteParams params) throws StorageException;
     Observable<Long> asyncCounter(String key, Long by);
     Observable<Long> asyncCounter(String key, Long by, WriteParams params);
 
     void createOrUpdateView(String designDoc, Map<String, String> viewMap) throws StorageException;
 
     Observable<AsyncViewResult> asyncQuery(ViewQuery query);
-    ViewResult query(ViewQuery query);
 
     void start(long timeout, TimeUnit unit);
     void start();
@@ -212,7 +182,7 @@ public interface ICouchbaseBucket {
             throw new StorageObservableException(mapAccessException(key,e));
         }
 
-        public static StorageException mapAccessException(String key,Throwable e){
+        private static StorageException mapAccessException(String key,Throwable e){
             Throwable rootException =e.getCause();
             if(rootException==null){
                 rootException=e;

@@ -29,7 +29,13 @@ import java.util.Set;
 public abstract class BusinessCouchbaseDocumentDao<T extends BusinessDocument> extends CouchbaseDocumentWithKeyPatternDao<T> {
     private final static Logger LOG= LoggerFactory.getLogger(BusinessCouchbaseDocumentDao.class);
 
-    protected  void updateRevision(ICouchbaseSession session,T obj){
+    @Override
+    public BlockingDao toBlocking(){
+        return new BlockingDao();
+    }
+
+
+    protected void updateRevision(ICouchbaseSession session,T obj){
         obj.incDocRevision(session);
         obj.updateDocLastModDate(session);
     }
@@ -69,5 +75,9 @@ public abstract class BusinessCouchbaseDocumentDao<T extends BusinessDocument> e
                 }
             }
         }
+    }
+
+    public class BlockingDao extends CouchbaseDocumentWithKeyPatternDao<T>.BlockingDao{
+
     }
 }

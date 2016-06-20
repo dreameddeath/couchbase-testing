@@ -207,19 +207,19 @@ public class CouchbaseBucketSimulatorTest {
         testDoc.getBaseMeta().setKey("/test/1");
         testDoc.field1 = "test1";
         testDoc.field2 = "test2";
-        cbSimulator.add(testDoc);
+        cbSimulator.toBlocking().add(testDoc);
         testDoc.field2 += "update";
-        cbSimulator.replace(testDoc);
+        cbSimulator.toBlocking().replace(testDoc);
         testDoc.field1="prepend";
         testDoc.field2=null;
-        cbSimulator.prepend(testDoc);
+        cbSimulator.toBlocking().prepend(testDoc);
         testDoc.field1=null;
         testDoc.field2="append";
-        cbSimulator.append(testDoc);
+        cbSimulator.toBlocking().append(testDoc);
 
-        cbSimulator.counter("/test/cnt", 1L, 2L);
-        cbSimulator.counter("/test/cnt",2L);
-        cbSimulator.delete(testDoc);
+        cbSimulator.toBlocking().counter("/test/cnt", 1L, 2L);
+        cbSimulator.toBlocking().counter("/test/cnt",2L);
+        cbSimulator.toBlocking().delete(testDoc);
         connector.stop();
 
         assertEquals(0, handler.errors);

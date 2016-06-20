@@ -121,7 +121,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     }
 
     public CouchbaseUniqueKey get(ICouchbaseSession session,String nameSpace,String value) throws DaoException,StorageException{
-        return super.get(session,buildKey(nameSpace, value));
+        return super.toBlocking().get(session,buildKey(nameSpace, value));
     }
 
     public Observable<CouchbaseUniqueKey> asyncGet(ICouchbaseSession session,String nameSpace,String value){
@@ -130,7 +130,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
 
 
     public CouchbaseUniqueKey getFromInternalKey(ICouchbaseSession session,String internalKey) throws DaoException,StorageException{
-        return super.get(session,buildKey(internalKey));
+        return super.toBlocking().get(session,buildKey(internalKey));
     }
 
     public Observable<CouchbaseUniqueKey> asyncGetFromInternalKey(ICouchbaseSession session, String internalKey){
@@ -200,10 +200,10 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     public void removeUniqueKey(ICouchbaseSession session,CouchbaseUniqueKey doc,String internalKey,boolean isCalcOnly) throws DaoException,ValidationException,StorageException {
         doc.removeKey(internalKey);
         if(doc.isEmpty()){
-            delete(session,doc,isCalcOnly);//TODO manage expiration for timed removed document
+            toBlocking().delete(session,doc,isCalcOnly);//TODO manage expiration for timed removed document
         }
         else{
-           update(session,doc,isCalcOnly);
+           toBlocking().update(session,doc,isCalcOnly);
         }
     }
 

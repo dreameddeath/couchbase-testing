@@ -30,12 +30,19 @@ public abstract class CouchbaseDocumentDaoWithUID<T extends CouchbaseDocument> e
         return getKeyFromParams(uid);
     }
 
-    public T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException {
-        return get(session, getKeyFromUID(uid));
+    @Override
+    public BlockingDao toBlocking(){
+        return new BlockingDao();
     }
 
     @Override
     public Observable<T> asyncGetFromUid(ICouchbaseSession session, String uid){
-        return asyncGet(session,getKeyFromParams(uid));
+        return asyncGet(session,getKeyFromUID(uid));
+    }
+
+    public class BlockingDao extends CouchbaseDocumentWithKeyPatternDao<T>.BlockingDao implements IBlockingDaoForDocumentWithUID<T>{
+        public T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException {
+            return get(session, getKeyFromUID(uid));
+        }
     }
 }

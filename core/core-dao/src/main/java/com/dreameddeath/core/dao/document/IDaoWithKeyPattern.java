@@ -27,7 +27,11 @@ import rx.Observable;
  */
 public interface IDaoWithKeyPattern<T> {
     KeyPattern getKeyPattern();
+    IBlockingDaoWithKeyPattern<T> toBlocking();
     String getKeyFromParams(Object ...params);
-    T getFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException;
     Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params);
+
+    interface IBlockingDaoWithKeyPattern<T>{
+        T getFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException;
+    }
 }

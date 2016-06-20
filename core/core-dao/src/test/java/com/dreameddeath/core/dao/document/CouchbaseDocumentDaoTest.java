@@ -119,20 +119,20 @@ public class CouchbaseDocumentDaoTest{
             TestRootDaoDoc testRootDaoDoc = new TestRootDaoDoc();
             testRootDaoDoc.test = "toto";
             long start = System.nanoTime();
-            TestRootDaoDoc resultingCreate = daoTest.create(new DummySession(), testRootDaoDoc, false);
+            TestRootDaoDoc resultingCreate = daoTest.toBlocking().create(new DummySession(), testRootDaoDoc, false);
             LOG.info("create duration {}", (System.nanoTime() - start) / (1000 * 1000));
             assertEquals("test/1", testRootDaoDoc.getBaseMeta().getKey());
             assertTrue(resultingCreate == testRootDaoDoc);
 
             testRootDaoDoc.test = "toto 2";
             start = System.nanoTime();
-            TestRootDaoDoc resultingUpdate = daoTest.update(new DummySession(), testRootDaoDoc, false);
+            TestRootDaoDoc resultingUpdate = daoTest.toBlocking().update(new DummySession(), testRootDaoDoc, false);
             LOG.info("update duration {}", (System.nanoTime() - start) / (1000 * 1000));
             assertTrue(resultingUpdate == testRootDaoDoc);
             assertEquals(testRootDaoDoc.test, resultingUpdate.test);
 
             start = System.nanoTime();
-            TestRootDaoDoc resultingGetDoc = daoTest.get(new DummySession(), testRootDaoDoc.getBaseMeta().getKey());
+            TestRootDaoDoc resultingGetDoc = daoTest.toBlocking().get(new DummySession(), testRootDaoDoc.getBaseMeta().getKey());
             LOG.info("get duration {}", (System.nanoTime() - start) / (1000 * 1000));
             assertEquals(resultingGetDoc.test, testRootDaoDoc.test);
             assertEquals(resultingGetDoc.getBaseMeta().getKey(), testRootDaoDoc.getBaseMeta().getKey());
@@ -143,7 +143,7 @@ public class CouchbaseDocumentDaoTest{
             TestRootDaoDoc testRootDaoDoc2 = new TestRootDaoDoc();
             testRootDaoDoc2.test = "toto";
             long start = System.nanoTime();
-            TestRootDaoDoc resultingCreate2 = daoTest.create(new DummySession(), testRootDaoDoc2, false);
+            TestRootDaoDoc resultingCreate2 = daoTest.toBlocking().create(new DummySession(), testRootDaoDoc2, false);
             LOG.info("create duration {}", (System.nanoTime() - start) / (1000 * 1000));
             assertEquals("test/2", resultingCreate2.getBaseMeta().getKey());
             assertTrue(resultingCreate2 == resultingCreate2);

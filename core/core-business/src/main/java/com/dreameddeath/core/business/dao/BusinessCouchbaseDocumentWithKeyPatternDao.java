@@ -18,7 +18,6 @@ package com.dreameddeath.core.business.dao;
 
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.document.IDaoWithKeyPattern;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.utils.KeyPattern;
@@ -27,8 +26,14 @@ import rx.Observable;
 /**
  * Created by Christophe Jeunesse on 28/12/2015.
  */
-public abstract class BusinessCouchbaseDocumentWithKeyPatternDao<T extends BusinessDocument> extends BusinessCouchbaseDocumentDao<T> implements IDaoWithKeyPattern<T>{
+public abstract class BusinessCouchbaseDocumentWithKeyPatternDao<T extends BusinessDocument> extends BusinessCouchbaseDocumentDao<T>{
     private KeyPattern keyPattern =null;
+
+    @Override
+    public BlockingDao toBlocking(){
+        return new BlockingDao();
+    }
+
     @Override
     public void init() {
         super.init();
@@ -45,11 +50,6 @@ public abstract class BusinessCouchbaseDocumentWithKeyPatternDao<T extends Busin
     abstract public String getKeyFromParams(Object... params);
 
     @Override
-    final public T getFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException{
-        return get(session,getKeyFromParams(params));
-    }
-
-    @Override
     final public Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params){
         return asyncGet(session,getKeyFromParams(params));
     }
@@ -62,5 +62,13 @@ public abstract class BusinessCouchbaseDocumentWithKeyPatternDao<T extends Busin
     @Override
     public Observable<T> asyncCreate(ICouchbaseSession session, T obj, boolean isCalcOnly) {
         return super.asyncCreate(session,obj,isCalcOnly).map(val->updateTransientFromKeyPattern(val,keyPattern.extractParamsArrayFromKey(val.getBaseMeta().getKey())));
+    }
+
+    public class BlockingDao extends BusinessCouchbaseDocumentDao<T>.BlockingDao implements IBlockingDaoWithKeyPattern<T>{
+        @Override
+        public T getFromKeyParams(ICouchbaseSession session,Object ...params) throws DaoException,StorageException{
+            return get(session,getKeyFromParams(params));
+        }
+
     }
 }

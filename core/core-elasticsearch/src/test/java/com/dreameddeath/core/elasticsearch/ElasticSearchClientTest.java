@@ -223,19 +223,19 @@ public class ElasticSearchClientTest {
         doc.addresses.add(TestAddress.newAddress("road 2", 67890, "City2"));
         doc.getBaseMeta().setKey("/test/1");
 
-        cbSimulator.add(doc);
+        cbSimulator.toBlocking().add(doc);
         doc.addresses.add(TestAddress.newAddress("road 2", 12345, "City3"));
-        cbSimulator.replace(doc);
+        cbSimulator.toBlocking().replace(doc);
         doc.firstName="firstName2";
         doc.getBaseMeta().setKey("/test/2");
-        cbSimulator.add(doc);
+        cbSimulator.toBlocking().add(doc);
         doc.firstName="firstName3 firstName2";
         doc.lastName="lastName2";
         doc.addresses.remove(1);
         doc.getBaseMeta().setKey("/test/3");
-        cbSimulator.add(doc);
+        cbSimulator.toBlocking().add(doc);
 
-        cbSimulator.counter("/test/cnt",1L,1L);
+        cbSimulator.toBlocking().counter("/test/cnt",1L,1L);
         //Wait for indexing
         connector.stop();
         server.syncIndexes();

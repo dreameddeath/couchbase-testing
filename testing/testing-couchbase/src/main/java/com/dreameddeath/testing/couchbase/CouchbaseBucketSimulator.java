@@ -40,6 +40,7 @@ import com.dreameddeath.core.couchbase.exception.DocumentAccessException;
 import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.couchbase.exception.ViewCompileException;
+import com.dreameddeath.core.couchbase.impl.BlockingCouchbaseBucketWrapper;
 import com.dreameddeath.core.couchbase.impl.CouchbaseBucketWrapper;
 import com.dreameddeath.core.couchbase.impl.ReadParams;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
@@ -99,6 +100,11 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
     public CouchbaseBucketSimulator(String bucketName, MetricRegistry registry){
         super(null, bucketName, null,registry);
+    }
+
+    @Override
+    protected BlockingCouchbaseBucketWrapper createBlockingSimulatorWrapper(){
+        return new BlockingCouchbaseBucketSimulatorWrapper(this);
     }
 
 
@@ -498,11 +504,6 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         return Observable.from(new AsyncViewResult[]{InternalViewResult.toAsyncViewResult(buildResult(query))});
     }
 
-    @Override
-    public ViewResult query(ViewQuery query){
-        return InternalViewResult.toViewResult(buildResult(query));
-    }
-
     public InternalViewResult buildResult(ViewQuery query){
         String designDoc = query.getDesign();
         String viewName = query.getView();
@@ -805,4 +806,17 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
     }
 
+
+    public class BlockingCouchbaseBucketSimulatorWrapper extends BlockingCouchbaseBucketWrapper{
+
+        public BlockingCouchbaseBucketSimulatorWrapper(ICouchbaseBucket asyncWrapper){
+            super(asyncWrapper);
+        }
+
+        @Override
+        public ViewResult query(ViewQuery query){
+            return InternalViewResult.toViewResult(buildResult(query));
+        }
+
+    }
 }

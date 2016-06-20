@@ -26,7 +26,11 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 17/05/2015.
  */
 public interface IDaoForDocumentWithUID<T extends CouchbaseDocument> {
+    IBlockingDaoForDocumentWithUID<T> toBlocking();
     String getKeyFromUID(String uid);
-    T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException;
     Observable<T> asyncGetFromUid(ICouchbaseSession session,String uid);
+
+    interface IBlockingDaoForDocumentWithUID<T>{
+        T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException;
+    }
 }
