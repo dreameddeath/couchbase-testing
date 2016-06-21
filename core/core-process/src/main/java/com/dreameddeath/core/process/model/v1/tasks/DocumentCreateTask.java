@@ -24,6 +24,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
@@ -36,5 +37,6 @@ public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends Ab
     public String getDocKey(){return docKey.get(); }
     public void setDocKey(String docKey){this.docKey.set(docKey); }
 
-    public T getDocument(ICouchbaseSession session) throws DaoException, StorageException {return (T)session.get(getDocKey());}
+    public T blockingGetDocument(ICouchbaseSession session) throws DaoException, StorageException {return (T)session.toBlocking().get(getDocKey());}
+    public Observable<T> getDocument(ICouchbaseSession session) {return (Observable<T>)session.asyncGet(getDocKey());}
 }

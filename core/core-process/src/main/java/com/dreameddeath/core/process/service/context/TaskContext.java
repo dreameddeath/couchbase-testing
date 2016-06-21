@@ -79,7 +79,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> {
             jobContext.assignIds(Collections.singletonList(task));
             jobContext.getJob().getBaseMeta().freeze();
         }
-        getSession().save(task);
+        getSession().toBlocking().save(task);
         boolean isJobFrozen = getParentJob().getBaseMeta().isFrozen();
         if(isJobFrozen) {
             getParentJob().getBaseMeta().unfreeze();

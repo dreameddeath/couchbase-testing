@@ -35,6 +35,7 @@ import rx.Observable;
 public class CouchbaseCounterDao{
     private ICouchbaseBucket client;
     private CouchbaseDocumentDao baseDao;
+    private BlockingCouchbaseCounterDao blockingDao;
     private final KeyPattern keyPattern;
     private Long defaultValue;
     private Long modulus;
@@ -42,6 +43,7 @@ public class CouchbaseCounterDao{
     private CallingMode mode;
 
     public void setBaseDao(CouchbaseDocumentDao dao){baseDao=dao;}
+
     public void setClient(ICouchbaseBucket client){this.client = client;}
     public ICouchbaseBucket getClient(){
         if(client!=null) return client;
@@ -67,6 +69,7 @@ public class CouchbaseCounterDao{
         else{
             mode = CallingMode.WITH_DEFAULT_AND_EXPIRATION;
         }
+        this.blockingDao = new BlockingCouchbaseCounterDao();
     }
 
     public CouchbaseCounterDao(Builder builder){
@@ -79,23 +82,11 @@ public class CouchbaseCounterDao{
     }
 
 
-
-    public Long getCounter(ICouchbaseSession session,String key,boolean isCalcOnly) throws DaoException,StorageException {
-        try {
-            return asyncGetCounter(session, key, isCalcOnly).toBlocking().first();
-        }
-        catch(DaoException e){
-            throw e;
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch(StorageObservableException e){
-            throw e.getCause();
-        }
+    public BlockingCouchbaseCounterDao toBlockingDao() {
+        return blockingDao;
     }
 
-    public Observable<Long> asyncGetCounter(ICouchbaseSession session,String key,boolean isCalcOnly) throws InconsistentStateException {
+    public Observable<Long> asyncGetCounter(ICouchbaseSession session, String key, boolean isCalcOnly) throws InconsistentStateException {
         return asyncIncrCounter(session,key,0,isCalcOnly);
     }
 
@@ -151,10 +142,6 @@ public class CouchbaseCounterDao{
 
     }
 
-    public long incrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
-        return asyncIncrCounter(session,key,by,isCalcOny).toBlocking().first();
-    }
-
 
     public Observable<Long> asyncDecrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly) throws InconsistentStateException{
         if(baseDao.isReadOnly() && by!=0){
@@ -199,10 +186,6 @@ public class CouchbaseCounterDao{
             }
         }
         return result;
-    }
-
-    public long decrCounter(ICouchbaseSession session,String key, long by,boolean isCalcOny) throws DaoException,StorageException {
-        return asyncDecrCounter(session,key,by,isCalcOny).toBlocking().first();
     }
 
     public enum CallingMode {
@@ -273,6 +256,31 @@ public class CouchbaseCounterDao{
 
         public CouchbaseCounterDao build(){
             return new CouchbaseCounterDao(this);
+        }
+    }
+
+    public class BlockingCouchbaseCounterDao {
+        public long incrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny, CouchbaseCounterDao parentCouchbaseCounterDao) throws DaoException,StorageException {
+            return parentCouchbaseCounterDao.asyncIncrCounter(session,key,by,isCalcOny).toBlocking().first();
+        }
+
+        public long decrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny, CouchbaseCounterDao parentCouchbaseCounterDao) throws DaoException,StorageException {
+            return parentCouchbaseCounterDao.asyncDecrCounter(session,key,by,isCalcOny).toBlocking().first();
+        }
+
+        public Long getCounter(ICouchbaseSession session, String key, boolean isCalcOnly, CouchbaseCounterDao parentCouchbaseCounterDao) throws DaoException,StorageException {
+            try {
+                return parentCouchbaseCounterDao.asyncGetCounter(session, key, isCalcOnly).toBlocking().first();
+            }
+            catch(DaoException e){
+                throw e;
+            }
+            catch(DaoObservableException e){
+                throw e.getCause();
+            }
+            catch(StorageObservableException e){
+                throw e.getCause();
+            }
         }
     }
 }

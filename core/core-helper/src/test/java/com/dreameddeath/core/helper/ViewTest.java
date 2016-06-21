@@ -88,19 +88,19 @@ public class ViewTest {
             doc.doubleVal=i*1.1;
             doc.longVal=i+1L;
             doc.intVal=i;
-            doc.boolVal=(i%2==0)?true:false;
+            doc.boolVal= (i % 2 == 0);
             doc.arrayVal = new ArrayList<>(i);
             for(int j=0;j<i;++j){
                 TestDoc.TestDocSubElem elem=new TestDoc.TestDocSubElem();
                 elem.longVal=j+1L;
                 doc.arrayVal.add(elem);
             }
-            session.save(doc);
+            session.toBlocking().save(doc);
             for(int j=0;j<i;++j) {
                 TestDocChild child = session.newEntity(TestDocChild.class);
                 child.parent= new TestDocLink(doc);
                 child.value = String.format("Child:%d",j);
-                session.save(child);
+                session.toBlocking().save(child);
             }
         }
 

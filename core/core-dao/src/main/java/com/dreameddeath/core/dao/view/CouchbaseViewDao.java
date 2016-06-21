@@ -89,7 +89,16 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
                 @Override public TVALUE getValue() { return value;}
                 @Override public String getDocKey() {return docKey;}
                 @Override public String getPrefix() {return keyPrefix;}
-                @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.get(docKey);}
+                @Override public Observable<TDOC> getDoc(ICouchbaseSession session) {return (Observable<TDOC>)session.asyncGet(docKey);}
+                @Override public IBlockingViewQueryRow<TKEY, TVALUE, TDOC> toBlocking() {
+                    return new IBlockingViewQueryRow<TKEY, TVALUE, TDOC>() {
+                        @Override public TKEY getKey() {return key;}
+                        @Override public TVALUE getValue() { return value;}
+                        @Override public String getDocKey() { return docKey;}
+                        @Override public String getPrefix() {return keyPrefix;}
+                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().get(docKey);}
+                    };
+                }
             };
         }
         catch(Exception e){
@@ -111,7 +120,16 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
                 @Override public TVALUE getValue() { return value;}
                 @Override public String getDocKey() {return docKey;}
                 @Override public String getPrefix() {return keyPrefix;}
-                @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.get(docKey);}
+                @Override public Observable<TDOC> getDoc(ICouchbaseSession session) {return (Observable<TDOC>)session.asyncGet(docKey);}
+                @Override public IBlockingViewQueryRow<TKEY, TVALUE, TDOC> toBlocking() {
+                    return new IBlockingViewQueryRow<TKEY, TVALUE, TDOC>() {
+                        @Override public TKEY getKey() {return key;}
+                        @Override public TVALUE getValue() { return value;}
+                        @Override public String getDocKey() { return docKey;}
+                        @Override public String getPrefix() {return keyPrefix;}
+                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().get(docKey);}
+                    };
+                }
             };
         }
         catch(Exception e){

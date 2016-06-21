@@ -75,7 +75,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                     boolean saveAsked;
                     if(task instanceof SubJobProcessTask){
                         SubJobProcessTask subJobTask = (SubJobProcessTask)task;
-                        AbstractJob subJob = subJobTask.getJob(ctxt.getSession());
+                        AbstractJob subJob = subJobTask.blockingGetJob(ctxt.getSession());
                         if(!subJob.getStateInfo().isDone()){
                             IJobExecutorClient subJobClient = ctxt.getJobContext().getClientFactory().buildJobClient(subJob.getClass());
                             subJobClient.executeJob(subJob,ctxt.getUser());

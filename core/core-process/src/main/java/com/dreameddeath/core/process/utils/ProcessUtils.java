@@ -28,16 +28,19 @@ import rx.Observable;
  */
 public class ProcessUtils {
 
-    public static <TJOB extends AbstractJob> Observable<TJOB> asyncLoadJob(ICouchbaseSession session, String uid, Class<TJOB> jobClass) throws StorageException,DaoException{
+    public static <TJOB extends AbstractJob> Observable<TJOB> asyncLoadJob(ICouchbaseSession session, String uid, Class<TJOB> jobClass){
         return session.asyncGetFromKeyParams(jobClass,uid);
     }
 
+    public static <TTASK extends AbstractTask> Observable<TTASK> asyncLoadTask(ICouchbaseSession session, AbstractJob job, int taskId,Class<TTASK> taskClass){
+        return session.asyncGetFromKeyParams(taskClass,job.getUid(),taskId);
+    }
 
     public static <TJOB extends AbstractJob>  TJOB loadJob(ICouchbaseSession session,String uid, Class<TJOB> jobClass) throws DaoException,StorageException{
-        return session.getFromKeyParams(jobClass,uid);
+        return session.toBlocking().getFromKeyParams(jobClass,uid);
     }
 
     public static <TTASK extends AbstractTask>  TTASK loadTask(ICouchbaseSession session, AbstractJob job, int taskId,Class<TTASK> taskClass) throws DaoException,StorageException{
-        return session.getFromKeyParams(taskClass,job.getUid(),taskId);
+        return session.toBlocking().getFromKeyParams(taskClass,job.getUid(),taskId);
     }
 }

@@ -32,12 +32,12 @@ public abstract class ChildDocumentCreateTaskProcessingService<TJOB extends Abst
     @Override
     final public boolean postprocess(TaskContext<TJOB,T> context) throws TaskExecutionException {
         try {
-            TPARENT parent = context.getTask().getParentDocument(context.getSession());
-            TDOC child = context.getTask().getDocument(context.getSession());
+            TPARENT parent = context.getTask().blockingGetParentDocument(context.getSession());
+            TDOC child = context.getTask().blockingGetDocument(context.getSession());
             if (needParentUpdate(parent, child)) {
                 updateParent(parent,child);
                 try {
-                    context.getSession().save(parent);
+                    context.getSession().toBlocking().save(parent);
                 }
                 catch(DaoException|StorageException|ValidationException e){
                     throw new TaskExecutionException(context,"Cannot save parent",e);

@@ -22,8 +22,10 @@ import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.model.view.IViewAsyncQueryResult;
 import com.dreameddeath.core.dao.model.view.IViewQuery;
 import com.dreameddeath.core.dao.model.view.IViewQueryResult;
+import com.dreameddeath.core.dao.session.IBlockingCouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.user.IUser;
 import org.joda.time.DateTime;
@@ -33,25 +35,12 @@ import rx.Observable;
  * Created by Christophe Jeunesse on 28/12/2015.
  */
 public class DummySession implements ICouchbaseSession {
-    @Override
-    public long getCounter(String key)  {
-        return 0;
-    }
-
-    @Override
-    public long incrCounter(String key, long byVal)  {
-        return 0;
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass)  {
         return null;
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass, Object... params)  {
-        return null;
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params) {
@@ -63,10 +52,6 @@ public class DummySession implements ICouchbaseSession {
         return null;
     }
 
-    @Override
-    public long decrCounter(String key, long byVal)  {
-        return 0;
-    }
 
     @Override
     public Observable<Long> asyncGetCounter(String key) {
@@ -83,18 +68,9 @@ public class DummySession implements ICouchbaseSession {
         return null;
     }
 
-    @Override
-    public CouchbaseDocument get(String key)  {
-        return null;
-    }
 
     @Override
     public Observable<CouchbaseDocument> asyncGet(String key)  {
-        return null;
-    }
-
-    @Override
-    public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass)  {
         return null;
     }
 
@@ -103,15 +79,6 @@ public class DummySession implements ICouchbaseSession {
         return null;
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass)  {
-        return null;
-    }
-
-    @Override
-    public <T extends CouchbaseDocument> T refresh(T doc)  {
-        return null;
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc)  {
@@ -134,17 +101,7 @@ public class DummySession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T buildKey(T obj)  {
-        return null;
-    }
-
-    @Override
     public <T extends CouchbaseDocument> Observable<T> asyncBuildKey(T obj)  {
-        return null;
-    }
-
-    @Override
-    public <T extends CouchbaseDocument> T create(T obj) throws ValidationException, DaoException, StorageException {
         return null;
     }
 
@@ -154,17 +111,7 @@ public class DummySession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> T save(T obj)  {
-        return null;
-    }
-
-    @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSave(T obj)  {
-        return null;
-    }
-
-    @Override
-    public <T extends CouchbaseDocument> T update(T obj) throws ValidationException, DaoException, StorageException {
         return null;
     }
 
@@ -173,10 +120,6 @@ public class DummySession implements ICouchbaseSession {
         return null;
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T delete(T obj)  {
-        return null;
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(T obj)  {
@@ -188,35 +131,19 @@ public class DummySession implements ICouchbaseSession {
         return Observable.just(doc);
     }
 
-    @Override
-    public CouchbaseDocument validate(CouchbaseDocument doc) {
-        return doc;
-    }
 
-    @Override
-    public CouchbaseUniqueKey getUniqueKey(String internalKey) {
-        return null;
-    }
 
     @Override
     public Observable<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
         return null;
     }
 
-    @Override
-    public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) {
-
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAddOrUpdateUniqueKey(T doc, String value, String nameSpace) {
         return null;
     }
 
-    @Override
-    public void removeUniqueKey(String internalKey)  {
-
-    }
 
     @Override
     public Observable<Boolean> asyncRemoveUniqueKey(String internalKey) {
@@ -276,5 +203,95 @@ public class DummySession implements ICouchbaseSession {
     @Override
     public boolean isTemporaryReadOnlyMode() {
         return false;
+    }
+
+
+    public IBlockingCouchbaseSession toBlocking(){
+        return new IBlockingCouchbaseSession() {
+            @Override
+            public CouchbaseDocument get(String key) throws DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T refresh(T doc) throws DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T create(T obj) throws ValidationException, DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T save(T obj) throws ValidationException, DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T update(T obj) throws ValidationException, DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T delete(T obj) throws ValidationException, DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public <T extends CouchbaseDocument> T validate(T doc) throws ValidationException {
+                return null;
+            }
+
+            @Override
+            public CouchbaseUniqueKey getUniqueKey(String internalKey) throws DaoException, StorageException {
+                return null;
+            }
+
+            @Override
+            public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) throws ValidationException, DaoException, StorageException, DuplicateUniqueKeyException {
+
+            }
+
+            @Override
+            public void removeUniqueKey(String internalKey) throws DaoException, ValidationException, StorageException {
+
+            }
+
+            @Override
+            public long getCounter(String key) throws DaoException, StorageException {
+                return 0;
+            }
+
+            @Override
+            public long incrCounter(String key, long byVal) throws DaoException, StorageException {
+                return 0;
+            }
+
+            @Override
+            public long decrCounter(String key, long byVal) throws DaoException, StorageException {
+                return 0;
+            }
+        };
     }
 }

@@ -99,7 +99,7 @@ public class ProcessesWebServerPluginTest {
                     createJob.name = "test";
                     JobContext<TestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
                     ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                    TestDocProcess processDoc = session.get(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(), TestDocProcess.class);
+                    TestDocProcess processDoc = session.toBlocking().get(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(), TestDocProcess.class);
                     assertEquals(processDoc.name, createJob.name);
                 }
 
@@ -109,7 +109,7 @@ public class ProcessesWebServerPluginTest {
                     createJob.remoteName = "test2";
                     JobContext<RemoteTestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
                     ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                    TestDocProcess processDoc = session.get(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).key, TestDocProcess.class);
+                    TestDocProcess processDoc = session.toBlocking().get(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).key, TestDocProcess.class);
                     assertEquals(processDoc.name, createJob.remoteName);
                 }
                 {

@@ -375,7 +375,6 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 throw e.getCause();
             }
         }
-
     }
 
 }

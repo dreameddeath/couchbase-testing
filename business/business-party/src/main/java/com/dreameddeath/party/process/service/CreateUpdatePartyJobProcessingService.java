@@ -64,7 +64,7 @@ public class CreateUpdatePartyJobProcessingService extends StandardJobProcessing
         public boolean updatejob(TaskContext<CreateUpdatePartyJob, CreatePartyTask> context) throws TaskExecutionException {
             PartyUpdateResult result = new PartyUpdateResult();
             try {
-                result.setUid(context.getTask().getDocument(context.getSession()).getUid());
+                result.setUid(context.getTask().blockingGetDocument(context.getSession()).getUid());
             }
             catch (DaoException|StorageException e){
                 throw new TaskExecutionException(context,"Cannot retrieve created party uid",e);

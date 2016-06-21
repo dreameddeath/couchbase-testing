@@ -16,8 +16,6 @@
 
 package com.dreameddeath.core.session.impl;
 
-import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.IDaoForDocumentWithUID;
@@ -26,19 +24,18 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.ReadOnlyException;
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.exception.validation.ValidationObservableException;
 import com.dreameddeath.core.dao.factory.CouchbaseCounterDaoFactory;
 import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.model.view.IViewAsyncQueryResult;
 import com.dreameddeath.core.dao.model.view.IViewQuery;
 import com.dreameddeath.core.dao.model.view.IViewQueryResult;
+import com.dreameddeath.core.dao.session.IBlockingCouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.ValidatorContext;
@@ -54,6 +51,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     final private SessionType sessionType;
     final private IDateTimeService dateTimeService;
     final private IUser user;
+    final private IBlockingCouchbaseSession blockingSession;
 
     private Map<String,CouchbaseDocument> sessionCache = new ConcurrentHashMap<>();
     private Map<String,CouchbaseUniqueKey> keyCache = new ConcurrentHashMap<>();
@@ -78,7 +76,14 @@ public class CouchbaseSession implements ICouchbaseSession {
         sessionType = type;
         this.user = user;
         this.keyPrefix = keyPrefix;
+        this.blockingSession = new BlockingCouchbaseSession(this);
     }
+
+    @Override
+    public IBlockingCouchbaseSession toBlocking() {
+        return blockingSession;
+    }
+
     protected CouchbaseDocumentDaoFactory getDocumentFactory(){
         return sessionFactory.getDocumentDaoFactory();
     }
@@ -125,17 +130,12 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-
     protected void checkReadOnly(String counterKey) throws ReadOnlyException{
         if(isReadOnly()){
             throw new ReadOnlyException(counterKey);
         }
     }
 
-    @Override
-    public long getCounter(String key) throws DaoException,StorageException {
-        return asyncGetCounter(key).toBlocking().first();
-    }
 
     @Override
     public Observable<Long> asyncGetCounter(String key) throws DaoException {
@@ -151,10 +151,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         return result;
     }
 
-    @Override
-    public long incrCounter(String key, long byVal) throws DaoException,StorageException {
-        return asyncIncrCounter(key,byVal).toBlocking().first();
-    }
 
     @Override
     public Observable<Long> asyncIncrCounter(String key, long byVal) throws DaoException {
@@ -171,10 +167,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public long decrCounter(String key, long byVal) throws DaoException,StorageException {
-        return asyncDecrCounter(key,byVal).toBlocking().first();
-    }
 
     @Override
     public Observable<Long> asyncDecrCounter(String key, long byVal) throws DaoException {
@@ -227,10 +219,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         return user;
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException {
-        return manageAsyncWriteResult(obj,asyncCreate(obj));
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncCreate(T obj){
@@ -246,10 +234,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException {
-        return asyncBuildKey(obj).toBlocking().first();
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncBuildKey(T obj) {
@@ -266,10 +250,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public CouchbaseDocument get(String key) throws DaoException,StorageException {
-        return manageAsyncReadResult(asyncGet(key));
-    }
 
     @Override
     public Observable<CouchbaseDocument> asyncGet(String key){
@@ -289,10 +269,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException {
-        return manageAsyncReadResult(asyncGet(key, targetClass));
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String key, Class<T> targetClass){
@@ -313,10 +289,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
 
-    @Override
-    public <T extends CouchbaseDocument> T refresh(T doc) throws DaoException, StorageException {
-        return manageAsyncReadResult(asyncRefresh(doc));
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc){
@@ -331,46 +303,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException {
-        return manageAsyncWriteResult(obj,asyncUpdate(obj));
-    }
 
-    public <T extends CouchbaseDocument> T manageAsyncValidationResult(final T obj, Observable<T> obs)throws ValidationException {
-        try{
-            return obs.toBlocking().first();
-        }
-        catch(ValidationObservableException e){
-            throw e.getCause();
-        }
-    }
-
-    public <T extends CouchbaseDocument> T manageAsyncReadResult(Observable<T> obs)throws DaoException,StorageException {
-        try{
-            return obs.toBlocking().first();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
-        }
-    }
-
-    public <T extends CouchbaseDocument> T manageAsyncWriteResult(final T obj, Observable<T> obs)throws ValidationException,DaoException,StorageException {
-        try{
-            return obs.toBlocking().first();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch(ValidationObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
-        }
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncUpdate(T obj){
@@ -384,10 +317,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public <T extends CouchbaseDocument> T delete(T obj)throws ValidationException,DaoException,StorageException {
-        return manageAsyncWriteResult(obj,asyncDelete(obj));
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(T obj) {
@@ -401,10 +330,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public <T extends CouchbaseDocument>  T validate(T doc) throws ValidationException {
-        return manageAsyncValidationResult(doc,asyncValidate(doc));
-    }
 
     @Override
     public <T extends CouchbaseDocument>  Observable<T> asyncValidate(final T doc){
@@ -419,11 +344,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
 
-    @Override
-    public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException {
-        IDaoForDocumentWithUID dao = (IDaoForDocumentWithUID) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
-        return get(dao.getKeyFromUID(uid), targetClass);
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass){
@@ -450,10 +370,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
 
-    @Override
-    public <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
-        return manageAsyncReadResult(asyncGetFromKeyParams(targetClass,params));
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params){
@@ -480,10 +396,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
 
-    @Override
-    public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException {
-        return manageAsyncWriteResult(obj,asyncSave(obj));
-    }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSave(T obj){
@@ -498,10 +410,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    @Override
-    public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException{
-        manageAsyncWriteResult(doc,asyncAddOrUpdateUniqueKey(doc, value, nameSpace));
-    }
 
     @Override
     public <T extends CouchbaseDocument> String buildUniqueKey(T doc,String value, String nameSpace) throws DaoException{
@@ -550,10 +458,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
 
-    @Override
-    public CouchbaseUniqueKey getUniqueKey(String internalKey)throws DaoException,StorageException {
-        return manageAsyncReadResult(asyncGetUniqueKey(internalKey));
-    }
 
     @Override
     public Observable<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
@@ -572,18 +476,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
 
-    @Override
-    public void removeUniqueKey(String internalKey) throws DaoException,StorageException {
-        try {
-            asyncRemoveUniqueKey(internalKey).toBlocking().first();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
-        }
-    }
 
     @Override
     public Observable<Boolean> asyncRemoveUniqueKey(String internalKey) {

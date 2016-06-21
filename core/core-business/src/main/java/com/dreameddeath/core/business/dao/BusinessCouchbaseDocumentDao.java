@@ -68,7 +68,7 @@ public abstract class BusinessCouchbaseDocumentDao<T extends BusinessDocument> e
         public void call(T t) {
             for(String key :keysToRemove){
                 try {
-                    session.removeUniqueKey(key);
+                    session.toBlocking().removeUniqueKey(key);
                 }
                 catch(Throwable e){
                     LOG.error("Cannot delete unique key",key);

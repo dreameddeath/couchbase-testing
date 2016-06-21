@@ -40,7 +40,7 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         Preconditions.checkNotNull(task.getDocKey(),"The document to update hasn't key for task %s of type %s",task.getId(),task.getClass().getName());
         try {
             @SuppressWarnings("unchecked")
-            TDOC doc = (TDOC)ctxt.getSession().get(task.getDocKey());
+            TDOC doc = (TDOC)ctxt.getSession().toBlocking().get(task.getDocKey());
 
             //Check if the task is already done on the documment
             CouchbaseDocumentAttachedTaskRef reference = doc.getAttachedTaskRef(task);
@@ -89,7 +89,7 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
                 attachedTaskRef.setTaskClass(task.getClass().getName());
                 doc.addAttachedTaskRef(attachedTaskRef);
                 try {
-                    ctxt.getSession().save(doc);
+                    ctxt.getSession().toBlocking().save(doc);
                 } catch (ValidationException e) {
                     throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
                 }
@@ -119,9 +119,9 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
     public boolean cleanup(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
         T task=ctxt.getTask();
         try {
-            TDOC doc = (TDOC)ctxt.getSession().get(ctxt.getTask().getDocKey());
+            TDOC doc = (TDOC)ctxt.getSession().toBlocking().get(ctxt.getTask().getDocKey());
             doc.cleanupAttachedTaskRef(task);
-            ctxt.getSession().save(doc);
+            ctxt.getSession().toBlocking().save(doc);
         }
         catch(ValidationException e){
             throw new TaskExecutionException(ctxt,"Cleaned updated document Validation exception",e);

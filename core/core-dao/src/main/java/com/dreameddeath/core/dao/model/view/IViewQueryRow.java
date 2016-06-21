@@ -20,6 +20,7 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 19/12/2014.
@@ -29,5 +30,15 @@ public interface IViewQueryRow<TKEY,TVALUE,TDOC extends CouchbaseDocument> {
     TVALUE getValue();
     String getDocKey();
     String getPrefix();
-    TDOC getDoc(ICouchbaseSession session) throws DaoException,StorageException;
+    Observable<TDOC> getDoc(ICouchbaseSession session);
+    IBlockingViewQueryRow<TKEY,TVALUE,TDOC> toBlocking();
+
+    interface IBlockingViewQueryRow<TKEY,TVALUE,TDOC extends CouchbaseDocument>{
+        TKEY getKey();
+        TVALUE getValue();
+        String getDocKey();
+        String getPrefix();
+        TDOC getDoc(ICouchbaseSession session) throws DaoException,StorageException;
+    }
+
 }

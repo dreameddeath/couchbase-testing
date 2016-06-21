@@ -102,7 +102,7 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
 
             ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getDocument(session);
+            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);
             assertNotNull(installedBase.getContract());
             assertEquals(4,installedBase.getOffers().size());
@@ -120,7 +120,7 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
 
             JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
             ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getDocument(session);
+            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);
             assertNotNull(installedBase.getContract());
             assertEquals(4,installedBase.getOffers().size());

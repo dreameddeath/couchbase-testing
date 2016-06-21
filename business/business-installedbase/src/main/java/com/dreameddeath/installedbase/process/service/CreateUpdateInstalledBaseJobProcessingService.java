@@ -99,7 +99,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
             CreateUpdateInstalledBaseResponse.Contract result = new CreateUpdateInstalledBaseResponse.Contract();
             result.tempId = task.getContractTempId();
             try {
-                result.id = task.getDocument(ctxt.getSession()).getUid();
+                result.id = task.blockingGetDocument(ctxt.getSession()).getUid();
             }
             catch(DaoException e){
                 throw new TaskExecutionException(ctxt,"Dao error during retrieval of doc "+task.getDocKey(),e);

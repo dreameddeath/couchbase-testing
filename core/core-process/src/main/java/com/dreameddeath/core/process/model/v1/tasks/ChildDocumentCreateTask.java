@@ -24,6 +24,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 23/02/2016.
@@ -53,5 +54,6 @@ public abstract class ChildDocumentCreateTask<TCHILD extends CouchbaseDocument,T
 
 
 
-    public TPARENT getParentDocument(ICouchbaseSession session) throws DaoException, StorageException {return (TPARENT)session.get(getParent());}
+    public TPARENT blockingGetParentDocument(ICouchbaseSession session) throws DaoException, StorageException {return (TPARENT)session.toBlocking().get(getParent());}
+    public Observable<TPARENT> getParentDocument(ICouchbaseSession session){return (Observable<TPARENT>)session.asyncGet(getParent());}
 }

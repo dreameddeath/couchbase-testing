@@ -88,7 +88,7 @@ public class CreateUpdateRolesJobProcessingServiceTest {
             request.person.lastName = "jeunesse";
 
             JobContext<CreateUpdatePartyJob> createJobJobContext = executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE);
-            partyId=createJobJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).getDocument(cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE)).getUid();
+            partyId=createJobJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).blockingGetDocument(cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE)).getUid();
         }
         {
             IJobExecutorClient<CreateUpdatePartyRolesJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(CreateUpdatePartyRolesJob.class);
@@ -101,7 +101,7 @@ public class CreateUpdateRolesJobProcessingServiceTest {
 
             JobContext<CreateUpdatePartyRolesJob> createJobJobContext = executorClient.executeJob(rolesJob, AnonymousUser.INSTANCE);
             assertEquals(ProcessState.State.DONE,createJobJobContext.getJobState().getState());
-            Party party=cbPlugin.getSessionFactory().newCalcOnlySession(AnonymousUser.INSTANCE).getFromUID(partyId,Party.class);
+            Party party=cbPlugin.getSessionFactory().newCalcOnlySession(AnonymousUser.INSTANCE).toBlocking().getFromUID(partyId,Party.class);
             assertEquals(1L,party.getPartyRoles().size());
         }
     }

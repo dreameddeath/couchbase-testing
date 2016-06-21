@@ -37,7 +37,7 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
         try {
             //Recovery mode
             if(task.getDocKey()!=null){
-                if(ctxt.getSession().get(task.getDocKey())!=null){
+                if(ctxt.getSession().toBlocking().get(task.getDocKey())!=null){
                     return false;
                 }
                 else{
@@ -56,11 +56,11 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
             }
 
             //Prebuild key
-            task.setDocKey(ctxt.getSession().buildKey(doc).getBaseMeta().getKey());
+            task.setDocKey(ctxt.getSession().toBlocking().buildKey(doc).getBaseMeta().getKey());
             //Attach it to the document
             ctxt.save();
             //Save Document afterwards
-            ctxt.getSession().save(doc);
+            ctxt.getSession().toBlocking().save(doc);
         }
         catch(ValidationException e){
             throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Validation error", e);

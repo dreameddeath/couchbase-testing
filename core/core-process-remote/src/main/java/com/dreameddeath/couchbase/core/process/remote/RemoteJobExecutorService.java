@@ -60,7 +60,7 @@ public class RemoteJobExecutorService<T extends AbstractJob> implements IJobExec
                 .put(Entity.entity(context.getJob(),MediaType.APPLICATION_JSON_TYPE));
         if(response.getStatus()== Response.Status.OK.getStatusCode()){
             try {
-                T updatedJob = context.getSession().refresh(context.getJob());
+                T updatedJob = context.getSession().toBlocking().refresh(context.getJob());
                 return JobContext.newContext(new JobContext.Builder<>(updatedJob).fromJobContext(context));
             }
             catch (DaoException|StorageException e){

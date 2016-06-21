@@ -149,7 +149,7 @@ public class ${service.targetReadName} extends AbstractDaoRestService {
                         #end
                         @ApiParam("The requested id") @PathParam("${service.defaultAttributeName}") String ${service.defaultAttributeName}) throws Exception{
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        ${service.classSimpleName} doc = session.get(
+        ${service.classSimpleName} doc = session.toBlocking().get(
                         String.format("$esc.java($service.fullDbKeyPattern)"
                         #foreach($paramInfo in $service.rootPathAttributeInfoList)
                            ,$paramInfo.name

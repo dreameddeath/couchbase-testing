@@ -165,7 +165,7 @@ public class ViewTest {
                 elem.longVal=j+1L;
                 doc.arrayVal.add(elem);
             }
-            session.save(doc);
+            session.toBlocking().save(doc);
         }
 
         IViewQuery<String,String,TestDoc> query = session.initViewQuery(TestDoc.class, "testView");

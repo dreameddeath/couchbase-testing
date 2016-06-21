@@ -102,10 +102,10 @@ public class CreateUpdatePartyJobProcessingServiceTest {
         JobContext<CreateUpdatePartyJob> createJobJobContext =executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE);
 
         ICouchbaseSession controlSession = cbPlugin.getSessionFactory().newReadOnlySession(null);
-        CreateUpdatePartyJob inDbJob = controlSession.get(createJobJobContext.getJob().getBaseMeta().getKey(),CreateUpdatePartyJob.class);
+        CreateUpdatePartyJob inDbJob = controlSession.toBlocking().get(createJobJobContext.getJob().getBaseMeta().getKey(),CreateUpdatePartyJob.class);
         assertEquals(inDbJob.getStateInfo().getState(), ProcessState.State.DONE);
-        CreateUpdatePartyJob.CreatePartyTask inDbTask = controlSession.get(createUpdatePartyJob.getBaseMeta().getKey()+"/task/1",CreateUpdatePartyJob.CreatePartyTask.class);
-        Party inDbParty = controlSession.get(inDbTask.getDocKey(),Party.class);
+        CreateUpdatePartyJob.CreatePartyTask inDbTask = controlSession.toBlocking().get(createUpdatePartyJob.getBaseMeta().getKey()+"/task/1",CreateUpdatePartyJob.CreatePartyTask.class);
+        Party inDbParty = controlSession.toBlocking().get(inDbTask.getDocKey(),Party.class);
         assertEquals(inDbParty.getClass(),Person.class);
         if(inDbParty instanceof Person){
             Person inDbPerson = (Person)inDbParty;

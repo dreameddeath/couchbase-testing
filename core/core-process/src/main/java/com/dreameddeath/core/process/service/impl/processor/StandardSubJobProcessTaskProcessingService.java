@@ -35,7 +35,7 @@ public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB exte
         TTASK task = ctxt.getTask();
         try {
             if(task.getSubJobId()!=null){
-                if(task.getJob(ctxt.getSession())!=null) return false;
+                if(task.blockingGetJob(ctxt.getSession())!=null) return false;
             }
 
             TJOB job=buildSubJob(ctxt);
@@ -44,7 +44,7 @@ public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB exte
             //Save task to allow retries without creation duplicates
             ctxt.save();
             //Save job (should be a creation)
-            ctxt.getSession().save(job);
+            ctxt.getSession().toBlocking().save(job);
         }
         catch(ValidationException e){
             throw new TaskExecutionException(task, ProcessState.State.INITIALIZED,"Validation of job or parent job failed",e);

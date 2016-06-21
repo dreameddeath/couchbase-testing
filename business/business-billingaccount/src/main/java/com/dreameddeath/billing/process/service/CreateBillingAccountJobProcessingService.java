@@ -77,7 +77,7 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
         @Override
         public boolean updatejob(TaskContext<CreateBillingAccountJob, CreateBillingAccountTask> context) throws TaskExecutionException {
             try {
-                context.getParentJob().baLink = context.getTask().getDocument(context.getSession()).newLink();
+                context.getParentJob().baLink = context.getTask().blockingGetDocument(context.getSession()).newLink();
             }
             catch(DaoException|StorageException e){
                 throw new TaskExecutionException(context,"Cannot read back object "+context.getTask().getDocKey(),e);
@@ -107,7 +107,7 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
                 BillingAccountCreateUpdateRoleRequestRequest newPartyRole = new BillingAccountCreateUpdateRoleRequestRequest();
                 request.getRoleRequests().add(newPartyRole);
                 newPartyRole.setPartyId(ctxt.getParentJob().partyId);
-                newPartyRole.setBaId(ctxt.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession()).getUid());
+                newPartyRole.setBaId(ctxt.getDependentTask(CreateBillingAccountTask.class).blockingGetDocument(ctxt.getSession()).getUid());
                 newPartyRole.setTypes(new ArrayList<>());
                 newPartyRole.getTypes().add(RoleTypePublished.BILL_RECEIVER);
                 newPartyRole.getTypes().add(RoleTypePublished.HOLDER);
@@ -141,7 +141,7 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
             PartyRoleLink roleLink = new PartyRoleLink();
             roleLink.setPid(ctxt.getParentJob().partyId);
             roleLink.setRoleUid(ctxt.getDependentTask(CreatePartyRolesTask.class).roleUid);
-            ctxt.getTask().getDocument(ctxt.getSession()).addPartyRoles(roleLink);
+            ctxt.getTask().blockingGetDocument(ctxt.getSession()).addPartyRoles(roleLink);
             return false;
         }
     }
@@ -151,7 +151,7 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
         @Override
         protected CreateBillingCycleJob buildSubJob(TaskContext<CreateBillingAccountJob,CreateBillingCycleJobTask> ctxt) throws DaoException, StorageException {
             CreateBillingCycleJob job = ctxt.getSession().newEntity(CreateBillingCycleJob.class);
-            BillingAccount ba = ctxt.getDependentTask(CreateBillingAccountTask.class).getDocument(ctxt.getSession());
+            BillingAccount ba = ctxt.getDependentTask(CreateBillingAccountTask.class).blockingGetDocument(ctxt.getSession());
 
             job.baLink = ba.newLink();
             job.startDate = ba.getCreationDate();

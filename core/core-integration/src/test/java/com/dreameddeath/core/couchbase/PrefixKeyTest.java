@@ -102,11 +102,11 @@ public class PrefixKeyTest {
         TestPrefixKey testClass = session.newEntity(TestPrefixKey.class);
         testClass.value = "simple Test";
 
-        session.save(testClass);
+        session.toBlocking().save(testClass);
 
         assertNotNull(client.getFromCache("user1"+ICouchbaseBucket.Utils.KEY_SEP + testClass.getBaseMeta().getKey(), TestPrefixKeyDao.LocalBucketDocument.class));
         session.reset();
-        TestPrefixKey readClass = session.get(testClass.getMeta().getKey(),TestPrefixKey.class);
+        TestPrefixKey readClass = session.toBlocking().get(testClass.getMeta().getKey(),TestPrefixKey.class);
         assertEquals(readClass.value,testClass.value);
         assertEquals(readClass.getMeta().getKey(),testClass.getMeta().getKey());
     }
