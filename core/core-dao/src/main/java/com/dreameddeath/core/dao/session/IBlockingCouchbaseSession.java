@@ -27,26 +27,25 @@ import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
  * Created by Christophe Jeunesse on 20/06/2016.
  */
 public interface IBlockingCouchbaseSession {
-    CouchbaseDocument get(String key) throws DaoException,StorageException;
-    <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException;
-    <T extends CouchbaseDocument> T refresh(T doc) throws DaoException,StorageException;
-    <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException;
-    <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass,Object ...params) throws DaoException,StorageException;
+    CouchbaseDocument blockingGet(String key) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingGet(String key, Class<T> targetClass) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingRefresh(T doc) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingGetFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingGetFromKeyParams(Class<T> targetClass, Object ...params) throws DaoException,StorageException;
 
-    <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException;
-    <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException;
-    <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException;
-    <T extends CouchbaseDocument> T update(T obj) throws ValidationException,DaoException,StorageException;
-    <T extends CouchbaseDocument> T delete(T obj) throws ValidationException,DaoException,StorageException;
-    <T extends CouchbaseDocument> T validate(T doc) throws ValidationException;
+    <T extends CouchbaseDocument> T blockingBuildKey(T obj) throws DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingCreate(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingSave(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingUpdate(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingDelete(T obj) throws ValidationException,DaoException,StorageException;
+    <T extends CouchbaseDocument> T blockingValidate(T doc) throws ValidationException;
 
-    CouchbaseUniqueKey getUniqueKey(String internalKey) throws DaoException,StorageException;
-    void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException;
-    void removeUniqueKey(String internalKey) throws DaoException,ValidationException,StorageException;
+    CouchbaseUniqueKey blockingGetUniqueKey(String internalKey) throws DaoException,StorageException;
+    void blockingAddOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException;
+    void blockingRemoveUniqueKey(String internalKey) throws DaoException,ValidationException,StorageException;
 
 
-    long getCounter(String key) throws DaoException,StorageException;
-    long incrCounter(String key, long byVal) throws DaoException,StorageException;
-    long decrCounter(String key, long byVal) throws DaoException,StorageException;
-
+    long blockingGetCounter(String key) throws DaoException,StorageException;
+    long blockingIncrCounter(String key, long byVal) throws DaoException,StorageException;
+    long blockingDecrCounter(String key, long byVal) throws DaoException,StorageException;
 }

@@ -40,85 +40,92 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
     }
 
     @Override
-    public long getCounter(String key) throws DaoException,StorageException {
+    public long blockingGetCounter(String key) throws DaoException,StorageException {
         return parentSession.asyncGetCounter(key).toBlocking().first();
     }
 
     @Override
-    public long incrCounter(String key, long byVal) throws DaoException,StorageException {
+    public long blockingIncrCounter(String key, long byVal) throws DaoException,StorageException {
         return parentSession.asyncIncrCounter(key,byVal).toBlocking().first();
     }
 
     @Override
-    public long decrCounter(String key, long byVal) throws DaoException,StorageException {
+    public long blockingDecrCounter(String key, long byVal) throws DaoException,StorageException {
         return parentSession.asyncDecrCounter(key,byVal).toBlocking().first();
     }
 
     @Override
-    public <T extends CouchbaseDocument> T create(T obj) throws ValidationException,DaoException,StorageException {
+    public <T extends CouchbaseDocument> T blockingCreate(T obj) throws ValidationException,DaoException,StorageException {
         return manageAsyncWriteResult(obj,parentSession.asyncCreate(obj));
     }
 
     @Override
-    public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException,StorageException {
-        return parentSession.asyncBuildKey(obj).toBlocking().first();
+    public <T extends CouchbaseDocument> T blockingBuildKey(T obj) throws DaoException,StorageException {
+        try {
+            return parentSession.asyncBuildKey(obj).toBlocking().first();
+        }
+        catch(DaoObservableException e){
+            throw e.getCause();
+        }
+        catch (StorageObservableException e){
+            throw e.getCause();
+        }
     }
 
-
     @Override
-    public CouchbaseDocument get(String key) throws DaoException,StorageException {
+    public CouchbaseDocument blockingGet(String key) throws DaoException,StorageException {
         return manageAsyncReadResult(parentSession.asyncGet(key));
     }
 
     @Override
-    public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException,StorageException {
+    public <T extends CouchbaseDocument> T blockingGet(String key, Class<T> targetClass) throws DaoException,StorageException {
         return manageAsyncReadResult(parentSession.asyncGet(key, targetClass));
     }
 
     @Override
-    public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException {
-        return get(parentSession.getKeyFromUID(uid,targetClass), targetClass);
+    public <T extends CouchbaseDocument> T blockingGetFromUID(String uid, Class<T> targetClass) throws DaoException,StorageException {
+        return blockingGet(parentSession.getKeyFromUID(uid,targetClass), targetClass);
     }
 
     @Override
-    public <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
+    public <T extends CouchbaseDocument> T blockingGetFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
         return manageAsyncReadResult(parentSession.asyncGetFromKeyParams(targetClass,params));
     }
 
 
     @Override
-    public <T extends CouchbaseDocument> T refresh(T doc) throws DaoException, StorageException {
+    public <T extends CouchbaseDocument> T blockingRefresh(T doc) throws DaoException, StorageException {
         return manageAsyncReadResult(parentSession.asyncRefresh(doc));
     }
 
     @Override
-    public <T extends CouchbaseDocument> T update(T obj)throws ValidationException,DaoException,StorageException {
+    public <T extends CouchbaseDocument> T blockingUpdate(T obj)throws ValidationException,DaoException,StorageException {
         return manageAsyncWriteResult(obj,parentSession.asyncUpdate(obj));
     }
 
 
     @Override
-    public <T extends CouchbaseDocument> T delete(T obj)throws ValidationException,DaoException,StorageException {
+    public <T extends CouchbaseDocument> T blockingDelete(T obj)throws ValidationException,DaoException,StorageException {
         return manageAsyncWriteResult(obj,parentSession.asyncDelete(obj));
     }
 
     @Override
-    public <T extends CouchbaseDocument> T save(T obj) throws ValidationException,DaoException,StorageException {
+    public <T extends CouchbaseDocument> T blockingSave(T obj) throws ValidationException,DaoException,StorageException {
         return manageAsyncWriteResult(obj,parentSession.asyncSave(obj));
     }
 
     @Override
-    public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException {
+    public void blockingAddOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace)throws ValidationException,DaoException,StorageException,DuplicateUniqueKeyException {
         manageAsyncWriteResult(doc,parentSession.asyncAddOrUpdateUniqueKey(doc, value, nameSpace));
     }
 
     @Override
-    public CouchbaseUniqueKey getUniqueKey(String internalKey)throws DaoException,StorageException {
+    public CouchbaseUniqueKey blockingGetUniqueKey(String internalKey)throws DaoException,StorageException {
         return manageAsyncReadResult(parentSession.asyncGetUniqueKey(internalKey));
     }
 
     @Override
-    public void removeUniqueKey(String internalKey) throws DaoException,StorageException {
+    public void blockingRemoveUniqueKey(String internalKey) throws DaoException,StorageException {
         try {
             parentSession.asyncRemoveUniqueKey(internalKey).toBlocking().first();
         }
@@ -132,7 +139,7 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
 
 
     @Override
-    public <T extends CouchbaseDocument>  T validate(T doc) throws ValidationException {
+    public <T extends CouchbaseDocument>  T blockingValidate(T doc) throws ValidationException {
         return manageAsyncValidationResult(doc,parentSession.asyncValidate(doc));
     }
 

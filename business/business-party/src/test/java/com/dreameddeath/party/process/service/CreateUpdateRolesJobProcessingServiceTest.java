@@ -101,7 +101,7 @@ public class CreateUpdateRolesJobProcessingServiceTest {
 
             JobContext<CreateUpdatePartyRolesJob> createJobJobContext = executorClient.executeJob(rolesJob, AnonymousUser.INSTANCE);
             assertEquals(ProcessState.State.DONE,createJobJobContext.getJobState().getState());
-            Party party=cbPlugin.getSessionFactory().newCalcOnlySession(AnonymousUser.INSTANCE).toBlocking().getFromUID(partyId,Party.class);
+            Party party=cbPlugin.getSessionFactory().newCalcOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(partyId,Party.class);
             assertEquals(1L,party.getPartyRoles().size());
         }
     }

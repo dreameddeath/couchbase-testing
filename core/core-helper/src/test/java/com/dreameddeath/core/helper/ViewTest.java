@@ -95,12 +95,12 @@ public class ViewTest {
                 elem.longVal=j+1L;
                 doc.arrayVal.add(elem);
             }
-            session.toBlocking().save(doc);
+            session.toBlocking().blockingSave(doc);
             for(int j=0;j<i;++j) {
                 TestDocChild child = session.newEntity(TestDocChild.class);
                 child.parent= new TestDocLink(doc);
                 child.value = String.format("Child:%d",j);
-                session.toBlocking().save(child);
+                session.toBlocking().blockingSave(child);
             }
         }
 

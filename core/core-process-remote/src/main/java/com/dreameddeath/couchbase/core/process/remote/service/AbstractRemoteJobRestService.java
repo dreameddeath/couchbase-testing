@@ -131,7 +131,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
             result.key=e.getOwnerDocumentKey();
             try {
                 ICouchbaseSession session=sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
-                AbstractJob conflictingJob = session.toBlocking().get(e.getOwnerDocumentKey(),AbstractJob.class);
+                AbstractJob conflictingJob = session.toBlocking().blockingGet(e.getOwnerDocumentKey(),AbstractJob.class);
                 result.requestUid = conflictingJob.getRequestUid();
                 result.uid=conflictingJob.getUid().toString();
                 result.jobModelId=conflictingJob.getModelId().toString();

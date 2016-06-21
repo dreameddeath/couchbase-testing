@@ -56,7 +56,7 @@ public abstract class BusinessDocumentLink<T extends CouchbaseDocument> extends 
 
     public T getLinkedObject(ICouchbaseSession session)throws DaoException,StorageException{
         if(getLinkedObjectFromCache()==null){
-            setLinkedObject((T)session.toBlocking().get(getKey()));
+            setLinkedObject((T)session.toBlocking().blockingGet(getKey()));
         }
         return getLinkedObjectFromCache();
     }

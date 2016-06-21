@@ -96,7 +96,7 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
                         @Override public TVALUE getValue() { return value;}
                         @Override public String getDocKey() { return docKey;}
                         @Override public String getPrefix() {return keyPrefix;}
-                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().get(docKey);}
+                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().blockingGet(docKey);}
                     };
                 }
             };
@@ -127,7 +127,7 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
                         @Override public TVALUE getValue() { return value;}
                         @Override public String getDocKey() { return docKey;}
                         @Override public String getPrefix() {return keyPrefix;}
-                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().get(docKey);}
+                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().blockingGet(docKey);}
                     };
                 }
             };

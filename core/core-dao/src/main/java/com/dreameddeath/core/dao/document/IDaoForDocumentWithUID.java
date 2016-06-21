@@ -31,6 +31,6 @@ public interface IDaoForDocumentWithUID<T extends CouchbaseDocument> {
     Observable<T> asyncGetFromUid(ICouchbaseSession session,String uid);
 
     interface IBlockingDaoForDocumentWithUID<T>{
-        T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException;
+        T blockingGetFromUID(ICouchbaseSession session, String uid) throws DaoException,StorageException;
     }
 }

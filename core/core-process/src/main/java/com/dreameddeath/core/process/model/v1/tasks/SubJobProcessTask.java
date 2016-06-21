@@ -38,6 +38,6 @@ public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractT
     public UUID getSubJobId(){ return subJobId.get(); }
     public void setSubJobId(UUID subJobId){this.subJobId.set(subJobId);}
 
-    public T blockingGetJob(ICouchbaseSession session) throws DaoException,StorageException{return (T)session.toBlocking().getFromUID(getSubJobId().toString(),AbstractJob.class);}
+    public T blockingGetJob(ICouchbaseSession session) throws DaoException,StorageException{return (T)session.toBlocking().blockingGetFromUID(getSubJobId().toString(),AbstractJob.class);}
     public Observable<T> getJob(ICouchbaseSession session) throws DaoException,StorageException{return (Observable<T>)session.asyncGetFromUID(getSubJobId().toString(),AbstractJob.class);}
 }

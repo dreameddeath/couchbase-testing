@@ -209,87 +209,87 @@ public class DummySession implements ICouchbaseSession {
     public IBlockingCouchbaseSession toBlocking(){
         return new IBlockingCouchbaseSession() {
             @Override
-            public CouchbaseDocument get(String key) throws DaoException, StorageException {
+            public CouchbaseDocument blockingGet(String key) throws DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T get(String key, Class<T> targetClass) throws DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingGet(String key, Class<T> targetClass) throws DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T refresh(T doc) throws DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingRefresh(T doc) throws DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T getFromUID(String uid, Class<T> targetClass) throws DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingGetFromUID(String uid, Class<T> targetClass) throws DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T getFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingGetFromKeyParams(Class<T> targetClass, Object... params) throws DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T buildKey(T obj) throws DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingBuildKey(T obj) throws DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T create(T obj) throws ValidationException, DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingCreate(T obj) throws ValidationException, DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T save(T obj) throws ValidationException, DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingSave(T obj) throws ValidationException, DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T update(T obj) throws ValidationException, DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingUpdate(T obj) throws ValidationException, DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T delete(T obj) throws ValidationException, DaoException, StorageException {
+            public <T extends CouchbaseDocument> T blockingDelete(T obj) throws ValidationException, DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public <T extends CouchbaseDocument> T validate(T doc) throws ValidationException {
+            public <T extends CouchbaseDocument> T blockingValidate(T doc) throws ValidationException {
                 return null;
             }
 
             @Override
-            public CouchbaseUniqueKey getUniqueKey(String internalKey) throws DaoException, StorageException {
+            public CouchbaseUniqueKey blockingGetUniqueKey(String internalKey) throws DaoException, StorageException {
                 return null;
             }
 
             @Override
-            public void addOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) throws ValidationException, DaoException, StorageException, DuplicateUniqueKeyException {
+            public void blockingAddOrUpdateUniqueKey(CouchbaseDocument doc, String value, String nameSpace) throws ValidationException, DaoException, StorageException, DuplicateUniqueKeyException {
 
             }
 
             @Override
-            public void removeUniqueKey(String internalKey) throws DaoException, ValidationException, StorageException {
+            public void blockingRemoveUniqueKey(String internalKey) throws DaoException, ValidationException, StorageException {
 
             }
 
             @Override
-            public long getCounter(String key) throws DaoException, StorageException {
+            public long blockingGetCounter(String key) throws DaoException, StorageException {
                 return 0;
             }
 
             @Override
-            public long incrCounter(String key, long byVal) throws DaoException, StorageException {
+            public long blockingIncrCounter(String key, long byVal) throws DaoException, StorageException {
                 return 0;
             }
 
             @Override
-            public long decrCounter(String key, long byVal) throws DaoException, StorageException {
+            public long blockingDecrCounter(String key, long byVal) throws DaoException, StorageException {
                 return 0;
             }
         };

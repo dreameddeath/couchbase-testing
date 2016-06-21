@@ -108,12 +108,12 @@ public class DaoGenerationTest extends Assert {
         for(int i=0;i<10;++i){
             ITestDao doc = (ITestDao)session.newEntity(testGeneratedDaoClass);
             doc.setValue("test "+i);
-            session.toBlocking().save((CouchbaseDocument)doc);
+            session.toBlocking().blockingSave((CouchbaseDocument)doc);
             for(int j=0;j<i;++j) {
                 ITestDaoChild child = (ITestDaoChild)session.newEntity(testGeneratedDaoChildClass);
                 child.setValue(String.format("Child:%d",j));
                 child.setParentObjDao(doc);
-                session.toBlocking().save((CouchbaseDocument)child);
+                session.toBlocking().blockingSave((CouchbaseDocument)child);
             }
         }
 

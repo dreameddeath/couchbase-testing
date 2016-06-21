@@ -44,7 +44,7 @@ public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB exte
             //Save task to allow retries without creation duplicates
             ctxt.save();
             //Save job (should be a creation)
-            ctxt.getSession().toBlocking().save(job);
+            ctxt.getSession().toBlocking().blockingSave(job);
         }
         catch(ValidationException e){
             throw new TaskExecutionException(task, ProcessState.State.INITIALIZED,"Validation of job or parent job failed",e);

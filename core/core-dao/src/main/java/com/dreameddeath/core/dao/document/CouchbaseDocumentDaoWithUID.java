@@ -41,8 +41,9 @@ public abstract class CouchbaseDocumentDaoWithUID<T extends CouchbaseDocument> e
     }
 
     public class BlockingDao extends CouchbaseDocumentWithKeyPatternDao<T>.BlockingDao implements IBlockingDaoForDocumentWithUID<T>{
-        public T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException {
-            return get(session, getKeyFromUID(uid));
+        @Override
+        public T blockingGetFromUID(ICouchbaseSession session, String uid) throws DaoException,StorageException {
+            return blockingGet(session, getKeyFromUID(uid));
         }
     }
 }

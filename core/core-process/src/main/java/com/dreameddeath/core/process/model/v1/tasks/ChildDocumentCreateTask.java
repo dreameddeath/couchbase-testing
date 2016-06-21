@@ -54,6 +54,6 @@ public abstract class ChildDocumentCreateTask<TCHILD extends CouchbaseDocument,T
 
 
 
-    public TPARENT blockingGetParentDocument(ICouchbaseSession session) throws DaoException, StorageException {return (TPARENT)session.toBlocking().get(getParent());}
+    public TPARENT blockingGetParentDocument(ICouchbaseSession session) throws DaoException, StorageException {return (TPARENT)session.toBlocking().blockingGet(getParent());}
     public Observable<TPARENT> getParentDocument(ICouchbaseSession session){return (Observable<TPARENT>)session.asyncGet(getParent());}
 }

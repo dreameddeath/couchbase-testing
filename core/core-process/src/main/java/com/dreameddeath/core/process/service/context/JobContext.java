@@ -127,13 +127,13 @@ public class JobContext<TJOB extends AbstractJob> {
             taskContext.save();
         }
         //Save the job itself
-        session.toBlocking().save(job);
+        session.toBlocking().blockingSave(job);
         updateIsJobSaved();
     }
 
 
     public Collection<AbstractTask> assignIds(Collection<AbstractTask> tasks) throws DaoException,StorageException{
-        Long cntNewValue = session.toBlocking().incrCounter(String.format(TaskDao.TASK_CNT_FMT, job.getUid()), tasks.size());
+        Long cntNewValue = session.toBlocking().blockingIncrCounter(String.format(TaskDao.TASK_CNT_FMT, job.getUid()), tasks.size());
         for(AbstractTask task:tasks){
             if(task.getId()==null){
                 long id = cntNewValue--;

@@ -170,7 +170,7 @@ public class ElasticSearchIntegrationTest {
                 elem.longVal=j+1L;
                 doc.arrayVal.add(elem);
             }
-            session.toBlocking().save(doc);
+            session.toBlocking().blockingSave(doc);
         }
 
         //_env.getEsServer()

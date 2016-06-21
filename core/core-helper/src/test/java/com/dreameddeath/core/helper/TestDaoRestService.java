@@ -111,7 +111,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
         if(flags!=null){
             documentToCreate.getBaseMeta().setEncodedFlags(flags);
         }
-        session.toBlocking().create(documentToCreate);
+        session.toBlocking().blockingCreate(documentToCreate);
         return Response.ok(documentToCreate, MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -124,7 +124,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
                          @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        TestDoc doc = session.toBlocking().get(String.format("test/%s",id),TestDoc.class);
+        TestDoc doc = session.toBlocking().blockingGet(String.format("test/%s",id),TestDoc.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -137,8 +137,8 @@ public class TestDaoRestService extends AbstractDaoRestService {
                          @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        TestDoc doc = session.toBlocking().get(String.format("test/%s",id),TestDoc.class);
-        session.toBlocking().delete(doc);
+        TestDoc doc = session.toBlocking().blockingGet(String.format("test/%s",id),TestDoc.class);
+        session.toBlocking().blockingDelete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -163,7 +163,7 @@ public class TestDaoRestService extends AbstractDaoRestService {
         updatedDocument.getBaseMeta().setStateSync();
         updatedDocument.getBaseMeta().setStateDirty();
         session.attachEntity(updatedDocument);
-        session.toBlocking().update(updatedDocument);
+        session.toBlocking().blockingUpdate(updatedDocument);
         return Response.ok(updatedDocument,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }

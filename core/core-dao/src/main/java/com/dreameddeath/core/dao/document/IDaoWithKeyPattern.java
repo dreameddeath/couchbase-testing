@@ -32,6 +32,6 @@ public interface IDaoWithKeyPattern<T> {
     Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params);
 
     interface IBlockingDaoWithKeyPattern<T>{
-        T getFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException;
+        T blockingGetFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException;
     }
 }

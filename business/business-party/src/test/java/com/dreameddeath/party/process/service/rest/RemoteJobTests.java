@@ -99,7 +99,7 @@ public class RemoteJobTests {
             CreateUpdatePartyJobResponse createResponse = response.readEntity(CreateUpdatePartyJobResponse.class);
             assertNotNull(createResponse.getUid());
 
-            Party party = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().getFromUID(createResponse.getUid(), Party.class);
+            Party party = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(createResponse.getUid(), Party.class);
             assertTrue(party instanceof Person);
             assertEquals(request.getPerson().getFirstName(), ((Person) party).getFirstName());
             assertEquals(request.getPerson().getLastName(), ((Person) party).getLastName());
@@ -118,7 +118,7 @@ public class RemoteJobTests {
 
             Response response = clientRoles.getInstance().request().post(Entity.json(rolesJobRequest));
             assertEquals(200, response.getStatus());
-            Party party = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().getFromUID(partyId, Party.class);
+            Party party = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(partyId, Party.class);
             assertTrue(party instanceof Person);
             assertEquals(1,party.getPartyRoles().size());
         }

@@ -70,7 +70,7 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
             documentToCreate.getBaseMeta().setEncodedFlags(flags);
         }
         //session.save(documentToCreate);
-        session.toBlocking().create(documentToCreate);
+        session.toBlocking().blockingCreate(documentToCreate);
         return Response.ok(documentToCreate, MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -87,14 +87,14 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
                              #end
                              @ApiParam("The requested id") @PathParam("${service.defaultAttributeName}") String ${service.defaultAttributeName}) throws Exception{
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        ${service.classSimpleName} doc = session.toBlocking().get(
+        ${service.classSimpleName} doc = session.toBlocking().blockingGet(
                         String.format("$esc.java($service.fullDbKeyPattern)"
                         #foreach($paramInfo in $service.rootPathAttributeInfoList)
                            ,$paramInfo.name
                         #end
                             ,${service.defaultAttributeName}),
                         ${service.classSimpleName}.class);
-        session.toBlocking().delete(doc);
+        session.toBlocking().blockingDelete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -126,7 +126,7 @@ public class ${service.targetWriteName} extends AbstractDaoRestService {
         updatedDocument.getBaseMeta().setStateSync();
         updatedDocument.getBaseMeta().setStateDirty();
         session.attachEntity(updatedDocument);
-        session.toBlocking().update(updatedDocument);
+        session.toBlocking().blockingUpdate(updatedDocument);
         return Response.ok(updatedDocument,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }

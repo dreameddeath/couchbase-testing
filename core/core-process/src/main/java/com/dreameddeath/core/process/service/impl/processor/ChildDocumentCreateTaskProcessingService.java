@@ -37,7 +37,7 @@ public abstract class ChildDocumentCreateTaskProcessingService<TJOB extends Abst
             if (needParentUpdate(parent, child)) {
                 updateParent(parent,child);
                 try {
-                    context.getSession().toBlocking().save(parent);
+                    context.getSession().toBlocking().blockingSave(parent);
                 }
                 catch(DaoException|StorageException|ValidationException e){
                     throw new TaskExecutionException(context,"Cannot save parent",e);

@@ -43,7 +43,7 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
     public String getDocKey(){return docKey.get(); }
     public DocumentUpdateTask<T> setDocKey(String docKey){this.docKey.set(docKey); return this;}
 
-    public T blockingGetDocument(ICouchbaseSession session)throws DaoException, StorageException {return (T)session.toBlocking().get(getDocKey());}
+    public T blockingGetDocument(ICouchbaseSession session)throws DaoException, StorageException {return (T)session.toBlocking().blockingGet(getDocKey());}
     public Observable<T> getDocument(ICouchbaseSession session)throws DaoException, StorageException {return (Observable<T>)session.asyncGet(getDocKey());}
 
 

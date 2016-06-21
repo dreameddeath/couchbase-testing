@@ -37,10 +37,10 @@ public class ProcessUtils {
     }
 
     public static <TJOB extends AbstractJob>  TJOB loadJob(ICouchbaseSession session,String uid, Class<TJOB> jobClass) throws DaoException,StorageException{
-        return session.toBlocking().getFromKeyParams(jobClass,uid);
+        return session.toBlocking().blockingGetFromKeyParams(jobClass,uid);
     }
 
     public static <TTASK extends AbstractTask>  TTASK loadTask(ICouchbaseSession session, AbstractJob job, int taskId,Class<TTASK> taskClass) throws DaoException,StorageException{
-        return session.toBlocking().getFromKeyParams(taskClass,job.getUid(),taskId);
+        return session.toBlocking().blockingGetFromKeyParams(taskClass,job.getUid(),taskId);
     }
 }

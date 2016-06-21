@@ -44,8 +44,8 @@ public abstract class BusinessCouchbaseDocumentDaoWithUID<T extends BusinessDocu
     }
 
     public class BlockingDao extends BusinessCouchbaseDocumentWithKeyPatternDao<T>.BlockingDao implements IBlockingDaoForDocumentWithUID<T>{
-        public T getFromUID(ICouchbaseSession session,String uid) throws DaoException,StorageException {
-            return get(session, getKeyFromUID(uid));
+        public T blockingGetFromUID(ICouchbaseSession session, String uid) throws DaoException,StorageException {
+            return blockingGet(session, getKeyFromUID(uid));
         }
     }
 }

@@ -66,8 +66,8 @@ public abstract class BusinessCouchbaseDocumentWithKeyPatternDao<T extends Busin
 
     public class BlockingDao extends BusinessCouchbaseDocumentDao<T>.BlockingDao implements IBlockingDaoWithKeyPattern<T>{
         @Override
-        public T getFromKeyParams(ICouchbaseSession session,Object ...params) throws DaoException,StorageException{
-            return get(session,getKeyFromParams(params));
+        public T blockingGetFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException{
+            return blockingGet(session,getKeyFromParams(params));
         }
 
     }

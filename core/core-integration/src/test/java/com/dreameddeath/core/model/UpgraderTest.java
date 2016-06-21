@@ -230,12 +230,12 @@ public class UpgraderTest {
 
         try {
             upgradeManager.addVersionToDiscard("test", "test", "2.0.0");
-            session.toBlocking().save(v1);
+            session.toBlocking().blockingSave(v1);
             upgradeManager.removeVersionToDiscard("test", "test", "2.0.0");
 
             session.reset();
 
-            Object result = session.toBlocking().get(v1.getMeta().getKey(),TestModelV2.class);
+            Object result = session.toBlocking().blockingGet(v1.getMeta().getKey(),TestModelV2.class);
             assertEquals(TestModelV2.class,result.getClass());
             TestModelV2 resultV2 = (TestModelV2)result;
             assertEquals(refValue + " v1.1 v2", resultV2.value2);

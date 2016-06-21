@@ -146,7 +146,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
             documentToCreate.getBaseMeta().setEncodedFlags(flags);
         }
         //session.save(documentToCreate);
-        session.toBlocking().create(documentToCreate);
+        session.toBlocking().blockingCreate(documentToCreate);
         return Response.ok(documentToCreate, MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -160,7 +160,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                          @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        TestDocChild doc = session.toBlocking().get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
+        TestDocChild doc = session.toBlocking().blockingGet(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -174,8 +174,8 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                            @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
         ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
-        TestDocChild doc = session.toBlocking().get(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
-        session.toBlocking().delete(doc);
+        TestDocChild doc = session.toBlocking().blockingGet(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
+        session.toBlocking().blockingDelete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }
@@ -201,7 +201,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
         updatedDocument.getBaseMeta().setStateSync();
         updatedDocument.getBaseMeta().setStateDirty();
         session.attachEntity(updatedDocument);
-        session.toBlocking().update(updatedDocument);
+        session.toBlocking().blockingUpdate(updatedDocument);
         return Response.ok(updatedDocument,MediaType.APPLICATION_JSON_TYPE)
                 .build();
     }

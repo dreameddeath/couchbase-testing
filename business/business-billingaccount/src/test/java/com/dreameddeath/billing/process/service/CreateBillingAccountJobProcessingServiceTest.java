@@ -140,7 +140,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
             assertEquals(createdPartyId,inDbBA.getPartyRoles().get(0).getPid());
             assertNotNull(inDbBA.getPartyRoles().get(0).getRoleUid());
 
-            Party inParty = cbPluginParty.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().getFromUID(createdPartyId,Party.class);
+            Party inParty = cbPluginParty.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(createdPartyId,Party.class);
             assertEquals(1,inParty.getPartyRoles().size());
             assertEquals(inParty.getPartyRoles().get(0).getUid(),inDbBA.getPartyRoles().get(0).getRoleUid());
         }
