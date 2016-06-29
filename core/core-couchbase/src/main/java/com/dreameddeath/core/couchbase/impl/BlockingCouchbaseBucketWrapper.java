@@ -24,7 +24,7 @@ public class BlockingCouchbaseBucketWrapper implements IBlockingCouchbaseBucket 
     @Override
     public <T extends CouchbaseDocument> T get(String key, Class<T> entity) throws StorageException {
         try{
-            return asyncWrapper.asyncGet(key,entity).toBlocking().first();
+            return asyncWrapper.asyncGet(key,entity).toBlocking().single();
         }
         catch(StorageObservableException e){
             throw e.getCause();

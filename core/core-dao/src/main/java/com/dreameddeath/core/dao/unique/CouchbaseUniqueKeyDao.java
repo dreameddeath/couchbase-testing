@@ -139,7 +139,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
 
     private CouchbaseUniqueKey create(ICouchbaseSession session,CouchbaseDocument doc,String internalKey,boolean isCalcOnly) throws DaoException,StorageException,ValidationException {
         try {
-            return asyncCreate(session, doc, internalKey, isCalcOnly).toBlocking().first();
+            return asyncCreate(session, doc, internalKey, isCalcOnly).toBlocking().single();
         }
         catch (StorageObservableException e){
             throw e.getCause();
@@ -222,7 +222,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
 
     public CouchbaseUniqueKey addOrUpdateUniqueKey(ICouchbaseSession session,String nameSpace,String value,CouchbaseDocument doc,boolean isCalcOnly) throws StorageException,DaoException,DuplicateUniqueKeyException,ValidationException {
         try {
-            return asyncAddOrUpdateUniqueKey(session, nameSpace, value, doc, isCalcOnly).toBlocking().first();
+            return asyncAddOrUpdateUniqueKey(session, nameSpace, value, doc, isCalcOnly).toBlocking().single();
         }
         catch (StorageObservableException e){
             throw e.getCause();

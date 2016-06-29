@@ -59,7 +59,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public final T blockingBuildKey(ICouchbaseSession session, T newObject) throws DaoException,StorageException{
         try {
-            return asyncBuildKey(session, newObject).toBlocking().first();
+            return asyncBuildKey(session, newObject).toBlocking().single();
         }
         catch(DaoObservableException e){
             throw e.getCause();
@@ -328,7 +328,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public class BlockingDao{
         public T blockingGet(ICouchbaseSession session, String key) throws DaoException,StorageException{
             try{
-                return asyncGet(session,key).toBlocking().first();
+                return asyncGet(session,key).toBlocking().single();
             }
             catch (StorageObservableException e) {
                 throw e.getCause();
@@ -340,7 +340,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
         public T blockingCreate(ICouchbaseSession session, T obj, boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
             try {
-                return asyncCreate(session, obj, isCalcOnly).toBlocking().first();
+                return asyncCreate(session, obj, isCalcOnly).toBlocking().single();
             }
             catch(DaoObservableException e){
                 throw e.getCause();
@@ -355,7 +355,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
         public T blockingUpdate(ICouchbaseSession session, T obj, boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
             try {
-                return asyncUpdate(session, obj, isCalcOnly).toBlocking().first();
+                return asyncUpdate(session, obj, isCalcOnly).toBlocking().single();
             }
             catch(DaoObservableException e){
                 throw e.getCause();
@@ -371,7 +371,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         //Should only be used through DeletionJob
         public T blockingDelete(ICouchbaseSession session, T obj, boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
             try {
-                return asyncDelete(session, obj, isCalcOnly).toBlocking().first();
+                return asyncDelete(session, obj, isCalcOnly).toBlocking().single();
             }
             catch(DaoObservableException e){
                 throw e.getCause();

@@ -1,8 +1,6 @@
 package com.dreameddeath.core.notification.bus;
 
-import com.dreameddeath.core.notification.dispatch.DispatchResult;
 import com.dreameddeath.core.notification.model.v1.Event;
-import rx.Observable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,39 +9,36 @@ import java.util.List;
  * Created by Christophe Jeunesse on 29/05/2016.
  */
 public class EventFireResult<T extends Event> {
-    private final Observable<T> event;
-    private final List<Observable<DispatchResult>> results;
-
+    private final T event;
+    private final List<PublishedResult> results;
+    private final boolean hasFailures;
     private EventFireResult(Builder<T> builder){
         event=builder.event;
         results=builder.dispatchResults;
+        hasFailures=results.stream().filter(PublishedResult::hasFailure).count()>0;
     }
 
     public T getEvent() {
-        return event.toBlocking().first();
-    }
-
-    public Observable<T> getAsyncEvent(){
         return event;
     }
 
-    public Observable<Boolean> isSuccess(){
-        return Observable.merge(results).filter(DispatchResult::hasFailures).count().map(res->res==0);
+    public boolean isSuccess(){
+        return !hasFailures;
     }
 
-    public static <TEVT extends Event> Builder<TEVT> builder(Observable<TEVT> event){
+    public static <TEVT extends Event> Builder<TEVT> builder(TEVT event){
         return new Builder<>(event);
     }
 
     public static class Builder<T extends Event>{
-        private final Observable<T> event;
-        private List<Observable<DispatchResult>> dispatchResults = new ArrayList<>();
+        private final T event;
+        private List<PublishedResult> dispatchResults = new ArrayList<>();
 
-        public Builder(Observable<T> event){
+        public Builder(T event){
             this.event=event;
         }
 
-        public Builder<T> withDispatchResult(Observable<DispatchResult> dispatchResult){
+        public Builder<T> withDispatchResult(PublishedResult dispatchResult){
             dispatchResults.add(dispatchResult);
             return this;
         }

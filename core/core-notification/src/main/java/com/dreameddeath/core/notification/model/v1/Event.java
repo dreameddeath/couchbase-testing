@@ -6,9 +6,11 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.NumericProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.StandardLongProperty;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -66,7 +68,11 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      */
     @DocumentProperty("listeners")
     private ListProperty<String> listeners = new ArrayListProperty<>(Event.this);
-
+    /**
+     *  submissionAttempt : number of attempts of submission
+     */
+    @DocumentProperty("submissionAttempt")
+    private NumericProperty<Long> submissionAttempt = new StandardLongProperty(Event.this,0);
 
     /**
      * Getter of id
@@ -143,6 +149,22 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      * @return the entry removed if any
      */
     public String removeListeners(int index){ return listeners.remove(index); }
+
+    /**
+     * Getter of submissionAttempt
+     * @return the value of submissionAttempt
+     */
+    public Long getSubmissionAttempt() { return submissionAttempt.get(); }
+    /**
+     * Setter of submissionAttempt
+     * @param val the new value of submissionAttempt
+     */
+    public void setSubmissionAttempt(Long val) { submissionAttempt.set(val); }
+    /**
+     * Setter of submissionAttempt
+     * @return the new value of submissionAttempt
+     */
+    public Long incrSubmissionAttempt() { return submissionAttempt.inc(1L).get(); }
 
 
 

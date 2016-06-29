@@ -202,6 +202,7 @@
 
         <!-- Observable Libraries -->
         <rxjava.version>1.0.14</rxjava.version>
+        <lmax.disruptor.version>3.3.4</lmax.disruptor.version>
 
         <!--Infrastructure - Storm -->
         <storm.version>0.9.5</storm.version>

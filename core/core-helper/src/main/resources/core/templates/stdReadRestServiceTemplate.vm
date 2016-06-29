@@ -124,7 +124,7 @@ public class ${service.targetReadName} extends AbstractDaoRestService {
 
         Observable<IViewAsyncQueryResult<String,String,${service.classSimpleName}>> resultObservable = session.executeAsyncQuery(query);
         ///TODO replace by chuncked result
-        IViewAsyncQueryResult<String,String,${service.classSimpleName}> result=resultObservable.toBlocking().first();
+        IViewAsyncQueryResult<String,String,${service.classSimpleName}> result=resultObservable.toBlocking().single();
         if(result.getSuccess()){
             return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,${service.classSimpleName}>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
                     //TODO build token for "continue" mode
@@ -132,7 +132,7 @@ public class ${service.targetReadName} extends AbstractDaoRestService {
                     .build();
         }
         else{
-            return Response.serverError().entity(result.getErrorInfo().toBlocking().first()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
+            return Response.serverError().entity(result.getErrorInfo().toBlocking().single()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
         }
     }
 

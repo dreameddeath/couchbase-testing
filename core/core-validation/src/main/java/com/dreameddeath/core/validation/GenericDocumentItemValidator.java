@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 /**
  * Created by Christophe Jeunesse on 05/08/2014.
  */
-public class GenericDocumentItemValidator<T extends HasParent> implements Validator<T>{
+public class GenericDocumentItemValidator<T extends HasParent> implements Validator<T>,IHasFieldGetterFinder{
     Map<AccessibleObject,CouchbaseDocumentValidatorFieldEntry> validationRules = new HashMap<AccessibleObject,CouchbaseDocumentValidatorFieldEntry>();
 
     public static class CouchbaseDocumentValidatorFieldEntry{

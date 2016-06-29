@@ -93,7 +93,7 @@ public abstract class AbstractDCPFlowHandler {
         return handler;
     }
 
-    public ExceptionHandler getExceptionHandler(){
+    public ExceptionHandler<DCPEvent> getExceptionHandler(){
         return handler;
     }
 
@@ -152,10 +152,9 @@ public abstract class AbstractDCPFlowHandler {
         DOCUMENT_MAPPER
     }
 
-    public class Handler implements EventHandler<DCPEvent>,ExceptionHandler{
+    public class Handler implements EventHandler<DCPEvent>,ExceptionHandler<DCPEvent>{
         @Override
         public void onEvent(DCPEvent event, long sequence, boolean endOfBatch) throws Exception{
-            //registry.timer("toto").update(10, TimeUnit.NANOSECONDS);
             DcpFlowHandlerMetrics.Context metricContext=null;
             try {
                 switch (event.getType()) {
@@ -194,7 +193,7 @@ public abstract class AbstractDCPFlowHandler {
         }
 
         @Override
-        public void handleEventException(Throwable ex, long sequence, Object event){
+        public void handleEventException(Throwable ex, long sequence, DCPEvent event){
             manageException(new HandlerException(ex,sequence,event));
         }
 

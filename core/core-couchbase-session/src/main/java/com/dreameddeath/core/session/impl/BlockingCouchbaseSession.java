@@ -41,17 +41,17 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
 
     @Override
     public long blockingGetCounter(String key) throws DaoException,StorageException {
-        return parentSession.asyncGetCounter(key).toBlocking().first();
+        return parentSession.asyncGetCounter(key).toBlocking().single();
     }
 
     @Override
     public long blockingIncrCounter(String key, long byVal) throws DaoException,StorageException {
-        return parentSession.asyncIncrCounter(key,byVal).toBlocking().first();
+        return parentSession.asyncIncrCounter(key,byVal).toBlocking().single();
     }
 
     @Override
     public long blockingDecrCounter(String key, long byVal) throws DaoException,StorageException {
-        return parentSession.asyncDecrCounter(key,byVal).toBlocking().first();
+        return parentSession.asyncDecrCounter(key,byVal).toBlocking().single();
     }
 
     @Override
@@ -62,7 +62,7 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
     @Override
     public <T extends CouchbaseDocument> T blockingBuildKey(T obj) throws DaoException,StorageException {
         try {
-            return parentSession.asyncBuildKey(obj).toBlocking().first();
+            return parentSession.asyncBuildKey(obj).toBlocking().single();
         }
         catch(DaoObservableException e){
             throw e.getCause();
@@ -127,7 +127,7 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
     @Override
     public void blockingRemoveUniqueKey(String internalKey) throws DaoException,StorageException {
         try {
-            parentSession.asyncRemoveUniqueKey(internalKey).toBlocking().first();
+            parentSession.asyncRemoveUniqueKey(internalKey).toBlocking().single();
         }
         catch(DaoObservableException e){
             throw e.getCause();
@@ -147,7 +147,7 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
 
     public <T extends CouchbaseDocument> T manageAsyncValidationResult(final T obj, Observable<T> obs)throws ValidationException {
         try{
-            return obs.toBlocking().first();
+            return obs.toBlocking().single();
         }
         catch(ValidationObservableException e){
             throw e.getCause();
@@ -156,7 +156,7 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
 
     public <T extends CouchbaseDocument> T manageAsyncReadResult(Observable<T> obs)throws DaoException,StorageException {
         try{
-            return obs.toBlocking().first();
+            return obs.toBlocking().single();
         }
         catch(DaoObservableException e){
             throw e.getCause();
@@ -168,7 +168,7 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
 
     public <T extends CouchbaseDocument> T manageAsyncWriteResult(final T obj, Observable<T> obs)throws ValidationException,DaoException,StorageException {
         try{
-            return obs.toBlocking().first();
+            return obs.toBlocking().single();
         }
         catch(DaoObservableException e){
             throw e.getCause();

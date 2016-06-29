@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.validation.annotation;
+package com.dreameddeath.core.validation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
- * Created by Christophe Jeunesse on 05/08/2014.
+ * Created by Christophe Jeunesse on 24/06/2016.
  */
-@Target({ElementType.FIELD,ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Unique {
-    String nameSpace();
-    String[] additionnalFields() default {};
+public interface IHasFieldGetterFinder {
+    Method fieldGetterFinder(Field field) throws NoSuchMethodException;
 }

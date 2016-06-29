@@ -9,7 +9,7 @@ public class SubmissionResult {
     private Notification notification;
     private Throwable error;
 
-    public SubmissionResult(Notification notif){
+    public SubmissionResult(Notification notif,boolean isProcessed){
         this(notif,null);
     }
 
