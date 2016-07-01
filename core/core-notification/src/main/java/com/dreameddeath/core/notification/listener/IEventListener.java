@@ -9,7 +9,6 @@ import rx.Observable;
  */
 public interface IEventListener {
     String getName();
-    String getType();
     <T extends Event> Observable<SubmissionResult> submit(Notification notif, T event);
     <T extends Event> boolean isApplicable(T event);
 }

@@ -29,21 +29,23 @@ import java.util.concurrent.Executors;
 /**
  * Created by Christophe Jeunesse on 29/05/2016.
  */
-public class EventBusImpl implements IEventBus,EventHandler<InternalEvent>,ExceptionHandler<InternalEvent> {
+public class EventBusImpl implements IEventBus {
     private final Map<String,IEventListener> listenersMap = new ConcurrentHashMap<>();
     private final Disruptor<InternalEvent> disruptor;
     private final RingBuffer<InternalEvent> ringBuffer;
     private final EventTranslatorTwoArg<InternalEvent,Event, Notification> translator;
 
     public EventBusImpl(){
-        disruptor = new Disruptor<>(InternalEvent::new, NotificationConfigProperties.EVENTBUS_BUFFER_SIZE.get(),
-                Executors.defaultThreadFactory());
+        int bufferSize = NotificationConfigProperties.EVENTBUS_BUFFER_SIZE.get();
+        disruptor = new Disruptor<>(InternalEvent::new,
+                                    Integer.highestOneBit(bufferSize),
+                                    Executors.defaultThreadFactory());
 
         int size = NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE.getValue(1);
-        EventHandler<InternalEvent>[] arrayHandler=new EventHandler[size];
-        Arrays.fill(arrayHandler,this);
+        EventHandler<InternalEvent>[] arrayHandler=new InternalEventHandler[size];
+        Arrays.fill(arrayHandler,new InternalEventHandler());
         disruptor.handleEventsWith(arrayHandler);
-        disruptor.setDefaultExceptionHandler(this);
+        disruptor.setDefaultExceptionHandler(new InternalExceptionHandler());
         translator=(internalEvent, sequence, event,notification) -> internalEvent.setProcessingElement(event,notification,getListenerByName(notification.getListenerName()));
         ringBuffer=disruptor.start();
     }
@@ -87,7 +89,7 @@ public class EventBusImpl implements IEventBus,EventHandler<InternalEvent>,Excep
             Observable<PublishedResult> notificationObservable = Observable.just(inputListnerName)
                     .map(listenerName->{
                         Notification result = new Notification();
-                        result.setEventId(event.getId().toString());
+                        result.setEventId(event.getId());
                         result.setListenerName(listenerName);
                         return result;
                     })
@@ -140,23 +142,30 @@ public class EventBusImpl implements IEventBus,EventHandler<InternalEvent>,Excep
     }
 
 
-    @Override
-    public void onEvent(InternalEvent event, long sequence, boolean endOfBatch) throws Exception {
-        event.getListener().submit(event.getNotification(),event.getEvent()).toBlocking().single();
-    }
 
-    @Override
-    public void handleEventException(Throwable ex, long sequence, InternalEvent event) {
-
-    }
-
-    @Override
-    public void handleOnStartException(Throwable ex) {
+    private class InternalEventHandler implements EventHandler<InternalEvent>{
+        @Override
+        public void onEvent(InternalEvent event, long sequence, boolean endOfBatch) throws Exception {
+            event.getListener().submit(event.getNotification(),event.getEvent()).toBlocking().single();
+        }
 
     }
 
-    @Override
-    public void handleOnShutdownException(Throwable ex) {
+    private class InternalExceptionHandler implements ExceptionHandler<InternalEvent>{
+        @Override
+        public void handleEventException(Throwable ex, long sequence, InternalEvent event) {
 
+        }
+
+        @Override
+        public void handleOnStartException(Throwable ex) {
+
+        }
+
+        @Override
+        public void handleOnShutdownException(Throwable ex) {
+
+        }
     }
+
 }

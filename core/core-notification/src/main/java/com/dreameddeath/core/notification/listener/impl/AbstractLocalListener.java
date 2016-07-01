@@ -28,7 +28,7 @@ public abstract class AbstractLocalListener implements IEventListener{
             return Observable.just(new SubmissionResult(sourceNotif,false));
         }
 
-        return process(event,session)
+        return process(event,sourceNotif,session)
                 .map(boolRes->{
                     sourceNotif.setStatus(Notification.Status.SUBMITTED);
                     return sourceNotif;
@@ -40,6 +40,6 @@ public abstract class AbstractLocalListener implements IEventListener{
                 );
     }
 
-    protected  abstract <T extends Event> Observable<Boolean> process(T event,ICouchbaseSession session);
+    protected  abstract <T extends Event> Observable<Boolean> process(T event,Notification notification,ICouchbaseSession session);
 
 }

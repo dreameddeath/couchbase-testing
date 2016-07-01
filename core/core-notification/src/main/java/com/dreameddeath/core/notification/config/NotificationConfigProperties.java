@@ -28,8 +28,8 @@ import com.dreameddeath.core.config.impl.IntConfigProperty;
 public class NotificationConfigProperties {
     @ConfigPropertyDoc(
             name="core.notification.eventbus.buffer_size",
-            descr = "defines the buffer size for ring buffer",
-            examples = {"50"}
+            descr = "defines the buffer size for ring buffer. Will be aligned to nearest the power of two just below or equals",
+            examples = {"64"}
     )
     public static final IntConfigProperty EVENTBUS_BUFFER_SIZE = ConfigPropertyFactory.getIntProperty("core.notification.eventbus.buffer_size",50);
 

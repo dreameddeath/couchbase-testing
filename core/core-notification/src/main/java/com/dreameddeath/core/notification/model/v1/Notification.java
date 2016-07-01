@@ -16,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
+import java.util.UUID;
+
 /**
  * Created by Christophe Jeunesse on 25/05/2016.
  */
@@ -39,10 +41,15 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
 
 
     /**
+     *  id : the notification id within the event
+     */
+    @DocumentProperty("id")
+    private Property<Long> id = new ImmutableProperty<>(Notification.this);
+    /**
      *  eventId : the event id being notified
      */
     @DocumentProperty("eventId") @Unique(nameSpace = "core/notification/id",additionnalFields = {"listenerName"})
-    private Property<String> eventId = new ImmutableProperty<>(Notification.this);
+    private Property<UUID> eventId = new ImmutableProperty<>(Notification.this);
     /**
      *  listenerName : name of the listener
      */
@@ -65,17 +72,26 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
     private NumericProperty<Long> nbAttempts = new StandardLongProperty(Notification.this);
 
 
-
+    /**
+     * Getter of id
+     * @return the value of id
+     */
+    public Long getId() { return id.get(); }
+    /**
+     * Setter of id
+     * @param val the new value for id
+     */
+    public void setId(Long val) { id.set(val); }
     /**
      * Getter of eventId
      * @return the value of eventId
      */
-    public String getEventId() { return eventId.get(); }
+    public UUID getEventId() { return eventId.get(); }
     /**
      * Setter of eventId
      * @param val the new value for eventId
      */
-    public void setEventId(String val) { eventId.set(val); }
+    public void setEventId(UUID val) { eventId.set(val); }
     /**
      * Getter of listenerName
      * @return the value of listenerName
