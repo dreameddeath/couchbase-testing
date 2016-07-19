@@ -24,13 +24,15 @@ public abstract class AbstractLocalListener implements IEventListener{
     @Override
     public <T extends Event> Observable<SubmissionResult> submit(final Notification sourceNotif, final T event) {
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, AnonymousUser.INSTANCE);
+
         if(sourceNotif.getStatus().equals(Notification.Status.SUBMITTED)|| sourceNotif.getStatus().equals(Notification.Status.CANCELLED)){
-            return Observable.just(new SubmissionResult(sourceNotif,false));
+            Observable.error(new RuntimeException("Bad Status "+sourceNotif.getStatus()+" for notif "+sourceNotif.getEventId()+"/"+sourceNotif.getId()+". The listener name is["+sourceNotif.getListenerName()+"]"));
         }
 
         return process(event,sourceNotif,session)
                 .map(boolRes->{
                     sourceNotif.setStatus(Notification.Status.SUBMITTED);
+                    sourceNotif.incNbAttempts();
                     return sourceNotif;
                 })
                 .flatMap(session::asyncSave)

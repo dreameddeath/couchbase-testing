@@ -39,13 +39,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 01/07/2016.
@@ -151,26 +154,85 @@ public class EventNotificationTest extends Assert{
 
     @Test
     public void eventBusTest() throws Exception{
-        ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
-        //int i=1;
-        for(int i=1;i<=20;++i) {
-            EventTest test = new EventTest();
-            test.toAdd = i;
-            EventFireResult<EventTest> result = bus.fireEvent(test, session);
-            assertTrue(result.isSuccess());
+        List<EventTest> submittedEvents = new ArrayList<>();
+
+        {
+            ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
+            for (int i = 1; i <= 20; ++i) {
+                EventTest test = new EventTest();
+                test.toAdd = i;
+                EventFireResult<EventTest> result = bus.fireEvent(test, session);
+                assertTrue(result.isSuccess());
+                submittedEvents.add(result.getEvent());
+            }
         }
 
-        int nbReceived = 0;
-        Notification resultNotif;
-        do{
-            resultNotif = testListener.poll();
-            if(resultNotif!=null) {
-                nbReceived++;
-            }
-        }while(resultNotif!=null ||(nbReceived<40));
 
+        List<Notification> notificationList = new ArrayList<>();
+        int nbReceived = 0;
+        {
+            Notification resultNotif;
+
+            do {
+                resultNotif = testListener.poll();
+                if (resultNotif != null) {
+                    nbReceived++;
+                    notificationList.add(resultNotif);
+                }
+            } while (resultNotif != null || (nbReceived < 40));
+        }
         assertTrue(testListener.getThreadCounter().keySet().size()>1);
         assertEquals(20*2,nbReceived);
         assertEquals(((20+1)*20/2)*2,testListener.getTotalCounter());
+        Thread.sleep(50);//Wait for all updates
+        {
+            ICouchbaseSession checkSession = sessionFactory.newReadOnlySession(AnonymousUser.INSTANCE);
+            for(EventTest submittedEvent:submittedEvents){
+                List<String> listeners = new ArrayList<>();
+                listeners.addAll(submittedEvent.getListeners());
+                int nbListeners = listeners.size();
+                for(int listenerPos=0;listenerPos<nbListeners;listenerPos++){
+                    Notification subNotification = checkSession.toBlocking().blockingGetFromKeyParams(Notification.class,submittedEvent.getId().toString(),listenerPos+1);
+                    listeners.remove(subNotification.getListenerName());
+                    assertEquals(1L,(long)subNotification.getNbAttempts());
+                    assertEquals(Notification.Status.SUBMITTED,subNotification.getStatus());
+                }
+
+                assertEquals(0,listeners.size());
+            }
+            for (Notification srcNotif : notificationList) {
+                Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
+                assertEquals(Notification.Status.SUBMITTED,notif.getStatus());
+                EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
+                assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
+            }
+        }
+
+
+        {
+            ICouchbaseSession resubmitSession = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
+            for(EventFireResult<EventTest> resumitResult: submittedEvents.stream().map(eventTest -> bus.fireEvent(eventTest,resubmitSession)).collect(Collectors.toList())) {
+                assertTrue(resumitResult.isSuccess());
+                assertEquals(2,(long)resumitResult.getEvent().getSubmissionAttempt());
+            }
+            Thread.sleep(100);
+
+            Notification resultNotif;
+            resultNotif = testListener.poll();
+            if(resultNotif!=null) {
+                fail();//should not occur
+            }
+            assertEquals(nbReceived,NotificationTestListener.nbEventProcessed.get());
+
+            ICouchbaseSession checkSession = sessionFactory.newReadOnlySession(AnonymousUser.INSTANCE);
+            for (Notification srcNotif : notificationList) {
+                Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
+                assertEquals(Notification.Status.SUBMITTED,notif.getStatus());
+                assertEquals(1,(long)notif.getNbAttempts());
+                EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
+                assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
+                assertEquals(2,(long)eventTest.getSubmissionAttempt());
+            }
+        }
     }
 }

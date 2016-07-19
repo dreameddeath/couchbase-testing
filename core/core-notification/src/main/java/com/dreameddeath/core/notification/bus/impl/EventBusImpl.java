@@ -107,11 +107,13 @@ public class EventBusImpl implements IEventBus {
     public <T extends Event> Observable<EventFireResult<T>> asyncFireEvent(final Observable<T> eventObservable,final ICouchbaseSession session) {
         return eventObservable.map(
                 event-> {
-                    fullListenerMap.values().stream()
-                            .filter(listener->listener.isApplicable(event))
-                            .forEach(listener -> event.addListeners(listener.getName()));
-
                     event.incrSubmissionAttempt();
+                    if(event.getSubmissionAttempt()==1) {
+                        fullListenerMap.values().stream()
+                                .filter(listener -> listener.isApplicable(event))
+                                .forEach(listener -> event.addListeners(listener.getName()));
+
+                    }
                     return event;
                 }
         )
@@ -163,6 +165,7 @@ public class EventBusImpl implements IEventBus {
                             throw new RuntimeException(throwable);
                         }
                     })
+                    .filter(notification -> notification.getStatus()!= Notification.Status.SUBMITTED && notification.getStatus()!= Notification.Status.CANCELLED )
                     .map(notification -> {
                         ringBuffer.publishEvent(translator,event,notification);
                         return new PublishedResult(notification);

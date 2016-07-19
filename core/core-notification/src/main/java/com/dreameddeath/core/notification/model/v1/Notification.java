@@ -71,7 +71,7 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
      *  nbAttempts : number of processing attempts
      */
     @DocumentProperty("nbAttempts")
-    private NumericProperty<Long> nbAttempts = new StandardLongProperty(Notification.this);
+    private NumericProperty<Long> nbAttempts = new StandardLongProperty(Notification.this,0);
 
 
     /**
