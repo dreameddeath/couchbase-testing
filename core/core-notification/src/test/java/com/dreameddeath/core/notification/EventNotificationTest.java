@@ -35,9 +35,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 
-import java.util.concurrent.SynchronousQueue;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by Christophe Jeunesse on 01/07/2016.
  */
 public class EventNotificationTest extends Assert{
+    private final static Logger LOG = LoggerFactory.getLogger(EventNotificationTest.class);
     private static CuratorTestUtils curatorUtils;
     private static CouchbaseBucketSimulator cbSimulator;
     private static CouchbaseSessionFactory sessionFactory;
@@ -68,20 +75,47 @@ public class EventNotificationTest extends Assert{
     public static class EventTest extends Event{
         @DocumentProperty
         public String eventId;
+        @DocumentProperty
+        public Integer toAdd;
     }
 
     public static class NotificationTestListener extends AbstractLocalListener{
-        private AtomicInteger nbEventProcessed= new AtomicInteger(0);
-        private SynchronousQueue<Notification> processedNotification = new SynchronousQueue<>();
+        private static final Logger LOG = LoggerFactory.getLogger(NotificationTestListener.class);
+        private static final AtomicInteger nbEventProcessed= new AtomicInteger(0);
+        private static final AtomicInteger totalCounter= new AtomicInteger(0);
+        private static final BlockingQueue<Notification> processedNotification = new ArrayBlockingQueue<>(100);
+        private static final Map<String,Integer> threadCounter=new ConcurrentHashMap<>();
+
+        private final String name;
+
+        public NotificationTestListener(String name) {
+            this.name = name;
+        }
 
         public Notification poll() throws InterruptedException{
-            return processedNotification.poll(10,TimeUnit.SECONDS);
+            return processedNotification.poll(2,TimeUnit.SECONDS);
         }
+
+        public int getTotalCounter() {
+            return totalCounter.get();
+        }
+
+        public Map<String,Integer> getThreadCounter(){
+            return Collections.unmodifiableMap(threadCounter);
+        }
+
         @Override
         protected <T extends Event> Observable<Boolean> process(T event, Notification notification,ICouchbaseSession session) {
+            //LOG.error("Received event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
             nbEventProcessed.incrementAndGet();
+            if(!threadCounter.containsKey(Thread.currentThread().getName())){
+                threadCounter.put(Thread.currentThread().getName(),0);
+            }
+            threadCounter.put(Thread.currentThread().getName(),threadCounter.get(Thread.currentThread().getName())+1);
+            totalCounter.addAndGet(((EventTest)event).toAdd);
             try {
-                processedNotification.offer(notification, 10, TimeUnit.SECONDS);
+                //Thread.sleep(100);
+                processedNotification.offer(notification, 20, TimeUnit.SECONDS);
                 return Observable.just(true);
             }
             catch(InterruptedException e){
@@ -91,7 +125,7 @@ public class EventNotificationTest extends Assert{
 
         @Override
         public String getName() {
-            return "test"+this.getClass().getSimpleName();
+            return this.name+this.getClass().getSimpleName();
         }
 
         @Override
@@ -104,18 +138,39 @@ public class EventNotificationTest extends Assert{
     @Before
     public void setupBus(){
         bus = new EventBusImpl();
-        testListener = new NotificationTestListener();
+
+        testListener = new NotificationTestListener("singleThreaded");
         testListener.setSessionFactory(sessionFactory);
-        ((EventBusImpl)bus).addListener(testListener);
+        bus.addListener(testListener);
+
+        testListener = new NotificationTestListener("multiThreaded");
+        testListener.setSessionFactory(sessionFactory);
+        bus.addMultiThreadedListener(testListener);
+        bus.start();
     }
 
     @Test
     public void eventBusTest() throws Exception{
         ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
-        EventTest test = new EventTest();
-        EventFireResult<EventTest> result = bus.fireEvent(test,session);
-        assertTrue(result.isSuccess());
-        Notification resultNotif = testListener.poll();
-        assertNotNull(resultNotif);
+        //int i=1;
+        for(int i=1;i<=20;++i) {
+            EventTest test = new EventTest();
+            test.toAdd = i;
+            EventFireResult<EventTest> result = bus.fireEvent(test, session);
+            assertTrue(result.isSuccess());
+        }
+
+        int nbReceived = 0;
+        Notification resultNotif;
+        do{
+            resultNotif = testListener.poll();
+            if(resultNotif!=null) {
+                nbReceived++;
+            }
+        }while(resultNotif!=null ||(nbReceived<40));
+
+        assertTrue(testListener.getThreadCounter().keySet().size()>1);
+        assertEquals(20*2,nbReceived);
+        assertEquals(((20+1)*20/2)*2,testListener.getTotalCounter());
     }
 }

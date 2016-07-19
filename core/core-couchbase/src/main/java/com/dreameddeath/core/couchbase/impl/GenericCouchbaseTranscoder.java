@@ -22,6 +22,7 @@ import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.core.message.kv.MutationToken;
 import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
+import com.couchbase.client.java.transcoder.AbstractTranscoder;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.ICouchbaseTranscoder;
@@ -38,7 +39,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Created by Christophe Jeunesse on 12/10/2014.
  */
-public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements ICouchbaseTranscoder<T> {
+public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> extends AbstractTranscoder<BucketDocument<T>,T> implements ICouchbaseTranscoder<T> {
     private final static Logger logger = LoggerFactory.getLogger(GenericCouchbaseTranscoder.class);
     private ITranscoder<T> transcoder;
     private final Class<T> dummyClass;
@@ -113,13 +114,18 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> implements 
     }
 
 
+    /*@Override
+    public Tuple2<ByteBuf, Integer> encode(BucketDocument<T> document){
+        return ;
+    }*/
+
     @Override
-    public BucketDocument<T> decode(String id, ByteBuf content, long cas, int expiry, int flags, ResponseStatus status) {
+    protected BucketDocument<T> doDecode(String id, ByteBuf content, long cas, int expiry, int flags, ResponseStatus status) throws Exception {
         return newDocument(id,expiry,transcoder.decode(content.array()),cas);
     }
 
     @Override
-    public Tuple2<ByteBuf, Integer> encode(BucketDocument<T> document){
+    protected Tuple2<ByteBuf, Integer> doEncode(BucketDocument<T> document) throws Exception {
         return Tuple.create(Unpooled.wrappedBuffer(transcoder.encode(document.content())), document.content().getBaseMeta().getEncodedFlags());
     }
 

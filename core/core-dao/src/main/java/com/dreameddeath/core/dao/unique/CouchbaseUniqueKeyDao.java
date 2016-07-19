@@ -44,8 +44,8 @@ import rx.functions.Func1;
 public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueKey> {
     public static final String UNIQ_FMT_KEY="uniq/%s";
     public static final String UNIQ_KEY_PATTERN="uniq/.*";
-    private static final String INTERNAL_KEY_FMT="%s/%s";
-    private static final String INTERNAL_KEY_SEPARATOR="/";
+    private static final String INTERNAL_KEY_FMT="%s#%s";
+    private static final String INTERNAL_KEY_SEPARATOR="#";
 
     private CouchbaseDocumentDao refDocumentDao;
     private String namespace;
@@ -92,7 +92,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         return getHashKey(buildInternalKey(nameSpace, value));
     }
     public String extractNameSpace(String builtKey){
-        return builtKey.split("/")[0];
+        return builtKey.split(INTERNAL_KEY_SEPARATOR)[0];
     }
 
     public String extractValue(String buildKey){
@@ -280,6 +280,11 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         return "^"+UNIQ_KEY_PATTERN+"$";
     }
 
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
     public static class Builder{
         private String namespace;
         private ICouchbaseBucket client;
@@ -287,6 +292,9 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
 
         public Builder withNameSpace(String key){
             namespace = key;
+            if(namespace.contains(INTERNAL_KEY_SEPARATOR)){
+                throw new RuntimeException("The namespace <"+key+"> shouldn't contain the sequence <"+INTERNAL_KEY_SEPARATOR+">");
+            }
             return this;
         }
 

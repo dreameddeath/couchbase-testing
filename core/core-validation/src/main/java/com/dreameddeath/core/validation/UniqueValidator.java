@@ -107,7 +107,7 @@ public class UniqueValidator<T> implements Validator<T> {
                                 if (throwable instanceof DaoObservableException && throwable.getCause() instanceof DuplicateUniqueKeyDaoException) {
                                     return Observable.just(new ValidationCompositeFailure(ctxt.head(), field, "Duplicate Exception for value", throwable.getCause()));
                                 }
-                                return Observable.just(new ValidationCompositeFailure(ctxt.head(), field, "Other Exception", throwable));
+                                return Observable.just(new ValidationCompositeFailure(ctxt.head(), field, "Other Exception ["+throwable.getClass().getName()+"/"+throwable.getMessage()+"]", throwable));
                             });
                 }
             }

@@ -9,18 +9,19 @@ import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.PublishedResult;
 import com.dreameddeath.core.notification.config.NotificationConfigProperties;
 import com.dreameddeath.core.notification.listener.IEventListener;
+import com.dreameddeath.core.notification.listener.SubmissionResult;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.EventTranslatorTwoArg;
-import com.lmax.disruptor.ExceptionHandler;
-import com.lmax.disruptor.RingBuffer;
+import com.google.common.base.Preconditions;
+import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,31 +32,70 @@ import java.util.concurrent.Executors;
  */
 public class EventBusImpl implements IEventBus {
     private final Map<String,IEventListener> listenersMap = new ConcurrentHashMap<>();
+    private final Map<String,IEventListener> listenersMultithreadedMap = new ConcurrentHashMap<>();
+    private final Map<String,IEventListener> fullListenerMap = new ConcurrentHashMap<>();
     private final Disruptor<InternalEvent> disruptor;
-    private final RingBuffer<InternalEvent> ringBuffer;
     private final EventTranslatorTwoArg<InternalEvent,Event, Notification> translator;
+    private final RingBuffer<InternalEvent> ringBuffer;
 
     public EventBusImpl(){
-        int bufferSize = NotificationConfigProperties.EVENTBUS_BUFFER_SIZE.get();
-        disruptor = new Disruptor<>(InternalEvent::new,
-                                    Integer.highestOneBit(bufferSize),
-                                    Executors.defaultThreadFactory());
+        int bufferSize = Integer.highestOneBit(NotificationConfigProperties.EVENTBUS_BUFFER_SIZE.get());
 
-        int size = NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE.getValue(1);
-        EventHandler<InternalEvent>[] arrayHandler=new InternalEventHandler[size];
-        Arrays.fill(arrayHandler,new InternalEventHandler());
-        disruptor.handleEventsWith(arrayHandler);
+        disruptor = new Disruptor<>(InternalEvent::new,
+                                    bufferSize,
+                                    Executors.defaultThreadFactory(),
+                                    ProducerType.MULTI,
+                                    new BlockingWaitStrategy()
+                    );
+        //disruptor.
         disruptor.setDefaultExceptionHandler(new InternalExceptionHandler());
         translator=(internalEvent, sequence, event,notification) -> internalEvent.setProcessingElement(event,notification,getListenerByName(notification.getListenerName()));
-        ringBuffer=disruptor.start();
+        ringBuffer=disruptor.getRingBuffer();
     }
 
     public IEventListener getListenerByName(String listenerName){
-        return listenersMap.get(listenerName);
+        return fullListenerMap.get(listenerName);
     }
 
+    @Override
     public void addListener(IEventListener listener){
-        listenersMap.put(listener.getName(),listener);
+        IEventListener putRes;
+        putRes = listenersMap.put(listener.getName(),listener);
+        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
+        putRes = fullListenerMap.put(listener.getName(),listener);
+        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
+        //disruptor.handleEventsWith(new InternalEventHandler(listener));
+    }
+
+    @Override
+    public void addMultiThreadedListener(IEventListener listener){
+        IEventListener putRes;
+        putRes = listenersMultithreadedMap.put(listener.getName(),listener);
+        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
+        putRes = fullListenerMap.put(listener.getName(),listener);
+        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
+    }
+
+
+    @Override
+    public void start() {
+        final ArrayList<EventHandler<InternalEvent>> handlersList = new ArrayList<>();
+        int size = NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE.getValue(1);
+        listenersMap.forEach((name,listener)->handlersList.add(new InternalEventHandler(listener)));
+        listenersMultithreadedMap.forEach((name,listener)->{
+            for(int pos=0;pos<size;++pos) {
+                handlersList.add(new InternalEventHandler(listener,pos,size));
+            }
+        });
+
+        disruptor.handleEventsWith((EventHandler<InternalEvent>[])handlersList.toArray(new EventHandler[handlersList.size()]));
+
+        disruptor.start();
+    }
+
+    @Override
+    public void stop() {
+        disruptor.shutdown();
     }
 
     @Override
@@ -67,9 +107,10 @@ public class EventBusImpl implements IEventBus {
     public <T extends Event> Observable<EventFireResult<T>> asyncFireEvent(final Observable<T> eventObservable,final ICouchbaseSession session) {
         return eventObservable.map(
                 event-> {
-                    listenersMap.values().stream()
+                    fullListenerMap.values().stream()
                             .filter(listener->listener.isApplicable(event))
                             .forEach(listener -> event.addListeners(listener.getName()));
+
                     event.incrSubmissionAttempt();
                     return event;
                 }
@@ -144,27 +185,58 @@ public class EventBusImpl implements IEventBus {
 
 
     private class InternalEventHandler implements EventHandler<InternalEvent>{
-        @Override
-        public void onEvent(InternalEvent event, long sequence, boolean endOfBatch) throws Exception {
-            event.getListener().submit(event.getNotification(),event.getEvent()).toBlocking().single();
+        private final Logger LOG = LoggerFactory.getLogger(InternalEventHandler.class);
+        private final IEventListener listener;
+        private final boolean isMultithreaded;
+        private final int nbThreads;
+        private final int rank;
+
+        public InternalEventHandler(IEventListener listener) {
+            this(listener,0,0);
         }
 
+        public InternalEventHandler(IEventListener listener,int rank,int nbThreads) {
+            this.listener = listener;
+            this.rank = rank;
+            this.nbThreads = nbThreads;
+            this.isMultithreaded = nbThreads>0;
+        }
+
+
+        @Override
+        public void onEvent(InternalEvent event, long sequence, boolean endOfBatch) throws Exception {
+            if(listener.getName().equals(event.getNotification().getListenerName()) && (!isMultithreaded || ((sequence % nbThreads)==rank))) {
+                LOG.trace("Submitting {} with seq {} for listener {}",event.getNotification().getBaseMeta().getKey(),sequence,this);
+                SubmissionResult result = listener.submit(event.getNotification(), event.getEvent()).toBlocking().single();
+                if(result.isFailure()){
+                    throw new RuntimeException(result.getError());
+                }
+            }
+        }
+
+
+        @Override
+        public String toString() {
+            return "InternalEventHandler{"+listener.getName()+(isMultithreaded?"["+rank+"/"+nbThreads+"]":"")+"}";
+        }
     }
 
     private class InternalExceptionHandler implements ExceptionHandler<InternalEvent>{
+        private Logger LOG = LoggerFactory.getLogger(InternalExceptionHandler.class);
         @Override
         public void handleEventException(Throwable ex, long sequence, InternalEvent event) {
-
+            LOG.error("Error for event {}/{}",event.getListener().getName(),event.getNotification().getEventId());
+            LOG.error("The exception was :",ex);
         }
 
         @Override
         public void handleOnStartException(Throwable ex) {
-
+            LOG.error("The start exception was :",ex);
         }
 
         @Override
         public void handleOnShutdownException(Throwable ex) {
-
+            LOG.error("The stop exception was :",ex);
         }
     }
 

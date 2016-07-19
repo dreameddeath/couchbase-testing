@@ -151,7 +151,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         return this;
     }
 
-    public Long updateCacheCounter(String key,Long by,Long defaultValue,Integer expiration) throws StorageException{
+    public synchronized Long updateCacheCounter(String key,Long by,Long defaultValue,Integer expiration) throws StorageException{
         DocumentSimulator foundDoc = dbContent.get(key);
         if(foundDoc==null){
             if(defaultValue!=null){
@@ -163,6 +163,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 foundDoc.setData(Unpooled.wrappedBuffer(defaultValue.toString().getBytes()));
                 dbContent.put(foundDoc.getKey(), foundDoc);
                 notifyUpdate(ImpactMode.ADD,foundDoc);
+                LOG.trace("Returning {} for counter {}",defaultValue,key);
                 return defaultValue;
             }
             else{
@@ -175,12 +176,14 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             result+=by;
             foundDoc.setData(Unpooled.wrappedBuffer(result.toString().getBytes()));
             notifyUpdate(ImpactMode.UPDATE,foundDoc);
+            LOG.trace("Returning {} for counter {}",result,key);
             return result;
         }
         catch(NumberFormatException e){
             throw new DocumentAccessException(key,"Error during document access attempt of <"+key+">",e);
         }
     }
+
     public void notifyUpdate(ImpactMode mode,DocumentSimulator doc){
         for(CouchbaseDCPConnectorSimulator simulator:dcpSimulators){
             simulator.notifyUpdate(mode,doc);
@@ -198,7 +201,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         dcpSimulators.remove(simulator);
     }
 
-    public Document getFromCache(String key,Class docType) throws StorageException{
+    public synchronized Document getFromCache(String key,Class docType) throws StorageException{
         Transcoder transcoder = transcoderMap.get(docType);
         DocumentSimulator foundDoc = dbContent.get(key);
         if(foundDoc==null){
@@ -207,7 +210,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         if(transcoder==null){
             throw new DocumentAccessException(key,"Error during document access attempt of <"+key+">");
         }
-
+        foundDoc.getData().retain();
         return transcoder.decode(foundDoc.getKey(), foundDoc.getData(), foundDoc.getCas(), foundDoc.getExpiry(), foundDoc.getFlags(), ResponseStatus.SUCCESS);
     }
 
@@ -220,7 +223,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         DELETE
     }
 
-    public <T extends CouchbaseDocument> Document<T> performImpact(BucketDocument<T> bucketDoc, Class docType, ImpactMode mode, int expiry) throws StorageException{
+    public synchronized  <T extends CouchbaseDocument> Document<T> performImpact(BucketDocument<T> bucketDoc, Class docType, ImpactMode mode, int expiry) throws StorageException{
         Transcoder transcoder = transcoderMap.get(docType);
         DocumentSimulator foundDoc = dbContent.get(bucketDoc.id());
         if((foundDoc==null) && !mode.equals(ImpactMode.ADD) && !mode.equals(ImpactMode.UPDATE) ){

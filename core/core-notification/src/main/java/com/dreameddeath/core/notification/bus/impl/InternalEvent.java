@@ -31,6 +31,7 @@ public class InternalEvent {
     public void setProcessingElement(Event event,Notification notification,IEventListener listener) {
         this.notification = notification;
         this.listener = listener;
+        this.event = event;
     }
 
     public void cleanup(){

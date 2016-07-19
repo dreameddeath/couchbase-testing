@@ -58,7 +58,7 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
     public CouchbaseUniqueKeyDao getDaoFor(final String nameSpace, final CouchbaseDocumentDao docDao){
         //CouchbaseUniqueKeyDao dao = new CouchbaseUniqueKeyDao.Builder().withBaseDao(docDao).build();
         return daosMap.computeIfAbsent(nameSpace,ns->
-                new CouchbaseUniqueKeyDao.Builder().withBaseDao(docDao).withNameSpace(ns).withClient(docDao.getClient()).build()
+                CouchbaseUniqueKeyDao.builder().withBaseDao(docDao).withNameSpace(ns).withClient(docDao.getClient()).build()
         );
     }
 

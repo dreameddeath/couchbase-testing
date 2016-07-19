@@ -23,10 +23,12 @@ import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import rx.Observable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +37,7 @@ import java.util.UUID;
  */
 @DaoForClass(Notification.class)
 public class NotificationDao extends CouchbaseDocumentWithKeyPatternDao<Notification> {
+    public static final String NOTIFICATION_UID_NAMESPACE="core/notification/id";
     public static final String FMT_KEY=EventDao.EVENT_FMT_KEY+"/notif/%s";
     public static final String PATTERN_KEY=EventDao.EVENT_KEY_PATTERN+"/notif/{nid:[^/]+}";
     public static final String NOTIFICATION_CNT_FMT=EventDao.EVENT_FMT_KEY+"/notifcnt";
@@ -55,6 +58,13 @@ public class NotificationDao extends CouchbaseDocumentWithKeyPatternDao<Notifica
         return result;
     }
 
+
+    @Override
+    public List<CouchbaseUniqueKeyDao.Builder> getUniqueKeysBuilder() {
+        return Arrays.asList(
+                CouchbaseUniqueKeyDao.builder().withBaseDao(this).withNameSpace(NOTIFICATION_UID_NAMESPACE)
+        );
+    }
 
     @Override
     protected String getKeyRawPattern() {
@@ -78,8 +88,14 @@ public class NotificationDao extends CouchbaseDocumentWithKeyPatternDao<Notifica
 
     @Override
     public Observable<Notification> asyncBuildKey(ICouchbaseSession session, final Notification newObject) throws DaoException {
-        newObject.getBaseMeta().setKey(getKeyFromParams(newObject.getEventId(),newObject.getId()));
-        return Observable.just(newObject);
+        return session.asyncIncrCounter(String.format(NOTIFICATION_CNT_FMT,newObject.getEventId()),1)
+                .map(newId->{
+                    //newObject.setId(newId);
+                    newObject.getBaseMeta().setKey(getKeyFromParams(newObject.getEventId(),newId));
+                    return newObject;
+                });
+        /*newObject.getBaseMeta().setKey(getKeyFromParams(newObject.getEventId(),newObject.getId()));
+        return Observable.just(newObject)*/
     }
 
     @Override

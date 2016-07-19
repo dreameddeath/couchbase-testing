@@ -18,6 +18,8 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import java.util.UUID;
 
+import static com.dreameddeath.core.notification.dao.NotificationDao.NOTIFICATION_UID_NAMESPACE;
+
 /**
  * Created by Christophe Jeunesse on 25/05/2016.
  */
@@ -44,12 +46,12 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
      *  id : the notification id within the event
      */
     @DocumentProperty("id")
-    private Property<Long> id = new ImmutableProperty<>(Notification.this);
+    transient private Property<Long> id = new ImmutableProperty<>(Notification.this);
     /**
      *  eventId : the event id being notified
      */
-    @DocumentProperty("eventId") @Unique(nameSpace = "core/notification/id",additionnalFields = {"listenerName"})
-    private Property<UUID> eventId = new ImmutableProperty<>(Notification.this);
+    @DocumentProperty("eventId") @Unique(nameSpace = NOTIFICATION_UID_NAMESPACE,additionnalFields = {"listenerName"})
+    transient private Property<UUID> eventId = new ImmutableProperty<>(Notification.this);
     /**
      *  listenerName : name of the listener
      */
