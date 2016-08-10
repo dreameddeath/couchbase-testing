@@ -50,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.dreameddeath.core.notification.config.NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE;
+
 /**
  * Created by Christophe Jeunesse on 01/07/2016.
  */
@@ -108,8 +110,14 @@ public class EventNotificationTest extends Assert{
         }
 
         @Override
-        protected <T extends Event> Observable<Boolean> process(T event, Notification notification,ICouchbaseSession session) {
+        protected <T extends Event> Observable<Boolean> doProcess(T event, Notification notification,ICouchbaseSession session) {
             //LOG.error("Received event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
+            try {
+                Thread.sleep(new Double(Math.random() * 100).longValue());
+            }
+            catch(InterruptedException e){
+
+            }
             nbEventProcessed.incrementAndGet();
             if(!threadCounter.containsKey(Thread.currentThread().getName())){
                 threadCounter.put(Thread.currentThread().getName(),0);
@@ -148,7 +156,8 @@ public class EventNotificationTest extends Assert{
 
         testListener = new NotificationTestListener("multiThreaded");
         testListener.setSessionFactory(sessionFactory);
-        bus.addMultiThreadedListener(testListener);
+        bus.addListener(testListener);
+        //bus.addMultiThreaded(testListener);
         bus.start();
     }
 
@@ -161,6 +170,7 @@ public class EventNotificationTest extends Assert{
             for (int i = 1; i <= 20; ++i) {
                 EventTest test = new EventTest();
                 test.toAdd = i;
+                test.setCorrelationId(test.toAdd.toString());
                 EventFireResult<EventTest> result = bus.fireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
@@ -179,9 +189,9 @@ public class EventNotificationTest extends Assert{
                     nbReceived++;
                     notificationList.add(resultNotif);
                 }
-            } while (resultNotif != null || (nbReceived < 40));
+            } while (resultNotif != null && (nbReceived< 40));
         }
-        assertTrue(testListener.getThreadCounter().keySet().size()>1);
+        assertEquals(EVENTBUS_THREAD_POOL_SIZE.get(),testListener.getThreadCounter().keySet().size());
         assertEquals(20*2,nbReceived);
         assertEquals(((20+1)*20/2)*2,testListener.getTotalCounter());
         Thread.sleep(50);//Wait for all updates
@@ -228,7 +238,7 @@ public class EventNotificationTest extends Assert{
             for (Notification srcNotif : notificationList) {
                 Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
                 assertEquals(Notification.Status.SUBMITTED,notif.getStatus());
-                assertEquals(1,(long)notif.getNbAttempts());
+                assertEquals(1,(long)notif.getNbAttempts());//Simple re-submission, no new attempt
                 EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
                 assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
                 assertEquals(2,(long)eventTest.getSubmissionAttempt());

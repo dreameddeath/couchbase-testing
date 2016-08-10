@@ -18,7 +18,6 @@ package com.dreameddeath.testing.couchbase;
 import com.codahale.metrics.MetricRegistry;
 import com.couchbase.client.core.message.dcp.MutationMessage;
 import com.couchbase.client.core.message.dcp.RemoveMessage;
-import com.couchbase.client.core.message.dcp.SnapshotMarkerMessage;
 import com.dreameddeath.core.config.ConfigPropertyFactory;
 import com.dreameddeath.core.config.annotation.ConfigPropertyClassReference;
 import com.dreameddeath.core.config.annotation.ConfigPropertyPackage;
@@ -66,7 +65,7 @@ public class CouchbaseBucketSimulatorTest {
         }
 
         @Override
-        public void manageSnapshotMessage(SnapshotMarkerMessage message) {
+        public void manageSnapshotMessage(SnapshotMessage message) {
 
         }
 

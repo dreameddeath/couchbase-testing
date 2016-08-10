@@ -70,14 +70,14 @@ public class CouchbaseDCPConnectorSimulator extends CouchbaseDCPConnector{
         CouchbaseMessage msg=null;
         switch (mode){
             case DELETE:
-                msg = new RemoveMessage((short)0,doc.getKey(),doc.getCas(),getBucket());
+                msg = new RemoveMessage(doc.getData().array().length,(short)0,doc.getKey(),doc.getCas(),/*sequence*/0,/*revSeq*/0,getBucket());
                 break;
             case ADD:
             case APPEND:
             case PREPEND:
             case REPLACE:
             case UPDATE:
-                msg = new MutationMessage((short)0,doc.getKey(),doc.getData(),doc.getExpiry(),doc.getFlags(),0,doc.getCas(),getBucket());
+                msg = new MutationMessage(doc.getData().array().length,(short)0,doc.getKey(),doc.getData(),doc.getExpiry(),/*sequence*/0,/*revSeq*/0,doc.getFlags(),/*lockTime*/0,doc.getCas(),getBucket());
                 break;
         }
         getDcpRingBuffer().tryPublishEvent(getTranslator(),msg);

@@ -18,7 +18,6 @@ package com.dreameddeath.core.elasticsearch.dcp;
 
 import com.couchbase.client.core.message.dcp.MutationMessage;
 import com.couchbase.client.core.message.dcp.RemoveMessage;
-import com.couchbase.client.core.message.dcp.SnapshotMarkerMessage;
 import com.dreameddeath.core.couchbase.dcp.exception.HandlerException;
 import com.dreameddeath.core.couchbase.dcp.impl.AbstractDCPFlowHandler;
 import com.dreameddeath.core.elasticsearch.ElasticSearchClient;
@@ -88,7 +87,7 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
             GetResponse response = client.getInternalClient().prepareGet(DCP_FLOW_INDEX_NAME, DCP_FLOW_INDEX_NAME, snapshotIdBuilder(bucketName, partition)).execute().get();
             if(response.isExists()){
                 ElasticSearchSnapshotStorage storage = client.getObjectMapper().readValue(response.getSourceAsBytes(),ElasticSearchSnapshotStorage.class);
-                return new LastSnapshotReceived(storage.getStartSequence(),storage.getEndSequence());
+                return new LastSnapshotReceived(storage.getSequence());
             }
         }
         catch(Exception e){
@@ -98,12 +97,12 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
     }
 
     @Override
-    public void manageSnapshotMessage(SnapshotMarkerMessage message) {
+    public void manageSnapshotMessage(SnapshotMessage message) {
         ElasticSearchSnapshotStorage doc = new ElasticSearchSnapshotStorage(message);
         try {
             byte[] serialized = client.getObjectMapper().writeValueAsBytes(doc);
             createIndexIfNeeded(DCP_FLOW_INDEX_NAME);
-            UpdateRequest upsertRequest = new UpdateRequest(DCP_FLOW_INDEX_NAME, DCP_FLOW_TYPE_NAME, snapshotIdBuilder(message.bucket(),message.partition())).source(serialized).upsert(serialized);
+            UpdateRequest upsertRequest = new UpdateRequest(DCP_FLOW_INDEX_NAME, DCP_FLOW_TYPE_NAME, snapshotIdBuilder(message.getBucketName(),message.getPartition())).source(serialized).upsert(serialized);
             client.getInternalClient().update(upsertRequest).get();
         }
         catch(Exception e){

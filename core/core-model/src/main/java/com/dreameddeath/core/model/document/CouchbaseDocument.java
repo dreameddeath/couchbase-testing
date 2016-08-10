@@ -56,6 +56,7 @@ public class CouchbaseDocument implements HasParent {
         private int expiry;
         private DocumentState docState = DocumentState.NEW;
         private boolean isFrozen = false;
+        private String bucketName;
 
         public final String getKey(){ return key; }
         public final void setKey(String key){ this.key=key;}
@@ -151,6 +152,14 @@ public class CouchbaseDocument implements HasParent {
             if(isFrozen){
                 throw new IllegalStateException("The modification on the document isn't allowed");
             }
+        }
+
+        public String getBucketName() {
+            return bucketName;
+        }
+
+        public void setBucketName(String bucketName) {
+            this.bucketName = bucketName;
         }
     }
 

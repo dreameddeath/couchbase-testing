@@ -18,13 +18,13 @@ package com.dreameddeath.core.couchbase.dcp;
 
 import com.couchbase.client.core.ClusterFacade;
 import com.couchbase.client.core.CouchbaseCore;
-import com.couchbase.client.core.config.CouchbaseBucketConfig;
+import com.couchbase.client.core.endpoint.dcp.DCPConnection;
 import com.couchbase.client.core.message.CouchbaseMessage;
+import com.couchbase.client.core.message.ResponseStatus;
 import com.couchbase.client.core.message.cluster.*;
-import com.couchbase.client.core.message.dcp.DCPRequest;
 import com.couchbase.client.core.message.dcp.OpenConnectionRequest;
-import com.couchbase.client.core.message.dcp.StreamRequestRequest;
-import com.couchbase.client.core.message.dcp.StreamRequestResponse;
+import com.couchbase.client.core.message.dcp.OpenConnectionResponse;
+import com.couchbase.client.core.message.kv.MutationToken;
 import com.couchbase.client.deps.com.lmax.disruptor.EventTranslatorOneArg;
 import com.couchbase.client.deps.com.lmax.disruptor.RingBuffer;
 import com.couchbase.client.deps.com.lmax.disruptor.dsl.Disruptor;
@@ -57,6 +57,7 @@ public class CouchbaseDCPConnector implements Runnable {
     private final String streamName;
     private final String password;
     private final EventTranslatorOneArg<DCPEvent, CouchbaseMessage> translator;
+    private DCPConnection dcpConnection;
 
 
     protected RingBuffer<DCPEvent> getDcpRingBuffer(){
@@ -74,7 +75,15 @@ public class CouchbaseDCPConnector implements Runnable {
 
 
     public CouchbaseDCPConnector(final ICouchbaseDCPEnvironment environment,
+                                 final List<String> couchbaseNodes,
+                                 final String couchbaseBucket, final String couchbasePassword,
+                                 final AbstractDCPFlowHandler flowHandler){
+        this(environment, couchbaseNodes,new CouchbaseCore(environment), couchbaseBucket, couchbasePassword, flowHandler);
+    }
+
+    public CouchbaseDCPConnector(final ICouchbaseDCPEnvironment environment,
                                   final List<String> couchbaseNodes,
+                                  final ClusterFacade core,
                                   final String couchbaseBucket, final String couchbasePassword,
                                   final AbstractDCPFlowHandler flowHandler
     ) {
@@ -83,7 +92,7 @@ public class CouchbaseDCPConnector implements Runnable {
         nodes = couchbaseNodes;
         bucket = couchbaseBucket;
         password = couchbasePassword;
-        core = new CouchbaseCore(environment);
+        this.core = core;
         ExecutorService disruptorExecutor = Executors.newFixedThreadPool(environment.threadPoolSize(), new DefaultThreadFactory(environment.threadPoolName(), true));
         disruptor = new Disruptor<>(
                 DCP_EVENT_FACTORY,
@@ -92,7 +101,7 @@ public class CouchbaseDCPConnector implements Runnable {
         );
 
         disruptor.handleEventsWith(flowHandler.getEventHandler());
-        disruptor.handleExceptionsWith(flowHandler.getExceptionHandler());
+        disruptor.setDefaultExceptionHandler(flowHandler.getExceptionHandler());
         disruptor.start();
         dcpRingBuffer = disruptor.getRingBuffer();
 
@@ -107,54 +116,60 @@ public class CouchbaseDCPConnector implements Runnable {
     public void connect(final long timeout, final TimeUnit timeUnit) {
         ConnectionString connectionString = ConnectionString.fromHostnames(nodes);
         List<String> seedNodes = connectionString.hosts().stream().map(InetSocketAddress::getHostName).collect(Collectors.toList());
-        core.send(new SeedNodesRequest(seedNodes))
-                .timeout(timeout, timeUnit)
-                .toBlocking()
-                .single();
-        core.send(new OpenBucketRequest(bucket, password))
+        OpenConnectionResponse response = core.<SeedNodesResponse>send(new SeedNodesRequest(seedNodes))
+                .flatMap(result-> core.<OpenBucketResponse>send(new OpenBucketRequest(bucket, password)))
+                .flatMap(result->core.<OpenConnectionResponse>send(new OpenConnectionRequest(streamName, bucket)))
                 .timeout(timeout, timeUnit)
                 .toBlocking()
                 .single();
 
+        this.dcpConnection = response.connection();
     }
 
     /**
      * Executes worker reading loop, which relays events from Couchbase to Any "client".
      */
     public void run() {
-        core.send(new OpenConnectionRequest(streamName, bucket))
-                .toList()
-                .flatMap(couchbaseResponses -> CouchbaseDCPConnector.this.partitionSize())
+        dcpConnection.getCurrentState()
                 .flatMap(this::requestStreams)
+                .toList()
+                .flatMap(list->dcpConnection.subject())
                 .toBlocking()
                 .forEach(dcpRequest -> dcpRingBuffer.tryPublishEvent(CouchbaseDCPConnector.this.translator, dcpRequest));
 
     }
 
-    private Observable<Integer> partitionSize() {
-        return core
-                .<GetClusterConfigResponse>send(new GetClusterConfigRequest())
-                .map(response->((CouchbaseBucketConfig) response.config().bucketConfig(bucket)).numberOfPartitions());
+    private Observable<ResponseStatus> requestStreams(final MutationToken token) {
+        long startSequenceNumber = 0;
+        AbstractDCPFlowHandler.LastSnapshotReceived lastSnapshotReceived = flowHandler.getLastSnapshot(bucket, (short)token.vbucketID());
+        if(lastSnapshotReceived!=null) {
+            startSequenceNumber = lastSnapshotReceived.getSequenceNumber();
+        }
+        return dcpConnection.addStream((short) token.vbucketID(), token.vbucketUUID(),
+                    startSequenceNumber,MAX_DCP_SEQUENCE,
+                    startSequenceNumber,MAX_DCP_SEQUENCE
+                );
+
 
     }
 
-    private Observable<DCPRequest> requestStreams(final int numberOfPartitions) {
+    /*private Observable<DCPRequest> requestStreams(final int numberOfPartitions) {
         return Observable.merge((Observable<? extends Observable<? extends DCPRequest>>)
                 Observable.range(0, numberOfPartitions)
                         .flatMap(partition -> core.<StreamRequestResponse>send(buildStreamRequest(partition)))
                         .map(StreamRequestResponse::stream)
         );
-    }
+    }*/
 
-    public StreamRequestRequest buildStreamRequest(Integer partition){
+    /*public StreamRequestRequest buildStreamRequest(Integer partition){
         AbstractDCPFlowHandler.LastSnapshotReceived lastSnapshotReceived = flowHandler.getLastSnapshot(bucket, partition.shortValue());
         if(lastSnapshotReceived!=null){
-            return new StreamRequestRequest(partition.shortValue(),0,0, MAX_DCP_SEQUENCE,lastSnapshotReceived.getStartSequenceNumber(),lastSnapshotReceived.getEndSequenceNumber(),bucket);
+            return new StreamRequestRequest(partition.shortValue(),0,0, MAX_DCP_SEQUENCE,lastSnapshotReceived.getStartSequenceNumber(),lastSnapshotReceived.getEndSequenceNumber(),bucket,password);
         }
         else {
             return new StreamRequestRequest(partition.shortValue(), bucket);
         }
-    }
+    }*/
 
     public Boolean stop(){
         return core.send(new CloseBucketRequest(bucket)).map(reponse->reponse.status().isSuccess()).toBlocking().first();

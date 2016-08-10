@@ -25,36 +25,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Christophe Jeunesse on 29/05/2016.
  */
 public class EventBusImpl implements IEventBus {
+    private final ThreadFactory threadFactory = new DefaultThreadFactory();
     private final Map<String,IEventListener> listenersMap = new ConcurrentHashMap<>();
-    private final Map<String,IEventListener> listenersMultithreadedMap = new ConcurrentHashMap<>();
-    private final Map<String,IEventListener> fullListenerMap = new ConcurrentHashMap<>();
-    private final Disruptor<InternalEvent> disruptor;
+    private final Disruptor<InternalEvent>[] disruptors;
     private final EventTranslatorTwoArg<InternalEvent,Event, Notification> translator;
-    private final RingBuffer<InternalEvent> ringBuffer;
+    private final RingBuffer<InternalEvent>[] ringBuffers;
 
     public EventBusImpl(){
-        int bufferSize = Integer.highestOneBit(NotificationConfigProperties.EVENTBUS_BUFFER_SIZE.get());
-
-        disruptor = new Disruptor<>(InternalEvent::new,
-                                    bufferSize,
-                                    Executors.defaultThreadFactory(),
-                                    ProducerType.MULTI,
-                                    new BlockingWaitStrategy()
-                    );
-        //disruptor.
-        disruptor.setDefaultExceptionHandler(new InternalExceptionHandler());
+        int size = NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE.getValue(1);
+        disruptors = new Disruptor[size];
+        ringBuffers = new RingBuffer[size];
         translator=(internalEvent, sequence, event,notification) -> internalEvent.setProcessingElement(event,notification,getListenerByName(notification.getListenerName()));
-        ringBuffer=disruptor.getRingBuffer();
     }
 
     public IEventListener getListenerByName(String listenerName){
-        return fullListenerMap.get(listenerName);
+        return listenersMap.get(listenerName);
     }
 
     @Override
@@ -62,40 +54,41 @@ public class EventBusImpl implements IEventBus {
         IEventListener putRes;
         putRes = listenersMap.put(listener.getName(),listener);
         Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
-        putRes = fullListenerMap.put(listener.getName(),listener);
-        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
         //disruptor.handleEventsWith(new InternalEventHandler(listener));
     }
 
     @Override
-    public void addMultiThreadedListener(IEventListener listener){
-        IEventListener putRes;
-        putRes = listenersMultithreadedMap.put(listener.getName(),listener);
-        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
-        putRes = fullListenerMap.put(listener.getName(),listener);
-        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
+    public void start() {
+        int bufferSize = Integer.highestOneBit(NotificationConfigProperties.EVENTBUS_BUFFER_SIZE.get());
+        for(int index=0;index<disruptors.length;index++) {
+            disruptors[index] = new Disruptor<>(InternalEvent::new,
+                    bufferSize,
+                    threadFactory,
+                    ProducerType.MULTI,
+                    new BlockingWaitStrategy()
+            );
+            disruptors[index].setDefaultExceptionHandler(new InternalExceptionHandler());
+            //ringBuffers[index] =disruptors[index].getRingBuffer();
+        }
+
+        for(int index=0;index<disruptors.length;index++){
+            disruptors[index].handleEventsWith(new InternalEventHandler());
+            ringBuffers[index]=disruptors[index].start();
+        }
     }
 
 
     @Override
-    public void start() {
-        final ArrayList<EventHandler<InternalEvent>> handlersList = new ArrayList<>();
-        int size = NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE.getValue(1);
-        listenersMap.forEach((name,listener)->handlersList.add(new InternalEventHandler(listener)));
-        listenersMultithreadedMap.forEach((name,listener)->{
-            for(int pos=0;pos<size;++pos) {
-                handlersList.add(new InternalEventHandler(listener,pos,size));
-            }
-        });
-
-        disruptor.handleEventsWith((EventHandler<InternalEvent>[])handlersList.toArray(new EventHandler[handlersList.size()]));
-
-        disruptor.start();
+    public void removeListener(IEventListener listener) {
+        listenersMap.remove(listener.getName());
     }
 
     @Override
     public void stop() {
-        disruptor.shutdown();
+        for(int index=0;index<disruptors.length;index++) {
+            //if(disruptors[index].s)
+            disruptors[index].shutdown();
+        }
     }
 
     @Override
@@ -109,7 +102,7 @@ public class EventBusImpl implements IEventBus {
                 event-> {
                     event.incrSubmissionAttempt();
                     if(event.getSubmissionAttempt()==1) {
-                        fullListenerMap.values().stream()
+                        listenersMap.values().stream()
                                 .filter(listener -> listener.isApplicable(event))
                                 .forEach(listener -> event.addListeners(listener.getName()));
 
@@ -167,13 +160,16 @@ public class EventBusImpl implements IEventBus {
                     })
                     .filter(notification -> notification.getStatus()!= Notification.Status.SUBMITTED && notification.getStatus()!= Notification.Status.CANCELLED )
                     .map(notification -> {
-                        ringBuffer.publishEvent(translator,event,notification);
+                        String correlationId  = event.getCorrelationId();
+                        if(correlationId==null){
+                            correlationId = event.getId().toString();
+                        }
+                        int index = Math.abs((correlationId+notification.getListenerName()).hashCode())%ringBuffers.length;
+                        ringBuffers[index].publishEvent(translator,event,notification);
                         return new PublishedResult(notification);
                     })
                     .onErrorResumeNext(
-                            throwable -> {
-                                return Observable.just(new PublishedResult(inputListnerName,throwable));
-                            }
+                            throwable -> Observable.just(new PublishedResult(inputListnerName,throwable))
                     );
                 listPublishedResult.add(notificationObservable);
         }
@@ -189,38 +185,16 @@ public class EventBusImpl implements IEventBus {
 
     private class InternalEventHandler implements EventHandler<InternalEvent>{
         private final Logger LOG = LoggerFactory.getLogger(InternalEventHandler.class);
-        private final IEventListener listener;
-        private final boolean isMultithreaded;
-        private final int nbThreads;
-        private final int rank;
-
-        public InternalEventHandler(IEventListener listener) {
-            this(listener,0,0);
-        }
-
-        public InternalEventHandler(IEventListener listener,int rank,int nbThreads) {
-            this.listener = listener;
-            this.rank = rank;
-            this.nbThreads = nbThreads;
-            this.isMultithreaded = nbThreads>0;
-        }
-
 
         @Override
         public void onEvent(InternalEvent event, long sequence, boolean endOfBatch) throws Exception {
-            if(listener.getName().equals(event.getNotification().getListenerName()) && (!isMultithreaded || ((sequence % nbThreads)==rank))) {
+            //if(listener.getName().equals(event.getNotification().getListenerName()) && (!isMultithreaded || ((sequence % nbThreads)==rank))) {
                 LOG.trace("Submitting {} with seq {} for listener {}",event.getNotification().getBaseMeta().getKey(),sequence,this);
-                SubmissionResult result = listener.submit(event.getNotification(), event.getEvent()).toBlocking().single();
+                SubmissionResult result = event.getListener().submit(event.getNotification(), event.getEvent()).toBlocking().single();
                 if(result.isFailure()){
                     throw new RuntimeException(result.getError());
                 }
-            }
-        }
-
-
-        @Override
-        public String toString() {
-            return "InternalEventHandler{"+listener.getName()+(isMultithreaded?"["+rank+"/"+nbThreads+"]":"")+"}";
+            //}
         }
     }
 
@@ -243,4 +217,31 @@ public class EventBusImpl implements IEventBus {
         }
     }
 
+
+    static class DefaultThreadFactory implements ThreadFactory {
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
+
+        DefaultThreadFactory() {
+            SecurityManager s = System.getSecurityManager();
+            group = (s != null) ? s.getThreadGroup() :
+                    Thread.currentThread().getThreadGroup();
+            namePrefix = "pool-eventbus-" +
+                    poolNumber.getAndIncrement() +
+                    "-thread-";
+        }
+
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r,
+                    namePrefix + threadNumber.getAndIncrement(),
+                    0);
+            if (t.isDaemon())
+                t.setDaemon(false);
+            if (t.getPriority() != Thread.NORM_PRIORITY)
+                t.setPriority(Thread.NORM_PRIORITY);
+            return t;
+        }
+    }
 }

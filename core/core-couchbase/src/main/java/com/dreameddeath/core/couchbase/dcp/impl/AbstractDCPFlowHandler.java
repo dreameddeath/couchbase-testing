@@ -121,28 +121,52 @@ public abstract class AbstractDCPFlowHandler {
     }
 
     public abstract LastSnapshotReceived getLastSnapshot(String bucketName, short partition);
-    public abstract void manageSnapshotMessage(SnapshotMarkerMessage message);
+    public abstract void manageSnapshotMessage(SnapshotMessage message);
     public abstract void manageMutationMessage(MutationMessage message, CouchbaseDocument mappedObject);
     public abstract void manageDeletionMessage(RemoveMessage message);
 
     public abstract void manageException(HandlerException message);
 
 
+    public static class SnapshotMessage{
+        private final String bucketName;
+        private final short partition;
+        private final long sequenceNumber;
+
+        public SnapshotMessage(String bucketName, short partition, long sequenceNumber) {
+            this.bucketName = bucketName;
+            this.partition = partition;
+            this.sequenceNumber = sequenceNumber;
+        }
+
+
+        public SnapshotMessage(SnapshotMarkerMessage message) {
+            this(message.bucket(),message.partition(),message.endSequenceNumber());
+        }
+
+
+        public String getBucketName() {
+            return bucketName;
+        }
+
+        public short getPartition() {
+            return partition;
+        }
+
+        public long getSequenceNumber() {
+            return sequenceNumber;
+        }
+    }
+
     public static class LastSnapshotReceived{
-        private final long startSequenceNumber;
-        private final long endSequenceNumber;
+        private final long sequenceNumber;
 
-        public LastSnapshotReceived(long startSequenceNumber,long endSequenceNumber){
-            this.startSequenceNumber = startSequenceNumber;
-            this.endSequenceNumber = endSequenceNumber;
+        public LastSnapshotReceived(long sequenceNumber){
+            this.sequenceNumber = sequenceNumber;
         }
 
-        public long getStartSequenceNumber() {
-            return startSequenceNumber;
-        }
-
-        public long getEndSequenceNumber() {
-            return endSequenceNumber;
+        public long getSequenceNumber() {
+            return sequenceNumber;
         }
     }
 
@@ -176,7 +200,7 @@ public abstract class AbstractDCPFlowHandler {
                         break;
                     case SNAPSHOT:
                         metricContext = snapshotMetrics.start();
-                        manageSnapshotMessage(event.asSnapshotMessage());
+                        manageSnapshotMessage(new SnapshotMessage(event.asSnapshotMessage()));
                         break;
                     default:
                 }

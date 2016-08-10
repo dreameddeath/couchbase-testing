@@ -55,10 +55,12 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
         doc.getBaseMeta().setCas(ref.doc.getBaseMeta().getCas());
         doc.getBaseMeta().setExpiry(ref.doc.getBaseMeta().getExpiry());
         doc.getBaseMeta().setDbSize(ref.doc.getBaseMeta().getDbSize());
+        doc.getBaseMeta().setBucketName(ref.doc.getBaseMeta().getBucketName());
         if(ref.mutationToken()!=null){
             doc.getBaseMeta().setVbucketID(ref.mutationToken().vbucketID());
             doc.getBaseMeta().setVbucketUUID(ref.mutationToken().vbucketUUID());
             doc.getBaseMeta().setSequenceNumber(ref.mutationToken().sequenceNumber());
+            doc.getBaseMeta().setBucketName(ref.mutationToken().bucket());
         }
     }
 
@@ -69,7 +71,7 @@ public abstract class BucketDocument<T extends CouchbaseDocument> implements Doc
 
     public MutationToken mutationToken(){
         if(doc.getBaseMeta().getVbucketID()!=0){
-            return new MutationToken(doc.getBaseMeta().getVbucketID(),doc.getBaseMeta().getVbucketUUID(),doc.getBaseMeta().getSequenceNumber());
+            return new MutationToken(doc.getBaseMeta().getVbucketID(),doc.getBaseMeta().getVbucketUUID(),doc.getBaseMeta().getSequenceNumber(),doc.getBaseMeta().getBucketName());
         }
         else{
             return null;

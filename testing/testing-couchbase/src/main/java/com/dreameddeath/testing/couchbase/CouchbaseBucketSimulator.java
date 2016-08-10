@@ -566,7 +566,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     protected  Predicate<InternalRow> decodeParams(ViewQuery query,Map<String,Integer> streamComplements){
         Map<String,String> params = new HashMap<>();
         //can use split as it is enconded
-        for(String paramElem:query.toString().split("&")){
+        for(String paramElem:query.toQueryString().split("&")){
             String[] paramParts=paramElem.split("=");
             try {
                 params.put(paramParts[0], URLDecoder.decode(paramParts[1],"UTF-8"));

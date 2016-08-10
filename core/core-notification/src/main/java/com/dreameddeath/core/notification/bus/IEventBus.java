@@ -16,5 +16,6 @@ public interface IEventBus {
     void start();
     void stop();
     void addListener(IEventListener listener);
-    void addMultiThreadedListener(IEventListener listener);
+    //void addMultiThreaded(IEventListener listener,boolean isMultithreaded);
+    void removeListener(IEventListener listener);
 }

@@ -85,6 +85,7 @@ public class GenericCouchbaseTranscoder<T extends CouchbaseDocument> extends Abs
             content.getBaseMeta().setVbucketID(mutationToken.vbucketID());
             content.getBaseMeta().setVbucketUUID(mutationToken.vbucketUUID());
             content.getBaseMeta().setSequenceNumber(mutationToken.sequenceNumber());
+            content.getBaseMeta().setBucketName(mutationToken.bucket());
         }
         try {
             return baseDocumentContructor.newInstance(content);

@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.elasticsearch.dcp;
 
-import com.couchbase.client.core.message.dcp.SnapshotMarkerMessage;
+import com.dreameddeath.core.couchbase.dcp.impl.AbstractDCPFlowHandler;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
@@ -26,14 +26,12 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 public class ElasticSearchSnapshotStorage {
     private String bucketName;
     private int partition;
-    private Long startSequence;
-    private Long endSequence;
+    private Long sequence;
 
-    public ElasticSearchSnapshotStorage(SnapshotMarkerMessage message){
-        bucketName = message.bucket();
-        partition = message.partition();
-        startSequence = message.startSequenceNumber();
-        endSequence = message.endSequenceNumber();
+    public ElasticSearchSnapshotStorage(AbstractDCPFlowHandler.SnapshotMessage message){
+        bucketName = message.getBucketName();
+        partition = message.getPartition();
+        sequence = message.getSequenceNumber();
     }
 
     public ElasticSearchSnapshotStorage(){}
@@ -58,23 +56,14 @@ public class ElasticSearchSnapshotStorage {
         this.partition = partition;
     }
 
-    @JsonGetter("startSeq")
-    public Long getStartSequence() {
-        return startSequence;
+    @JsonGetter("sequence")
+    public Long getSequence() {
+        return sequence;
     }
 
-    @JsonSetter("startSeq")
-    public void setStartSequence(Long startSequence) {
-        this.startSequence = startSequence;
+    @JsonSetter("sequence")
+    public void setSequence(Long sequence) {
+        this.sequence= sequence;
     }
 
-    @JsonGetter("endSeq")
-    public Long getEndSequence() {
-        return endSequence;
-    }
-
-    @JsonSetter("endSeq")
-    public void setEndSequence(Long endSequence) {
-        this.endSequence = endSequence;
-    }
 }

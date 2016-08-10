@@ -1,47 +1,17 @@
 package com.dreameddeath.core.notification.listener.impl;
 
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.notification.listener.IEventListener;
 import com.dreameddeath.core.notification.listener.SubmissionResult;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
-import com.dreameddeath.core.user.AnonymousUser;
-import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 30/05/2016.
  */
-public abstract class AbstractLocalListener implements IEventListener{
-    private ICouchbaseSessionFactory sessionFactory;
-
-    @Autowired
-    public void setSessionFactory(ICouchbaseSessionFactory factory){
-        this.sessionFactory = factory;
-    }
-
+public abstract class AbstractLocalListener  extends AbstractNotificationProcessor implements IEventListener{
     @Override
     public <T extends Event> Observable<SubmissionResult> submit(final Notification sourceNotif, final T event) {
-        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, AnonymousUser.INSTANCE);
-
-        if(sourceNotif.getStatus().equals(Notification.Status.SUBMITTED)|| sourceNotif.getStatus().equals(Notification.Status.CANCELLED)){
-            Observable.error(new RuntimeException("Bad Status "+sourceNotif.getStatus()+" for notif "+sourceNotif.getEventId()+"/"+sourceNotif.getId()+". The listener name is["+sourceNotif.getListenerName()+"]"));
-        }
-
-        return process(event,sourceNotif,session)
-                .map(boolRes->{
-                    sourceNotif.setStatus(Notification.Status.SUBMITTED);
-                    sourceNotif.incNbAttempts();
-                    return sourceNotif;
-                })
-                .flatMap(session::asyncSave)
-                .map(notif-> new SubmissionResult(notif,true))
-                .onErrorResumeNext(throwable ->
-                        Observable.just(new SubmissionResult(sourceNotif,throwable))
-                );
+        return process(sourceNotif,event);
     }
-
-    protected  abstract <T extends Event> Observable<Boolean> process(T event,Notification notification,ICouchbaseSession session);
-
 }
