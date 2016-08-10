@@ -148,6 +148,7 @@ public class EventNotificationTest extends Assert{
 
     @Before
     public void setupBus(){
+        //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getName(),4);
         bus = new EventBusImpl();
 
         testListener = new NotificationTestListener("singleThreaded");
@@ -164,13 +165,13 @@ public class EventNotificationTest extends Assert{
     @Test
     public void eventBusTest() throws Exception{
         List<EventTest> submittedEvents = new ArrayList<>();
-
+        int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 2;
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
-            for (int i = 1; i <= 20; ++i) {
+            for (int i = 1; i <= nbEvent; ++i) {
                 EventTest test = new EventTest();
                 test.toAdd = i;
-                test.setCorrelationId(test.toAdd.toString());
+                //test.setCorrelationId(test.toAdd.toString());
                 EventFireResult<EventTest> result = bus.fireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
@@ -189,11 +190,11 @@ public class EventNotificationTest extends Assert{
                     nbReceived++;
                     notificationList.add(resultNotif);
                 }
-            } while (resultNotif != null && (nbReceived< 40));
+            } while (resultNotif != null && (nbReceived< (nbEvent*2)));
         }
         assertEquals(EVENTBUS_THREAD_POOL_SIZE.get(),testListener.getThreadCounter().keySet().size());
-        assertEquals(20*2,nbReceived);
-        assertEquals(((20+1)*20/2)*2,testListener.getTotalCounter());
+        assertEquals(nbEvent*2,nbReceived);
+        assertEquals(((nbEvent+1)*nbEvent/2)*2,testListener.getTotalCounter());
         Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession(AnonymousUser.INSTANCE);
