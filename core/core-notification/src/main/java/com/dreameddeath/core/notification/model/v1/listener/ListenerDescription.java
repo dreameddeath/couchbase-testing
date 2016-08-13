@@ -4,42 +4,42 @@ import com.dreameddeath.core.curator.model.IRegisterable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 25/05/2016.
  */
 public class ListenerDescription implements IRegisterable {
-    @JsonProperty("groupName")
-    private String groupName;
+    @JsonProperty("name")
+    private String name;
     @JsonProperty("listenedEvents")
-    private List<ListenedEvent> listenedNotification=new ArrayList<>();
+    private List<ListenedEvent> listenedEvents =new ArrayList<>();
     @JsonProperty("type")
     private String type;
+    @JsonProperty("allowDeferred")
+    private Boolean allowDeferred;
+    @JsonProperty("params")
+    private Map<String,String> parameters;
 
-
-    public String getGroupName() {
-        return groupName;
+    public String getName() {
+        return name;
     }
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Collection<ListenedEvent> getListenedNotification() {
-        return Collections.unmodifiableList(listenedNotification);
+    public Collection<ListenedEvent> getListenedEvents() {
+        return Collections.unmodifiableList(listenedEvents);
     }
 
-    public void setListenedNotification(Collection<ListenedEvent> listenedNotification) {
-        this.listenedNotification.clear();
-        this.listenedNotification.addAll(listenedNotification);
+    public void setListenedEvents(Collection<ListenedEvent> listenedEvents) {
+        this.listenedEvents.clear();
+        this.listenedEvents.addAll(listenedEvents);
     }
 
-    public void addListenedNotification(ListenedEvent listenedNotification) {
-        this.listenedNotification.add(listenedNotification);
+    public void addListenedEvent(ListenedEvent listenedEvent) {
+        this.listenedEvents.add(listenedEvent);
     }
 
     public String getType() {
@@ -50,9 +50,24 @@ public class ListenerDescription implements IRegisterable {
         this.type = type;
     }
 
+    public Boolean getAllowDeferred() {
+        return allowDeferred;
+    }
+
+    public void setAllowDeferred(Boolean allowDeferred) {
+        this.allowDeferred = allowDeferred;
+    }
+
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
 
     @JsonIgnore
     public String getUid(){
-        return groupName;
+        return name;
     }
 }

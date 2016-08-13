@@ -145,7 +145,9 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
 
     public enum Status{
         INITIALIZED,
+        DEFERRED,
         SUBMITTED,
+        PROCESSED,
         FAILED,
         CANCELLED
     }

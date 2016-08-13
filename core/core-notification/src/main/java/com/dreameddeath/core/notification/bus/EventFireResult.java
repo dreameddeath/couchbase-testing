@@ -12,10 +12,13 @@ public class EventFireResult<T extends Event> {
     private final T event;
     private final List<PublishedResult> results;
     private final boolean hasFailures;
+    private final boolean allNotificationsInDb;
+
     private EventFireResult(Builder<T> builder){
         event=builder.event;
         results=builder.dispatchResults;
         hasFailures=results.stream().filter(PublishedResult::hasFailure).count()>0;
+        allNotificationsInDb = results.stream().filter(PublishedResult::isNotificationInDb).count()==event.getListeners().size();
     }
 
     public T getEvent() {
@@ -26,8 +29,16 @@ public class EventFireResult<T extends Event> {
         return !hasFailures;
     }
 
+    public boolean hasFailures() {
+        return hasFailures;
+    }
+
     public static <TEVT extends Event> Builder<TEVT> builder(TEVT event){
         return new Builder<>(event);
+    }
+
+    public boolean areAllNotificationsInDb() {
+        return allNotificationsInDb;
     }
 
     public static class Builder<T extends Event>{

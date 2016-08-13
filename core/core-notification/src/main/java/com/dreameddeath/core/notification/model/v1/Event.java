@@ -11,6 +11,7 @@ import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardLongProperty;
+import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -47,7 +48,6 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      */
     @DocumentProperty("id")
     private Property<UUID> id = new ImmutableProperty<>(Event.this,UUID.randomUUID());
-
     /**
      *  type : type of event
      */
@@ -73,6 +73,11 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      */
     @DocumentProperty("submissionAttempt")
     private NumericProperty<Long> submissionAttempt = new StandardLongProperty(Event.this,0);
+    /**
+     *  status : The status of the event
+     */
+    @DocumentProperty("status")
+    private Property<Status> status = new StandardProperty<>(Event.this,Status.CREATED);
 
     /**
      * Getter of id
@@ -165,7 +170,21 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      * @return the new value of submissionAttempt
      */
     public Long incrSubmissionAttempt() { return submissionAttempt.inc(1L).get(); }
+    /**
+     * Getter of status
+     * @return the value of status
+     */
+    public Status getStatus() { return status.get(); }
+    /**
+     * Setter of status
+     * @param val the new value of status
+     */
+    public void setStatus(Status val) { status.set(val); }
 
-
+    public enum Status{
+        CREATED,
+        NOTIFICATIONS_LIST_NAME_GENERATED,
+        NOTIFICATIONS_IN_DB
+    }
 
 }

@@ -50,11 +50,13 @@ public class EventBusImpl implements IEventBus {
     }
 
     @Override
-    public void addListener(IEventListener listener){
-        IEventListener putRes;
-        putRes = listenersMap.put(listener.getName(),listener);
-        Preconditions.checkArgument(putRes==null,"The listener %s is already existing",listener.getName());
-        //disruptor.handleEventsWith(new InternalEventHandler(listener));
+    public synchronized void addListener(IEventListener listener){
+        if(listenersMap.containsKey(listener.getName())){
+            Preconditions.checkArgument(listenersMap.get(listener.getName()).equals(listener),"The listener %s is already existing",listener.getName());
+        }
+        else {
+            listenersMap.put(listener.getName(), listener);
+        }
     }
 
     @Override
@@ -107,6 +109,7 @@ public class EventBusImpl implements IEventBus {
                                 .forEach(listener -> event.addListeners(listener.getName()));
 
                     }
+                    event.setStatus(Event.Status.NOTIFICATIONS_LIST_NAME_GENERATED);
                     return event;
                 }
         )
@@ -178,7 +181,13 @@ public class EventBusImpl implements IEventBus {
                 .reduce(EventFireResult.builder(event),
                         EventFireResult.Builder::withDispatchResult
                         )
-                .map(EventFireResult.Builder::build);
+                .map(EventFireResult.Builder::build)
+                .flatMap(eventResult->{
+                    if(eventResult.areAllNotificationsInDb()){
+                        eventResult.getEvent().setStatus(Event.Status.NOTIFICATIONS_IN_DB);
+                    }
+                    return session.asyncSave(eventResult.getEvent()).map(savedEvent->eventResult);
+                });
     }
 
 
@@ -189,11 +198,11 @@ public class EventBusImpl implements IEventBus {
         @Override
         public void onEvent(InternalEvent event, long sequence, boolean endOfBatch) throws Exception {
             //if(listener.getName().equals(event.getNotification().getListenerName()) && (!isMultithreaded || ((sequence % nbThreads)==rank))) {
-                LOG.trace("Submitting {} with seq {} for listener {}",event.getNotification().getBaseMeta().getKey(),sequence,this);
-                SubmissionResult result = event.getListener().submit(event.getNotification(), event.getEvent()).toBlocking().single();
-                if(result.isFailure()){
-                    throw new RuntimeException(result.getError());
-                }
+            LOG.trace("Submitting {} with seq {} for listener {}",event.getNotification().getBaseMeta().getKey(),sequence,this);
+            SubmissionResult result = event.getListener().submit(event.getNotification(), event.getEvent()).toBlocking().single();
+            if(result.isFailure()){
+                throw new RuntimeException(result.getError());
+            }
             //}
         }
     }

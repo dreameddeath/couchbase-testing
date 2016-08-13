@@ -22,29 +22,29 @@ import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 20/07/2016.
  */
-public abstract class AbstractDiscoverableLocalListener extends AbstractLocalListener {
-    private final ListenerDescription description;
+public abstract class AbstractDiscoverableListener extends AbstractLocalListener {
+    private volatile ListenerDescription description;
     private final String name;
-    private final List<EntityModelId> listenedEvents = new ArrayList<>();
+    private final CopyOnWriteArrayList<EntityModelId> listenedEvents = new CopyOnWriteArrayList<>();
+    private final ConcurrentHashMap<EntityModelId,Boolean> modelIdEligibilityMap = new ConcurrentHashMap<>();
 
-    public AbstractDiscoverableLocalListener(ListenerDescription description){
-        this.description = description;
-        this.name = description.getGroupName()+"/"+description.getType();
-        listenedEvents.addAll(description.getListenedNotification().stream().map(ListenedEvent::getType).collect(Collectors.toList()));
+    public AbstractDiscoverableListener(ListenerDescription description){
+        this.name = description.getName()+"/"+description.getType();
+        setDescription(description);
     }
 
     @Override
     public String getName() {
         return name;
     }
-
 
     public ListenerDescription getDescription() {
         return description;
@@ -53,17 +53,31 @@ public abstract class AbstractDiscoverableLocalListener extends AbstractLocalLis
     @Override
     public final <T extends Event> boolean isApplicable(T event) {
         EntityModelId modelId = CouchbaseDocumentReflection.getReflectionFromClass(event.getClass()).getStructure().getEntityModelId();
+        return modelIdEligibilityMap.computeIfAbsent(modelId, this::calcEligibility);
+    }
+
+    public Boolean calcEligibility(EntityModelId modelId){
+        boolean result=false;
         for(EntityModelId acceptedModelId:listenedEvents){
-            boolean res = modelId.getDomain().equals(acceptedModelId.getDomain()) &&
+            result = modelId.getDomain().equals(acceptedModelId.getDomain()) &&
                     modelId.getName().equals(acceptedModelId.getName()) &&
                     (
                             acceptedModelId.getEntityVersion()==null ||
-                            acceptedModelId.getEntityVersion().compareTo(modelId.getEntityVersion())<=0
+                                    acceptedModelId.getEntityVersion().compareTo(modelId.getEntityVersion())<=0
                     );
-            if(res){
-                return true;
+            if(result){
+                break;
             }
         }
-        return false;
+        return result;
+    }
+
+    public synchronized void setDescription(ListenerDescription description){
+        this.description = description;
+        List<EntityModelId> newModelsList = description.getListenedEvents().stream().map(ListenedEvent::getType).collect(Collectors.toList());
+
+        listenedEvents.retainAll(newModelsList);
+        listenedEvents.addAllAbsent(newModelsList);
+        modelIdEligibilityMap.clear();
     }
 }

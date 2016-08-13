@@ -50,27 +50,38 @@ public abstract class AbstractNotificationProcessor {
         return process(sourceNotifId,session);
     }
 
+    private boolean needProcessing(Notification notification){
+        return notification.getStatus()!= Notification.Status.PROCESSED && notification.getStatus()!= Notification.Status.CANCELLED;
+    }
+
+    private Observable<SubmissionResult> buildNotificationResult(Notification notification){
+        return Observable.just(new SubmissionResult(notification,notification.getStatus()== Notification.Status.PROCESSED));
+    }
 
     public  Observable<SubmissionResult> process(final String sourceNotifId,final ICouchbaseSession session) {
         return session.asyncGet(sourceNotifId,Notification.class)
                 .flatMap(notification -> {
-                    if(notification.getStatus()== Notification.Status.SUBMITTED || notification.getStatus()== Notification.Status.CANCELLED){
-                        return Observable.just(new SubmissionResult(notification,notification.getStatus()== Notification.Status.SUBMITTED));
+                    if(!needProcessing(notification)){
+                        return buildNotificationResult(notification);
                     }
-                    else{
-                        return session.asyncGetFromUID(notification.getEventId().toString(),Event.class)
+
+                    return session.asyncGetFromUID(notification.getEventId().toString(),Event.class)
                                 .flatMap(event-> process(notification,event,session));
-                    }
+
                 });
     }
 
     public <T extends Event> Observable<SubmissionResult> process(final Notification sourceNotif, final T event){
+        if(!needProcessing(sourceNotif)){
+            return buildNotificationResult(sourceNotif);
+        }
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, defaultSessionUser);
+
         return this.process(sourceNotif,event,session);
     }
 
-    public <T extends Event> Observable<SubmissionResult> process(final Notification sourceNotif, final T event,final ICouchbaseSession session) {
-        Preconditions.checkArgument(!sourceNotif.getStatus().equals(Notification.Status.SUBMITTED) && !sourceNotif.getStatus().equals(Notification.Status.CANCELLED),
+    protected  <T extends Event> Observable<SubmissionResult> process(final Notification sourceNotif, final T event,final ICouchbaseSession session) {
+        Preconditions.checkState(!sourceNotif.getStatus().equals(Notification.Status.PROCESSED) && !sourceNotif.getStatus().equals(Notification.Status.CANCELLED),
                 "Bad Status %s  for notif %s/%s. The listener name is[%s]",
                 sourceNotif.getStatus(),
                 sourceNotif.getEventId(),
@@ -79,8 +90,16 @@ public abstract class AbstractNotificationProcessor {
         );
 
         return doProcess(event,sourceNotif,session)
-                .map(boolRes->{
-                    sourceNotif.setStatus(Notification.Status.SUBMITTED);
+                .map(processingResult->{
+                    if(processingResult==ProcessingResult.SUBMITTED) {
+                        sourceNotif.setStatus(Notification.Status.SUBMITTED);
+                    }
+                    else if(processingResult==ProcessingResult.DEFERRED){
+                        sourceNotif.setStatus(Notification.Status.DEFERRED);
+                    }
+                    else if(processingResult==ProcessingResult.PROCESSED) {
+                        sourceNotif.setStatus(Notification.Status.PROCESSED);
+                    }
                     sourceNotif.incNbAttempts();
                     return sourceNotif;
                 })
@@ -91,6 +110,12 @@ public abstract class AbstractNotificationProcessor {
                 );
     }
 
-    protected  abstract <T extends Event> Observable<Boolean> doProcess(T event,Notification notification,ICouchbaseSession session);
+    protected  abstract <T extends Event> Observable<ProcessingResult> doProcess(T event,Notification notification,ICouchbaseSession session);
+
+    public enum ProcessingResult{
+        PROCESSED,
+        SUBMITTED,
+        DEFERRED
+    }
 
 }

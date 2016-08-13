@@ -110,7 +110,7 @@ public class EventNotificationTest extends Assert{
         }
 
         @Override
-        protected <T extends Event> Observable<Boolean> doProcess(T event, Notification notification,ICouchbaseSession session) {
+        protected <T extends Event> Observable<ProcessingResult> doProcess(T event, Notification notification,ICouchbaseSession session) {
             //LOG.error("Received event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
             try {
                 Thread.sleep(new Double(Math.random() * 100).longValue());
@@ -127,7 +127,7 @@ public class EventNotificationTest extends Assert{
             try {
                 //Thread.sleep(100);
                 processedNotification.offer(notification, 20, TimeUnit.SECONDS);
-                return Observable.just(true);
+                return Observable.just(ProcessingResult.PROCESSED);
             }
             catch(InterruptedException e){
                 throw new RuntimeException(e);
@@ -206,20 +206,22 @@ public class EventNotificationTest extends Assert{
                     Notification subNotification = checkSession.toBlocking().blockingGetFromKeyParams(Notification.class,submittedEvent.getId().toString(),listenerPos+1);
                     listeners.remove(subNotification.getListenerName());
                     assertEquals(1L,(long)subNotification.getNbAttempts());
-                    assertEquals(Notification.Status.SUBMITTED,subNotification.getStatus());
+                    assertEquals(Notification.Status.PROCESSED,subNotification.getStatus());
                 }
 
                 assertEquals(0,listeners.size());
             }
             for (Notification srcNotif : notificationList) {
                 Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
-                assertEquals(Notification.Status.SUBMITTED,notif.getStatus());
+                assertEquals(Notification.Status.PROCESSED,notif.getStatus());
                 EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
                 assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
             }
         }
 
-
+        /*
+           Resubmission attempt
+         */
         {
             ICouchbaseSession resubmitSession = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
             for(EventFireResult<EventTest> resumitResult: submittedEvents.stream().map(eventTest -> bus.fireEvent(eventTest,resubmitSession)).collect(Collectors.toList())) {
@@ -238,7 +240,7 @@ public class EventNotificationTest extends Assert{
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession(AnonymousUser.INSTANCE);
             for (Notification srcNotif : notificationList) {
                 Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
-                assertEquals(Notification.Status.SUBMITTED,notif.getStatus());
+                assertEquals(Notification.Status.PROCESSED,notif.getStatus());
                 assertEquals(1,(long)notif.getNbAttempts());//Simple re-submission, no new attempt
                 EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
                 assertTrue(eventTest.getListeners().contains(notif.getListenerName()));

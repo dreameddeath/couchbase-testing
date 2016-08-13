@@ -23,7 +23,11 @@ public class SubmissionResult {
     }
 
     public boolean isSuccess() {
-        return error==null;
+        return error==null && notification.getStatus()== Notification.Status.SUBMITTED;
+    }
+
+    public boolean isDeferred() {
+        return error==null && notification.getStatus()== Notification.Status.DEFERRED;
     }
 
     public boolean isFailure(){
