@@ -31,10 +31,7 @@ import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -246,6 +243,25 @@ public class EventNotificationTest extends Assert{
                 assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
                 assertEquals(2,(long)eventTest.getSubmissionAttempt());
             }
+        }
+    }
+
+
+    @After
+    public void after(){
+        if(bus!=null){
+            bus.stop();
+        }
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception{
+
+        if(cbSimulator!=null){
+            cbSimulator.shutdown();
+        }
+        if(curatorUtils!=null) {
+            curatorUtils.stop();
         }
     }
 }
