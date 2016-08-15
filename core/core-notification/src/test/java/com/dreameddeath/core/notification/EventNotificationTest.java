@@ -165,7 +165,7 @@ public class EventNotificationTest extends Assert{
     @Test
     public void eventBusTest() throws Exception{
         List<EventTest> submittedEvents = new ArrayList<>();
-        int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 2;
+        int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
             for (int i = 1; i <= nbEvent; ++i) {
