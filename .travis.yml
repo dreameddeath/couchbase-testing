@@ -18,4 +18,6 @@ before_install:
   - ./install-protobuf.sh
   - export PATH=$PATH:${HOME}/protobuf/bin
 
+install : true
+
 script: mvn -B clean test jacoco:report coveralls:report
