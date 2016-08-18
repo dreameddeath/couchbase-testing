@@ -19,7 +19,9 @@ package com.dreameddeath.core.notification.listener.impl;
 import com.dreameddeath.core.notification.listener.IEventListener;
 import com.dreameddeath.core.notification.listener.IEventListenerBuilder;
 import com.dreameddeath.core.notification.listener.IEventListenerFactory;
+import com.dreameddeath.core.notification.listener.IEventListenerTypeMatcher;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
+import com.dreameddeath.core.notification.utils.ListenerInfoManager;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +36,14 @@ public class EventListenerFactory implements IEventListenerFactory {
     private final List<MatcherPair> listenerBuilderMatcher =new CopyOnWriteArrayList<>();
     private final Map<EventListenerKey,IEventListener> listenerMap = new ConcurrentHashMap<>();
 
-    public void registerListener(IEventListenerTypeMatcher matcher,IEventListener listener){
+
+    public void registerFromManager(ListenerInfoManager manager){
+        for(ListenerInfoManager.ListenerClassInfo classInfo:manager.getListenersClassInfo()){
+            registerListener(manager.getTypeMatcher(classInfo),manager.getListenerBuilder(classInfo));
+        }
+    }
+
+    public void registerListener(IEventListenerTypeMatcher matcher, IEventListener listener){
         listenerBuilderMatcher.add(new MatcherPair(matcher,listener));
     }
 
@@ -43,21 +52,25 @@ public class EventListenerFactory implements IEventListenerFactory {
         listenerBuilderMatcher.add(new MatcherPair(matcher,listenerBuilder));
     }
 
-    @Override
-    public IEventListener getListener(final String type, final String name, final Map<String, String> params) {
-        return listenerMap.computeIfAbsent(new EventListenerKey(type,name,params),key->
-            listenerBuilderMatcher.stream()
-                    .filter(pair->pair.matcher.isMatching(key.type,key.params))
-                    .sorted((pair1,pair2)->pair2.matcher.getMatchingRank(type,params)-pair1.matcher.getMatchingRank(type,params))
-                    .findFirst()
-                    .map(pair -> pair.getListener(type,name,params))
-                    .orElse(null)
+    private IEventListener getListener(EventListenerKey keyRequested){
+        return listenerMap.computeIfAbsent(keyRequested,key->
+                listenerBuilderMatcher.stream()
+                        .filter(pair->pair.matcher.isMatching(key.type,key.params))
+                        .sorted((pair1,pair2)->pair2.matcher.getMatchingRank(key.type,key.params)-pair1.matcher.getMatchingRank(key.type,key.params))
+                        .findFirst()
+                        .map(pair -> pair.getListener(key))
+                        .orElse(null)
         );
     }
 
     @Override
-    public IEventListener getListener(ListenerDescription description) {
-        return null;
+    public IEventListener getListener(final String type, final String name, final Map<String, String> params) {
+        return getListener(new EventListenerKey(type,name,params));
+    }
+
+    @Override
+    public IEventListener getListener(final ListenerDescription description) {
+        return getListener(new EventListenerKey(description));
     }
 
     private static class MatcherPair{
@@ -77,21 +90,15 @@ public class EventListenerFactory implements IEventListenerFactory {
             this.constructor=constructor;
         }
 
-        public IEventListener getListener(final String type,final String name,final Map<String,String> params){
+        public IEventListener getListener(EventListenerKey key){
             if(listener!=null){
                 return listener;
             }
-            else{
-                return constructor.build(type,name,params);
-            }
-        }
-
-        public IEventListener getListener(final ListenerDescription description){
-            if(listener!=null){
-                return listener;
+            else if(key.description!=null){
+                return constructor.build(key.description);
             }
             else{
-                return constructor.build(description);
+                return constructor.build(key.type,key.name,key.params);
             }
         }
     }
@@ -100,12 +107,21 @@ public class EventListenerFactory implements IEventListenerFactory {
         private final String type;
         private final String name;
         private final Map<String,String> params;
-
+        private final ListenerDescription description;
         public EventListenerKey(String type,String name, Map<String, String> params) {
             this.type = type;
             this.name = name;
             this.params = params!=null?params: Collections.EMPTY_MAP;
+            this.description = null;
         }
+
+        public EventListenerKey(ListenerDescription description) {
+            this.type = description.getType();
+            this.name = description.getName();
+            this.params = description.getParameters()!=null?description.getParameters(): Collections.EMPTY_MAP;
+            this.description = description;
+        }
+
 
         @Override
         public boolean equals(Object o) {

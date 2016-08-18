@@ -222,23 +222,24 @@ public class CuratorFrameworkFactoryTest extends Assert{
             registrar.register(firstObj);
             registrar.register(secondObj);
             discovery.start();
-            listener.wait(1000, 0);
-            listener.wait(1000, 0);
+            listener.wait(10000, 0);
+            listener.wait(10000, 0);
+            assertEquals(2,nbRegister.get());
             registrar.update(firstObjUpdated);
-            listener.wait(1000, 0);
+            listener.wait(10000, 0);
+            assertEquals(1,nbUpdate.get());
             registrar.deregister(firstObj);
-            listener.wait(1000, 0);
+            listener.wait(10000, 0);
+            assertEquals(1,nbUnRegister.get());
             registrar.register(thirdObj);
-            listener.wait(1000, 0);
+            listener.wait(10000, 0);
+            assertEquals(3,nbRegister.get());
             registrar.close();
-            listener.wait(1000, 0);
-            listener.wait(1000,0);
+            listener.wait(10000,0);
+            listener.wait(10000,0);
+            assertEquals(3,nbUnRegister.get());
         }
         discovery.stop();
-        assertEquals(0, errors.get());
-        assertEquals(3,nbRegister.get());
-        assertEquals(3,nbUnRegister.get());
-        assertEquals(1,nbUpdate.get());
         client.close();
     }
 

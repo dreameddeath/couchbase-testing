@@ -17,34 +17,21 @@
 package com.dreameddeath.core.notification;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.annotation.DocumentEntity;
-import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
 import com.dreameddeath.core.notification.dao.EventDao;
 import com.dreameddeath.core.notification.dao.NotificationDao;
-import com.dreameddeath.core.notification.listener.impl.AbstractLocalListener;
-import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
-import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.dreameddeath.core.notification.config.NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE;
@@ -54,7 +41,6 @@ import static com.dreameddeath.core.notification.config.NotificationConfigProper
  */
 public class EventNotificationTest extends Assert{
     private final static Logger LOG = LoggerFactory.getLogger(EventNotificationTest.class);
-    private static CuratorTestUtils curatorUtils;
     private static CouchbaseBucketSimulator cbSimulator;
     private static CouchbaseSessionFactory sessionFactory;
     private IEventBus bus;
@@ -62,84 +48,12 @@ public class EventNotificationTest extends Assert{
 
     @BeforeClass
     public static void initialise() throws Exception{
-        curatorUtils = new CuratorTestUtils().prepare(1);
-
         cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
         sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
         Thread.sleep(100);
-    }
-
-
-    @DocumentEntity(domain = "test",version="1.0")
-    public static class EventTest extends Event{
-        @DocumentProperty
-        public String eventId;
-        @DocumentProperty
-        public Integer toAdd;
-    }
-
-    public static class NotificationTestListener extends AbstractLocalListener{
-        private static final Logger LOG = LoggerFactory.getLogger(NotificationTestListener.class);
-        private static final AtomicInteger nbEventProcessed= new AtomicInteger(0);
-        private static final AtomicInteger totalCounter= new AtomicInteger(0);
-        private static final BlockingQueue<Notification> processedNotification = new ArrayBlockingQueue<>(100);
-        private static final Map<String,Integer> threadCounter=new ConcurrentHashMap<>();
-
-        private final String name;
-
-        public NotificationTestListener(String name) {
-            this.name = name;
-        }
-
-        public Notification poll() throws InterruptedException{
-            return processedNotification.poll(2,TimeUnit.SECONDS);
-        }
-
-        public int getTotalCounter() {
-            return totalCounter.get();
-        }
-
-        public Map<String,Integer> getThreadCounter(){
-            return Collections.unmodifiableMap(threadCounter);
-        }
-
-        @Override
-        protected <T extends Event> Observable<ProcessingResult> doProcess(T event, Notification notification,ICouchbaseSession session) {
-            //LOG.error("Received event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
-            try {
-                Thread.sleep(new Double(Math.random() * 100).longValue());
-            }
-            catch(InterruptedException e){
-
-            }
-            nbEventProcessed.incrementAndGet();
-            if(!threadCounter.containsKey(Thread.currentThread().getName())){
-                threadCounter.put(Thread.currentThread().getName(),0);
-            }
-            threadCounter.put(Thread.currentThread().getName(),threadCounter.get(Thread.currentThread().getName())+1);
-            totalCounter.addAndGet(((EventTest)event).toAdd);
-            try {
-                //Thread.sleep(100);
-                processedNotification.offer(notification, 20, TimeUnit.SECONDS);
-                return Observable.just(ProcessingResult.PROCESSED);
-            }
-            catch(InterruptedException e){
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public String getName() {
-            return this.name+this.getClass().getSimpleName();
-        }
-
-        @Override
-        public <T extends Event> boolean isApplicable(T event) {
-            return event instanceof EventTest;
-        }
     }
 
 
@@ -232,7 +146,7 @@ public class EventNotificationTest extends Assert{
             if(resultNotif!=null) {
                 fail();//should not occur
             }
-            assertEquals(nbReceived,NotificationTestListener.nbEventProcessed.get());
+            assertEquals(nbReceived,NotificationTestListener.getNbEventProcessed().get());
 
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession(AnonymousUser.INSTANCE);
             for (Notification srcNotif : notificationList) {
@@ -256,12 +170,8 @@ public class EventNotificationTest extends Assert{
 
     @AfterClass
     public static void afterClass() throws Exception{
-
         if(cbSimulator!=null){
             cbSimulator.shutdown();
-        }
-        if(curatorUtils!=null) {
-            curatorUtils.stop();
         }
     }
 }

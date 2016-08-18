@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.core.notification.listener.impl;
+package com.dreameddeath.core.notification.bus;
 
-import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
-
-import java.util.Map;
+import com.dreameddeath.core.notification.listener.IEventListener;
 
 /**
- * Created by Christophe Jeunesse on 12/08/2016.
+ * Created by Christophe Jeunesse on 18/08/2016.
  */
-public interface IEventListenerTypeMatcher {
-    boolean isMatching(String type,Map<String,String> params);
-    boolean isMatching(ListenerDescription description);
-    int getMatchingRank(String type,Map<String,String> params);
-    int getMatchingRank(ListenerDescription description);
+public interface IEventBusLifeCycleListener {
+    void onStart();
+    void onStop();
+    void onAddListener(IEventListener listener);
+    void onRemoveListener(IEventListener listener);
 }

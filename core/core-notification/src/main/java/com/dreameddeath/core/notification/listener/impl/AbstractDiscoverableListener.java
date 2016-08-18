@@ -33,17 +33,24 @@ import java.util.stream.Collectors;
 public abstract class AbstractDiscoverableListener extends AbstractLocalListener {
     private volatile ListenerDescription description;
     private final String name;
+    private final String type;
     private final CopyOnWriteArrayList<EntityModelId> listenedEvents = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<EntityModelId,Boolean> modelIdEligibilityMap = new ConcurrentHashMap<>();
 
     public AbstractDiscoverableListener(ListenerDescription description){
         this.name = description.getName()+"/"+description.getType();
+        this.type = description.getType();
         setDescription(description);
     }
 
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     public ListenerDescription getDescription() {

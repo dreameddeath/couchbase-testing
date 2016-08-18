@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<ListenerDescription> {
     private static final Logger LOG = LoggerFactory.getLogger(ListenerAutoSubscribe.class);
     private IEventBus bus;
-    private Map<String,AbstractDiscoverableListener> listenerMap = new ConcurrentHashMap<>();
+    private Map<String,IEventListener> listenerMap = new ConcurrentHashMap<>();
     private IEventListenerFactory listenerFactory;
 
     public ListenerAutoSubscribe() {
@@ -46,6 +46,12 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
     public ListenerAutoSubscribe(IEventBus bus) {
         setBus(bus);
     }
+
+    public ListenerAutoSubscribe(IEventBus bus,IEventListenerFactory factory) {
+        setBus(bus);
+        setListenerFactory(factory);
+    }
+
 
     public IEventBus getBus() {
         return bus;
@@ -63,13 +69,14 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
     }
 
     private void resyncBus(){
-        for(AbstractDiscoverableListener listener:listenerMap.values()){
+        for(IEventListener listener:listenerMap.values()){
             bus.addListener(listener);
         }
     }
 
     @Override
     public void onRegister(String uid, ListenerDescription obj) {
+        LOG.info("Registering listener {}/{}",obj.getName(),obj.getType());
         AbstractDiscoverableListener listener=buildListener(obj);
         if(listener!=null){
             listenerMap.put(uid,listener);
@@ -90,32 +97,33 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
 
     @Override
     public void onUpdate(String uid, ListenerDescription oldDescription, ListenerDescription newDescription) {
-        AbstractDiscoverableListener currListener = listenerMap.get(uid);
-        AbstractDiscoverableListener newListener = buildListener(newDescription);
+        IEventListener currListener = listenerMap.get(uid);
+        IEventListener newListener = buildListener(newDescription);
         if(!currListener.getName().equals(newListener.getName())){
             throw new IllegalStateException("Cannot change the listener name "+currListener.getName()+" to " +newListener.getName()+ " for uid "+uid);
         }
 
-        if(currListener.getDescription().getType().equals(newListener.getDescription().getType())){
-            throw new IllegalStateException("Cannot change the listener type "+currListener.getDescription()+" to " +newListener.getDescription()+ " for uid "+uid +" and name "+currListener.getName());
+        if(currListener.getType().equals(newListener.getType())){
+            throw new IllegalStateException("Cannot change the listener type "+currListener.getType()+" to " +newListener.getType()+ " for uid "+uid +" and name "+currListener.getName());
         }
 
-        currListener.setDescription(newDescription);
+        if(currListener instanceof AbstractDiscoverableListener) {
+            ((AbstractDiscoverableListener)currListener).setDescription(newDescription);
+        }
     }
 
     public AbstractDiscoverableListener buildListener(ListenerDescription description){
         IEventListener listener = listenerFactory.getListener(description);
         if(listener==null){
-            LOG.info("No listener setup by the factory {} for listener {}/{}",listenerFactory,description.getType(),description.getName(),listener.getClass());
+            LOG.info("No listener setup by the factory {} for listener {}/{}",listenerFactory,description.getType(),description.getName());
         }
-
-        if(! (listener instanceof AbstractDiscoverableListener)){
+        else if(! (listener instanceof AbstractDiscoverableListener)){
             LOG.error("The listener setup by the factory {} for {}/{} isn't of the right type ({})",listenerFactory,description.getType(),description.getName(),listener.getClass());
             listener=null;
         }
 
         if(listener==null){
-            if(description.getAllowDeferred()){
+            if(description.getAllowDeferred()!=null && description.getAllowDeferred()){
                 listener = new DefaultDiscoverableDeferringNotification(description);
             }
             else{

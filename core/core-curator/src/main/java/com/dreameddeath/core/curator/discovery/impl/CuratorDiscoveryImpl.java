@@ -138,7 +138,8 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                     l.onRegister(uid,newObj);
                 }
                 catch(Throwable e){
-                    ///TODO log error
+                    LOG.error("Error during registering {}/{}",newObj.getClass(),uid);
+                    LOG.error("Error the error was:",e);
                 }
             });
         }
@@ -148,7 +149,8 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                     l.onUpdate(uid,oldObj, newObj);
                 }
                 catch (Throwable e){
-                    ///TODO log error
+                    LOG.error("Error during uid {}/{}",newObj.getClass(),uid);
+                    LOG.error("Error the error was:",e);
                 }
             });
         }
@@ -163,7 +165,8 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                     l.onUnregister(uid,oldObj);
                 }
                 catch (Throwable e){
-                    ///Todo log error
+                    LOG.error("Error during unregistering {}/{}",oldObj.getClass(),uid);
+                    LOG.error("Error the error was:",e);
                 }
             });
         }

@@ -6,6 +6,7 @@ import com.dreameddeath.core.dao.exception.validation.ValidationObservableExcept
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
+import com.dreameddeath.core.notification.bus.IEventBusLifeCycleListener;
 import com.dreameddeath.core.notification.bus.PublishedResult;
 import com.dreameddeath.core.notification.config.NotificationConfigProperties;
 import com.dreameddeath.core.notification.listener.IEventListener;
@@ -22,9 +23,11 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class EventBusImpl implements IEventBus {
     private final ThreadFactory threadFactory = new DefaultThreadFactory();
+    private final List<IEventBusLifeCycleListener> lifeCycleListeners = new CopyOnWriteArrayList<>();
     private final Map<String,IEventListener> listenersMap = new ConcurrentHashMap<>();
     private final Disruptor<InternalEvent>[] disruptors;
     private final EventTranslatorTwoArg<InternalEvent,Event, Notification> translator;
@@ -43,6 +47,11 @@ public class EventBusImpl implements IEventBus {
         disruptors = new Disruptor[size];
         ringBuffers = new RingBuffer[size];
         translator=(internalEvent, sequence, event,notification) -> internalEvent.setProcessingElement(event,notification,getListenerByName(notification.getListenerName()));
+    }
+
+    @Override
+    public void addLifeCycleListener(IEventBusLifeCycleListener listener) {
+        lifeCycleListeners.add(listener);
     }
 
     public IEventListener getListenerByName(String listenerName){
@@ -56,7 +65,14 @@ public class EventBusImpl implements IEventBus {
         }
         else {
             listenersMap.put(listener.getName(), listener);
+            for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
+                lifeCycleListener.onAddListener(listener);
+            }
         }
+    }
+
+    public Collection<IEventListener> getListeners(){
+        return listenersMap.values();
     }
 
     @Override
@@ -77,20 +93,33 @@ public class EventBusImpl implements IEventBus {
             disruptors[index].handleEventsWith(new InternalEventHandler());
             ringBuffers[index]=disruptors[index].start();
         }
+        for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
+            lifeCycleListener.onStart();
+        }
     }
-
 
     @Override
     public void removeListener(IEventListener listener) {
-        listenersMap.remove(listener.getName());
+        IEventListener removedListener=listenersMap.remove(listener.getName());
+        if(removedListener!=null){
+            for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
+                lifeCycleListener.onRemoveListener(listener);
+            }
+        }
     }
 
     @Override
     public void stop() {
+        for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
+            lifeCycleListener.onStop();
+        }
         for(int index=0;index<disruptors.length;index++) {
             //if(disruptors[index].s)
-            disruptors[index].shutdown();
+            if(disruptors[index]!=null) {
+                disruptors[index].shutdown();
+            }
         }
+
     }
 
     @Override

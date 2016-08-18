@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-com.dreameddeath.core.config.annotation.processor.ConfigAnnotationProcessor
+com.dreameddeath.core.notification.annotation.processor.ListenerAnnotationProcessor
