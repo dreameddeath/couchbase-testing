@@ -85,6 +85,7 @@ public class CouchbasePluginTest extends Assert {
 
                     ServiceClientFactory daoReadClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_READ_SERVICES_DOMAIN.get());
                     ServiceClientFactory daoWriteClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_WRITE_SERVICES_DOMAIN.get());
+                    Thread.sleep(100);
                     Response response = daoWriteClientFactory.getClient("dao#test#testdoc$write", "1.0.0")
                             .getInstance()
                             .request()
@@ -112,6 +113,7 @@ public class CouchbasePluginTest extends Assert {
                 try {
                     DaoDiscovery discovery = new DaoDiscovery(daemon.getCuratorClient());
                     discovery.start();
+                    Thread.sleep(100);
                     List<DaoInstanceInfo> daos = discovery.getList();
                     assertEquals(1, daos.size());
                     DaoInstanceInfo instanceInfo = daos.get(0);

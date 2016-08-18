@@ -35,6 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by Christophe Jeunesse on 29/05/2016.
  */
 public class EventBusImpl implements IEventBus {
+    private final static Logger LOG = LoggerFactory.getLogger(EventBusImpl.class);
+
     private final ThreadFactory threadFactory = new DefaultThreadFactory();
     private final List<IEventBusLifeCycleListener> lifeCycleListeners = new CopyOnWriteArrayList<>();
     private final Map<String,IEventListener> listenersMap = new ConcurrentHashMap<>();
@@ -66,7 +68,12 @@ public class EventBusImpl implements IEventBus {
         else {
             listenersMap.put(listener.getName(), listener);
             for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
-                lifeCycleListener.onAddListener(listener);
+                try {
+                    lifeCycleListener.onAddListener(listener);
+                }
+                catch(Throwable e){
+                    LOG.error("Listener <"+lifeCycleListener+"> error ",e);
+                }
             }
         }
     }
@@ -94,7 +101,12 @@ public class EventBusImpl implements IEventBus {
             ringBuffers[index]=disruptors[index].start();
         }
         for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
-            lifeCycleListener.onStart();
+            try {
+                lifeCycleListener.onStart();
+            }
+            catch(Throwable e){
+                LOG.error("Listener <"+lifeCycleListener+"> error ",e);
+            }
         }
     }
 
@@ -103,7 +115,12 @@ public class EventBusImpl implements IEventBus {
         IEventListener removedListener=listenersMap.remove(listener.getName());
         if(removedListener!=null){
             for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
-                lifeCycleListener.onRemoveListener(listener);
+                try {
+                    lifeCycleListener.onRemoveListener(listener);
+                }
+                catch(Throwable e){
+                    LOG.error("Listener <"+lifeCycleListener+"> error ",e);
+                }
             }
         }
     }
@@ -111,7 +128,12 @@ public class EventBusImpl implements IEventBus {
     @Override
     public void stop() {
         for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
-            lifeCycleListener.onStop();
+            try {
+                lifeCycleListener.onStop();
+            }
+            catch(Throwable e){
+                LOG.error("Listener <"+lifeCycleListener+"> error ",e);
+            }
         }
         for(int index=0;index<disruptors.length;index++) {
             //if(disruptors[index].s)

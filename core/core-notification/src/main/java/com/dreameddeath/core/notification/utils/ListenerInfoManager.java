@@ -76,7 +76,7 @@ public class ListenerInfoManager {
         public final String className;
 
         @JsonCreator
-        public ListenerClassInfo(String className) {
+        public ListenerClassInfo(@JsonProperty("className") String className) {
             this.className = className;
         }
     }
@@ -89,7 +89,7 @@ public class ListenerInfoManager {
         public final String type;
 
         @JsonCreator
-        public ListenerTypeInfo(String className, String type) {
+        public ListenerTypeInfo(@JsonProperty("className") String className, @JsonProperty("type") String type) {
             this.className = className;
             this.type = type;
         }

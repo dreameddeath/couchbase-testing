@@ -25,10 +25,7 @@ import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import io.swagger.jaxrs.Reader;
 import io.swagger.models.Swagger;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.x.discovery.ServiceDiscovery;
-import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
-import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.UriSpec;
+import org.apache.curator.x.discovery.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +119,7 @@ public class ServiceRegistrar {
                 null,
                 serviceDescr,
                 System.currentTimeMillis(),
-                null,
+                ServiceType.PERMANENT,
                 uriSpec
                 );
     }

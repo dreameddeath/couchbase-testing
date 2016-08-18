@@ -17,10 +17,12 @@
 package com.dreameddeath.core.notification.discoverer;
 
 import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
+import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.listener.IEventListener;
 import com.dreameddeath.core.notification.listener.IEventListenerFactory;
 import com.dreameddeath.core.notification.listener.impl.AbstractDiscoverableListener;
+import com.dreameddeath.core.notification.listener.impl.AbstractLocalListener;
 import com.dreameddeath.core.notification.listener.impl.DefaultDiscoverableDeferringNotification;
 import com.dreameddeath.core.notification.listener.impl.DiscoverableDefaultBlockingListener;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
@@ -39,6 +41,7 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
     private IEventBus bus;
     private Map<String,IEventListener> listenerMap = new ConcurrentHashMap<>();
     private IEventListenerFactory listenerFactory;
+    private ICouchbaseSessionFactory sessionFactory;
 
     public ListenerAutoSubscribe() {
     }
@@ -52,6 +55,11 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
         setListenerFactory(factory);
     }
 
+    @Autowired
+    public ListenerAutoSubscribe setSessionFactory(ICouchbaseSessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+        return this;
+    }
 
     public IEventBus getBus() {
         return bus;
@@ -77,7 +85,7 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
     @Override
     public void onRegister(String uid, ListenerDescription obj) {
         LOG.info("Registering listener {}/{}",obj.getName(),obj.getType());
-        AbstractDiscoverableListener listener=buildListener(obj);
+        IEventListener listener=buildListener(obj);
         if(listener!=null){
             listenerMap.put(uid,listener);
             if(bus!=null) {
@@ -112,14 +120,10 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
         }
     }
 
-    public AbstractDiscoverableListener buildListener(ListenerDescription description){
+    public IEventListener buildListener(ListenerDescription description){
         IEventListener listener = listenerFactory.getListener(description);
         if(listener==null){
             LOG.info("No listener setup by the factory {} for listener {}/{}",listenerFactory,description.getType(),description.getName());
-        }
-        else if(! (listener instanceof AbstractDiscoverableListener)){
-            LOG.error("The listener setup by the factory {} for {}/{} isn't of the right type ({})",listenerFactory,description.getType(),description.getName(),listener.getClass());
-            listener=null;
         }
 
         if(listener==null){
@@ -129,7 +133,8 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
             else{
                 listener = new DiscoverableDefaultBlockingListener(description);
             }
+            ((AbstractLocalListener)listener).setSessionFactory(sessionFactory);
         }
-        return (AbstractDiscoverableListener)listener;
+        return listener;
     }
 }

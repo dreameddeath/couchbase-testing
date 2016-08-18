@@ -46,6 +46,13 @@ public class NotificationTestListener extends AbstractLocalListener {
     private static final Map<String, Integer> threadCounter = new ConcurrentHashMap<>();
     private final String name;
 
+    public static void clear(){
+        nbEventProcessed.set(0);
+        totalCounter.set(0);
+        processedNotification.clear();
+        threadCounter.clear();
+    }
+
     public NotificationTestListener(String name) {
         this.name = name;
     }
@@ -101,7 +108,7 @@ public class NotificationTestListener extends AbstractLocalListener {
 
     @Override
     public String getName() {
-        return this.name + this.getClass().getSimpleName();
+        return this.name;
     }
 
     @Override

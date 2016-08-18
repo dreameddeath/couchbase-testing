@@ -27,6 +27,7 @@ import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.cxf.transport.servlet.CXFServlet;
@@ -34,13 +35,16 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.springframework.web.context.ContextLoaderListener;
 
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Christophe Jeunesse on 10/04/2015.
@@ -172,7 +176,20 @@ public class TestingRestServer {
             curatorClient.start();
         }
         curatorClient.blockUntilConnected(1, TimeUnit.MINUTES);
+        CountDownLatch startingWait=new CountDownLatch(1);
+        AtomicInteger errorCounter = new AtomicInteger(0);
+        server.addLifeCycleListener(new LifeCycle.Listener(){
+            @Override public void lifeCycleStarting(LifeCycle lifeCycle) {}
+            @Override public void lifeCycleStarted(LifeCycle lifeCycle) {startingWait.countDown();}
+            @Override public void lifeCycleFailure(LifeCycle lifeCycle, Throwable throwable) {
+                errorCounter.incrementAndGet();
+            }
+            @Override public void lifeCycleStopping(LifeCycle lifeCycle) {}
+            @Override public void lifeCycleStopped(LifeCycle lifeCycle) {}
+        });
         server.start();
+        Preconditions.checkArgument(startingWait.await(1,TimeUnit.MINUTES),"Starting failed");
+        Preconditions.checkArgument(errorCounter.get()==0,"Error occurs");
     }
 
     public void stop()throws Exception{

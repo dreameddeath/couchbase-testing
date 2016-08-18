@@ -94,7 +94,11 @@ public class ServiceClientImpl implements IServiceClient {
     @Override
     public WebTarget getInstance(){
         try {
-            return buildClient(provider.getInstance());
+            ServiceInstance<CuratorDiscoveryServiceDescription> instance = provider.getInstance();
+            if(instance==null){
+                throw new NoSuchElementException("No instance found");
+            }
+            return buildClient(instance);
         }
         catch(Exception e){
             LOG.error("Cannot get instance of service "+fullName,e);

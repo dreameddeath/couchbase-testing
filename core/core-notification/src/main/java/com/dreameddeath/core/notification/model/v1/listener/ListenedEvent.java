@@ -5,6 +5,7 @@ import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Created by Christophe Jeunesse on 25/05/2016.
@@ -17,6 +18,7 @@ public class ListenedEvent {
         this.modelId=modelId;
     }
 
+    @JsonValue
     public EntityModelId getType() {
         return modelId;
     }

@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.notification.listener.impl;
 
+import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.notification.listener.IEventListener;
 import com.dreameddeath.core.notification.listener.IEventListenerBuilder;
 import com.dreameddeath.core.notification.listener.IEventListenerFactory;
@@ -35,7 +36,21 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class EventListenerFactory implements IEventListenerFactory {
     private final List<MatcherPair> listenerBuilderMatcher =new CopyOnWriteArrayList<>();
     private final Map<EventListenerKey,IEventListener> listenerMap = new ConcurrentHashMap<>();
+    private volatile ICouchbaseSessionFactory sessionFactory;
 
+    public EventListenerFactory(){
+
+    }
+
+    public EventListenerFactory(ListenerInfoManager manager){
+        registerFromManager(manager);
+    }
+
+
+    public EventListenerFactory setSessionFactory(ICouchbaseSessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+        return this;
+    }
 
     public void registerFromManager(ListenerInfoManager manager){
         for(ListenerInfoManager.ListenerClassInfo classInfo:manager.getListenersClassInfo()){
@@ -58,7 +73,7 @@ public class EventListenerFactory implements IEventListenerFactory {
                         .filter(pair->pair.matcher.isMatching(key.type,key.params))
                         .sorted((pair1,pair2)->pair2.matcher.getMatchingRank(key.type,key.params)-pair1.matcher.getMatchingRank(key.type,key.params))
                         .findFirst()
-                        .map(pair -> pair.getListener(key))
+                        .map(pair -> pair.getListener(key,this.sessionFactory))
                         .orElse(null)
         );
     }
@@ -90,16 +105,21 @@ public class EventListenerFactory implements IEventListenerFactory {
             this.constructor=constructor;
         }
 
-        public IEventListener getListener(EventListenerKey key){
+        public IEventListener getListener(EventListenerKey key,ICouchbaseSessionFactory factory){
+            IEventListener newListener;
             if(listener!=null){
                 return listener;
             }
             else if(key.description!=null){
-                return constructor.build(key.description);
+                newListener = constructor.build(key.description);
             }
             else{
-                return constructor.build(key.type,key.name,key.params);
+                newListener = constructor.build(key.type,key.name,key.params);
             }
+            if(newListener instanceof AbstractNotificationProcessor){
+                ((AbstractNotificationProcessor) newListener).setSessionFactory(factory);
+            }
+            return newListener;
         }
     }
 

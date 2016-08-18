@@ -218,6 +218,7 @@ public class CuratorFrameworkFactoryTest extends Assert{
         };
 
 
+
         synchronized (listener) {
             registrar.register(firstObj);
             registrar.register(secondObj);
@@ -246,10 +247,12 @@ public class CuratorFrameworkFactoryTest extends Assert{
     @After
     public void endTest() throws Exception{
         ExecutorService executor = Executors.newSingleThreadExecutor();
+
         Future<Boolean> future = executor.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() {
                 try {
+                    testingCluster.stop();
                     testingCluster.close();
                     return true;
                 } catch (Exception e) {

@@ -17,6 +17,7 @@
 package com.dreameddeath.infrastructure.daemon;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
+import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
@@ -42,6 +43,8 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -73,9 +76,18 @@ public class AbstractDaemonTest extends Assert {
         daemon.addWebServer(ProxyWebServer.builder().withPort(8080).withAddress("127.0.0.1").withName("proxy").withDiscoverDomain("tests"));
         Thread stopping_thread = new Thread(() -> {
             DaemonDiscovery daemonDiscovery = new DaemonDiscovery(daemon.getCuratorClient());
+            CountDownLatch registeringCounter = new CountDownLatch(1);
+            daemonDiscovery.addListener(new ICuratorDiscoveryListener<DaemonInfo>() {
+                @Override public void onRegister(String uid, DaemonInfo obj) {registeringCounter.countDown();}
+                @Override public void onUnregister(String uid, DaemonInfo oldObj) {}
+                @Override public void onUpdate(String uid, DaemonInfo oldObj, DaemonInfo newObj) {}
+            });
+
             try {
                 daemonDiscovery.start();
+                registeringCounter.await(10, TimeUnit.SECONDS);
                 List<DaemonInfo> daemonInfoList = daemonDiscovery.getList();
+
                 assertEquals(1, daemonInfoList.size());
                 assertEquals(daemon.getUuid(),daemonInfoList.get(0).getUuid());
                 assertEquals(daemon.getAdditionalWebServers().size(),daemonInfoList.get(0).getWebServerList().size());

@@ -229,7 +229,7 @@
         <spring.boot.loader.version>1.3.0.RELEASE</spring.boot.loader.version>
 
         <!--netflix lib reuse -->
-        <curator.version>2.9.1</curator.version>
+        <curator.version>2.11.0</curator.version>
         <archaius.version>0.7.3</archaius.version>
         <archaius.zookeeper.version>0.7.3</archaius.zookeeper.version>
 

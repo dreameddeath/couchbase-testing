@@ -81,15 +81,20 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                 switch (event.getType()) {
                     case CHILD_UPDATED:
                     case CHILD_ADDED:
+                        started.countDown();
                         LOG.debug("event {} / {}", event.getType(), event.getData().getPath());
                          uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/")+1);
                         T obj = deserialize(uid,event.getData().getData());
                         resync(uid,obj);
                         break;
                     case CHILD_REMOVED:
+                        started.countDown();
                         LOG.debug("event {} / {}", event.getType(), event.getData().getPath());
                         uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/")+1);
                         remove(uid);
+                        break;
+                    case INITIALIZED:
+                        started.countDown();
                         break;
                     case CONNECTION_RECONNECTED:
                         LOG.debug("event {} / {}", event.getType(), event.getInitialData().size());
@@ -102,8 +107,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                         }
                         existingUid.forEach(this::remove);
                         break;
-                    case INITIALIZED:
-                        started.countDown();
+
                 }
             }
         });
@@ -116,18 +120,19 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
 
     @PreDestroy
     public final void stop() throws Exception{
+        waitStarted();
         LOG.info("Stopping discovery on path {}",basePath);
-        for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
+        for (ICuratorDiscoveryLifeCycleListener listener : lifeCycleListeners) {
             listener.onStop(this, true);
         }
-        if(pathCache!=null) {
+        if (pathCache != null) {
             pathCache.close();
         }
         instanceCache.clear();
-        for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
-            listener.onStop(this,false);
+        for (ICuratorDiscoveryLifeCycleListener listener : lifeCycleListeners) {
+            listener.onStop(this, false);
         }
-        started=null;
+        started = null;
     }
 
     protected void resync(String uid,final T newObj){
@@ -217,7 +222,9 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
 
     public void waitStarted() throws InterruptedException{
         if(started!=null){
-            started.await(10,TimeUnit.SECONDS);//TODO be parameterizable
+            if(started.getCount()>0) {
+                Preconditions.checkArgument(started.await(10, TimeUnit.SECONDS), "The start phase hasn't finished on time");
+            }
         }
         else{
             throw new IllegalStateException("The module hasn't reached start phase");

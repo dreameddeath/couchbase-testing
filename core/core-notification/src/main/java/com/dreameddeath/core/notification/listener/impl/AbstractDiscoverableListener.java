@@ -38,7 +38,7 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
     private final ConcurrentHashMap<EntityModelId,Boolean> modelIdEligibilityMap = new ConcurrentHashMap<>();
 
     public AbstractDiscoverableListener(ListenerDescription description){
-        this.name = description.getName()+"/"+description.getType();
+        this.name = description.getName();
         this.type = description.getType();
         setDescription(description);
     }

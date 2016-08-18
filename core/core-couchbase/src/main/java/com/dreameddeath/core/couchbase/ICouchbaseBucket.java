@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.couchbase;
 
+import com.couchbase.client.core.CouchbaseException;
 import com.couchbase.client.java.error.CASMismatchException;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import com.couchbase.client.java.error.DocumentDoesNotExistException;
@@ -130,9 +131,15 @@ public interface ICouchbaseBucket {
                 return (StorageException)e.getCause();
             }
 
-            Throwable rootException =e.getCause();
-            if(rootException == null){
+            Throwable rootException;
+            if(e instanceof CouchbaseException){
                 rootException = e;
+            }
+            else {
+                rootException = e.getCause();
+                if (rootException == null) {
+                    rootException = e;
+                }
             }
             if(rootException instanceof InterruptedException){
                 return new DocumentStorageTimeOutException(doc,"Interruption occurs",rootException);

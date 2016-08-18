@@ -39,10 +39,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.*;
 
 /**
  * Created by Christophe Jeunesse on 18/01/2015.
@@ -52,7 +53,7 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
     private ServiceDiscovery<CuratorDiscoveryServiceDescription> serviceDiscovery;
     private final ConcurrentMap<String,ServiceProvider<CuratorDiscoveryServiceDescription>> serviceProviderMap=new ConcurrentHashMap<>();
-    private final List<IServiceDiscovererListener> listeners=new ArrayList<>();
+    private final List<IServiceDiscovererListener> listeners=new CopyOnWriteArrayList<>();
     private final String domain;
     private final CountDownLatch started = new CountDownLatch(1);
 
@@ -106,7 +107,12 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
                     if(serviceProviderMap.putIfAbsent(obj.getFullName(), provider)==null){
                         provider.start();
                         for(IServiceDiscovererListener listener:listeners){
-                            listener.onProviderRegister(ServiceDiscoverer.this,provider,obj);
+                            try {
+                                listener.onProviderRegister(ServiceDiscoverer.this, provider, obj);
+                            }
+                            catch (Exception e){
+                                LOG.error("Error on register "+obj.getFullName()+" for listener "+listener,e);
+                            }
                         }
                     }
                 } catch (Exception e) {
@@ -121,7 +127,12 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
                     if(provider!=null){
                         provider.close();
                         for(IServiceDiscovererListener listener:listeners){
-                            listener.onProviderRegister(ServiceDiscoverer.this,provider,oldObj);
+                            try {
+                                listener.onProviderUnRegister(ServiceDiscoverer.this, provider, oldObj);
+                            }
+                            catch (Exception e){
+                                LOG.error("Error on unregister "+oldObj.getFullName()+" for listener "+listener,e);
+                            }
                         }
                     }
                 }
@@ -138,14 +149,36 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
     }
 
     public  ServiceProvider<CuratorDiscoveryServiceDescription> getServiceProvider(String name) throws ServiceDiscoveryException{
+        return getServiceProvider(name,1,TimeUnit.SECONDS);
+    }
+
+    public  ServiceProvider<CuratorDiscoveryServiceDescription> getServiceProvider(String name,long timeout,TimeUnit unit) throws ServiceDiscoveryException{
         try {
             waitStarted();
         }
         catch(InterruptedException e){
             throw new ServiceDiscoveryException("Not yet started",e);
         }
+        final CountDownLatch serviceProviderFound=new CountDownLatch(1);
+        final IServiceDiscovererListener listener = new IServiceDiscovererListener() {
+            @Override
+            public void onProviderRegister(ServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription description) {
+                if(description.getName().equals(name)){serviceProviderFound.countDown();}
+            }
+            @Override public void onProviderUnRegister(ServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription description) {}
+        };
+        ServiceProvider<CuratorDiscoveryServiceDescription> provider =serviceProviderMap.computeIfAbsent(name,missingName->{
+            listeners.add(listener);
+            return null;
+        });
 
-        ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceProviderMap.get(name);
+        if(provider==null){
+            try {
+                serviceProviderFound.await(timeout,unit);
+            }
+            catch (InterruptedException e){}
+            provider=serviceProviderMap.get(name);
+        }
         if(provider==null){
             LOG.error("Cannot find provider for service name {}",name);
             throw new ServiceDiscoveryException("Cannot find provider for service name "+name+" in domain "+ domain);

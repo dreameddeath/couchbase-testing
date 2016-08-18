@@ -75,6 +75,7 @@ public class EventNotificationTest extends Assert{
 
     @Test
     public void eventBusTest() throws Exception{
+        NotificationTestListener.clear();
         List<EventTest> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
