@@ -20,7 +20,8 @@ import com.dreameddeath.core.curator.model.IRegisterable;
 import com.dreameddeath.core.curator.registrar.ICuratorRegistrar;
 import com.dreameddeath.core.curator.utils.CuratorUtils;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.nodes.PersistentEphemeralNode;
+import org.apache.curator.framework.recipes.nodes.PersistentNode;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
     private final static Logger LOG = LoggerFactory.getLogger(CuratorRegistrarImpl.class);
     private final CuratorFramework curatorFramework;
     private final String basePath;
-    private final Map<String,PersistentEphemeralNode> registered = new HashMap<>();
+    private final Map<String,PersistentNode> registered = new HashMap<>();
     private final Map<String,T> registeredValues = new HashMap<>();
 
     public CuratorRegistrarImpl(CuratorFramework curatorFramework,String basePath) {
@@ -62,10 +63,10 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
         CuratorUtils.createPathIfNeeded(curatorFramework, basePath);
     }
 
-    private PersistentEphemeralNode setupNode(T obj) throws Exception {
+    private PersistentNode setupNode(T obj) throws Exception {
         preparePath();
-        PersistentEphemeralNode node = new PersistentEphemeralNode(curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL,
-                CuratorUtils.buildPath(basePath,obj), serialize(obj));
+        PersistentNode node = new PersistentNode(curatorFramework, CreateMode.EPHEMERAL,false/*isProtected*/,CuratorUtils.buildPath(basePath,obj), serialize(obj));
+                //new PersistentEphemeralNode(curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL, CuratorUtils.buildPath(basePath,obj), serialize(obj));
         node.start();
         node.waitForInitialCreate(1, TimeUnit.SECONDS);
         LOG.info("Registering path {}",node.getActualPath());

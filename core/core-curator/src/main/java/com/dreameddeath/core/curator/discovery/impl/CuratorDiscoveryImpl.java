@@ -112,6 +112,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
             }
         });
         waitStarted();
+        Thread.sleep(100);//to let initial population of cache
         for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
             listener.onStart(this,false);
         }

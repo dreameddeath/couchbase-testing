@@ -175,9 +175,17 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
         if(provider==null){
             try {
                 serviceProviderFound.await(timeout,unit);
+
             }
             catch (InterruptedException e){}
             provider=serviceProviderMap.get(name);
+            try {
+                Thread.sleep(100);//Sleep to let the cache being filled
+            }
+            catch (InterruptedException e){
+
+            }
+
         }
         if(provider==null){
             LOG.error("Cannot find provider for service name {}",name);
