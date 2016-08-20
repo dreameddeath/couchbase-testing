@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.notification.bus.impl;
 
-import com.dreameddeath.core.notification.listener.IEventListener;
+import com.dreameddeath.core.notification.metrics.NotificationMetrics;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 
@@ -24,24 +24,21 @@ import com.dreameddeath.core.notification.model.v1.Notification;
  * Created by Christophe Jeunesse on 23/06/2016.
  */
 public class InternalEvent {
-    private IEventListener listener;
     private Notification notification;
     private Event event;
+    private NotificationMetrics.Context notificationMetricsContext;
 
-    public void setProcessingElement(Event event,Notification notification,IEventListener listener) {
+    public void setProcessingElement(Event event, Notification notification, NotificationMetrics.Context metricContext) {
         this.notification = notification;
-        this.listener = listener;
         this.event = event;
+        this.notificationMetricsContext = metricContext;
     }
 
     public void cleanup(){
         this.notification = null;
-        this.listener = null;
+        this.notificationMetricsContext=null;
     }
 
-    public <T extends Event> IEventListener getListener() {
-        return listener;
-    }
 
     public <T extends Event> T getEvent() {
         return (T)event;
@@ -49,5 +46,9 @@ public class InternalEvent {
 
     public Notification getNotification() {
         return notification;
+    }
+
+    public NotificationMetrics.Context getNotificationMetricsContext() {
+        return notificationMetricsContext;
     }
 }

@@ -104,7 +104,7 @@ public class EventNotificationTest extends Assert{
                 }
             } while (resultNotif != null && (nbReceived< (nbEvent*2)));
         }
-        assertEquals(EVENTBUS_THREAD_POOL_SIZE.get(),testListener.getThreadCounter().keySet().size());
+        assertEquals(EVENTBUS_THREAD_POOL_SIZE.get()*((EventBusImpl)bus).getListeners().size(),testListener.getThreadCounter().keySet().size());
         assertEquals(nbEvent*2,nbReceived);
         assertEquals(((nbEvent+1)*nbEvent/2)*2,testListener.getTotalCounter());
         Thread.sleep(50);//Wait for all updates

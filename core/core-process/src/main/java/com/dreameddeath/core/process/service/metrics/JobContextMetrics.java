@@ -68,19 +68,18 @@ public class JobContextMetrics implements Closeable {
     }
 
     public class MetricsContext {
-        private final long startTime = System.nanoTime();
+        private final Timer.Context total ;
 
         public MetricsContext() {
             if (registry != null) {
                 inRequests.inc();
             }
+            total=totals!=null?totals.time():null;
         }
 
         public void stop(boolean success, Long size) {
-            long endTime = System.nanoTime();
-            long duration = endTime - startTime;
             if (registry != null) {
-                totals.update(duration, TimeUnit.NANOSECONDS);
+                long duration =total.stop();
                 if (size != null) {
                     exchangedData.mark(size);
                 }

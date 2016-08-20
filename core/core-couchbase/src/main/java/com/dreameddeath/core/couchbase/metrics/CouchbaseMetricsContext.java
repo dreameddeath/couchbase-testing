@@ -74,19 +74,21 @@ public class CouchbaseMetricsContext implements Closeable {
 
 
     public class MetricsContext {
-        private final long startTime = System.nanoTime();
+        private final Timer.Context total;
 
         public MetricsContext(){
             if(registry!=null) {
                 inRequests.inc();
+                total=totals.time();
+            }
+            else{
+                total=null;
             }
         }
 
         public void stopWithSize(boolean success, Long size){
-            long endTime=System.nanoTime();
-            long duration=endTime-startTime;
             if(registry!=null) {
-                totals.update(duration, TimeUnit.NANOSECONDS);
+                long duration = total.stop();
                 if(size!=null){
                     exchangedData.mark(size);
                 }

@@ -79,21 +79,19 @@ public class DcpFlowHandlerMetrics implements Closeable {
 
 
     public class Context {
-        private final long startTime;
+        private final Timer.Context total;
         private Context(){
-            startTime = System.nanoTime();
+            total = totals!=null?totals.time():null;
         }
 
         public void stop(){
-            if(registry!=null){
-                totals.update(startTime, TimeUnit.NANOSECONDS);
-            }
+            stop(null);
         }
 
         public void stop(Throwable e){
             if(registry!=null){
-                totals.update(startTime, TimeUnit.NANOSECONDS);
-                errors.update(startTime,TimeUnit.NANOSECONDS);
+                long duration = total.stop();
+                if(e!=null) errors.update(duration,TimeUnit.NANOSECONDS);
             }
         }
     }

@@ -16,6 +16,8 @@
 
 package com.dreameddeath.core.notification;
 
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
@@ -66,6 +68,7 @@ public class ListenerDiscoveryTest extends Assert {
 
     private static CouchbaseSessionFactory sessionFactory;
     private IEventBus bus;
+    private MetricRegistry metricRegistry;
     private CuratorFramework client;
     private ListenerDiscoverer discoverer;
     private volatile NotificationTestListener testListener;
@@ -86,7 +89,8 @@ public class ListenerDiscoveryTest extends Assert {
     @Before
     public void setupBus() throws Exception{
         //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getName(),4);
-        bus = new EventBusImpl();
+        metricRegistry=new MetricRegistry();
+        bus = new EventBusImpl(metricRegistry);
         //EventListenerFactory factory = new EventListenerFactory();
         client = curatorUtils.getClient(NAME_SPACE_PREFIX);
         discoverer = new ListenerDiscoverer(client, BASE_PATH);
@@ -139,7 +143,7 @@ public class ListenerDiscoveryTest extends Assert {
 
             assertTrue(counter.await(10, TimeUnit.SECONDS));
             assertEquals(1L,((EventBusImpl)bus).getListeners().size());
-            assertTrue(((EventBusImpl)bus).getListeners().iterator().next() instanceof DiscoverableDefaultBlockingListener);
+            assertTrue(((EventBusImpl)bus).getListeners().get(0) instanceof DiscoverableDefaultBlockingListener);
         }
 
 
@@ -287,6 +291,7 @@ public class ListenerDiscoveryTest extends Assert {
         }
 
         registrar.close();
+        ConsoleReporter.forRegistry(metricRegistry).build().report();
     }
 
 
