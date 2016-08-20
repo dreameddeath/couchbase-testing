@@ -32,10 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -73,46 +70,54 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         }
         preparePath();
         pathCache = new PathChildrenCache(curatorFramework,basePath,true);
-        pathCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
         started=new CountDownLatch(1);
         pathCache.getListenable().addListener((client, event) -> {
-            synchronized (CuratorDiscoveryImpl.this) {
-                String uid;
                 switch (event.getType()) {
                     case CHILD_UPDATED:
                     case CHILD_ADDED:
-                        started.countDown();
+                        //started.countDown();
                         LOG.debug("event {} / {}", event.getType(), event.getData().getPath());
-                         uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/")+1);
-                        T obj = deserialize(uid,event.getData().getData());
-                        resync(uid,obj);
+                        {
+                            String uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/") + 1);
+                            T obj = deserialize(uid, event.getData().getData());
+                            resync(uid,obj);
+                        }
                         break;
                     case CHILD_REMOVED:
-                        started.countDown();
+                        //started.countDown();
                         LOG.debug("event {} / {}", event.getType(), event.getData().getPath());
-                        uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/")+1);
-                        remove(uid);
-                        break;
-                    case INITIALIZED:
-                        started.countDown();
+                        {
+                            String uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/") + 1);
+                            remove(uid);
+                        }
                         break;
                     case CONNECTION_RECONNECTED:
                         LOG.debug("event {} / {}", event.getType(), event.getInitialData().size());
-                        Set<String> existingUid = instanceCache.keySet();
-                        for(ChildData child :event.getInitialData()){
-                            uid = child.getPath().substring(child.getPath().lastIndexOf("/")+1);
-                            T resyncObj =deserialize(uid,child.getData());
-                            resync(uid,resyncObj);
-                            existingUid.remove(resyncObj.getUid());
+                        {
+                            Set<String> existingUid = new HashSet<>(instanceCache.keySet());
+                            for (ChildData child : event.getInitialData()) {
+                                String uid = child.getPath().substring(child.getPath().lastIndexOf("/") + 1);
+                                T resyncObj = deserialize(uid, child.getData());
+                                resync(uid, resyncObj);
+                                existingUid.remove(resyncObj.getUid());
+                            }
+                            existingUid.forEach(this::remove);
                         }
-                        existingUid.forEach(this::remove);
                         break;
-
+                    case INITIALIZED:
+                        /*for(ChildData childData:event.getInitialData()){
+                            String uid = childData.getPath().substring(childData.getPath().lastIndexOf("/")+1);
+                            T obj = deserialize(uid,childData.getData());
+                            resync(uid,obj);
+                        }*/
+                        started.countDown();
+                        break;
                 }
-            }
         });
+
+        pathCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+
         waitStarted();
-        Thread.sleep(100);//to let initial population of cache
         for(ICuratorDiscoveryLifeCycleListener listener:lifeCycleListeners){
             listener.onStart(this,false);
         }
@@ -137,35 +142,37 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     }
 
     protected void resync(String uid,final T newObj){
-        final T oldObj = instanceCache.put(newObj.getUid(), newObj);
-        if(oldObj==null) {
-            listeners.forEach(l -> {
-                try{
-                    l.onRegister(uid,newObj);
-                }
-                catch(Throwable e){
-                    LOG.error("Error during registering {}/{}",newObj.getClass(),uid);
-                    LOG.error("Error the error was:",e);
-                }
-            });
+        instanceCache.compute(uid,(key,oldObj)->{
+            if(oldObj==null) {
+                listeners.forEach(l -> {
+                    try{
+                        l.onRegister(uid,newObj);
+                    }
+                    catch(Throwable e){
+                        LOG.error("Error during registering {}/{}",newObj.getClass(),uid);
+                        LOG.error("Error the error was:",e);
+                    }
+                });
+            }
+            else{
+                listeners.forEach(l -> {
+                    try {
+                        l.onUpdate(uid,oldObj, newObj);
+                    }
+                    catch (Throwable e){
+                        LOG.error("Error during uid {}/{}",newObj.getClass(),uid);
+                        LOG.error("Error the error was:",e);
+                    }
+                });
+            }
+            return newObj;
         }
-        else{
-            listeners.forEach(l -> {
-                try {
-                    l.onUpdate(uid,oldObj, newObj);
-                }
-                catch (Throwable e){
-                    LOG.error("Error during uid {}/{}",newObj.getClass(),uid);
-                    LOG.error("Error the error was:",e);
-                }
-            });
-        }
+        );
     }
 
     protected void remove(String uid){
-        T oldObj = instanceCache.get(uid);
+        T oldObj = instanceCache.remove(uid);
         if(oldObj!=null) {
-            instanceCache.remove(uid);
             listeners.forEach(l -> {
                 try {
                     l.onUnregister(uid,oldObj);
@@ -224,7 +231,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     public void waitStarted() throws InterruptedException{
         if(started!=null){
             if(started.getCount()>0) {
-                Preconditions.checkArgument(started.await(10, TimeUnit.SECONDS), "The start phase hasn't finished on time");
+                Preconditions.checkArgument(started.await(5, TimeUnit.MINUTES), "The start phase hasn't finished on time");
             }
         }
         else{

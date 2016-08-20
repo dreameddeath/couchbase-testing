@@ -103,7 +103,7 @@ public class RestLocalDaemonAdminService extends AbstractExposableService {
             else if(statusUpdateRequest.getAction() == StatusUpdateRequest.Action.STOP) {
                 new Thread(() -> {
                     try {
-                        Thread.sleep(100);
+                        //Thread.sleep(100);
                         LOG.info("Stopping {}/{}", daemon.getName(), daemon.getUuid());
                         daemon.getDaemonLifeCycle().stop();
                     }

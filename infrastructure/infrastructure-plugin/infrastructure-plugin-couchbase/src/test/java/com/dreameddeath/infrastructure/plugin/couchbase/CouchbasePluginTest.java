@@ -79,7 +79,7 @@ public class CouchbasePluginTest extends Assert {
             public void run() {
 
                 try {
-                    Thread.sleep(200);
+
                     TestDoc newDoc = new TestDoc();
                     newDoc.name = "testInit";
 

@@ -159,34 +159,8 @@ public class ServiceDiscoverer extends CuratorDiscoveryImpl<ServiceDescription>{
         catch(InterruptedException e){
             throw new ServiceDiscoveryException("Not yet started",e);
         }
-        final CountDownLatch serviceProviderFound=new CountDownLatch(1);
-        final IServiceDiscovererListener listener = new IServiceDiscovererListener() {
-            @Override
-            public void onProviderRegister(ServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription description) {
-                if(description.getName().equals(name)){serviceProviderFound.countDown();}
-            }
-            @Override public void onProviderUnRegister(ServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription description) {}
-        };
-        ServiceProvider<CuratorDiscoveryServiceDescription> provider =serviceProviderMap.computeIfAbsent(name,missingName->{
-            listeners.add(listener);
-            return null;
-        });
 
-        if(provider==null){
-            try {
-                serviceProviderFound.await(timeout,unit);
-
-            }
-            catch (InterruptedException e){}
-            provider=serviceProviderMap.get(name);
-            try {
-                Thread.sleep(100);//Sleep to let the cache being filled
-            }
-            catch (InterruptedException e){
-
-            }
-
-        }
+        ServiceProvider<CuratorDiscoveryServiceDescription> provider=serviceProviderMap.get(name);
         if(provider==null){
             LOG.error("Cannot find provider for service name {}",name);
             throw new ServiceDiscoveryException("Cannot find provider for service name "+name+" in domain "+ domain);

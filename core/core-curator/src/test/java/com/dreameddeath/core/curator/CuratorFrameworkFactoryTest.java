@@ -134,79 +134,87 @@ public class CuratorFrameworkFactoryTest extends Assert{
         final TestRegistrarClass secondObj = new TestRegistrarClass(UUID.randomUUID(),"second:value1","second:value2");
         final TestRegistrarClass thirdObj = new TestRegistrarClass(UUID.randomUUID(),"third:value1","third:value2");
 
+        final Object lock=new Object();
         final ICuratorDiscoveryListener<TestRegistrarClass> listener = new ICuratorDiscoveryListener<TestRegistrarClass>() {
             private List<TestRegistrarClass> listchecksRegister =new ArrayList<>(Arrays.asList(firstObj,secondObj));
             private List<TestRegistrarClass> listchecksUnRegister =new ArrayList<>(Arrays.asList(secondObj,thirdObj));
 
             @Override
-            synchronized public void onRegister(String uid, TestRegistrarClass obj) {
-                nbRegister.incrementAndGet();
-                try {
-                    TestRegistrarClass refObj = null;
-                    if(listchecksRegister.size()>0){
-                        for(TestRegistrarClass objClass: listchecksRegister){
-                            if(objClass.getUid().equals(obj.getUid())){
-                                refObj = obj;
+            public void onRegister(String uid, TestRegistrarClass obj) {
+                synchronized (lock) {
+                    LOG.info("Received registered {} of {}", uid, obj);
+                    nbRegister.incrementAndGet();
+                    try {
+                        TestRegistrarClass refObj = null;
+                        if (listchecksRegister.size() > 0) {
+                            for (TestRegistrarClass objClass : listchecksRegister) {
+                                if (objClass.getUid().equals(obj.getUid())) {
+                                    refObj = obj;
+                                }
                             }
+                            assertNotNull(refObj);
+                            assertTrue(listchecksRegister.remove(refObj));
+                        } else {
+                            refObj = thirdObj;
                         }
-                        assertNotNull(refObj);
-                        assertTrue(listchecksRegister.remove(refObj));
-                    }
-                    else{
-                        refObj = thirdObj;
-                    }
 
-                    assertEquals(refObj.value1, obj.value1);
-                    assertEquals(refObj.value2, obj.value2);
-                    assertEquals(refObj.uid.toString(), obj.uid.toString());
-                    assertEquals(refObj.uid.toString(), uid);
-                } catch (Throwable e) {
-                    errors.incrementAndGet();
-                    LOG.error("Register issue", e);
+                        assertEquals(refObj.value1, obj.value1);
+                        assertEquals(refObj.value2, obj.value2);
+                        assertEquals(refObj.uid.toString(), obj.uid.toString());
+                        assertEquals(refObj.uid.toString(), uid);
+                    } catch (Throwable e) {
+                        errors.incrementAndGet();
+                        LOG.error("Register issue", e);
+                    }
+                    lock.notify();
                 }
-                this.notify();
             }
 
             @Override
-            synchronized public void onUnregister(String uid, TestRegistrarClass oldObj) {
-                int pos = nbUnRegister.incrementAndGet();
-                try {
-                    if(pos==1) {
-                        assertEquals(firstObjUpdated.value1, oldObj.value1);
-                        assertEquals(firstObjUpdated.value2, oldObj.value2);
-                        assertEquals(firstObjUpdated.uid.toString(), oldObj.uid.toString());
+            public void onUnregister(String uid, TestRegistrarClass oldObj) {
+                synchronized (lock) {
+                    LOG.info("Received un-registered {} of {}", uid, oldObj);
+                    int pos = nbUnRegister.incrementAndGet();
+                    try {
+                        if (pos == 1) {
+                            assertEquals(firstObjUpdated.value1, oldObj.value1);
+                            assertEquals(firstObjUpdated.value2, oldObj.value2);
+                            assertEquals(firstObjUpdated.uid.toString(), oldObj.uid.toString());
+                            assertEquals(firstObjUpdated.uid.toString(), uid);
+                        } else {
+                            LOG.info("Removing from {} / {}", listchecksUnRegister, oldObj);
+                            assertTrue(listchecksUnRegister.remove(oldObj));
+                        }
+                    } catch (Throwable e) {
+                        errors.incrementAndGet();
+                        LOG.error("Unregister issue", e);
+                    }
+
+                    lock.notify();
+                }
+            }
+
+            @Override
+            public void onUpdate(String uid, TestRegistrarClass obj, TestRegistrarClass newObj) {
+                synchronized (lock) {
+                    LOG.info("Received update {} of {}", uid, obj);
+                    nbUpdate.incrementAndGet();
+                    try {
+                        assertEquals(firstObj.value1, obj.value1);
+                        assertEquals(firstObj.value2, obj.value2);
+                        assertEquals(firstObj.uid.toString(), obj.uid.toString());
+                        assertEquals(firstObj.uid.toString(), uid);
+
+                        assertEquals(firstObjUpdated.value1, newObj.value1);
+                        assertEquals(firstObjUpdated.value2, newObj.value2);
+                        assertEquals(firstObjUpdated.uid.toString(), newObj.uid.toString());
                         assertEquals(firstObjUpdated.uid.toString(), uid);
+                    } catch (Throwable e) {
+                        errors.incrementAndGet();
+                        LOG.error("Update issue", e);
                     }
-                    else{
-                        LOG.info("Removing from {} / {}", listchecksUnRegister, oldObj);
-                        assertTrue(listchecksUnRegister.remove(oldObj));
-                    }
-                } catch (Throwable e) {
-                    errors.incrementAndGet();
-                    LOG.error("Unregister issue",e);
+                    lock.notify();
                 }
-
-                this.notify();
-            }
-
-            @Override
-            synchronized public void onUpdate(String uid, TestRegistrarClass obj, TestRegistrarClass newObj) {
-                nbUpdate.incrementAndGet();
-                try {
-                    assertEquals(firstObj.value1, obj.value1);
-                    assertEquals(firstObj.value2, obj.value2);
-                    assertEquals(firstObj.uid.toString(), obj.uid.toString());
-                    assertEquals(firstObj.uid.toString(), uid);
-
-                    assertEquals(firstObjUpdated.value1, newObj.value1);
-                    assertEquals(firstObjUpdated.value2, newObj.value2);
-                    assertEquals(firstObjUpdated.uid.toString(), newObj.uid.toString());
-                    assertEquals(firstObjUpdated.uid.toString(), uid);
-                } catch (Throwable e) {
-                    errors.incrementAndGet();
-                    LOG.error("Update issue",e);
-                }
-                this.notify();
             }
         };
         discovery.addListener(listener);
@@ -219,25 +227,26 @@ public class CuratorFrameworkFactoryTest extends Assert{
 
 
 
-        synchronized (listener) {
-            registrar.register(firstObj);
-            registrar.register(secondObj);
-            discovery.start();
-            listener.wait(10000, 0);
-            listener.wait(10000, 0);
-            assertEquals(2,nbRegister.get());
+
+
+        registrar.register(firstObj);
+        registrar.register(secondObj);
+        discovery.start();
+        assertEquals(2,nbRegister.get());
+
+        synchronized (lock) {
             registrar.update(firstObjUpdated);
-            listener.wait(10000, 0);
+            lock.wait(10000, 0);
             assertEquals(1,nbUpdate.get());
             registrar.deregister(firstObj);
-            listener.wait(10000, 0);
+            lock.wait(10000, 0);
             assertEquals(1,nbUnRegister.get());
             registrar.register(thirdObj);
-            listener.wait(10000, 0);
+            lock.wait(10000, 0);
             assertEquals(3,nbRegister.get());
             registrar.close();
-            listener.wait(10000,0);
-            listener.wait(10000,0);
+            lock.wait(10000,0);
+            lock.wait(10000,0);
             assertEquals(3,nbUnRegister.get());
         }
         discovery.stop();
