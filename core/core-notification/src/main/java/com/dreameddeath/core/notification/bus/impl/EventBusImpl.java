@@ -43,9 +43,7 @@ public class EventBusImpl implements IEventBus {
     private final ThreadFactory threadFactory;
     private final List<IEventBusLifeCycleListener> lifeCycleListeners = new CopyOnWriteArrayList<>();
     private final Map<String,InternalEventHandler> eventHandlersMap = new ConcurrentHashMap<>();
-    //private final Disruptor<InternalEvent>[] disruptors;
     private final EventTranslatorThreeArg<InternalEvent,Event, Notification,NotificationMetrics.Context> translator;
-    //private final RingBuffer<InternalEvent>[] ringBuffers;
     private final EventBusMetrics eventBusMetrics;
     private volatile boolean isStarted=false;
 
@@ -99,6 +97,9 @@ public class EventBusImpl implements IEventBus {
         }
         else {
             InternalEventHandler handler=new InternalEventHandler(listener);
+            if(isStarted){
+                handler.start();
+            }
             eventHandlersMap.put(listener.getName(),handler);
             for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
                 try {
@@ -107,9 +108,6 @@ public class EventBusImpl implements IEventBus {
                 catch(Throwable e){
                     LOG.error("Listener <"+lifeCycleListener+"> error ",e);
                 }
-            }
-            if(isStarted){
-                handler.start();
             }
         }
     }
