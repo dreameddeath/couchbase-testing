@@ -5,4 +5,6 @@ package com.dreameddeath.core.depinjection;
  */
 public interface IDependencyInjector {
     <T> T getBeanOfType(Class<T> clazz);
+
+    <T> T autowireBean(T bean,String beanName);
 }

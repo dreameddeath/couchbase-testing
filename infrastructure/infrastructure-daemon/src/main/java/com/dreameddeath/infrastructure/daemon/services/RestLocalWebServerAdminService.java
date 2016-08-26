@@ -18,7 +18,9 @@ package com.dreameddeath.infrastructure.daemon.services;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
+import com.dreameddeath.infrastructure.daemon.model.PluginCoreInfo;
 import com.dreameddeath.infrastructure.daemon.model.WebServerInfo;
+import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.services.model.webserver.WebServerStatusResponse;
 import com.dreameddeath.infrastructure.daemon.services.model.webserver.WebServerStatusUpdateRequest;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
@@ -129,6 +131,24 @@ public class RestLocalWebServerAdminService {
     }
 
 
+
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    @Path("{name}/plugins")
+    @ApiOperation(value = "give list of plugins on a given webserver",
+            response = PluginCoreInfo.class)
+    public List<PluginCoreInfo> getPlugins(@PathParam("name") String name){
+        List<PluginCoreInfo> pluginCoreInfoList = new ArrayList<>();
+        for(AbstractWebServerPlugin webServerPlugin:findByName(name).getPlugins()){
+            PluginCoreInfo coreInfo = new PluginCoreInfo();
+            coreInfo.setClassName(webServerPlugin.getClass().getName());
+            coreInfo.setName(webServerPlugin.getName());
+            pluginCoreInfoList.add(coreInfo);
+        }
+        return pluginCoreInfoList;
+    }
+
+
     protected WebServerStatusResponse buildStatus(AbstractWebServer webServer){
         WebServerStatusResponse result = new WebServerStatusResponse();
         result.setAddress(ServerConnectorUtils.getConnectorHost(webServer.getServerConnector()));
@@ -146,6 +166,4 @@ public class RestLocalWebServerAdminService {
         }
         throw new NotFoundException("Cannot find server "+name);
     }
-
-
 }

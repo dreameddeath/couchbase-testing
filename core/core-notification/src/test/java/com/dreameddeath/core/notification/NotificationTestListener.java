@@ -62,6 +62,9 @@ public class NotificationTestListener extends AbstractLocalListener {
         Preconditions.checkArgument(type.equals(getType()));
     }
 
+    public static Notification pollNotif() throws InterruptedException{
+        return processedNotification.poll(2, TimeUnit.SECONDS);
+    }
     @Override
     public String getType() {
         return "testListenerDiscovery";
@@ -74,6 +77,8 @@ public class NotificationTestListener extends AbstractLocalListener {
     public Notification poll() throws InterruptedException {
         return processedNotification.poll(2, TimeUnit.SECONDS);
     }
+
+    public static int totalCounter(){return totalCounter.get();}
 
     public int getTotalCounter() {
         return totalCounter.get();

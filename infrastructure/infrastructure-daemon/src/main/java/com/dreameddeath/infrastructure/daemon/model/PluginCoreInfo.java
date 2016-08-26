@@ -14,19 +14,33 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.daemon.plugin;
+package com.dreameddeath.infrastructure.daemon.model;
 
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by Christophe Jeunesse on 19/12/2015.
+ * Created by Christophe Jeunesse on 22/08/2016.
  */
-public abstract class AbstractPlugin {
-    public void enrich(ServletContextHandler handler){
+public class PluginCoreInfo {
+    @JsonProperty
+    private String name;
+    @JsonProperty
+    private String className;
 
-    }
 
     public String getName() {
-        return this.getClass().getSimpleName();
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dreameddeath.infrastructure.plugin.config;
+package com.dreameddeath.infrastructure.plugin.process.config;
 
 import com.dreameddeath.core.config.ConfigPropertyFactory;
 import com.dreameddeath.core.config.ConfigPropertyWithTemplateName;

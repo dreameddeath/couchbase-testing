@@ -20,7 +20,6 @@ import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.ServiceRegistrar;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
-import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.curator.x.discovery.ServiceInstance;
 
@@ -54,15 +53,13 @@ public class WebServerInfo {
         address = ServerConnectorUtils.getConnectorHost(server.getServerConnector());
         port = ServerConnectorUtils.getConnectorPort(server.getServerConnector());
         status = server.getStatus();
-        if(server instanceof RestWebServer){
-            for(ServiceRegistrar registrar:((RestWebServer)server).getServiceDiscoveryManager().getRegistrars()){
-                services.addAll(registrar.getServicesInstanceDescription());
-            }
+        for(ServiceRegistrar registrar:server.getServiceDiscoveryManager().getRegistrars()){
+            services.addAll(registrar.getServicesInstanceDescription());
         }
     }
 
+    //Used by Json deserializer
     public WebServerInfo(){
-
     }
 
     public UUID getUid() {
@@ -118,6 +115,7 @@ public class WebServerInfo {
     }
 
     public void setServices(List<ServiceInstance<CuratorDiscoveryServiceDescription>> services) {
-        this.services = services;
+        this.services.clear();
+        this.services.addAll(services);
     }
 }

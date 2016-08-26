@@ -20,6 +20,7 @@ import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
@@ -30,6 +31,7 @@ import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
 import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
 import com.dreameddeath.core.notification.listener.IEventListener;
+import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
 import com.dreameddeath.core.notification.listener.impl.DefaultDiscoverableDeferringNotification;
 import com.dreameddeath.core.notification.listener.impl.DiscoverableDefaultBlockingListener;
 import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
@@ -94,8 +96,24 @@ public class ListenerDiscoveryTest extends Assert {
         //EventListenerFactory factory = new EventListenerFactory();
         client = curatorUtils.getClient(NAME_SPACE_PREFIX);
         discoverer = new ListenerDiscoverer(client, BASE_PATH);
+        ListenerInfoManager manager = new ListenerInfoManager();
+        EventListenerFactory listenerFactory = new EventListenerFactory();
+        listenerFactory.setListenerInfoManager(manager);
+        listenerFactory.setDependencyInjector(new IDependencyInjector() {
+            @Override
+            public <T> T getBeanOfType(Class<T> clazz) {return null;}
 
-        discoverer.addListener(new ListenerAutoSubscribe(bus,new EventListenerFactory(new ListenerInfoManager()).setSessionFactory(sessionFactory)).setSessionFactory(sessionFactory));
+            @Override
+            public <T> T autowireBean(T bean,String beanName) {
+                if(bean instanceof AbstractNotificationProcessor){
+                    ((AbstractNotificationProcessor)bean).setSessionFactory(sessionFactory);
+                }
+                return bean;
+            }
+        });
+        listenerFactory.registerFromManager();
+        //.setSessionFactory(sessionFactory)).setSessionFactory(sessionFactory)
+        discoverer.addListener(new ListenerAutoSubscribe(bus,listenerFactory).setSessionFactory(sessionFactory));
         discoverer.start();
 
         bus.start();

@@ -16,14 +16,16 @@
 
 package com.dreameddeath.core.notification.listener.impl;
 
-import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
+import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.notification.listener.IEventListener;
 import com.dreameddeath.core.notification.listener.IEventListenerBuilder;
 import com.dreameddeath.core.notification.listener.IEventListenerFactory;
 import com.dreameddeath.core.notification.listener.IEventListenerTypeMatcher;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,25 +38,22 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class EventListenerFactory implements IEventListenerFactory {
     private final List<MatcherPair> listenerBuilderMatcher =new CopyOnWriteArrayList<>();
     private final Map<EventListenerKey,IEventListener> listenerMap = new ConcurrentHashMap<>();
-    private volatile ICouchbaseSessionFactory sessionFactory;
+    private IDependencyInjector dependencyInjector;
+    private ListenerInfoManager listenerInfoManager;
 
-    public EventListenerFactory(){
-
+    @Autowired
+    public void setDependencyInjector(IDependencyInjector dependencyInjector){
+        this.dependencyInjector = dependencyInjector;
     }
 
-    public EventListenerFactory(ListenerInfoManager manager){
-        registerFromManager(manager);
+    public void setListenerInfoManager(ListenerInfoManager listenerInfoManager) {
+        this.listenerInfoManager = listenerInfoManager;
     }
 
-
-    public EventListenerFactory setSessionFactory(ICouchbaseSessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-        return this;
-    }
-
-    public void registerFromManager(ListenerInfoManager manager){
-        for(ListenerInfoManager.ListenerClassInfo classInfo:manager.getListenersClassInfo()){
-            registerListener(manager.getTypeMatcher(classInfo),manager.getListenerBuilder(classInfo));
+    @PostConstruct
+    public void registerFromManager(){
+        for(ListenerInfoManager.ListenerClassInfo classInfo:listenerInfoManager.getListenersClassInfo()){
+            registerListener(listenerInfoManager.getTypeMatcher(classInfo),listenerInfoManager.getListenerBuilder(classInfo,dependencyInjector));
         }
     }
 
@@ -73,7 +72,7 @@ public class EventListenerFactory implements IEventListenerFactory {
                         .filter(pair->pair.matcher.isMatching(key.type,key.params))
                         .sorted((pair1,pair2)->pair2.matcher.getMatchingRank(key.type,key.params)-pair1.matcher.getMatchingRank(key.type,key.params))
                         .findFirst()
-                        .map(pair -> pair.getListener(key,this.sessionFactory))
+                        .map(pair -> pair.getListener(key))
                         .orElse(null)
         );
     }
@@ -105,7 +104,7 @@ public class EventListenerFactory implements IEventListenerFactory {
             this.constructor=constructor;
         }
 
-        public IEventListener getListener(EventListenerKey key,ICouchbaseSessionFactory factory){
+        public IEventListener getListener(EventListenerKey key){
             IEventListener newListener;
             if(listener!=null){
                 return listener;
@@ -116,9 +115,7 @@ public class EventListenerFactory implements IEventListenerFactory {
             else{
                 newListener = constructor.build(key.type,key.name,key.params);
             }
-            if(newListener instanceof AbstractNotificationProcessor){
-                ((AbstractNotificationProcessor) newListener).setSessionFactory(factory);
-            }
+
             return newListener;
         }
     }

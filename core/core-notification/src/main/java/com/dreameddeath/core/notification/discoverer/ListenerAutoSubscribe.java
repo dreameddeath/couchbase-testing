@@ -122,11 +122,9 @@ public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<Listener
 
     public IEventListener buildListener(ListenerDescription description){
         IEventListener listener = listenerFactory.getListener(description);
-        if(listener==null){
-            LOG.info("No listener setup by the factory {} for listener {}/{}",listenerFactory,description.getType(),description.getName());
-        }
 
         if(listener==null){
+            LOG.info("No listener setup by the factory {} for listener {}/{}",listenerFactory,description.getType(),description.getName());
             if(description.getAllowDeferred()!=null && description.getAllowDeferred()){
                 listener = new DefaultDiscoverableDeferringNotification(description);
             }

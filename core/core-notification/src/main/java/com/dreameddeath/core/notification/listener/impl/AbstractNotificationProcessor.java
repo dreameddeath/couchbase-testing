@@ -39,7 +39,7 @@ public abstract class AbstractNotificationProcessor {
         this.sessionFactory = factory;
     }
 
-    @Autowired
+    @Autowired(required = false)
     public void setDefaultSessionUser(IUser user){
         defaultSessionUser = user;
     }

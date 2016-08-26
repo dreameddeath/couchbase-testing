@@ -31,6 +31,7 @@ public interface ICuratorDiscovery<T extends IRegisterable> {
     void stop() throws Exception;
     void refresh() throws Exception;
     void addListener(ICuratorDiscoveryListener<T> listener);
+    void removeListener(ICuratorDiscoveryListener<T> listener);
     void addLifeCycleListener(ICuratorDiscoveryLifeCycleListener listener);
     CuratorFramework getClient();
 }

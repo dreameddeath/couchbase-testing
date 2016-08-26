@@ -17,6 +17,7 @@
 package com.dreameddeath.core.notification.utils;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.notification.annotation.Listener;
 import com.dreameddeath.core.notification.listener.IEventListener;
@@ -53,6 +54,7 @@ public class ListenerInfoManager {
 
     private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
     private Map<String,Class> classMapper = new ConcurrentHashMap<>();
+
 
     public String getFilenameFromType(String type){
         return String.format("%s/%s/%s.json", ROOT_PATH, TYPES_DEF_PATH, type.toLowerCase());
@@ -108,18 +110,6 @@ public class ListenerInfoManager {
         }
     }
 
-    public Class getClassFromType(String type){
-        return classMapper.computeIfAbsent(type,typeStr->{
-            String className  =getTypeDefinition(typeStr).className;
-            try {
-                return Thread.currentThread().getContextClassLoader().loadClass(className);
-            }
-            catch(ClassNotFoundException e){
-                throw new RuntimeException("Cannot load class <" + className + "> for id <" + type + ">", e);
-            }
-        });
-    }
-
     public synchronized List<ListenerClassInfo> getListenersClassInfo(){
         try {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
@@ -160,10 +150,10 @@ public class ListenerInfoManager {
         }
     }
 
-    public IEventListenerBuilder getListenerBuilder(ListenerClassInfo classInfo){
-        Class<? extends IEventListener> listenerClass = getListenerClass(classInfo);
-        Constructor<? extends IEventListener> descriptionBasedContructor;
-        Constructor<? extends IEventListener> paramsBasedContructor;
+    public IEventListenerBuilder getListenerBuilder(ListenerClassInfo classInfo,IDependencyInjector dependencyInjector){
+        Class<IEventListener> listenerClass = (Class<IEventListener>)getListenerClass(classInfo);
+        Constructor<IEventListener> descriptionBasedContructor;
+        Constructor<IEventListener> paramsBasedContructor;
 
         try {
             descriptionBasedContructor = listenerClass.getConstructor(ListenerDescription.class);
@@ -171,19 +161,19 @@ public class ListenerInfoManager {
             descriptionBasedContructor=null;
         }
 
-
         try {
             paramsBasedContructor = listenerClass.getConstructor(String.class,String.class,Map.class);
         } catch (NoSuchMethodException e) {
             paramsBasedContructor=null;
         }
 
-        return constructBuilder(listenerClass,descriptionBasedContructor,paramsBasedContructor);
+        return constructBuilder(listenerClass,descriptionBasedContructor,paramsBasedContructor,dependencyInjector);
     }
 
-    private IEventListenerBuilder constructBuilder(Class<? extends IEventListener> listenerClass,
-            final Constructor<? extends IEventListener> descriptionBasedContructor,
-                                                   final Constructor<? extends IEventListener> paramsBasedContructor)
+    private <T extends IEventListener> IEventListenerBuilder constructBuilder(Class<T> listenerClass,
+                                                   final Constructor<T> descriptionBasedContructor,
+                                                   final Constructor<T> paramsBasedContructor,
+                                                   IDependencyInjector dependencyInjector)
     {
         Preconditions.checkArgument(descriptionBasedContructor!=null || paramsBasedContructor!=null,"Cannot find acceptable constructor for class {}",listenerClass.getName());
         if(descriptionBasedContructor!=null && paramsBasedContructor!=null){
@@ -191,7 +181,8 @@ public class ListenerInfoManager {
                 @Override
                 public IEventListener build(String type, String name, Map<String, String> params) {
                     try {
-                        return paramsBasedContructor.newInstance(type,name,params);
+                        T listener = paramsBasedContructor.newInstance(type,name,params);
+                        return dependencyInjector.autowireBean(listener,"listener"+name);
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
@@ -200,7 +191,8 @@ public class ListenerInfoManager {
                 @Override
                 public IEventListener build(ListenerDescription description) {
                     try {
-                        return descriptionBasedContructor.newInstance(description);
+                        T listener = descriptionBasedContructor.newInstance(description);
+                        return dependencyInjector.autowireBean(listener,"listener"+description.getName());
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
@@ -217,7 +209,8 @@ public class ListenerInfoManager {
                 @Override
                 public IEventListener build(ListenerDescription description) {
                     try {
-                        return descriptionBasedContructor.newInstance(description);
+                        T listener = descriptionBasedContructor.newInstance(description);
+                        return dependencyInjector.autowireBean(listener,"listener"+description.getName());
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
@@ -229,7 +222,8 @@ public class ListenerInfoManager {
                 @Override
                 public IEventListener build(String type, String name, Map<String, String> params) {
                     try {
-                        return paramsBasedContructor.newInstance(type,name,params);
+                        T listener = paramsBasedContructor.newInstance(type,name,params);
+                        return dependencyInjector.autowireBean(listener,"listener"+name);
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }

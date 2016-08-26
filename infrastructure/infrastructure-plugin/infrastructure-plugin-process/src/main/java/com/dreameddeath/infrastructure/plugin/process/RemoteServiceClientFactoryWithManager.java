@@ -27,7 +27,7 @@ import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.dreameddeath.infrastructure.plugin.config.InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN;
+import static com.dreameddeath.infrastructure.plugin.process.config.InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN;
 
 /**
  * Created by Christophe Jeunesse on 13/03/2016.

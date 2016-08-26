@@ -47,7 +47,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     private List<ICuratorDiscoveryListener<T>> listeners =new ArrayList<>();
     private List<ICuratorDiscoveryLifeCycleListener> lifeCycleListeners =new ArrayList<>();
     private Map<String,T> instanceCache =  Maps.newConcurrentMap();
-    private CountDownLatch started;
+    private CountDownLatch startedCountDown;
 
     public CuratorDiscoveryImpl(CuratorFramework curatorFramework, String basePath) {
         this.curatorFramework = curatorFramework;
@@ -70,7 +70,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         }
         preparePath();
         pathCache = new PathChildrenCache(curatorFramework,basePath,true);
-        started=new CountDownLatch(1);
+        startedCountDown =new CountDownLatch(1);
         pathCache.getListenable().addListener((client, event) -> {
                 switch (event.getType()) {
                     case CHILD_UPDATED:
@@ -110,7 +110,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                             T obj = deserialize(uid,childData.getData());
                             resync(uid,obj);
                         }*/
-                        started.countDown();
+                        startedCountDown.countDown();
                         break;
                 }
         });
@@ -138,7 +138,7 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         for (ICuratorDiscoveryLifeCycleListener listener : lifeCycleListeners) {
             listener.onStop(this, false);
         }
-        started = null;
+        startedCountDown = null;
     }
 
     protected void resync(String uid,final T newObj){
@@ -213,6 +213,20 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
         }
     }
 
+
+    @Override
+    public void removeListener(ICuratorDiscoveryListener<T> listener) {
+        if(listeners.remove(listener)){
+            for(Map.Entry<String,T> entry:instanceCache.entrySet()){
+                listener.onUnregister(entry.getKey(),entry.getValue());
+            }
+        }
+    }
+
+    public List<ICuratorDiscoveryListener<T>> getListeners() {
+        return Collections.unmodifiableList(listeners);
+    }
+
     @Override
     public void addLifeCycleListener(ICuratorDiscoveryLifeCycleListener listener){
         lifeCycleListeners.add(listener);
@@ -229,9 +243,9 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
     }
 
     public void waitStarted() throws InterruptedException{
-        if(started!=null){
-            if(started.getCount()>0) {
-                Preconditions.checkArgument(started.await(5, TimeUnit.MINUTES), "The start phase hasn't finished on time");
+        if(startedCountDown !=null){
+            if(startedCountDown.getCount()>0) {
+                Preconditions.checkArgument(startedCountDown.await(5, TimeUnit.MINUTES), "The start phase hasn't finished on time");
             }
         }
         else{

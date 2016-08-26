@@ -15,4 +15,9 @@ public class NotManagedDependencyInjector implements IDependencyInjector{
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public <T> T autowireBean(T bean,String beanName) {
+        return bean;
+    }
 }
