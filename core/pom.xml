@@ -46,6 +46,7 @@
         <module>core-helper</module>
         <module>core-integration</module>
         <module>core-service</module>
+        <module>core-service-soap</module>
         <module>core-elasticsearch</module>
         <module>core-elasticsearch-session</module>
         <module>core-kafka</module>

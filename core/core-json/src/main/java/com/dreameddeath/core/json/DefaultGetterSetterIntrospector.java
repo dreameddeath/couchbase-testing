@@ -19,13 +19,13 @@ package com.dreameddeath.core.json;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.VersionUtil;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
-import java.lang.reflect.Type;
+import java.lang.reflect.Field;
 
 /**
  * Created by Christophe Jeunesse on 30/10/2015.
@@ -36,9 +36,9 @@ public class DefaultGetterSetterIntrospector extends JacksonAnnotationIntrospect
         return VersionUtil.versionFor(getClass());
     }
 
-    private PropertyName findMathingField(AnnotatedMethod am, String propertyName, Type type){
-        for(AnnotatedField field:am.getContextClass().fields()){
-            if(!type.equals(field.getGenericType())){
+    private PropertyName findMathingField(AnnotatedMethod am, String propertyName, JavaType type){
+        for(Field field:am.getDeclaringClass().getFields()){
+            if(!type.getRawClass().equals(field.getType())){
                 continue;
             }
 
@@ -60,7 +60,7 @@ public class DefaultGetterSetterIntrospector extends JacksonAnnotationIntrospect
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(am.getAnnotated().getName().startsWith("get") && am.getAnnotated().getParameterCount()==0  && am.hasReturnType()){
 
-                    name = findMathingField(am, am.getAnnotated().getName().substring("get".length()), am.getGenericReturnType());
+                    name = findMathingField(am, am.getAnnotated().getName().substring("get".length()), am.getType());
                 }
             }
         }
@@ -74,7 +74,7 @@ public class DefaultGetterSetterIntrospector extends JacksonAnnotationIntrospect
             if (a instanceof AnnotatedMethod) {
                 AnnotatedMethod am = (AnnotatedMethod) a;
                 if(am.getAnnotated().getName().startsWith("set") && am.getParameterCount()==1 && !am.hasReturnType()){
-                    name = findMathingField(am, am.getAnnotated().getName().substring("set".length()), am.getGenericParameterType(0));
+                    name = findMathingField(am, am.getAnnotated().getName().substring("set".length()), am.getParameterType(0));
                 }
             }
         }

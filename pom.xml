@@ -136,6 +136,25 @@
                     </execution>
                 </executions>
             </plugin>
+                <plugin>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-codegen-plugin</artifactId>
+                    <version>${apache.cxf.mvn.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>wsdl2java</goal>
+                            </goals>
+                            <configuration>
+                                <testSourceRoot>${project.build.directory}/generated-test-sources/cxf</testSourceRoot>
+                                <testWsdlRoot>${basedir}/src/test/resources/wsdl</testWsdlRoot>
+                                <wsdlRoot>${basedir}/src/main/resources/wsdl</wsdlRoot>
+                                <additionalJvmArgs>-frontend jaxws21</additionalJvmArgs>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
         </plugins>
     </build>
 
@@ -158,9 +177,9 @@
         <java.version>1.8</java.version>
 
         <!-- General dependencies -->
-        <logback.version>1.1.3</logback.version>
+        <logback.version>1.1.7</logback.version>
         <slf4j.version>1.7.21</slf4j.version>
-        <couchbase.version>2.3.1</couchbase.version>
+        <couchbase.version>2.3.2</couchbase.version>
 
         <!-- java JSR libs -->
         <javax.inject.version>1</javax.inject.version>
@@ -175,34 +194,33 @@
         <aspectj-mvn.version>1.8</aspectj-mvn.version>
 
         <!-- Data Mapper -->
-        <jackson.version>2.6.4</jackson.version>
+        <jackson.version>2.8.1</jackson.version>
         <google.protobuf.version>2.6.2</google.protobuf.version>
 
         <!-- utilities library -->
-        <google.guava.version>18.0</google.guava.version>
-        <apache.common.version>2.6</apache.common.version>
+        <google.guava.version>19.0</google.guava.version>
         <apache.common.config.version>1.10</apache.common.config.version>
         <apache.common.codec.version>1.10</apache.common.codec.version>
-        <apache.common.io.version>2.4</apache.common.io.version>
+        <apache.common.io.version>2.5</apache.common.io.version>
         <apache.common.lang3>3.4</apache.common.lang3>
-        <apache.common.lang>2.6</apache.common.lang>
-        <joda-time.version>2.8.2</joda-time.version>
+        <joda-time.version>2.9.4</joda-time.version>
 
         <!-- validation -->
-        <hibernate.validator.version>5.2.2.Final</hibernate.validator.version>
+        <hibernate.validator.version>5.2.4.Final</hibernate.validator.version>
 
         <!--Swagger -->
-        <swagger.jaxrs.version>1.5.3</swagger.jaxrs.version>
+        <swagger.jaxrs.version>1.5.10</swagger.jaxrs.version>
 
         <!-- Rest -->
-        <apache.cxf.jaxrs.version>3.1.3</apache.cxf.jaxrs.version>
-        <apache.cxf.http.jetty.version>3.1.3</apache.cxf.http.jetty.version>
-        <apache.cxf.metrics.version>3.1.3</apache.cxf.metrics.version>
-        <jetty.version>9.3.4.v20151007</jetty.version>
+        <apache.cxf.jaxrs.version>3.1.7</apache.cxf.jaxrs.version>
+        <apache.cxf.http.jetty.version>3.1.7</apache.cxf.http.jetty.version>
+        <apache.cxf.metrics.version>3.1.7</apache.cxf.metrics.version>
+        <apache.cxf.mvn.version>3.1.7</apache.cxf.mvn.version>
+        <jetty.version>9.3.11.v20160721</jetty.version>
 
         <!-- Observable Libraries -->
-        <rxjava.version>1.0.14</rxjava.version>
-        <lmax.disruptor.version>3.3.4</lmax.disruptor.version>
+        <rxjava.version>1.1.9</rxjava.version>
+        <lmax.disruptor.version>3.3.5</lmax.disruptor.version>
 
         <!--Infrastructure - Storm -->
         <storm.version>0.9.5</storm.version>
@@ -219,14 +237,15 @@
         <mvel2.version>2.2.8.Final</mvel2.version>
 
         <!-- spring lib -->
-        <spring.version>4.2.1.RELEASE</spring.version>
-        <spring.core.version>4.2.1.RELEASE</spring.core.version>
-        <spring.context.version>4.2.1.RELEASE</spring.context.version>
-        <spring.web.version>4.2.1.RELEASE</spring.web.version>
-        <spring.security.version>4.0.2.RELEASE</spring.security.version>
+        <spring.version>4.3.2.RELEASE</spring.version>
+        <spring.core.version>4.3.2.RELEASE</spring.core.version>
+        <spring.context.version>4.3.2.RELEASE</spring.context.version>
+        <spring.web.version>4.3.2.RELEASE</spring.web.version>
+        <spring.security.version>4.1.3.RELEASE</spring.security.version>
 
         <!-- spring boot -->
-        <spring.boot.loader.version>1.3.0.RELEASE</spring.boot.loader.version>
+        <spring.boot.loader.version>1.4.0.RELEASE</spring.boot.loader.version>
+        <mvn.spring.boot.plugin>1.4.0.RELEASE</mvn.spring.boot.plugin>
 
         <!--netflix lib reuse -->
         <curator.version>2.11.0</curator.version>
@@ -234,7 +253,7 @@
         <archaius.zookeeper.version>0.7.3</archaius.zookeeper.version>
 
         <!--elasticsearch / kibana -->
-        <elasticsearch.version>2.1.1</elasticsearch.version>
+        <elasticsearch.version>2.3.5</elasticsearch.version>
 
         <!-- webjars -->
         <webjars.locator.version>0.28</webjars.locator.version>
@@ -256,13 +275,12 @@
         <mvn.compiler.version>3.2</mvn.compiler.version>
         <mvn.failsafe.version>2.18.1</mvn.failsafe.version>
         <mvn.surefire.version>2.18.1</mvn.surefire.version>
-        <mvn.spring.boot.plugin>1.3.0.RELEASE</mvn.spring.boot.plugin>
         <mvn.jar.plugin>2.6</mvn.jar.plugin>
         <mvn.jacoco.plugin>0.7.2.201409121644</mvn.jacoco.plugin>
 
         <!-- testing only -->
         <groovy.version>2.3.2</groovy.version>
-        <lucene.version>4.10.4</lucene.version>
+        <lucene.version>6.2.0</lucene.version>
         <jna.version>4.2.1</jna.version>
         <junit.version>4.12</junit.version>
         <junitparams.version>1.0.5</junitparams.version>

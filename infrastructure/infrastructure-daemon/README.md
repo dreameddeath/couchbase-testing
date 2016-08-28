@@ -28,4 +28,4 @@ Architecture :
 Proxy Management :
 - build dynamic "public" urls based on prototype [domain]/[apis|process|data]/[version]/[public url] :
     - the public url is defined by an annotation at core-service
-    - there is a "special version" called "current"
+    - there is a "special version" called "current" defined system wide by configuration

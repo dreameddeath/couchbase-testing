@@ -97,6 +97,11 @@
             <artifactId>core-couchbase-session</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>${javax.inject.version}</version>
+        </dependency>
         <!--
         test dependancies
         -->
@@ -104,26 +109,25 @@
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-service</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-couchbase</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-elasticsearch</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-annotation-processor</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <version>${javax.inject.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -19,6 +19,7 @@ package com.dreameddeath.core.transcoder.json;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.annotation.NoClass;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
@@ -62,9 +63,32 @@ public class DocumentTypeResolverBuilder extends StdTypeResolverBuilder {
                 && (_customIdResolver!=null) && (_customIdResolver instanceof CouchbaseDocumentTypeIdResolver)
                 )
         {
+            /*Copy paste of parent class*/
+            JavaType defaultImpl;
+
+            if (_defaultImpl == null) {
+                defaultImpl = null;
+            } else {
+                // 20-Mar-2016, tatu: It is important to do specialization go through
+                //   TypeFactory to ensure proper resolution; with 2.7 and before, direct
+                //   call to JavaType was used, but that can not work reliably with 2.7
+                // 20-Mar-2016, tatu: Can finally add a check for type compatibility BUT
+                //   if so, need to add explicit checks for marker types. Not ideal, but
+                //   seems like a reasonable compromise.
+                if ((_defaultImpl == Void.class)
+                        || (_defaultImpl == NoClass.class)) {
+                    defaultImpl = config.getTypeFactory().constructType(_defaultImpl);
+                } else {
+                    defaultImpl = config.getTypeFactory()
+                            .constructSpecializedType(baseType, _defaultImpl);
+                }
+            }
+
+
+
             TypeIdResolver idRes = idResolver(config, baseType, subtypes, false, true);
-            return new CustomerAsPropertyDeserializer(baseType, idRes,
-                    _typeProperty, _typeIdVisible, _defaultImpl, _includeAs);
+            return new CustomAsPropertyDeserializer(baseType, idRes,
+                    _typeProperty, _typeIdVisible, defaultImpl, _includeAs);
         }
 
         return super.buildTypeDeserializer(config, baseType, subtypes);

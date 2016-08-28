@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright Christophe Jeunesse
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xs:schema
+    targetNamespace="http://www.dreameddeath.com/Interfaces/test/v0/data/in"
+    xmlns="http://www.dreameddeath.com/Interfaces/test/v0/data/in"
+    xmlns:tns="http://www.dreameddeath.com/Interfaces/test/v0/data/in"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    >
+
+    <xs:complexType name="TestRequest">
+        <xs:sequence>
+            <xs:element name="offer" type="tns:Offers_CCO" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_OFFER)</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+   
+    <xs:complexType name="Offers_CCO">
+        <xs:sequence>
+			<xs:element minOccurs="0" name="holder" type="tns:Person_CCO">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_INHERITED_INFO)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+		</xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="Person_CCO">
+        <xs:sequence>
+			<xs:element minOccurs="0" name="gender">
+				<xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_STATUS)</xs:documentation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Enum_Map</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+                    <xs:annotation>
+                        <xs:documentation source="urn:vpfmapping">BRM_Type(Integer)</xs:documentation>
+                    </xs:annotation>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="Male">
+                            <xs:annotation>
+                                <xs:documentation source="urn:vpfmapping">BRM_Value(10)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+						<xs:enumeration value="Female">
+                        <xs:annotation>
+                                <xs:documentation source="urn:vpfmapping">BRM_Value(1500)</xs:documentation>
+                            </xs:annotation>
+                        </xs:enumeration>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="lastName" type="xs:string">
+            <xs:annotation>
+                <xs:appinfo source="mappings"><![CDATA[<mapping name="BRM_Field">PIN_FLD_PARENTS</mapping>]]></xs:appinfo>
+            </xs:annotation>
+            </xs:element>
+			<xs:element minOccurs="0" name="firstName" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_NAME)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+			<xs:element minOccurs="0" name="tradingName" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(VPF_FLD_CODE)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="simpleDate" type="xs:date">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_START_T)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="dateWithTime" type="xs:dateTime">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_END_T)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="amountDouble" type="xs:double">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_AMOUNT)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="amountFloat" type="xs:float">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_QUANTITY)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+            <xs:element minOccurs="0" name="amountDecimal" type="xs:decimal">
+                <xs:annotation>
+                    <xs:documentation source="urn:vpfmapping">BRM_Field(PIN_FLD_SCALE)</xs:documentation>
+				</xs:annotation>
+            </xs:element>
+		</xs:sequence>
+    </xs:complexType>
+
+    
+    <xs:element name="TestRequest" type="tns:TestRequest" />
+    
+</xs:schema>

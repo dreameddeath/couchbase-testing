@@ -49,7 +49,6 @@ public class AdminDaemon extends AbstractDaemon {
                         return AnonymousUser.INSTANCE;
                     }
                 })
-
         );
         this.addWebServer(WebAppWebServer.builder()
                 .withName("apps-admin-tests")
@@ -61,8 +60,7 @@ public class AdminDaemon extends AbstractDaemon {
                 .withDiscoverDomain(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get()));
     }
 
-    public static void main(String [ ] args) throws Exception
-    {
+    public static void main(String [ ] args) throws Exception {
         AbstractDaemon daemon = new AdminDaemon();
         daemon.startAndJoin();
     }

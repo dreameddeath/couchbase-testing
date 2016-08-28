@@ -20,7 +20,7 @@ import java.lang.reflect.Modifier;
 /**
  * Created by Christophe Jeunesse on 20/04/2016.
  */
-public class CustomerAsPropertyDeserializer extends AsPropertyTypeDeserializer {
+public class CustomAsPropertyDeserializer extends AsPropertyTypeDeserializer {
     private final boolean isCouchbaseDocument;
     private final String defaultTypeId;
     private final String defaultDomainId;
@@ -28,7 +28,7 @@ public class CustomerAsPropertyDeserializer extends AsPropertyTypeDeserializer {
     //private final String nameOnlyId;
     //private final String partialId;
 
-    public CustomerAsPropertyDeserializer(JavaType bt, TypeIdResolver idRes, String typePropertyName, boolean typeIdVisible, Class<?> defaultImpl, JsonTypeInfo.As inclusion) {
+    public CustomAsPropertyDeserializer(JavaType bt, TypeIdResolver idRes, String typePropertyName, boolean typeIdVisible,JavaType defaultImpl, JsonTypeInfo.As inclusion) {
         super(bt, idRes, typePropertyName, typeIdVisible, defaultImpl, inclusion);
         EntityModelId modelId=null;
         if(bt.getRawClass().getAnnotation(DocumentEntity.class)!=null) {
@@ -58,7 +58,7 @@ public class CustomerAsPropertyDeserializer extends AsPropertyTypeDeserializer {
         }
     }
 
-    public CustomerAsPropertyDeserializer(CustomerAsPropertyDeserializer src, BeanProperty property) {
+    public CustomAsPropertyDeserializer(CustomAsPropertyDeserializer src, BeanProperty property) {
         super(src, property);
         this.isCouchbaseDocument=src.isCouchbaseDocument;
         this.defaultTypeId=src.defaultTypeId;
@@ -68,7 +68,7 @@ public class CustomerAsPropertyDeserializer extends AsPropertyTypeDeserializer {
 
     @Override
     public TypeDeserializer forProperty(BeanProperty prop) {
-        return (prop == _property) ? this : new CustomerAsPropertyDeserializer(this, prop);
+        return (prop == _property) ? this : new CustomAsPropertyDeserializer(this, prop);
     }
 
 

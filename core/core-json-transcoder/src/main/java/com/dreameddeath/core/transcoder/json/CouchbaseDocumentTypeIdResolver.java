@@ -71,11 +71,7 @@ public class CouchbaseDocumentTypeIdResolver extends TypeIdResolverBase{
         }
     }
 
-    @Override @Deprecated @SuppressWarnings("deprecation")
-    public JavaType typeFromId(String id) {
-        return null;
-    }
-
+    @Override
     public JavaType typeFromId(final DatabindContext context, final String id) {
         return mapClass.computeIfAbsent(id,
                 typeId->context.getTypeFactory().constructType(entityDefinitionManager.findClassFromVersionnedTypeId(typeId))
