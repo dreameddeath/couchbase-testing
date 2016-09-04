@@ -19,9 +19,10 @@ package com.dreameddeath.core.service.utils;
 import com.dreameddeath.core.curator.utils.CuratorUtils;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.config.ServiceConfigProperties;
-import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
-import com.dreameddeath.core.service.model.ServiceDescription;
-import com.dreameddeath.core.service.model.ServiceDomainDefinition;
+import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.model.common.ServiceDescription;
+import com.dreameddeath.core.service.model.common.ServiceDomainDefinition;
+import com.dreameddeath.core.service.model.common.ServiceTypeDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
@@ -67,14 +68,15 @@ public class ServiceNamingUtils {
 
     public enum DomainPathType{
         ROOT,
+        SERVICE_TYPE,
         SERVER,
         PROXY,
-        CLIENT;
+        CLIENT
     }
 
 
 
-    public static String buildServiceDomainPathName(String domain,DomainPathType pathType) {
+    public static String buildServiceDomainPathName(String domain,String serviceType,DomainPathType pathType) {
         String basePath = ServiceConfigProperties.SERVICES_DISCOVERY_ROOT_PATH.get();
         if(!domain.matches("(?:\\w|\\.)+")){
             throw new IllegalArgumentException("The domain <"+domain+"> is not valid");
@@ -90,14 +92,40 @@ public class ServiceNamingUtils {
         else if(pathType.equals(DomainPathType.PROXY)){
             subPath="/proxys";
         }
-
-
-        return ("/"+basePath+"/"+domain+subPath).replaceAll("/{2,}","/");
+        if(DomainPathType.ROOT.equals(pathType)){
+            serviceType = "";
+        }
+        else{
+            serviceType="/"+serviceType;
+        }
+        return ("/"+basePath+"/"+domain+serviceType+subPath).replaceAll("/{2,}","/");
 
     }
 
+    public static String buildServiceDomainType(CuratorFramework client,String domain,String type) {
+        buildServiceDomain(client,domain);
+        String fullPath = buildServiceDomainPathName(domain, type, DomainPathType.SERVICE_TYPE);
+        ServiceTypeDefinition serviceTypeDefinition= new ServiceTypeDefinition();
+        serviceTypeDefinition.setType(type);
+        serviceTypeDefinition.setDescription(ServiceConfigProperties.SERVICE_TYPE_DESCRIPTION.getProperty(domain).get());
+        try {
+            CuratorUtils.createPathIfNeeded(client,fullPath , () -> {
+                try {
+                    LOG.info("Path <{}> created for domain <{}>",fullPath,domain);
+                    return ObjectMapperFactory.BASE_INSTANCE.getMapper().writeValueAsBytes(serviceTypeDefinition);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        catch(Exception e){
+            throw new RuntimeException("Unexpected issue",e);
+        }
+        return fullPath;
+    }
+
     public static String buildServiceDomain(CuratorFramework client,String domain){
-        String fullPath = buildServiceDomainPathName(domain,DomainPathType.ROOT);
+        String fullPath = buildServiceDomainPathName(domain,"",DomainPathType.ROOT);
         ServiceDomainDefinition definition = new ServiceDomainDefinition();
         definition.setCreationDate(DateTime.now());
         definition.setName(domain);
@@ -120,17 +148,18 @@ public class ServiceNamingUtils {
     }
 
 
-    public static String buildServiceDiscovererDomain(CuratorFramework client,String domain){
-        buildServiceDomain(client,domain);
-        return buildServiceDomainPathName(domain,DomainPathType.SERVER);
+    public static String buildServiceDiscovererDomain(CuratorFramework client,String domain,String type){
+        buildServiceDomainType(client,domain,type);
+        return buildServiceDomainPathName(domain,type,DomainPathType.SERVER);
     }
 
-    public static String buildClientDiscovererDomain(CuratorFramework client,String domain){
-        buildServiceDomain(client,domain);
-        return buildServiceDomainPathName(domain,DomainPathType.CLIENT);
+    public static String buildClientDiscovererDomain(CuratorFramework client,String domain,String type){
+        buildServiceDomainType(client,domain,type);
+        return buildServiceDomainPathName(domain,type,DomainPathType.CLIENT);
     }
+
     public static String buildServerServicePath(CuratorFramework client, String registrarDomain, CuratorDiscoveryServiceDescription service){
-        String domainPathName = buildServiceDomainPathName(registrarDomain,DomainPathType.SERVER);
+        String domainPathName = buildServiceDomainPathName(registrarDomain,service.getServiceType(),DomainPathType.SERVER);
         String serviceFullName = ServiceNamingUtils.buildServiceFullName(service.getName(),service.getVersion());
         String fullPath = (domainPathName+"/"+serviceFullName).replaceAll("/{2,}","/");
         ServiceDescription definition = new ServiceDescription();

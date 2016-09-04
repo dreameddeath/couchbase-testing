@@ -30,7 +30,7 @@ import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.factory.IJobExecutorClientFactory;
 import com.dreameddeath.core.process.utils.ProcessUtils;
-import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.core.service.AbstractExposableService;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.ActionRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExistingJob;

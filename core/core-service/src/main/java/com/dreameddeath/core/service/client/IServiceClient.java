@@ -19,18 +19,17 @@ package com.dreameddeath.core.service.client;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.user.IUser;
 
-import javax.ws.rs.client.WebTarget;
 import java.util.UUID;
 
 /**
  * Created by Christophe Jeunesse on 04/12/2015.
  */
-public interface IServiceClient {
+public interface IServiceClient<T> {
     UUID getUuid();
 
     String getFullName();
-    WebTarget getInstance();
-    WebTarget getInstance(String instanceId);
+    T getInstance();
+    T getInstance(String instanceId);
     String getUriInstance();
 
     String USER_PROPERTY = IUser.class.getName();

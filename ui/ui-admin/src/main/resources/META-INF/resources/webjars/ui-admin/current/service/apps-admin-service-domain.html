@@ -27,6 +27,7 @@
                 <thead>
                 <tr>
                     <th class="text-center"><button ng-click="refresh()" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button></th>
+                    <th>type</th>
                     <th>name</th>
                     <th>version</th>
                     <th>state</th>
@@ -42,6 +43,7 @@
                             <button type="button" class="btn btn-primary" ng-click="showDetails(versionInfo.fullName)" ng-class="{'active disabled':daemon.isStarted()}" aria-label="view details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
                         </div>
                     </td>
+                    <td>{{service.type}}</td>
                     <td>{{service.name}}</td>
                     <td>{{version}}</td>
                     <td><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[versionInfo.state]">{{versionInfo.state}}</span></td>

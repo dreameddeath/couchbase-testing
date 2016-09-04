@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.discovery;
 
 import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
 import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
-import com.dreameddeath.core.service.model.AbstractClientInstanceInfo;
+import com.dreameddeath.core.service.model.common.AbstractClientInstanceInfo;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
@@ -38,14 +38,16 @@ public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceI
     private final static Logger LOG = LoggerFactory.getLogger(AbstractClientDiscoverer.class);
 
     private final String domain;
+    private final String serviceType;
     private final ConcurrentMap<String,Set<T>> clientInstances = new ConcurrentHashMap<>();
 
     private static Set buildSet(String serviceName){
         return Collections.newSetFromMap(new ConcurrentHashMap<>());
     }
 
-    public AbstractClientDiscoverer(final CuratorFramework curatorFramework, final String domain,ServiceNamingUtils.DomainPathType subType) {
-        super(curatorFramework, ServiceNamingUtils.buildServiceDomainPathName(domain, subType));
+    public AbstractClientDiscoverer(final CuratorFramework curatorFramework, final String domain,String serviceType,ServiceNamingUtils.DomainPathType subType) {
+        super(curatorFramework, ServiceNamingUtils.buildServiceDomainPathName(domain,serviceType, subType));
+        this.serviceType = serviceType;
         this.domain = domain;
         addListener(new ICuratorDiscoveryListener<T>() {
             @Override
@@ -80,7 +82,7 @@ public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceI
 
     @Override
     protected void preparePath() {
-        ServiceNamingUtils.buildServiceDiscovererDomain(getClient(),domain);
+        ServiceNamingUtils.buildServiceDiscovererDomain(getClient(),domain,serviceType);
         super.preparePath();
     }
 

@@ -17,8 +17,7 @@
 package com.dreameddeath.core.service.utils;
 
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.details.InstanceSerializer;
@@ -27,16 +26,16 @@ import org.apache.curator.x.discovery.details.InstanceSerializer;
  * Created by Christophe Jeunesse on 31/03/2015.
  */
 public class ServiceInstanceSerializerImpl implements  InstanceSerializer<CuratorDiscoveryServiceDescription> {
-    private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR);
-
+    private final ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR);
+    //private final JavaType javaType = mapper.getTypeFactory().constructParametricType(ServiceInstance.class,CuratorDiscoveryServiceDescription.class);
 
     @Override
     public byte[] serialize(ServiceInstance<CuratorDiscoveryServiceDescription> serviceInstance) throws Exception {
-        return mapper.writeValueAsBytes(serviceInstance);
+        return mapper/*.writerFor(javaType)*/.writeValueAsBytes(serviceInstance);
     }
 
     @Override
     public ServiceInstance<CuratorDiscoveryServiceDescription> deserialize(byte[] bytes) throws Exception {
-        return mapper.readValue(bytes, new TypeReference<ServiceInstance<CuratorDiscoveryServiceDescription>>(){});
+        return mapper.readValue(bytes, ServiceInstance.class);
     }
 }

@@ -16,14 +16,14 @@
 
 package com.dreameddeath.core.service.discovery;
 
-import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
-import com.dreameddeath.core.service.model.ServiceDescription;
+import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.model.common.ServiceDescription;
 import org.apache.curator.x.discovery.ServiceProvider;
 
 /**
  * Created by Christophe Jeunesse on 17/12/2015.
  */
-public interface IServiceDiscovererListener {
-    void onProviderRegister(ServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription description);
-    void onProviderUnRegister(ServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription description);
+public interface IServiceDiscovererListener<T extends CuratorDiscoveryServiceDescription> {
+    void onProviderRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<T> provider, ServiceDescription description);
+    void onProviderUnRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<T> provider, ServiceDescription description);
 }

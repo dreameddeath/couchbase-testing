@@ -19,7 +19,6 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

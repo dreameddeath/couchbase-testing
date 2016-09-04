@@ -59,6 +59,7 @@
           factory-bean="serviceDiscovererManager"
           factory-method="getClientFactory">
         <constructor-arg type="java.lang.String" value="${daemon.admin.services.domain}" />
+        <constructor-arg type="java.lang.String" value="REST" />
     </bean>
 
     <bean id="daemonAdminClient" factory-bean="daemonAdminClientFactory" factory-method="getClient">
@@ -98,7 +99,7 @@
             </bean>
             <bean id="config-shared" class="com.dreameddeath.core.service.config.service.RestSharedConfigManagementService">
             </bean>
-            <bean id="services-domain" class="com.dreameddeath.core.service.discovery.RestServiceDomainDiscovery">
+            <bean id="services-domain" class="com.dreameddeath.core.service.api.RestApiServiceDomainDiscovery">
             </bean>
             <bean id="processes-domain" class="com.dreameddeath.core.process.discovery.ProcessDiscoveryRestService">
             </bean>

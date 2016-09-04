@@ -5,6 +5,7 @@
 #idea
 *.iml
 .idea/
+*.log
 
 #generated files for testing
 local.override.properties

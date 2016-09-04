@@ -20,7 +20,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
     <bean id="serviceDiscovery"
-          class="com.dreameddeath.core.service.discovery.ServiceDiscoverer"
+          class="com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer"
           factory-bean="serviceDiscovererManager"
           factory-method="getServiceDiscoverer">
         <constructor-arg type="java.lang.String" value="test" />

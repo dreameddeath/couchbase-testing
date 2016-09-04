@@ -17,7 +17,9 @@
 package com.dreameddeath.infrastructure.plugin.process;
 
 import com.dreameddeath.core.java.utils.ClassUtils;
-import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
 import com.dreameddeath.couchbase.core.process.remote.factory.BaseRemoteClientFactory;
@@ -43,7 +45,7 @@ public class RemoteServiceClientFactoryWithManager implements IRemoteClientFacto
     private IRemoteClientFactory setupFactory(String domain){
         try {
             BaseRemoteClientFactory result = new BaseRemoteClientFactory();
-            result.setClientFactory(manager.getClientFactory(REMOTE_SERVICE_FOR_DOMAIN.getProperty(domain).getMandatoryValue("Cannot find the service domain")));
+            result.setClientFactory(manager.getClientFactory(REMOTE_SERVICE_FOR_DOMAIN.getProperty(domain).getMandatoryValue("Cannot find the service domain"), RestServiceTypeHelper.SERVICE_TYPE, RestServiceClientFactory.class));
             return result;
         }
         catch (Exception e){
@@ -52,7 +54,7 @@ public class RemoteServiceClientFactoryWithManager implements IRemoteClientFacto
     }
 
     @Override
-    public IServiceClient getClient(RemoteJobTaskProcessing forProcessing) {
+    public IRestServiceClient getClient(RemoteJobTaskProcessing forProcessing) {
         RemoteServiceInfo annot = forProcessing.getClass().getAnnotation(RemoteServiceInfo.class);
         if (annot == null) {
             Class<?> requestClass = ClassUtils.getEffectiveGenericType(forProcessing.getClass(),RemoteJobTaskProcessing.class,0);

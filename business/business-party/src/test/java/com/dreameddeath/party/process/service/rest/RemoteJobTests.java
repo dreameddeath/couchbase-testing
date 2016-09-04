@@ -4,8 +4,8 @@ import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
 import com.dreameddeath.core.date.MockDateTimeServiceImpl;
-import com.dreameddeath.core.service.client.IServiceClient;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.couchbase.testing.daemon.DaemonWrapperForTesting;
@@ -84,11 +84,11 @@ public class RemoteJobTests {
 
     @Test
     public void test()throws Exception{
-        ServiceClientFactory factory=daemonWrapper.getServiceFactoryForDomain("test");
+        RestServiceClientFactory factory=daemonWrapper.getServiceFactoryForDomain("test");
         CouchbaseWebServerPlugin cbPlugin=daemonWrapper.getDaemon().getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
         String partyId = null;
         {
-            IServiceClient client = factory.getClient("createupdatepartyjob", "1.0.0");
+            IRestServiceClient client = factory.getClient("createupdatepartyjob", "1.0.0");
             CreateUpdatePartyJobRequest request = new CreateUpdatePartyJobRequest();
             request.setType(TypePublished.person);
             request.setPerson(new PersonRequest());
@@ -107,7 +107,7 @@ public class RemoteJobTests {
         }
 
         {
-            IServiceClient clientRoles = factory.getClient("createupdatepartyrolesjob", "1.0.0");
+            IRestServiceClient clientRoles = factory.getClient("createupdatepartyrolesjob", "1.0.0");
             CreateUpdatePartyRolesJobRequest rolesJobRequest = new CreateUpdatePartyRolesJobRequest();
             BillingAccountCreateUpdateRoleRequestRequest newRequest = new BillingAccountCreateUpdateRoleRequestRequest();
             rolesJobRequest.setRoleRequests(new ArrayList<>());

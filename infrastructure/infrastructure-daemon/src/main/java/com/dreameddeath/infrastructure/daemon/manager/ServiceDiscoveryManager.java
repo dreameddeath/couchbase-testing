@@ -16,10 +16,16 @@
 
 package com.dreameddeath.infrastructure.daemon.manager;
 
-import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
+import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
+import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
+import com.dreameddeath.core.service.discovery.rest.RestServiceDiscoverer;
+import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.registrar.AbstractServiceRegistrar;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
-import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.ServiceTypeUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.apache.curator.framework.CuratorFramework;
 
@@ -42,46 +48,97 @@ public class ServiceDiscoveryManager {
     private final CuratorFramework curatorClient;
     private Status status = Status.STOPPED;
     private final AbstractWebServer parentWebServer;
-    private final Map<String,ServiceRegistrar> serviceRegistrarMap = new HashMap<>();
-    private final Map<String,ServiceDiscoverer> serviceDiscovererMap = new HashMap<>();
-    private final Map<String,ServiceClientFactory> serviceClientFactoryMap = new HashMap<>();
+    private final Map<ServiceKey,AbstractServiceRegistrar<? extends CuratorDiscoveryServiceDescription>> serviceRegistrarMap = new HashMap<>();
+    private final Map<ServiceKey,AbstractServiceDiscoverer> serviceDiscovererMap = new HashMap<>();
+    private final Map<ServiceKey,AbstractServiceClientFactory> serviceClientFactoryMap = new HashMap<>();
+
+    private static class ServiceKey{
+        private final String domain;
+        private final String serviceType;
+
+        public ServiceKey(String domain, String serviceType) {
+            this.domain = domain;
+            this.serviceType = serviceType;
+        }
+
+         private static ServiceKey buildKey(String domain,String serviceType){
+            return new ServiceKey(domain,serviceType);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ServiceKey that = (ServiceKey) o;
+
+            if (!domain.equals(that.domain)) return false;
+            return serviceType.equals(that.serviceType);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = domain.hashCode();
+            result = 31 * result + serviceType.hashCode();
+            return result;
+        }
+    }
 
     public ServiceDiscoveryManager(AbstractWebServer server){
         this.parentWebServer = server;
         this.curatorClient = server.getParentDaemon().getCuratorClient();
     }
 
+    synchronized public RestServiceRegistrar getServiceRegistrar(String domain) throws Exception{
+        return (RestServiceRegistrar) getServiceRegistrar(domain,RestServiceTypeHelper.SERVICE_TYPE);
+    }
 
-    synchronized public ServiceRegistrar getServiceRegistrar(String domain) throws Exception{
-        if(!serviceRegistrarMap.containsKey(domain)){
-            ServiceRegistrar newRegistrar = new ServiceRegistrar(curatorClient,domain);
-            serviceRegistrarMap.put(domain,newRegistrar);
+    synchronized public AbstractServiceRegistrar getServiceRegistrar(String domain,String serviceType) throws Exception{
+        ServiceKey key=ServiceKey.buildKey(domain,serviceType);
+        if(!serviceRegistrarMap.containsKey(key)){
+            RestServiceRegistrar newRegistrar = ServiceTypeUtils.getDefinition(serviceType).buildServiceRegistrar(curatorClient,domain);
+            serviceRegistrarMap.put(key,newRegistrar);
             if(status==Status.STARTED){
                 newRegistrar.start();
             }
         }
-        return serviceRegistrarMap.get(domain);
+        return serviceRegistrarMap.get(key);
     }
 
-    synchronized public ServiceDiscoverer getServiceDiscoverer(String domain) throws Exception{
-        if(!serviceDiscovererMap.containsKey(domain)){
-            ServiceDiscoverer newDiscoverer = new ServiceDiscoverer(curatorClient,domain);
-            serviceDiscovererMap.put(domain,newDiscoverer);
+    synchronized public RestServiceDiscoverer getServiceDiscoverer(String domain) throws Exception{
+        return (RestServiceDiscoverer) getServiceDiscoverer(domain,RestServiceTypeHelper.SERVICE_TYPE);
+    }
+
+    synchronized public AbstractServiceDiscoverer getServiceDiscoverer(String domain,String serviceType) throws Exception{
+        ServiceKey key=ServiceKey.buildKey(domain,serviceType);
+        if(!serviceDiscovererMap.containsKey(key)){
+            AbstractServiceDiscoverer newDiscoverer = ServiceTypeUtils.getDefinition(serviceType).buildDiscoverer(curatorClient,domain);
+            serviceDiscovererMap.put(key,newDiscoverer);
             if(status==Status.STARTED || status==Status.STARTING){
                 newDiscoverer.start();
             }
         }
-        return serviceDiscovererMap.get(domain);
+        return serviceDiscovererMap.get(key);
     }
 
 
-    synchronized public ServiceClientFactory getClientFactory(String domain) throws Exception{
-        if(!serviceClientFactoryMap.containsKey(domain)){
-            ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient,domain,parentWebServer.getParentDaemon().getUuid().toString(),parentWebServer.getUuid().toString());
-            ServiceClientFactory newServiceClientFactory = new ServiceClientFactory(getServiceDiscoverer(domain),clientRegistrar);
-            serviceClientFactoryMap.put(domain,newServiceClientFactory);
+    synchronized public RestServiceClientFactory getClientFactory(String domain) throws Exception{
+        return (RestServiceClientFactory) getClientFactory(domain,RestServiceTypeHelper.SERVICE_TYPE);
+    }
+
+    synchronized public AbstractServiceClientFactory getClientFactory(String domain,String serviceType) throws Exception{
+        ServiceKey key=ServiceKey.buildKey(domain,serviceType);
+        if(!serviceClientFactoryMap.containsKey(key)){
+            ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient,domain,serviceType,parentWebServer.getParentDaemon().getUuid().toString(),parentWebServer.getUuid().toString());
+            AbstractServiceClientFactory newServiceClientFactory = ServiceTypeUtils.getDefinition(serviceType).buildClientFactory(getServiceDiscoverer(domain,serviceType),clientRegistrar);
+            serviceClientFactoryMap.put(key,newServiceClientFactory);
         }
-        return serviceClientFactoryMap.get(domain);
+        return serviceClientFactoryMap.get(key);
+    }
+
+    synchronized public <T extends AbstractServiceClientFactory> T getClientFactory(String domain,String serviceType,Class<T> clazz) throws Exception{
+        return (T)getClientFactory(domain, serviceType);
     }
 
     synchronized public void setStatus(Status newStatus) throws Exception{
@@ -106,35 +163,35 @@ public class ServiceDiscoveryManager {
 
 
     synchronized private void startRegistrars() throws Exception {
-        for (ServiceRegistrar registrar : serviceRegistrarMap.values()) {
+        for (AbstractServiceRegistrar registrar : serviceRegistrarMap.values()) {
             registrar.start();
         }
     }
 
     synchronized private void stopRegistrars() throws Exception {
-        for (ServiceRegistrar registrar : serviceRegistrarMap.values()) {
+        for (AbstractServiceRegistrar registrar : serviceRegistrarMap.values()) {
             registrar.stop();
         }
     }
 
     synchronized private void stopClientRegistrar() throws Exception{
-        for(ServiceClientFactory factory:serviceClientFactoryMap.values()){
+        for(AbstractServiceClientFactory factory:serviceClientFactoryMap.values()){
             factory.stop();
         }
     }
 
-    synchronized public List<ServiceRegistrar> getRegistrars(){
+    synchronized public List<AbstractServiceRegistrar<? extends CuratorDiscoveryServiceDescription>> getRegistrars(){
         return new ArrayList<>(serviceRegistrarMap.values());
     }
 
     synchronized private void startDiscoverers() throws Exception {
-        for(ServiceDiscoverer discoverer:serviceDiscovererMap.values()){
+        for(AbstractServiceDiscoverer discoverer:serviceDiscovererMap.values()){
             discoverer.start();
         }
     }
 
     synchronized private void stopDiscoverers() throws Exception {
-        for(ServiceDiscoverer discoverer:serviceDiscovererMap.values()){
+        for(AbstractServiceDiscoverer discoverer:serviceDiscovererMap.values()){
             discoverer.start();
         }
     }

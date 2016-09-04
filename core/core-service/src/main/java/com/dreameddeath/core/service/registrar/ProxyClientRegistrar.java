@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.registrar;
 
 import com.dreameddeath.core.curator.registrar.impl.CuratorRegistrarImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.model.ProxyClientInstanceInfo;
+import com.dreameddeath.core.service.model.common.ProxyClientInstanceInfo;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
@@ -32,17 +32,19 @@ public class ProxyClientRegistrar extends CuratorRegistrarImpl<ProxyClientInstan
     private final String daemonUid;
     private final String webServerUid;
     private final String domain;
+    private final String serviceType;
 
-    public ProxyClientRegistrar(CuratorFramework curatorFramework, String domain, String daemonUid, String webServerUid) {
-        super(curatorFramework, ServiceNamingUtils.buildServiceDomainPathName(domain, ServiceNamingUtils.DomainPathType.PROXY));
+    public ProxyClientRegistrar(CuratorFramework curatorFramework, String domain,String serviceType, String daemonUid, String webServerUid) {
+        super(curatorFramework, ServiceNamingUtils.buildServiceDomainPathName(domain,serviceType, ServiceNamingUtils.DomainPathType.PROXY));
         this.daemonUid = daemonUid;
+        this.serviceType = serviceType;
         this.webServerUid = webServerUid;
         this.domain = domain;
     }
 
     @Override
     protected void preparePath() {
-        ServiceNamingUtils.buildServiceDomain(getCuratorFramework(),domain);
+        ServiceNamingUtils.buildServiceDomainType(getCuratorFramework(),domain,serviceType);
         super.preparePath();
     }
 

@@ -18,7 +18,7 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                         controller:"apps-admin-service-domain-ctrl"
                      })
                       .state('admin.service.domain.version', {
-                         url:         '/:fullName',
+                         url:         '/:type/:fullName',
                          templateUrl: requirejs.toUrl('apps-admin-service-version.html'),
                          controller:"apps-admin-service-version-ctrl"
                       });
@@ -49,9 +49,9 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
             }]
         );
 
-    appsServiceModule.controller('apps-admin-service-domain-ctrl',['$scope','$state','$stateParams'
-                ,'ServicesDomainServiceInfo','ServicesDomainClientInstances','ServicesDomainProxyInstances',
-                function($scope,$state,$stateParams,ServicesDomainServiceInfo,
+    appsServiceModule.controller('apps-admin-service-domain-ctrl',['$scope','$state','$stateParams',
+                'ServicesDomainTypes','ServicesDomainServiceInfo','ServicesDomainClientInstances','ServicesDomainProxyInstances',
+                function($scope,$state,$stateParams,ServicesDomainTypes,ServicesDomainServiceInfo,
                         ServicesDomainClientInstances,ServicesDomainProxyInstances)
                 {
                     $scope.close=function(){
@@ -75,8 +75,9 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                                 if(currVersion.fullName==$scope.currVersionFullName){
                                     $scope.currServiceVersionInfo={
                                             serviceName:currService.name,
+                                            serviceType:currService.type,
                                             "version":version,
-                                            swaggerUrl:encodeURIComponent("/apis/apps-admin/domains/"+encodeURIComponent($stateParams.domain)+"/swagger/"+encodeURIComponent($scope.currVersionFullName))
+                                            swaggerUrl:encodeURIComponent("/apis/apps-admin/domains/"+encodeURIComponent($stateParams.domain)+"/"+encodeURIComponent(currService.type)+"/specifications/"+encodeURIComponent($scope.currVersionFullName))
                                     };
                                     for(var key in currVersion){
                                         $scope.currServiceVersionInfo[key]=currVersion[key];
@@ -89,35 +90,40 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                     $scope.refresh=function(){
                         $scope.services=[];
                         $scope.name=$stateParams.domain;
-                        ServicesDomainServiceInfo.list({domain:$stateParams.domain},function(data){
-                            for(var pos=0;pos<data.length;++pos){
-                                var currService = data[pos];
-                                for(var version in currService.versions){
-                                    var currServiceVersion = currService.versions[version];
-                                    currServiceVersion.clients=[];
-                                    currServiceVersion.proxies=[];
-                                    currServiceVersion.refreshClients=function(){
-                                        //currServiceVersion.clients=[];
-                                        ServicesDomainClientInstances.list({domain:$stateParams.domain,fullname:currServiceVersion.fullName},function(data){
-                                            currServiceVersion.clients=data;
-                                        })
+                        ServicesDomainTypes.get({domain:$stateParams.domain},function(typeListData){
+                            for(var posTypeList=0;posTypeList<typeListData.length;++posTypeList){
+                                ServicesDomainServiceInfo.list({domain:$stateParams.domain,type:typeListData[posTypeList]},function(data){
+                                    for(var pos=0;pos<data.length;++pos){
+                                        var currService = data[pos];
+                                        for(var version in currService.versions){
+                                            var currServiceVersion = currService.versions[version];
+                                            currServiceVersion.clients=[];
+                                            currServiceVersion.proxies=[];
+                                            currServiceVersion.refreshClients=function(){
+                                                //currServiceVersion.clients=[];
+                                                ServicesDomainClientInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(data){
+                                                    currServiceVersion.clients=data;
+                                                })
 
-                                        ServicesDomainProxyInstances.list({domain:$stateParams.domain,fullname:currServiceVersion.fullName},function(data){
-                                            currServiceVersion.proxies=data;
+                                                ServicesDomainProxyInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(data){
+                                                    currServiceVersion.proxies=data;
+                                                });
+                                            };
+                                            currServiceVersion.refreshClients();
+                                        }
+                                        $scope.services.push({
+                                            name:currService.name,
+                                            type:currService.type,
+                                            versions:currService.versions,
+                                            nbVersions:function(){
+                                                return Object.keys(this.versions).length;
+                                            }
                                         });
-                                    };
-                                    currServiceVersion.refreshClients();
-                                }
-                                $scope.services.push({
-                                    name:currService.name,
-                                    versions:currService.versions,
-                                    nbVersions:function(){
-                                        return Object.keys(this.versions).length;
                                     }
-                                });
+                                    $scope.updateCurrServiceVersion();
+                                })
                             }
-                            $scope.updateCurrServiceVersion();
-                        });
+                        })
                     };
                     $scope.refresh();
                 }]

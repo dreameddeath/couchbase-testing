@@ -17,11 +17,12 @@
 package ${service.package};
 
 
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.core.service.client.IServiceClient;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
-import com.dreameddeath.core.service.model.HasServiceClientFactory;
+import com.dreameddeath.core.service.HasServiceClientFactory;
 import com.dreameddeath.core.json.JsonProviderFactory;
 
 import rx.Observable;
@@ -46,7 +47,7 @@ import ${import};
     date = "${generator.date}",
     comments = "${generator.comment}"
 )
-public class ${service.clientSimpleClassName} implements HasServiceClientFactory#foreach($interface in $service.interfaces),$interface#end {
+public class ${service.clientSimpleClassName} implements HasServiceClientFactory<IRestServiceClient,RestServiceClientFactory>#foreach($interface in $service.interfaces),$interface#end {
 #if($service.hasGlobalContextFactory())
     private IGlobalContextFactory contextFactory;
 #end
@@ -54,7 +55,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
     private IUserFactory userFactory;
 #end
 
-    private IServiceClient serviceClient;
+    private IRestServiceClient serviceClient;
 
 #if($service.hasGlobalContextFactory())
     @Autowired
@@ -69,12 +70,12 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
     }
 #end
     @Override @Autowired
-    public void setServiceClientFactory(ServiceClientFactory serviceClientFactory){
+    public void setServiceClientFactory(RestServiceClientFactory serviceClientFactory){
         this.serviceClient = serviceClientFactory.getClient("${service.name}", "${service.version}");
     }
 
     @Override
-    public IServiceClient getServiceClient(){
+    public IRestServiceClient getServiceClient(){
         return serviceClient;
     }
 

@@ -16,14 +16,14 @@
 
 package com.dreameddeath.infrastructure.daemon.model;
 
-import com.dreameddeath.core.service.model.CuratorDiscoveryServiceDescription;
-import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.registrar.AbstractServiceRegistrar;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.curator.x.discovery.ServiceInstance;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,7 +44,7 @@ public class WebServerInfo {
     @JsonProperty("status")
     private AbstractWebServer.Status status;
     @JsonProperty("services")
-    private List<ServiceInstance<CuratorDiscoveryServiceDescription>> services=new ArrayList<>();
+    private List<ServiceInstanceInfo> services=new ArrayList<>();
 
     public WebServerInfo(AbstractWebServer server){
         uid = server.getUuid();
@@ -53,8 +53,10 @@ public class WebServerInfo {
         address = ServerConnectorUtils.getConnectorHost(server.getServerConnector());
         port = ServerConnectorUtils.getConnectorPort(server.getServerConnector());
         status = server.getStatus();
-        for(ServiceRegistrar registrar:server.getServiceDiscoveryManager().getRegistrars()){
-            services.addAll(registrar.getServicesInstanceDescription());
+        if(server.getServiceDiscoveryManager()!=null) {
+            for (AbstractServiceRegistrar<? extends CuratorDiscoveryServiceDescription> registrar : server.getServiceDiscoveryManager().getRegistrars()) {
+                registrar.getServicesInstanceDescription().forEach(descr -> services.add(new ServiceInstanceInfo(descr)));
+            }
         }
     }
 
@@ -110,11 +112,11 @@ public class WebServerInfo {
         this.status = status;
     }
 
-    public List<ServiceInstance<CuratorDiscoveryServiceDescription>> getServices() {
-        return services;
+    public List<ServiceInstanceInfo> getServices() {
+        return Collections.unmodifiableList(services);
     }
 
-    public void setServices(List<ServiceInstance<CuratorDiscoveryServiceDescription>> services) {
+    public void setServices(List<ServiceInstanceInfo> services) {
         this.services.clear();
         this.services.addAll(services);
     }

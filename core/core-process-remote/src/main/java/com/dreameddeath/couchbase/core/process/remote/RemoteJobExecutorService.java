@@ -26,6 +26,7 @@ import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -36,9 +37,9 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 10/01/2016.
  */
 public class RemoteJobExecutorService<T extends AbstractJob> implements IJobExecutorService<T>,IHasServiceClient{
-    private final IServiceClient client;
+    private final IRestServiceClient client;
 
-    public RemoteJobExecutorService(IServiceClient client) {
+    public RemoteJobExecutorService(IRestServiceClient client) {
         this.client = client;
     }
 

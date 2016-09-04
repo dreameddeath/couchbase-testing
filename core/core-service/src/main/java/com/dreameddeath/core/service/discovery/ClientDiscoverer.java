@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.discovery;
 
 import com.dreameddeath.core.json.BaseObjectMapperConfigurator;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.model.ClientInstanceInfo;
+import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
@@ -35,8 +35,8 @@ public class ClientDiscoverer extends AbstractClientDiscoverer<ClientInstanceInf
 
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
 
-    public ClientDiscoverer(final CuratorFramework curatorFramework, final String domain) {
-        super(curatorFramework,domain, ServiceNamingUtils.DomainPathType.CLIENT);
+    public ClientDiscoverer(final CuratorFramework curatorFramework, final String domain,final String type) {
+        super(curatorFramework,domain,type, ServiceNamingUtils.DomainPathType.CLIENT);
     }
 
 

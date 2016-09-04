@@ -19,18 +19,18 @@ package com.dreameddeath.core.service.testing;
 import com.dreameddeath.core.json.EnhancedJacksonJsonProvider;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.dreameddeath.core.service.AbstractExposableService;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.context.provider.ContextServerFilter;
 import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
 import com.dreameddeath.core.service.context.provider.UserContextProvider;
 import com.dreameddeath.core.service.context.provider.UserServerFilter;
+import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
-import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
-import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
-import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.registrar.IEndPointDescription;
+import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
@@ -84,13 +84,13 @@ public class TestSpringConfig implements ServletContextAware {
     }
 
     @Bean(name="serviceDiscoverer")
-    public ServiceDiscoverer getDiscoverer(){
-        return (ServiceDiscoverer)servletContext.getAttribute("serviceDiscoverer");
+    public AbstractServiceDiscoverer getDiscoverer(){
+        return (AbstractServiceDiscoverer)servletContext.getAttribute("serviceDiscoverer");
     }
 
     @Bean(name="serviceRegistrar")
-    public ServiceRegistrar getServiceRegistrar(){
-        return (ServiceRegistrar) servletContext.getAttribute("serviceRegistrar");
+    public RestServiceRegistrar getServiceRegistrar(){
+        return (RestServiceRegistrar) servletContext.getAttribute("serviceRegistrar");
     }
 
     @Bean(name="clientRegistrar")
@@ -119,8 +119,8 @@ public class TestSpringConfig implements ServletContextAware {
     }
 
     @Bean(name="endPointDescription")
-    public IRestEndPointDescription getEndPointDescr(){
-        return (IRestEndPointDescription)servletContext.getAttribute("endPointInfo");
+    public IEndPointDescription getEndPointDescr(){
+        return (IEndPointDescription)servletContext.getAttribute("endPointInfo");
     }
 
     @Bean(name="globalContextProvider")

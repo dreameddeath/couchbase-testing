@@ -19,6 +19,7 @@ package com.dreameddeath.infrastructure.daemon;
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
 import com.dreameddeath.core.json.JsonProviderFactory;
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
@@ -53,7 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AbstractDaemonTest extends Assert {
     private static final Logger LOG =  LoggerFactory.getLogger(AbstractDaemonTest.class);
     private CuratorTestUtils testUtils;
-
+    private static final String REST_SERVICE_TYPE = RestServiceTypeHelper.SERVICE_TYPE;
     @Before
     public void setup() throws Exception{
         testUtils = new CuratorTestUtils();

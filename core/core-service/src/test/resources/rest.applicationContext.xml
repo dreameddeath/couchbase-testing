@@ -44,7 +44,7 @@
 
     <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >
         <jaxrs:serviceBeans>
-            <bean id="serviceDiscovery" class="com.dreameddeath.core.service.discovery.RestServiceDiscovery" >
+            <bean id="serviceDiscovery" class="com.dreameddeath.core.service.api.RestApiServiceDiscovery" >
                 <property name="serviceDiscoverer" ref="serviceDiscoverer"/>
                 <property name="clientDiscoverer" ref="clientDiscoverer"/>
                 <property name="proxyClientDiscoverer" ref="proxyClientDiscoverer"/>

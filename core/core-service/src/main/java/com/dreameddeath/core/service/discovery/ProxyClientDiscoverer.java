@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.discovery;
 
 import com.dreameddeath.core.json.BaseObjectMapperConfigurator;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.model.ProxyClientInstanceInfo;
+import com.dreameddeath.core.service.model.common.ProxyClientInstanceInfo;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
@@ -35,8 +35,8 @@ public class ProxyClientDiscoverer extends AbstractClientDiscoverer<ProxyClientI
 
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
 
-    public ProxyClientDiscoverer(final CuratorFramework curatorFramework, final String domain) {
-        super(curatorFramework,domain, ServiceNamingUtils.DomainPathType.PROXY);
+    public ProxyClientDiscoverer(final CuratorFramework curatorFramework, final String domain, final String type) {
+        super(curatorFramework,domain,type, ServiceNamingUtils.DomainPathType.PROXY);
     }
 
 

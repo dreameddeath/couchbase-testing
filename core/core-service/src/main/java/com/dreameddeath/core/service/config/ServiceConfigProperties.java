@@ -45,11 +45,19 @@ public class ServiceConfigProperties {
 
 
     @ConfigPropertyDoc(
-            name="service.instance.{name}.{version}description",
+            name="service.type.{name}.description",
+            descr = "defines the description of the domain"
+    )
+    public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> SERVICE_TYPE_DESCRIPTION =
+            ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class,"service.type.{name}.description",(String)null);
+
+
+    @ConfigPropertyDoc(
+            name="service.instance.{name}.{version}.description",
             descr = "defines the description of the service"
     )
     public static final ConfigPropertyWithTemplateName<String,StringConfigProperty> SERVICE_INSTANCE_DESCRIPTION =
-            ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class,"service.instance.{name}.{version}description",(String)null);
+            ConfigPropertyFactory.getTemplateNameConfigProperty(StringConfigProperty.class,"service.instance.{name}.{version}.description",(String)null);
 
 
 }

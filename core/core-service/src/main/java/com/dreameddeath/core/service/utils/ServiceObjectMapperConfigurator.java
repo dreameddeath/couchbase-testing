@@ -27,6 +27,7 @@ import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.Property;
 import io.swagger.util.*;
+import org.apache.curator.x.discovery.ServiceInstance;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,5 +64,9 @@ public class ServiceObjectMapperConfigurator implements IObjectMapperConfigurato
         swaggerModule.addDeserializer(Parameter.class, new ParameterDeserializer());
         swaggerModule.addDeserializer(SecuritySchemeDefinition.class, new SecurityDefinitionDeserializer());
         mapper.registerModule(swaggerModule);
+
+        SimpleModule serviceInstanceModule = new SimpleModule();
+        serviceInstanceModule.setMixInAnnotation(ServiceInstance.class,ServiceInstanceMixIn.class);
+        mapper.registerModule(serviceInstanceModule);
     }
 }

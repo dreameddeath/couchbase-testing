@@ -21,7 +21,7 @@ import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.discovery.DaoDiscovery;
 import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
 import com.dreameddeath.core.helper.config.DaoHelperConfigProperties;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
@@ -83,8 +83,8 @@ public class CouchbasePluginTest extends Assert {
                     TestDoc newDoc = new TestDoc();
                     newDoc.name = "testInit";
 
-                    ServiceClientFactory daoReadClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_READ_SERVICES_DOMAIN.get());
-                    ServiceClientFactory daoWriteClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_WRITE_SERVICES_DOMAIN.get());
+                    RestServiceClientFactory daoReadClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_READ_SERVICES_DOMAIN.get());
+                    RestServiceClientFactory daoWriteClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_WRITE_SERVICES_DOMAIN.get());
                     Thread.sleep(100);
                     Response response = daoWriteClientFactory.getClient("dao#test#testdoc$write", "1.0.0")
                             .getInstance()

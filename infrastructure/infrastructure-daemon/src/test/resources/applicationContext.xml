@@ -24,7 +24,7 @@
     <import resource="classpath:META-INF/spring/webserver.rest.applicationContext.xml" />
 
     <bean id="serviceRegistrar"
-          class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
+          class="com.dreameddeath.core.service.registrar.RestServiceRegistrar"
           factory-bean="serviceDiscovererManager"
           factory-method="getServiceRegistrar">
         <constructor-arg type="java.lang.String" value="tests" />

@@ -16,9 +16,9 @@
 
 package com.dreameddeath.infrastructure.daemon;
 
+import com.dreameddeath.core.service.AbstractExposableService;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 

@@ -19,7 +19,7 @@ package com.dreameddeath.core.service.discovery;
 import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.config.ServiceConfigProperties;
-import com.dreameddeath.core.service.model.ServiceDomainDefinition;
+import com.dreameddeath.core.service.model.common.ServiceDomainDefinition;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
@@ -48,4 +48,6 @@ public class ServiceDomainDiscovery extends CuratorDiscoveryImpl<ServiceDomainDe
             throw new RuntimeException("Cannot deserialize domain <"+uid+">",e);
         }
     }
+
+
 }

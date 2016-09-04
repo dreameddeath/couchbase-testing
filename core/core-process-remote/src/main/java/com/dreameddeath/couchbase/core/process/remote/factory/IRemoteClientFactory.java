@@ -16,12 +16,12 @@
 
 package com.dreameddeath.couchbase.core.process.remote.factory;
 
-import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 
 /**
  * Created by Christophe Jeunesse on 26/02/2016.
  */
 public interface IRemoteClientFactory {
-    IServiceClient getClient(RemoteJobTaskProcessing forProcessing);
+    IRestServiceClient getClient(RemoteJobTaskProcessing forProcessing);
 }

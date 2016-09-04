@@ -16,7 +16,7 @@
 
 package com.dreameddeath.infrastructure.daemon.services;
 
-import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
+import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.eclipse.jetty.server.ServerConnector;
@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by Christophe Jeunesse on 18/08/2015.
  */
-public class StandardDaemonRestEndPointDescription implements IRestEndPointDescription {
+public class StandardDaemonRestEndPointDescription implements IEndPointDescription {
     private final AtomicInteger instanceCounter=new AtomicInteger();
 
     private final AbstractWebServer server;
@@ -70,6 +70,6 @@ public class StandardDaemonRestEndPointDescription implements IRestEndPointDescr
 
     @Override
     public String buildInstanceUid(){
-        return IRestEndPointDescription.Utils.buildUid(this,instanceCounter.incrementAndGet());
+        return IEndPointDescription.Utils.buildUid(this,instanceCounter.incrementAndGet());
     }
 }

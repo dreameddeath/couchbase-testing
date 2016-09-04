@@ -18,7 +18,7 @@ package com.dreameddeath.core.service.registrar;
 
 import com.dreameddeath.core.curator.registrar.impl.CuratorRegistrarImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.model.ClientInstanceInfo;
+import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
@@ -32,9 +32,11 @@ public class ClientRegistrar extends CuratorRegistrarImpl<ClientInstanceInfo> {
     private final String daemonUid;
     private final String webServerUid;
     private final String domain;
+    private final String serviceType;
 
-    public ClientRegistrar(CuratorFramework curatorFramework, String domain,String daemonUid,String webServerUid) {
-        super(curatorFramework, ServiceNamingUtils.buildServiceDomainPathName(domain, ServiceNamingUtils.DomainPathType.CLIENT));
+    public ClientRegistrar(CuratorFramework curatorFramework, String domain,String serviceType,String daemonUid,String webServerUid) {
+        super(curatorFramework, ServiceNamingUtils.buildServiceDomainPathName(domain,serviceType, ServiceNamingUtils.DomainPathType.CLIENT));
+        this.serviceType = serviceType;
         this.daemonUid = daemonUid;
         this.webServerUid = webServerUid;
         this.domain = domain;
@@ -42,7 +44,7 @@ public class ClientRegistrar extends CuratorRegistrarImpl<ClientInstanceInfo> {
 
     @Override
     protected void preparePath() {
-        ServiceNamingUtils.buildServiceDomain(getCuratorFramework(),domain);
+        ServiceNamingUtils.buildServiceDomainType(getCuratorFramework(),domain,serviceType);
         super.preparePath();
     }
 

@@ -16,7 +16,7 @@
 
 package com.dreameddeath.core.helper.service;
 
-import com.dreameddeath.core.service.model.AbstractExposableService;
+import com.dreameddeath.core.service.AbstractExposableService;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.IUserFactory;
 import org.springframework.beans.factory.annotation.Autowired;

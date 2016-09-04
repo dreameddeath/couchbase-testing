@@ -26,6 +26,7 @@ import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.couchbase.core.process.remote.factory.IRemoteClientFactory;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteJobInfo;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteJobProcessTask;
@@ -45,7 +46,7 @@ import java.util.UUID;
  */
 public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJob,TTASK extends RemoteJobProcessTask<TREQ,TRESP>> implements ITaskProcessingService<TJOB,TTASK>, IHasServiceClient{
     private IRemoteClientFactory remoteClientFactory;
-    private IServiceClient remoteJobProcessingClient;
+    private IRestServiceClient remoteJobProcessingClient;
 
     @Inject
     public void setRemoteJobClientFactory(IRemoteClientFactory remoteClientFactory) {
@@ -55,8 +56,8 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
         }
     }
 
-    public IServiceClient getRemoteJobProcessingClient(){
-        IServiceClient result = this.remoteJobProcessingClient;
+    public IRestServiceClient getRemoteJobProcessingClient(){
+        IRestServiceClient result = this.remoteJobProcessingClient;
         if(result==null){
             synchronized (this){
                 if(this.remoteJobProcessingClient==null){

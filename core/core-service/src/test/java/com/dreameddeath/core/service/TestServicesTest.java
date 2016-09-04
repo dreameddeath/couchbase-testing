@@ -18,19 +18,21 @@ package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotationProcessor;
+import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.client.IServiceClient;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.context.IGlobalContext;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.context.feature.ClientFeatureFactory;
 import com.dreameddeath.core.service.context.feature.ContextClientFeature;
 import com.dreameddeath.core.service.context.feature.UserClientFeature;
-import com.dreameddeath.core.service.model.ClientInstanceInfo;
-import com.dreameddeath.core.service.model.ServicesByNameInstanceDescription;
+import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
+import com.dreameddeath.core.service.model.common.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.testing.DummyContextFactory;
 import com.dreameddeath.core.service.testing.TestingRestServer;
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.user.AuthorizeAllUser;
 import com.dreameddeath.core.user.IUser;
@@ -40,6 +42,7 @@ import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import io.swagger.models.Model;
+import io.swagger.models.Swagger;
 import org.joda.time.DateTime;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -106,15 +109,15 @@ public class TestServicesTest extends Assert{
         LOG.debug("Response {}", response.getStatus());
         ServicesByNameInstanceDescription readDescription = response.readEntity(ServicesByNameInstanceDescription.class);
         assertEquals(2, readDescription.getServiceInstanceMap().keySet().size());
-        Map<String,Model> listModels = readDescription.getServiceInstanceMap().get("testService#1.0").get(0).getSwagger().getDefinitions();
+        Map<String,Model> listModels = ((Swagger)readDescription.getServiceInstanceMap().get("testService#1.0").get(0).getSpec()).getDefinitions();
         assertEquals(5,listModels.size());
         assertEquals(6,listModels.get("TestingDocument").getProperties().size());
     }
 
     @Test
     public void testClientRegister() throws Exception {
-        ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN,server.getDaemonUid().toString(),server.getServerUid().toString());
-        ServiceClientFactory clientFactory = new ServiceClientFactory(server.getServiceDiscoverer(),clientRegistrar);
+        ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN, RestServiceTypeHelper.SERVICE_TYPE,server.getDaemonUid().toString(),server.getServerUid().toString());
+        AbstractServiceClientFactory clientFactory = new RestServiceClientFactory(server.getServiceDiscoverer(),clientRegistrar);
 
         IServiceClient client = clientFactory.getClient("testService","1.0");
         Thread.sleep(100);
@@ -150,7 +153,7 @@ public class TestServicesTest extends Assert{
     @Test
     public void testService() throws Exception{
         LOG.debug("Connector port {}", server.getLocalPort());
-        ServiceClientFactory clientFactory = new ServiceClientFactory(server.getServiceDiscoverer());
+        RestServiceClientFactory clientFactory = new RestServiceClientFactory(server.getServiceDiscoverer());
         IGlobalContextFactory transcoder = new DummyContextFactory();
         ClientFeatureFactory featureFactory = new ClientFeatureFactory();
         featureFactory.addFeature(new ContextClientFeature(transcoder));
@@ -190,7 +193,7 @@ public class TestServicesTest extends Assert{
         Object serviceGen =generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestClient").newInstance();
         serviceGen.getClass().getMethod("setContextFactory",IGlobalContextFactory.class).invoke(serviceGen,transcoder);
         serviceGen.getClass().getMethod("setUserFactory",IUserFactory.class).invoke(serviceGen,new StandardMockUserFactory());
-        serviceGen.getClass().getMethod("setServiceClientFactory",ServiceClientFactory.class).invoke(serviceGen,clientFactory);
+        serviceGen.getClass().getMethod("setServiceClientFactory",AbstractServiceClientFactory.class).invoke(serviceGen,clientFactory);
 
         Object resultGenObservable = serviceGen.getClass().getMethod("runWithRes", IGlobalContext.class,ITestService.Input.class).invoke(serviceGen,null,input);
         try {

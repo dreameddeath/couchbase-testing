@@ -18,13 +18,14 @@ package com.dreameddeath.core.service.testing;
 
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.annotation.processor.ServiceExpositionDef;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
-import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
+import com.dreameddeath.core.service.discovery.rest.RestServiceDiscoverer;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
-import com.dreameddeath.core.service.registrar.IRestEndPointDescription;
-import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.registrar.IEndPointDescription;
+import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -56,9 +57,9 @@ public class TestingRestServer {
     private final UUID serverUid = UUID.randomUUID();
 
     private CuratorFramework curatorClient;
-    private ServiceDiscoverer serviceDiscoverer;
-    private ServiceClientFactory serviceClientFactory;
-    private ServiceRegistrar serviceRegistrar;
+    private RestServiceDiscoverer serviceDiscoverer;
+    private RestServiceClientFactory serviceClientFactory;
+    private RestServiceRegistrar serviceRegistrar;
     private ClientRegistrar clientRegistrar;
     private ClientDiscoverer clientDiscoverer;
     private ProxyClientDiscoverer proxyClientDiscoverer;
@@ -78,11 +79,11 @@ public class TestingRestServer {
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
         cxfHolder.setInitOrder(1);
         contextHandler.addServlet(cxfHolder, "/*");
-        serviceDiscoverer = new ServiceDiscoverer(curatorClient, DOMAIN);
-        serviceRegistrar = new ServiceRegistrar(curatorClient, DOMAIN);
-        clientRegistrar = new ClientRegistrar(curatorClient, DOMAIN,daemonUid.toString(),serverUid.toString());
-        clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN);
-        proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN);
+        serviceDiscoverer = new RestServiceDiscoverer(curatorClient, DOMAIN);
+        serviceRegistrar = new RestServiceRegistrar(curatorClient, DOMAIN);
+        clientRegistrar = new ClientRegistrar(curatorClient, RestServiceTypeHelper.SERVICE_TYPE, DOMAIN,daemonUid.toString(),serverUid.toString());
+        clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN,RestServiceTypeHelper.SERVICE_TYPE);
+        proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN,RestServiceTypeHelper.SERVICE_TYPE);
 
         server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar, serviceDiscoverer));
         contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
@@ -94,7 +95,7 @@ public class TestingRestServer {
         contextHandler.setAttribute("proxyClientDiscoverer", proxyClientDiscoverer);
 
         contextHandler.setAttribute("curatorClient", curatorClient);
-        contextHandler.setAttribute("endPointInfo", new IRestEndPointDescription() {
+        contextHandler.setAttribute("endPointInfo", new IEndPointDescription() {
 
             @Override
             public String daemonUid() {
@@ -136,7 +137,7 @@ public class TestingRestServer {
         contextHandler.setAttribute("beanObjMap",beanObjMap);
         contextHandler.addEventListener(new ContextLoaderListener());
 
-        serviceClientFactory = new ServiceClientFactory(serviceDiscoverer,clientRegistrar);
+        serviceClientFactory = new RestServiceClientFactory(serviceDiscoverer,clientRegistrar);
     }
 
 
@@ -166,7 +167,7 @@ public class TestingRestServer {
     }
 
 
-    public ServiceClientFactory getClientFactory(){
+    public RestServiceClientFactory getClientFactory(){
         return serviceClientFactory;
     }
 
@@ -217,7 +218,7 @@ public class TestingRestServer {
         return serverUid;
     }
 
-    public ServiceDiscoverer getServiceDiscoverer() {
+    public RestServiceDiscoverer getServiceDiscoverer() {
         return serviceDiscoverer;
     }
 

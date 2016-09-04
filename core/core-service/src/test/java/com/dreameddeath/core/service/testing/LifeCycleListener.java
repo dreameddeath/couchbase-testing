@@ -16,8 +16,8 @@
 
 package com.dreameddeath.core.service.testing;
 
-import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
-import com.dreameddeath.core.service.registrar.ServiceRegistrar;
+import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
+import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,19 +27,19 @@ import org.slf4j.LoggerFactory;
  */
 public class LifeCycleListener implements LifeCycle.Listener {
     private static Logger LOG = LoggerFactory.getLogger(LifeCycleListener.class);
-    private final ServiceRegistrar serviceRegistrar;
-    private final ServiceDiscoverer serviceDiscoverer;
+    private final RestServiceRegistrar serviceRegistrar;
+    private final AbstractServiceDiscoverer serviceDiscoverer;
 
-    public LifeCycleListener(ServiceRegistrar serviceRegistrar){
+    public LifeCycleListener(RestServiceRegistrar serviceRegistrar){
         this(serviceRegistrar,null);
     }
 
 
-    public LifeCycleListener(ServiceDiscoverer serviceDiscoverer){
+    public LifeCycleListener(AbstractServiceDiscoverer serviceDiscoverer){
         this(null,serviceDiscoverer);
     }
 
-    public LifeCycleListener(ServiceRegistrar serviceRegistrar, ServiceDiscoverer serviceDiscoverer){
+    public LifeCycleListener(RestServiceRegistrar serviceRegistrar, AbstractServiceDiscoverer serviceDiscoverer){
         this.serviceRegistrar=serviceRegistrar;
         this.serviceDiscoverer=serviceDiscoverer;
     }

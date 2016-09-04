@@ -17,7 +17,7 @@
 package com.dreameddeath.infrastructure.daemon.services;
 
 
-import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.infrastructure.daemon.discovery.DaemonDiscovery;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;
 import io.swagger.annotations.Api;
@@ -40,14 +40,14 @@ import java.util.Map;
 public class RestDaemonsDiscoveryAndAdminService {
     @Autowired(required = true)
     private DaemonDiscovery daemonDiscovery;
-    private IServiceClient daemonAdminClient;
+    private IRestServiceClient daemonAdminClient;
 
     public void setDaemonDiscovery(DaemonDiscovery daemonDiscovery){
         this.daemonDiscovery = daemonDiscovery;
     }
 
     @Required
-    public void setDaemonAdminClient(IServiceClient factory){
+    public void setDaemonAdminClient(IRestServiceClient factory){
         daemonAdminClient = factory;
     }
 

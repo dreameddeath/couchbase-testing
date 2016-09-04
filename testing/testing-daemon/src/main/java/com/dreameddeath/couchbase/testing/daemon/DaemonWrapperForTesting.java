@@ -1,7 +1,11 @@
 package com.dreameddeath.couchbase.testing.daemon;
 
-import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.discovery.ServiceDiscoverer;
+import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
+import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
+import com.dreameddeath.core.service.discovery.rest.RestServiceDiscoverer;
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.ServiceTypeUtils;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 
 import java.util.concurrent.CountDownLatch;
@@ -54,8 +58,8 @@ public class DaemonWrapperForTesting {
         }
     }
 
-    public ServiceDiscoverer getServiceDiscoveryForDomain(String domain){
-        ServiceDiscoverer discoverer = new ServiceDiscoverer(daemon.getCuratorClient(),domain);
+    public AbstractServiceDiscoverer getServiceDiscoveryForDomain(String domain,String serviceType){
+        AbstractServiceDiscoverer discoverer = ServiceTypeUtils.getDefinition(serviceType).buildDiscoverer(daemon.getCuratorClient(),domain);
         try {
             discoverer.start();
         }
@@ -65,7 +69,15 @@ public class DaemonWrapperForTesting {
         return discoverer;
     }
 
-    public ServiceClientFactory getServiceFactoryForDomain(String domain){
-        return new ServiceClientFactory(getServiceDiscoveryForDomain(domain));
+    public RestServiceDiscoverer getServiceDiscoveryForDomain(String domain){
+        return (RestServiceDiscoverer) getServiceDiscoveryForDomain(domain, RestServiceTypeHelper.SERVICE_TYPE);
+    }
+
+    public AbstractServiceClientFactory getServiceFactoryForDomain(String domain,String serviceType){
+        return ServiceTypeUtils.getDefinition(serviceType).buildClientFactory(getServiceDiscoveryForDomain(domain,serviceType));
+    }
+
+    public RestServiceClientFactory getServiceFactoryForDomain(String domain){
+        return (RestServiceClientFactory)getServiceFactoryForDomain(domain,RestServiceTypeHelper.SERVICE_TYPE);
     }
 }

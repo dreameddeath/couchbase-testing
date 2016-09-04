@@ -17,9 +17,9 @@
 package com.dreameddeath.infrastructure.daemon.services;
 
 import com.codahale.metrics.MetricRegistry;
+import com.dreameddeath.core.service.AbstractExposableService;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
-import com.dreameddeath.core.service.model.AbstractExposableService;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.model.DaemonInfo;

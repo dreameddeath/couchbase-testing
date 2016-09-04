@@ -31,14 +31,14 @@
     </bean>
 
     <bean id="daoReadServiceRegistrar"
-          class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
+          class="com.dreameddeath.core.service.registrar.RestServiceRegistrar"
           factory-bean="serviceDiscovererManager"
           factory-method="getServiceRegistrar">
         <constructor-arg type="java.lang.String" value="${core.helper.dao.services.read.domain}" />
     </bean>
 
     <bean id="daoWriteServiceRegistrar"
-          class="com.dreameddeath.core.service.registrar.ServiceRegistrar"
+          class="com.dreameddeath.core.service.registrar.RestServiceRegistrar"
           factory-bean="serviceDiscovererManager"
           factory-method="getServiceRegistrar">
         <constructor-arg type="java.lang.String" value="${core.helper.dao.services.write.domain}" />

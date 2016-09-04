@@ -17,12 +17,12 @@
 package com.dreameddeath.core.service.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.core.service.GeneratedRestImpl;
+import com.dreameddeath.core.service.HasServiceClientFactory;
 import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.ExposeService;
 import com.dreameddeath.core.service.annotation.VersionStatus;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
-import com.dreameddeath.core.service.model.GeneratedRestImpl;
-import com.dreameddeath.core.service.model.HasServiceClientFactory;
+import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +48,7 @@ public class ServiceExpositionDef {
         return (Class<T>) Thread.currentThread().getContextClassLoader().loadClass(serviceClass.getName()+REST_CLIENT_SUFFIX);
     }
 
-    public static <T> T getRestClientIntance(Class serviceClass,Class<T> interfaceClass,ServiceClientFactory factory) throws ClassNotFoundException,InstantiationException,IllegalAccessException{
+    public static <T> T getRestClientIntance(Class serviceClass,Class<T> interfaceClass,AbstractServiceClientFactory factory) throws ClassNotFoundException,InstantiationException,IllegalAccessException{
         T result = getRestClientClass(serviceClass,interfaceClass).newInstance();
         ((HasServiceClientFactory)result).setServiceClientFactory(factory);
         return result;

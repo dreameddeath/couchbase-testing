@@ -17,8 +17,8 @@
 package com.dreameddeath.couchbase.core.process.remote.factory;
 
 import com.dreameddeath.core.java.utils.ClassUtils;
-import com.dreameddeath.core.service.client.IServiceClient;
-import com.dreameddeath.core.service.client.ServiceClientFactory;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
 
@@ -26,14 +26,14 @@ import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceIn
  * Created by Christophe Jeunesse on 26/02/2016.
  */
 public class BaseRemoteClientFactory implements IRemoteClientFactory {
-    private ServiceClientFactory clientFactory;
+    private RestServiceClientFactory clientFactory;
 
-    public void setClientFactory(ServiceClientFactory clientFactory){
+    public void setClientFactory(RestServiceClientFactory clientFactory){
         this.clientFactory = clientFactory;
     }
 
     @Override
-    public IServiceClient getClient(RemoteJobTaskProcessing forProcessing) {
+    public IRestServiceClient getClient(RemoteJobTaskProcessing forProcessing) {
         RemoteServiceInfo annot = forProcessing.getClass().getAnnotation(RemoteServiceInfo.class);
         if (annot == null) {
             Class<?> requestClass = ClassUtils.getEffectiveGenericType(forProcessing.getClass(),RemoteJobTaskProcessing.class,0);
