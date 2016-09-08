@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.service.discovery;
@@ -52,14 +54,14 @@ public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceI
         addListener(new ICuratorDiscoveryListener<T>() {
             @Override
             public void onRegister(String uid, T obj) {
-                LOG.info("Registering proxy {} of name {}",uid,obj.getServiceName());
+                LOG.info("Registering discovered client {} of name {}",uid,obj.getServiceName());
                 Set<T> clientInstanceInfoSet = clientInstances.computeIfAbsent(obj.getServiceName(), AbstractClientDiscoverer::buildSet);
                 clientInstanceInfoSet.add(obj);
             }
 
             @Override
             public void onUnregister(String uid, T oldObj) {
-                LOG.info("UnRegistering client {} of name {}",uid,oldObj.getServiceName());
+                LOG.info("UnRegistering discovered client {} of name {}",uid,oldObj.getServiceName());
                 Set<T> clientInstanceInfoSet = clientInstances.get(oldObj.getServiceName());
                 if(clientInstanceInfoSet!=null) {
                     clientInstanceInfoSet.remove(oldObj);
@@ -68,7 +70,7 @@ public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceI
 
             @Override
             public void onUpdate(String uid, T oldObj, T newObj) {
-                LOG.info("UnRegistering client {} of name {}",uid,oldObj.getServiceName());
+                LOG.info("UnRegistering discovered client {} of name {}",uid,oldObj.getServiceName());
                 Set<T> oldClientInstanceInfoSet = clientInstances.get(oldObj.getServiceName());
                 if(oldClientInstanceInfoSet!=null) {
                     oldClientInstanceInfoSet.remove(oldObj);

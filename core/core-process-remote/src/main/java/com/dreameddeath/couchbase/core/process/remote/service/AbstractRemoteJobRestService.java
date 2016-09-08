@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.couchbase.core.process.remote.service;
@@ -30,7 +32,7 @@ import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.factory.IJobExecutorClientFactory;
 import com.dreameddeath.core.process.utils.ProcessUtils;
-import com.dreameddeath.core.service.AbstractExposableService;
+import com.dreameddeath.core.service.AbstractRestExposableService;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.ActionRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExistingJob;
@@ -49,7 +51,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Created by Christophe Jeunesse on 15/01/2016.
  */
-public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ,TRESP> extends AbstractExposableService {
+public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ,TRESP> extends AbstractRestExposableService {
     public static final String REQUEST_UID_QUERY_PARAM = "requestUid";
     public static final String SUBMIT_ONLY_QUERY_PARAM = "submitOnly";
     private final Class<TJOB> jobClass;

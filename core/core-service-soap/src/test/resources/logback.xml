@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!--
   ~ /*
   ~  * Copyright Christophe Jeunesse
@@ -17,18 +16,15 @@
   ~  */
   -->
 
-<xs:schema
-        targetNamespace="http://www.dreameddeath.com/Interfaces/test/v0/data"
-        xmlns="http://www.dreameddeath.com/Interfaces/test/v0/data"
-        xmlns:tns="http://www.dreameddeath.com/Interfaces/test/v0/data"
-        xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    >
+<configuration>
 
-    <xs:complexType name="TestFault">
-        <xs:sequence>
-            <xs:element name="Fault" type="xs:string" />
-        </xs:sequence>
-    </xs:complexType>
-    
-    <xs:element name="TestFault" type="tns:TestFault" />
-</xs:schema>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

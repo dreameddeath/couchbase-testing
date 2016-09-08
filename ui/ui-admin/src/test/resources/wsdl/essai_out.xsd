@@ -26,18 +26,11 @@
 
     <xs:complexType name="TestResponse">
         <xs:sequence>
-            <xs:element name="offer" type="tns:Offers_CCO_Resp" minOccurs="0" maxOccurs="unbounded">
-            </xs:element>
+            <xs:element minOccurs="1" name="name" type="xs:string" />
+            <xs:element minOccurs="1" name="greeting" type="xs:string" />
         </xs:sequence>
     </xs:complexType>
     
-    <xs:complexType name="Offers_CCO_Resp">
-        <xs:sequence>
-            <xs:element minOccurs="1" name="code" type="xs:string" />
-            <xs:element minOccurs="1" name="label" type="xs:string" />
-            <xs:element minOccurs="1" name="quantity" type="xs:integer" />
-        </xs:sequence>
-    </xs:complexType>
     <xs:element name="TestResponse" type="tns:TestResponse" />
             
     

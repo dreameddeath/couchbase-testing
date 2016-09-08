@@ -18,10 +18,15 @@
 
 package com.dreameddeath.core.service;
 
-
+import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Created by Christophe Jeunesse on 11/04/2015.
+ * Created by Christophe Jeunesse on 15/01/2015.
  */
-public abstract class GeneratedRestImpl<T> extends AbstractRestExposableService implements RestWrapper<T>{
+public abstract class AbstractRestExposableService extends AbstractExposableService<RestServiceRegistrar> {
+    @Override @Autowired
+    public void setServiceRegistrar(RestServiceRegistrar serviceRegistrar){
+        super.setServiceRegistrar(serviceRegistrar);
+    }
 }

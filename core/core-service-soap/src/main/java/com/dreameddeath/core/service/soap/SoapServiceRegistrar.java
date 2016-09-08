@@ -16,53 +16,43 @@
  *
  */
 
-package com.dreameddeath.core.service.registrar;
+package com.dreameddeath.core.service.soap;
 
+import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.service.AbstractExposableService;
 import com.dreameddeath.core.service.annotation.ServiceDef;
-import com.dreameddeath.core.service.model.rest.RestCuratorDiscoveryServiceDescription;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.registrar.AbstractServiceRegistrar;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
-import io.swagger.jaxrs.Reader;
-import io.swagger.models.Swagger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceType;
 import org.apache.curator.x.discovery.UriSpec;
 
-import javax.ws.rs.Path;
-
+import javax.jws.WebService;
 
 /**
- * Created by Christophe Jeunesse on 13/01/2015.
+ * Created by Christophe Jeunesse on 05/09/2016.
  */
-public class RestServiceRegistrar extends AbstractServiceRegistrar<RestCuratorDiscoveryServiceDescription> {
-    public RestServiceRegistrar(CuratorFramework curatorClient, String domain) {
-        super(curatorClient, domain, RestServiceTypeHelper.SERVICE_TYPE);
+public class SoapServiceRegistrar extends AbstractServiceRegistrar<SoapCuratorDiscoveryServiceDescription> {
+    public SoapServiceRegistrar(CuratorFramework curatorClient, String domain) {
+        super(curatorClient, domain, SoapServiceTypeHelper.SERVICE_TYPE);
     }
 
     @Override
-    protected Class<RestCuratorDiscoveryServiceDescription> getDescriptionClass() {
-        return RestCuratorDiscoveryServiceDescription.class;
+    protected Class<SoapCuratorDiscoveryServiceDescription> getDescriptionClass() {
+        return SoapCuratorDiscoveryServiceDescription.class;
     }
 
     @Override
-    protected ServiceInstance<RestCuratorDiscoveryServiceDescription> buildServiceInstanceDescription(AbstractExposableService service){
-        RestCuratorDiscoveryServiceDescription serviceDescr = new RestCuratorDiscoveryServiceDescription();
-        super.initServiceInstanceDescription(service,serviceDescr);
+    protected ServiceInstance<SoapCuratorDiscoveryServiceDescription> buildServiceInstanceDescription(AbstractExposableService service) {
+        SoapCuratorDiscoveryServiceDescription description= initServiceInstanceDescription(service,new SoapCuratorDiscoveryServiceDescription());
         ServiceDef annotDef = service.getClass().getAnnotation(ServiceDef.class);
-        Path pathAnnot = service.getClass().getAnnotation(Path.class);
-
-        Swagger swagger = new Swagger();
-        swagger.setBasePath((service.getEndPoint().path()+"/"+service.getAddress()+"/"+pathAnnot.value()).replaceAll("/{2,}","/"));
-        swagger.setHost(service.getEndPoint().host());
-
-        Reader reader=new Reader(swagger);
-        reader.read(service.getClass());
-        serviceDescr.setSwagger(reader.getSwagger());
-
-        String uriStr = "{scheme}://{address}:{port}"+("/"+swagger.getBasePath()).replaceAll("/{2,}","/");
+        String fullPath = (service.getEndPoint().path()+"/"+service.getAddress()).replaceAll("/{2,}","/");
+        String uriStr = "{scheme}://{address}:{port}"+("/"+fullPath).replaceAll("/{2,}","/");
         UriSpec uriSpec = new UriSpec(uriStr);
+
+        Class rootClass = ClassUtils.getClassWithAnnotation(service.getClass(),WebService.class);
+        description.setClassName(rootClass.getName());
 
         return new ServiceInstance<>(
                 ServiceNamingUtils.buildServiceFullName(annotDef.name(),annotDef.version()),
@@ -70,11 +60,10 @@ public class RestServiceRegistrar extends AbstractServiceRegistrar<RestCuratorDi
                 service.getEndPoint().host(),
                 service.getEndPoint().port(),
                 null,
-                serviceDescr,
+                description,
                 System.currentTimeMillis(),
                 ServiceType.PERMANENT,
                 uriSpec
         );
     }
-
 }

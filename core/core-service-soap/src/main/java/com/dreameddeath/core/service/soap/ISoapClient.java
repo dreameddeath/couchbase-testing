@@ -16,12 +16,13 @@
  *
  */
 
-package com.dreameddeath.core.service;
+package com.dreameddeath.core.service.soap;
 
-
+import com.dreameddeath.core.service.client.IServiceClient;
 
 /**
- * Created by Christophe Jeunesse on 11/04/2015.
+ * Created by Christophe Jeunesse on 05/09/2016.
  */
-public abstract class GeneratedRestImpl<T> extends AbstractRestExposableService implements RestWrapper<T>{
+public interface ISoapClient<T> extends IServiceClient<T> {
+
 }

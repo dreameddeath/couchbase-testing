@@ -16,20 +16,17 @@
  *
  */
 
-package com.dreameddeath.core.service.testing;
+package com.dreameddeath.core.service.soap.testing;
 
-import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.annotation.processor.ServiceExpositionDef;
-import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
-import com.dreameddeath.core.service.discovery.rest.RestServiceDiscoverer;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.IEndPointDescription;
-import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
-import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dreameddeath.core.service.soap.SoapServiceDiscoverer;
+import com.dreameddeath.core.service.soap.SoapServiceRegistrar;
+import com.dreameddeath.core.service.soap.SoapServiceTypeHelper;
+import com.dreameddeath.core.service.soap.cxf.SoapCxfClientFactory;
+import com.dreameddeath.core.service.testing.LifeCycleListener;
 import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -42,36 +39,30 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.springframework.web.context.ContextLoaderListener;
 
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by Christophe Jeunesse on 10/04/2015.
+ * Created by Christophe Jeunesse on 07/09/2016.
  */
-public class TestingRestServer {
+public class SoapTestingServer{
     public static final String DOMAIN = "services";
-    private Server server;
-    private final UUID daemonUid = UUID.randomUUID();
-    private final UUID serverUid = UUID.randomUUID();
+    protected final Server server;
+    protected final UUID daemonUid = UUID.randomUUID();
+    protected final UUID serverUid = UUID.randomUUID();
 
-    private CuratorFramework curatorClient;
-    private RestServiceDiscoverer serviceDiscoverer;
-    private RestServiceClientFactory serviceClientFactory;
-    private RestServiceRegistrar serviceRegistrar;
-    private ClientRegistrar clientRegistrar;
-    private ClientDiscoverer clientDiscoverer;
-    private ProxyClientDiscoverer proxyClientDiscoverer;
+    private final CuratorFramework curatorClient;
+    private final ServerConnector connector;
+    private final SoapServiceDiscoverer soapServiceDiscoverer;
+    private final SoapCxfClientFactory soapServiceClientFactory;
+    private final SoapServiceRegistrar soapServiceRegistrar;
+    private final ClientRegistrar soapClientRegistrar;
+    private final ClientDiscoverer clientDiscoverer;
+    private final ProxyClientDiscoverer proxyClientDiscoverer;
 
-    private ServerConnector connector;
-    private Map<String,Class> beanClassNameMap = new HashMap<>();
-    private Map<String,Object> beanObjMap = new HashMap<>();
-
-
-    public TestingRestServer(String testName,CuratorFramework curatorClient,ObjectMapper jacksonMapper) throws Exception{
+    public SoapTestingServer(String testName, CuratorFramework curatorClient) throws Exception {
         this.curatorClient = curatorClient;
         server = new Server();
         connector = new ServerConnector(server);
@@ -81,21 +72,58 @@ public class TestingRestServer {
         ServletHolder cxfHolder = new ServletHolder("CXF",CXFServlet.class);
         cxfHolder.setInitOrder(1);
         contextHandler.addServlet(cxfHolder, "/*");
-        serviceDiscoverer = new RestServiceDiscoverer(curatorClient, DOMAIN);
-        serviceRegistrar = new RestServiceRegistrar(curatorClient, DOMAIN);
-        clientRegistrar = new ClientRegistrar(curatorClient, RestServiceTypeHelper.SERVICE_TYPE, DOMAIN,daemonUid.toString(),serverUid.toString());
-        clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN,RestServiceTypeHelper.SERVICE_TYPE);
-        proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN,RestServiceTypeHelper.SERVICE_TYPE);
+        soapServiceDiscoverer = new SoapServiceDiscoverer(curatorClient, DOMAIN);
+        soapServiceRegistrar = new SoapServiceRegistrar(curatorClient, DOMAIN);
+        soapClientRegistrar = new ClientRegistrar(curatorClient, SoapServiceTypeHelper.SERVICE_TYPE, DOMAIN,daemonUid.toString(),serverUid.toString());
+        soapServiceClientFactory = new SoapCxfClientFactory(soapServiceDiscoverer,soapClientRegistrar);
+        clientDiscoverer = new ClientDiscoverer(curatorClient, DOMAIN,SoapServiceTypeHelper.SERVICE_TYPE);
+        proxyClientDiscoverer = new ProxyClientDiscoverer(curatorClient,DOMAIN,SoapServiceTypeHelper.SERVICE_TYPE);
 
-        server.addLifeCycleListener(new LifeCycleListener(serviceRegistrar, serviceDiscoverer));
-        contextHandler.setInitParameter("contextConfigLocation", "classpath:rest.applicationContext.xml");
-        contextHandler.setAttribute("jacksonObjectMapper", jacksonMapper);
-        contextHandler.setAttribute("serviceRegistrar", serviceRegistrar);
-        contextHandler.setAttribute("serviceDiscoverer", serviceDiscoverer);
-        contextHandler.setAttribute("clientRegistrar", clientRegistrar);
-        contextHandler.setAttribute("clientDiscoverer", clientDiscoverer);
-        contextHandler.setAttribute("proxyClientDiscoverer", proxyClientDiscoverer);
+        server.addLifeCycleListener(new LifeCycleListener(soapServiceRegistrar, soapServiceDiscoverer));
+        server.addLifeCycleListener(new LifeCycle.Listener(){
+            @Override
+            public void lifeCycleStarting(LifeCycle lifeCycle) {
 
+            }
+
+            @Override
+            public void lifeCycleStarted(LifeCycle lifeCycle) {
+                try{
+                    clientDiscoverer.start();
+                    proxyClientDiscoverer.start();
+                }
+                catch (Exception e){
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public void lifeCycleFailure(LifeCycle lifeCycle, Throwable throwable) {
+
+            }
+
+            @Override
+            public void lifeCycleStopping(LifeCycle lifeCycle) {
+                try{
+                    clientDiscoverer.stop();
+                    proxyClientDiscoverer.stop();
+                }
+                catch (Exception e){
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public void lifeCycleStopped(LifeCycle lifeCycle) {
+
+            }
+        });
+        contextHandler.setInitParameter("contextConfigLocation", "classpath:soap.applicationContext.xml");
+        contextHandler.setAttribute("soapServiceRegistrar", soapServiceRegistrar);
+        contextHandler.setAttribute("soapServiceDiscoverer", soapServiceDiscoverer);
+        contextHandler.setAttribute("soapClientRegistrar", soapClientRegistrar);
+        contextHandler.setAttribute("soapClientDiscoverer", clientDiscoverer);
+        contextHandler.setAttribute("soapProxyClientDiscoverer", proxyClientDiscoverer);
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IEndPointDescription() {
             @Override public String daemonUid() {
@@ -111,52 +139,19 @@ public class TestingRestServer {
                 return "";
             }
             @Override public String host() {
-                try { return InetAddress.getLocalHost().getHostAddress();
+                try {return InetAddress.getLocalHost().getHostAddress();
                 } catch (Exception e) {return "localhost";}
             }
             @Override public String buildInstanceUid() {
                 return UUID.randomUUID().toString();
             }
         });
-
-        contextHandler.setAttribute("beanClassNameMap", beanClassNameMap);
-        contextHandler.setAttribute("beanObjMap",beanObjMap);
         contextHandler.addEventListener(new ContextLoaderListener());
-
-        serviceClientFactory = new RestServiceClientFactory(serviceDiscoverer,clientRegistrar);
     }
 
-
-
-    public TestingRestServer(String testName,CuratorFramework curatorClient) throws Exception{
-        this(testName,curatorClient, ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
-    }
-
-
-    public void registerBeanClass(String name, Class beanClass){
-        beanClassNameMap.put(name,beanClass);
-    }
-
-    public void registerBeanObject(String name,Object beanClass){
-        beanObjMap.put(name,beanClass);
-    }
-
-
-    public void registerWrapperServerBean(String name, Class beanClass){
-        beanClassNameMap.put(name+"Impl",beanClass);
-        try{
-            beanClassNameMap.put(name,ServiceExpositionDef.getRestServerClass(beanClass));
+    public SoapCxfClientFactory getClientFactory(){
+            return soapServiceClientFactory;
         }
-        catch(ClassNotFoundException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    public RestServiceClientFactory getClientFactory(){
-        return serviceClientFactory;
-    }
-
 
     public void start() throws Exception{
         if(!curatorClient.getState().equals(CuratorFrameworkState.STARTED)) {
@@ -204,12 +199,12 @@ public class TestingRestServer {
         return serverUid;
     }
 
-    public RestServiceDiscoverer getServiceDiscoverer() {
-        return serviceDiscoverer;
+    public SoapServiceDiscoverer getServiceDiscoverer() {
+        return soapServiceDiscoverer;
     }
 
     public ClientDiscoverer getClientDiscoverer() {
         return clientDiscoverer;
     }
-}
 
+}

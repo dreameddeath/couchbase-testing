@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.service.testing;
@@ -19,7 +21,7 @@ package com.dreameddeath.core.service.testing;
 import com.dreameddeath.core.json.EnhancedJacksonJsonProvider;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
-import com.dreameddeath.core.service.AbstractExposableService;
+import com.dreameddeath.core.service.AbstractRestExposableService;
 import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.context.provider.ContextServerFilter;
 import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
@@ -184,7 +186,7 @@ public class TestSpringConfig implements ServletContextAware {
                 //beanDefinition.isSingleton()
                 beanDefinition.setScope(ConfigurableBeanFactory.SCOPE_SINGLETON);
                 beanDefinition.setAutowireCandidate(true);
-                if(AbstractExposableService.class.isAssignableFrom(serviceDef.getValue())) {
+                if(AbstractRestExposableService.class.isAssignableFrom(serviceDef.getValue())) {
                     MutablePropertyValues values = new MutablePropertyValues();
                     values.add("address", factory.getAddress());
                     beanDefinition.setPropertyValues(values);
@@ -198,7 +200,7 @@ public class TestSpringConfig implements ServletContextAware {
 
         for(Map.Entry<String,Class> serviceDef:servicesClassNameMap.entrySet()){
             Object bean=ctxt.getBean(serviceDef.getKey(),serviceDef.getValue());
-            if(AbstractExposableService.class.isAssignableFrom(serviceDef.getValue())){
+            if(AbstractRestExposableService.class.isAssignableFrom(serviceDef.getValue())){
                 ResourceProvider provider = new SingletonResourceProvider(bean);
                 resourceProviders.add(provider);
             }

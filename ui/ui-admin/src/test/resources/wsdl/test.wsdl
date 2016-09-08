@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ /*
+  ~  * Copyright Christophe Jeunesse
+  ~  *
+  ~  *    Licensed under the Apache License, Version 2.0 (the "License");
+  ~  *    you may not use this file except in compliance with the License.
+  ~  *    You may obtain a copy of the License at
+  ~  *
+  ~  *      http://www.apache.org/licenses/LICENSE-2.0
+  ~  *
+  ~  *    Unless required by applicable law or agreed to in writing, software
+  ~  *    distributed under the License is distributed on an "AS IS" BASIS,
+  ~  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  *    See the License for the specific language governing permissions and
+  ~  *    limitations under the License.
+  ~  */
+  -->
+
+<wsdl:definitions
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:msg="http://www.dreameddeath.com/Interfaces/test/v0/message"
+		xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/"
+		xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="TestWebService"
+		targetNamespace="http://www.dreameddeath.com/Interfaces/test/v0/message"
+		xmlns:tns1="http://www.dreameddeath.com/Interfaces/test/v0/data"
+		xmlns:tns2="http://www.dreameddeath.com/Interfaces/test/v0/data/in"
+>
+	<wsdl:types>
+		<xsd:schema>
+            <xsd:import schemaLocation="essai.xsd" namespace="http://www.dreameddeath.com/Interfaces/test/v0/data/in" />
+            <xsd:import schemaLocation="essai_out.xsd" namespace="http://www.dreameddeath.com/Interfaces/test/v0/data" />
+            <xsd:import schemaLocation="essai_err.xsd" namespace="http://www.dreameddeath.com/Interfaces/test/v0/data" />
+            
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="TestRequest">
+		<wsdl:part name="parameters" element="tns2:TestRequest" />
+	</wsdl:message>
+	<wsdl:message name="TestResponse">
+		<wsdl:part name="parameters" element="tns1:TestResponse" />
+	</wsdl:message>
+	<wsdl:message name="TestFault">
+		<wsdl:part name="parameters" element="tns1:TestFault" />
+	</wsdl:message>
+	
+	<wsdl:portType name="TestWebService">
+		<wsdl:operation name="TestOperation">
+			<wsdl:documentation>This service creates a billing account with its characteristics such as payment method, bill date, currency, bill format and the different party roles: payer, holder, bill receiver<!--[SOA]This service creates a billing account with its characteristics such as payment method, bill date, currency, bill format and the different party roles: payer, holder, bill receiver--></wsdl:documentation>
+			<wsdl:input message="msg:TestRequest" />
+			<wsdl:output message="msg:TestResponse" />
+			<wsdl:fault name="fault" message="msg:TestFault" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="TestWebServiceBinding" type="msg:TestWebService">
+		<wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="TestOperation">
+			<wsdlsoap:operation soapAction="http://www.dreameddeath.com/Interfaces/test/v0/TestRequest" />
+			<wsdl:input >
+				<wsdlsoap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output >
+				<wsdlsoap:body use="literal" />
+			</wsdl:output>
+			<wsdl:fault name="fault" >
+				<wsdlsoap:fault name="fault" use="literal" />
+			</wsdl:fault>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="TestWebService">
+		<wsdl:documentation>This interface manages the creation, update, publish, find and get on billing accounts<!--[SOA]This interface manages the creation, update, publish, find and get on billing accounts--></wsdl:documentation>
+		<wsdl:port name="TestWebServicePort" binding="msg:TestWebServiceBinding">
+			<wsdlsoap:address location="http://localhost/TestWebService/TestWebServicePort" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

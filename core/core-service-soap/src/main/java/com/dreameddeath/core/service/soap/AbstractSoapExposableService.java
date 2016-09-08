@@ -16,12 +16,17 @@
  *
  */
 
-package com.dreameddeath.core.service;
+package com.dreameddeath.core.service.soap;
 
-
+import com.dreameddeath.core.service.AbstractExposableService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Created by Christophe Jeunesse on 11/04/2015.
+ * Created by Christophe Jeunesse on 08/09/2016.
  */
-public abstract class GeneratedRestImpl<T> extends AbstractRestExposableService implements RestWrapper<T>{
+public class AbstractSoapExposableService extends AbstractExposableService<SoapServiceRegistrar> {
+    @Override @Autowired
+    public void setServiceRegistrar(SoapServiceRegistrar serviceRegistrar) {
+        super.setServiceRegistrar(serviceRegistrar);
+    }
 }

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  * Copyright Christophe Jeunesse
+  ~  *
+  ~  *    Licensed under the Apache License, Version 2.0 (the "License");
+  ~  *    you may not use this file except in compliance with the License.
+  ~  *    You may obtain a copy of the License at
+  ~  *
+  ~  *      http://www.apache.org/licenses/LICENSE-2.0
+  ~  *
+  ~  *    Unless required by applicable law or agreed to in writing, software
+  ~  *    distributed under the License is distributed on an "AS IS" BASIS,
+  ~  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  *    See the License for the specific language governing permissions and
+  ~  *    limitations under the License.
+  ~  */
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+            http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws
+            http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+    <context:annotation-config />
+
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="ignoreResourceNotFound" value="true"></property>
+        <property name="ignoreUnresolvablePlaceholders" value="true"></property>
+        <property name="systemPropertiesMode" value="2"></property>
+        <property name="locations">
+            <list>
+                <value>classpath:local.rest.test.application.properties</value>
+                <value>classpath:rest.test.application.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="clientDiscoverer" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="soapClientDiscoverer"/>
+    </bean>
+
+    <bean id="serviceDiscoverer" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="soapServiceDiscoverer"/>
+    </bean>
+
+    <bean id="proxyClientDiscoverer" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="soapProxyClientDiscoverer"/>
+    </bean>
+
+    <bean id="endPointInfo" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="endPointInfo"/>
+    </bean>
+
+    <bean id="soapServiceRegistrar" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
+        <property name="attributeName" value="soapServiceRegistrar"/>
+    </bean>
+
+
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+
+    <bean id="TestService" class="com.dreameddeath.core.service.soap.TestWebserviceImpl">
+        <property name="address" value="/subPath" />
+    </bean>
+
+    <jaxws:endpoint id="TestServiceEndPoint" implementor="#TestService" address="/subPath" />
+
+
+    <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >
+        <jaxrs:serviceBeans>
+            <bean id="serviceDiscovery" class="com.dreameddeath.core.service.api.RestApiServiceDiscovery" >
+                <property name="serviceDiscoverer" ref="serviceDiscoverer"/>
+                <property name="clientDiscoverer" ref="clientDiscoverer"/>
+                <property name="proxyClientDiscoverer" ref="proxyClientDiscoverer"/>
+            </bean>
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="service" />
+            </bean>
+        </jaxrs:providers>
+    </jaxrs:server>
+</beans>
