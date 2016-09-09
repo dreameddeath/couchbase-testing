@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
   ~ /*
   ~  * Copyright Christophe Jeunesse
@@ -17,14 +17,18 @@
   ~  */
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+<xs:schema
+        targetNamespace="http://www.dreameddeath.com/Interfaces/test/v0/data"
+        xmlns="http://www.dreameddeath.com/Interfaces/test/v0/data"
+        xmlns:tns="http://www.dreameddeath.com/Interfaces/test/v0/data"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    >
 
-    <import resource="classpath:META-INF/spring/webserver.base.applicationContext.xml"/>
-
-    <bean id="endPoint" class="org.springframework.web.context.support.ServletContextAttributeFactoryBean">
-        <property name="attributeName" value="endPointInfo" />
-    </bean>
-
-</beans>
+    <xs:complexType name="TestFault">
+        <xs:sequence>
+            <xs:element name="Fault" type="xs:string" />
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:element name="TestFault" type="tns:TestFault" />
+</xs:schema>

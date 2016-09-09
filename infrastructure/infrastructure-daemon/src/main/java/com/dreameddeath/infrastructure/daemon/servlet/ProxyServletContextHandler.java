@@ -19,25 +19,23 @@
 package com.dreameddeath.infrastructure.daemon.servlet;
 
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.services.StandardDaemonRestEndPointDescription;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
  */
 public class ProxyServletContextHandler extends AbstractServletContextHandler {
-    public ProxyServletContextHandler(AbstractWebServer parentServer,List<String> domainsToSelfDiscover){
-        this(parentServer,domainsToSelfDiscover,null);
-    }
 
-    public ProxyServletContextHandler(AbstractWebServer parentServer,List<String> domainsToSelfDiscover,String serviceType){
+    public ProxyServletContextHandler(AbstractWebServer parentServer,Collection<String> domainsToSelfDiscover,String serviceType,String path){
         super(parentServer);
 
         String proxyPath = DaemonConfigProperties.DAEMON_WEBSERVER_PROXY_API_PATH_PREFIX.get();
-        proxyPath = ServletUtils.normalizePath(proxyPath,false);
-        this.setContextPath(proxyPath);
+        String fullPath = ServletUtils.normalizePath(new String[]{proxyPath,path},false);
+        this.setContextPath(fullPath);
         this.setDisplayName("Proxy for Apis");
 
         //Init Cxf context handler
@@ -47,7 +45,7 @@ public class ProxyServletContextHandler extends AbstractServletContextHandler {
         this.addServlet(proxyHolder, "/*");
 
         //Setup standardized elements
-        this.setAttribute(ProxyServlet.PROXY_PREFIX_PARAM_NAME, proxyPath);
+        this.setAttribute(ProxyServlet.PROXY_ENDPOINT_DESC,new StandardDaemonRestEndPointDescription(parentServer,parentServer.getServerConnector(),fullPath));
         this.setAttribute(ProxyServlet.SERVICE_DISCOVERER_DOMAINS_PARAM_NAME, domainsToSelfDiscover);
         if(serviceType!=null){
             this.setAttribute(ProxyServlet.PROXY_SERVICE_TYPE, serviceType);

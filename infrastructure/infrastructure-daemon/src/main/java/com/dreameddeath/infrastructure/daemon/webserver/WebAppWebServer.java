@@ -1,28 +1,33 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.infrastructure.daemon.webserver;
 
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.servlet.*;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
@@ -36,8 +41,13 @@ public class WebAppWebServer extends AbstractWebServer{
         handlersList.add(webAppHandler);
         WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(this,builder.getLibsPath(),builder.webJarsSubPath,builder.forTesting);
         handlersList.add(webJarHandler);
-        if(builder.withProxy){
-            handlersList.add(new ProxyServletContextHandler(this,builder.discoverPaths));
+
+        if(builder.withProxy) {
+            for (String serviceType : builder.perServiceTypeDiscoverDomainsForProxy.keys()) {
+                Collection<String> domains = builder.perServiceTypeDiscoverDomainsForProxy.get(serviceType);
+                Preconditions.checkNotNull(builder.perServiceTypePathForProxy.get(serviceType), "The service type %d should have a path defined", serviceType);
+                handlersList.add(new ProxyServletContextHandler(this, domains, serviceType, builder.perServiceTypePathForProxy.get(serviceType)));
+            }
         }
 
         if(builder.withApis){
@@ -70,11 +80,21 @@ public class WebAppWebServer extends AbstractWebServer{
         private String resourcePath="classpath:META-INF/resources/webapp";
         private boolean forTesting = false;
         private boolean withProxy = false;
-        private List<String> discoverPaths=new ArrayList<>();
+        private final Multimap<String,String> perServiceTypeDiscoverDomainsForProxy = ArrayListMultimap.create();
+        private final Map<String,String> perServiceTypePathForProxy = new HashMap<>();
         private boolean withApis=false;
         private String apiPath=null;
         private String applicationContextConfig;
 
+        public Builder(){
+            perServiceTypePathForProxy.put(RestServiceTypeHelper.SERVICE_TYPE,"");
+        }
+
+
+        public Builder withApplicationContextConfig(String applicationContextConfig) {
+            this.applicationContextConfig = applicationContextConfig;
+            return this;
+        }
 
         public Builder withPath(String path){
             this.path = path;
@@ -96,11 +116,6 @@ public class WebAppWebServer extends AbstractWebServer{
             return this;
         }
 
-        public Builder withDiscoverPaths(List<String> discoverPaths) {
-            this.discoverPaths = discoverPaths;
-            return this;
-        }
-
         public Builder withForTesting(boolean forTesting) {
             this.forTesting = forTesting;
             return this;
@@ -117,8 +132,30 @@ public class WebAppWebServer extends AbstractWebServer{
             return this;
         }
 
-        public Builder withApplicationContextConfig(String applicationContextConfig) {
-            this.applicationContextConfig = applicationContextConfig;
+        /*
+        *
+        * Proxy Config
+        *
+        */
+        public Builder withProxyDiscoverDomain(String domain){
+            return withProxyDiscoverDomain(RestServiceTypeHelper.SERVICE_TYPE,domain);
+        }
+
+        public Builder withProxyDiscoverDomain(String serviceType, String domain){
+            this.withProxy=true;
+            perServiceTypeDiscoverDomainsForProxy.put(serviceType,domain);
+            return this;
+        }
+
+        public Builder withProxyDiscoverDomains( final Collection<String> domains){
+            return withProxyDiscoverDomains(RestServiceTypeHelper.SERVICE_TYPE,domains);
+        }
+        public Builder withProxyDiscoverDomains(final String serviceType, final Collection<String> domains){
+            domains.forEach(domain->withProxyDiscoverDomain(serviceType,domain));
+            return this;
+        }
+        public Builder withProxyPath(String serviceType, String path){
+            perServiceTypePathForProxy.put(serviceType,path);
             return this;
         }
 

@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.ui.admin;
@@ -20,6 +22,8 @@ import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.curator.config.CuratorConfigProperties;
 import com.dreameddeath.core.curator.config.SharedConfigurationUtils;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
+import com.dreameddeath.core.service.soap.SoapServiceTypeHelper;
+import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
@@ -74,7 +78,10 @@ public class UiAdminsTest {
         AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client)
                 .withUserFactory(new StandardMockUserFactory())
                 .build();
-        daemon.addWebServer(WebAppWebServer.builder().withName("apps-admin-tests").withApplicationContextConfig("testadmin.applicationContext.xml").withApiPath("/apis").withForTesting(MANUAL_TEST_MODE));
+        daemon.addWebServer(WebAppWebServer.builder().withName("apps-admin-tests")
+                .withApplicationContextConfig("testadmin.applicationContext.xml")
+                .withApiPath("/apis")
+                .withForTesting(MANUAL_TEST_MODE));
         daemons.add(daemon);
         daemon.getDaemonLifeCycle().start();
         final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client)
@@ -86,8 +93,10 @@ public class UiAdminsTest {
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
         daemon2.addWebServer(ProxyWebServer.builder().withName("testing-rest-proxy")
-                .withDiscoverDomain(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                .withDiscoverDomain("tests"));
+                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get(),"REST")
+                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,"tests","REST")
+                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,"test","REST")
+                .withDiscoverDomainAndPath(SoapServiceTypeHelper.SERVICE_TYPE,"test","SOAP"));
         daemons.add(daemon2);
         daemon2.getDaemonLifeCycle().start();//Start halted
     }

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ /*
+  ~  * Copyright Christophe Jeunesse
+  ~  *
+  ~  *    Licensed under the Apache License, Version 2.0 (the "License");
+  ~  *    you may not use this file except in compliance with the License.
+  ~  *    You may obtain a copy of the License at
+  ~  *
+  ~  *      http://www.apache.org/licenses/LICENSE-2.0
+  ~  *
+  ~  *    Unless required by applicable law or agreed to in writing, software
+  ~  *    distributed under the License is distributed on an "AS IS" BASIS,
+  ~  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  *    See the License for the specific language governing permissions and
+  ~  *    limitations under the License.
+  ~  */
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+                http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
+                http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+                ">
+
+    <import resource="classpath:META-INF/spring/webserver.soap.applicationContext.xml" />
+
+    <bean id="serviceDomainDiscovery" class="com.dreameddeath.core.service.discovery.ServiceDomainDiscovery">
+        <constructor-arg ref="curatorClient"/>
+    </bean>
+
+
+    <bean id="soapServiceRegistrar"
+          class="com.dreameddeath.core.service.soap.SoapServiceRegistrar"
+          factory-bean="serviceDiscovererManager"
+          factory-method="getServiceRegistrar">
+        <constructor-arg type="java.lang.String" value="test" />
+        <constructor-arg type="java.lang.String" value="SOAP" />
+    </bean>
+
+    <bean id="restServiceRegistrar"
+          class="com.dreameddeath.core.service.registrar.RestServiceRegistrar"
+          factory-bean="serviceDiscovererManager"
+          factory-method="getServiceRegistrar">
+        <constructor-arg type="java.lang.String" value="test" />
+        <constructor-arg type="java.lang.String" value="REST" />
+    </bean>
+
+    <jaxrs:server id="tests" transportId="http://cxf.apache.org/transports/http" address="/restTests" >
+        <jaxrs:serviceBeans>
+            <bean id="testRest" class="com.dreameddeath.infrastructure.plugin.soap.TestRestService" >
+                <property name="address" value="/restTests"/>
+            </bean>
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="service" />
+            </bean>
+        </jaxrs:providers>
+    </jaxrs:server>
+
+
+    <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >
+        <jaxrs:serviceBeans>
+            <bean id="services-domain" class="com.dreameddeath.core.service.api.RestApiServiceDomainDiscovery" />
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <bean class="com.dreameddeath.core.json.JsonProviderFactory" factory-method="getProvider">
+                <constructor-arg value="service" />
+            </bean>
+        </jaxrs:providers>
+    </jaxrs:server>
+
+    <bean id="TestSoapService" class="com.dreameddeath.infrastructure.plugin.soap.TestWebServiceImpl">
+        <property name="address" value="/soapTests" />
+    </bean>
+
+    <jaxws:endpoint id="TestServiceEndPoint" implementor="#TestSoapService" address="/soapTests" />
+
+</beans>

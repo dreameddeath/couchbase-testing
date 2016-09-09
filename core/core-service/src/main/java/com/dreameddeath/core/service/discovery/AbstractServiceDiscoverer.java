@@ -42,10 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -55,11 +52,21 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
     private final static Logger LOG = LoggerFactory.getLogger(AbstractServiceDiscoverer.class);
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
     private ServiceDiscovery<T> serviceDiscovery;
-    private final ConcurrentMap<String,ServiceProvider<T>> serviceProviderMap=new ConcurrentHashMap<>();
+    private final ConcurrentMap<String,ProviderInfo> serviceProviderMap=new ConcurrentHashMap<>();
     private final List<IServiceDiscovererListener> listeners=new CopyOnWriteArrayList<>();
     private final String domain;
     private final String serviceType;
     private final CountDownLatch started = new CountDownLatch(1);
+
+    private class ProviderInfo{
+        private final ServiceProvider<T> provider;
+        private final ServiceDescription infoDescription;
+
+        public ProviderInfo(ServiceProvider<T> provider, ServiceDescription infoDescription) {
+            this.provider = provider;
+            this.infoDescription = infoDescription;
+        }
+    }
 
     @Override
     protected void preparePath() {
@@ -111,7 +118,8 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
             public void onRegister(String uid, ServiceDescription obj) {
                 try {
                     ServiceProvider<T> provider = serviceDiscovery.serviceProviderBuilder().serviceName(obj.getFullName()).build();
-                    if(serviceProviderMap.putIfAbsent(obj.getFullName(), provider)==null){
+                    ProviderInfo info=new ProviderInfo(provider,obj);
+                    if(serviceProviderMap.putIfAbsent(obj.getFullName(), info)==null){
                         provider.start();
                         for(IServiceDiscovererListener listener:listeners){
                             try {
@@ -130,12 +138,12 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
             @Override
             public void onUnregister(String uid, ServiceDescription oldObj) {
                 try {
-                    ServiceProvider<T> provider=serviceProviderMap.remove(oldObj.getFullName());
-                    if(provider!=null){
-                        provider.close();
+                    ProviderInfo info=serviceProviderMap.remove(oldObj.getFullName());
+                    if(info!=null){
+                        info.provider.close();
                         for(IServiceDiscovererListener listener:listeners){
                             try {
-                                listener.onProviderUnRegister(AbstractServiceDiscoverer.this, provider, oldObj);
+                                listener.onProviderUnRegister(AbstractServiceDiscoverer.this, info.provider, oldObj);
                             }
                             catch (Exception e){
                                 LOG.error("Error on unregister "+oldObj.getFullName()+" for listener "+listener,e);
@@ -150,7 +158,34 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
 
             @Override
             public void onUpdate(String uid, ServiceDescription obj, ServiceDescription newObj) {
-                onRegister(uid,obj);
+                try {
+                    ServiceProvider<T> provider = serviceDiscovery.serviceProviderBuilder().serviceName(obj.getFullName()).build();
+                    ProviderInfo info=new ProviderInfo(provider,obj);
+                    if(serviceProviderMap.putIfAbsent(obj.getFullName(), info)==null){
+                        provider.start();
+                        for(IServiceDiscovererListener listener:listeners){
+                            try {
+                                listener.onProviderRegister(AbstractServiceDiscoverer.this, provider, obj);
+                            }
+                            catch (Exception e){
+                                LOG.error("Error on registrar "+obj.getFullName()+" for listener "+listener,e);
+                            }
+                        }
+                    }
+                    else{
+                        ProviderInfo oldInfo=serviceProviderMap.get(obj.getFullName());
+                        for(IServiceDiscovererListener listener:listeners){
+                        try {
+                            listener.onProviderUpdate(AbstractServiceDiscoverer.this, oldInfo.provider, obj);
+                        }
+                        catch (Exception e){
+                            LOG.error("Error on update "+obj.getFullName()+" for listener "+listener,e);
+                        }
+                        }
+                    }
+                } catch (Exception e) {
+                    LOG.error("Cannot register service " + obj.getFullName(), e);
+                }
             }
         });
     }
@@ -167,12 +202,12 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
             throw new ServiceDiscoveryException("Not yet started",e);
         }
 
-        ServiceProvider<T> provider=serviceProviderMap.get(name);
-        if(provider==null){
+        ProviderInfo info=serviceProviderMap.get(name);
+        if(info==null){
             LOG.error("Cannot find provider for service name {}",name);
             throw new ServiceDiscoveryException("Cannot find provider for service name "+name+" in domain "+ domain);
         }
-        return provider;
+        return info.provider;
     }
 
 
@@ -211,9 +246,9 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
 
     public ServicesByNameInstanceDescription getInstancesDescription() throws ServiceDiscoveryException{
         ServicesByNameInstanceDescription desc = new ServicesByNameInstanceDescription();
-        for(Map.Entry<String,ServiceProvider<T>> entry:serviceProviderMap.entrySet()){
+        for(Map.Entry<String,ProviderInfo> entry:serviceProviderMap.entrySet()){
             try {
-                for (ServiceInstance<T> instance : entry.getValue().getAllInstances()) {
+                for (ServiceInstance<T> instance : entry.getValue().provider.getAllInstances()) {
                     desc.addServiceInstance(buildInstanceDescription(instance));
                 }
             }
@@ -243,7 +278,7 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
 
     public Collection<ServiceInfoDescription> getInstancesInfo(String filterName) throws ServiceDiscoveryException {
         Map<String,ServiceInfoDescription> mapServiceByName = new TreeMap<>();
-        for(Map.Entry<String,ServiceProvider<T>> entry:serviceProviderMap.entrySet()){
+        for(Map.Entry<String,ProviderInfo> entry:serviceProviderMap.entrySet()){
             String fullName = entry.getKey();
             String name = ServiceNamingUtils.getNameFromServiceFullName(fullName);
             if(StringUtils.isNotEmpty(filterName) && !filterName.equals(name)){
@@ -260,7 +295,7 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
             String version = ServiceNamingUtils.getVersionFromServiceFullName(fullName);
             ServiceInfoVersionDescription foundServiceVersionInfoDescription = foundServiceInfoDescription.addIfNeededServiceVersionInfoDescriptionMap(version, new ServiceInfoVersionDescription());
             try {
-                for (ServiceInstance<T> instance : entry.getValue().getAllInstances()) {
+                for (ServiceInstance<T> instance : entry.getValue().provider.getAllInstances()) {
                     if(foundServiceVersionInfoDescription.getFullName()==null){
                         foundServiceVersionInfoDescription.setFullName(fullName);
                         foundServiceVersionInfoDescription.setState(instance.getPayload().getState());
@@ -296,8 +331,17 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
         }
     }
 
-    public void addListener(IServiceDiscovererListener listener){
+    public void addListener(IServiceDiscovererListener<T> listener){
+        Map<String,ProviderInfo> copy = new HashMap<>(serviceProviderMap);
         listeners.add(listener);
+        for(Map.Entry<String,ProviderInfo> entry :copy.entrySet()){
+            try {
+                listener.onProviderRegister(AbstractServiceDiscoverer.this, entry.getValue().provider, entry.getValue().infoDescription);
+            }
+            catch (Exception e){
+                LOG.error("Error on register "+entry.getValue().infoDescription.getFullName()+" for listener "+listener,e);
+            }
+        }
     }
 
 
@@ -312,4 +356,5 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
     public String getServiceType() {
         return serviceType;
     }
+
 }

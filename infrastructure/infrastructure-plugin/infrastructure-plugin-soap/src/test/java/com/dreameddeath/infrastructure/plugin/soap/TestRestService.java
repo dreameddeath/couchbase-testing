@@ -16,7 +16,7 @@
  *
  */
 
-package com.dreameddeath.ui.admin;
+package com.dreameddeath.infrastructure.plugin.soap;
 
 import com.dreameddeath.core.service.AbstractRestExposableService;
 import com.dreameddeath.core.service.annotation.ServiceDef;
@@ -24,38 +24,34 @@ import com.dreameddeath.core.service.annotation.VersionStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * Created by Christophe Jeunesse on 24/08/2015.
+ * Created by Christophe Jeunesse on 20/08/2015.
  */
-@Path("/tests")
-@ServiceDef(domain = "test",name="test",version="1.0",status = VersionStatus.STABLE)
-@Api
-public class TestRest extends AbstractRestExposableService {
-
+@Path("/")
+@ServiceDef(domain = "test",name="tests#tests#tests",version="1.0",status = VersionStatus.STABLE)
+@Api(value = "/", description = "testing services")
+public class TestRestService extends AbstractRestExposableService {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation("get standardized message")
-    public Map<String, Object> genericGet(){
-        Map<String,Object> result = new HashMap<>();
-        result.put("message","anonymous");
-        return result;
+    @ApiOperation(value = "return 12",
+            response = Integer.class,
+            position = 0)
+    public Integer get(){
+        return 12;
     }
 
+
     @GET
-    @Path("{id}")
+    @Path("/{nb}")
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation("get standard generated message")
-    public Map<String, Object> genericGet(@PathParam("id") String id){
-        Map<String,Object> result = new HashMap<>();
-        result.put("message","Welcome to you : "+id);
-        return result;
+    @ApiOperation(value = "return 12 + nb + qbn",
+            response = Integer.class,
+            position = 0)
+    public Integer getWithParams(@PathParam("nb")int nb,@QueryParam("qnb") int qnb){
+        return 12+nb+qnb;
     }
+
 }

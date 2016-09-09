@@ -18,11 +18,10 @@
 
 package com.dreameddeath.core.service.soap;
 
-import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
-import com.dreameddeath.core.service.registrar.AbstractServiceRegistrar;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
+import com.dreameddeath.core.service.soap.cxf.SoapCxfClientFactory;
 import com.dreameddeath.core.service.utils.IServiceTypeHelper;
 import org.apache.curator.framework.CuratorFramework;
 
@@ -59,17 +58,17 @@ public class SoapServiceTypeHelper implements IServiceTypeHelper {
     }
 
     @Override
-    public <T extends AbstractServiceClientFactory> T buildClientFactory(AbstractServiceDiscoverer serviceDiscoverer, ClientRegistrar registrar) {
-        return null;
+    public SoapCxfClientFactory buildClientFactory(AbstractServiceDiscoverer serviceDiscoverer, ClientRegistrar registrar) {
+        return new SoapCxfClientFactory(serviceDiscoverer, registrar);
     }
 
     @Override
-    public <T extends AbstractServiceClientFactory> T buildClientFactory(AbstractServiceDiscoverer serviceDiscoverer) {
-        return null;
+    public SoapCxfClientFactory  buildClientFactory(AbstractServiceDiscoverer serviceDiscoverer) {
+        return new SoapCxfClientFactory(serviceDiscoverer);
     }
 
     @Override
-    public <T extends AbstractServiceRegistrar> T buildServiceRegistrar(CuratorFramework curatorClient, String domain) {
-        return null;
+    public SoapServiceRegistrar buildServiceRegistrar(CuratorFramework curatorClient, String domain) {
+        return new SoapServiceRegistrar(curatorClient, domain);
     }
 }
