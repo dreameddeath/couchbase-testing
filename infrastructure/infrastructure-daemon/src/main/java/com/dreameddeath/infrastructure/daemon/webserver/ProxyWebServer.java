@@ -61,6 +61,7 @@ public class ProxyWebServer extends AbstractWebServer {
         private final Map<String,String> perServiceTypePath = new HashMap<>();
 
         public Builder(){
+            super.withServiceDiscoveryManager(true);
             perServiceTypePath.put(RestServiceTypeHelper.SERVICE_TYPE,"");
         }
 

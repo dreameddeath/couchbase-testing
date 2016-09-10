@@ -47,6 +47,7 @@ public class ProxyServletContextHandler extends AbstractServletContextHandler {
         //Setup standardized elements
         this.setAttribute(ProxyServlet.PROXY_ENDPOINT_DESC,new StandardDaemonRestEndPointDescription(parentServer,parentServer.getServerConnector(),fullPath));
         this.setAttribute(ProxyServlet.SERVICE_DISCOVERER_DOMAINS_PARAM_NAME, domainsToSelfDiscover);
+        this.setAttribute(ProxyServlet.SERVICE_DISCOVERER_MANAGER_PARAM_NAME, parentServer.getServiceDiscoveryManager());
         if(serviceType!=null){
             this.setAttribute(ProxyServlet.PROXY_SERVICE_TYPE, serviceType);
         }

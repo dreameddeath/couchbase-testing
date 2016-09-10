@@ -54,6 +54,48 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                 function($scope,$state,$stateParams,ServicesDomainTypes,ServicesDomainServiceInfo,
                         ServicesDomainClientInstances,ServicesDomainProxyInstances)
                 {
+                    var ServiceVersion =function(domain,service,version,versionInfo){
+                        var self=this;
+                        for(var attr in versionInfo){
+                            this[attr] = versionInfo[attr];
+                        }
+                        self.clients=[];
+                        self.proxies=[];
+                        self.refreshClients=function(){
+                            ServicesDomainClientInstances.list({"domain":domain,type:service.type,fullname:self.fullName},function(dataClients){
+                                self.clients.length=0;
+                                self.clients.push.apply(self.clients,dataClients);
+                                /*for(var pos=0;pos<dataClients.length;++pos){}
+                                    self.clients=dataClients;
+                                }*/
+                            })
+                            ServicesDomainProxyInstances.list({"domain":domain,type:service.type,fullname:self.fullName},function(dataProxies){
+                                self.proxies.length=0;
+                                self.proxies.push.apply(self.proxies,dataProxies);
+                                //self.proxies=dataProxies;
+                            });
+                        };
+                        self.refreshClients();
+                    }
+
+
+                    var Service =function(domain,serviceInfo){
+                        var self=this;
+                        for(var attr in serviceInfo){
+                            if(attr=='versions') continue;
+                            this[attr] = serviceInfo[attr];
+                        }
+                        this.versions={};
+                        for(var version in serviceInfo.versions){
+                            var currVersion = serviceInfo.versions[version];
+                            this.versions[version]=new ServiceVersion(domain,self,version,currVersion);
+                        }
+
+                        this.nbVersions=function(){
+                            return Object.keys(this.versions).length;
+                        }
+                    }
+
                     $scope.close=function(){
                         $state.go("^");
                     };
@@ -94,19 +136,31 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                             for(var posTypeList=0;posTypeList<typeListData.length;++posTypeList){
                                 ServicesDomainServiceInfo.list({domain:$stateParams.domain,type:typeListData[posTypeList]},function(data){
                                     for(var pos=0;pos<data.length;++pos){
+                                        $scope.services.push( new Service($stateParams.domain,data[pos]));
+                                    }
+                                    /*                                                name:currService.name,
+                                                                                    type:currService.type,
+                                                                                    versions:versions,
+                                                                                    nbVersions:function(){
+                                                                                        return Object.keys(this.versions).length;
+                                                                                    }
+                                                                                });
                                         var currService = data[pos];
+                                        //var versions = currService.versions;
+                                        var versions = [];
                                         for(var version in currService.versions){
-                                            var currServiceVersion = currService.versions[version];
+                                            versions.push(new ServiceVersion($stateParams.domain,))
+                                            var currServiceVersion = versions[version];
                                             currServiceVersion.clients=[];
                                             currServiceVersion.proxies=[];
                                             currServiceVersion.refreshClients=function(){
                                                 //currServiceVersion.clients=[];
-                                                ServicesDomainClientInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(data){
-                                                    currServiceVersion.clients=data;
+                                                ServicesDomainClientInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(dataClients){
+                                                    currServiceVersion.clients=dataClients;
                                                 })
 
-                                                ServicesDomainProxyInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(data){
-                                                    currServiceVersion.proxies=data;
+                                                ServicesDomainProxyInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(dataProxies){
+                                                    currServiceVersion.proxies=dataProxies;
                                                 });
                                             };
                                             currServiceVersion.refreshClients();
@@ -114,12 +168,12 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                                         $scope.services.push({
                                             name:currService.name,
                                             type:currService.type,
-                                            versions:currService.versions,
+                                            versions:versions,
                                             nbVersions:function(){
                                                 return Object.keys(this.versions).length;
                                             }
                                         });
-                                    }
+                                    }*/
                                     $scope.updateCurrServiceVersion();
                                 })
                             }
