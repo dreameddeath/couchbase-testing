@@ -16,9 +16,10 @@
  *
  */
 
-package com.dreameddeath.core.service.soap;
+package com.dreameddeath.core.service.soap.model;
 
 import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.soap.SoapServiceTypeHelper;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 

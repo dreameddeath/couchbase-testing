@@ -18,18 +18,23 @@
 
 package com.dreameddeath.core.service;
 
+import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
-import com.dreameddeath.core.service.context.IGlobalContext;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
+import com.dreameddeath.core.service.http.HttpHeaderUtils;
 import com.dreameddeath.core.service.swagger.TestingDocument;
+import com.google.common.base.Preconditions;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Created by Christophe Jeunesse on 17/03/2015.
@@ -38,13 +43,13 @@ import javax.ws.rs.core.MediaType;
 @ServiceDef(domain = "test",name="testService",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractRestExposableService {
+    private RestServiceClientFactory clientFactory;
     private TestServiceImpl testService=new TestServiceImpl();
-    /*private IGlobalContextFactory transcoder;
 
     @Autowired
-    public void setGlobalContextTranscoder(IGlobalContextFactory transcoder){
-        this.transcoder = transcoder;
-    }*/
+    public void setClientFactory(RestServiceClientFactory clientFactory) {
+        this.clientFactory = clientFactory;
+    }
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
@@ -122,5 +127,30 @@ public class TestServiceRestService extends AbstractRestExposableService {
 
     public TestingDocument initDocument(){
         return testService.initDocument((IGlobalContext)null).toBlocking().first();
+    }
+
+    @GET
+    @Path("traceId")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String traceId(@QueryParam("withId") String traceId,@QueryParam("withGlobalId") String globalId,@Context IGlobalContext context){
+        Preconditions.checkNotNull(context);
+        if(traceId!=null){
+            Preconditions.checkNotNull(context.callerCtxt());
+            Preconditions.checkNotNull(globalId);
+            Preconditions.checkArgument(traceId.equals(context.callerCtxt().traceId()));
+            Preconditions.checkArgument(globalId.equals(context.globalTraceId()));
+            return context.currentTraceId();
+        }
+        else{
+            Response result = clientFactory.getClient("testService","1.0").getInstance()
+                    .path("traceId")
+                    .queryParam("withId",context.currentTraceId())
+                    .queryParam("withGlobalId",context.globalTraceId())
+                    .request(MediaType.TEXT_PLAIN).get();
+            String calleeTraceId = result.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
+            Preconditions.checkNotNull(calleeTraceId);
+            Preconditions.checkArgument(calleeTraceId.equals(result.readEntity(String.class)));
+            return "Ok";
+        }
     }
 }

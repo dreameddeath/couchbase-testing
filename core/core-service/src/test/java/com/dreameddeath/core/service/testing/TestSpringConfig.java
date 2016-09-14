@@ -18,15 +18,14 @@
 
 package com.dreameddeath.core.service.testing;
 
+import com.dreameddeath.core.context.IContextFactory;
+import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
 import com.dreameddeath.core.json.EnhancedJacksonJsonProvider;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.AbstractRestExposableService;
-import com.dreameddeath.core.service.context.IGlobalContextFactory;
-import com.dreameddeath.core.service.context.provider.ContextServerFilter;
-import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
-import com.dreameddeath.core.service.context.provider.UserContextProvider;
-import com.dreameddeath.core.service.context.provider.UserServerFilter;
+import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
+import com.dreameddeath.core.service.context.provider.*;
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
@@ -105,14 +104,20 @@ public class TestSpringConfig implements ServletContextAware {
         return (ClientDiscoverer) servletContext.getAttribute("clientDiscoverer");
     }
 
+    @Bean(name="clientFactory")
+    public RestServiceClientFactory getRestClientFactory(){
+        return (RestServiceClientFactory) servletContext.getAttribute("serviceClientFactory");
+    }
+
+
     @Bean(name="proxyClientDiscoverer")
     public ProxyClientDiscoverer getProxyClientDiscoverer(){
         return (ProxyClientDiscoverer) servletContext.getAttribute("proxyClientDiscoverer");
     }
 
     @Bean(name="globalContextTranscoder")
-    public IGlobalContextFactory getContextTranscoder(){
-        return new DummyContextFactory();
+    public IContextFactory getContextTranscoder(){
+        return new GlobalContextFactoryImpl();
     }
 
     @Bean(name="userFactory")
@@ -145,9 +150,12 @@ public class TestSpringConfig implements ServletContextAware {
 
     @Bean(name="contextServerFilter")
     public ContextServerFilter contextServerFilter(){
-        ContextServerFilter filter = new ContextServerFilter();
-        filter.setSetupDefaultContext(true);
-        return filter;
+        return new ContextServerFilter();
+    }
+
+    @Bean(name="logServerFilter")
+    public LogServerFilter logServerFilter(){
+        return new LogServerFilter();
     }
 
 
@@ -167,7 +175,8 @@ public class TestSpringConfig implements ServletContextAware {
                 ctxt.getBeanFactory().getBean("userContextProvider"),
                 ctxt.getBeanFactory().getBean("globalContextProvider"),
                 ctxt.getBeanFactory().getBean("userServerFilter"),
-                ctxt.getBeanFactory().getBean("contextServerFilter")
+                ctxt.getBeanFactory().getBean("contextServerFilter"),
+                ctxt.getBeanFactory().getBean("logServerFilter")
         ));
 
         Map<String,Object> beanObjMap = (Map<String,Object>)servletContext.getAttribute("beanObjMap");

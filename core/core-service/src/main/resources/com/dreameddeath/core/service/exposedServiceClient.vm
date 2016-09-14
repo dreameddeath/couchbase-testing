@@ -20,7 +20,7 @@ package ${service.package};
 import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
-import com.dreameddeath.core.service.context.IGlobalContextFactory;
+import com.dreameddeath.core.context.IContextFactory;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.service.HasServiceClientFactory;
 import com.dreameddeath.core.json.JsonProviderFactory;
@@ -49,7 +49,7 @@ import ${import};
 )
 public class ${service.clientSimpleClassName} implements HasServiceClientFactory<IRestServiceClient,RestServiceClientFactory>#foreach($interface in $service.interfaces),$interface#end {
 #if($service.hasGlobalContextFactory())
-    private IGlobalContextFactory contextFactory;
+    private IContextFactory contextFactory;
 #end
 #if($service.hasUserFactory())
     private IUserFactory userFactory;
@@ -59,7 +59,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
 
 #if($service.hasGlobalContextFactory())
     @Autowired
-    public void setContextFactory(IGlobalContextFactory contextFactory){
+    public void setContextFactory(IContextFactory contextFactory){
         this.contextFactory = contextFactory;
     }
 #end

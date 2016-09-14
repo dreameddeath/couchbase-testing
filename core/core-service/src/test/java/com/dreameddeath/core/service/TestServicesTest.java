@@ -18,21 +18,22 @@
 
 package com.dreameddeath.core.service;
 
+import com.dreameddeath.core.context.IContextFactory;
+import com.dreameddeath.core.context.IGlobalContext;
+import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotationProcessor;
 import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
-import com.dreameddeath.core.service.context.IGlobalContext;
-import com.dreameddeath.core.service.context.IGlobalContextFactory;
 import com.dreameddeath.core.service.context.feature.ClientFeatureFactory;
 import com.dreameddeath.core.service.context.feature.ContextClientFeature;
+import com.dreameddeath.core.service.context.feature.LogClientFeature;
 import com.dreameddeath.core.service.context.feature.UserClientFeature;
 import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.common.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.swagger.TestingDocument;
-import com.dreameddeath.core.service.testing.DummyContextFactory;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
@@ -157,10 +158,12 @@ public class TestServicesTest extends Assert{
     public void testService() throws Exception{
         LOG.debug("Connector port {}", server.getLocalPort());
         RestServiceClientFactory clientFactory = new RestServiceClientFactory(server.getServiceDiscoverer());
-        IGlobalContextFactory transcoder = new DummyContextFactory();
+        GlobalContextFactoryImpl globalContextFactory = new GlobalContextFactoryImpl();
+        globalContextFactory.setUserFactory(new StandardMockUserFactory());
         ClientFeatureFactory featureFactory = new ClientFeatureFactory();
-        featureFactory.addFeature(new ContextClientFeature(transcoder));
+        featureFactory.addFeature(new ContextClientFeature(globalContextFactory));
         featureFactory.addFeature(new UserClientFeature(new StandardMockUserFactory()));
+        featureFactory.addFeature(new LogClientFeature());
         clientFactory.setFeatureFactory(featureFactory);
 
 
@@ -194,7 +197,7 @@ public class TestServicesTest extends Assert{
         assertEquals("15 put", resultPut.id);
 
         Object serviceGen =generatorResult.getClass("com.dreameddeath.core.service.gentest.TestServiceGenImplRestClient").newInstance();
-        serviceGen.getClass().getMethod("setContextFactory",IGlobalContextFactory.class).invoke(serviceGen,transcoder);
+        serviceGen.getClass().getMethod("setContextFactory",IContextFactory.class).invoke(serviceGen,globalContextFactory);
         serviceGen.getClass().getMethod("setUserFactory",IUserFactory.class).invoke(serviceGen,new StandardMockUserFactory());
         serviceGen.getClass().getMethod("setServiceClientFactory",AbstractServiceClientFactory.class).invoke(serviceGen,clientFactory);
 
@@ -248,6 +251,11 @@ public class TestServicesTest extends Assert{
         }
         catch(Exception e){
             throw e;
+        }
+
+        {
+            String resultTraceId = clientFactory.getClient("testService","1.0").getInstance().path("traceId").request(MediaType.TEXT_PLAIN).get(String.class);
+            assertEquals("Ok",resultTraceId);
         }
     }
 

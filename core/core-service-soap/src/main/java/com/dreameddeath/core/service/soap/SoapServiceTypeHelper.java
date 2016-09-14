@@ -22,6 +22,7 @@ import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.soap.cxf.SoapCxfClientFactory;
+import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.IServiceTypeHelper;
 import org.apache.curator.framework.CuratorFramework;
 

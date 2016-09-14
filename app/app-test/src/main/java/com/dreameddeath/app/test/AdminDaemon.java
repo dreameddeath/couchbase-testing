@@ -1,26 +1,24 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.app.test;
 
-import com.dreameddeath.core.java.utils.StringUtils;
-import com.dreameddeath.core.user.AnonymousUser;
-import com.dreameddeath.core.user.AuthorizeAllUser;
-import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.user.IUserFactory;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
@@ -33,22 +31,7 @@ public class AdminDaemon extends AbstractDaemon {
     public AdminDaemon(){
         super(AdminDaemon.builder()
                 .withName("AdminDaemon")
-                .withUserFactory(new IUserFactory() {
-                    @Override
-                    public IUser fromToken(String token) {
-                        return StringUtils.isEmpty(token)?AnonymousUser.INSTANCE:AuthorizeAllUser.INSTANCE;
-                    }
-
-                    @Override
-                    public String toToken(IUser user) {
-                        return user.getUserId().equalsIgnoreCase(AuthorizeAllUser.INSTANCE.getUserId())?AuthorizeAllUser.INSTANCE.getUserId():"";
-                    }
-
-                    @Override
-                    public IUser defaultUser() {
-                        return AnonymousUser.INSTANCE;
-                    }
-                })
+                .withUserFactory(new StandardMockUserFactory())
         );
         this.addWebServer(WebAppWebServer.builder()
                 .withName("apps-admin-tests")

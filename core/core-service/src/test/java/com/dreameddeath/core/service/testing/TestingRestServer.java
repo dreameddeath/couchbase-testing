@@ -18,9 +18,14 @@
 
 package com.dreameddeath.core.service.testing;
 
+import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.annotation.processor.ServiceExpositionDef;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
+import com.dreameddeath.core.service.context.feature.ClientFeatureFactory;
+import com.dreameddeath.core.service.context.feature.ContextClientFeature;
+import com.dreameddeath.core.service.context.feature.LogClientFeature;
+import com.dreameddeath.core.service.context.feature.UserClientFeature;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.rest.RestServiceDiscoverer;
@@ -29,6 +34,7 @@ import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
 import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
@@ -95,6 +101,8 @@ public class TestingRestServer {
         contextHandler.setAttribute("clientRegistrar", clientRegistrar);
         contextHandler.setAttribute("clientDiscoverer", clientDiscoverer);
         contextHandler.setAttribute("proxyClientDiscoverer", proxyClientDiscoverer);
+        contextHandler.setAttribute("clientFactory",getClientFactory());
+
 
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IEndPointDescription() {
@@ -124,6 +132,15 @@ public class TestingRestServer {
         contextHandler.addEventListener(new ContextLoaderListener());
 
         serviceClientFactory = new RestServiceClientFactory(serviceDiscoverer,clientRegistrar);
+        GlobalContextFactoryImpl globalContextFactory = new GlobalContextFactoryImpl();
+        globalContextFactory.setUserFactory(new StandardMockUserFactory());
+        ClientFeatureFactory featureFactory = new ClientFeatureFactory();
+        featureFactory.addFeature(new ContextClientFeature(globalContextFactory));
+        featureFactory.addFeature(new UserClientFeature(new StandardMockUserFactory()));
+        featureFactory.addFeature(new LogClientFeature());
+        serviceClientFactory.setFeatureFactory(featureFactory);
+
+        contextHandler.setAttribute("serviceClientFactory", serviceClientFactory);
     }
 
 

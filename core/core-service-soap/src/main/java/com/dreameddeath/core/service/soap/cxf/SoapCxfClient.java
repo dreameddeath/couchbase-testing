@@ -20,7 +20,7 @@ package com.dreameddeath.core.service.soap.cxf;
 
 import com.dreameddeath.core.service.client.AbstractServiceClientImpl;
 import com.dreameddeath.core.service.soap.ISoapClient;
-import com.dreameddeath.core.service.soap.SoapCuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.UriUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -58,6 +58,7 @@ public class SoapCxfClient<T> extends AbstractServiceClientImpl<T,SoapCuratorDis
                 String fullAddress = UriUtils.buildUri(instance);
                 clientFactoryBean.setServiceClass(Thread.currentThread().getContextClassLoader().loadClass(instance.getPayload().getClassName()));
                 clientFactoryBean.setBus(soapParentFactory.getBus());
+                //clientFactoryBean.getHandlers().add();
                 //clientFactoryBean.setWsdlURL(fullAddress+"?wsdl");
                 clientFactoryBean.setAddress(fullAddress);
                 return ClientWrapper.<T>build(clientFactoryBean,instance);

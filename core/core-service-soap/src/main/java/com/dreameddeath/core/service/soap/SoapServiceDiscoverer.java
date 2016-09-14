@@ -20,6 +20,8 @@ package com.dreameddeath.core.service.soap;
 
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.model.common.ServiceInstanceDescription;
+import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.soap.model.SoapServiceInstanceDescription;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceInstance;
 

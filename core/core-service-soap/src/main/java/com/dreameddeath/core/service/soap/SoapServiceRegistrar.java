@@ -22,7 +22,9 @@ import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.service.AbstractExposableService;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.registrar.AbstractServiceRegistrar;
+import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
+import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceType;
@@ -52,6 +54,7 @@ public class SoapServiceRegistrar extends AbstractServiceRegistrar<SoapCuratorDi
         UriSpec uriSpec = new UriSpec(uriStr);
 
         Class rootClass = ClassUtils.getClassWithAnnotation(service.getClass(),WebService.class);
+        Preconditions.checkNotNull(rootClass,"The class %s doesn't have parent class with WebService annotation",service.getClass());
         description.setClassName(rootClass.getName());
 
         return new ServiceInstance<>(

@@ -16,7 +16,7 @@
  *
  */
 
-package com.dreameddeath.core.service.soap;
+package com.dreameddeath.core.service.soap.model;
 
 import com.dreameddeath.core.service.model.common.ServiceInstanceDescription;
 import com.dreameddeath.core.service.utils.RestServiceTypeHelper;

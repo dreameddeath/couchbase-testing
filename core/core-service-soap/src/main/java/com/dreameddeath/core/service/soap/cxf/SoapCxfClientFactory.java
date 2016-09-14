@@ -22,7 +22,7 @@ import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.soap.ISoapClient;
-import com.dreameddeath.core.service.soap.SoapCuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
 import org.apache.curator.x.discovery.ServiceProvider;
 import org.apache.cxf.Bus;
 import org.springframework.beans.factory.annotation.Autowired;
