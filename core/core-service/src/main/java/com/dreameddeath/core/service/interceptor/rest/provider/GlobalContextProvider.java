@@ -16,26 +16,24 @@
  *
  */
 
-package com.dreameddeath.core.service.context.provider;
+package com.dreameddeath.core.service.interceptor.rest.provider;
 
-import com.dreameddeath.core.user.IUser;
+import com.dreameddeath.core.context.IGlobalContext;
+import com.dreameddeath.core.service.interceptor.PropertyUtils;
 import org.apache.cxf.jaxrs.ext.ContextProvider;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.http.AbstractHTTPDestination;
 
-import javax.annotation.Priority;
 import javax.servlet.ServletRequest;
 
 /**
  * Created by Christophe Jeunesse on 06/01/2016.
  */
-@Priority(4)
-public class UserContextProvider implements ContextProvider<IUser> {
-
+public class GlobalContextProvider implements ContextProvider<IGlobalContext> {
     @Override
-    public IUser createContext(Message message) {
+    public IGlobalContext createContext(Message message) {
         ServletRequest request = (ServletRequest)message.get(AbstractHTTPDestination.HTTP_REQUEST);
-        IUser context = (IUser) request.getAttribute(FilterUtils.PROPERTY_USER_PARAM_NAME);
+        IGlobalContext context = (IGlobalContext)request.getAttribute(PropertyUtils.PROPERTY_GLOBAL_CONTEXT_PARAM_NAME);
         if(context!=null){
             return context;
         }

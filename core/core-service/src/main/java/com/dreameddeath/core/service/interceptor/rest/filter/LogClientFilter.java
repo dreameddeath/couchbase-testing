@@ -16,10 +16,12 @@
  *
  */
 
-package com.dreameddeath.core.service.context.provider;
+package com.dreameddeath.core.service.interceptor.rest.filter;
 
 
+import com.dreameddeath.core.log.MDCUtils;
 import com.dreameddeath.core.service.http.HttpHeaderUtils;
+import com.dreameddeath.core.service.interceptor.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +31,7 @@ import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.ClientResponseContext;
 import javax.ws.rs.client.ClientResponseFilter;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 12/01/2016.
@@ -39,12 +42,14 @@ public class LogClientFilter implements ClientRequestFilter,ClientResponseFilter
 
     @Override
     public void filter(ClientRequestContext clientRequestContext) throws IOException {
-        clientRequestContext.setProperty(FilterUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,System.nanoTime());
+        clientRequestContext.setProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,System.nanoTime());
+        clientRequestContext.setProperty(PropertyUtils.PROPERTY_MDC_CONTEXT, MDCUtils.getMdcContext());
     }
 
     @Override
     public void filter(ClientRequestContext clientRequestContext, ClientResponseContext clientResponseContext) throws IOException {
-        Long startTime = (Long)clientRequestContext.getProperty(FilterUtils.PROPERTY_START_TIME_NANO_PARAM_NAME);
+        MDCUtils.setContextMap((Map<String,String>)clientRequestContext.getProperty(PropertyUtils.PROPERTY_MDC_CONTEXT));
+        Long startTime = (Long)clientRequestContext.getProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME);
         double duration=0;
         if(startTime!=null){
             duration = (System.nanoTime()-duration)*1.0/1_000_000;

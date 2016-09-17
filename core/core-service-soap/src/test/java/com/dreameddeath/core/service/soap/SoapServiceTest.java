@@ -18,15 +18,21 @@
 
 package com.dreameddeath.core.service.soap;
 
+import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.dreameddeath.core.log.MDCUtils;
 import com.dreameddeath.core.service.TestServicesTest;
 import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.common.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.soap.cxf.SoapCxfClientFactory;
+import com.dreameddeath.core.service.soap.handler.SoapContextClientHandler;
+import com.dreameddeath.core.service.soap.handler.SoapHandlerFactory;
+import com.dreameddeath.core.service.soap.handler.SoapUserClientHandler;
 import com.dreameddeath.core.service.soap.testing.SoapTestingServer;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
+import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.interfaces.test.v0.data.TestResponse;
 import com.dreameddeath.interfaces.test.v0.data.in.OffersCCO;
 import com.dreameddeath.interfaces.test.v0.data.in.TestRequest;
@@ -85,6 +91,14 @@ public class SoapServiceTest extends Assert {
     public void testClient() throws Exception {
         ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN, SoapServiceTypeHelper.SERVICE_TYPE,server.getDaemonUid().toString(),server.getServerUid().toString());
         SoapCxfClientFactory<TestWebService> clientFactory = new SoapCxfClientFactory(server.getServiceDiscoverer(),clientRegistrar);
+        GlobalContextFactoryImpl globalContextFactory = new GlobalContextFactoryImpl();
+        globalContextFactory.setUserFactory(new StandardMockUserFactory());
+
+        SoapHandlerFactory handlerFactory = new SoapHandlerFactory();
+        handlerFactory.addHandler(new SoapUserClientHandler(new StandardMockUserFactory()));
+        handlerFactory.addHandler(new SoapContextClientHandler(globalContextFactory));
+        handlerFactory.addHandler(new TestTraceIdHandler());
+        clientFactory.setHandlerFactory(handlerFactory);
         String connectionString = "http://localhost:" + server.getLocalPort();
 
 
@@ -98,9 +112,14 @@ public class SoapServiceTest extends Assert {
                 offer.setLabel("LABEL_" + num);
                 request.getOffer().add(offer);
             }
+            //TestWebService instance = soapClient.getInstance();
+            MDCUtils.setGlobalTraceId("TEST_GID1");
+            MDCUtils.setTraceId("TEST_TID1");
             TestResponse response = soapClient.getInstance().testOperation(request);
             assertNotNull(response);
             assertEquals(request.getOffer().size(), response.getOffer().size());
+            assertNotNull(response.getTid());
+            //assertE
         }
 
         {

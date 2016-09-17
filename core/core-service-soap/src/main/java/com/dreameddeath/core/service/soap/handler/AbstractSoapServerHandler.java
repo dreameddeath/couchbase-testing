@@ -16,19 +16,13 @@
  *
  */
 
-package com.dreameddeath.core.service.context.provider;
-
-import com.dreameddeath.core.context.IGlobalContext;
-import com.dreameddeath.core.user.IUser;
-import org.joda.time.DateTime;
+package com.dreameddeath.core.service.soap.handler;
 
 /**
- * Created by Christophe Jeunesse on 13/09/2016.
+ * Created by Christophe Jeunesse on 16/09/2016.
  */
-public interface FilterUtils {
-    public static final String PROPERTY_USER_PARAM_NAME = IUser.class.getName();
-    public static final String PROPERTY_USER_TOKEN_PARAM_NAME = IUser.class.getName()+"#Token";
-    public static final String PROPERTY_GLOBAL_CONTEXT_PARAM_NAME = IGlobalContext.class.getName();
-    public static final String PROPERTY_START_TIME_NANO_PARAM_NAME = DateTime.class+"#start";
-
+public abstract class AbstractSoapServerHandler extends AbstractSoapHandler{
+    public AbstractSoapServerHandler() {
+        super(false);
+    }
 }

@@ -16,28 +16,26 @@
  *
  */
 
-package com.dreameddeath.core.service.context.feature;
-
-import com.dreameddeath.core.context.IContextFactory;
-import com.dreameddeath.core.service.context.provider.ContextClientFilter;
+package com.dreameddeath.core.service.interceptor.rest.feature;
 
 import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.FeatureContext;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 12/01/2016.
  */
-public class ContextClientFeature implements Feature {
-    private final ContextClientFilter contextClientFilter;
+public class ClientFeatureFactory {
+    private final List<Feature> featureList = new ArrayList<>();
 
-    public ContextClientFeature(IContextFactory contextFactory){
-        contextClientFilter = new ContextClientFilter();
-        contextClientFilter.setGlobalContextFactory(contextFactory);
+    public void addFeature(Feature feature){
+        synchronized (featureList){
+            featureList.add(feature);
+        }
     }
 
-    @Override
-    public boolean configure(FeatureContext featureContext) {
-        featureContext.register(contextClientFilter);
-        return true;
+    public List<Feature> getClientFeatures(){
+        return Collections.unmodifiableList(featureList);
     }
 }

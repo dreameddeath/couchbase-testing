@@ -26,8 +26,8 @@ import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.service.annotation.BodyInfo;
 import com.dreameddeath.core.service.annotation.ExposeMethod;
 import com.dreameddeath.core.service.annotation.VersionStatus;
-import com.dreameddeath.core.service.context.provider.GlobalContextProvider;
-import com.dreameddeath.core.service.context.provider.UserContextProvider;
+import com.dreameddeath.core.service.interceptor.rest.provider.GlobalContextProvider;
+import com.dreameddeath.core.service.interceptor.rest.provider.UserContextProvider;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.user.IUserFactory;
 

@@ -22,22 +22,32 @@ import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.soap.ISoapClient;
+import com.dreameddeath.core.service.soap.handler.SoapHandlerFactory;
 import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
+import com.google.common.collect.ImmutableList;
 import org.apache.curator.x.discovery.ServiceProvider;
 import org.apache.cxf.Bus;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.xml.ws.handler.Handler;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 05/09/2016.
  */
 public class SoapCxfClientFactory<TSERV> extends AbstractServiceClientFactory<ISoapClient<TSERV>,SoapCuratorDiscoveryServiceDescription> {
     private Bus bus;
+    private SoapHandlerFactory handlerFactory=null;
 
     @Autowired
     public void setBus(Bus bus){
         this.bus = bus;
     }
 
+    @Autowired(required = false)
+    public void setHandlerFactory(SoapHandlerFactory handlerFactory) {
+        this.handlerFactory = handlerFactory;
+    }
 
     public SoapCxfClientFactory(AbstractServiceDiscoverer serviceDiscoverer) {
         super(serviceDiscoverer);
@@ -49,12 +59,17 @@ public class SoapCxfClientFactory<TSERV> extends AbstractServiceClientFactory<IS
 
     @Override
     protected ISoapClient<TSERV> buildClient(ServiceProvider<SoapCuratorDiscoveryServiceDescription> provider, String serviceFullName) {
-        //clientFactoryBean.setServiceClass();
-
         return new SoapCxfClient<>(provider,serviceFullName,this);
     }
 
     public Bus getBus() {
         return bus;
+    }
+
+    public List<Handler> getHandlers(){
+        if(handlerFactory==null) {
+            return ImmutableList.of();
+        }
+        return handlerFactory.getHandlerList(true);
     }
 }

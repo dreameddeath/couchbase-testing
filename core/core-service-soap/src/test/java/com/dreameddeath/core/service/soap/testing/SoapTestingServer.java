@@ -81,42 +81,17 @@ public class SoapTestingServer{
 
         server.addLifeCycleListener(new LifeCycleListener(soapServiceRegistrar, soapServiceDiscoverer));
         server.addLifeCycleListener(new LifeCycle.Listener(){
-            @Override
-            public void lifeCycleStarting(LifeCycle lifeCycle) {
-
+            @Override public void lifeCycleStarting(LifeCycle lifeCycle) {}
+            @Override public void lifeCycleStarted(LifeCycle lifeCycle) {
+                try{clientDiscoverer.start();proxyClientDiscoverer.start();}
+                catch (Exception e){throw new RuntimeException(e);}
             }
-
-            @Override
-            public void lifeCycleStarted(LifeCycle lifeCycle) {
-                try{
-                    clientDiscoverer.start();
-                    proxyClientDiscoverer.start();
-                }
-                catch (Exception e){
-                    throw new RuntimeException(e);
-                }
+            @Override public void lifeCycleFailure(LifeCycle lifeCycle, Throwable throwable) {}
+            @Override public void lifeCycleStopping(LifeCycle lifeCycle) {
+                try{clientDiscoverer.stop();proxyClientDiscoverer.stop();}
+                catch (Exception e){throw new RuntimeException(e);}
             }
-
-            @Override
-            public void lifeCycleFailure(LifeCycle lifeCycle, Throwable throwable) {
-
-            }
-
-            @Override
-            public void lifeCycleStopping(LifeCycle lifeCycle) {
-                try{
-                    clientDiscoverer.stop();
-                    proxyClientDiscoverer.stop();
-                }
-                catch (Exception e){
-                    throw new RuntimeException(e);
-                }
-            }
-
-            @Override
-            public void lifeCycleStopped(LifeCycle lifeCycle) {
-
-            }
+            @Override public void lifeCycleStopped(LifeCycle lifeCycle) {}
         });
         contextHandler.setInitParameter("contextConfigLocation", "classpath:soap.applicationContext.xml");
         contextHandler.setAttribute("soapServiceRegistrar", soapServiceRegistrar);

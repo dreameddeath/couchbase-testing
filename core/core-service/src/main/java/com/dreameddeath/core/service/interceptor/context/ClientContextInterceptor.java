@@ -16,30 +16,26 @@
  *
  */
 
-package com.dreameddeath.core.service.context.provider;
-
+package com.dreameddeath.core.service.interceptor.context;
 
 import com.dreameddeath.core.context.*;
 import com.dreameddeath.core.log.MDCUtils;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.http.HttpHeaderUtils;
+import com.dreameddeath.core.service.interceptor.PropertyUtils;
+import com.dreameddeath.core.service.interceptor.client.IClientInterceptor;
+import com.dreameddeath.core.service.interceptor.client.IClientRequestContextWrapper;
+import com.dreameddeath.core.service.interceptor.client.IClientResponseContextWrapper;
+import com.dreameddeath.core.service.interceptor.rest.filter.ContextClientFilter;
 import com.dreameddeath.core.user.IUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Priority;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.ClientResponseContext;
-import javax.ws.rs.client.ClientResponseFilter;
-import java.io.IOException;
-
 /**
- * Created by Christophe Jeunesse on 12/01/2016.
+ * Created by Christophe Jeunesse on 15/09/2016.
  */
-@Priority(2)
-public class ContextClientFilter implements ClientRequestFilter,ClientResponseFilter {
+public class ClientContextInterceptor implements IClientInterceptor {
     private final static Logger LOG= LoggerFactory.getLogger(ContextClientFilter.class);
     private IContextFactory factory;
 
@@ -49,13 +45,13 @@ public class ContextClientFilter implements ClientRequestFilter,ClientResponseFi
     }
 
     @Override
-    public void filter(ClientRequestContext clientRequestContext) throws IOException {
+    public boolean processIncomingMessage(IClientRequestContextWrapper incomingContext){
         IGlobalContext.Builder requestContextBuilder= IGlobalContext.builder();
         ICallerContext.Builder callerContextBuilder= ICallerContext.builder();
         IExternalCallerContext.Builder externalContextBuilder=null;
         IUserContext.Builder userContextBuilder=null;
         //Retrieve Context from caller
-        IGlobalContext providedContext = (IGlobalContext) clientRequestContext.getProperty(IServiceClient.CONTEXT_PROPERTY);
+        IGlobalContext providedContext = incomingContext.getProperty(IServiceClient.CONTEXT_PROPERTY,IGlobalContext.class);
 
         if(providedContext!=null){
             callerContextBuilder.withTraceId(providedContext.currentTraceId());
@@ -78,8 +74,8 @@ public class ContextClientFilter implements ClientRequestFilter,ClientResponseFi
             }
         }
         //init user Context builder for user filter
-        IUser user=(IUser)clientRequestContext.getProperty(FilterUtils.PROPERTY_USER_PARAM_NAME);
-        String userToken=(String)clientRequestContext.getProperty(FilterUtils.PROPERTY_USER_TOKEN_PARAM_NAME);
+        IUser user=incomingContext.getProperty(PropertyUtils.PROPERTY_USER_PARAM_NAME,IUser.class);
+        String userToken=incomingContext.getProperty(PropertyUtils.PROPERTY_USER_TOKEN_PARAM_NAME,String.class);
         if(user!=null || userToken!=null) {
             userContextBuilder = IUserContext.builder().withUser(user).withToken(userToken);
         }
@@ -89,19 +85,21 @@ public class ContextClientFilter implements ClientRequestFilter,ClientResponseFi
                 .withUserContextBuilder(userContextBuilder)
                 .withExternalContextBuilder(externalContextBuilder));
 
-        clientRequestContext.getHeaders().add(HttpHeaderUtils.HTTP_CONTEXT_HEADER, factory.encode(requestContext));
-        clientRequestContext.setProperty(FilterUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,System.nanoTime());
+        incomingContext.setHeader(HttpHeaderUtils.HTTP_CONTEXT_HEADER, factory.encode(requestContext));
+        incomingContext.setProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,System.nanoTime());
+        return true;
     }
 
     @Override
-    public void filter(ClientRequestContext clientRequestContext, ClientResponseContext clientResponseContext) throws IOException {
-        Long startTime = (Long)clientRequestContext.getProperty(FilterUtils.PROPERTY_START_TIME_NANO_PARAM_NAME);
-        long duration=0;
+    public boolean processOutgoingMessage(IClientRequestContextWrapper incomingContext, IClientResponseContextWrapper outgoingContext){
+        Long startTime = incomingContext.getProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,Long.class);
+        double duration=0;
         if(startTime!=null){
-            duration = System.nanoTime()-duration;
+            duration = (System.nanoTime()-duration)*1.0/1_0000_0000;
         }
-        String traceId=clientResponseContext.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
+        String traceId=outgoingContext.getHeader(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
 
-        LOG.info("Response {} received in {} ns for callee trace id <{}>",clientResponseContext.getStatus(),duration,traceId);
+        LOG.info("Response received in {} ns for callee trace id <{}>",duration,traceId);
+        return true;
     }
 }

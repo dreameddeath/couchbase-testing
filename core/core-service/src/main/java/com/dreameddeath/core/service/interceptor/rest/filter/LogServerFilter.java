@@ -16,11 +16,12 @@
  *
  */
 
-package com.dreameddeath.core.service.context.provider;
+package com.dreameddeath.core.service.interceptor.rest.filter;
 
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.log.MDCUtils;
 import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.interceptor.PropertyUtils;
 import com.dreameddeath.core.user.IUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 14/09/2016.
@@ -41,7 +43,9 @@ public class LogServerFilter implements ContainerRequestFilter, ContainerRespons
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
-        IGlobalContext requestContext = (IGlobalContext)containerRequestContext.getProperty(FilterUtils.PROPERTY_GLOBAL_CONTEXT_PARAM_NAME);
+        containerRequestContext.setProperty(PropertyUtils.PROPERTY_MDC_CONTEXT, MDCUtils.getMdcContext());
+
+        IGlobalContext requestContext = (IGlobalContext)containerRequestContext.getProperty(PropertyUtils.PROPERTY_GLOBAL_CONTEXT_PARAM_NAME);
         String callerTraceId=null;
         if(requestContext!=null) {
             MDCUtils.setTraceId(requestContext.currentTraceId());
@@ -57,14 +61,15 @@ public class LogServerFilter implements ContainerRequestFilter, ContainerRespons
         }
 
         LOG.info("Processing request from caller trace id <{}> with request <{}> <{}>", callerTraceId,containerRequestContext.getMethod(),containerRequestContext.getUriInfo().getRequestUri().toString());
-        containerRequestContext.setProperty(FilterUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,System.nanoTime());
+        containerRequestContext.setProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,System.nanoTime());
     }
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
-        Long startTime = (Long)containerRequestContext.getProperty(FilterUtils.PROPERTY_START_TIME_NANO_PARAM_NAME);
+        Long startTime = (Long)containerRequestContext.getProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME);
         if(startTime!=null){
             LOG.info("Processing Duration <{}> ms",(System.nanoTime()-startTime)*1.0/1_000_000);
         }
+        MDCUtils.setContextMap((Map<String,String>)containerRequestContext.getProperty(PropertyUtils.PROPERTY_MDC_CONTEXT));
     }
 }

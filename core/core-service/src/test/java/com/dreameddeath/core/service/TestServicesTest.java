@@ -26,10 +26,10 @@ import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotatio
 import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
-import com.dreameddeath.core.service.context.feature.ClientFeatureFactory;
-import com.dreameddeath.core.service.context.feature.ContextClientFeature;
-import com.dreameddeath.core.service.context.feature.LogClientFeature;
-import com.dreameddeath.core.service.context.feature.UserClientFeature;
+import com.dreameddeath.core.service.interceptor.rest.feature.ClientFeatureFactory;
+import com.dreameddeath.core.service.interceptor.rest.feature.ContextClientFeature;
+import com.dreameddeath.core.service.interceptor.rest.feature.LogClientFeature;
+import com.dreameddeath.core.service.interceptor.rest.feature.UserClientFeature;
 import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.common.ServicesByNameInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
@@ -164,6 +164,7 @@ public class TestServicesTest extends Assert{
         featureFactory.addFeature(new ContextClientFeature(globalContextFactory));
         featureFactory.addFeature(new UserClientFeature(new StandardMockUserFactory()));
         featureFactory.addFeature(new LogClientFeature());
+        featureFactory.addFeature(new TestTraceIdFeature());
         clientFactory.setFeatureFactory(featureFactory);
 
 
@@ -255,7 +256,7 @@ public class TestServicesTest extends Assert{
 
         {
             String resultTraceId = clientFactory.getClient("testService","1.0").getInstance().path("traceId").request(MediaType.TEXT_PLAIN).get(String.class);
-            assertEquals("Ok",resultTraceId);
+            assertNotNull(resultTraceId);
         }
     }
 

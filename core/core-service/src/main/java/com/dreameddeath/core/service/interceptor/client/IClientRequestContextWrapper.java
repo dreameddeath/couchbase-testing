@@ -16,26 +16,13 @@
  *
  */
 
-package com.dreameddeath.core.service.context.feature;
-
-import com.dreameddeath.core.service.context.provider.LogClientFilter;
-
-import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.FeatureContext;
+package com.dreameddeath.core.service.interceptor.client;
 
 /**
- * Created by Christophe Jeunesse on 11/01/2016.
+ * Created by Christophe Jeunesse on 15/09/2016.
  */
-public class LogClientFeature implements Feature {
-    private final LogClientFilter logClientFilter;
-
-    public LogClientFeature(){
-        logClientFilter=new LogClientFilter();
-    }
-
-    @Override
-    public boolean configure(FeatureContext featureContext) {
-        featureContext.register(logClientFilter);
-        return true;
-    }
+public interface IClientRequestContextWrapper {
+    void setHeader(String name,String value);
+    <T extends Object> T getProperty(String name, Class<T> clazz);
+    <T extends Object> void setProperty(String name, T value);
 }

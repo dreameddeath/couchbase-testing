@@ -139,7 +139,6 @@ public class TestServiceRestService extends AbstractRestExposableService {
             Preconditions.checkNotNull(globalId);
             Preconditions.checkArgument(traceId.equals(context.callerCtxt().traceId()));
             Preconditions.checkArgument(globalId.equals(context.globalTraceId()));
-            return context.currentTraceId();
         }
         else{
             Response result = clientFactory.getClient("testService","1.0").getInstance()
@@ -150,7 +149,7 @@ public class TestServiceRestService extends AbstractRestExposableService {
             String calleeTraceId = result.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
             Preconditions.checkNotNull(calleeTraceId);
             Preconditions.checkArgument(calleeTraceId.equals(result.readEntity(String.class)));
-            return "Ok";
         }
+        return context.currentTraceId();
     }
 }

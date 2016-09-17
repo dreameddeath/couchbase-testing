@@ -16,30 +16,22 @@
  *
  */
 
-package com.dreameddeath.core.service.context.provider;
+package com.dreameddeath.core.service.interceptor.context;
 
 import com.dreameddeath.core.context.*;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.service.http.HttpHeaderUtils;
+import com.dreameddeath.core.service.interceptor.PropertyUtils;
+import com.dreameddeath.core.service.interceptor.server.IServerInterceptor;
+import com.dreameddeath.core.service.interceptor.server.IServerRequestContextWrapper;
+import com.dreameddeath.core.service.interceptor.server.IServerResponseContextWrapper;
 import com.dreameddeath.core.user.IUser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import java.io.IOException;
-
 /**
- * Created by Christophe Jeunesse on 12/01/2016.
+ * Created by Christophe Jeunesse on 15/09/2016.
  */
-@Priority(2)
-public class ContextServerFilter implements ContainerRequestFilter, ContainerResponseFilter{
-    private final static Logger LOG= LoggerFactory.getLogger(ContextServerFilter.class);
-
+public class ServerContextInterceptor implements IServerInterceptor {
     private IContextFactory contextFactory;
 
     @Autowired
@@ -48,16 +40,16 @@ public class ContextServerFilter implements ContainerRequestFilter, ContainerRes
     }
 
     @Override
-    public void filter(ContainerRequestContext containerRequestContext) throws IOException {
+    public boolean processIncomingMessage(IServerRequestContextWrapper incomingMessageContext){
         IGlobalContext requestContext=null;
         String globalTraceId=null;
-        IUser user = (IUser)containerRequestContext.getProperty(FilterUtils.PROPERTY_USER_PARAM_NAME);
-        String userToken = (String)containerRequestContext.getProperty(FilterUtils.PROPERTY_USER_TOKEN_PARAM_NAME);
+        IUser user = incomingMessageContext.getProperty(PropertyUtils.PROPERTY_USER_PARAM_NAME,IUser.class);
+        String userToken = incomingMessageContext.getProperty(PropertyUtils.PROPERTY_USER_TOKEN_PARAM_NAME,String.class);
         ICallerContext.Builder callerContextBuilder=null;
         IExternalCallerContext.Builder externalCallerContextBuilder=null;
 
 
-        String contextToken = containerRequestContext.getHeaderString(HttpHeaderUtils.HTTP_CONTEXT_HEADER);
+        String contextToken = incomingMessageContext.getHeader(HttpHeaderUtils.HTTP_CONTEXT_HEADER);
         if (StringUtils.isNotEmpty(contextToken)) {
             IGlobalContext callerGlobalContext = contextFactory.decode(contextToken);
             callerContextBuilder=ICallerContext.builder().from(callerGlobalContext.callerCtxt());
@@ -66,7 +58,7 @@ public class ContextServerFilter implements ContainerRequestFilter, ContainerRes
         }
 
         if(callerContextBuilder==null){
-            String traceId = containerRequestContext.getHeaderString(HttpHeaderUtils.HTTP_HEADER_TRACE_ID);
+            String traceId = incomingMessageContext.getHeader(HttpHeaderUtils.HTTP_HEADER_TRACE_ID);
             if(traceId!=null){
                 callerContextBuilder = ICallerContext.builder().withTraceId(traceId);
                 if(globalTraceId==null) {
@@ -80,18 +72,21 @@ public class ContextServerFilter implements ContainerRequestFilter, ContainerRes
         }
         requestContext=contextFactory.buildContext(
                 IGlobalContext.builder().withGlobalTraceId(globalTraceId)
-                .withCallerContextBuilder(callerContextBuilder)
-                .withExternalContextBuilder(externalCallerContextBuilder)
-                .withUserContextBuilder(userBuilder)
+                        .withCallerContextBuilder(callerContextBuilder)
+                        .withExternalContextBuilder(externalCallerContextBuilder)
+                        .withUserContextBuilder(userBuilder)
         );
-        containerRequestContext.setProperty(FilterUtils.PROPERTY_GLOBAL_CONTEXT_PARAM_NAME, requestContext);
+        incomingMessageContext.setProperty(PropertyUtils.PROPERTY_GLOBAL_CONTEXT_PARAM_NAME, requestContext);
+        return true;
     }
 
     @Override
-    public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
-        IGlobalContext context = (IGlobalContext)containerRequestContext.getProperty(FilterUtils.PROPERTY_GLOBAL_CONTEXT_PARAM_NAME);
+    public boolean processOutgoingMessage(IServerRequestContextWrapper incomingContext, IServerResponseContextWrapper outgoingContext){
+        IGlobalContext context = incomingContext.getProperty(PropertyUtils.PROPERTY_GLOBAL_CONTEXT_PARAM_NAME,IGlobalContext.class);
         if(context!=null){
-            containerResponseContext.getHeaders().add(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID,context.currentTraceId());
+            outgoingContext.setHeader(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID,context.currentTraceId());
         }
+
+        return true;
     }
 }

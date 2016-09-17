@@ -70,7 +70,15 @@
         <property name="address" value="/subPath" />
     </bean>
 
-    <jaxws:endpoint id="TestServiceEndPoint" implementor="#TestService" address="/subPath" />
+    <bean class="com.dreameddeath.core.user.StandardMockUserFactory" />
+    <bean class="com.dreameddeath.core.context.impl.GlobalContextFactoryImpl" />
+
+    <jaxws:endpoint id="TestServiceEndPoint" implementor="#TestService" address="/subPath">
+        <jaxws:handlers>
+            <bean class="com.dreameddeath.core.service.soap.handler.SoapContextServerHandler" />
+            <bean class="com.dreameddeath.core.service.soap.handler.SoapUserServerHandler" />
+        </jaxws:handlers>
+    </jaxws:endpoint>
 
 
     <jaxrs:server id="listing" transportId="http://cxf.apache.org/transports/http" address="/listing" >

@@ -58,6 +58,7 @@ public class SoapCxfClient<T> extends AbstractServiceClientImpl<T,SoapCuratorDis
                 String fullAddress = UriUtils.buildUri(instance);
                 clientFactoryBean.setServiceClass(Thread.currentThread().getContextClassLoader().loadClass(instance.getPayload().getClassName()));
                 clientFactoryBean.setBus(soapParentFactory.getBus());
+                clientFactoryBean.getHandlers().addAll(soapParentFactory.getHandlers());
                 //clientFactoryBean.getHandlers().add();
                 //clientFactoryBean.setWsdlURL(fullAddress+"?wsdl");
                 clientFactoryBean.setAddress(fullAddress);

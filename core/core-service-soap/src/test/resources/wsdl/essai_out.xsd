@@ -26,8 +26,8 @@
 
     <xs:complexType name="TestResponse">
         <xs:sequence>
-            <xs:element name="offer" type="tns:Offers_CCO_Resp" minOccurs="0" maxOccurs="unbounded">
-            </xs:element>
+            <xs:element name="offer" type="tns:Offers_CCO_Resp" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="tid" type="xs:string" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
     

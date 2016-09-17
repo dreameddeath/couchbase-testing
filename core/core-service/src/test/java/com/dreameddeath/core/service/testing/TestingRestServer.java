@@ -22,13 +22,13 @@ import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.service.annotation.processor.ServiceExpositionDef;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
-import com.dreameddeath.core.service.context.feature.ClientFeatureFactory;
-import com.dreameddeath.core.service.context.feature.ContextClientFeature;
-import com.dreameddeath.core.service.context.feature.LogClientFeature;
-import com.dreameddeath.core.service.context.feature.UserClientFeature;
 import com.dreameddeath.core.service.discovery.ClientDiscoverer;
 import com.dreameddeath.core.service.discovery.ProxyClientDiscoverer;
 import com.dreameddeath.core.service.discovery.rest.RestServiceDiscoverer;
+import com.dreameddeath.core.service.interceptor.rest.feature.ClientFeatureFactory;
+import com.dreameddeath.core.service.interceptor.rest.feature.ContextClientFeature;
+import com.dreameddeath.core.service.interceptor.rest.feature.LogClientFeature;
+import com.dreameddeath.core.service.interceptor.rest.feature.UserClientFeature;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
@@ -102,8 +102,6 @@ public class TestingRestServer {
         contextHandler.setAttribute("clientDiscoverer", clientDiscoverer);
         contextHandler.setAttribute("proxyClientDiscoverer", proxyClientDiscoverer);
         contextHandler.setAttribute("clientFactory",getClientFactory());
-
-
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IEndPointDescription() {
             @Override public String daemonUid() {

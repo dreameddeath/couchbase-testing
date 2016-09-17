@@ -20,6 +20,8 @@ package com.dreameddeath.core.log;
 
 import org.slf4j.MDC;
 
+import java.util.Map;
+
 /**
  * Created by Christophe Jeunesse on 11/09/2016.
  */
@@ -47,4 +49,17 @@ public class MDCUtils {
     public static String getGlobalTraceId(){return MDC.get(GLOBAL_TRACE_ID);}
 
     public static void setGlobalTraceId(String traceId){MDC.put(GLOBAL_TRACE_ID,traceId);}
+
+    public static Map<String,String> getMdcContext(){
+        return MDC.getCopyOfContextMap();
+    }
+
+    public static void setContextMap(Map<String, String> propertyMap) {
+        if(propertyMap==null || propertyMap.isEmpty()){
+            MDC.clear();
+        }
+        else {
+            MDC.setContextMap(propertyMap);
+        }
+    }
 }
