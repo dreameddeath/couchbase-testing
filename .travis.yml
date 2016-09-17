@@ -17,6 +17,7 @@ before_install:
   - chmod +x ./install-protobuf.sh
   - ./install-protobuf.sh
   - export PATH=$PATH:${HOME}/protobuf/bin
+  - echo "MAVEN_OPTS='-Xmx2g -XX:MaxPermSize=512m'" > ~/.mavenrc
 
 install : true
 
