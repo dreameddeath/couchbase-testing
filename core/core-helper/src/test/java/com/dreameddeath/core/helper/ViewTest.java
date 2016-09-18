@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.helper;
@@ -23,6 +25,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentProviderInterceptor;
@@ -33,7 +36,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -111,16 +113,17 @@ public class ViewTest {
 
         assertEquals(3, rows.size());
 
-        WebTarget target = server.getClientFactory().getClient("dao$testDomain$test", "1.0")
+        RxJavaWebTarget target = server.getClientFactory().getClient("dao$testDomain$test", "1.0")
                 .getInstance();
 
-        WebTarget childTarget = server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
+        RxJavaWebTarget childTarget = server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
                 .getInstance();
 
         for(IViewQueryRow<String,String,TestDoc> row:rows){
             String id = row.getDocKey().split("/")[1];
             Response responseGet = target.path(id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
+                    .sync()
                     .get();
             TestDoc rsGetReadResult = responseGet.readEntity(new GenericType<>(TestDoc.class));
             String origStrVal = rsGetReadResult.strVal;
@@ -132,6 +135,7 @@ public class ViewTest {
              */
             Response childListResponseGet = childTarget.resolveTemplate("testDocId",id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
+                    .sync()
                     .get();
             List<SerializableViewQueryRow<String,String,TestDocChild>> responseList= childListResponseGet.readEntity(new GenericType<List<SerializableViewQueryRow<String, String, TestDocChild>>>(){});
             assertEquals(Long.parseLong(id) - 1, responseList.size());
@@ -141,6 +145,7 @@ public class ViewTest {
              */
             Response childResponseGet = childTarget.resolveTemplate("testDocId",id).path("00001")
                     .request(MediaType.APPLICATION_JSON_TYPE)
+                    .sync()
                     .get();
             TestDocChild rsGetChildReadResult = childResponseGet.readEntity(new GenericType<>(TestDocChild.class));
             assertEquals("Child:0",rsGetChildReadResult.value);
@@ -152,7 +157,7 @@ public class ViewTest {
             rsGetReadResult.strVal=origStrVal+" rest added";
             String oldKey = rsGetReadResult.getBaseMeta().getKey();
             rsGetReadResult.getBaseMeta().setKey(null);//Nullify Key to reuse read as input
-            Response responsePost = target.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
+            Response responsePost = target.request(MediaType.APPLICATION_JSON_TYPE).sync().post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             rsGetReadResult.getBaseMeta().setKey(oldKey);//Reset Key to reuse read as input
             String createdString = responsePost.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY);
             TestDoc rsPostResult = responsePost.readEntity(new GenericType<>(TestDoc.class));
@@ -163,7 +168,7 @@ public class ViewTest {
             childDoc.value = "Child of " + rsGetReadResult;
             String createdId = createdString.split("/")[1];
 
-            Response responseCreateChildPost = childTarget.resolveTemplate("testDocId",createdId).request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(childDoc,MediaType.APPLICATION_JSON_TYPE));
+            Response responseCreateChildPost = childTarget.resolveTemplate("testDocId",createdId).request(MediaType.APPLICATION_JSON_TYPE).sync().post(Entity.entity(childDoc,MediaType.APPLICATION_JSON_TYPE));
             TestDocChild createdChildDoc = responseCreateChildPost.readEntity(TestDocChild.class);
             assertEquals(childDoc.value,createdChildDoc.value);
 
@@ -174,6 +179,7 @@ public class ViewTest {
             Response responsePut = target
                     .path(id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
+                    .sync()
                     .put(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             TestDoc rsPutResult = responsePut.readEntity(new GenericType<>(TestDoc.class));
             assertEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY), responsePut.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY));
@@ -188,6 +194,7 @@ public class ViewTest {
                 .queryParam("endKey","test 6")
                 .queryParam("inclusiveEndKey",false)
                 .request(MediaType.APPLICATION_JSON_TYPE)
+                .sync()
                 .get();
 
 

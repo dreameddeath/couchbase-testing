@@ -20,6 +20,7 @@ package com.dreameddeath.core.service.client.rest;
 
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.client.AbstractServiceClientImpl;
+import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
 import com.dreameddeath.core.service.model.rest.RestCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.service.utils.UriUtils;
@@ -28,7 +29,6 @@ import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceProvider;
 
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Feature;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 03/09/2016.
  */
-public class RestServiceClientImpl extends AbstractServiceClientImpl<WebTarget,RestCuratorDiscoveryServiceDescription> implements IRestServiceClient{
+public class RestServiceClientImpl extends AbstractServiceClientImpl<RxJavaWebTarget,RestCuratorDiscoveryServiceDescription> implements IRestServiceClient{
     private final Map<String,ServiceInstanceConfig> configMap = new ConcurrentHashMap<>();
 
     public RestServiceClientImpl(ServiceProvider<RestCuratorDiscoveryServiceDescription> provider, String serviceFullName, RestServiceClientFactory factory) {
@@ -45,12 +45,11 @@ public class RestServiceClientImpl extends AbstractServiceClientImpl<WebTarget,R
 
 
     @Override
-    protected WebTarget buildClient(final ServiceInstance<RestCuratorDiscoveryServiceDescription> instance) {
+    protected RxJavaWebTarget buildClient(final ServiceInstance<RestCuratorDiscoveryServiceDescription> instance) {
         ServiceInstanceConfig config = configMap.computeIfAbsent(instance.getId(), s ->
                 new ServiceInstanceConfig(instance)
         );
-        WebTarget target = ClientBuilder.newBuilder().build()
-                .target(config.uri)
+        RxJavaWebTarget target = new RxJavaWebTarget(ClientBuilder.newBuilder().build().target(config.uri))
                 .register(config.provider);
         if (((RestServiceClientFactory)getParentFactory()).getFeatureFactory() != null) {
             for (Feature feature : ((RestServiceClientFactory)getParentFactory()).getFeatureFactory().getClientFeatures()) {

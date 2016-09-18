@@ -22,6 +22,7 @@ package com.dreameddeath.core.service.interceptor.rest.filter;
 import com.dreameddeath.core.log.MDCUtils;
 import com.dreameddeath.core.service.http.HttpHeaderUtils;
 import com.dreameddeath.core.service.interceptor.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +53,20 @@ public class LogClientFilter implements ClientRequestFilter,ClientResponseFilter
         Long startTime = (Long)clientRequestContext.getProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME);
         double duration=0;
         if(startTime!=null){
-            duration = (System.nanoTime()-duration)*1.0/1_000_000;
+            duration = (System.nanoTime()-startTime)*1.0/1_000_000;
         }
         String traceId=clientResponseContext.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
-        LOG.info("Response {} received in {} ms for callee trace id <{}>",clientResponseContext.getStatus(),duration,traceId);
+        String calleeDurationStr=clientResponseContext.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_DURATION);
+        double networkDuration=0;
+        if(StringUtils.isNotEmpty(calleeDurationStr)){
+            try{
+                double calleeDuration=Double.valueOf(calleeDurationStr);
+                networkDuration = duration-calleeDuration;
+            }
+            catch (NumberFormatException e){
+                //ignore
+            }
+        }
+        LOG.info("Response {} received in {} ms (latency {} ms)for callee trace id <{}>",clientResponseContext.getStatus(),duration,networkDuration,traceId);
     }
 }

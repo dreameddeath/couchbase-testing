@@ -30,9 +30,7 @@ import rx.Observable;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
-
+import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
 import javax.annotation.Generated;
 
 import org.springframework.beans.factory.annotation.Required;
@@ -82,7 +80,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
 #foreach($method in $service.methods)
     @Override
     public Observable<${method.returnClassName}> ${method.name}(#foreach($param in $method.methodParamsDefinition)#if($foreach.index>0),#end $param.className $param.name #end){
-        WebTarget target = serviceClient
+        RxJavaWebTarget target = serviceClient
                 .getInstance()
                 .path(
                     String.format(
@@ -98,15 +96,13 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
             target = target.queryParam("$esc.java($queryParam.name)",$queryParam.getterString);
         }
 #end
-        return Observable.from(
-                    target.request(MediaType.APPLICATION_JSON_TYPE)
+        return target.request(MediaType.APPLICATION_JSON_TYPE)
 #if($method.hasGlobalContextParam())
                     .property(IServiceClient.CONTEXT_PROPERTY, $method.globalContextParamName)
 #end
 #if($method.hasUserParam())
                     .property(IServiceClient.USER_PROPERTY, $method.userParamName)
 #end
-                    .async()
                     .${method.httpMethod.toLowerCase()}(
 #if($method.hasBody())
                         Entity.entity(${method.bodyInfo.getterString}, MediaType.APPLICATION_JSON_TYPE),
@@ -115,7 +111,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
 #end
                         new GenericType<>(${method.returnClassName}.class)
                     )
-                );
+                ;
     }
 #end
 }

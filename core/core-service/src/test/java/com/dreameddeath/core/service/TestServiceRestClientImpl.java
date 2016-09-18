@@ -22,13 +22,13 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.rest.IRestServiceClient;
+import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.user.IUser;
 import rx.Observable;
 
 import javax.annotation.Generated;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
@@ -41,12 +41,7 @@ import javax.ws.rs.core.MediaType;
         comments = "Generated for servcice $"
 )
 public class TestServiceRestClientImpl implements ITestService {
-    //private IGlobalContextFactory transcoder;
     private IRestServiceClient serviceClient;
-
-    /*public void setContextTranscoder(IGlobalContextFactory transcoder){
-        this.transcoder = transcoder;
-    }*/
 
     public void setServiceClient(IRestServiceClient serviceClient){
         this.serviceClient = serviceClient;
@@ -54,72 +49,66 @@ public class TestServiceRestClientImpl implements ITestService {
 
     @Override
     public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
-        WebTarget target = serviceClient.getInstance();
+        RxJavaWebTarget target = serviceClient.getInstance();
         target = target.path(String.format("toto/%s/tuto/%s", input.rootId, input.id));
 
-        return Observable.from(
-                target.request(MediaType.APPLICATION_JSON_TYPE)
+        return target.request(MediaType.APPLICATION_JSON_TYPE)
                        // .header(GlobalContextProvider.CONTEXT_HEADER, transcoder.encode(ctxt))
                         .property(IServiceClient.CONTEXT_PROPERTY,ctxt)
-                        .async().post(
+                        .post(
                         Entity.entity(input, MediaType.APPLICATION_JSON_TYPE),
                         new GenericType<>(Result.class)
-                ));
+                );
     }
 
     @Override
     public Observable<Result> getWithRes(String rootId, String id) {
-        WebTarget target = serviceClient
+        RxJavaWebTarget target = serviceClient
                 .getInstance()
                 .path(String.format("toto/%s/tuto/%s", rootId, id));
 
-        return Observable.from(
+        return
                 target.request(MediaType.APPLICATION_JSON_TYPE)
-                        .async()
                         .get(
                                 new GenericType<>(Result.class)
-                        ));
+                        );
     }
 
     @Override
     public Observable<Result> putWithQuery(String rootId, String id) {
-        WebTarget target = serviceClient.getInstance();
+        RxJavaWebTarget target = serviceClient.getInstance();
         target = target.path(String.format("toto/%s", rootId));
         target = target.queryParam("id",id);
-        return Observable.from(
-                target.request(MediaType.APPLICATION_JSON_TYPE)
-                        .async()
+        return target.request(MediaType.APPLICATION_JSON_TYPE)
+
                         .put(
                                 null,
                                 new GenericType<>(Result.class)
-                        ));
+                        );
     }
 
     @Override
     public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
-        WebTarget target = serviceClient.getInstance();
+        RxJavaWebTarget target = serviceClient.getInstance();
         target = target.property("IGlobalContext",ctxt);
         target = target.path(String.format("testingDocument"));
-        return Observable.from(
+        return
                 target.request(MediaType.APPLICATION_JSON_TYPE)
-                        .async()
                         .post(
                                 null,
                                 new GenericType<>(TestingDocument.class)
-                        ));
+                        );
     }
 
     @Override
     public Observable<TestingDocument> initDocument(IUser user) {
-        WebTarget target = serviceClient.getInstance();
+        RxJavaWebTarget target = serviceClient.getInstance();
         target = target.path(String.format("testingDocument"));
-        return Observable.from(
-                target.request(MediaType.APPLICATION_JSON_TYPE)
+        return target.request(MediaType.APPLICATION_JSON_TYPE)
                         .property(IServiceClient.USER_PROPERTY,user)
-                        .async()
                         .post(
                                 null,
                                 new GenericType<>(TestingDocument.class)
-                        ));
+                        );
     }
 }

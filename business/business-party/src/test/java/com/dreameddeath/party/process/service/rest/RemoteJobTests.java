@@ -1,3 +1,21 @@
+/*
+ *
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
+ *
+ */
+
 package com.dreameddeath.party.process.service.rest;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
@@ -94,7 +112,7 @@ public class RemoteJobTests {
             request.setPerson(new PersonRequest());
             request.getPerson().setFirstName("christophe");
             request.getPerson().setLastName("jeunesse");
-            Response response = client.getInstance().request().post(Entity.json(request));
+            Response response = client.getInstance().request().sync().post(Entity.json(request));
             assertEquals(200, response.getStatus());
             CreateUpdatePartyJobResponse createResponse = response.readEntity(CreateUpdatePartyJobResponse.class);
             assertNotNull(createResponse.getUid());
@@ -116,7 +134,7 @@ public class RemoteJobTests {
             newRequest.setPartyId(partyId);
             newRequest.setTypes(Arrays.asList(RoleTypePublished.HOLDER, RoleTypePublished.PAYER));
 
-            Response response = clientRoles.getInstance().request().post(Entity.json(rolesJobRequest));
+            Response response = clientRoles.getInstance().request().sync().post(Entity.json(rolesJobRequest));
             assertEquals(200, response.getStatus());
             Party party = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(partyId, Party.class);
             assertTrue(party instanceof Person);

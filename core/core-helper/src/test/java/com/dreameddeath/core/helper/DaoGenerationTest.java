@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.helper;
@@ -28,6 +30,7 @@ import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.annotation.processor.DocumentDefAnnotationProcessor;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
 import com.dreameddeath.core.service.testing.TestingRestServer;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentObjectMapperConfigurator;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentProviderInterceptor;
@@ -42,7 +45,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -124,17 +126,17 @@ public class DaoGenerationTest extends Assert {
 
         assertEquals(3, rows.size());
 
-        WebTarget readTarget = server.getClientFactory().getClient("dao#test#daoProccessor$read", "1.0.0")
+        RxJavaWebTarget readTarget = server.getClientFactory().getClient("dao#test#daoProccessor$read", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
-        WebTarget writeTarget = server.getClientFactory().getClient("dao#test#daoProccessor$write", "1.0.0")
+        RxJavaWebTarget writeTarget = server.getClientFactory().getClient("dao#test#daoProccessor$write", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 
-        WebTarget childReadTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$read", "1.0.0")
+        RxJavaWebTarget childReadTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$read", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
-        WebTarget childWriteTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$write", "1.0.0")
+        RxJavaWebTarget childWriteTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$write", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 
@@ -142,6 +144,7 @@ public class DaoGenerationTest extends Assert {
             String id = row.getDocKey().split("/")[1];
             Response responseGet = readTarget.path(id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
+                    .sync()
                     .get();
             ITestDao rsGetReadResult = responseGet.readEntity(new GenericType<>(testGeneratedDaoClass));
             //DaoHelperServiceUtils.finalizeFromResponse(responseGet,(CouchbaseDocument)rsGetReadResult);
@@ -154,6 +157,7 @@ public class DaoGenerationTest extends Assert {
              */
             Response childListResponseGet = childReadTarget.resolveTemplate("daoProccessorUid",id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
+                    .sync()
                     .get();
             List<SerializableViewQueryRow<String,String,CouchbaseDocument>> responseList= childListResponseGet.readEntity(new GenericType<List<SerializableViewQueryRow<String, String, CouchbaseDocument>>>(){});
             assertEquals(Long.parseLong(id) - 1, responseList.size());
@@ -163,6 +167,7 @@ public class DaoGenerationTest extends Assert {
              */
             Response childResponseGet = childReadTarget.resolveTemplate("daoProccessorUid",id).path("0000000001")
                     .request(MediaType.APPLICATION_JSON_TYPE)
+                    .sync()
                     .get();
             ITestDaoChild rsGetChildReadResult = childResponseGet.readEntity(new GenericType<>(testGeneratedDaoChildClass));
             assertEquals("Child:0",rsGetChildReadResult.getValue());
@@ -174,7 +179,7 @@ public class DaoGenerationTest extends Assert {
             rsGetReadResult.setValue(origStrVal+" rest added");
             String oldKey = ((CouchbaseDocument)rsGetReadResult).getBaseMeta().getKey();//
             ((CouchbaseDocument)rsGetReadResult).getBaseMeta().setKey(null);
-            Response responsePost = writeTarget.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
+            Response responsePost = writeTarget.request(MediaType.APPLICATION_JSON_TYPE).sync().post(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             ((CouchbaseDocument)rsGetReadResult).getBaseMeta().setKey(oldKey);
             String createdString = responsePost.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY);
             ITestDao rsPostResult = responsePost.readEntity(new GenericType<>(testGeneratedDaoClass));
@@ -186,7 +191,7 @@ public class DaoGenerationTest extends Assert {
             childDoc.setParentObjDao(rsGetReadResult);
             String createdId = createdString.split("/")[1];
 
-            Response responseCreateChildPost = childWriteTarget.resolveTemplate("daoProccessorUid",createdId).request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(childDoc,MediaType.APPLICATION_JSON_TYPE));
+            Response responseCreateChildPost = childWriteTarget.resolveTemplate("daoProccessorUid",createdId).request(MediaType.APPLICATION_JSON_TYPE).sync().post(Entity.entity(childDoc,MediaType.APPLICATION_JSON_TYPE));
             ITestDaoChild createdChildDoc = responseCreateChildPost.readEntity(new GenericType<>(testGeneratedDaoChildClass));
             assertEquals(childDoc.getValue(),createdChildDoc.getValue());
 
@@ -198,6 +203,7 @@ public class DaoGenerationTest extends Assert {
                     .path(id)
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     //.header(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV, responseGet.getHeaderString(DaoHelperServiceUtils.HTTP_HEADER_DOC_REV))
+                    .sync()
                     .put(Entity.entity(rsGetReadResult, MediaType.APPLICATION_JSON_TYPE));
             ITestDao rsPutResult = responsePut.readEntity(new GenericType<>(testGeneratedDaoClass));
             assertEquals(responseGet.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY), responsePut.getHeaderString(CouchbaseDocumentProviderInterceptor.HTTP_HEADER_DOC_KEY));

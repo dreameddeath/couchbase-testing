@@ -26,5 +26,6 @@ public interface HttpHeaderUtils {
     String HTTP_HEADER_TRACE_ID = "X-TRACE-ID";
     String HTTP_HEADER_USER_TOKEN = "X-USER-TOKEN";
     String HTTP_CALLEE_TRACE_ID = "X-CALLEE_TRACE-ID";
+    String HTTP_CALLEE_DURATION = "X-CALLEE_DURATION";
 
 }

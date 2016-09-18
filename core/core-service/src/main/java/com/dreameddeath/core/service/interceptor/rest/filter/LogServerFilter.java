@@ -21,6 +21,7 @@ package com.dreameddeath.core.service.interceptor.rest.filter;
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.log.MDCUtils;
 import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.http.HttpHeaderUtils;
 import com.dreameddeath.core.service.interceptor.PropertyUtils;
 import com.dreameddeath.core.user.IUser;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -68,7 +70,9 @@ public class LogServerFilter implements ContainerRequestFilter, ContainerRespons
     public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
         Long startTime = (Long)containerRequestContext.getProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME);
         if(startTime!=null){
-            LOG.info("Processing Duration <{}> ms",(System.nanoTime()-startTime)*1.0/1_000_000);
+            double duration=(System.nanoTime()-startTime)*1.0/1_000_000;
+            LOG.info("Processing Duration <{}> ms",duration);
+            containerResponseContext.getHeaders().put(HttpHeaderUtils.HTTP_CALLEE_DURATION, Collections.singletonList(duration+""));
         }
         MDCUtils.setContextMap((Map<String,String>)containerRequestContext.getProperty(PropertyUtils.PROPERTY_MDC_CONTEXT));
     }

@@ -26,7 +26,6 @@ import com.dreameddeath.core.service.interceptor.PropertyUtils;
 import com.dreameddeath.core.service.interceptor.client.IClientInterceptor;
 import com.dreameddeath.core.service.interceptor.client.IClientRequestContextWrapper;
 import com.dreameddeath.core.service.interceptor.client.IClientResponseContextWrapper;
-import com.dreameddeath.core.service.interceptor.rest.filter.ContextClientFilter;
 import com.dreameddeath.core.user.IUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Created by Christophe Jeunesse on 15/09/2016.
  */
 public class ClientContextInterceptor implements IClientInterceptor {
-    private final static Logger LOG= LoggerFactory.getLogger(ContextClientFilter.class);
+    private final static Logger LOG= LoggerFactory.getLogger(ClientContextInterceptor.class);
     private IContextFactory factory;
 
     @Autowired
@@ -86,20 +85,11 @@ public class ClientContextInterceptor implements IClientInterceptor {
                 .withExternalContextBuilder(externalContextBuilder));
 
         incomingContext.setHeader(HttpHeaderUtils.HTTP_CONTEXT_HEADER, factory.encode(requestContext));
-        incomingContext.setProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,System.nanoTime());
         return true;
     }
 
     @Override
     public boolean processOutgoingMessage(IClientRequestContextWrapper incomingContext, IClientResponseContextWrapper outgoingContext){
-        Long startTime = incomingContext.getProperty(PropertyUtils.PROPERTY_START_TIME_NANO_PARAM_NAME,Long.class);
-        double duration=0;
-        if(startTime!=null){
-            duration = (System.nanoTime()-duration)*1.0/1_0000_0000;
-        }
-        String traceId=outgoingContext.getHeader(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
-
-        LOG.info("Response received in {} ns for callee trace id <{}>",duration,traceId);
         return true;
     }
 }

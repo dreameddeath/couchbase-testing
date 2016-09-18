@@ -22,6 +22,7 @@ import com.dreameddeath.core.context.IContextFactory;
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
+import com.dreameddeath.core.log.MdcSchedulerHook;
 import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotationProcessor;
 import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.client.IServiceClient;
@@ -88,6 +89,7 @@ public class TestServicesTest extends Assert{
 
     @BeforeClass
     public static void initialise() throws Exception{
+        rx.plugins.RxJavaHooks.setOnScheduleAction(new MdcSchedulerHook());
         compileTestServiceGen();
         curatorUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", curatorUtils.getClient("TestServicesTest"));
@@ -255,7 +257,7 @@ public class TestServicesTest extends Assert{
         }
 
         {
-            String resultTraceId = clientFactory.getClient("testService","1.0").getInstance().path("traceId").request(MediaType.TEXT_PLAIN).get(String.class);
+            String resultTraceId = clientFactory.getClient("testService","1.0").getInstance().path("traceId").request(MediaType.TEXT_PLAIN).sync().get(String.class);
             assertNotNull(resultTraceId);
         }
     }

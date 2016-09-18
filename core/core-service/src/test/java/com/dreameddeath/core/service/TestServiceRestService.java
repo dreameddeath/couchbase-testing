@@ -145,7 +145,7 @@ public class TestServiceRestService extends AbstractRestExposableService {
                     .path("traceId")
                     .queryParam("withId",context.currentTraceId())
                     .queryParam("withGlobalId",context.globalTraceId())
-                    .request(MediaType.TEXT_PLAIN).get();
+                    .request(MediaType.TEXT_PLAIN).sync().get();
             String calleeTraceId = result.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
             Preconditions.checkNotNull(calleeTraceId);
             Preconditions.checkArgument(calleeTraceId.equals(result.readEntity(String.class)));
