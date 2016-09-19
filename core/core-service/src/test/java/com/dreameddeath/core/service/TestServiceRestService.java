@@ -30,11 +30,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import rx.Observable;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * Created by Christophe Jeunesse on 17/03/2015.
@@ -132,24 +134,31 @@ public class TestServiceRestService extends AbstractRestExposableService {
     @GET
     @Path("traceId")
     @Produces(MediaType.TEXT_PLAIN)
-    public String traceId(@QueryParam("withId") String traceId,@QueryParam("withGlobalId") String globalId,@Context IGlobalContext context){
+    public void traceId(@QueryParam("withId") final String traceId, @QueryParam("withGlobalId") final String globalId, @Context final IGlobalContext context, @Suspended final AsyncResponse asyncResponse){
         Preconditions.checkNotNull(context);
+        Observable<String> resultObservable=null;
         if(traceId!=null){
             Preconditions.checkNotNull(context.callerCtxt());
             Preconditions.checkNotNull(globalId);
             Preconditions.checkArgument(traceId.equals(context.callerCtxt().traceId()));
             Preconditions.checkArgument(globalId.equals(context.globalTraceId()));
+            resultObservable = Observable.just(context.currentTraceId());
         }
         else{
-            Response result = clientFactory.getClient("testService","1.0").getInstance()
+            resultObservable = clientFactory.getClient("testService","1.0").getInstance()
                     .path("traceId")
                     .queryParam("withId",context.currentTraceId())
                     .queryParam("withGlobalId",context.globalTraceId())
-                    .request(MediaType.TEXT_PLAIN).sync().get();
-            String calleeTraceId = result.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
-            Preconditions.checkNotNull(calleeTraceId);
-            Preconditions.checkArgument(calleeTraceId.equals(result.readEntity(String.class)));
+                    .request(MediaType.TEXT_PLAIN)
+                    .get()
+                    .doOnNext(result->{
+                        String calleeTraceId = result.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
+                        Preconditions.checkNotNull(calleeTraceId);
+                        Preconditions.checkArgument(calleeTraceId.equals(result.readEntity(String.class)));
+                    })
+                    .map(result->result.readEntity(String.class));
+
         }
-        return context.currentTraceId();
+        resultObservable.subscribe(resultCalledTraceId->asyncResponse.resume(context.currentTraceId()));
     }
 }
