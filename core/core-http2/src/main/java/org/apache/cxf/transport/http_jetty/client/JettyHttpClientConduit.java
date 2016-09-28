@@ -16,7 +16,7 @@
  *
  */
 
-package com.dreameddeath.core.http2.cxf;
+package org.apache.cxf.transport.http_jetty.client;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
@@ -66,14 +66,16 @@ import static org.eclipse.jetty.http.HttpHeader.USER_AGENT;
 /**
  * Created by Christophe Jeunesse on 20/09/2016.
  */
-public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
-    private static final Logger LOG =  LoggerFactory.getLogger(JettyHttp2Conduit.class);
+public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
+    private static final Logger LOG =  LoggerFactory.getLogger(JettyHttpClientConduit.class);
     public static final String USE_ASYNC = "use.async.http.conduit";
+    public static final String USE_HTTP2 = "use.http2.conduit";
 
-    private final JettyHttp2ConduitFactory parentFactory;
-
-    public JettyHttp2Conduit(Bus b, EndpointInfo ei, EndpointReferenceType t,JettyHttp2ConduitFactory parent) throws IOException {
+    private final JettyHttpClientConduitFactory parentFactory;
+    private final String transport;
+    public JettyHttpClientConduit(Bus b, EndpointInfo ei, EndpointReferenceType t, JettyHttpClientConduitFactory parent) throws IOException {
         super(b, ei, t);
+        transport=ei.getTransportId();
         parentFactory=parent;
     }
 
@@ -87,16 +89,21 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
         }
 
         URI uri = address.getURI();
+        String uriPrefix=null;
         boolean addressChanged = false;
         // need to do some clean up work on the URI address
         String uriString = uri.toString();
-        if (uriString.startsWith(JettyHttp2TransportFactory.JETTY_HTTP2_PREFIX)) {
-            try {
-                uriString = uriString.substring(JettyHttp2TransportFactory.JETTY_HTTP2_PREFIX.length());
-                uri = new URI(uriString);
-                addressChanged = true;
-            } catch (URISyntaxException ex) {
-                throw new MalformedURLException("unsupport uri: "  + uriString);
+        for(String prefix:JettyHttpClientTransportFactory.getUriPrefixesList()) {
+            if (uriString.startsWith(prefix)){
+                uriPrefix=prefix;
+                try {
+                    uriString = uriString.substring(prefix.length());
+                    uri = new URI(uriString);
+                    addressChanged = true;
+                } catch (URISyntaxException ex) {
+                    throw new MalformedURLException("unsupport uri: " + uriString);
+                }
+                break;
             }
         }
 
@@ -119,13 +126,8 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
         if (o == null) {
             o = parentFactory.getUseAsyncPolicy();
         }
-        // check tlsClientParameters from message header
-        TLSClientParameters tlsClientParameters = message.get(TLSClientParameters.class);
-        if (tlsClientParameters == null) {
-            tlsClientParameters = this.tlsClientParameters;
-        }
 
-        switch (JettyHttp2ConduitFactory.UseAsyncPolicy.getPolicy(o)) {
+        switch (JettyHttpClientConduitFactory.UseAsyncPolicy.getPolicy(o)) {
             case ALWAYS:
                 o = true;
                 break;
@@ -138,12 +140,19 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
                 break;
         }
 
+
+        // check tlsClientParameters from message header
+        TLSClientParameters tlsClientParameters = message.get(TLSClientParameters.class);
+        if (tlsClientParameters == null) {
+            tlsClientParameters = this.tlsClientParameters;
+        }
+
         if (!MessageUtils.isTrue(o)) {
             message.put(USE_ASYNC, Boolean.FALSE);
-            super.setupConnection(message, addressChanged ? new Address(uriString, uri) : address, csPolicy);
-            return;
         }
-        message.put(USE_ASYNC, Boolean.TRUE);
+        else {
+            message.put(USE_ASYNC, Boolean.TRUE);
+        }
 
         message.put("http.scheme", uri.getScheme());
         String httpRequestMethod =
@@ -152,8 +161,36 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
             httpRequestMethod = "POST";
             message.put(Message.HTTP_REQUEST_METHOD, httpRequestMethod);
         }
-        HttpClient httpClient = parentFactory.getClient(tlsClientParameters);
-        Request request = httpClient.newRequest(uri).method(httpRequestMethod).version(HttpVersion.HTTP_2);
+
+
+        JettyHttpClientConduitFactory.ClientHttpVersion mainVersion;
+        HttpVersion httpVersion;
+        JettyHttpClientConduitFactory.HttpVersionPolicy httpVersionPolicy = parentFactory.getHttpVersionPolicy();
+        boolean hasHttp2 = JettyHttpClientTransportFactory.JETTY_HTTP2_PREFIX.equals(uriPrefix) ||(transport!=null && transport.equals(JettyHttpClientTransportFactory.HTTP2_TRANSPORT)) || MessageUtils.isTrue(message.getContextualProperty(USE_HTTP2));
+        boolean hasHttp1 = JettyHttpClientTransportFactory.JETTY_HTTP1_PREFIX.equals(uriPrefix) ||(transport!=null && transport.equals(JettyHttpClientTransportFactory.HTTP1_TRANSPORT));
+        switch (httpVersionPolicy){
+            case ALWAYS_1:
+                httpVersion = HttpVersion.HTTP_1_1;
+                mainVersion = JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_1;
+                break;
+            case ALWAYS_2:
+                httpVersion = HttpVersion.HTTP_2;
+                mainVersion = JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_2;
+                break;
+            default:
+                if(hasHttp2 || (!hasHttp1 && httpVersionPolicy== JettyHttpClientConduitFactory.HttpVersionPolicy.DEFAULT_2)){
+                    httpVersion = HttpVersion.HTTP_2;
+                    mainVersion = JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_2;
+                }
+                else{
+                    httpVersion = HttpVersion.HTTP_1_1;
+                    mainVersion = JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_1;
+                }
+        }
+
+
+        HttpClient httpClient = parentFactory.getClient(tlsClientParameters, mainVersion);
+        Request request = httpClient.newRequest(uri).method(httpRequestMethod).version(httpVersion);
         message.put(Request.class,request);
     }
 

@@ -1,2 +1,2 @@
-com.dreameddeath.core.http2.cxf.JettyHttp2ConduitFactory:org.apache.cxf.transport.http.HTTPConduitFactory:true:true
-com.dreameddeath.core.http2.cxf.JettyHttp2TransportFactory:org.apache.cxf.transport.ConduitInitiator:true:true
+org.apache.cxf.transport.http_jetty.client.JettyHttpClientConduitFactory:org.apache.cxf.transport.http.HTTPConduitFactory:true:true
+org.apache.cxf.transport.http_jetty.client.JettyHttpClientTransportFactory:org.apache.cxf.transport.ConduitInitiator:true:true

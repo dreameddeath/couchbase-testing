@@ -16,7 +16,7 @@
  *
  */
 
-package com.dreameddeath.core.http2.cxf;
+package org.apache.cxf.transport.http_jetty.client;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.configuration.Configurer;
@@ -36,24 +36,38 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Created by Christophe Jeunesse on 20/09/2016.
  */
-public class JettyHttp2TransportFactory extends AbstractTransportFactory implements ConduitInitiator {
+public class JettyHttpClientTransportFactory extends AbstractTransportFactory implements ConduitInitiator {
+    public static final String HTTP2_TRANSPORT="http://cxf.apache.org/transports/http/jetty-http-client/http2";
+    public static final String HTTP1_TRANSPORT="http://cxf.apache.org/transports/http/jetty-http-client/http1";
     public static final List<String> DEFAULT_NAMESPACES = Arrays
-            .asList("http://cxf.apache.org/transports/http/http2-jetty-client");
+            .asList("http://cxf.apache.org/transports/http/jetty-http-client",
+                    "http://cxf.apache.org/transports/http/jetty-http-client/http1",
+                    HTTP2_TRANSPORT
+                    );
 
     /**
      * This constant holds the prefixes served by this factory.
      */
     private static final Set<String> URI_PREFIXES = new HashSet<String>();
 
-    public static final String JETTY_HTTP2_PREFIX = "jh2://";
+    public static final String JETTY_HTTP_PREFIX = "jhc://";
+    public static final String JETTY_HTTP2_PREFIX = "jhc2://";
+    public static final String JETTY_HTTP1_PREFIX = "jhc1://";
+
 
     static {
+        URI_PREFIXES.add(JETTY_HTTP_PREFIX);
         URI_PREFIXES.add(JETTY_HTTP2_PREFIX);
+        URI_PREFIXES.add(JETTY_HTTP1_PREFIX);
     }
 
-    private final AtomicReference<JettyHttp2ConduitFactory> factory = new AtomicReference<>();
+     static Set<String> getUriPrefixesList() {
+        return URI_PREFIXES;
+    }
 
-    public JettyHttp2TransportFactory() {
+    private final AtomicReference<JettyHttpClientConduitFactory> factory = new AtomicReference<>();
+
+    public JettyHttpClientTransportFactory() {
         super(DEFAULT_NAMESPACES);
     }
 
@@ -85,8 +99,8 @@ public class JettyHttp2TransportFactory extends AbstractTransportFactory impleme
 
     protected String getAddress(EndpointInfo endpointInfo) {
         String address = endpointInfo.getAddress();
-        if (address.startsWith(JETTY_HTTP2_PREFIX)) {
-            address = address.substring(JETTY_HTTP2_PREFIX.length());
+        if (address.startsWith(JETTY_HTTP_PREFIX)) {
+            address = address.substring(JETTY_HTTP_PREFIX.length());
         }
         return address;
     }
@@ -120,15 +134,15 @@ public class JettyHttp2TransportFactory extends AbstractTransportFactory impleme
         return conduit;
     }
 
-    private final JettyHttp2ConduitFactory getConduitFactory(Bus bus){
+    private final JettyHttpClientConduitFactory getConduitFactory(Bus bus){
         return factory.updateAndGet(val->{
             if(val==null){
                 HTTPConduitFactory conduitFactory=bus.getExtension(HTTPConduitFactory.class);
-                if(conduitFactory instanceof JettyHttp2ConduitFactory){
-                    return (JettyHttp2ConduitFactory)conduitFactory;
+                if(conduitFactory instanceof JettyHttpClientConduitFactory){
+                    return (JettyHttpClientConduitFactory)conduitFactory;
                 }
                 else{
-                    return new JettyHttp2ConduitFactory(bus);
+                    return new JettyHttpClientConduitFactory(bus);
                 }
             }
             else {

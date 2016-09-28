@@ -16,8 +16,9 @@
  *
  */
 
-package com.dreameddeath.core.http2.cxf;
+package org.apache.cxf.transport.http_jetty.client;
 
+import com.google.common.base.Preconditions;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.continuations.Continuation;
@@ -30,17 +31,14 @@ import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transport.http.HTTPConduitFactory;
 import org.apache.cxf.transport.http_jetty.JettyHTTPDestination;
 import org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine;
-import org.apache.cxf.transport.http_jetty.JettyHTTPServerEngineFactory;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.apache.hello_world_soap_http.Greeter;
 import org.apache.hello_world_soap_http.SOAPService;
 import org.apache.hello_world_soap_http.types.GreetMeLaterResponse;
 import org.apache.hello_world_soap_http.types.GreetMeResponse;
+import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -49,6 +47,8 @@ import org.junit.Test;
 import javax.xml.ws.AsyncHandler;
 import javax.xml.ws.Endpoint;
 import javax.xml.ws.Response;
+import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -56,9 +56,9 @@ import java.util.concurrent.TimeUnit;
 
 
 
-public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestBase {
-    public static final String PORT = allocatePort(JettyHttp2TransportFactoryTest.class);
-    public static final String PORT_INV = allocatePort(JettyHttp2TransportFactoryTest.class, 2);
+public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServerTestBase {
+    public static final String PORT = allocatePort(JettyHttpClientTransportFactoryTest.class);
+    public static final String PORT_INV = allocatePort(JettyHttpClientTransportFactoryTest.class, 2);
 
     static Endpoint ep;
     static String request;
@@ -67,41 +67,13 @@ public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestB
     @BeforeClass
     public static void start() throws Exception {
         Bus b = createStaticBus();
-        b.setProperty(JettyHttp2ConduitFactory.USE_POLICY, JettyHttp2ConduitFactory.UseAsyncPolicy.ALWAYS);
-        //b.setProperty("org.apache.cxf.transport.http.async.MAX_CONNECTIONS", 501);
-
+        b.setProperty(JettyHttpClientConduitFactory.USE_POLICY, JettyHttpClientConduitFactory.UseAsyncPolicy.ALWAYS);
+        b.setProperty(JettyHttpClientConduitFactory.HTTP_VERSION_POLICY,JettyHttpClientConduitFactory.HttpVersionPolicy.DEFAULT_2);
         BusFactory.setThreadDefaultBus(b);
 
-        JettyHttp2ConduitFactory jettyHttp2ConduitFactory = (JettyHttp2ConduitFactory) b.getExtension(HTTPConduitFactory.class);
-        assertNotNull(jettyHttp2ConduitFactory);
-        JettyHTTPServerEngineFactory factory=(JettyHTTPServerEngineFactory)b.getExtension(JettyHTTPServerEngineFactory.class);
-        /*Endpoint epTest = Endpoint.publish("http://localhost:" + PORT + "/SoapContext/SoapPortPrep",
-                new org.apache.hello_world_soap_http.GreeterImpl() {
-                    public String greetMeLater(long cnt) {
-                        //use the continuations so the async client can
-                        //have a ton of connections, use less threads
-                        //
-                        //mimic a slow server by delaying somewhere between
-                        //1 and 2 seconds, with a preference of delaying the earlier
-                        //requests longer to create a sort of backlog/contention
-                        //with the later requests
-                        ContinuationProvider p = (ContinuationProvider)
-                                getContext().getMessageContext().get(ContinuationProvider.class.getName());
-                        Continuation c = p.getContinuation();
-                        if (c.isNew()) {
-                            if (cnt < 0) {
-                                c.suspend(-cnt);
-                            } else {
-                                c.suspend(2000 - (cnt % 1000));
-                            }
-                            return null;
-                        }
-                        return "Hello, finally! " + cnt;
-                    }
-                    public String greetMe(String me) {
-                        return "Hello " + me;
-                    }
-                });*/
+        JettyHttpClientConduitFactory jettyHttpClientConduitFactory = (JettyHttpClientConduitFactory) b.getExtension(HTTPConduitFactory.class);
+        assertNotNull(jettyHttpClientConduitFactory);
+
         ep = Endpoint.publish("http://localhost:" + PORT + "/SoapContext/SoapPort",
                 new org.apache.hello_world_soap_http.GreeterImpl() {
                     public String greetMeLater(long cnt) {
@@ -126,56 +98,32 @@ public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestB
                         return "Hello, finally! " + cnt;
                     }
                     public String greetMe(String me) {
+                        WebServiceContext context = getContext();
+                        String protocol = ((Request)context.getMessageContext().get(MessageContext.SERVLET_REQUEST)).getProtocol();
+                        if(me.contains("HTTP2")){
+                            Preconditions.checkArgument(HttpVersion.HTTP_2.toString().equals(protocol));
+                        }
+                        else if(me.contains("HTTP1")){
+                            Preconditions.checkArgument(HttpVersion.HTTP_1_1.toString().equals(protocol));
+                        }
                         return "Hello " + me;
                     }
                 });
 
         Server jettyServer=((JettyHTTPServerEngine)((JettyHTTPDestination)((EndpointImpl) ep).getServer().getDestination()).getEngine()).getServer();
-        //jettyServer.stop();
         Connector[]connectors= jettyServer.getConnectors();
         ((ServerConnector)connectors[0]).addConnectionFactory(new HTTP2CServerConnectionFactory(((HttpConnectionFactory)((ServerConnector)connectors[0]).getConnectionFactories().iterator().next()).getHttpConfiguration()));
-        //jettyServer.start();
-        /*ep = Endpoint.publish("http://localhost:" + PORT + "/SoapContext/SoapPort",
-                new org.apache.hello_world_soap_http.GreeterImpl() {
-                    public String greetMeLater(long cnt) {
-                        //use the continuations so the async client can
-                        //have a ton of connections, use less threads
-                        //
-                        //mimic a slow server by delaying somewhere between
-                        //1 and 2 seconds, with a preference of delaying the earlier
-                        //requests longer to create a sort of backlog/contention
-                        //with the later requests
-                        ContinuationProvider p = (ContinuationProvider)
-                                getContext().getMessageContext().get(ContinuationProvider.class.getName());
-                        Continuation c = p.getContinuation();
-                        if (c.isNew()) {
-                            if (cnt < 0) {
-                                c.suspend(-cnt);
-                            } else {
-                                c.suspend(2000 - (cnt % 1000));
-                            }
-                            return null;
-                        }
-                        return "Hello, finally! " + cnt;
-                    }
-                    public String greetMe(String me) {
-                        return "Hello " + me;
-                    }
-                });*/
 
-
-        //
-        //Lists.asList(connectors);
         StringBuilder builder = new StringBuilder("NaNaNa");
         for (int x = 0; x < 50; x++) {
             builder.append(" NaNaNa ");
         }
         request = builder.toString();
 
-        URL wsdl = JettyHttp2TransportFactoryTest.class.getResource("/wsdl/hello_world_services.wsdl");
+        URL wsdl = JettyHttpClientTransportFactoryTest.class.getResource("/wsdl/hello_world_services.wsdl");
         assertNotNull("WSDL is null", wsdl);
 
-        SOAPService service = new SOAPService(JettyHttp2TransportFactoryTest.class.getResource("/wsdl/hello_world.wsdl"));
+        SOAPService service = new SOAPService(JettyHttpClientTransportFactoryTest.class.getResource("/wsdl/hello_world.wsdl"));
         assertNotNull("Service is null", service);
 
         g = service.getSoapPort();
@@ -217,14 +165,41 @@ public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestB
 
     @Test
     public void testInovationWithHCAddress() throws Exception {
-        String address =  "jh2://http://localhost:" + PORT + "/SoapContext/SoapPort";
+        String address =  "jhc://http://localhost:" + PORT + "/SoapContext/SoapPort";
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setBus(BusFactory.getDefaultBus());
         factory.setServiceClass(Greeter.class);
         factory.setAddress(address);
         Greeter greeter = factory.create(Greeter.class);
-        String response = greeter.greetMe("test");
-        assertEquals("Get a wrong response", "Hello test", response);
+        String input="test HTTP2";
+        String response = greeter.greetMe(input);
+        assertEquals("Get a wrong response", "Hello "+input, response);
+    }
+
+    @Test
+    public void testInovationWithHC1Address() throws Exception {
+        String address =  "jhc1://http://localhost:" + PORT + "/SoapContext/SoapPort";
+        JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+        factory.setBus(BusFactory.getDefaultBus());
+        factory.setServiceClass(Greeter.class);
+        factory.setAddress(address);
+        Greeter greeter = factory.create(Greeter.class);
+        String input="test HTTP1";
+        String response = greeter.greetMe(input);
+        assertEquals("Get a wrong response", "Hello "+input, response);
+    }
+
+
+    @Test
+    public void testInovationWithHCHttp2Address() throws Exception {
+        String address =  "jhc2://http://localhost:" + PORT + "/SoapContext/SoapPort";
+        JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+        factory.setBus(BusFactory.getDefaultBus());
+        factory.setServiceClass(Greeter.class);
+        factory.setAddress(address);
+        Greeter greeter = factory.create(Greeter.class);
+        String response = greeter.greetMe("test HTTP2");
+        assertEquals("Get a wrong response", "Hello test HTTP2", response);
     }
 
     @Test
@@ -233,11 +208,38 @@ public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestB
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setServiceClass(Greeter.class);
         factory.setAddress(address);
-        factory.setTransportId("http://cxf.apache.org/transports/http/http2-jetty-client");
+        factory.setTransportId("http://cxf.apache.org/transports/http/jetty-http-client");
         Greeter greeter = factory.create(Greeter.class);
-        String response = greeter.greetMe("test");
-        assertEquals("Get a wrong response", "Hello test", response);
+        String response = greeter.greetMe("test HTTP2");
+        assertEquals("Get a wrong response", "Hello test HTTP2", response);
     }
+
+
+    @Test
+    public void testInvocationWithHttp2TransportId() throws Exception {
+        String address =  "http://localhost:" + PORT + "/SoapContext/SoapPort";
+        JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+        factory.setServiceClass(Greeter.class);
+        factory.setAddress(address);
+        factory.setTransportId("http://cxf.apache.org/transports/http/jetty-http-client/http2");
+        Greeter greeter = factory.create(Greeter.class);
+        String response = greeter.greetMe("test HTTP2");
+        assertEquals("Get a wrong response", "Hello test HTTP2", response);
+    }
+
+    @Test
+    public void testInvocationWithHttp1TransportId() throws Exception {
+        String address =  "http://localhost:" + PORT + "/SoapContext/SoapPort";
+        JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+        factory.setServiceClass(Greeter.class);
+        factory.setAddress(address);
+        factory.setTransportId("http://cxf.apache.org/transports/http/jetty-http-client/http1");
+        Greeter greeter = factory.create(Greeter.class);
+        String response = greeter.greetMe("test HTTP1");
+        assertEquals("Get a wrong response", "Hello test HTTP1", response);
+    }
+
+
     @Test
     public void testCall() throws Exception {
         updateAddressPort(g, PORT);
@@ -281,36 +283,19 @@ public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestB
         int run=5000;
         //warmup
         for (int x = 0; x < warmup; x++) {
-            //builder.append("a");
-            //long s1 = System.nanoTime();
-            //System.out.println("aa1: " + s1);
             String value = g.greetMe(request);
-            //long s2 = System.nanoTime();
-            //System.out.println("aa2: " + s2 + " " + (s2 - s1));
             assertEquals("Hello " + request, value);
             if(x%100==0) System.out.println("Request " +x);
-            //System.out.println();
         }
 
         long start = System.currentTimeMillis();
         for (int x = 0; x < run; x++) {
-            //builder.append("a");
-            //long s1 = System.nanoTime();
-            //System.out.println("aa1: " + s1);
             g.greetMe(request);
-            //long s2 = System.nanoTime();
-            //System.out.println("aa2: " + s2 + " " + (s2 - s1));
-            //System.out.println();
             if(x%100==0) System.out.println("Request " +x);
 
         }
         long end = System.currentTimeMillis();
-        System.out.println("Total: " + (end - start)+ " / avg "+((end-start)*1.0/run));
-        /*
-        updateAddressPort(g, PORT2);
-        String value = g.greetMe(builder.toString());
-        assertEquals("Hello " + builder.toString(), value);
-        */
+        System.out.println("Total: " + (end - start)+ "ms / avg "+((end-start)*1.0/run));
     }
 
     @Test
@@ -352,18 +337,12 @@ public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestB
         //warmup
         long start = System.currentTimeMillis();
         for (int x = 0; x < warmupIter; x++) {
-            //builder.append("a");
-            //long s1 = System.nanoTime();
-            //System.out.println("aa1: " + s1);
             g.greetMeLaterAsync(x, whandler[x]);
-            //long s2 = System.nanoTime();
-            //System.out.println("aa2: " + s2 + " " + (s2 - s1));
-            //System.out.println();
         }
         wlatch.await(30, TimeUnit.SECONDS);
 
         long end = System.currentTimeMillis();
-        System.out.println("Warmup Total: " + (end - start) + " " + wlatch.getCount());
+        System.out.println("Warmup Total: " + (end - start) + " ms " + wlatch.getCount());
         for (int x = 0; x < warmupIter; x++) {
             if (!wdone[x]) {
                 System.out.println("  " + x);
@@ -382,18 +361,14 @@ public class JettyHttp2TransportFactoryTest extends AbstractBusClientServerTestB
 
         start = System.currentTimeMillis();
         for (int x = 0; x < runIter; x++) {
-            //builder.append("a");
-            //long s1 = System.nanoTime();
-            //System.out.println("aa1: " + s1);
+
             g.greetMeLaterAsync(x, rhandler);
-            //long s2 = System.nanoTime();
-            //System.out.println("aa2: " + s2 + " " + (s2 - s1));
-            //System.out.println();
+
         }
         rlatch.await(30, TimeUnit.SECONDS);
         end = System.currentTimeMillis();
 
-        System.out.println("Total: " + (end - start) + " " + rlatch.getCount()+ " / avg " +((end-start)*1.0/runIter));
+        System.out.println("Total: " + (end - start) + " ms " + rlatch.getCount()+ " / avg " +((end-start)*1.0/runIter));
     }
 
 }
