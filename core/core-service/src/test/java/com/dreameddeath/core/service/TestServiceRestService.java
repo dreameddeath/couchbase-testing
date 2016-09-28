@@ -21,6 +21,7 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.http.HttpHeaderUtils;
 import com.dreameddeath.core.service.swagger.TestingDocument;
@@ -37,6 +38,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Created by Christophe Jeunesse on 17/03/2015.
@@ -131,8 +133,49 @@ public class TestServiceRestService extends AbstractRestExposableService {
         return testService.initDocument((IGlobalContext)null).toBlocking().first();
     }
 
+    private volatile IRestServiceClient client = null;
+    private final IRestServiceClient getClient(){
+        if(client==null){
+            synchronized (this){
+                if(client==null) {
+                    client=clientFactory.getClient("testService", "1.0");
+                }
+            }
+        }
+        return client;
+    }
+
     @GET
     @Path("traceId")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String traceId(@QueryParam("withId") final String traceId, @QueryParam("withGlobalId") final String globalId, @Context final IGlobalContext context){
+        Preconditions.checkNotNull(context);
+        if(traceId!=null){
+            Preconditions.checkNotNull(context.callerCtxt());
+            Preconditions.checkNotNull(globalId);
+            Preconditions.checkArgument(traceId.equals(context.callerCtxt().traceId()));
+            Preconditions.checkArgument(globalId.equals(context.globalTraceId()));
+        }
+        else{
+            Response result= getClient().getInstance()
+                    .path("traceId")
+                    .queryParam("withId",context.currentTraceId())
+                    .queryParam("withGlobalId",context.globalTraceId())
+                    .request(MediaType.TEXT_PLAIN)
+                    .sync()
+                    .get();
+
+            String calleeTraceId = result.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
+            Preconditions.checkNotNull(calleeTraceId);
+            Preconditions.checkArgument(calleeTraceId.equals(result.readEntity(String.class)));
+
+        }
+        return context.currentTraceId();
+        //resultObservable.subscribe(resultCalledTraceId->asyncResponse.resume(context.currentTraceId()));
+    }
+
+    @GET
+    @Path("asyncTraceId")
     @Produces(MediaType.TEXT_PLAIN)
     public void traceId(@QueryParam("withId") final String traceId, @QueryParam("withGlobalId") final String globalId, @Context final IGlobalContext context, @Suspended final AsyncResponse asyncResponse){
         Preconditions.checkNotNull(context);
@@ -145,8 +188,8 @@ public class TestServiceRestService extends AbstractRestExposableService {
             resultObservable = Observable.just(context.currentTraceId());
         }
         else{
-            resultObservable = clientFactory.getClient("testService","1.0").getInstance()
-                    .path("traceId")
+            resultObservable = getClient().getInstance()
+                    .path("asyncTraceId")
                     .queryParam("withId",context.currentTraceId())
                     .queryParam("withGlobalId",context.globalTraceId())
                     .request(MediaType.TEXT_PLAIN)

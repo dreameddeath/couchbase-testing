@@ -21,11 +21,13 @@ package com.dreameddeath.core.service;
 import com.dreameddeath.core.context.IContextFactory;
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.log.MdcSchedulerHook;
 import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotationProcessor;
 import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.client.IServiceClient;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.interceptor.rest.feature.ClientFeatureFactory;
 import com.dreameddeath.core.service.interceptor.rest.feature.ContextClientFeature;
@@ -60,6 +62,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -256,9 +259,42 @@ public class TestServicesTest extends Assert{
             throw e;
         }
 
+        for(int attempt=0;attempt<5;attempt++)
         {
-            String resultTraceId = clientFactory.getClient("testService","1.0").getInstance().path("traceId").request(MediaType.TEXT_PLAIN).sync().get(String.class);
-            assertNotNull(resultTraceId);
+            {
+
+                final IRestServiceClient client = clientFactory.getClient("testService", "1.0");
+                long startTime = System.nanoTime();
+                int nbOk = 0;
+                for (int i = 0; i < 50; ++i) {
+                    String resVal = client.getInstance().path("traceId")
+                            .request(MediaType.TEXT_PLAIN)
+                            .sync()
+                            .get(String.class);
+                    if (resVal != null) {
+                        nbOk++;
+                    }
+                }
+                assertEquals(50, nbOk);
+                LOG.warn("Attempt #{} Duration sync {} ms",attempt, (System.nanoTime() - startTime) * 1.0 / 1_000_000);
+            }
+
+
+            {
+
+                final IRestServiceClient client = clientFactory.getClient("testService", "1.0");
+                List<Observable<String>> results = new ArrayList<>();
+                long startTime = System.nanoTime();
+                for (int i = 0; i < 50; ++i) {
+                    results.add(
+                            client.getInstance().path("asyncTraceId")
+                                    .request(MediaType.TEXT_PLAIN)
+                                    .get(String.class)
+                                    .filter(val -> StringUtils.isNotEmpty(val)));
+                }
+                assertEquals(50, Observable.merge(results).count().toBlocking().single().intValue());
+                LOG.warn("Attempt #{} Duration async {} ms",attempt, (System.nanoTime() - startTime) * 1.0 / 1_000_000);
+            }
         }
     }
 

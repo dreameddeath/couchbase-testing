@@ -56,6 +56,7 @@
         <module>core-notification</module>
         <module>core-log</module>
         <module>core-context</module>
+        <module>core-http2</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

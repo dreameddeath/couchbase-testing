@@ -261,5 +261,11 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http-hc</artifactId>
+            <version>${apache.cxf.http.jetty.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
