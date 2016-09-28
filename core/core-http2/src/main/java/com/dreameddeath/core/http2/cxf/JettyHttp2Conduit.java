@@ -31,6 +31,7 @@ import org.apache.cxf.transport.http.URLConnectionHTTPConduit;
 import org.apache.cxf.transport.https.HttpsURLConnectionInfo;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
+import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.util.InputStreamResponseListener;
@@ -115,9 +116,9 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
             o = parentFactory.getUseAsyncPolicy();
         }
         // check tlsClientParameters from message header
-        TLSClientParameters clientParameters = message.get(TLSClientParameters.class);
-        if (clientParameters == null) {
-            clientParameters = tlsClientParameters;
+        TLSClientParameters tlsClientParameters = message.get(TLSClientParameters.class);
+        if (tlsClientParameters == null) {
+            tlsClientParameters = this.tlsClientParameters;
         }
 
         switch (JettyHttp2ConduitFactory.UseAsyncPolicy.getPolicy(o)) {
@@ -147,8 +148,12 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
             httpRequestMethod = "POST";
             message.put(Message.HTTP_REQUEST_METHOD, httpRequestMethod);
         }
-
-        Request request = parentFactory.getClient(clientParameters).newRequest(uri).method(httpRequestMethod).version(HttpVersion.HTTP_2);
+        HttpClient httpClient = parentFactory.getClient(tlsClientParameters);
+        HTTPClientPolicy clientPolicy = getClient(message);
+        if(clientPolicy.getConnectionTimeout()!=0 && httpClient.getConnectTimeout()!=clientPolicy.getConnectionTimeout()){
+            httpClient.setConnectTimeout(clientPolicy.getConnectionTimeout());
+        }
+        Request request = httpClient.newRequest(uri).method(httpRequestMethod).version(HttpVersion.HTTP_2);
         message.put(Request.class,request);
     }
 
@@ -193,6 +198,8 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
         private void connect(boolean withOutput){
             request.method((String)message.get(Message.HTTP_REQUEST_METHOD))
                     .followRedirects(true)
+                    .timeout(csPolicy.getReceiveTimeout(),TimeUnit.MILLISECONDS)
+                    //.idleTimeout(csPolicy.getAsyncExecuteTimeout(),TimeUnit.MILLISECONDS)
                     .onResponseHeaders(this::markAsReady)
                     .send(responseListener);
             if(!withOutput){
