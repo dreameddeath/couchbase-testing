@@ -40,6 +40,8 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.http2.client.HTTP2Client;
 import org.eclipse.jetty.util.Jetty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +59,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.eclipse.jetty.http.HttpHeader.USER_AGENT;
 
@@ -64,6 +67,7 @@ import static org.eclipse.jetty.http.HttpHeader.USER_AGENT;
  * Created by Christophe Jeunesse on 20/09/2016.
  */
 public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
+    private static final Logger LOG =  LoggerFactory.getLogger(JettyHttp2Conduit.class);
     public static final String USE_ASYNC = "use.async.http.conduit";
 
     private final JettyHttp2ConduitFactory parentFactory;
@@ -149,10 +153,6 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
             message.put(Message.HTTP_REQUEST_METHOD, httpRequestMethod);
         }
         HttpClient httpClient = parentFactory.getClient(tlsClientParameters);
-        HTTPClientPolicy clientPolicy = getClient(message);
-        if(clientPolicy.getConnectionTimeout()!=0 && httpClient.getConnectTimeout()!=clientPolicy.getConnectionTimeout()){
-            httpClient.setConnectTimeout(clientPolicy.getConnectionTimeout());
-        }
         Request request = httpClient.newRequest(uri).method(httpRequestMethod).version(HttpVersion.HTTP_2);
         message.put(Request.class,request);
     }
@@ -171,37 +171,35 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
 
     private class JettyHttp2OutputStreamWrapper extends WrappedOutputStream{
         private final HTTPClientPolicy csPolicy;
+        private final long timeout;
         private final JettyOutputStreamContentProvider outputStreamJettyContentProvider;
         private final Message message;
         private final Request request;
         private volatile boolean isAsync;
         private final InputStreamResponseListener responseListener;
+        private final AtomicReference<Response> responseAtomicReference=new AtomicReference<>();
 
         protected JettyHttp2OutputStreamWrapper(Message message, boolean possibleRetransmit,
                                                 boolean isChunking, int chunkThreshold, String conduitName, URI url) {
             super(message, possibleRetransmit, isChunking, chunkThreshold, conduitName, url);
             csPolicy = getClient(message);
+            timeout=csPolicy.getReceiveTimeout()<=0?60_000:csPolicy.getReceiveTimeout();
             outputStreamJettyContentProvider=new JettyOutputStreamContentProvider(message);
             this.request = message.get(Request.class);
             request.content(outputStreamJettyContentProvider);
             this.message=message;
-            this.responseListener = new InputStreamResponseListener();/*{
-                @Override
-                public void onComplete(Result result) {
-                    super.onComplete(result);
-                    markAsReady(result.getResponse());
-                }
-            };*/
+            this.responseListener = new InputStreamResponseListener();
         }
 
 
         private void connect(boolean withOutput){
+            responseAtomicReference.set(null);
             request.method((String)message.get(Message.HTTP_REQUEST_METHOD))
-                    .followRedirects(true)
-                    .timeout(csPolicy.getReceiveTimeout(),TimeUnit.MILLISECONDS)
-                    //.idleTimeout(csPolicy.getAsyncExecuteTimeout(),TimeUnit.MILLISECONDS)
+                    .followRedirects(getClient().isAutoRedirect())
+                    .timeout(timeout,TimeUnit.MILLISECONDS)
                     .onResponseHeaders(this::markAsReady)
                     .send(responseListener);
+
             if(!withOutput){
                 outputStreamJettyContentProvider.close();
             }
@@ -209,7 +207,9 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
 
 
 
-        private void markAsReady(Response res) {
+        private synchronized void markAsReady(Response res) {
+            //Keep response in memory
+            responseAtomicReference.set(res);
             if (isAsync) {
                 //got a response, need to start the response processing now
                 try {
@@ -229,7 +229,6 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
         @Override
         protected void handleNoOutput() throws IOException {
             connect(false);
-
         }
 
         @Override
@@ -335,8 +334,13 @@ public class JettyHttp2Conduit extends URLConnectionHTTPConduit {
             cookies.readFromHeaders(h);
         }
         @Override
-        protected void handleResponseAsync() throws IOException {
+        protected synchronized void handleResponseAsync() throws IOException {
             isAsync = true;
+            Response response=responseAtomicReference.get();
+            if(response!=null) {
+                markAsReady(response);
+            }
+
         }
         @Override
         protected void closeInputStream() throws IOException{
