@@ -18,6 +18,7 @@
 
 package com.dreameddeath.infrastructure.daemon.metrics;
 
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.io.EndPoint;
@@ -32,11 +33,13 @@ import java.util.List;
  */
 public class InstrumentedConnectionFactory extends ContainerLifeCycle implements ConnectionFactory {
     private final ConnectionFactory connectionFactory;
+    private final MetricRegistry registry;
     private final Timer timer;
 
-    public InstrumentedConnectionFactory(ConnectionFactory connectionFactory, Timer timer) {
+    public InstrumentedConnectionFactory(ConnectionFactory connectionFactory, MetricRegistry registry, String prefix) {
         this.connectionFactory = connectionFactory;
-        this.timer = timer;
+        this.registry=registry;
+        this.timer = registry.timer(prefix+".connections");
         addBean(connectionFactory);
     }
 
@@ -53,6 +56,11 @@ public class InstrumentedConnectionFactory extends ContainerLifeCycle implements
     @Override
     public Connection newConnection(Connector connector, EndPoint endPoint) {
         final Connection connection = connectionFactory.newConnection(connector, endPoint);
+        addListener(connection);
+        return connection;
+    }
+
+    protected void addListener(Connection connection){
         connection.addListener(new Connection.Listener() {
             private Timer.Context context;
 
@@ -66,6 +74,5 @@ public class InstrumentedConnectionFactory extends ContainerLifeCycle implements
                 context.stop();
             }
         });
-        return connection;
     }
 }

@@ -18,7 +18,8 @@
 
 package com.dreameddeath.infrastructure.daemon.metrics;
 
-import com.codahale.metrics.Timer;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.MetricRegistry;
 import org.eclipse.jetty.http.BadMessageException;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.MetaData;
@@ -32,13 +33,18 @@ import org.eclipse.jetty.server.Connector;
  */
 public class InstrumentedConnectionFactoryWithUpgrading<T extends ConnectionFactory & ConnectionFactory.Upgrading> extends InstrumentedConnectionFactory implements ConnectionFactory.Upgrading {
     private final T connectionFactory;
-    public InstrumentedConnectionFactoryWithUpgrading(T connectionFactory, Timer timer) {
-        super(connectionFactory, timer);
+    private final Counter upgradesCounter;
+    public InstrumentedConnectionFactoryWithUpgrading(T connectionFactory, MetricRegistry registry, String prefix) {
+        super(connectionFactory, registry,prefix);
         this.connectionFactory=connectionFactory;
+        upgradesCounter=registry.counter(prefix+".contections_upgrates");
     }
 
     @Override
     public Connection upgradeConnection(Connector connector, EndPoint endPoint, MetaData.Request upgradeRequest, HttpFields responseFields) throws BadMessageException {
-        return connectionFactory.upgradeConnection(connector, endPoint, upgradeRequest, responseFields);
+        upgradesCounter.inc();
+        Connection connection=connectionFactory.upgradeConnection(connector, endPoint, upgradeRequest, responseFields);
+        addListener(connection);
+        return connection;
     }
 }

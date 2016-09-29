@@ -23,6 +23,8 @@ import com.codahale.metrics.Slf4jReporter;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,7 +34,7 @@ public class WebServerMetrics {
     private final MetricRegistry metricRegistry = new MetricRegistry();
     private final AbstractWebServer parentServer;
     private final Slf4jReporter logReporter;
-
+    private final Set<String> rootKeys=new TreeSet<>();
     public WebServerMetrics(AbstractWebServer parentServer) {
         this.parentServer = parentServer;
 
@@ -69,5 +71,14 @@ public class WebServerMetrics {
 
     public void stopReporter(){
         logReporter.stop();
+    }
+
+    public void markRootKeys(){
+        rootKeys.clear();
+        rootKeys.addAll(metricRegistry.getMetrics().keySet());
+    }
+
+    public void cleanKeys(){
+        metricRegistry.removeMatching((name, metric) -> !rootKeys.contains(name));
     }
 }

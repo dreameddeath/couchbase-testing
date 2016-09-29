@@ -18,7 +18,6 @@
 
 package com.dreameddeath.infrastructure.daemon.webserver;
 
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
@@ -113,8 +112,8 @@ public abstract class AbstractWebServer {
         {
             HttpConfiguration httpConfiguration = new HttpConfiguration();
             serverConnector = new ServerConnector(webServer,
-                    new InstrumentedConnectionFactory(new HttpConnectionFactory(httpConfiguration), webServerMetrics.getMetricRegistry().timer("http.connections")),
-                    new InstrumentedConnectionFactoryWithUpgrading<>(new HTTP2CServerConnectionFactory(httpConfiguration), webServerMetrics.getMetricRegistry().timer("http2.connections"))
+                    new InstrumentedConnectionFactory(new HttpConnectionFactory(httpConfiguration), webServerMetrics.getMetricRegistry(),"http"),
+                    new InstrumentedConnectionFactoryWithUpgrading<>(new HTTP2CServerConnectionFactory(httpConfiguration), webServerMetrics.getMetricRegistry(),"http2")
             );
 
             serverConnector.setDefaultProtocol(HttpVersion.HTTP_1_1.asString());
@@ -164,8 +163,8 @@ public abstract class AbstractWebServer {
             securedServerConnector=new ServerConnector(webServer,
                     new SslConnectionFactory(sslContextFactory, alpn.getProtocol()),
                     alpn,
-                    new InstrumentedConnectionFactory(new HttpConnectionFactory(httpsConfiguration), webServerMetrics.getMetricRegistry().timer("http.ssl.connections")),
-                    new InstrumentedConnectionFactory(new HTTP2ServerConnectionFactory(httpsConfiguration),webServerMetrics.getMetricRegistry().timer("http2.ssl.connections"))
+                    new InstrumentedConnectionFactory(new HttpConnectionFactory(httpsConfiguration), webServerMetrics.getMetricRegistry(),"http.ssl"),
+                    new InstrumentedConnectionFactory(new HTTP2ServerConnectionFactory(httpsConfiguration),webServerMetrics.getMetricRegistry(),"http2.ssl")
             );
             securedServerConnector.setHost(address);
             if(sslPort!=0){
@@ -202,7 +201,7 @@ public abstract class AbstractWebServer {
             this.plugins.add(plugin);
         }
 
-
+        webServerMetrics.markRootKeys();
     }
 
 
@@ -249,7 +248,7 @@ public abstract class AbstractWebServer {
     }
 
     public void start() throws Exception{
-        getMetricRegistry().removeMatching(MetricFilter.ALL);
+        webServerMetrics.cleanKeys();
         webServerMetrics.startReporter();
         webServer.start();
     }
