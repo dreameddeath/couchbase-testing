@@ -105,6 +105,7 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
         serviceDescr.setName(annotDef.name());
         serviceDescr.setState(annotDef.status().name());
         serviceDescr.setVersion(annotDef.version());
+        serviceDescr.setProtocols(service.getEndPoint().protocols());
         for(ServiceDefTag tag : annotDef.tags()){
             serviceDescr.addTag(tag.value());
         }

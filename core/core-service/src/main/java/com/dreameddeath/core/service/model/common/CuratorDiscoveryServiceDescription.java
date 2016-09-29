@@ -1,21 +1,24 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.service.model.common;
 
+import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collection;
@@ -38,6 +41,8 @@ public abstract class CuratorDiscoveryServiceDescription<TSPEC> {
     private Set<String> tags=new TreeSet<>();
     @JsonProperty("state")
     private String state;
+    @JsonProperty("protocols")
+    private Set<IEndPointDescription.Protocol> protocols=new TreeSet<>();
     @JsonProperty("jsonProvider")
     private String jsonProvider;
     @JsonProperty("spec")
@@ -82,6 +87,19 @@ public abstract class CuratorDiscoveryServiceDescription<TSPEC> {
 
     public void addTag(String tag){
         this.tags.add(tag);
+    }
+
+    public Set<IEndPointDescription.Protocol> getProtocols() {
+        return protocols;
+    }
+
+    public void setProtocols(Set<IEndPointDescription.Protocol> protocols) {
+        this.protocols.clear();
+        this.protocols.addAll(protocols);
+    }
+
+    public void addProtocol(IEndPointDescription.Protocol protocol){
+        this.protocols.add(protocol);
     }
 
     public String getJsonProvider() {

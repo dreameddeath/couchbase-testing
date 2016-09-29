@@ -69,7 +69,7 @@ public class RestServiceRegistrar extends AbstractServiceRegistrar<RestCuratorDi
                 service.getId(),
                 service.getEndPoint().host(),
                 service.getEndPoint().port(),
-                null,
+                service.getEndPoint().securedPort(),
                 serviceDescr,
                 System.currentTimeMillis(),
                 ServiceType.PERMANENT,

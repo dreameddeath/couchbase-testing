@@ -113,6 +113,7 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
 
 
     public HttpClient createClient(ClientKey key){
+        LOG.info("Create client for version {}",key.version);
         SslContextFactory sslContextFactory = new SslContextFactory();
         if(key.tlsParams!=null) {
             sslContextFactory.setSslContext(createSSLContext(key.tlsParams));
@@ -338,7 +339,7 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
             if (st instanceof Boolean) {
                 return ((Boolean)st).booleanValue() ? ALWAYS : NEVER;
             }
-            return ASYNC_ONLY;
+            return ALWAYS;
         }
     };
 

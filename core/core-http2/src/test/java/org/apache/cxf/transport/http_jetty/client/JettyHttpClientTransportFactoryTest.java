@@ -165,7 +165,7 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
 
     @Test
     public void testInovationWithHCAddress() throws Exception {
-        String address =  "jhc://http://localhost:" + PORT + "/SoapContext/SoapPort";
+        String address =  JettyHttpClientTransportFactory.JETTY_HTTP_PREFIX+"http://localhost:" + PORT + "/SoapContext/SoapPort";
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setBus(BusFactory.getDefaultBus());
         factory.setServiceClass(Greeter.class);
@@ -178,7 +178,7 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
 
     @Test
     public void testInovationWithHC1Address() throws Exception {
-        String address =  "jhc1://http://localhost:" + PORT + "/SoapContext/SoapPort";
+        String address =  JettyHttpClientTransportFactory.JETTY_HTTP1_PREFIX+"http://localhost:" + PORT + "/SoapContext/SoapPort";
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setBus(BusFactory.getDefaultBus());
         factory.setServiceClass(Greeter.class);
@@ -192,7 +192,7 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
 
     @Test
     public void testInovationWithHCHttp2Address() throws Exception {
-        String address =  "jhc2://http://localhost:" + PORT + "/SoapContext/SoapPort";
+        String address =  JettyHttpClientTransportFactory.JETTY_HTTP2_PREFIX+"http://localhost:" + PORT + "/SoapContext/SoapPort";
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setBus(BusFactory.getDefaultBus());
         factory.setServiceClass(Greeter.class);

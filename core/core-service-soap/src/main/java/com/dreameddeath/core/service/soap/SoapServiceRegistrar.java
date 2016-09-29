@@ -62,7 +62,7 @@ public class SoapServiceRegistrar extends AbstractServiceRegistrar<SoapCuratorDi
                 service.getId(),
                 service.getEndPoint().host(),
                 service.getEndPoint().port(),
-                null,
+                service.getEndPoint().securedPort(),
                 description,
                 System.currentTimeMillis(),
                 ServiceType.PERMANENT,

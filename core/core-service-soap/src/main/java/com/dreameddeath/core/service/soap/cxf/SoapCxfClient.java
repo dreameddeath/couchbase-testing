@@ -55,12 +55,10 @@ public class SoapCxfClient<T> extends AbstractServiceClientImpl<T,SoapCuratorDis
         try {
             return cacheInstance.get(instance, () -> {
                 JaxWsProxyFactoryBean clientFactoryBean=new JaxWsProxyFactoryBean();
-                String fullAddress = UriUtils.buildUri(instance);
+                String fullAddress = UriUtils.buildUri(instance,true);
                 clientFactoryBean.setServiceClass(Thread.currentThread().getContextClassLoader().loadClass(instance.getPayload().getClassName()));
                 clientFactoryBean.setBus(soapParentFactory.getBus());
                 clientFactoryBean.getHandlers().addAll(soapParentFactory.getHandlers());
-                //clientFactoryBean.getHandlers().add();
-                //clientFactoryBean.setWsdlURL(fullAddress+"?wsdl");
                 clientFactoryBean.setAddress(fullAddress);
                 return ClientWrapper.<T>build(clientFactoryBean,instance);
             }).get();

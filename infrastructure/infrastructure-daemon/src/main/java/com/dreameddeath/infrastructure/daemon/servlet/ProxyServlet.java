@@ -34,17 +34,27 @@ import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceProvider;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpClientTransport;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.http2.client.HTTP2Client;
+import org.eclipse.jetty.http2.client.http.HttpClientTransportOverHTTP2;
 import org.eclipse.jetty.proxy.AsyncProxyServlet;
+import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.NotFoundException;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,6 +62,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by Christophe Jeunesse on 21/08/2015.
@@ -67,16 +79,24 @@ public class ProxyServlet extends AsyncProxyServlet{
     private final ConcurrentMap<ServiceUid,ServiceProvider<CuratorDiscoveryServiceDescription>> serviceMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<ServiceUid,ProxyClientInstanceInfo> proxyClientMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String,ProxyClientRegistrar> proxyClientRegistrarMap = new ConcurrentHashMap<>();
+    private final AtomicBoolean forHttp2=new AtomicBoolean(false);
+    private final HttpConfiguration httpConfiguration=new HttpConfiguration();
     private String prefix;
     private String serviceType;
     private IEndPointDescription endPointDescription;
     private CuratorFramework curatorClient;
     private AbstractWebServer parentWebServer;
     private Collection<String> domainsList;
-
+    private HttpClient http2Client;
     @Override
     public void init(ServletConfig config) throws ServletException {
+        forHttp2.set(false);
         super.init(config);
+        forHttp2.set(true);
+        http2Client=createHttpClient();
+        forHttp2.set(false);
+        getServletContext().setAttribute(config.getServletName() + ".HttpClientForHTTP2", http2Client);
+
         curatorClient = (CuratorFramework) config.getServletContext().getAttribute(AbstractDaemon.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME);
         endPointDescription = (IEndPointDescription)config.getServletContext().getAttribute(PROXY_ENDPOINT_DESC);
         prefix = ServletUtils.normalizePath(endPointDescription.path(),false);
@@ -89,6 +109,72 @@ public class ProxyServlet extends AsyncProxyServlet{
         domainsList = (Collection<String>)config.getServletContext().getAttribute(SERVICE_DISCOVERER_DOMAINS_PARAM_NAME);
         Preconditions.checkNotNull(parentWebServer.getServiceDiscoveryManager(),"A service discovery manager should be defined for proxy servlet");
     }
+
+    @Override
+    protected HttpClient newHttpClient() {
+        HttpClientTransport transport;
+        if(forHttp2.get()){
+            HTTP2Client http2Client=new HTTP2Client();
+            transport=new HttpClientTransportOverHTTP2(http2Client);
+        }
+        else{
+            transport = new HttpClientTransportOverHTTP();
+        }
+
+        return new HttpClient(transport,null);
+    }
+
+    protected HttpClient getHttpClient(HttpVersion protocolVersion){
+        if(HttpVersion.HTTP_2==protocolVersion){
+            return http2Client;
+        }
+        else{
+            return getHttpClient();
+        }
+    }
+
+    @Override
+    protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    {
+        final int requestId = getRequestId(request);
+
+        String rewrittenTarget = rewriteTarget(request);
+
+        if (_log.isDebugEnabled())
+        {
+            StringBuffer uri = request.getRequestURL();
+            if (request.getQueryString() != null)
+                uri.append("?").append(request.getQueryString());
+            if (_log.isDebugEnabled())
+                _log.debug("{} rewriting: {} -> {}", requestId, uri, rewrittenTarget);
+        }
+
+        if (rewrittenTarget == null)
+        {
+            onProxyRewriteFailed(request, response);
+            return;
+        }
+
+        HttpVersion version=HttpVersion.fromString(request.getProtocol());
+        final Request proxyRequest = getHttpClient(version).newRequest(rewrittenTarget)
+                .method(request.getMethod())
+                .version(version);
+
+        copyRequestHeaders(request, proxyRequest);
+
+        addProxyHeaders(request, proxyRequest);
+
+        final AsyncContext asyncContext = request.startAsync();
+        // We do not timeout the continuation, but the proxy request
+        asyncContext.setTimeout(0);
+        proxyRequest.timeout(getTimeout(), TimeUnit.MILLISECONDS);
+
+        if (hasContent(request))
+            proxyRequest.content(proxyRequestContent(request, response, proxyRequest));
+
+        sendProxyRequest(request, response, proxyRequest);
+    }
+
 
     @Override
     protected String rewriteTarget(HttpServletRequest clientRequest) {
@@ -122,7 +208,7 @@ public class ProxyServlet extends AsyncProxyServlet{
                 LOG.error("Cannot find the service instance for {}/{}",serviceId,version);
                 throw new NotFoundException("Cannot Retrieve service instance of "+serviceId+"/"+version);
             }
-            String uriStr = UriUtils.buildUri(instance);
+            String uriStr = UriUtils.buildUri(instance,false);
             if(!uriStr.endsWith("/")){
                 uriStr += "/";
             }
@@ -196,6 +282,15 @@ public class ProxyServlet extends AsyncProxyServlet{
     @Override
     public void destroy() {
         super.destroy();
+        if(http2Client!=null){
+            try {
+                http2Client.stop();
+            }
+            catch (Exception e){
+                if (_log.isDebugEnabled())
+                    _log.debug(e);
+            }
+        }
     }
 
     private class ProxyServletLifeCycle implements LifeCycle.Listener {

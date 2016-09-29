@@ -84,6 +84,11 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-http2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-java-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -202,6 +207,11 @@
             <artifactId>jetty-server</artifactId>
             <version>${jetty.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>http2-server</artifactId>
+            <version>${jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

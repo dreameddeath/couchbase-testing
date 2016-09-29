@@ -28,9 +28,13 @@ import com.dreameddeath.core.service.soap.SoapServiceTypeHelper;
 import com.dreameddeath.core.service.soap.cxf.SoapCxfClientFactory;
 import com.dreameddeath.core.service.testing.LifeCycleListener;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.cxf.transport.servlet.CXFServlet;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -39,6 +43,7 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.springframework.web.context.ContextLoaderListener;
 
 import java.net.InetAddress;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +70,9 @@ public class SoapTestingServer{
     public SoapTestingServer(String testName, CuratorFramework curatorClient) throws Exception {
         this.curatorClient = curatorClient;
         server = new Server();
-        connector = new ServerConnector(server);
+        HttpConfiguration httpConfiguration=new HttpConfiguration();
+        connector = new ServerConnector(server,-1,-1,new HttpConnectionFactory(httpConfiguration),new HTTP2CServerConnectionFactory(httpConfiguration));
+
         server.addConnector(connector);
         ServletContextHandler contextHandler = new ServletContextHandler();
         server.setHandler(contextHandler);
@@ -120,6 +127,8 @@ public class SoapTestingServer{
             @Override public String buildInstanceUid() {
                 return UUID.randomUUID().toString();
             }
+            @Override public Integer securedPort() {return null;}
+            @Override public Set<Protocol> protocols() {return ImmutableSet.of(Protocol.HTTP_1,Protocol.HTTP_2);}
         });
         contextHandler.addEventListener(new ContextLoaderListener());
     }

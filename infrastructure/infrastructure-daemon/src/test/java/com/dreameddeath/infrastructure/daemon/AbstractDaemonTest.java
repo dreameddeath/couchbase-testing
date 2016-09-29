@@ -35,6 +35,7 @@ import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.ProxyWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
+import org.apache.cxf.transport.http_jetty.client.JettyHttpClientTransportFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -102,7 +103,7 @@ public class AbstractDaemonTest extends Assert {
             try{
                 Integer response =ClientBuilder.newClient()
                         .register(JsonProviderFactory.getProvider("service"))
-                        .target("http://127.0.0.1:8080")
+                        .target(JettyHttpClientTransportFactory.JETTY_HTTP2_PREFIX+"http://127.0.0.1:8080")
                         .path("/proxy-apis/tests#tests#tests/1.0")
                         .request()
                         .get(Integer.class);

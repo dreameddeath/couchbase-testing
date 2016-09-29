@@ -29,13 +29,20 @@ import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryLifeCycleManager;
 import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
 import com.dreameddeath.infrastructure.daemon.metrics.InstrumentedConnectionFactory;
+import com.dreameddeath.infrastructure.daemon.metrics.InstrumentedConnectionFactoryWithUpgrading;
+import com.dreameddeath.infrastructure.daemon.metrics.WebServerMetrics;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import com.google.common.base.Preconditions;
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.http2.HTTP2Cipher;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.core.env.PropertySources;
 
 import java.net.InetAddress;
@@ -59,11 +66,12 @@ public abstract class AbstractWebServer {
 
 
     private final AbstractDaemon parentDaemon;
-    private final MetricRegistry metricRegistry = new MetricRegistry();
+    private final WebServerMetrics webServerMetrics = new WebServerMetrics(this);
     private final String name;
     private final UUID uuid;
     private final Server webServer;
     private final ServerConnector serverConnector;
+    private final ServerConnector securedServerConnector;
     private final PropertySources propertySources;
     private final ServiceDiscoveryManager serviceDiscoveryManager;
     private final DateTimeServiceFactory dateTimeServiceFactory;
@@ -95,31 +103,80 @@ public abstract class AbstractWebServer {
         name = builder.name;
         parentDaemon.getDaemonLifeCycle().addLifeCycleListener(new WebServerDaemonLifeCycleListener(this,builder.isRoot));
         webServer = new Server(new
-                InstrumentedQueuedThreadPool(metricRegistry)
+                InstrumentedQueuedThreadPool(webServerMetrics.getMetricRegistry())
         );
-        serverConnector = new ServerConnector(webServer,
-                    new InstrumentedConnectionFactory(new HttpConnectionFactory(), metricRegistry.timer("http.connections"))
-                );
-
-        int port = builder.port;
-        if(port==0){
-            port = DaemonConfigProperties.DAEMON_WEBSERVER_PORT.get();
-        }
-        if(port!=0){
-            serverConnector.setPort(port);
-        }
-
-
         String address = getAddress(builder.address, builder.interfaceName);
         if(address==null){
             address = getAddress(DaemonConfigProperties.DAEMON_WEBSERVER_ADDRESS.get(),DaemonConfigProperties.DAEMON_WEBSERVER_INTERFACE.get());
         }
-        if(address!=null){
-            serverConnector.setHost(address);
+
+        {
+            HttpConfiguration httpConfiguration = new HttpConfiguration();
+            serverConnector = new ServerConnector(webServer,
+                    new InstrumentedConnectionFactory(new HttpConnectionFactory(httpConfiguration), webServerMetrics.getMetricRegistry().timer("http.connections")),
+                    new InstrumentedConnectionFactoryWithUpgrading<>(new HTTP2CServerConnectionFactory(httpConfiguration), webServerMetrics.getMetricRegistry().timer("http2.connections"))
+            );
+
+            serverConnector.setDefaultProtocol(HttpVersion.HTTP_1_1.asString());
+
+            int port = builder.port;
+            if (port == 0) {
+                port = DaemonConfigProperties.DAEMON_WEBSERVER_PORT.get();
+            }
+            if (port != 0) {
+                serverConnector.setPort(port);
+            }
+
+            if (address != null) {
+                serverConnector.setHost(address);
+            }
+            webServer.addConnector(serverConnector);
         }
 
 
-        webServer.addConnector(serverConnector);
+
+        if(builder.withSsl){
+            int sslPort = builder.port;
+            if(sslPort==0){
+                sslPort = DaemonConfigProperties.DAEMON_WEBSERVER_SSL_PORT.get();
+            }
+
+            HttpConfiguration httpsConfiguration = new HttpConfiguration();
+            httpsConfiguration.setSecureScheme("https");
+            if(sslPort!=0){
+                httpsConfiguration.setSecurePort(sslPort);
+            }
+            httpsConfiguration.addCustomizer(new SecureRequestCustomizer());
+            SslContextFactory sslContextFactory=new SslContextFactory();
+            sslContextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
+            Preconditions.checkNotNull(builder.sslKeyStoreResource,"A ssl keystore resource is mandatory");
+            Preconditions.checkNotNull(builder.sslKeyStorePassword,"A ssl keystore password is mandatory");
+            Preconditions.checkNotNull(builder.sslKeyManagerPassword,"A ssl key manager password is mandatory");
+            sslContextFactory.setKeyStoreResource(builder.sslKeyStoreResource);
+            sslContextFactory.setKeyStorePassword(builder.sslKeyStorePassword);
+            sslContextFactory.setKeyManagerPassword(builder.sslKeyManagerPassword);
+            sslContextFactory.setUseCipherSuitesOrder(true);
+
+            NegotiatingServerConnectionFactory.checkProtocolNegotiationAvailable();
+            ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
+            alpn.setDefaultProtocol("h2");//Default to http2
+
+            securedServerConnector=new ServerConnector(webServer,
+                    new SslConnectionFactory(sslContextFactory, alpn.getProtocol()),
+                    alpn,
+                    new InstrumentedConnectionFactory(new HttpConnectionFactory(httpsConfiguration), webServerMetrics.getMetricRegistry().timer("http.ssl.connections")),
+                    new InstrumentedConnectionFactory(new HTTP2ServerConnectionFactory(httpsConfiguration),webServerMetrics.getMetricRegistry().timer("http2.ssl.connections"))
+            );
+            securedServerConnector.setHost(address);
+            if(sslPort!=0){
+                securedServerConnector.setPort(sslPort);
+            }
+            webServer.addConnector(securedServerConnector);
+        }
+        else{
+            securedServerConnector=null;
+        }
+
         PropertySources propertySources = builder.propertySources;
         if(propertySources==null){
             propertySources = new ConfigMutablePropertySources();
@@ -144,6 +201,8 @@ public abstract class AbstractWebServer {
             AbstractWebServerPlugin plugin = pluginBuilder.build(this);
             this.plugins.add(plugin);
         }
+
+
     }
 
 
@@ -191,11 +250,14 @@ public abstract class AbstractWebServer {
 
     public void start() throws Exception{
         getMetricRegistry().removeMatching(MetricFilter.ALL);
+        webServerMetrics.startReporter();
         webServer.start();
     }
 
     public void stop() throws Exception{
         webServer.stop();
+        webServerMetrics.reportNow();
+        webServerMetrics.stopReporter();
     }
 
     public void join() throws Exception{
@@ -217,8 +279,13 @@ public abstract class AbstractWebServer {
     }
 
     public MetricRegistry getMetricRegistry(){
-        return metricRegistry;
+        return webServerMetrics.getMetricRegistry();
     }
+
+    public ServerConnector getSecuredServerConnector() {
+        return securedServerConnector;
+    }
+
     public enum Status{
         UNKNOWN,
         FAILED,
@@ -261,6 +328,10 @@ public abstract class AbstractWebServer {
         private int port=0;
         private List<IWebServerPluginBuilder> pluginBuilders = new ArrayList<>();
         private DateTimeServiceFactory dateTimeServiceFactory=null;
+        private boolean withSsl=false;
+        private Resource sslKeyStoreResource=null;
+        private String sslKeyStorePassword=null;
+        private String sslKeyManagerPassword=null;
 
         public T withAddress(String address) {
             this.address = address;
@@ -309,6 +380,26 @@ public abstract class AbstractWebServer {
 
         public T withDateTimeServiceFactory(DateTimeServiceFactory dateTimeServiceFactory) {
             this.dateTimeServiceFactory = dateTimeServiceFactory;
+            return (T)this;
+        }
+
+        public T withSsl(boolean withSsl) {
+            this.withSsl = withSsl;
+            return (T)this;
+        }
+
+        public T withSslKeyStoreResource(Resource keyStoreResource) {
+            this.sslKeyStoreResource = keyStoreResource;
+            return (T)this;
+        }
+
+        public T withSslKeyStorePassword(String sslKeyStorePassword) {
+            this.sslKeyStorePassword = sslKeyStorePassword;
+            return (T)this;
+        }
+
+        public T withSslKeyManagerPassword(String sslKeyManagerPassword) {
+            this.sslKeyManagerPassword = sslKeyManagerPassword;
             return (T)this;
         }
     }

@@ -35,6 +35,7 @@ import com.dreameddeath.core.service.interceptor.rest.feature.LogClientFeature;
 import com.dreameddeath.core.service.interceptor.rest.feature.UserClientFeature;
 import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.common.ServicesByNameInstanceDescription;
+import com.dreameddeath.core.service.model.rest.RestServiceInstanceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.testing.TestingRestServer;
@@ -48,7 +49,8 @@ import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import io.swagger.models.Model;
-import io.swagger.models.Swagger;
+import org.apache.cxf.message.Message;
+import org.apache.cxf.transport.http_jetty.client.JettyHttpClientTransportFactory;
 import org.joda.time.DateTime;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -117,9 +119,11 @@ public class TestServicesTest extends Assert{
         LOG.debug("Response {}", response.getStatus());
         ServicesByNameInstanceDescription readDescription = response.readEntity(ServicesByNameInstanceDescription.class);
         assertEquals(2, readDescription.getServiceInstanceMap().keySet().size());
-        Map<String,Model> listModels = ((Swagger)readDescription.getServiceInstanceMap().get("testService#1.0").get(0).getSpec()).getDefinitions();
+        RestServiceInstanceDescription serviceDesc= (RestServiceInstanceDescription)readDescription.getServiceInstanceMap().get("testService#1.0").get(0);
+        Map<String,Model> listModels = serviceDesc.getSpec().getDefinitions();
         assertEquals(5,listModels.size());
         assertEquals(6,listModels.get("TestingDocument").getProperties().size());
+        assertEquals(2,serviceDesc.getProtocols().size());
     }
 
     @Test
@@ -134,6 +138,8 @@ public class TestServicesTest extends Assert{
         List<ClientInstanceInfo> response = ClientBuilder.newBuilder().build()
                 .target(connectionString)
                 .register(new JacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR)))
+                //.property(JettyHttpClientConduit.USE_HTTP2,true)
+                .property(Message.TRANSPORT, JettyHttpClientTransportFactory.HTTP2_TRANSPORT)
                 .path("/listing/services/clients")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get(new GenericType<List<ClientInstanceInfo>>(){});
@@ -258,8 +264,8 @@ public class TestServicesTest extends Assert{
         catch(Exception e){
             throw e;
         }
-
-        for(int attempt=0;attempt<5;attempt++)
+        int attempt=0;
+        /*for(;attempt<5;attempt++)
         {
             {
 
@@ -280,7 +286,7 @@ public class TestServicesTest extends Assert{
             }
 
 
-            {
+            {*/
 
                 final IRestServiceClient client = clientFactory.getClient("testService", "1.0");
                 List<Observable<String>> results = new ArrayList<>();
@@ -290,12 +296,13 @@ public class TestServicesTest extends Assert{
                             client.getInstance().path("asyncTraceId")
                                     .request(MediaType.TEXT_PLAIN)
                                     .get(String.class)
-                                    .filter(val -> StringUtils.isNotEmpty(val)));
+                                    .filter(StringUtils::isNotEmpty));
                 }
                 assertEquals(50, Observable.merge(results).count().toBlocking().single().intValue());
-                LOG.warn("Attempt #{} Duration async {} ms",attempt, (System.nanoTime() - startTime) * 1.0 / 1_000_000);
-            }
-        }
+                double dur=(System.nanoTime() - startTime) * 1.0 / 1_000_000;
+                LOG.warn("Attempt #{} Duration async {} ms / avg {} ms",attempt, dur,dur/50);
+            /*}
+        }*/
     }
 
     @AfterClass

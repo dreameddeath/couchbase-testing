@@ -308,7 +308,7 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
                     instanceDescr.setPort(instance.getPort());
                     instanceDescr.setDaemonUid(IEndPointDescription.Utils.getDaemonUid(instance.getId()));
                     instanceDescr.setWebServerUid(IEndPointDescription.Utils.getServerUid(instance.getId()));
-                    instanceDescr.setUriSpec(UriUtils.buildUri(instance));
+                    instanceDescr.setUriSpec(UriUtils.buildUri(instance,false));
                     instanceDescr.setUid(instance.getId());
                     foundServiceVersionInfoDescription.addInstance(instanceDescr);
                 }

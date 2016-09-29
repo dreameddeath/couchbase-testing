@@ -22,11 +22,13 @@ import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.client.AbstractServiceClientImpl;
 import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
 import com.dreameddeath.core.service.model.rest.RestCuratorDiscoveryServiceDescription;
+import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.service.utils.UriUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceProvider;
+import org.apache.cxf.transport.http_jetty.client.JettyHttpClientConduit;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Feature;
@@ -50,7 +52,10 @@ public class RestServiceClientImpl extends AbstractServiceClientImpl<RxJavaWebTa
                 new ServiceInstanceConfig(instance)
         );
         RxJavaWebTarget target = new RxJavaWebTarget(ClientBuilder.newBuilder().build().target(config.uri))
-                .register(config.provider);
+                .register(config.provider)
+                .property(JettyHttpClientConduit.USE_HTTP2, config.protocol == IEndPointDescription.Protocol.HTTP_2);
+        //TODO manage SSL + HTTP2
+                //.property("protocol",config.protocol);
         if (((RestServiceClientFactory)getParentFactory()).getFeatureFactory() != null) {
             for (Feature feature : ((RestServiceClientFactory)getParentFactory()).getFeatureFactory().getClientFeatures()) {
                 target = target.register(feature);
@@ -61,16 +66,23 @@ public class RestServiceClientImpl extends AbstractServiceClientImpl<RxJavaWebTa
 
 
     private static class ServiceInstanceConfig{
-        private String uri;
-        private JacksonJsonProvider provider;
+        private final String uri;
+        private final JacksonJsonProvider provider;
+        private final IEndPointDescription.Protocol protocol;
 
         private ServiceInstanceConfig(ServiceInstance<RestCuratorDiscoveryServiceDescription> instance){
-            uri = UriUtils.buildUri(instance);
+            uri = UriUtils.buildUri(instance,true);
             String jsonProvider = instance.getPayload().getJsonProvider();
             if(jsonProvider==null){
                 jsonProvider= ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR.getName();
             }
             provider = JsonProviderFactory.getProvider(jsonProvider);
+            if(instance.getPayload().getProtocols().contains(IEndPointDescription.Protocol.HTTP_2)){
+                protocol= IEndPointDescription.Protocol.HTTP_2;
+            }
+            else{
+                protocol= IEndPointDescription.Protocol.HTTP_1;
+            }
         }
     }
 

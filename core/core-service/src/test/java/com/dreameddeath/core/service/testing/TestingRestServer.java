@@ -37,9 +37,13 @@ import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.cxf.transport.servlet.CXFServlet;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -50,6 +54,7 @@ import org.springframework.web.context.ContextLoaderListener;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +85,8 @@ public class TestingRestServer {
     public TestingRestServer(String testName,CuratorFramework curatorClient,ObjectMapper jacksonMapper) throws Exception{
         this.curatorClient = curatorClient;
         server = new Server();
-        connector = new ServerConnector(server);
+        HttpConfiguration httpConfiguration=new HttpConfiguration();
+        connector = new ServerConnector(server,-1,-1,new HttpConnectionFactory(httpConfiguration),new HTTP2CServerConnectionFactory(httpConfiguration));
         server.addConnector(connector);
         ServletContextHandler contextHandler = new ServletContextHandler();
         server.setHandler(contextHandler);
@@ -104,6 +110,8 @@ public class TestingRestServer {
         contextHandler.setAttribute("clientFactory",getClientFactory());
         contextHandler.setAttribute("curatorClient", curatorClient);
         contextHandler.setAttribute("endPointInfo", new IEndPointDescription() {
+            @Override public Integer securedPort() {return null;}
+            @Override public Set<Protocol> protocols() {return ImmutableSet.of(Protocol.HTTP_1,Protocol.HTTP_2);}
             @Override public String daemonUid() {
                 return daemonUid.toString();
             }

@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.infrastructure.daemon.config;
@@ -48,10 +50,17 @@ public class DaemonConfigProperties {
             name="daemon.webserver.port",
             descr = "defines the listening port. If not given, or the value is 0, a dynamic one is allocated",
             defaultValue = "0",
-            examples = {"8080","10080"}
+            examples = {"80","8080","10080"}
     )
     public static final IntConfigProperty DAEMON_WEBSERVER_PORT = ConfigPropertyFactory.getIntProperty("daemon.webserver.port", 0);
 
+    @ConfigPropertyDoc(
+            name="daemon.webserver.port.ssl",
+            descr = "defines the secured listening port. If not given, or the value is 0, a dynamic one is allocated",
+            defaultValue = "0",
+            examples = {"8083","10083","443"}
+    )
+    public static final IntConfigProperty DAEMON_WEBSERVER_SSL_PORT = ConfigPropertyFactory.getIntProperty("daemon.webserver.port.ssl", 0);
 
     @ConfigPropertyDoc(
             name="daemon.webserver.proxy-api.path-prefix",

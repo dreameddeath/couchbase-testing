@@ -1,24 +1,30 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.service.model.common;
 
+import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.collect.ImmutableSet;
 import org.apache.curator.x.discovery.ServiceInstance;
+
+import java.util.Set;
 
 /**
  * Created by Christophe Jeunesse on 04/03/2015.
@@ -33,6 +39,10 @@ public abstract class ServiceInstanceDescription<TSPEC>{
     private String version;
     @JsonProperty("port")
     private Integer port;
+    @JsonProperty("sslPort")
+    private Integer sslPort;
+    @JsonProperty("protocols")
+    private Set<IEndPointDescription.Protocol> protocols;
     @JsonProperty("uid")
     private String uid;
     @JsonProperty("state")
@@ -48,6 +58,8 @@ public abstract class ServiceInstanceDescription<TSPEC>{
         state = instance.getPayload().getState();
         port=instance.getPort();
         spec =instance.getPayload().getSpec();
+        sslPort = instance.getSslPort();
+        setProtocols(instance.getPayload().getProtocols());
     }
 
     public ServiceInstanceDescription(){}
@@ -107,6 +119,22 @@ public abstract class ServiceInstanceDescription<TSPEC>{
 
     public void setSpec(TSPEC spec) {
         this.spec = spec;
+    }
+
+    public Integer getSslPort() {
+        return sslPort;
+    }
+
+    public void setSslPort(Integer sslPort) {
+        this.sslPort = sslPort;
+    }
+
+    public Set<IEndPointDescription.Protocol> getProtocols() {
+        return protocols;
+    }
+
+    public void setProtocols(Set<IEndPointDescription.Protocol> protocols) {
+        this.protocols = ImmutableSet.copyOf(protocols);
     }
 
     @JsonProperty

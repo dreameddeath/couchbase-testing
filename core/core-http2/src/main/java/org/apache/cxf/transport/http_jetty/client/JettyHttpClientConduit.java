@@ -149,6 +149,8 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
 
         if (!MessageUtils.isTrue(o)) {
             message.put(USE_ASYNC, Boolean.FALSE);
+            super.setupConnection(message, addressChanged ? new Address(uriString, uri) : address, csPolicy);
+            return;
         }
         else {
             message.put(USE_ASYNC, Boolean.TRUE);
@@ -187,7 +189,6 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
                     mainVersion = JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_1;
                 }
         }
-
 
         HttpClient httpClient = parentFactory.getClient(tlsClientParameters, mainVersion);
         Request request = httpClient.newRequest(uri).method(httpRequestMethod).version(httpVersion);
