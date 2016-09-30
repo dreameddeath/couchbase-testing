@@ -148,6 +148,10 @@ public class JettyHttpClientTransportFactory extends AbstractTransportFactory im
                     return (JettyHttpClientConduitFactory)conduitFactory;
                 }
                 else{
+                    HTTPConduitFactory newFactory = new JettyHttpClientConduitFactory(bus);
+                    if(conduitFactory==null){
+                        bus.setExtension(newFactory,HTTPConduitFactory.class);
+                    }
                     return new JettyHttpClientConduitFactory(bus);
                 }
             }

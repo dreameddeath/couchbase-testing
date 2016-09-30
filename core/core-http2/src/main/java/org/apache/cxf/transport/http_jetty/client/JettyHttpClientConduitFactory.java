@@ -18,6 +18,7 @@
 
 package org.apache.cxf.transport.http_jetty.client;
 
+import com.codahale.metrics.MetricRegistry;
 import org.apache.cxf.Bus;
 import org.apache.cxf.buslifecycle.BusLifeCycleListener;
 import org.apache.cxf.buslifecycle.BusLifeCycleManager;
@@ -27,6 +28,7 @@ import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transport.http.HTTPConduitFactory;
 import org.apache.cxf.transport.http.HTTPTransportFactory;
+import org.apache.cxf.transport.http_jetty.client.metrics.MetricHttpClientContainerListener;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpClientTransport;
@@ -43,11 +45,13 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Christophe Jeunesse on 20/09/2016.
  */
 public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
+    public static final String CXF_HTTP_CLIENT_METRIC_PREFIX = "CxfHttpClient:";
     private final Logger LOG = LoggerFactory.getLogger(JettyHttpClientConduit.class);
 
     //ConnectionPool
@@ -61,11 +65,13 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
 
     private final Map<ClientKey,HttpClient> clientKeyHttpClientMap =new ConcurrentHashMap<>();
     private final Bus bus;
+    private final MetricRegistry metricRegistry;
     private boolean shutdown;
     private UseAsyncPolicy useAsyncPolicy=null;
     private HttpVersionPolicy httpVersionPolicy=null;
     private int connectionTimeout=0;
     private int connectionMaxIdle=0;
+    private final AtomicInteger clientId=new AtomicInteger();
 
     public JettyHttpClientConduitFactory() {
         this(null);
@@ -77,27 +83,21 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
         this.shutdown=false;
         if(bus!=null) {
             setProperties(bus.getProperties());
-
+            metricRegistry=bus.getExtension(MetricRegistry.class);
             BusLifeCycleManager manager = bus.getExtension(BusLifeCycleManager.class);
 
             if (manager != null) {
                 manager.registerLifeCycleListener(new BusLifeCycleListener() {
-                    @Override
-                    public void initComplete() {
-
-                    }
-
-                    @Override
-                    public void preShutdown() {
-
-                    }
-
-                    @Override
-                    public void postShutdown() {
+                    @Override public void initComplete() {}
+                    @Override public void preShutdown() {}
+                    @Override public void postShutdown() {
                         shutdown = true;
                     }
                 });
             }
+        }
+        else{
+            metricRegistry=null;
         }
     }
 
@@ -127,15 +127,17 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
             transport = new HttpClientTransportOverHTTP();
         }
 
+
         HttpClient client= new HttpClient(transport,sslContextFactory);
         if(connectionTimeout>0){
             client.setConnectTimeout(connectionTimeout);
         }
-
         if(connectionMaxIdle>0){
             client.setIdleTimeout(connectionMaxIdle);
         }
-
+        if(metricRegistry!=null) {
+            client.addEventListener(new MetricHttpClientContainerListener(metricRegistry, CXF_HTTP_CLIENT_METRIC_PREFIX +key.version+":"+clientId.incrementAndGet()));
+        }
         addBusLifeCycleListenerOrStart(client);
         return client;
     }

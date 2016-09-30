@@ -18,6 +18,8 @@
 
 package org.apache.cxf.transport.http_jetty.client;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Slf4jReporter;
 import com.google.common.base.Preconditions;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
@@ -43,6 +45,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.AsyncHandler;
 import javax.xml.ws.Endpoint;
@@ -63,10 +66,22 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
     static Endpoint ep;
     static String request;
     static Greeter g;
-
+    static MetricRegistry registry;
+    static Slf4jReporter reporter;
+    static boolean fakeAddressDone;
     @BeforeClass
     public static void start() throws Exception {
+        fakeAddressDone=false;
         Bus b = createStaticBus();
+        registry=new MetricRegistry();
+        b.setExtension(registry,MetricRegistry.class);
+        reporter=Slf4jReporter.forRegistry(registry)
+                .withLoggingLevel(Slf4jReporter.LoggingLevel.INFO)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
+                .convertRatesTo(TimeUnit.SECONDS)
+                .outputTo(LoggerFactory.getLogger(JettyHttpClientTransportFactory.class))
+                .build();
+        reporter.start(5,TimeUnit.SECONDS);
         b.setProperty(JettyHttpClientConduitFactory.USE_POLICY, JettyHttpClientConduitFactory.UseAsyncPolicy.ALWAYS);
         b.setProperty(JettyHttpClientConduitFactory.HTTP_VERSION_POLICY,JettyHttpClientConduitFactory.HttpVersionPolicy.DEFAULT_2);
         BusFactory.setThreadDefaultBus(b);
@@ -139,6 +154,10 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
             ep.stop();
             ep = null;
         }
+        if(reporter!=null) {
+            reporter.report();
+            reporter.stop();
+        }
     }
     @Test
     public void testTimeout() throws Exception {
@@ -159,6 +178,7 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
             g.greetMe(request);
             fail("should have connect exception");
         } catch (Exception ex) {
+            fakeAddressDone=true;
             //expected
         }
     }
@@ -174,6 +194,8 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         String input="test HTTP2";
         String response = greeter.greetMe(input);
         assertEquals("Get a wrong response", "Hello "+input, response);
+        reporter.report();
+        assertEquals(2L+(fakeAddressDone?1:0),registry.getMetrics().entrySet().stream().filter(entry -> entry.getKey().contains(JettyHttpClientConduitFactory.CXF_HTTP_CLIENT_METRIC_PREFIX) && entry.getKey().contains(JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_2.toString())).count());
     }
 
     @Test
@@ -187,6 +209,8 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         String input="test HTTP1";
         String response = greeter.greetMe(input);
         assertEquals("Get a wrong response", "Hello "+input, response);
+        reporter.report();
+        assertEquals(2L,registry.getMetrics().entrySet().stream().filter(entry -> entry.getKey().contains(JettyHttpClientConduitFactory.CXF_HTTP_CLIENT_METRIC_PREFIX) && entry.getKey().contains(JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_1.toString())).count());
     }
 
 
@@ -200,6 +224,8 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         Greeter greeter = factory.create(Greeter.class);
         String response = greeter.greetMe("test HTTP2");
         assertEquals("Get a wrong response", "Hello test HTTP2", response);
+        reporter.report();
+        assertEquals(2L+(fakeAddressDone?1:0),registry.getMetrics().entrySet().stream().filter(entry -> entry.getKey().contains(JettyHttpClientConduitFactory.CXF_HTTP_CLIENT_METRIC_PREFIX) && entry.getKey().contains(JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_2.toString())).count());
     }
 
     @Test
@@ -212,6 +238,8 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         Greeter greeter = factory.create(Greeter.class);
         String response = greeter.greetMe("test HTTP2");
         assertEquals("Get a wrong response", "Hello test HTTP2", response);
+        reporter.report();
+        assertEquals(2L+(fakeAddressDone?1:0),registry.getMetrics().entrySet().stream().filter(entry -> entry.getKey().contains(JettyHttpClientConduitFactory.CXF_HTTP_CLIENT_METRIC_PREFIX) && entry.getKey().contains(JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_2.toString())).count());
     }
 
 
@@ -225,6 +253,8 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         Greeter greeter = factory.create(Greeter.class);
         String response = greeter.greetMe("test HTTP2");
         assertEquals("Get a wrong response", "Hello test HTTP2", response);
+        reporter.report();
+        assertEquals(2L+(fakeAddressDone?1:0),registry.getMetrics().entrySet().stream().filter(entry -> entry.getKey().contains(JettyHttpClientConduitFactory.CXF_HTTP_CLIENT_METRIC_PREFIX) && entry.getKey().contains(JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_2.toString())).count());
     }
 
     @Test
@@ -237,6 +267,8 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         Greeter greeter = factory.create(Greeter.class);
         String response = greeter.greetMe("test HTTP1");
         assertEquals("Get a wrong response", "Hello test HTTP1", response);
+        reporter.report();
+        assertEquals(2L,registry.getMetrics().entrySet().stream().filter(entry -> entry.getKey().contains(JettyHttpClientConduitFactory.CXF_HTTP_CLIENT_METRIC_PREFIX) && entry.getKey().contains(JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_1.toString())).count());
     }
 
 
@@ -249,6 +281,8 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         cp.setAllowChunking(false);
         c.setClient(cp);
         assertEquals("Hello " + request, g.greetMe(request));
+        reporter.report();
+        assertEquals(2L+(fakeAddressDone?1:0),registry.getMetrics().entrySet().stream().filter(entry -> entry.getKey().contains(JettyHttpClientConduitFactory.CXF_HTTP_CLIENT_METRIC_PREFIX) && entry.getKey().contains(JettyHttpClientConduitFactory.ClientHttpVersion.HTTP_2.toString())).count());
     }
     @Test
     public void testCallAsync() throws Exception {
