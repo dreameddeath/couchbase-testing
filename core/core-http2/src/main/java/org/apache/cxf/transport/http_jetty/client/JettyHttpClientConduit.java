@@ -61,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.apache.cxf.transport.http_jetty.client.JettyHttpClientTransportFactory.JETTY_SIMPLE_HTTP2_PREFIX;
 import static org.eclipse.jetty.http.HttpHeader.USER_AGENT;
 
 /**
@@ -99,6 +100,7 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
                 try {
                     uriString = uriString.substring(prefix.length());
                     uri = new URI(uriString);
+
                     addressChanged = true;
                 } catch (URISyntaxException ex) {
                     throw new MalformedURLException("unsupport uri: " + uriString);
@@ -168,8 +170,9 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
         JettyHttpClientConduitFactory.ClientHttpVersion mainVersion;
         HttpVersion httpVersion;
         JettyHttpClientConduitFactory.HttpVersionPolicy httpVersionPolicy = parentFactory.getHttpVersionPolicy();
-        boolean hasHttp2 = JettyHttpClientTransportFactory.JETTY_HTTP2_PREFIX.equals(uriPrefix) ||(transport!=null && transport.equals(JettyHttpClientTransportFactory.HTTP2_TRANSPORT)) || MessageUtils.isTrue(message.getContextualProperty(USE_HTTP2));
-        boolean hasHttp1 = JettyHttpClientTransportFactory.JETTY_HTTP1_PREFIX.equals(uriPrefix) ||(transport!=null && transport.equals(JettyHttpClientTransportFactory.HTTP1_TRANSPORT));
+        boolean hasHttp2 = (uriPrefix!=null && (uriPrefix.contains(JettyHttpClientTransportFactory.JETTY_HTTP2_PREFIX)||uriPrefix.contains(JETTY_SIMPLE_HTTP2_PREFIX)))
+                        ||(transport!=null && transport.equals(JettyHttpClientTransportFactory.HTTP2_TRANSPORT)) || MessageUtils.isTrue(message.getContextualProperty(USE_HTTP2));
+        boolean hasHttp1 = (uriPrefix!=null && uriPrefix.contains(JettyHttpClientTransportFactory.JETTY_HTTP1_PREFIX)) ||(transport!=null && transport.equals(JettyHttpClientTransportFactory.HTTP1_TRANSPORT));
         switch (httpVersionPolicy){
             case ALWAYS_1:
                 httpVersion = HttpVersion.HTTP_1_1;

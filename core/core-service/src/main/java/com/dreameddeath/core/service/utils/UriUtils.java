@@ -42,10 +42,7 @@ public class UriUtils {
         final UriSpec correctedSpec=new UriSpec();
         if(versionPrefixAppend) {
             if (serviceDescr.getPayload().getProtocols().contains(IEndPointDescription.Protocol.HTTP_2)) {
-                correctedSpec.add(new Part(JettyHttpClientTransportFactory.JETTY_HTTP2_PREFIX, false));
-            }
-            else{
-                correctedSpec.add(new Part(JettyHttpClientTransportFactory.JETTY_HTTP1_PREFIX, false));
+                correctedSpec.add(new Part(JettyHttpClientTransportFactory.JETTY_SIMPLE_HTTP2_PREFIX, false));
             }
         }
         serviceDescr.getUriSpec().getParts().stream()

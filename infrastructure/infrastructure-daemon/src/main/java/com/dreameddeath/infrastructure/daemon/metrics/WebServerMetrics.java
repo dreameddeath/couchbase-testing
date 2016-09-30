@@ -33,16 +33,10 @@ import java.util.concurrent.TimeUnit;
 public class WebServerMetrics {
     private final MetricRegistry metricRegistry = new MetricRegistry();
     private final AbstractWebServer parentServer;
-    private final Slf4jReporter logReporter;
+    private volatile Slf4jReporter logReporter;
     private final Set<String> rootKeys=new TreeSet<>();
     public WebServerMetrics(AbstractWebServer parentServer) {
         this.parentServer = parentServer;
-
-        logReporter = Slf4jReporter.forRegistry(metricRegistry)
-                .outputTo(LoggerFactory.getLogger(WebServerMetrics.class))
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build();
     }
 
     public MetricRegistry getMetricRegistry() {
@@ -66,11 +60,19 @@ public class WebServerMetrics {
     }
 
     public void startReporter(){
+        logReporter = Slf4jReporter.forRegistry(metricRegistry)
+                .outputTo(LoggerFactory.getLogger(WebServerMetrics.class))
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
+                .build();
         logReporter.start(1,TimeUnit.MINUTES);
     }
 
     public void stopReporter(){
-        logReporter.stop();
+        if(logReporter!=null) {
+            logReporter.stop();
+            logReporter=null;
+        }
     }
 
     public void markRootKeys(){

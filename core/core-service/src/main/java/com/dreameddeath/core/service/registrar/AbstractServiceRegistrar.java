@@ -49,9 +49,9 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
     private final CuratorFramework curatorClient;
     private final String domain;
     private final String serviceType;
+    private final ServiceDiscovery<T> serviceDiscovery;
+    private final Set<AbstractExposableService> services = new CopyOnWriteArraySet<>();
     private boolean isStarted=false;
-    private Set<AbstractExposableService> services = new CopyOnWriteArraySet<>();
-    private ServiceDiscovery<T> serviceDiscovery;
 
 
     protected abstract Class<T> getDescriptionClass();
@@ -60,19 +60,17 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
         this.curatorClient = curatorClient;
         this.domain = domain;
         this.serviceType = serviceType;
+        String fullPath = ServiceNamingUtils.buildServiceDiscovererDomain(curatorClient,domain,serviceType);
+        serviceDiscovery = ServiceDiscoveryBuilder.builder(getDescriptionClass())
+                .serializer((InstanceSerializer<T>)new ServiceInstanceSerializerImpl())
+                .client(curatorClient)
+                .basePath(fullPath).build();
     }
 
 
 
     public synchronized void start() throws Exception{
         curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
-        String fullPath = ServiceNamingUtils.buildServiceDiscovererDomain(curatorClient,domain,serviceType);
-
-        serviceDiscovery = ServiceDiscoveryBuilder.builder(getDescriptionClass())
-                .serializer((InstanceSerializer<T>)new ServiceInstanceSerializerImpl())
-                .client(curatorClient)
-                .basePath(fullPath).build();
-
         serviceDiscovery.start();
 
         for(AbstractExposableService foundService:services) {
@@ -84,6 +82,7 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
 
     public synchronized void stop() throws IOException {
         isStarted=false;
+        if(serviceDiscovery!=null)
         serviceDiscovery.close();
         services.clear();
     }

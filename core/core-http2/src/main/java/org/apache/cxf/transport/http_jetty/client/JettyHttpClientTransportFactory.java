@@ -50,15 +50,21 @@ public class JettyHttpClientTransportFactory extends AbstractTransportFactory im
      */
     private static final Set<String> URI_PREFIXES = new HashSet<String>();
 
+    public static final String JETTY_WS_PREFIX = "ws-";
     public static final String JETTY_HTTP_PREFIX = "jhc-";
     public static final String JETTY_HTTP2_PREFIX = "jhc2-";
     public static final String JETTY_HTTP1_PREFIX = "jhc1-";
+    public static final String JETTY_SIMPLE_HTTP2_PREFIX = "http2-";
 
 
     static {
         URI_PREFIXES.add(JETTY_HTTP_PREFIX);
         URI_PREFIXES.add(JETTY_HTTP2_PREFIX);
         URI_PREFIXES.add(JETTY_HTTP1_PREFIX);
+        URI_PREFIXES.add(JETTY_WS_PREFIX+JETTY_HTTP_PREFIX);
+        URI_PREFIXES.add(JETTY_WS_PREFIX+JETTY_HTTP1_PREFIX);
+        URI_PREFIXES.add(JETTY_WS_PREFIX+JETTY_HTTP2_PREFIX);
+        URI_PREFIXES.add(JETTY_SIMPLE_HTTP2_PREFIX);
     }
 
      static Set<String> getUriPrefixesList() {
