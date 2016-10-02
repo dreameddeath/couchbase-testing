@@ -39,7 +39,6 @@ import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -101,7 +100,7 @@ public class UiAdminsTest {
         daemon2.getDaemonLifeCycle().start();//Start halted
     }
 
-    @Test @Ignore
+    @Test
     public void runTest(){
         try {
             System.out.println(">>> STARTING webserver : http://localhost:"+daemons.get(0).getAdditionalWebServers().get(0).getServerConnector().getLocalPort()+"/webapp/");

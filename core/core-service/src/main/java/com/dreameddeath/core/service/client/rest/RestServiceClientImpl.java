@@ -26,6 +26,7 @@ import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.service.utils.UriUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import io.swagger.models.Swagger;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceProvider;
 import org.apache.cxf.transport.http_jetty.client.JettyHttpClientConduit;
@@ -38,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 03/09/2016.
  */
-public class RestServiceClientImpl extends AbstractServiceClientImpl<RxJavaWebTarget,RestCuratorDiscoveryServiceDescription> implements IRestServiceClient{
+public class RestServiceClientImpl extends AbstractServiceClientImpl<RxJavaWebTarget,Swagger,RestCuratorDiscoveryServiceDescription> implements IRestServiceClient{
     private final Map<String,ServiceInstanceConfig> configMap = new ConcurrentHashMap<>();
 
     public RestServiceClientImpl(ServiceProvider<RestCuratorDiscoveryServiceDescription> provider, String serviceFullName, RestServiceClientFactory factory) {

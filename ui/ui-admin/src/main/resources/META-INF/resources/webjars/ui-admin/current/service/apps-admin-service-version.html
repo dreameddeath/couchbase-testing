@@ -47,6 +47,7 @@
                             <thead>
                             <tr>
                                 <th>uriSpec</th>
+                                <th>proto</th>
                                 <th>daemon</th>
                                 <th>server</th>
                             </tr>
@@ -54,6 +55,11 @@
                             <tbody>
                             <tr ng-repeat="instance in currServiceVersionInfo.instances | orderBy:'daemonId'">
                                 <td>{{instance.uriSpec}}</td>
+                                <td>
+                                    <ul class="list-unstyled">
+                                        <li ng-repeat="protocol in instance.protocols"><span class="label label-success">{{protocol.replace("_","")}}</span></li>
+                                    </ul>
+                                </td>
                                 <td>
                                     <button type="button" class="btn btn-xs btn-primary" ng-click="showDaemon(instance.daemonUid)" aria-label="go to deamon details"><span class="glyphicon glyphicon-zoom-in" aria-hidden="true"></span></button>
                                     {{instance.daemonUid}}

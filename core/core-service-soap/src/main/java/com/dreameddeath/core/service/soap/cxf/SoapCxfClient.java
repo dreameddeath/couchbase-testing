@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by Christophe Jeunesse on 07/09/2016.
  */
-public class SoapCxfClient<T> extends AbstractServiceClientImpl<T,SoapCuratorDiscoveryServiceDescription> implements ISoapClient<T> {
+public class SoapCxfClient<T> extends AbstractServiceClientImpl<T,String,SoapCuratorDiscoveryServiceDescription> implements ISoapClient<T> {
     private final static Logger LOG = LoggerFactory.getLogger(SoapCxfClient.class);
     private final SoapCxfClientFactory<T> soapParentFactory;
     private final Cache<ServiceInstance<SoapCuratorDiscoveryServiceDescription>,ClientWrapper<T>> cacheInstance;

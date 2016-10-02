@@ -24,7 +24,7 @@ import com.dreameddeath.core.service.client.IServiceClient;
 /**
  * Created by Christophe Jeunesse on 11/04/2015.
  */
-public interface HasServiceClientFactory<TCLIENT extends IServiceClient<?>,TFACTORY extends AbstractServiceClientFactory<TCLIENT,?>> {
+public interface HasServiceClientFactory<TCLIENT extends IServiceClient<?>,TFACTORY extends AbstractServiceClientFactory<TCLIENT,?,?>> {
     TCLIENT getServiceClient();
     void setServiceClientFactory(TFACTORY serviceClientFactory);
 }

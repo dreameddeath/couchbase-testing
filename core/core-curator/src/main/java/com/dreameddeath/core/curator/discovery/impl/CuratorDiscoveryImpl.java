@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.curator.discovery.impl;
@@ -75,41 +77,42 @@ public abstract class CuratorDiscoveryImpl<T extends IRegisterable> implements I
                 switch (event.getType()) {
                     case CHILD_UPDATED:
                     case CHILD_ADDED:
-                        //started.countDown();
-                        LOG.debug("event {} / {}", event.getType(), event.getData().getPath());
-                        {
+                        LOG.debug("event {} / {}", event.getType(), (event.getData()!=null)?event.getData().getPath():null);
+                        if(event.getData()!=null){
                             String uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/") + 1);
                             T obj = deserialize(uid, event.getData().getData());
                             resync(uid,obj);
                         }
+                        else{
+                            LOG.warn("Received empty data for event of type {}",event.getType());
+                        }
                         break;
                     case CHILD_REMOVED:
-                        //started.countDown();
-                        LOG.debug("event {} / {}", event.getType(), event.getData().getPath());
-                        {
+                        LOG.debug("event {} / {}", event.getType(), (event.getData()!=null)?event.getData().getPath():null);
+                        if(event.getData()!=null){
                             String uid = event.getData().getPath().substring(event.getData().getPath().lastIndexOf("/") + 1);
                             remove(uid);
                         }
+                        else{
+                            LOG.warn("Received empty data for event of type {}",event.getType());
+                        }
                         break;
                     case CONNECTION_RECONNECTED:
-                        LOG.debug("event {} / {}", event.getType(), event.getInitialData().size());
+                        LOG.debug("event {} / {}", event.getType(), (event.getInitialData()!=null)?event.getInitialData().size():0);
                         {
                             Set<String> existingUid = new HashSet<>(instanceCache.keySet());
-                            for (ChildData child : event.getInitialData()) {
-                                String uid = child.getPath().substring(child.getPath().lastIndexOf("/") + 1);
-                                T resyncObj = deserialize(uid, child.getData());
-                                resync(uid, resyncObj);
-                                existingUid.remove(resyncObj.getUid());
+                            if(event.getInitialData()!=null) {
+                                for (ChildData child : event.getInitialData()) {
+                                    String uid = child.getPath().substring(child.getPath().lastIndexOf("/") + 1);
+                                    T resyncObj = deserialize(uid, child.getData());
+                                    resync(uid, resyncObj);
+                                    existingUid.remove(resyncObj.getUid());
+                                }
+                                existingUid.forEach(this::remove);
                             }
-                            existingUid.forEach(this::remove);
                         }
                         break;
                     case INITIALIZED:
-                        /*for(ChildData childData:event.getInitialData()){
-                            String uid = childData.getPath().substring(childData.getPath().lastIndexOf("/")+1);
-                            T obj = deserialize(uid,childData.getData());
-                            resync(uid,obj);
-                        }*/
                         startedCountDown.countDown();
                         break;
                 }

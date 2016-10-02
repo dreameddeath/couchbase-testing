@@ -44,11 +44,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 18/01/2015.
  */
-public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServiceDescription> extends CuratorDiscoveryImpl<ServiceDescription>{
+public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscoveryServiceDescription<TSPEC>> extends CuratorDiscoveryImpl<ServiceDescription>{
     private final static Logger LOG = LoggerFactory.getLogger(AbstractServiceDiscoverer.class);
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
     private ServiceDiscovery<T> serviceDiscovery;
@@ -293,7 +294,7 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
             }
 
             String version = ServiceNamingUtils.getVersionFromServiceFullName(fullName);
-            ServiceInfoVersionDescription foundServiceVersionInfoDescription = foundServiceInfoDescription.addIfNeededServiceVersionInfoDescriptionMap(version, new ServiceInfoVersionDescription());
+            ServiceInfoVersionDescription<TSPEC> foundServiceVersionInfoDescription = foundServiceInfoDescription.addIfNeededServiceVersionInfoDescriptionMap(version, new ServiceInfoVersionDescription());
             try {
                 for (ServiceInstance<T> instance : entry.getValue().provider.getAllInstances()) {
                     if(foundServiceVersionInfoDescription.getFullName()==null){
@@ -310,6 +311,9 @@ public abstract class AbstractServiceDiscoverer<T extends CuratorDiscoveryServic
                     instanceDescr.setWebServerUid(IEndPointDescription.Utils.getServerUid(instance.getId()));
                     instanceDescr.setUriSpec(UriUtils.buildUri(instance,false));
                     instanceDescr.setUid(instance.getId());
+                    if(instance.getPayload()!=null){
+                        instanceDescr.setProtocols(instance.getPayload().getProtocols().stream().map(Enum::toString).collect(Collectors.toSet()));
+                    }
                     foundServiceVersionInfoDescription.addInstance(instanceDescr);
                 }
             }

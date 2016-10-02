@@ -28,7 +28,7 @@ import org.apache.curator.x.discovery.ServiceInstance;
 /**
  * Created by Christophe Jeunesse on 05/09/2016.
  */
-public class SoapServiceDiscoverer extends AbstractServiceDiscoverer<SoapCuratorDiscoveryServiceDescription> {
+public class SoapServiceDiscoverer extends AbstractServiceDiscoverer<String,SoapCuratorDiscoveryServiceDescription> {
     public SoapServiceDiscoverer(CuratorFramework client, String domain) {
         super(client, domain, SoapServiceTypeHelper.SERVICE_TYPE);
     }

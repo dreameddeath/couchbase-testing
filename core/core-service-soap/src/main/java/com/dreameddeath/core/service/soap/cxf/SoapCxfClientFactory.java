@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 05/09/2016.
  */
-public class SoapCxfClientFactory<TSERV> extends AbstractServiceClientFactory<ISoapClient<TSERV>,SoapCuratorDiscoveryServiceDescription> {
+public class SoapCxfClientFactory<TSERV> extends AbstractServiceClientFactory<ISoapClient<TSERV>,String,SoapCuratorDiscoveryServiceDescription> {
     private Bus bus;
     private SoapHandlerFactory handlerFactory=null;
 

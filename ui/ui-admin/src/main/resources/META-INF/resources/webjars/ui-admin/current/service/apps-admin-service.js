@@ -65,9 +65,6 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                             ServicesDomainClientInstances.list({"domain":domain,type:service.type,fullname:self.fullName},function(dataClients){
                                 self.clients.length=0;
                                 self.clients.push.apply(self.clients,dataClients);
-                                /*for(var pos=0;pos<dataClients.length;++pos){}
-                                    self.clients=dataClients;
-                                }*/
                             })
                             ServicesDomainProxyInstances.list({"domain":domain,type:service.type,fullname:self.fullName},function(dataProxies){
                                 self.proxies.length=0;

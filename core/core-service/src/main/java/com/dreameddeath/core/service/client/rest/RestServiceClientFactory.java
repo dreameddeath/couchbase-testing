@@ -23,13 +23,14 @@ import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.interceptor.rest.feature.ClientFeatureFactory;
 import com.dreameddeath.core.service.model.rest.RestCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
+import io.swagger.models.Swagger;
 import org.apache.curator.x.discovery.ServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Christophe Jeunesse on 03/09/2016.
  */
-public class RestServiceClientFactory extends AbstractServiceClientFactory<IRestServiceClient,RestCuratorDiscoveryServiceDescription> {
+public class RestServiceClientFactory extends AbstractServiceClientFactory<IRestServiceClient,Swagger,RestCuratorDiscoveryServiceDescription> {
     private ClientFeatureFactory featureFactory=null;
 
 

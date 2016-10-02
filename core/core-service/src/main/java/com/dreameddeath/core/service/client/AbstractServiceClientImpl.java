@@ -32,16 +32,16 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 04/12/2015.
  */
-public abstract class AbstractServiceClientImpl<T,TDESCR extends CuratorDiscoveryServiceDescription> implements IServiceClient<T> {
+public abstract class AbstractServiceClientImpl<T,TSPEC,TDESCR extends CuratorDiscoveryServiceDescription<TSPEC>> implements IServiceClient<T> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractServiceClientImpl.class);
 
 
     private final ServiceProvider<TDESCR> provider;
-    private final AbstractServiceClientFactory<? extends IServiceClient<T>,TDESCR> parentFactory;
+    private final AbstractServiceClientFactory<? extends IServiceClient<T>,TSPEC,TDESCR> parentFactory;
     private final String fullName;
     private final UUID uuid=UUID.randomUUID();
 
-    public AbstractServiceClientImpl(ServiceProvider<TDESCR> provider, String serviceFullName, AbstractServiceClientFactory<? extends IServiceClient<T>,TDESCR> factory){
+    public AbstractServiceClientImpl(ServiceProvider<TDESCR> provider, String serviceFullName, AbstractServiceClientFactory<? extends IServiceClient<T>,TSPEC,TDESCR> factory){
         Preconditions.checkNotNull(provider,"The provider for service %s is null",serviceFullName);
         this.provider = provider;
         this.fullName = serviceFullName;

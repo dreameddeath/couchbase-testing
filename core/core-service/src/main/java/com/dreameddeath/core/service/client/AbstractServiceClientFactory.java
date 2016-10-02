@@ -35,9 +35,9 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by Christophe Jeunesse on 04/03/2015.
  */
-public abstract class AbstractServiceClientFactory<TCLIENT extends IServiceClient<?>,TDESCR extends CuratorDiscoveryServiceDescription> {
+public abstract class AbstractServiceClientFactory<TCLIENT extends IServiceClient<?>,TSPEC,TDESCR extends CuratorDiscoveryServiceDescription<TSPEC>> {
     private final static Logger LOG = LoggerFactory.getLogger(AbstractServiceClientFactory.class);
-    private final AbstractServiceDiscoverer<TDESCR> serviceDiscoverer;
+    private final AbstractServiceDiscoverer<TSPEC,TDESCR> serviceDiscoverer;
     private final ClientRegistrar clientRegistrar;
     private final ConcurrentMap<String,TCLIENT> serviceClientMap = new ConcurrentHashMap<>();
 
