@@ -75,7 +75,7 @@ public class ProxyServlet extends AsyncProxyServlet{
     public static final String SERVICE_DISCOVERER_MANAGER_PARAM_NAME = "discoverer-manager";
 
     private final List<AbstractServiceDiscoverer> serviceDiscoverers=new ArrayList<>();
-    private final ConcurrentMap<ServiceUid,ServiceProvider<CuratorDiscoveryServiceDescription>> serviceMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<ServiceUid,ServiceProvider<CuratorDiscoveryServiceDescription<?>>> serviceMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<ServiceUid,ProxyClientInstanceInfo> proxyClientMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String,ProxyClientRegistrar> proxyClientRegistrarMap = new ConcurrentHashMap<>();
     private final AtomicBoolean forHttp2=new AtomicBoolean(false);
@@ -196,12 +196,12 @@ public class ProxyServlet extends AsyncProxyServlet{
 
         try {
             serviceId = URLDecoder.decode(serviceId, "UTF-8");
-            ServiceProvider<CuratorDiscoveryServiceDescription> provider = serviceMap.get(new ServiceUid(serviceId,version));
+            ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider = serviceMap.get(new ServiceUid(serviceId,version));
             if(provider==null){
                 LOG.error("Cannot find the service of {}",serviceId,version);
                 throw new NotFoundException("Cannot Retrieve service instance of "+serviceId+"/"+version);
             }
-            ServiceInstance<CuratorDiscoveryServiceDescription> instance=provider.getInstance();
+            ServiceInstance<CuratorDiscoveryServiceDescription<?>> instance=provider.getInstance();
             if(instance==null){
                 LOG.error("Cannot find the service instance for {}/{}",serviceId,version);
                 throw new NotFoundException("Cannot Retrieve service instance of "+serviceId+"/"+version);
@@ -296,16 +296,16 @@ public class ProxyServlet extends AsyncProxyServlet{
         @Override public void lifeCycleStarted(LifeCycle lifeCycle) {
             for(String domain:domainsList){
                 LOG.info("Registering domain {} and type {} for proxy of webserver {}",domain,serviceType,parentWebServer.getUuid().toString());
-                AbstractServiceDiscoverer<CuratorDiscoveryServiceDescription> newService;
+                AbstractServiceDiscoverer<?,CuratorDiscoveryServiceDescription<?>> newService;
                 try{
                     newService = parentWebServer.getServiceDiscoveryManager().getServiceDiscoverer(domain,serviceType);
                 }
                 catch (Exception e){
                     throw new RuntimeException("Cannot get "+domain+" for service type "+serviceType,e);
                 }
-                newService.addListener(new IServiceDiscovererListener<CuratorDiscoveryServiceDescription>() {
+                newService.addListener(new IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>>() {
                     @Override
-                    public void onProviderRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription descr) {
+                    public void onProviderRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider, ServiceDescription descr) {
                         final ServiceUid suid= new ServiceUid(descr.getName(),descr.getVersion());
                         serviceMap.computeIfAbsent(suid,newSuid->{
                                     LOG.info("Registering service {} for proxy of webserver {}",descr.getFullName(),parentWebServer.getUuid().toString());
@@ -330,23 +330,17 @@ public class ProxyServlet extends AsyncProxyServlet{
                     }
 
                     @Override
-                    public void onProviderUpdate(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription description) {
+                    public void onProviderUpdate(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider, ServiceDescription description) {
 
                     }
 
                     @Override
-                    public void onProviderUnRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription> provider, ServiceDescription descr) {
+                    public void onProviderUnRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider, ServiceDescription descr) {
                         ServiceUid suid= new ServiceUid(descr.getName(),descr.getVersion());
                         serviceMap.remove(suid);
                         proxyClientMap.remove(suid);
                     }
                 });
-            /*try {
-                newService.start();
-            }
-            catch (Exception e){
-                throw new ServletException(e);
-            }*/
                 serviceDiscoverers.add(newService);
             }
         }
