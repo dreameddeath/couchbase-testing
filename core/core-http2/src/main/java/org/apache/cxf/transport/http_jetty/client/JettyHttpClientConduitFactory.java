@@ -37,6 +37,7 @@ import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.http2.client.HTTP2Client;
 import org.eclipse.jetty.http2.client.http.HttpClientTransportOverHTTP2;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -52,8 +54,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
     public static final String CXF_HTTP_CLIENT_METRIC_PREFIX = "CxfHttpClient:";
-    private final Logger LOG = LoggerFactory.getLogger(JettyHttpClientConduit.class);
-
+    public static final String EXECUTOR_PROPERTY_STRING = JettyHttpClientConduitFactory.class+".Executor";
+    private static final Logger LOG = LoggerFactory.getLogger(JettyHttpClientConduit.class);
     //ConnectionPool
     public static final String CONNECTION_TIMEOUT = "org.apache.cxf.transport.http.jetty-client.CONNECTION_TIMEOUT";
     public static final String CONNECTION_MAX_IDLE = "org.apache.cxf.transport.http.jetty-client.CONNECTION_MAX_IDLE";
@@ -71,6 +73,7 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
     private HttpVersionPolicy httpVersionPolicy=null;
     private int connectionTimeout=0;
     private int connectionMaxIdle=0;
+    private Executor httpClientExecutor=null;
     private final AtomicInteger clientId=new AtomicInteger();
 
     public JettyHttpClientConduitFactory() {
@@ -129,6 +132,7 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
 
 
         HttpClient client= new HttpClient(transport,sslContextFactory);
+        client.setExecutor(getHttpClientExecutor());
         if(connectionTimeout>0){
             client.setConnectTimeout(connectionTimeout);
         }
@@ -140,6 +144,26 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
         }
         addBusLifeCycleListenerOrStart(client);
         return client;
+    }
+
+    private Executor getHttpClientExecutor(){
+        if(httpClientExecutor==null){
+            synchronized (this){
+                if(httpClientExecutor==null){
+                    Executor executor=(Executor)bus.getProperty(EXECUTOR_PROPERTY_STRING);
+                    if(executor!=null){
+                        httpClientExecutor=executor;
+                    }
+                    else{
+                        QueuedThreadPool threadPool = new QueuedThreadPool();
+                        threadPool.setName(JettyHttpClientConduitFactory.class.getSimpleName()+"@"+hashCode());
+                        httpClientExecutor = threadPool;
+                    }
+                }
+            }
+        }
+
+        return httpClientExecutor;
     }
 
     @Override

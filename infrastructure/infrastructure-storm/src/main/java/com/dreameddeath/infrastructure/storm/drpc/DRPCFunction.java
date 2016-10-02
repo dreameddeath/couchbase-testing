@@ -1,34 +1,37 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.infrastructure.storm.drpc;
 
 
-import backtype.storm.generated.DistributedRPC;
-import backtype.storm.utils.DRPCClient;
-import backtype.storm.utils.ServiceRegistry;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.storm.generated.DistributedRPC;
+import org.apache.storm.thrift.transport.TTransportException;
+import org.apache.storm.trident.operation.BaseFunction;
+import org.apache.storm.trident.operation.TridentCollector;
+import org.apache.storm.trident.operation.TridentOperationContext;
+import org.apache.storm.trident.tuple.TridentTuple;
+import org.apache.storm.utils.DRPCClient;
+import org.apache.storm.utils.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import storm.trident.operation.BaseFunction;
-import storm.trident.operation.TridentCollector;
-import storm.trident.operation.TridentOperationContext;
-import storm.trident.tuple.TridentTuple;
 
 import java.util.List;
 import java.util.Map;
@@ -55,7 +58,6 @@ public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
     @Override
     public void prepare(Map conf, TridentOperationContext context) {
         super.prepare(conf,context);
-        //LOG.warn(conf.toString());
         boolean isLocal = "local".equals(conf.get("storm.cluster.mode"));
         String serverHost = (String)conf.get(builderServerConfigEntry(drpcServerName,EntryType.SERVER_NAME));
         Integer serverPort = Integer.parseInt((String) conf.get(builderServerConfigEntry(drpcServerName, EntryType.SERVER_PORT)));
@@ -65,7 +67,12 @@ public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
             drpcClient =  (DistributedRPC.Iface) ServiceRegistry.getService(localServiceId);
         }
         else{
-            drpcClient = new DRPCClient(serverHost,serverPort);
+            try {
+                drpcClient = new DRPCClient(conf, serverHost, serverPort);
+            }
+            catch(TTransportException e){
+                throw new RuntimeException(e);
+            }
         }
         MAPPER = ObjectMapperFactory.BASE_INSTANCE.getMapper();
     }

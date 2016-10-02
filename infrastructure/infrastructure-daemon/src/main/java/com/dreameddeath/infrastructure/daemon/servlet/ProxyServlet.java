@@ -42,7 +42,6 @@ import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.http2.client.HTTP2Client;
 import org.eclipse.jetty.http2.client.http.HttpClientTransportOverHTTP2;
 import org.eclipse.jetty.proxy.AsyncProxyServlet;
-import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -80,7 +79,6 @@ public class ProxyServlet extends AsyncProxyServlet{
     private final ConcurrentMap<ServiceUid,ProxyClientInstanceInfo> proxyClientMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String,ProxyClientRegistrar> proxyClientRegistrarMap = new ConcurrentHashMap<>();
     private final AtomicBoolean forHttp2=new AtomicBoolean(false);
-    private final HttpConfiguration httpConfiguration=new HttpConfiguration();
     private String prefix;
     private String serviceType;
     private IEndPointDescription endPointDescription;
