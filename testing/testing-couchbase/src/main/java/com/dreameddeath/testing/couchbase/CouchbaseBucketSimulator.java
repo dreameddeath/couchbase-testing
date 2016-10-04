@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.testing.couchbase;
@@ -249,7 +251,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
         else{
             if((bucketDoc.cas()!=0) && (bucketDoc.cas()!=foundDoc.getCas())){
-                throw new CASMismatchException("Key <"+bucketDoc.id()+"> has already been modified in the mean time with cas check");
+                throw new CASMismatchException("Key <"+bucketDoc.id()+"> has already been modified in the mean time with cas check (given:"+bucketDoc.cas()+",found:"+foundDoc.getCas());
             }
         }
 
@@ -329,7 +331,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
            return asyncPerformImpact(bucketDoc,transcoder.documentType(), ImpactMode.ADD, 0)
                    .doOnEach(notif->mCtxt.stop(notif))
                    .doOnError(mCtxt::stopWithError)
-                   .map(new DocumentResync<>(bucketDoc))
+                   .map(new DocumentResync<>(bucketDoc,transcoder))
                    .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
@@ -352,7 +354,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return asyncPerformImpact(bucketDoc, transcoder.documentType(), ImpactMode.UPDATE, 0)
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc))
+                    .map(new DocumentResync<>(bucketDoc,transcoder))
                     .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
@@ -376,7 +378,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return asyncPerformImpact(bucketDoc, transcoder.documentType(), ImpactMode.REPLACE, 0)
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc))
+                    .map(new DocumentResync<>(bucketDoc,transcoder))
                     .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
@@ -399,7 +401,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             final BucketDocument<T> bucketDoc = (params!=null)?buildBucketDocument(doc,params.getKeyPrefix()):buildBucketDocument(doc);
             return asyncPerformImpact(bucketDoc, transcoder.documentType(), ImpactMode.DELETE, 0)
                     .doOnEach(notif->mCtxt.stop(notif))
-                    .doOnError(mCtxt::stopWithError).map(new DocumentResync<>(bucketDoc))
+                    .doOnError(mCtxt::stopWithError).map(new DocumentResync<>(bucketDoc,transcoder))
                     .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
@@ -418,7 +420,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return asyncPerformImpact(bucketDoc, transcoder.documentType(), ImpactMode.APPEND, 0)
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc))
+                    .map(new DocumentResync<>(bucketDoc,transcoder))
                     .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){
@@ -448,7 +450,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             return asyncPerformImpact(bucketDoc, transcoder.documentType(), ImpactMode.PREPEND, 0)
                     .doOnEach(notif->mCtxt.stop(notif))
                     .doOnError(mCtxt::stopWithError)
-                    .map(new DocumentResync<>(bucketDoc))
+                    .map(new DocumentResync<>(bucketDoc,transcoder))
                     .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
         }
         catch(Exception e){

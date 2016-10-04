@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.session.impl;
@@ -53,10 +55,10 @@ public class CouchbaseSession implements ICouchbaseSession {
     final private IUser user;
     final private IBlockingCouchbaseSession blockingSession;
 
-    private Map<String,CouchbaseDocument> sessionCache = new ConcurrentHashMap<>();
-    private Map<String,CouchbaseUniqueKey> keyCache = new ConcurrentHashMap<>();
-    private Map<String,Long> counters = new ConcurrentHashMap<>();
-    private boolean temporaryReadOnlyMode;
+    private final BucketDocumentCache sessionCache = new BucketDocumentCache(this);
+    private final Map<String,CouchbaseUniqueKey> keyCache = new ConcurrentHashMap<>();
+    private final Map<String,Long> counters = new ConcurrentHashMap<>();
+    private volatile boolean temporaryReadOnlyMode;
 
     public CouchbaseSession(CouchbaseSessionFactory factory, IUser user){
         this(factory, SessionType.READ_ONLY,user);
@@ -182,9 +184,9 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
     }
 
-    public <T extends CouchbaseDocument> T attachDocument(T doc){
+    public <T extends CouchbaseDocument> T updateCache(T doc){
         if(doc.getBaseMeta().getKey()!=null){
-            sessionCache.put(doc.getBaseMeta().getKey(),doc);
+            sessionCache.put(doc);
         }
         return doc;
     }
@@ -205,7 +207,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public <T extends CouchbaseDocument> T attachEntity(T entity){
         try{
-            attachDocument(entity);
+            updateCache(entity);
             return entity;
         }
         catch(Exception e){
@@ -225,9 +227,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         try {
             checkReadOnly(obj);
             CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
-            Observable<T> result = dao.asyncCreate(this, obj, isCalcOnly());
-            result = result.map(this::attachDocument);
-            return result;
+            return dao.asyncCreate(this, obj, isCalcOnly()).map(this::updateCache);
         }
         catch (DaoException e){
             throw new DaoObservableException(e);
@@ -260,7 +260,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             } else {
                 CouchbaseDocumentDao dao = sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
                 Observable<CouchbaseDocument> result = (Observable<CouchbaseDocument>) dao.asyncGet(this, key);
-                result.doOnNext(this::attachDocument);
+                result.doOnNext(this::updateCache);
                 return result;
             }
         }
@@ -279,7 +279,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             } else {
                 CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
                 Observable<T> result = dao.asyncGet(this, key);
-                result.doOnNext(this::attachDocument);
+                result.doOnNext(this::updateCache);
                 return result;
             }
         }
@@ -295,7 +295,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         try {
             CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) doc.getClass());
             Observable<T> result = dao.asyncGet(this, doc.getBaseMeta().getKey());
-            result.doOnNext(this::attachDocument);
+            result.doOnNext(this::updateCache);
             return result;
         }
         catch(DaoException e){
@@ -310,7 +310,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         try {
             checkReadOnly(obj);
             CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
-            return dao.asyncUpdate(this, obj, isCalcOnly());
+            return dao.asyncUpdate(this, obj, isCalcOnly()).map(this::updateCache);
         }
         catch(DaoException e){
             throw new DaoObservableException(e);
@@ -323,7 +323,7 @@ public class CouchbaseSession implements ICouchbaseSession {
         try {
             checkReadOnly(obj);
             CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
-            return dao.asyncDelete(this, obj, isCalcOnly());
+            return dao.asyncDelete(this, obj, isCalcOnly()).map(this::updateCache);
         }
         catch(DaoException e){
             throw new DaoObservableException(e);
@@ -355,7 +355,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             if (cacheResult != null) {
                 return Observable.just((T) cacheResult);
             } else {
-                return dao.asyncGetFromUid(this, uid).doOnNext(this::attachDocument);
+                return dao.asyncGetFromUid(this, uid).doOnNext(this::updateCache);
             }
         }
         catch(DaoException e){
@@ -381,7 +381,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             if (cacheResult != null) {
                 return Observable.just((T) cacheResult);
             } else {
-                return dao.asyncGetFromKeyParams(this, params).doOnNext(this::attachDocument);
+                return dao.asyncGetFromKeyParams(this, params).doOnNext(this::updateCache);
             }
         }
         catch(DaoException e){

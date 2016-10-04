@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.model.document;
@@ -36,54 +38,125 @@ import java.util.Set;
 public class CouchbaseDocument implements HasParent {
     private BaseMetaInfo meta;
 
-    public BaseMetaInfo getBaseMeta(){return meta;}
-    public void setBaseMeta(BaseMetaInfo meta){ this.meta=meta;}
+    public BaseMetaInfo getBaseMeta(){
+        return meta;
+    }
 
-    public CouchbaseDocument(){meta=this.new BaseMetaInfo();}
-    public CouchbaseDocument(BaseMetaInfo meta){this.meta=meta;}
+    public void setBaseMeta(BaseMetaInfo meta){
+        this.meta=meta;
+    }
+
+    public CouchbaseDocument(){
+        meta=this.new BaseMetaInfo();
+    }
+
+    public CouchbaseDocument(BaseMetaInfo meta){
+        this.meta=meta;
+    }
 
     public class BaseMetaInfo {
-        //private CouchbaseSession _session;
-        private String key;
-        private long   cas;
+        private String  key;
+        private long    cas;
         private Boolean isLocked;
-        private Integer dbDocSize;
-        private long vbucketID=0;
-        private long vbucketUUID=0;
-        private long sequenceNumber=0;
+        private Integer dbDocSize=null;
+        private long    vbucketID=0;
+        private long    vbucketUUID=0;
+        private long    sequenceNumber=0;
 
         private Set<DocumentFlag> flags =EnumSet.noneOf(DocumentFlag.class);
         private int expiry;
         private DocumentState docState = DocumentState.NEW;
-        private boolean isFrozen = false;
         private String bucketName;
+        private byte[] dbData=null;
+        private long   updatedFromCas;
+        private boolean isFrozen = false;
 
-        public final String getKey(){ return key; }
-        public final void setKey(String key){ this.key=key;}
+        public final String getKey(){
+            return key;
+        }
 
-        public final long getCas(){ return cas; }
-        public final void setCas(long cas){ this.cas = cas; }
+        public final void setKey(String key){
+            this.key=key;
+        }
 
-        public final Boolean getIsLocked(){ return isLocked; }
-        public final void setIsLocked(Boolean isLocked){ this.isLocked = isLocked; }
+        public final long getCas(){
+            return cas;
+        }
 
-        public final Integer getDbSize(){ return dbDocSize; }
-        public final void setDbSize(Integer docSize){ this.dbDocSize = docSize; }
+        public final void setCas(long cas){
+            this.cas = cas;
+        }
 
-        public final Collection<DocumentFlag> getFlags(){ return flags; }
-        public final Integer getEncodedFlags(){ return DocumentFlag.pack(flags); }
-        public final void setEncodedFlags(Integer encodedFlags){ flags.clear(); flags.addAll(DocumentFlag.unPack(encodedFlags)); }
-        public final void setFlags(Collection<DocumentFlag> flags){ flags.clear(); flags.addAll(flags); }
-        public final void addEncodedFlags(Integer encodedFlags){ flags.addAll(DocumentFlag.unPack(encodedFlags)); }
-        public final void addFlag(DocumentFlag flag){ flags.add(flag); }
-        public final void addFlags(Collection<DocumentFlag> flags){ flags.addAll(flags); }
-        public final void removeFlag(DocumentFlag flag){ flags.remove(flag); }
-        public final void removeFlags(Collection<DocumentFlag> flags){flags.remove(flags); }
-        public boolean hasFlag(DocumentFlag flag){ return flags.contains(flag); }
+        public final Boolean getIsLocked(){
+            return isLocked;
+        }
 
+        public final void setIsLocked(Boolean isLocked){
+            this.isLocked = isLocked;
+        }
 
-        public int getExpiry(){return expiry;}
-        public void setExpiry(int expiry){ this.expiry=expiry;}
+        public final Integer getDbSize(){
+            if(dbData!=null){
+                return dbData.length;
+            }
+            else{
+                return dbDocSize;
+            }
+        }
+
+        public final void setDbSize(Integer docSize){
+            this.dbDocSize = docSize;
+        }
+
+        public final Collection<DocumentFlag> getFlags(){
+            return flags;
+        }
+
+        public final Integer getEncodedFlags(){
+            return DocumentFlag.pack(flags);
+        }
+
+        public final void setEncodedFlags(Integer encodedFlags){
+            this.flags.clear();
+            this.flags.addAll(DocumentFlag.unPack(encodedFlags));
+        }
+
+        public final void setFlags(Collection<DocumentFlag> flags){
+            this.flags.clear();
+            this.flags.addAll(flags);
+        }
+
+        public final void addEncodedFlags(Integer encodedFlags){
+            flags.addAll(DocumentFlag.unPack(encodedFlags));
+        }
+
+        public final void addFlag(DocumentFlag flag){
+            flags.add(flag);
+        }
+
+        public final void addFlags(Collection<DocumentFlag> flags){
+            this.flags.addAll(flags);
+        }
+
+        public final void removeFlag(DocumentFlag flag){
+            flags.remove(flag);
+        }
+
+        public final void removeFlags(Collection<DocumentFlag> flags){
+            this.flags.remove(flags);
+        }
+
+        public boolean hasFlag(DocumentFlag flag){
+            return flags.contains(flag);
+        }
+
+        public int getExpiry(){
+            return expiry;
+        }
+
+        public void setExpiry(int expiry){
+            this.expiry=expiry;
+        }
 
         public void setStateDirty(){
             checkFrozen();
@@ -97,8 +170,13 @@ public class CouchbaseDocument implements HasParent {
             docState = DocumentState.DELETED;
         }
 
-        public void setStateSync(){ docState = DocumentState.SYNC; }
-        public DocumentState getState(){ return docState; }
+        public void setStateSync(){
+            docState = DocumentState.SYNC;
+        }
+
+        public DocumentState getState(){
+            return docState;
+        }
 
         public long getVbucketID() {
             return vbucketID;
@@ -148,7 +226,7 @@ public class CouchbaseDocument implements HasParent {
             return isFrozen;
         }
 
-        private final void checkFrozen(){
+        private void checkFrozen(){
             if(isFrozen){
                 throw new IllegalStateException("The modification on the document isn't allowed");
             }
@@ -160,6 +238,22 @@ public class CouchbaseDocument implements HasParent {
 
         public void setBucketName(String bucketName) {
             this.bucketName = bucketName;
+        }
+
+        public void setDbData(byte[] dbData) {
+            this.dbData = dbData;
+        }
+
+        public byte[] getDbData() {
+            return dbData;
+        }
+
+        public long getUpdatedFromCas() {
+            return updatedFromCas;
+        }
+
+        public void setUpdatedFromCas(long updatedFromCas) {
+            this.updatedFromCas = updatedFromCas;
         }
     }
 
@@ -198,7 +292,7 @@ public class CouchbaseDocument implements HasParent {
         }
 
         static public Set<DocumentFlag> unPack(int binValue){
-            Set<DocumentFlag> result=new HashSet<DocumentFlag>();
+            Set<DocumentFlag> result=new HashSet<>();
             for(DocumentFlag flag:DocumentFlag.values()){
                 if((flag.value & binValue)!=0){
                     result.add(flag);
@@ -217,15 +311,19 @@ public class CouchbaseDocument implements HasParent {
     }
 
     @Override
-    public HasParent getParentElement(){return null;}
+    public HasParent getParentElement(){
+        return null;
+    }
+
     @Override
-    public void setParentElement(HasParent parent){throw new UnsupportedOperationException();}
+    public void setParentElement(HasParent parent){
+        throw new UnsupportedOperationException();
+    }
 
     public static class Utils {
         public static <T extends CouchbaseDocument> T freeze(T doc){
             doc.getBaseMeta().freeze();
             return doc;
         }
-
     }
 }

@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.couchbase.impl;
@@ -249,11 +251,13 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
 
     @Override
     public ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder){
-        if((bucket!=null) && (transcoders.contains(transcoder))){
+        if((bucket!=null) && (!transcoders.contains(transcoder))){
             throw new IllegalStateException("Cannot add transcoder "+transcoder.getClass().getName()+" after client initialization");
         }
-        transcoders.add(transcoder);
-        transcoderMap.put(transcoder.getTranscoder().getBaseClass(),transcoder);
+        if(bucket==null) {
+            transcoders.add(transcoder);
+            transcoderMap.put(transcoder.getTranscoder().getBaseClass(), transcoder);
+        }
         return this;
     }
 
@@ -338,9 +342,10 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         if(params.getTimeOutUnit()!=null){
             obs = obs.timeout(params.getTimeOut(),params.getTimeOutUnit());
         }
+        final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)bucketDoc.getDocument().getClass());
         return obs.doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc))
+                .map(new DocumentResync<>(bucketDoc,transcoder))
                 .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(bucketDoc.getDocument(),throwable));
     }
 
@@ -351,10 +356,11 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc){
         BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = createContext.start();
+        final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
         return bucket.async().insert(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc))
+                .map(new DocumentResync<>(bucketDoc,transcoder))
                 .onErrorResumeNext(throwable -> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
@@ -374,10 +380,11 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc){
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         final CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
+        final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
         return bucket.async().upsert(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc))
+                .map(new DocumentResync<>(bucketDoc,transcoder))
                 .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
@@ -396,10 +403,11 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc){
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = updateContext.start();
+        final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
         return bucket.async().replace(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc))
+                .map(new DocumentResync<>(bucketDoc,transcoder))
                 .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
@@ -419,10 +427,11 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc){
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = deleteContext.start();
+        final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
         return bucket.async().remove(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc))
+                .map(new DocumentResync<>(bucketDoc,transcoder))
                 .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
@@ -443,10 +452,11 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc){
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
+        final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
         return bucket.async().append(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc))
+                .map(new DocumentResync<>(bucketDoc,transcoder))
                 .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
@@ -465,10 +475,11 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     public <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc){
         final BucketDocument<T> bucketDoc = buildBucketDocument(doc);
         CouchbaseMetricsContext.MetricsContext mCtxt = deltaContext.start();
+        final ICouchbaseTranscoder<T> transcoder = getTranscoder((Class<T>)doc.getClass());
         return bucket.async().prepend(bucketDoc)
                 .doOnEach(notif->mCtxt.stop(notif))
                 .doOnError(mCtxt::stopWithError)
-                .map(new DocumentResync<>(bucketDoc))
+                .map(new DocumentResync<>(bucketDoc,transcoder))
                 .onErrorResumeNext(throwable-> ICouchbaseBucket.Utils.mapObservableStorageException(doc,throwable));
     }
 
@@ -531,16 +542,18 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
     }
 
     public class DocumentResync<T extends CouchbaseDocument> implements Func1<BucketDocument<T>, T>{
-        private final BucketDocument<T> bucketDoc;
+        private final BucketDocument<T> origBucketDoc;
+        private final ICouchbaseTranscoder<T> transcoder;
 
-        public DocumentResync(final BucketDocument<T> doc){
-            bucketDoc = doc;
+        public DocumentResync(final BucketDocument<T> doc,final ICouchbaseTranscoder<T> transcoder){
+            this.origBucketDoc = doc;
+            this.transcoder=transcoder;
         }
 
         @Override
         public T call(BucketDocument<T> tBucketDocument) {
-            bucketDoc.syncMeta(tBucketDocument);
-            return bucketDoc.content();
+            origBucketDoc.syncMeta(tBucketDocument);//Resync original object
+            return tBucketDocument.content();
         }
     }
 

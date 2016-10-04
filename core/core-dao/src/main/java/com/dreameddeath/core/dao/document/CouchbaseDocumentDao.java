@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.dao.document;
@@ -161,9 +163,15 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
 
     public class FuncUpdateStateSync implements Func1<T,T> {
+        private final T origObj;
+        public FuncUpdateStateSync(T origObj) {
+            this.origObj=origObj;
+        }
+
         @Override
         public T call(T t) {
             t.getBaseMeta().setStateSync();
+            origObj.getBaseMeta().setStateSync();
             return t;
         }
     }
@@ -232,7 +240,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 result = result.flatMap(val -> getClient().asyncAdd(val));
             }
         }
-        return result.map(new FuncUpdateStateSync()).onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
+        return result.map(new FuncUpdateStateSync(obj)).onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
     }
 
     public <T extends CouchbaseDocument> Observable<T> mapObservableException(T doc,Throwable e){
@@ -286,7 +294,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                     result = result.flatMap(val -> getClient().asyncReplace(val));
                 }
             }
-            return result.map(new FuncUpdateStateSync())
+            return result.map(new FuncUpdateStateSync(obj))
                     .onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
         }
         catch(Throwable e){

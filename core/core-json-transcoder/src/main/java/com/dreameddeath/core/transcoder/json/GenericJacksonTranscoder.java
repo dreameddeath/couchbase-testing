@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.transcoder.json;
@@ -89,22 +91,26 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
     }
 
     @Override
-    public Class<T> getBaseClass() {return dummyClass;}
+    public Class<T> getBaseClass() {
+        return dummyClass;
+    }
 
-    public Class getRootClass(){return rootClass;}
+    public Class getRootClass(){
+        return rootClass;
+    }
+
     @Override
     public T decode(byte[] content) throws DocumentDecodingException{
         try {
             T result = (T) mapper.readValue(content, getRootClass());
-            result.getBaseMeta().setDbSize(content.length);
+            //result.getBaseMeta().setDbSize(content.length);
+            result.getBaseMeta().setDbData(content);
             return result;
         }
         catch (IOException e) {
             throw new DocumentDecodingException("Error during decoding of data using GenericJacksonCouchbaseTranscoder<" + getBaseClass().getName() + "> :", content, e);
         }
     }
-
-
 
     @Override
     public byte[] encode(T doc) throws DocumentEncodingException{

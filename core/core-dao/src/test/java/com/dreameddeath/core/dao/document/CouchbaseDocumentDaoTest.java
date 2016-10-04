@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.dao.document;
@@ -38,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Christophe Jeunesse on 28/12/2015.
@@ -122,13 +123,18 @@ public class CouchbaseDocumentDaoTest{
             TestRootDaoDoc resultingCreate = daoTest.toBlocking().blockingCreate(new DummySession(), testRootDaoDoc, false);
             LOG.info("create duration {}", (System.nanoTime() - start) / (1000 * 1000));
             assertEquals("test/1", testRootDaoDoc.getBaseMeta().getKey());
-            assertTrue(resultingCreate == testRootDaoDoc);
+            assertEquals(resultingCreate.test,testRootDaoDoc.test);
+            assertEquals(resultingCreate.getBaseMeta().getCas(),testRootDaoDoc.getBaseMeta().getCas());
+
+            long casCreate=resultingCreate.getBaseMeta().getCas();
 
             testRootDaoDoc.test = "toto 2";
             start = System.nanoTime();
             TestRootDaoDoc resultingUpdate = daoTest.toBlocking().blockingUpdate(new DummySession(), testRootDaoDoc, false);
             LOG.info("update duration {}", (System.nanoTime() - start) / (1000 * 1000));
-            assertTrue(resultingUpdate == testRootDaoDoc);
+            assertEquals(casCreate,resultingUpdate.getBaseMeta().getUpdatedFromCas());
+            assertEquals(resultingUpdate.getBaseMeta().getCas(),testRootDaoDoc.getBaseMeta().getCas());
+
             assertEquals(testRootDaoDoc.test, resultingUpdate.test);
 
             start = System.nanoTime();
@@ -146,7 +152,7 @@ public class CouchbaseDocumentDaoTest{
             TestRootDaoDoc resultingCreate2 = daoTest.toBlocking().blockingCreate(new DummySession(), testRootDaoDoc2, false);
             LOG.info("create duration {}", (System.nanoTime() - start) / (1000 * 1000));
             assertEquals("test/2", resultingCreate2.getBaseMeta().getKey());
-            assertTrue(resultingCreate2 == resultingCreate2);
+            assertEquals(testRootDaoDoc2.test,resultingCreate2.test);
         }
 
     }
