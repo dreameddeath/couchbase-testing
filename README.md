@@ -42,9 +42,9 @@ TODOs
 
 
 ### Framework Layer
-- event based notification
-- MDC integration
-- Unified SOAP & REST API (Use of jibx mappings - or use jackson xml)
+- ~~event based notification~~
+- ~~MDC integration~~
+- ~~Unified SOAP & REST API (Use of jibx mappings - or use jackson xml)~~
 - Configuration (properties + db config + overriding management) + AutoReload - timebase
 
 ### Infrastructure Layer

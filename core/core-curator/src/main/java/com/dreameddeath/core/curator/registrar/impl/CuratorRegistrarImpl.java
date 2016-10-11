@@ -67,7 +67,7 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
 
     private PersistentNode setupNode(T obj) throws Exception {
         preparePath();
-        PersistentNode node = new PersistentNode(curatorFramework, CreateMode.EPHEMERAL,false/*isProtected*/,CuratorUtils.buildPath(basePath,obj), serialize(obj));
+        PersistentNode node = new PersistentNode(curatorFramework, CreateMode.EPHEMERAL,false/*isProtected*/,CuratorUtils.buildPath(basePath,obj.getUid()), serialize(obj));
                 //new PersistentEphemeralNode(curatorFramework, PersistentEphemeralNode.Mode.EPHEMERAL, CuratorUtils.buildPath(basePath,obj), serialize(obj));
         node.start();
         node.waitForInitialCreate(1, TimeUnit.SECONDS);
@@ -84,7 +84,7 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
                     LOG.info("Un-registring path {}",path);
                 }
                 else{
-                    LOG.info("Un-registring strange path {}",CuratorUtils.buildPath(basePath,registeredValues.get(entry.getKey())));
+                    LOG.info("Un-registring strange path {}",CuratorUtils.buildPath(basePath,registeredValues.get(entry.getKey()).getUid()));
                 }
                 entry.getValue().close();
             } catch (IOException e) {

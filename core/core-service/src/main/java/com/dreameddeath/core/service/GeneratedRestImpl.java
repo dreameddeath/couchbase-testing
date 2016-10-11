@@ -19,7 +19,6 @@
 package com.dreameddeath.core.service;
 
 
-
 /**
  * Created by Christophe Jeunesse on 11/04/2015.
  */

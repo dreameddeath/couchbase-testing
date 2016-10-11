@@ -18,10 +18,10 @@
 
 package com.dreameddeath.core.service.discovery;
 
-import com.dreameddeath.core.curator.discovery.ICuratorDiscovery;
-import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryLifeCycleListener;
-import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
-import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.impl.StandardCuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.standard.ICuratorDiscovery;
+import com.dreameddeath.core.curator.discovery.standard.ICuratorDiscoveryLifeCycleListener;
+import com.dreameddeath.core.curator.discovery.standard.ICuratorDiscoveryListener;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.json.BaseObjectMapperConfigurator;
 import com.dreameddeath.core.json.ObjectMapperFactory;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Christophe Jeunesse on 18/01/2015.
  */
-public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscoveryServiceDescription<TSPEC>> extends CuratorDiscoveryImpl<ServiceDescription>{
+public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscoveryServiceDescription<TSPEC>> extends StandardCuratorDiscoveryImpl<ServiceDescription> {
     private final static Logger LOG = LoggerFactory.getLogger(AbstractServiceDiscoverer.class);
     private final ObjectMapper mapper= ObjectMapperFactory.BASE_INSTANCE.getMapper(BaseObjectMapperConfigurator.BASE_TYPE);
     private ServiceDiscovery<T> serviceDiscovery;

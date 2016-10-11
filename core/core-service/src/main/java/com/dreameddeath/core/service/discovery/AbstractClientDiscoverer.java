@@ -18,8 +18,8 @@
 
 package com.dreameddeath.core.service.discovery;
 
-import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
-import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.impl.StandardCuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.standard.ICuratorDiscoveryListener;
 import com.dreameddeath.core.service.model.common.AbstractClientInstanceInfo;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by Christophe Jeunesse on 17/12/2015.
  */
-public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceInfo> extends CuratorDiscoveryImpl<T> {
+public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceInfo> extends StandardCuratorDiscoveryImpl<T> {
     private final static Logger LOG = LoggerFactory.getLogger(AbstractClientDiscoverer.class);
 
     private final String domain;

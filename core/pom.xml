@@ -54,6 +54,7 @@
         <module>core-kafka</module>
         <module>core-dep-injection</module>
         <module>core-notification</module>
+        <module>core-notification-remote</module>
         <module>core-log</module>
         <module>core-context</module>
         <module>core-http2</module>

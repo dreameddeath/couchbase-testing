@@ -1,27 +1,35 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.curator;
 
-import com.dreameddeath.core.curator.discovery.ICuratorDiscovery;
-import com.dreameddeath.core.curator.discovery.ICuratorDiscoveryListener;
-import com.dreameddeath.core.curator.discovery.impl.CuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.impl.PathCuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.impl.StandardCuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.path.ICuratorPathDiscovery;
+import com.dreameddeath.core.curator.discovery.path.ICuratorPathDiscoveryListener;
+import com.dreameddeath.core.curator.discovery.standard.ICuratorDiscovery;
+import com.dreameddeath.core.curator.discovery.standard.ICuratorDiscoveryListener;
 import com.dreameddeath.core.curator.exception.DuplicateClusterClientException;
 import com.dreameddeath.core.curator.model.IRegisterable;
+import com.dreameddeath.core.curator.model.IRegistrablePathData;
+import com.dreameddeath.core.curator.registrar.ICuratorPathRegistrar;
 import com.dreameddeath.core.curator.registrar.ICuratorRegistrar;
+import com.dreameddeath.core.curator.registrar.impl.CuratorPathRegistrarImpl;
 import com.dreameddeath.core.curator.registrar.impl.CuratorRegistrarImpl;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -38,7 +46,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CuratorFrameworkFactoryTest extends Assert{
@@ -118,7 +129,7 @@ public class CuratorFrameworkFactoryTest extends Assert{
         client.start();
         client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
 
-        ICuratorDiscovery<TestRegistrarClass> discovery = new CuratorDiscoveryImpl<TestRegistrarClass>(client,"test/subpath"){
+        ICuratorDiscovery<TestRegistrarClass> discovery = new StandardCuratorDiscoveryImpl<TestRegistrarClass>(client,"test/subpath"){
             @Override
             protected TestRegistrarClass deserialize(String uid,byte[] element) {
                 return new TestRegistrarClass(uid,new String(element, Charset.defaultCharset()));
@@ -225,10 +236,6 @@ public class CuratorFrameworkFactoryTest extends Assert{
             }
         };
 
-
-
-
-
         registrar.register(firstObj);
         registrar.register(secondObj);
         discovery.start();
@@ -253,26 +260,230 @@ public class CuratorFrameworkFactoryTest extends Assert{
         client.close();
     }
 
+
+    @Test
+    public void testPathRegistrar() throws Exception{
+        String connectionString = testingCluster.getConnectString();
+        final CuratorFramework client = CuratorFrameworkFactory.newClient("testRegistrar",connectionString, new ExponentialBackoffRetry(1000, 3));
+        client.start();
+        client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
+
+        ICuratorPathDiscovery<TestPathRegistrarClass> discovery = new PathCuratorDiscoveryImpl<TestPathRegistrarClass>(client,"test/subpath"){
+            @Override
+            protected TestPathRegistrarClass deserialize(String uid,byte[] element) {
+                return new TestPathRegistrarClass(uid,new String(element, Charset.defaultCharset()));
+            }
+        };
+        final AtomicInteger errors=new AtomicInteger(0);
+        final AtomicInteger nbRegister=new AtomicInteger(0);
+        final AtomicInteger nbUnRegister=new AtomicInteger(0);
+        final AtomicInteger nbUpdate=new AtomicInteger(0);
+        final TestPathRegistrarClass firstObj = new TestPathRegistrarClass(UUID.randomUUID(),"first:value1","1.1.0");
+        final TestPathRegistrarClass firstObjUpdatedUpperVersion = new TestPathRegistrarClass(firstObj.uid,"first:value1_updated","1.2.0");
+        final TestPathRegistrarClass firstObjIgnoredLowerVersion = new TestPathRegistrarClass(firstObj.uid,"first:value1_ignored","0.9.0");
+        final TestPathRegistrarClass secondObj = new TestPathRegistrarClass(UUID.randomUUID(),"second:value1","1.0.0");
+        final TestPathRegistrarClass thirdObj = new TestPathRegistrarClass(UUID.randomUUID(),"third:value1","1.0.0");
+
+        final Object lock=new Object();
+        final ICuratorPathDiscoveryListener<TestPathRegistrarClass> listener = new ICuratorPathDiscoveryListener<TestPathRegistrarClass>() {
+            private List<TestPathRegistrarClass> listchecksRegister =new ArrayList<>(Arrays.asList(firstObj,secondObj,thirdObj));
+            private List<TestPathRegistrarClass> listchecksUnRegister =new ArrayList<>(Arrays.asList(firstObj));
+
+            @Override
+            public void onRegister(String uid, TestPathRegistrarClass obj) {
+                synchronized (lock) {
+                    LOG.info("Received registered {} of {}", uid, obj);
+                    nbRegister.incrementAndGet();
+                    try {
+                        TestPathRegistrarClass refObj = null;
+                        if (listchecksRegister.size() > 0) {
+                            for (TestPathRegistrarClass objClass : listchecksRegister) {
+                                if (objClass.uid().equals(obj.uid())) {
+                                    refObj = obj;
+                                }
+                            }
+                            assertNotNull(refObj);
+                            assertTrue(listchecksRegister.remove(refObj));
+                        } else {
+                            refObj = thirdObj;
+                        }
+
+                        assertEquals(refObj.value1, obj.value1);
+                        assertEquals(refObj.version(), obj.version());
+                        assertEquals(refObj.uid.toString(), obj.uid.toString());
+                        assertEquals(refObj.uid.toString(), uid);
+                    } catch (Throwable e) {
+                        errors.incrementAndGet();
+                        LOG.error("Register issue", e);
+                    }
+                    lock.notify();
+                }
+            }
+
+            @Override
+            public void onUnregister(String uid, TestPathRegistrarClass oldObj) {
+                synchronized (lock) {
+                    LOG.info("Received un-registered {} of {}", uid, oldObj);
+                    int pos = nbUnRegister.incrementAndGet();
+                    try {
+                        if (pos == 1) {
+                            assertEquals(firstObjUpdatedUpperVersion.value1, oldObj.value1);
+                            assertEquals(firstObjUpdatedUpperVersion.version(), oldObj.version());
+                            assertEquals(firstObjUpdatedUpperVersion.uid.toString(), oldObj.uid.toString());
+                            assertEquals(firstObjUpdatedUpperVersion.uid.toString(), uid);
+                        } else {
+                            LOG.info("Removing from {} / {}", listchecksUnRegister, oldObj);
+                            assertTrue(listchecksUnRegister.remove(oldObj));
+                        }
+                    } catch (Throwable e) {
+                        errors.incrementAndGet();
+                        LOG.error("Unregister issue", e);
+                    }
+
+                    lock.notify();
+                }
+            }
+
+            @Override
+            public void onUpdate(String uid, TestPathRegistrarClass obj, TestPathRegistrarClass newObj) {
+                synchronized (lock) {
+                    LOG.info("Received update {} of {}", uid, obj);
+                    nbUpdate.incrementAndGet();
+                    try {
+                        assertEquals(firstObj.value1, obj.value1);
+                        assertEquals(firstObj.version(), obj.version());
+                        assertEquals(firstObj.uid.toString(), obj.uid.toString());
+                        assertEquals(firstObj.uid.toString(), uid);
+
+                        assertEquals(firstObjUpdatedUpperVersion.value1, newObj.value1);
+                        assertEquals(firstObjUpdatedUpperVersion.version(), newObj.version());
+                        assertEquals(firstObjUpdatedUpperVersion.uid.toString(), newObj.uid.toString());
+                        assertEquals(firstObjUpdatedUpperVersion.uid.toString(), uid);
+                    } catch (Throwable e) {
+                        errors.incrementAndGet();
+                        LOG.error("Update issue", e);
+                    }
+                    lock.notify();
+                }
+            }
+        };
+        discovery.addListener(listener);
+        ICuratorPathRegistrar<TestPathRegistrarClass> registrar=new CuratorPathRegistrarImpl<TestPathRegistrarClass>(client,"test/subpath") {
+            @Override
+            protected byte[] serialize(TestPathRegistrarClass obj) throws Exception {
+                return obj.toString().getBytes(Charset.defaultCharset());
+            }
+
+            @Override
+            protected TestPathRegistrarClass deserialize(String uid, byte[] currentData) {
+                return new TestPathRegistrarClass(uid,new String(currentData,Charset.defaultCharset()));
+            }
+
+            @Override
+            protected int compare(TestPathRegistrarClass sourceObj, TestPathRegistrarClass targetObj) {
+                return sourceObj.version().compareTo(targetObj.version());
+            }
+        };
+
+        assertEquals(ICuratorPathRegistrar.Result.DONE,registrar.register(firstObj));
+        assertEquals(ICuratorPathRegistrar.Result.DONE,registrar.register(secondObj));
+        discovery.start();
+        assertEquals(2,nbRegister.get());
+
+        synchronized (lock) {
+            assertEquals(ICuratorPathRegistrar.Result.IGNORED,registrar.update(firstObjIgnoredLowerVersion));
+            assertEquals(ICuratorPathRegistrar.Result.IGNORED,registrar.register(firstObjIgnoredLowerVersion));
+            assertEquals(2L,registrar.registeredList().size());
+            assertEquals(ICuratorPathRegistrar.Result.DONE,registrar.update(firstObjUpdatedUpperVersion));
+            assertEquals(2L,registrar.registeredList().size());
+            lock.wait(10000, 0);
+            assertEquals(1,nbUpdate.get());
+            assertEquals(ICuratorPathRegistrar.Result.IGNORED,registrar.deregister(firstObj));
+            assertEquals(ICuratorPathRegistrar.Result.DONE,registrar.deregister(firstObjUpdatedUpperVersion));
+            lock.wait(10000, 0);
+            assertEquals(1,nbUnRegister.get());
+            registrar.register(thirdObj);
+            lock.wait(10000, 0);
+            assertEquals(3,nbRegister.get());
+            registrar.close();
+        }
+        discovery.stop();
+        client.close();
+        assertEquals(0L,errors.get());
+    }
+
     @After
     public void endTest() throws Exception{
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        Future<Boolean> future = executor.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                try {
-                    testingCluster.stop();
-                    testingCluster.close();
-                    return true;
-                } catch (Exception e) {
-                    return false;
-                }
+        Future<Boolean> future = executor.submit(() -> {
+            try {
+                testingCluster.stop();
+                testingCluster.close();
+                return true;
+            } catch (Exception e) {
+                return false;
             }
         });
         future.get(1,TimeUnit.MINUTES);
         executor.shutdownNow();
     }
 
+
+    public static class TestPathRegistrarClass implements IRegistrablePathData{
+        public final String value1;
+        public String version;
+        public final UUID uid;
+
+        @Override
+        public String uid() {
+            return uid.toString();
+        }
+
+        public TestPathRegistrarClass(String uuid,String encoded){
+            this.uid = UUID.fromString(uuid);
+            String[] values=encoded.split("\\|");
+            value1=values[0];
+            version=values[1];
+        }
+
+        public TestPathRegistrarClass(UUID uid,String value1,String value2){
+            this.uid = uid;
+            this.value1 = value1;
+            this.version = value2;
+        }
+
+        @Override
+        public String toString(){
+            return value1+"|"+version;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            TestPathRegistrarClass that = (TestPathRegistrarClass) o;
+
+            if (!value1.equals(that.value1)) return false;
+            if (!version.equals(that.version)) return false;
+            return uid.equals(that.uid);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = value1.hashCode();
+            result = 31 * result + version.hashCode();
+            result = 31 * result + uid.hashCode();
+            return result;
+        }
+
+        @Override
+        public String version() {
+            return version;
+        }
+    }
 
     public static class TestRegistrarClass implements IRegisterable{
         public final String value1;

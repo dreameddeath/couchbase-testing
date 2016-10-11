@@ -24,6 +24,8 @@ Architecture :
 - ~~separate the admin part and the business part~~
 - on the top of webserver, publish "connector servers" to setup other kind of servers than web (kafka consumer, dcp client, ...)
 
+Tests :
+- Addition of tests around SSL/TLS/ALPN
 
 Proxy Management :
 - build dynamic "public" urls based on prototype [domain]/[apis|process|data]/[version]/[public url] :
