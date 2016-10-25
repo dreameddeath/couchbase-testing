@@ -20,12 +20,12 @@ package com.dreameddeath.core.service.soap.cxf;
 
 import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
+import com.dreameddeath.core.service.discovery.IServiceProviderSupplier;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.soap.ISoapClient;
 import com.dreameddeath.core.service.soap.handler.SoapHandlerFactory;
 import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
 import com.google.common.collect.ImmutableList;
-import org.apache.curator.x.discovery.ServiceProvider;
 import org.apache.cxf.Bus;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,7 +58,7 @@ public class SoapCxfClientFactory<TSERV> extends AbstractServiceClientFactory<IS
     }
 
     @Override
-    protected ISoapClient<TSERV> buildClient(ServiceProvider<SoapCuratorDiscoveryServiceDescription> provider, String serviceFullName) {
+    protected ISoapClient<TSERV> buildClient(IServiceProviderSupplier<SoapCuratorDiscoveryServiceDescription> provider, String serviceFullName) {
         return new SoapCxfClient<>(provider,serviceFullName,this);
     }
 

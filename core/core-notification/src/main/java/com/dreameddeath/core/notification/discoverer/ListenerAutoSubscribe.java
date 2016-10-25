@@ -18,7 +18,7 @@
 
 package com.dreameddeath.core.notification.discoverer;
 
-import com.dreameddeath.core.curator.discovery.standard.ICuratorDiscoveryListener;
+import com.dreameddeath.core.curator.discovery.path.ICuratorPathDiscoveryListener;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.listener.IEventListener;
@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Christophe Jeunesse on 02/08/2016.
  */
-public class ListenerAutoSubscribe implements ICuratorDiscoveryListener<ListenerDescription> {
+public class ListenerAutoSubscribe implements ICuratorPathDiscoveryListener<ListenerDescription> {
     private static final Logger LOG = LoggerFactory.getLogger(ListenerAutoSubscribe.class);
     private IEventBus bus;
     private Map<String,IEventListener> listenerMap = new ConcurrentHashMap<>();

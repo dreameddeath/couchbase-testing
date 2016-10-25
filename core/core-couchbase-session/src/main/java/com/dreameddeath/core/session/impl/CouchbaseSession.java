@@ -405,6 +405,9 @@ public class CouchbaseSession implements ICouchbaseSession {
         else if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
             return asyncDelete(obj);
         }
+        else if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC)){
+            return Observable.just(obj);
+        }
         else{
             return asyncUpdate(obj);
         }

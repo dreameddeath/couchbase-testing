@@ -19,13 +19,13 @@
 package com.dreameddeath.core.service.soap.cxf;
 
 import com.dreameddeath.core.service.client.AbstractServiceClientImpl;
+import com.dreameddeath.core.service.discovery.IServiceProviderSupplier;
 import com.dreameddeath.core.service.soap.ISoapClient;
 import com.dreameddeath.core.service.soap.model.SoapCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.UriUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.ServiceProvider;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class SoapCxfClient<T> extends AbstractServiceClientImpl<T,String,SoapCur
     private final SoapCxfClientFactory<T> soapParentFactory;
     private final Cache<ServiceInstance<SoapCuratorDiscoveryServiceDescription>,ClientWrapper<T>> cacheInstance;
 
-    public SoapCxfClient(ServiceProvider<SoapCuratorDiscoveryServiceDescription> provider, String serviceFullName, SoapCxfClientFactory<T> soapFactory){
+    public SoapCxfClient(IServiceProviderSupplier<SoapCuratorDiscoveryServiceDescription> provider, String serviceFullName, SoapCxfClientFactory<T> soapFactory){
         super(provider,serviceFullName,soapFactory);
         this.soapParentFactory =soapFactory;
         this.cacheInstance =

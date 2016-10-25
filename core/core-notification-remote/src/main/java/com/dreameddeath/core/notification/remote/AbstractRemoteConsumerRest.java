@@ -19,11 +19,16 @@
 package com.dreameddeath.core.notification.remote;
 
 import com.dreameddeath.core.notification.listener.IEventListener;
+import com.dreameddeath.core.notification.listener.SubmissionResult;
+import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 import com.dreameddeath.core.notification.registrar.ListenerRegistrar;
+import com.dreameddeath.core.notification.remote.model.RemoteProcessingResult;
 import com.dreameddeath.core.service.AbstractRestExposableService;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 
@@ -31,17 +36,26 @@ import javax.annotation.PostConstruct;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 05/10/2016.
  */
-public abstract class AbstractRemoteConsumerRest extends AbstractRestExposableService {
-    private IEventListener listener;
+public abstract class AbstractRemoteConsumerRest<T extends IEventListener> extends AbstractRestExposableService {
+    private final static Logger LOG = LoggerFactory.getLogger(AbstractRemoteConsumerRest.class);
+    public static final String REMOTE_SERVICE_DOMAIN = "remote.service.domain";
+    public static final String REMOTE_SERVICE_NAME = "remote.service.name";
+    public static final String REMOTE_SERVICE_VERSION = "remote.service.version";
+    public static final String REMOTE_NOTIFICATION_LISTENER_TYPE = "remoteNotificationListener";
+    private T listener;
     private ListenerRegistrar registrar;
 
     @Required
-    public void setEventListener(IEventListener listener){
+    public void setEventListener(T listener){
         this.listener = listener;
     }
 
@@ -49,6 +63,8 @@ public abstract class AbstractRemoteConsumerRest extends AbstractRestExposableSe
     public void setListenerRegistrar(ListenerRegistrar registrar){
         this.registrar=registrar;
     }
+
+    public abstract List<ListenedEvent> getListenedEvents();
 
     @PostConstruct
     public void init(){
@@ -58,23 +74,47 @@ public abstract class AbstractRemoteConsumerRest extends AbstractRestExposableSe
         ListenerDescription listenerDescription=new ListenerDescription();
         listenerDescription.setName(listener.getName());
         listenerDescription.setVersion(listener.getVersion());
-        listenerDescription.setType("remoteNotificationListener");
-        listenerDescription.addParameter("remote.service.domain", annot.domain());
-        listenerDescription.addParameter("remote.service.name", annot.name());
-        listenerDescription.addParameter("remote.service.version", annot.version());
+        listenerDescription.setListenedEvents(getListenedEvents());
+        listenerDescription.setType(REMOTE_NOTIFICATION_LISTENER_TYPE);
+        listenerDescription.addParameter(REMOTE_SERVICE_DOMAIN, annot.domain());
+        listenerDescription.addParameter(REMOTE_SERVICE_NAME, annot.name());
+        listenerDescription.addParameter(REMOTE_SERVICE_VERSION, annot.version());
         try {
             registrar.register(listenerDescription);
         }
         catch(Exception e){
-
+            LOG.error("Cannot registar the listener "+listener.getName()+"/"+listener.getVersion(),e);
+            throw new RuntimeException(e);
         }
     }
 
-    @Path("{id}/submit")
+    @Path("{id}")
     @POST
-    public Response doProcess(@PathParam("id") String notificationId){
-        listener.submit(notificationId);//TODO async
-        return Response.ok().build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public void doProcess(final @PathParam("id") String notificationKey,@Suspended final AsyncResponse asyncResponse){
+        listener.submit(notificationKey)
+                .map(this::mapResult)
+                .onErrorReturn(throwable -> mapResult(notificationKey,throwable))
+                .subscribe(asyncResponse::resume);
     }
+
+    private RemoteProcessingResult mapResult(SubmissionResult result){
+        return new RemoteProcessingResult(
+                result.getNotificationKey(),
+                result.isSuccess(),
+                result.getError()!=null?result.getError().getMessage():null,
+                result.getError()!=null?result.getError().getClass().toString():null
+        );
+    }
+
+    private RemoteProcessingResult mapResult(String notificationKey,Throwable error){
+        return new RemoteProcessingResult(
+                notificationKey,
+                false,
+                error.getMessage(),
+                error.getClass().toString()
+        );
+    }
+
 
 }

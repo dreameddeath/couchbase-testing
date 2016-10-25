@@ -34,7 +34,7 @@ public abstract class AbstractLocalListener  extends AbstractNotificationProcess
     }
 
     @Override
-    public Observable<SubmissionResult> submit(String notifId) {
-        return process(notifId);
+    public Observable<SubmissionResult> submit(String notifKey) {
+        return process(notifKey);
     }
 }

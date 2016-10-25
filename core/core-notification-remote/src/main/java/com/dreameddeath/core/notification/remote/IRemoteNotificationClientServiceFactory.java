@@ -18,26 +18,17 @@
 
 package com.dreameddeath.core.notification.remote;
 
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.notification.listener.impl.AbstractDiscoverableListener;
-import com.dreameddeath.core.notification.model.v1.Event;
-import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 import com.dreameddeath.core.service.client.rest.IRestServiceClient;
-import rx.Observable;
 
 /**
- * Created by Christophe Jeunesse on 05/10/2016.
+ * Created by Christophe Jeunesse on 21/10/2016.
  */
-public class AbstractRemoteProducerListener extends AbstractDiscoverableListener {
-    private IRestServiceClient remoteClient;
-
-    public AbstractRemoteProducerListener(ListenerDescription description) {
-        super(description);
-    }
-
-    @Override
-    protected <T extends Event> Observable<ProcessingResult> doProcess(T event, Notification notification, ICouchbaseSession session) {
-        return null;
+public interface IRemoteNotificationClientServiceFactory {
+    IRestServiceClient getClient(String domain,String name,String version);
+    default IRestServiceClient getClient(ListenerDescription description){
+        return getClient(description.getParameters().get(AbstractRemoteConsumerRest.REMOTE_SERVICE_DOMAIN),
+                description.getParameters().get(AbstractRemoteConsumerRest.REMOTE_SERVICE_NAME),
+                description.getParameters().get(AbstractRemoteConsumerRest.REMOTE_SERVICE_VERSION));
     }
 }

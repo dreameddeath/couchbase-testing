@@ -18,7 +18,8 @@
 
 package com.dreameddeath.core.notification.model.v1.listener;
 
-import com.dreameddeath.core.curator.model.IRegisterable;
+import com.dreameddeath.core.curator.model.IRegistrablePathData;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -27,7 +28,9 @@ import java.util.*;
 /**
  * Created by Christophe Jeunesse on 25/05/2016.
  */
-public class ListenerDescription implements IRegisterable {
+public class ListenerDescription implements IRegistrablePathData {
+    private static final String DEFAULT_VERSION = "1.0.0";
+
     @JsonProperty("name")
     private String name;
     @JsonProperty("listenedEvents")
@@ -87,20 +90,31 @@ public class ListenerDescription implements IRegisterable {
     }
 
     @JsonIgnore
-    public String getUid(){
+    @Override
+    public String uid(){
         return name+"_"+version;
     }
+
+    @JsonIgnore
+    @Override
+    public String version(){
+        return StringUtils.isEmpty(version)?DEFAULT_VERSION:version;
+    }
+
 
     public void setVersion(String version) {
         this.version = version;
     }
 
     public String getVersion() {
-        return version;
+        return version();
     }
 
 
     public void addParameter(String key, String value) {
+        if(parameters==null){
+            parameters = new TreeMap<>();
+        }
         parameters.put(key,value);
     }
 }

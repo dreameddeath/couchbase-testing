@@ -33,45 +33,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${mvn.compiler.version}</version>
-                <executions>
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <source>${java.version}</source>
-                            <target>${java.version}</target>
-                            <!-- Disable annotation processing for ourselves. -->
-                            <compilerArgs>
-                                <arg>-processor</arg>
-                                <arg>com.dreameddeath.core.config.annotation.processor.ConfigAnnotationProcessor,com.dreameddeath.core.model.annotation.processor.DocumentDefAnnotationProcessor,com.dreameddeath.core.dao.annotation.processor.DaoAnnotationProcessor,com.dreameddeath.core.couchbase.annotation.processor.CouchbaseAnnotationProcessor</arg>
-                            </compilerArgs>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <source>${java.version}</source>
-                            <target>${java.version}</target>
-                            <!-- Disable annotation processing for ourselves. -->
-                            <!--<compilerArgument>-proc:none</compilerArgument>-->
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
@@ -104,6 +65,19 @@
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-couchbase-session</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-service</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-notification</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
     </dependencies>

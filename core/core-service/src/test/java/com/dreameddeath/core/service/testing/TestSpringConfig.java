@@ -186,6 +186,12 @@ public class TestSpringConfig implements ServletContextAware {
         Map<String,Object> beanObjMap = (Map<String,Object>)servletContext.getAttribute("beanObjMap");
         for(Map.Entry<String,Object> beanObjEntry:beanObjMap.entrySet()){
             ctxt.getBeanFactory().registerSingleton(beanObjEntry.getKey(),beanObjEntry.getValue());
+            if(beanObjEntry.getValue() instanceof AbstractRestExposableService){
+                ((AbstractRestExposableService)beanObjEntry.getValue()).setAddress(factory.getAddress());
+                ((AbstractRestExposableService)beanObjEntry.getValue()).setEndPoint(getEndPointDescr());
+            }
+            ctxt.getBeanFactory().applyBeanPostProcessorsBeforeInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
+            ctxt.getBeanFactory().applyBeanPostProcessorsAfterInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
         }
 
         List<ResourceProvider> resourceProviders = new LinkedList<>();
@@ -219,9 +225,15 @@ public class TestSpringConfig implements ServletContextAware {
             }
         }
 
+        for(Map.Entry<String,Object> serviceBean:beanObjMap.entrySet()){
+            if(serviceBean.getValue() instanceof AbstractRestExposableService){
+                ResourceProvider provider = new SingletonResourceProvider(serviceBean.getValue());
+                resourceProviders.add(provider);
+            }
+        }
+
         factory.setResourceProviders(resourceProviders);
         factory.setApplicationContext(ctxt);
         return factory.create();
     }
-
 }

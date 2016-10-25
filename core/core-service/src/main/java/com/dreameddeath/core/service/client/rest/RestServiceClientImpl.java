@@ -21,6 +21,7 @@ package com.dreameddeath.core.service.client.rest;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.client.AbstractServiceClientImpl;
 import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
+import com.dreameddeath.core.service.discovery.IServiceProviderSupplier;
 import com.dreameddeath.core.service.model.rest.RestCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
@@ -28,7 +29,6 @@ import com.dreameddeath.core.service.utils.UriUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import io.swagger.models.Swagger;
 import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.ServiceProvider;
 import org.apache.cxf.transport.http_jetty.client.JettyHttpClientConduit;
 
 import javax.ws.rs.client.ClientBuilder;
@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RestServiceClientImpl extends AbstractServiceClientImpl<RxJavaWebTarget,Swagger,RestCuratorDiscoveryServiceDescription> implements IRestServiceClient{
     private final Map<String,ServiceInstanceConfig> configMap = new ConcurrentHashMap<>();
 
-    public RestServiceClientImpl(ServiceProvider<RestCuratorDiscoveryServiceDescription> provider, String serviceFullName, RestServiceClientFactory factory) {
+    public RestServiceClientImpl(IServiceProviderSupplier<RestCuratorDiscoveryServiceDescription> provider, String serviceFullName, RestServiceClientFactory factory) {
         super(provider, serviceFullName, factory);
     }
 

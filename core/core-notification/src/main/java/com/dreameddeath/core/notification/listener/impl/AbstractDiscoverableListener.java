@@ -78,8 +78,8 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
             result = modelId.getDomain().equals(acceptedModelId.getDomain()) &&
                     modelId.getName().equals(acceptedModelId.getName()) &&
                     (
-                            acceptedModelId.getEntityVersion()==null ||
-                                    acceptedModelId.getEntityVersion().compareTo(modelId.getEntityVersion())<=0
+                        acceptedModelId.getEntityVersion()==null ||
+                        acceptedModelId.getEntityVersion().compareTo(modelId.getEntityVersion())<=0
                     );
             if(result){
                 break;

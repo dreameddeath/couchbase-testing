@@ -29,7 +29,6 @@ import org.apache.curator.x.discovery.details.InstanceSerializer;
  */
 public class ServiceInstanceSerializerImpl implements  InstanceSerializer<CuratorDiscoveryServiceDescription<?>> {
     private final ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR);
-    //private final JavaType javaType = mapper.getTypeFactory().constructParametricType(ServiceInstance.class,CuratorDiscoveryServiceDescription.class);
 
     @Override
     public byte[] serialize(ServiceInstance<CuratorDiscoveryServiceDescription<?>> serviceInstance) throws Exception {

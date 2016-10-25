@@ -145,16 +145,12 @@ public class TestingRestServer {
         featureFactory.addFeature(new UserClientFeature(new StandardMockUserFactory()));
         featureFactory.addFeature(new LogClientFeature());
         serviceClientFactory.setFeatureFactory(featureFactory);
-
         contextHandler.setAttribute("serviceClientFactory", serviceClientFactory);
     }
-
-
 
     public TestingRestServer(String testName,CuratorFramework curatorClient) throws Exception{
         this(testName,curatorClient, ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR));
     }
-
 
     public void registerBeanClass(String name, Class beanClass){
         beanClassNameMap.put(name,beanClass);
@@ -175,11 +171,9 @@ public class TestingRestServer {
         }
     }
 
-
     public RestServiceClientFactory getClientFactory(){
         return serviceClientFactory;
     }
-
 
     public void start() throws Exception{
         if(!curatorClient.getState().equals(CuratorFrameworkState.STARTED)) {
@@ -229,6 +223,11 @@ public class TestingRestServer {
 
     public RestServiceDiscoverer getServiceDiscoverer() {
         return serviceDiscoverer;
+    }
+
+
+    public RestServiceRegistrar getServiceRegistrar() {
+        return serviceRegistrar;
     }
 
     public ClientDiscoverer getClientDiscoverer() {

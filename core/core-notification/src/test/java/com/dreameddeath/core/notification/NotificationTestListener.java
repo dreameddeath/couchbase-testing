@@ -83,7 +83,7 @@ public class NotificationTestListener extends AbstractLocalListener {
     }
 
     public Notification poll() throws InterruptedException {
-        return processedNotification.poll(2, TimeUnit.SECONDS);
+        return processedNotification.poll(5, TimeUnit.SECONDS);
     }
 
     public static int totalCounter(){return totalCounter.get();}
@@ -97,7 +97,7 @@ public class NotificationTestListener extends AbstractLocalListener {
     }
 
     @Override
-    protected <T extends Event> Observable<ProcessingResult> doProcess(T event, Notification notification, ICouchbaseSession session) {
+    protected <T extends Event> Observable<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
         //LOG.error("Received event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
         try {
             Thread.sleep(new Double(Math.random() * 100).longValue());
@@ -112,8 +112,10 @@ public class NotificationTestListener extends AbstractLocalListener {
         totalCounter.addAndGet(((EventTest) event).toAdd);
         try {
             //Thread.sleep(100);
+            LOG.error("Offering event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
+
             processedNotification.offer(notification, 20, TimeUnit.SECONDS);
-            return Observable.just(ProcessingResult.PROCESSED);
+            return ProcessingResultInfo.buildObservable(notification,false,ProcessingResult.PROCESSED);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

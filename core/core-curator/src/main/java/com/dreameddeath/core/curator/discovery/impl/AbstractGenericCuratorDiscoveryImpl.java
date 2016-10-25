@@ -247,9 +247,13 @@ public abstract class AbstractGenericCuratorDiscoveryImpl<TDATA,TLISTENER extend
     }
 
     public void waitStarted() throws InterruptedException{
+        waitStarted(5, TimeUnit.MINUTES);
+    }
+
+    public void waitStarted(long timeout,TimeUnit unit) throws InterruptedException{
         if(startedCountDown !=null){
             if(startedCountDown.getCount()>0) {
-                Preconditions.checkArgument(startedCountDown.await(5, TimeUnit.MINUTES), "The start phase hasn't finished on time");
+                Preconditions.checkArgument(startedCountDown.await(timeout, unit), "The start phase hasn't finished on time");
             }
         }
         else{

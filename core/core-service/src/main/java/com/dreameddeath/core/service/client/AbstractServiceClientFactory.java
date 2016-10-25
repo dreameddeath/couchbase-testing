@@ -19,12 +19,12 @@
 package com.dreameddeath.core.service.client;
 
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
+import com.dreameddeath.core.service.discovery.IServiceProviderSupplier;
 import com.dreameddeath.core.service.exception.ServiceDiscoveryException;
 import com.dreameddeath.core.service.model.common.ClientInstanceInfo;
 import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
-import org.apache.curator.x.discovery.ServiceProvider;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,13 +66,13 @@ public abstract class AbstractServiceClientFactory<TCLIENT extends IServiceClien
         }
     }
 
-    protected abstract TCLIENT buildClient(ServiceProvider<TDESCR> provider, String serviceFullName);
+    protected abstract TCLIENT buildClient(IServiceProviderSupplier<TDESCR> provider, String serviceFullName);
 
     public TCLIENT getClient(final String serviceName, final String serviceVersion){
         return serviceClientMap.computeIfAbsent(ServiceNamingUtils.buildServiceFullName(serviceName, serviceVersion),
                 serviceFullName -> {
                     try {
-                        TCLIENT client = buildClient(serviceDiscoverer.getServiceProvider(serviceFullName),serviceFullName);// new ServiceClientImpl(serviceDiscoverer.getServiceProvider(serviceFullName),serviceFullName,this);
+                        TCLIENT client = buildClient(serviceDiscoverer.getServiceProviderSupplier(serviceFullName),serviceFullName);// new ServiceClientImpl(serviceDiscoverer.getServiceProvider(serviceFullName),serviceFullName,this);
                         if(clientRegistrar!=null){
                             registarClient(client);
                         }

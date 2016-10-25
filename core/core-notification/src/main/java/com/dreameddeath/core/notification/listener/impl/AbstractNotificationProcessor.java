@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.notification.listener.impl;
@@ -45,9 +47,9 @@ public abstract class AbstractNotificationProcessor {
     }
 
 
-    public Observable<SubmissionResult> process(final String sourceNotifId) {
+    public Observable<SubmissionResult> process(final String sourceNotifKey) {
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, defaultSessionUser);
-        return process(sourceNotifId,session);
+        return process(sourceNotifKey,session);
     }
 
     private boolean needProcessing(Notification notification){
@@ -58,8 +60,8 @@ public abstract class AbstractNotificationProcessor {
         return Observable.just(new SubmissionResult(notification,notification.getStatus()== Notification.Status.PROCESSED));
     }
 
-    public  Observable<SubmissionResult> process(final String sourceNotifId,final ICouchbaseSession session) {
-        return session.asyncGet(sourceNotifId,Notification.class)
+    public  Observable<SubmissionResult> process(final String sourceNotifKey,final ICouchbaseSession session) {
+        return session.asyncGet(sourceNotifKey,Notification.class)
                 .flatMap(notification -> {
                     if(!needProcessing(notification)){
                         return buildNotificationResult(notification);
@@ -90,28 +92,60 @@ public abstract class AbstractNotificationProcessor {
         );
 
         return doProcess(event,sourceNotif,session)
-                .map(processingResult->{
-                    if(processingResult==ProcessingResult.SUBMITTED) {
-                        sourceNotif.setStatus(Notification.Status.SUBMITTED);
+                .map(processingResultInfo->{
+                    if(!processingResultInfo.isRemote()) {
+                        if (processingResultInfo.getResult()== ProcessingResult.SUBMITTED) {
+                            processingResultInfo.getNotification().setStatus(Notification.Status.SUBMITTED);
+                        } else if (processingResultInfo.getResult() == ProcessingResult.DEFERRED) {
+                            processingResultInfo.getNotification().setStatus(Notification.Status.DEFERRED);
+                        } else if (processingResultInfo.getResult() == ProcessingResult.PROCESSED) {
+                            processingResultInfo.getNotification().setStatus(Notification.Status.PROCESSED);
+                        }
+                        processingResultInfo.getNotification().incNbAttempts();
                     }
-                    else if(processingResult==ProcessingResult.DEFERRED){
-                        sourceNotif.setStatus(Notification.Status.DEFERRED);
-                    }
-                    else if(processingResult==ProcessingResult.PROCESSED) {
-                        sourceNotif.setStatus(Notification.Status.PROCESSED);
-                    }
-                    sourceNotif.incNbAttempts();
-                    return sourceNotif;
+                    return processingResultInfo.getNotification();
                 })
                 .flatMap(session::asyncSave)
-                .map(notif-> new SubmissionResult(notif,true))
+                .map(notif -> new SubmissionResult(notif,true))
                 .onErrorResumeNext(throwable ->
                         Observable.just(new SubmissionResult(sourceNotif,throwable))
                 );
     }
 
-    protected  abstract <T extends Event> Observable<ProcessingResult> doProcess(T event,Notification notification,ICouchbaseSession session);
+    protected  abstract <T extends Event> Observable<ProcessingResultInfo> doProcess(T event,Notification notification,ICouchbaseSession session);
 
+
+    public static class ProcessingResultInfo{
+        private final Notification notification;
+        private final boolean isRemote;
+        private final ProcessingResult result;
+
+        public ProcessingResultInfo(Notification notification, boolean isRemote, ProcessingResult result) {
+            this.notification = notification;
+            this.isRemote = isRemote;
+            this.result = result;
+        }
+
+        public Notification getNotification() {
+            return notification;
+        }
+
+        public boolean isRemote() {
+            return isRemote;
+        }
+
+        public ProcessingResult getResult() {
+            return result;
+        }
+
+        public static Observable<ProcessingResultInfo> buildObservable(Notification notification,boolean isRemote,ProcessingResult result){
+            return Observable.just(new ProcessingResultInfo(notification,isRemote,result));
+        }
+
+        public static ProcessingResultInfo build(Notification notification, boolean isRemote,ProcessingResult result){
+            return new ProcessingResultInfo(notification,isRemote,result);
+        }
+    }
     public enum ProcessingResult{
         PROCESSED,
         SUBMITTED,

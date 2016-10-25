@@ -20,11 +20,11 @@ package com.dreameddeath.core.service.client.rest;
 
 import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
+import com.dreameddeath.core.service.discovery.IServiceProviderSupplier;
 import com.dreameddeath.core.service.interceptor.rest.feature.ClientFeatureFactory;
 import com.dreameddeath.core.service.model.rest.RestCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import io.swagger.models.Swagger;
-import org.apache.curator.x.discovery.ServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -33,12 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RestServiceClientFactory extends AbstractServiceClientFactory<IRestServiceClient,Swagger,RestCuratorDiscoveryServiceDescription> {
     private ClientFeatureFactory featureFactory=null;
 
-
     @Autowired(required = false)
     public void setFeatureFactory(ClientFeatureFactory featureFactory){
         this.featureFactory=featureFactory;
     }
-
 
     public RestServiceClientFactory(AbstractServiceDiscoverer serviceDiscoverer) {
         super(serviceDiscoverer);
@@ -49,7 +47,7 @@ public class RestServiceClientFactory extends AbstractServiceClientFactory<IRest
     }
 
     @Override
-    protected IRestServiceClient buildClient(ServiceProvider<RestCuratorDiscoveryServiceDescription> provider, String serviceFullName) {
+    protected IRestServiceClient buildClient(IServiceProviderSupplier<RestCuratorDiscoveryServiceDescription> provider, String serviceFullName) {
         return new RestServiceClientImpl(provider,serviceFullName,this);
     }
 

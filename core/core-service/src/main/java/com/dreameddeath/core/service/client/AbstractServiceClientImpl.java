@@ -18,11 +18,11 @@
 
 package com.dreameddeath.core.service.client;
 
+import com.dreameddeath.core.service.discovery.IServiceProviderSupplier;
 import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.utils.UriUtils;
 import com.google.common.base.Preconditions;
 import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.ServiceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,14 +36,14 @@ public abstract class AbstractServiceClientImpl<T,TSPEC,TDESCR extends CuratorDi
     private static final Logger LOG = LoggerFactory.getLogger(AbstractServiceClientImpl.class);
 
 
-    private final ServiceProvider<TDESCR> provider;
+    private final IServiceProviderSupplier<TDESCR> providerSupplier;
     private final AbstractServiceClientFactory<? extends IServiceClient<T>,TSPEC,TDESCR> parentFactory;
     private final String fullName;
     private final UUID uuid=UUID.randomUUID();
 
-    public AbstractServiceClientImpl(ServiceProvider<TDESCR> provider, String serviceFullName, AbstractServiceClientFactory<? extends IServiceClient<T>,TSPEC,TDESCR> factory){
-        Preconditions.checkNotNull(provider,"The provider for service %s is null",serviceFullName);
-        this.provider = provider;
+    public AbstractServiceClientImpl(IServiceProviderSupplier<TDESCR> providerSupplier, String serviceFullName, AbstractServiceClientFactory<? extends IServiceClient<T>,TSPEC,TDESCR> factory){
+        Preconditions.checkNotNull(providerSupplier,"The provider for service %s is null",serviceFullName);
+        this.providerSupplier = providerSupplier;
         this.fullName = serviceFullName;
         this.parentFactory = factory;
     }
@@ -53,7 +53,7 @@ public abstract class AbstractServiceClientImpl<T,TSPEC,TDESCR extends CuratorDi
     @Override
     public T getInstance(){
         try {
-            ServiceInstance<TDESCR> instance = provider.getInstance();
+            ServiceInstance<TDESCR> instance = providerSupplier.getServiceProvider().getInstance();
             if(instance==null){
                 throw new NoSuchElementException("No instance found");
             }
@@ -68,7 +68,7 @@ public abstract class AbstractServiceClientImpl<T,TSPEC,TDESCR extends CuratorDi
     @Override
     public String  getUriInstance(){
         try {
-            ServiceInstance<TDESCR> instance = provider.getInstance();
+            ServiceInstance<TDESCR> instance = providerSupplier.getServiceProvider().getInstance();
             if(instance==null){
                 throw new RuntimeException("Cannot get instance of service <"+fullName+">");
             }
@@ -93,7 +93,7 @@ public abstract class AbstractServiceClientImpl<T,TSPEC,TDESCR extends CuratorDi
     @Override
     public T getInstance(String instanceId){
         try {
-            for (ServiceInstance<TDESCR> instance : provider.getAllInstances()) {
+            for (ServiceInstance<TDESCR> instance : providerSupplier.getServiceProvider().getAllInstances()) {
                 if (instance.getId().equals(instanceId)) {
                     return buildClient(instance);
                 }

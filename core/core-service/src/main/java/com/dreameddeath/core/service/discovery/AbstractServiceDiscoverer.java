@@ -60,11 +60,11 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
     private final CountDownLatch started = new CountDownLatch(1);
 
     private class ProviderInfo{
-        private final ServiceProvider<T> provider;
+        private final IServiceProviderSupplier<T> providerSupplier;
         private final ServiceDescription infoDescription;
 
         public ProviderInfo(ServiceProvider<T> provider, ServiceDescription infoDescription) {
-            this.provider = provider;
+            this.providerSupplier = new StandardServiceProviderSupplier<>(provider);
             this.infoDescription = infoDescription;
         }
     }
@@ -141,10 +141,10 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
                 try {
                     ProviderInfo info=serviceProviderMap.remove(oldObj.getFullName());
                     if(info!=null){
-                        info.provider.close();
+                        info.providerSupplier.getServiceProvider().close();
                         for(IServiceDiscovererListener listener:listeners){
                             try {
-                                listener.onProviderUnRegister(AbstractServiceDiscoverer.this, info.provider, oldObj);
+                                listener.onProviderUnRegister(AbstractServiceDiscoverer.this, info.providerSupplier.getServiceProvider(), oldObj);
                             }
                             catch (Exception e){
                                 LOG.error("Error on unregister "+oldObj.getFullName()+" for listener "+listener,e);
@@ -177,7 +177,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
                         ProviderInfo oldInfo=serviceProviderMap.get(obj.getFullName());
                         for(IServiceDiscovererListener listener:listeners){
                         try {
-                            listener.onProviderUpdate(AbstractServiceDiscoverer.this, oldInfo.provider, obj);
+                            listener.onProviderUpdate(AbstractServiceDiscoverer.this, oldInfo.providerSupplier.getServiceProvider(), obj);
                         }
                         catch (Exception e){
                             LOG.error("Error on update "+obj.getFullName()+" for listener "+listener,e);
@@ -191,13 +191,13 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         });
     }
 
-    public  ServiceProvider<T> getServiceProvider(String name) throws ServiceDiscoveryException{
-        return getServiceProvider(name,1,TimeUnit.SECONDS);
+    public  IServiceProviderSupplier<T> getServiceProviderSupplier(String name) throws ServiceDiscoveryException{
+        return getServiceProviderSupplier(name,30,TimeUnit.SECONDS);
     }
 
-    public  ServiceProvider<T> getServiceProvider(String name,long timeout,TimeUnit unit) throws ServiceDiscoveryException{
+    public  IServiceProviderSupplier<T> getServiceProviderSupplier(String name, long timeout, TimeUnit unit) throws ServiceDiscoveryException{
         try {
-            waitStarted();
+            waitStarted(timeout,unit);
         }
         catch(InterruptedException e){
             throw new ServiceDiscoveryException("Not yet started",e);
@@ -205,16 +205,25 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
 
         ProviderInfo info=serviceProviderMap.get(name);
         if(info==null){
-            LOG.error("Cannot find provider for service name {}",name);
-            throw new ServiceDiscoveryException("Cannot find provider for service name "+name+" in domain "+ domain);
+            LOG.warn("Cannot find provider for service name {}, use Deferred Supplier",name);
+            return new DeferredServiceProviderSupplier<>(()->{
+                ProviderInfo deferredInfo=serviceProviderMap.get(name);
+                if(deferredInfo==null){
+                    LOG.error("Cannot find even in deferred mode the service {}",name);
+                    throw new IllegalStateException("Cannot find service <"+name+">");
+                }
+                return deferredInfo.providerSupplier.getServiceProvider();
+            });
         }
-        return info.provider;
+        else {
+            return info.providerSupplier;
+        }
     }
 
 
     public ServiceInstance<T> getInstance(String fullName) throws ServiceDiscoveryException{
         try {
-            return getServiceProvider(fullName).getInstance();
+            return getServiceProviderSupplier(fullName).getServiceProvider().getInstance();
         }
         catch(ServiceDiscoveryException e){
             throw e;
@@ -226,7 +235,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
 
     public ServiceInstance<T> getInstance(String fullName, String uid) throws ServiceDiscoveryException{
         try {
-            ServiceProvider<T> provider = getServiceProvider(fullName);
+            ServiceProvider<T> provider = getServiceProviderSupplier(fullName).getServiceProvider();
             for(ServiceInstance<T> instance : provider.getAllInstances()){
                 if(instance.getId().equals(uid)){
                     return instance;
@@ -249,7 +258,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         ServicesByNameInstanceDescription desc = new ServicesByNameInstanceDescription();
         for(Map.Entry<String,ProviderInfo> entry:serviceProviderMap.entrySet()){
             try {
-                for (ServiceInstance<T> instance : entry.getValue().provider.getAllInstances()) {
+                for (ServiceInstance<T> instance : entry.getValue().providerSupplier.getServiceProvider().getAllInstances()) {
                     desc.addServiceInstance(buildInstanceDescription(instance));
                 }
             }
@@ -263,7 +272,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
     public ServicesListInstanceDescription getInstancesDescriptionByFullName(String fullName) throws ServiceDiscoveryException{
         ServicesListInstanceDescription result = new ServicesListInstanceDescription();
         try {
-            for (ServiceInstance<T> instance : getServiceProvider(fullName).getAllInstances()) {
+            for (ServiceInstance<T> instance : getServiceProviderSupplier(fullName).getServiceProvider().getAllInstances()) {
                 result.addServiceInstance(buildInstanceDescription(instance));
             }
         }
@@ -296,7 +305,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
             String version = ServiceNamingUtils.getVersionFromServiceFullName(fullName);
             ServiceInfoVersionDescription<TSPEC> foundServiceVersionInfoDescription = foundServiceInfoDescription.addIfNeededServiceVersionInfoDescriptionMap(version, new ServiceInfoVersionDescription());
             try {
-                for (ServiceInstance<T> instance : entry.getValue().provider.getAllInstances()) {
+                for (ServiceInstance<T> instance : entry.getValue().providerSupplier.getServiceProvider().getAllInstances()) {
                     if(foundServiceVersionInfoDescription.getFullName()==null){
                         foundServiceVersionInfoDescription.setFullName(fullName);
                         foundServiceVersionInfoDescription.setState(instance.getPayload().getState());
@@ -340,7 +349,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         listeners.add(listener);
         for(Map.Entry<String,ProviderInfo> entry :copy.entrySet()){
             try {
-                listener.onProviderRegister(AbstractServiceDiscoverer.this, entry.getValue().provider, entry.getValue().infoDescription);
+                listener.onProviderRegister(AbstractServiceDiscoverer.this, entry.getValue().providerSupplier.getServiceProvider(), entry.getValue().infoDescription);
             }
             catch (Exception e){
                 LOG.error("Error on register "+entry.getValue().infoDescription.getFullName()+" for listener "+listener,e);

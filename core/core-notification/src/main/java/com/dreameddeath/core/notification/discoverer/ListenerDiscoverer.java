@@ -18,7 +18,7 @@
 
 package com.dreameddeath.core.notification.discoverer;
 
-import com.dreameddeath.core.curator.discovery.impl.StandardCuratorDiscoveryImpl;
+import com.dreameddeath.core.curator.discovery.impl.PathCuratorDiscoveryImpl;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,7 @@ import java.io.IOException;
 /**
  * Created by Christophe Jeunesse on 29/05/2016.
  */
-public class ListenerDiscoverer extends StandardCuratorDiscoveryImpl<ListenerDescription> {
+public class ListenerDiscoverer extends PathCuratorDiscoveryImpl<ListenerDescription> {
     private final ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
 
     public ListenerDiscoverer(CuratorFramework curatorFramework, String basePath) {
