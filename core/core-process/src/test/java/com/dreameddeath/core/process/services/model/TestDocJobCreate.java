@@ -23,6 +23,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.TestDoc;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
+import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.core.validation.annotation.Unique;
 
@@ -43,4 +44,8 @@ public class TestDocJobCreate extends AbstractJob {
 
     @DocumentEntity(domain = "test",version = "1.0")
     public static class TestJobCreateTask extends DocumentCreateTask<TestDoc> {}
+
+    @DocumentEntity(domain = "test",version = "1.0")
+    public static class TestJobUpdateTask extends DocumentUpdateTask<TestDoc>{
+    }
 }

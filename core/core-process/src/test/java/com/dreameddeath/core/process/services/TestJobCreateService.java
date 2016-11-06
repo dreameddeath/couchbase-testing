@@ -22,11 +22,9 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.model.TestDoc;
-import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.process.service.context.JobProcessingResult;
-import com.dreameddeath.core.process.service.context.TaskContext;
-import com.dreameddeath.core.process.service.context.UpdateJobTaskProcessingResult;
+import com.dreameddeath.core.process.service.context.*;
 import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
 import com.dreameddeath.core.process.services.model.TestDocJobCreate;
 import rx.Observable;
@@ -38,7 +36,9 @@ import rx.Observable;
 public class TestJobCreateService extends StandardJobProcessingService<TestDocJobCreate> {
     @Override
     public Observable<JobProcessingResult<TestDocJobCreate>> init(JobContext<TestDocJobCreate> context){
-        context.addTask(new TestDocJobCreate.TestJobCreateTask());
+        context.addTask(new TestDocJobCreate.TestJobCreateTask())
+                .chainWith(new TestDocJobCreate.TestJobUpdateTask());
+                //.chainWith(new TestDocJobCreate.TestDocSubJobCreateTask());
         return JobProcessingResult.build(context,false);
     }
 
@@ -59,4 +59,23 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
             return new UpdateJobTaskProcessingResult<>(job,task,true).toObservable();
         }
     }
+
+    @TaskProcessingForClass(TestDocJobCreate.TestJobUpdateTask.class)
+    public static class TestJobUpdateTaskService extends DocumentUpdateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobUpdateTask> {
+        @Override
+        public Observable<TaskProcessingResult<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask>> preprocess(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask> context) {
+            return context.getDependentTask(TestDocJobCreate.TestJobCreateTask.class)
+                    .flatMap(createTask->{
+                        context.getInternalTask().setDocKey(createTask.getDocKey());
+                        return TaskProcessingResult.build(context,false);
+                    });
+        }
+
+        @Override
+        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
+            ctxtAndDoc.getDoc().intValue*=2;
+            return new ProcessingDocumentResult(ctxtAndDoc,true).toObservable();
+        }
+    }
+
 }

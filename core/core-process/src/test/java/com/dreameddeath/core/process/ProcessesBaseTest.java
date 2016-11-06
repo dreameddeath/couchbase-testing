@@ -47,7 +47,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 01/11/2016.
  */
-public class ProcessesBaseTests extends Assert {
+public class ProcessesBaseTest extends Assert {
     private static CuratorTestUtils curatorUtils;
     private static ExecutorClientFactory executorClientFactory;
     private static CouchbaseBucketSimulator cbSimulator;
@@ -88,7 +88,7 @@ public class ProcessesBaseTests extends Assert {
         TestDocJobCreate.TestJobCreateTask createJobTask = context.getTasks(TestDocJobCreate.TestJobCreateTask.class).get(0).getInternalTask();
         assertEquals(createJobTask.getDocKey(),context.getInternalJob().createdKey);
         TestDoc createdDoc = cbSimulator.toBlocking().get(createJobTask.getDocKey(), TestDoc.class);
-        assertEquals(job.initIntValue, createdDoc.intValue);
+        assertEquals(new Integer(2*job.initIntValue), createdDoc.intValue);
         assertEquals(job.name, createdDoc.name);
     }
 
