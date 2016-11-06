@@ -1,31 +1,33 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package test.model;
 
+import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.helper.annotation.dao.*;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDao;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 
 @DocumentEntity(domain="testGeneration",name="daoProccessor",version = "1.0.0")
-@DaoEntity(baseDao = BusinessCouchbaseDocumentDao.class,dbPath = "test/",idFormat = "%010d",idPattern = "\\d{10}")
+@DaoEntity(baseDao = BusinessCouchbaseDocumentWithKeyPatternDao.class,dbPath = "test/",idFormat = "%010d",idPattern = "\\d{10}")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @Counter(name= "checks",dbName = "checks")
 @View(name = "listView",

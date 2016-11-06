@@ -109,7 +109,7 @@ public class CouchbaseDocumentDaoTest{
         });
         wrapper.addTranscoder(transcoder);
         wrapper.start();
-        daoTest = new DaoRootTest(new CouchbaseCounterDao(new CouchbaseCounterDao.Builder().withKeyPattern("test").withDefaultValue(1)));
+        daoTest = new DaoRootTest(new CouchbaseCounterDao(new CouchbaseCounterDao.Builder().withKeyPattern("test")));
         daoTest.setClient(wrapper);
 
     }

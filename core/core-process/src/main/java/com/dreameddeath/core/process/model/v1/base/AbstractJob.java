@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.model.v1.base;
@@ -44,7 +46,7 @@ import java.util.UUID;
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 @DocumentEntity
-public abstract class AbstractJob extends CouchbaseDocument implements IVersionedEntity,IHasUniqueKeysRef {
+public abstract class AbstractJob extends CouchbaseDocument implements IVersionedEntity {
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
@@ -81,6 +83,11 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
      */
     @DocumentProperty("tasks")
     private SetProperty<String> tasks = new TreeSetProperty<>(AbstractJob.this);
+    /**
+     *  jobUpdatedForTasks : list of task having jobUpdated
+     */
+    @DocumentProperty("jobUpdatedForTasks")
+    private SetProperty<String> jobUpdatedForTasks = new TreeSetProperty<>(AbstractJob.this);
     /**
      *  docUniqKeys : List of uniqueness Keys attached to this document
      */
@@ -127,42 +134,31 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
      */
     public void setRequestUid(String val) { requestUid.set(val); }
 
+    public boolean addJobUpdatedForTask(String taskId) {
+        return jobUpdatedForTasks.add(taskId);
+    }
+
+    public boolean removeJobUpdatedForTask(String taskId) {
+        return jobUpdatedForTasks.remove(taskId);
+    }
+
+    public Set<String> getJobUpdatedForTasks() {
+        return jobUpdatedForTasks.get();
+    }
+
+    public void setJobUpdatedForTasks(Collection<String> taskIdsList) {
+        jobUpdatedForTasks.set(taskIdsList);
+    }
+
     // DocUniqKeys Accessors
     public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
     public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
-    @Override
-    public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
-
-    protected void syncKeyWithDb(){
-        inDbUniqKeys.clear();
-        inDbUniqKeys.addAll(docUniqKeys.get());
-        docUniqKeys.clear();
-    }
-
-    public Set<String> getToBeDeletedUniqueKeys(){
-        Set<String> toRemoveKeyList=new HashSet<>(inDbUniqKeys);
-        toRemoveKeyList.addAll(docUniqKeys.get());
-        return toRemoveKeyList;
-    }
-
-    @Override
-    public Set<String> getRemovedUniqueKeys(){
-        Set<String> removed=new HashSet<>(inDbUniqKeys);
-        removed.removeAll(docUniqKeys.get());
-        return removed;
-    }
-
-    @Override
-    public boolean isInDbKey(String key) {
-        return inDbUniqKeys.contains(key);
-    }
-
 
     public MetaInfo getMeta(){
         return (MetaInfo) getBaseMeta();
     }
 
-    public class MetaInfo extends BaseMetaInfo {
+    public class MetaInfo extends BaseMetaInfo implements IHasUniqueKeysRef{
 
         @Override
         public void setStateDeleted(){
@@ -175,5 +171,32 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
             syncKeyWithDb();
             super.setStateSync();
         }
+        @Override
+        public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
+
+        protected void syncKeyWithDb(){
+            inDbUniqKeys.clear();
+            inDbUniqKeys.addAll(docUniqKeys.get());
+            docUniqKeys.clear();
+        }
+
+        public Set<String> getToBeDeletedUniqueKeys(){
+            Set<String> toRemoveKeyList=new HashSet<>(inDbUniqKeys);
+            toRemoveKeyList.addAll(docUniqKeys.get());
+            return toRemoveKeyList;
+        }
+
+        @Override
+        public Set<String> getRemovedUniqueKeys(){
+            Set<String> removed=new HashSet<>(inDbUniqKeys);
+            removed.removeAll(docUniqKeys.get());
+            return removed;
+        }
+
+        @Override
+        public boolean isInDbKey(String key) {
+            return inDbUniqKeys.contains(key);
+        }
+
     }
 }

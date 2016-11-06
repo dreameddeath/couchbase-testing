@@ -1,32 +1,40 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.service.impl.executor;
 
-import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.process.exception.JobObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.model.v1.base.ProcessState.State;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import rx.Observable;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
 
 
 /**
@@ -34,96 +42,185 @@ import com.dreameddeath.core.process.service.context.TaskContext;
  */
 public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobExecutorService<T> {
 
-    public void onSave(JobContext<T> ctxt,ProcessState.State state){}
-    public void onEndProcessing(JobContext<T> ctxt,ProcessState.State state){}
-
-    public void manageStateExecutionEnd(JobContext<T> ctxt, ProcessState.State newState, boolean needSave) throws DaoException,ValidationException,StorageException{
-        ctxt.getJobState().setState(newState);
-        if(needSave) {
-            onSave(ctxt, newState);
-            ctxt.save();
-        }
-        onEndProcessing(ctxt, newState);
+    public Observable<JobContext<T>> onSave(JobContext<T> ctxt, ProcessState.State state) {
+        return Observable.just(ctxt);
     }
+
+    public Observable<JobContext<T>> onEndProcessing(JobContext<T> ctxt, ProcessState.State state) {
+        return Observable.just(ctxt);
+    }
+
+    public Observable<JobContext<T>> manageStateProcessing(final JobContext<T> ctxt, Func1<? super JobContext<T>, ? extends Observable<? extends JobProcessingResult<T>>> processingFunc, State state, Predicate<JobContext<T>> checkPredicate) {
+        try {
+            if (!checkPredicate.test(ctxt)) {
+                return Observable.just(ctxt).flatMap(processingFunc)
+                        .flatMap(res -> {
+                            res.getContext().setState(state);
+                            if (res.isNeedSave()) {
+                                return onSave(res.getContext(),state)
+                                        .flatMap(JobContext::asyncSave);
+                            }
+                            return Observable.just(res.getContext());
+                        })
+                        .flatMap(newCtxt -> onEndProcessing(newCtxt,state));
+            } else {
+                return Observable.just(ctxt);
+            }
+        } catch (JobObservableExecutionException e) {
+            return Observable.error(e);
+        } catch (Throwable e) {
+            return Observable.error(new JobObservableExecutionException(ctxt, "Unexpected exception", e));
+        }
+    }
+
 
     @Override
-    public JobContext<T> execute(JobContext<T> ctxt) throws JobExecutionException{
-        final ProcessState jobState=ctxt.getJobState();
-        final AbstractJob job = ctxt.getJob();
-        jobState.setLastRunError(null);
+    public Observable<JobContext<T>> execute(JobContext<T> origCtxt) {
         try {
-            if (!jobState.isInitialized()) {
-                try {
-                    boolean saveAsked;
-                    saveAsked=ctxt.getProcessingService().init(ctxt);
-                    manageStateExecutionEnd(ctxt,State.INITIALIZED,saveAsked);
-                } catch (Throwable e) {
-                    throw new JobExecutionException(job, State.INITIALIZED, e);
-                }
+            return Observable.just(origCtxt)
+                    .flatMap(ctxt ->
+                            manageStateProcessing(ctxt,
+                                    (inCtxt) -> inCtxt.getProcessingService().init(inCtxt),
+                                    State.INITIALIZED,
+                                    (inCtxt) -> inCtxt.getJobState().isInitialized()
+                            )
+                    )
+                    .flatMap(ctxt ->
+                            manageStateProcessing(ctxt,
+                                    (inCtxt) -> inCtxt.getProcessingService().preprocess(inCtxt),
+                                    State.PREPROCESSED,
+                                    (inCtxt) -> inCtxt.getJobState().isPrepared()
+                            )
+                    )
+                    .flatMap(ctxt ->
+                            manageStateProcessing(ctxt,
+                                    this::executeTasks,
+                                    State.PROCESSED,
+                                    (inCtxt) -> inCtxt.getJobState().isProcessed()
+                            )
+                    )
+                    .flatMap(ctxt ->
+                            manageStateProcessing(ctxt,
+                                    (inCtxt) -> inCtxt.getProcessingService().postprocess(inCtxt),
+                                    State.POSTPROCESSED,
+                                    (inCtxt) -> inCtxt.getJobState().isFinalized()
+                            )
+                    )
+                    .flatMap(ctxt ->
+                            manageStateProcessing(ctxt,
+                                    (inCtxt) -> inCtxt.getProcessingService().postprocess(inCtxt),
+                                    State.POSTPROCESSED,
+                                    (inCtxt) -> inCtxt.getJobState().isFinalized()
+                            )
+                    )
+                    .flatMap(ctxt ->
+                            manageStateProcessing(ctxt,
+                                    (inCtxt) -> inCtxt.getProcessingService().notify(inCtxt),
+                                    State.NOTIFIED,
+                                    (inCtxt) -> inCtxt.getJobState().isNotified()
+                            )
+                    )
+                    .flatMap(ctxt ->
+                            manageStateProcessing(ctxt,
+                                    (inCtxt) -> inCtxt.getProcessingService().cleanup(inCtxt),
+                                    State.DONE,
+                                    (inCtxt) -> inCtxt.getJobState().isDone()
+                            )
+                    )
+                    .flatMap(JobContext::asyncSave);
+
+            } catch (JobObservableExecutionException e) {
+                return Observable.error(e);
+            } catch (Throwable e) {
+                return Observable.error(new JobObservableExecutionException(origCtxt,e));
             }
 
-            if (!jobState.isPrepared()) {
-                try {
-                    boolean saveAsked;
-                    saveAsked=ctxt.getProcessingService().preprocess(ctxt);
-                    manageStateExecutionEnd(ctxt,State.PREPROCESSED,saveAsked);
-                } catch (Throwable e) {
-                    throw new JobExecutionException(job, State.PREPROCESSED, e);
-                }
-            }
-
-            if (!jobState.isProcessed()) {
-                try {
-                    TaskContext<T,?> taskCtxt;
-                    while ((taskCtxt = ctxt.getNextExecutableTask()) != null) {
-                        if(taskCtxt.getTask().getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
-                            taskCtxt.save();
-                        }
-                        taskCtxt.execute();
-                    }
-                    if(ctxt.getPendingTasks(true).size()>0){
-                        throw new JobExecutionException(ctxt,"Remaning not executable tasks");
-                    }
-                    manageStateExecutionEnd(ctxt,State.PROCESSED,true);
-                }
-                catch(JobExecutionException e){
-                    throw e;
-                }
-                catch (Throwable e) {
-                    throw new JobExecutionException(job, State.PROCESSED, e);
-                }
-            }
-
-            if (!jobState.isFinalized()) {
-                try {
-                    boolean saveAsked;
-                    saveAsked=ctxt.getProcessingService().postprocess(ctxt);
-                    manageStateExecutionEnd(ctxt,State.POSTPROCESSED,saveAsked);
-                } catch (Throwable e) {
-                    throw new JobExecutionException(job, State.POSTPROCESSED, e);
-                }
-            }
-
-            if (!jobState.isDone()) {
-                try {
-                    ctxt.getProcessingService().cleanup(ctxt);
-                    manageStateExecutionEnd(ctxt,State.DONE,true);
-                } catch (Throwable e) {
-                    throw new JobExecutionException(job, State.DONE, e);
-                }
-            }
-        }
-        catch(JobExecutionException e){
-            job.getBaseMeta().unfreeze();
-            jobState.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
-            throw e;
-        }
-        catch(Throwable e){
-            job.getBaseMeta().unfreeze();
-            jobState.setLastRunError("["+e.getClass().getSimpleName()+"] "+e.getMessage());
-            throw new JobExecutionException(job,State.UNKNOWN,e);
-        }
-        return ctxt;
     }
 
+    private Observable<? extends JobProcessingResult<T>> executeTasks(JobContext<T> inCtxt) {
+        return inCtxt.asyncSave()
+                .flatMap(this::manageJobUpdatesRetry)
+                .flatMap(this::executePendingTasks)
+                .flatMap(this::manageResult)
+                .onErrorResumeNext(throwable->this.manageError(throwable,inCtxt));
+    }
+
+    private Observable<JobProcessingResult<T>> manageError(Throwable throwable, JobContext<T> inCtxt) {
+        inCtxt.getInternalJob().getBaseMeta().unfreeze();
+        if(throwable instanceof JobObservableExecutionException){
+            return Observable.error(throwable);
+        }
+        else{
+            return Observable.error(new JobObservableExecutionException(inCtxt,throwable));
+        }
+    }
+
+    private Observable<JobProcessingResult<T>> manageResult(JobTasksResult jobTasksResult) {
+        final JobContext<T> jobCtxt=jobTasksResult.job;
+        return jobCtxt.getPendingTasks()
+                .toList()
+                .map(taskList->{
+                    if(taskList.size()>0){
+                        throw new JobObservableExecutionException(jobCtxt,"Pending tasks existing");
+                    }
+                    return new JobProcessingResult<>(jobCtxt,true);
+                });
+    }
+
+    private Observable<JobContext<T>> manageJobUpdatesRetry(JobContext<T> context) {
+        //TODO manage retry of jobUpdate calls
+        return Observable.just(context);
+    }
+
+    private Observable<JobTasksResult> executePendingTasks(JobContext<T> inCtxt){
+        inCtxt.getInternalJob().getBaseMeta().freeze();
+        return inCtxt.getNextExecutableTasks()
+                .flatMap(taskCtxt->{
+                    if(taskCtxt.isNew()){return taskCtxt.asyncSave();}
+                    else{return Observable.just(taskCtxt);}
+                })
+                .observeOn(Schedulers.computation())
+                .flatMap(TaskContext::execute)
+                .toList()
+                .switchIfEmpty(Observable.just(Collections.emptyList()))
+                .flatMap(listExecutedTasks->manageJobUpdate(inCtxt,listExecutedTasks))
+                .flatMap(jobUpdateRes->{
+                    if(jobUpdateRes.listTasks.size()>0) {
+                        return executePendingTasks(jobUpdateRes.job);
+                    }
+                    else {
+                        return Observable.just(jobUpdateRes);
+                    }
+                })
+                ;
+    }
+
+    private Observable<JobTasksResult> manageJobUpdate(JobContext<T> inCtxt, List<TaskContext<T, AbstractTask>> listExecutedTasks) {
+        final ICouchbaseSession readOnlySession=inCtxt.getSession().getTemporaryReadOnlySession();
+        inCtxt.getInternalJob().getBaseMeta().unfreeze();
+        return Observable.from(listExecutedTasks)
+                .flatMap(taskCtxt->taskCtxt.getProcessingService().updatejob(inCtxt.getInternalJob(),taskCtxt.getInternalTask(),readOnlySession))
+                .map(resultUpdate->resultUpdate.getJob().addJobUpdatedForTask(resultUpdate.getTask().getId()))
+                .toList()
+                .flatMap(listJobUpdatedResult->{
+                    if(listJobUpdatedResult.stream().filter(b->b).count()>0) {
+                        return inCtxt.asyncSave();
+                    }
+                    else{
+                        return Observable.just(inCtxt);
+                    }
+                })
+                .map(savedJobContext->new JobTasksResult(savedJobContext,listExecutedTasks));
+
+    }
+
+    public class JobTasksResult {
+        private final JobContext<T> job;
+        private final List<TaskContext<T,AbstractTask>> listTasks;
+
+        public JobTasksResult(JobContext<T> job, List<TaskContext<T, AbstractTask>> listTasks) {
+            this.job = job;
+            this.listTasks = listTasks;
+        }
+    }
 }

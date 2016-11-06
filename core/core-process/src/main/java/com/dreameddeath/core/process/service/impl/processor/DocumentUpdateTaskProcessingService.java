@@ -1,33 +1,38 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.service.impl.processor;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.process.exception.AlreadyUpdatedTaskObservableException;
 import com.dreameddeath.core.process.exception.DuplicateAttachedTaskException;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
+import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.CouchbaseDocumentAttachedTaskRef;
 import com.dreameddeath.core.process.model.v1.base.IDocumentWithLinkedTasks;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.google.common.base.Preconditions;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
@@ -35,114 +40,189 @@ import com.google.common.base.Preconditions;
 public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJob,TDOC extends CouchbaseDocument & IDocumentWithLinkedTasks,T extends DocumentUpdateTask<TDOC>> extends StandardTaskProcessingService<TJOB,T> {
 
     @Override
-    public boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
-        DocumentUpdateTask<TDOC> task = ctxt.getTask();
-        Preconditions.checkNotNull(task.getDocKey(),"The document to update hasn't key for task %s of type %s",task.getId(),task.getClass().getName());
+    public Observable<TaskProcessingResult<TJOB,T>> process(final TaskContext<TJOB,T> origCtxt){
+        //final DocumentUpdateTask<TDOC> task = origCtxt.getInternalTask();
+        Preconditions.checkNotNull(origCtxt.getInternalTask().getDocKey(),"The document to update hasn't key for task %s of type %s",origCtxt.getInternalTask().getId(),origCtxt.getInternalTask().getClass().getName());
         try {
-            @SuppressWarnings("unchecked")
-            TDOC doc = (TDOC)ctxt.getSession().toBlocking().blockingGet(task.getDocKey());
-
-            //Check if the task is already done on the documment
-            CouchbaseDocumentAttachedTaskRef reference = doc.getAttachedTaskRef(task);
-            if (reference == null) {
-                if(ctxt.getTask().getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
-                    try{
-                        ctxt.save();
-                    } catch (ValidationException e) {
-                        throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
-                    }
-                }
-                if(ctxt.getTask().getUpdatedWithDoc()){
-                    cleanTaskBeforeRetryProcessing(ctxt,doc);
-                    ctxt.getTask().setUpdatedWithDoc(false);
-                    try {
-                        ctxt.save();
-                    }
-                    catch(ValidationException e){
-                        throw new TaskExecutionException(ctxt, "Cleaned up Task Validation exception", e);
-                    }
-                }
-                boolean taskUpdated;
-                try {
-                    ctxt.getSession().setTemporaryReadOnlyMode(true);
-                    taskUpdated=processDocument(ctxt, doc);
-                }
-                finally {
-                    ctxt.getSession().setTemporaryReadOnlyMode(false);
-                }
-
-                if(taskUpdated){
-                    try {
-                        ctxt.getTask().setUpdatedWithDoc(true);
-                        ctxt.save();
-                    }
-                    catch(ValidationException e){
-                        throw new TaskExecutionException(ctxt, "Updated Task Validation exception", e);
-                    }
-                }
-
-                //Tell that the document has been updated
-                CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
-                attachedTaskRef.setJobUid(ctxt.getParentJob().getUid());
-                attachedTaskRef.setJobClass(ctxt.getParentJob().getClass().getName());
-                attachedTaskRef.setTaskId(ctxt.getTask().getId());
-                attachedTaskRef.setTaskClass(task.getClass().getName());
-                doc.addAttachedTaskRef(attachedTaskRef);
-                try {
-                    ctxt.getSession().toBlocking().blockingSave(doc);
-                } catch (ValidationException e) {
-                    throw new TaskExecutionException(ctxt, "Updated Document Validation exception", e);
-                }
-            }
+            return buildContextAndDocument(origCtxt)
+                    .flatMap(this::manageCleanupBeforeRetry)
+                    .flatMap(this::manageProcessDocument)
+                    .flatMap(this::managePostProcessing)
+                    .map(ctxtAndDoc -> new TaskProcessingResult<>(ctxtAndDoc.getCtxt(), false))
+                    .onErrorResumeNext(throwable -> this.manageError(throwable,origCtxt));
         }
-        catch (DuplicateAttachedTaskException e){
-            throw new TaskExecutionException(ctxt, "Duplicate task exception", e);
+        catch(TaskObservableExecutionException e){
+            return Observable.error(e);
         }
-        catch(DaoException e){
-            throw new TaskExecutionException(ctxt, "Dao exception", e);
+        catch(Throwable e){
+            return Observable.error(new TaskObservableExecutionException(origCtxt,"Unexpected error",e));
         }
-        catch(StorageException e){
-            throw new TaskExecutionException(ctxt, "Storage exception", e);
-        }
-        return false; //No need to save, retry allowed
     }
+
+    private Observable<TaskProcessingResult<TJOB, T>> manageError(Throwable throwable, TaskContext<TJOB, T> origCtxt) {
+        if(throwable instanceof AlreadyUpdatedTaskObservableException){
+            AlreadyUpdatedTaskObservableException e=(AlreadyUpdatedTaskObservableException)throwable;
+            return TaskProcessingResult.build(e.getCtxt(),true);
+        }
+        if(throwable instanceof TaskObservableExecutionException) {
+            return Observable.error(throwable);
+        }
+        else{
+            return Observable.error(new TaskObservableExecutionException(origCtxt,"Error during execution",throwable));
+        }
+    }
+
+    private Observable<ProcessingDocumentResult> manageProcessDocument(ContextAndDocument contextAndDocument) {
+        return processDocument(new ContextAndDocument(contextAndDocument.getDoc(),contextAndDocument.getCtxt().getTemporaryReadOnlySessionContext()))
+                .map(resProcessing->new ProcessingDocumentResult(resProcessing.isTaskUpdated(),resProcessing.getDocUpdated(),resProcessing.getCtxt().getStandardSessionContext()));
+    }
+
+    private Observable<ContextAndDocument> managePostProcessing(ProcessingDocumentResult processingDocumentResult) {
+        if(processingDocumentResult.isTaskUpdated()){
+            return saveContext(processingDocumentResult.ctxtAndDoc)
+                    .flatMap(this::attachTaskDefAndSaveDoc);
+        }
+        else{
+            return attachTaskDefAndSaveDoc(processingDocumentResult.ctxtAndDoc);
+        }
+    }
+
+    private Observable<ContextAndDocument> attachTaskDefAndSaveDoc(ContextAndDocument contextAndDocument){
+        try {
+            CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
+            attachedTaskRef.setJobUid(contextAndDocument.getCtxt().getJobContext().getJobId());
+            attachedTaskRef.setJobClass(contextAndDocument.getCtxt().getJobContext().getJobClass().getName());
+            attachedTaskRef.setTaskId(contextAndDocument.getCtxt().getId());
+            attachedTaskRef.setTaskClass(contextAndDocument.getCtxt().getTaskClass().getName());
+            contextAndDocument.getDoc().addAttachedTaskRef(attachedTaskRef);
+            return saveDoc(contextAndDocument);
+        }
+        catch(DuplicateAttachedTaskException e){
+            return Observable.error(new TaskObservableExecutionException(contextAndDocument.getCtxt(),"DuplicateTask attachement",e));
+        }
+
+    }
+
 
     /**
      * Allow a clean up of task result before retry the processing of the document
-     * @param ctxt
-     * @param doc
+     * @param ctxtAndDoc
      */
-    protected void cleanTaskBeforeRetryProcessing(TaskContext<TJOB, T> ctxt, TDOC doc) {
+    protected Observable<ContextAndDocument> cleanTaskBeforeRetryProcessing(ContextAndDocument ctxtAndDoc) {
+        return Observable.just(ctxtAndDoc);
     }
 
+    public Observable<ContextAndDocument> buildContextAndDocument(final TaskContext<TJOB,T> ctxt){
+        return ctxt.getSession().<TDOC>asyncGet(ctxt.getInternalTask().getDocKey())
+                .map(doc->new ContextAndDocument(doc,ctxt));
+    }
+
+    private Observable<ContextAndDocument> manageCleanupBeforeRetry(final ContextAndDocument ctxtAndDoc){
+        CouchbaseDocumentAttachedTaskRef reference=ctxtAndDoc.getDoc().getAttachedTaskRef(ctxtAndDoc.ctxt.getInternalTask());
+        if(reference!=null) {
+            return Observable.<ContextAndDocument>error(new AlreadyUpdatedTaskObservableException(ctxtAndDoc.getCtxt(),ctxtAndDoc.getDoc()));
+        }
+        else{
+            if(ctxtAndDoc.getCtxt().isNew()){
+                return saveContext(ctxtAndDoc).flatMap(this::performCleanup);
+            }
+            else{
+                return performCleanup(ctxtAndDoc);
+            }
+        }
+    }
+
+    private Observable<ContextAndDocument> performCleanup(final ContextAndDocument origCtxtAndDoc){
+        if(origCtxtAndDoc.getCtxt().getInternalTask().getUpdatedWithDoc()){
+            return cleanTaskBeforeRetryProcessing(origCtxtAndDoc)
+            .map(ctxtAndDoc->{ctxtAndDoc.getCtxt().getInternalTask().setUpdatedWithDoc(false);return ctxtAndDoc;})
+            .flatMap(this::saveContext);
+        }
+        else{
+            return Observable.just(origCtxtAndDoc);
+        }
+    }
+
+    private Observable<ContextAndDocument> saveContext(final ContextAndDocument ctxtAndDoc){
+        return ctxtAndDoc.getCtxt().asyncSave().map(ctxt->new ContextAndDocument(ctxtAndDoc.getDoc(),ctxt));
+    }
+
+    private Observable<ContextAndDocument> saveDoc(final ContextAndDocument ctxtAndDoc){
+        return ctxtAndDoc.getCtxt().getSession().asyncSave(ctxtAndDoc.getDoc()).map(doc->new ContextAndDocument(doc,ctxtAndDoc.getCtxt()));
+    }
+
+
     @Override
-    public boolean cleanup(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
-        T task=ctxt.getTask();
-        try {
-            TDOC doc = (TDOC)ctxt.getSession().toBlocking().blockingGet(ctxt.getTask().getDocKey());
-            doc.cleanupAttachedTaskRef(task);
-            ctxt.getSession().toBlocking().blockingSave(doc);
-        }
-        catch(ValidationException e){
-            throw new TaskExecutionException(ctxt,"Cleaned updated document Validation exception",e);
-        }
-        catch(DaoException e){
-            throw new TaskExecutionException(ctxt,"Error in dao",e);
-        }
-        catch(StorageException e){
-            throw new TaskExecutionException(ctxt,"Error in storage",e);
-        }
-        return false;
+    public Observable<TaskProcessingResult<TJOB,T>> cleanup(TaskContext<TJOB,T> origCtxt) {
+        return  buildContextAndDocument(origCtxt)
+                .flatMap(ctxtAndDoc->{
+                    ctxtAndDoc.getDoc().cleanupAttachedTaskRef(ctxtAndDoc.getCtxt().getInternalTask());
+                    return saveDoc(ctxtAndDoc);
+                })
+                .map(ctxtAndDoc->new TaskProcessingResult<>(ctxtAndDoc.getCtxt(),false));
     }
 
     /**
      * Implement the document update processing
-     * @param ctxt
-     * @param doc
+     * @param ctxtAndDoc
      * @return a value telling to save or not the task
      * @throws DaoException
      * @throws StorageException
      * @throws TaskExecutionException
      */
-    protected abstract boolean processDocument(TaskContext<TJOB,T> ctxt,TDOC doc) throws DaoException,StorageException,TaskExecutionException;
+    protected abstract Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc);
+
+    public  class ProcessingDocumentResult{
+        private final boolean taskUpdated;
+        private final ContextAndDocument ctxtAndDoc;
+
+        public  ProcessingDocumentResult(boolean taskUpdated, TDOC docUpdated, TaskContext<TJOB, T> ctxt) {
+            this(taskUpdated,new ContextAndDocument(docUpdated,ctxt));
+        }
+
+        public  ProcessingDocumentResult(boolean taskUpdated, ContextAndDocument ctxtAndDoc) {
+            this.taskUpdated = taskUpdated;
+            this.ctxtAndDoc = ctxtAndDoc;
+        }
+
+        public ProcessingDocumentResult(ContextAndDocument ctxtAndDoc,boolean taskUpdated) {
+            this.ctxtAndDoc = ctxtAndDoc;
+            this.taskUpdated = taskUpdated;
+        }
+
+
+        public boolean isTaskUpdated() {
+            return taskUpdated;
+        }
+
+        public TDOC getDocUpdated() {
+            return ctxtAndDoc.doc;
+        }
+
+        public TaskContext<TJOB, T> getCtxt() {
+            return ctxtAndDoc.getCtxt();
+        }
+
+        public Observable<ProcessingDocumentResult> toObservable(){
+            return Observable.just(this);
+        }
+    }
+
+    protected class ContextAndDocument {
+        private final TDOC doc;
+        private final TaskContext<TJOB,T> ctxt;
+
+        protected ContextAndDocument(TDOC doc, TaskContext<TJOB, T> ctxt) {
+            this.doc = doc;
+            this.ctxt = ctxt;
+        }
+
+        public TDOC getDoc() {
+            return doc;
+        }
+
+        public TaskContext<TJOB, T> getCtxt() {
+            return ctxt;
+        }
+    }
 }

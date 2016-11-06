@@ -1,25 +1,27 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.ui.admin.process;
 
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
-import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
@@ -28,6 +30,7 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResult
 import com.dreameddeath.ui.admin.process.published.TestDocCreateJobRequest;
 import com.dreameddeath.ui.admin.process.published.TestDocCreateJobResponse;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 13/03/2016.
@@ -35,9 +38,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 @JobProcessingForClass(RemoteTestDocCreateJob.class)
 public class RemoteTestDocCreateJobProcess extends StandardJobProcessingService<RemoteTestDocCreateJob>{
     @Override
-    public boolean init(JobContext<RemoteTestDocCreateJob> context) throws JobExecutionException {
+    public Observable<JobProcessingResult<RemoteTestDocCreateJob>> init(JobContext<RemoteTestDocCreateJob> context){
         context.addTask(new RemoteTestDocCreateJob.RemoteTestDocCreateTask());
-        return false;
+        return JobProcessingResult.build(context,false);
     }
 
     public static class Response extends RemoteJobResultWrapper<TestDocCreateJobResponse> {
@@ -55,10 +58,10 @@ public class RemoteTestDocCreateJobProcess extends StandardJobProcessingService<
         }
 
         @Override
-        protected TestDocCreateJobRequest getRequest(TaskContext<RemoteTestDocCreateJob, RemoteTestDocCreateJob.RemoteTestDocCreateTask> ctxt) {
+        protected Observable<TestDocCreateJobRequest> getRequest(TaskContext<RemoteTestDocCreateJob, RemoteTestDocCreateJob.RemoteTestDocCreateTask> ctxt) {
             TestDocCreateJobRequest request = new TestDocCreateJobRequest();
-            request.setName(ctxt.getParentJob().remoteName);
-            return request;
+            request.setName(ctxt.getParentInternalJob().remoteName);
+            return Observable.just(request);
         }
 
         @Override

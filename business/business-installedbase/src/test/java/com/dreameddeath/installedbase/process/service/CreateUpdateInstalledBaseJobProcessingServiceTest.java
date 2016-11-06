@@ -1,3 +1,21 @@
+/*
+ *
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
+ *
+ */
+
 package com.dreameddeath.installedbase.process.service;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
@@ -99,10 +117,10 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             params.put("orderStatus",IN_ORDER.toString());
             params.put("tempIdsMap",tempIdsMap);
             request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
-            JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
+            JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE).toBlocking().single();
 
             ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).blockingGetDocument(session);
+            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);
             assertNotNull(installedBase.getContract());
             assertEquals(4,installedBase.getOffers().size());
@@ -118,9 +136,9 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             params.put("tempIdsMap",tempIdsMap);
             request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
 
-            JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE);
+            JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE).toBlocking().single();
             ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).blockingGetDocument(session);
+            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);
             assertNotNull(installedBase.getContract());
             assertEquals(4,installedBase.getOffers().size());

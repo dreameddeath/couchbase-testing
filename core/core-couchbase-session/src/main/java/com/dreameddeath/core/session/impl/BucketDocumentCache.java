@@ -19,6 +19,7 @@
 package com.dreameddeath.core.session.impl;
 
 import com.couchbase.client.core.message.kv.MutationToken;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
@@ -57,6 +58,7 @@ public class BucketDocumentCache {
         if(value!=null) {
             try {
                 IDocumentClassMappingInfo mappingInfo = parentSession.getDocumentFactory().getDocumentInfoMapper().getMappingFromClass(clazz);
+                CouchbaseDocumentDao<T> dao=parentSession.getDocumentFactory().getDaoForClass(clazz);
                 ITranscoder<T> transcoder = mappingInfo.getAttachedObject(ITranscoder.class);
                 T doc=transcoder.decode(value.content);
                 doc.getBaseMeta().setKey(value.id());
@@ -69,7 +71,7 @@ public class BucketDocumentCache {
                 doc.getBaseMeta().setSequenceNumber(value.mutationToken.sequenceNumber());
                 doc.getBaseMeta().setStateSync();
                 doc.getBaseMeta().setDbData(value.content);
-                return doc;
+                return dao.managePostReading(doc);
             } catch (MappingNotFoundException e) {
                 throw new DaoException("Cannot find transcoder ");
             }

@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.infrastructure.plugin.process;
@@ -97,9 +99,9 @@ public class ProcessesWebServerPluginTest {
                     IJobExecutorClient<TestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(TestDocCreateJob.class);
                     TestDocCreateJob createJob = new TestDocCreateJob();
                     createJob.name = "test";
-                    JobContext<TestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
+                    JobContext<TestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE).toBlocking().single();
                     ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                    TestDocProcess processDoc = session.toBlocking().blockingGet(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getDocKey(), TestDocProcess.class);
+                    TestDocProcess processDoc = session.toBlocking().blockingGet(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getInternalTask().getDocKey(), TestDocProcess.class);
                     assertEquals(processDoc.name, createJob.name);
                 }
 
@@ -107,9 +109,9 @@ public class ProcessesWebServerPluginTest {
                     IJobExecutorClient<RemoteTestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(RemoteTestDocCreateJob.class);
                     RemoteTestDocCreateJob createJob = new RemoteTestDocCreateJob();
                     createJob.remoteName = "test2";
-                    JobContext<RemoteTestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE);
+                    JobContext<RemoteTestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE).toBlocking().single();
                     ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-                    TestDocProcess processDoc = session.toBlocking().blockingGet(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).key, TestDocProcess.class);
+                    TestDocProcess processDoc = session.toBlocking().blockingGet(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).getInternalTask().key, TestDocProcess.class);
                     assertEquals(processDoc.name, createJob.remoteName);
                 }
                 {

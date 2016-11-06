@@ -25,14 +25,11 @@ import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreateB
 import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreateBillingCycleJobTask;
 import com.dreameddeath.billing.process.model.v1.CreateBillingAccountJob.CreatePartyRolesTask;
 import com.dreameddeath.billing.process.model.v1.CreateBillingCycleJob;
-import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
-import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
+import com.dreameddeath.core.process.service.context.*;
 import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
@@ -44,6 +41,8 @@ import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdateParty
 import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobResponse;
 import com.dreameddeath.party.process.model.v1.roles.published.RoleTypePublished;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.google.common.base.Preconditions;
+import rx.Observable;
 
 import java.util.ArrayList;
 
@@ -53,13 +52,13 @@ import java.util.ArrayList;
 @JobProcessingForClass(CreateBillingAccountJob.class)
 public class CreateBillingAccountJobProcessingService extends StandardJobProcessingService<CreateBillingAccountJob> {
     @Override
-    public boolean init(JobContext<CreateBillingAccountJob> context) throws JobExecutionException {
+    public Observable<JobProcessingResult<CreateBillingAccountJob>> init(JobContext<CreateBillingAccountJob> context){
         context.addTask(new CreateBillingAccountJob.CreateBillingAccountTask())
                 .chainWith(new CreateBillingAccountJob.CreatePartyRolesTask())
                 .chainWith(new CreateBillingAccountJob.UpdateBaPartyRolesTask())
                 .chainWith(new CreateBillingCycleJobTask());
 
-        return false;
+        return JobProcessingResult.build(context,false);
     }
 
 
@@ -68,23 +67,21 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
     public static class CreateBillingAccountTaskProcessingService extends DocumentCreateTaskProcessingService<CreateBillingAccountJob,BillingAccount,CreateBillingAccountTask> {
 
         @Override
-        protected BillingAccount buildDocument(TaskContext<CreateBillingAccountJob,CreateBillingAccountTask> ctxt) throws DaoException, StorageException {
+        protected Observable<ContextAndDocument> buildDocument(TaskContext<CreateBillingAccountJob,CreateBillingAccountTask> ctxt){
             BillingAccount newBa = ctxt.getSession().newEntity(BillingAccount.class);
-            CreateBillingAccountJob job= ctxt.getParentJob();
+            CreateBillingAccountJob job= ctxt.getParentInternalJob();
             newBa.setBillDay((job.billDay!=null)?job.billDay:1);
             newBa.setBillCycleLength((job.cycleLength != null) ? job.cycleLength : 1);
-            return newBa;
+            return buildContextAndDocumentObservable(ctxt,newBa);
         }
 
         @Override
-        public boolean updatejob(TaskContext<CreateBillingAccountJob, CreateBillingAccountTask> context) throws TaskExecutionException {
-            try {
-                context.getParentJob().baLink = context.getTask().blockingGetDocument(context.getSession()).newLink();
-            }
-            catch(DaoException|StorageException e){
-                throw new TaskExecutionException(context,"Cannot read back object "+context.getTask().getDocKey(),e);
-            }
-            return super.updatejob(context);
+        public Observable<UpdateJobTaskProcessingResult<CreateBillingAccountJob, CreateBillingAccountTask>> updatejob(CreateBillingAccountJob job, CreateBillingAccountTask task, ICouchbaseSession session) {
+            return task.getDocument(session)
+                    .map(billingAccount -> {
+                        job.baLink = billingAccount.newLink();
+                        return new UpdateJobTaskProcessingResult<>(job,task,true);
+                    });
         }
     }
 
@@ -102,23 +99,24 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
         }
 
         @Override
-        protected CreateUpdatePartyRolesJobRequest getRequest(TaskContext<CreateBillingAccountJob, CreatePartyRolesTask> ctxt) throws TaskExecutionException{
-            CreateUpdatePartyRolesJobRequest request = new CreateUpdatePartyRolesJobRequest();
-            request.setRoleRequests(new ArrayList<>());
-            try {
-                BillingAccountCreateUpdateRoleRequestRequest newPartyRole = new BillingAccountCreateUpdateRoleRequestRequest();
-                request.getRoleRequests().add(newPartyRole);
-                newPartyRole.setPartyId(ctxt.getParentJob().partyId);
-                newPartyRole.setBaId(ctxt.getDependentTask(CreateBillingAccountTask.class).blockingGetDocument(ctxt.getSession()).getUid());
-                newPartyRole.setTypes(new ArrayList<>());
-                newPartyRole.getTypes().add(RoleTypePublished.BILL_RECEIVER);
-                newPartyRole.getTypes().add(RoleTypePublished.HOLDER);
-                newPartyRole.getTypes().add(RoleTypePublished.PAYER);
-            }
-            catch(StorageException|DaoException e){
-                throw new TaskExecutionException(ctxt,"Cannot access data",e);
-            }
-            return request;
+        protected Observable<CreateUpdatePartyRolesJobRequest> getRequest(TaskContext<CreateBillingAccountJob, CreatePartyRolesTask> ctxt){
+            return ctxt.getDependentTask(CreateBillingAccountTask.class)
+                    .switchIfEmpty(Observable.error(new TaskObservableExecutionException(ctxt,"Billing account Task not found")))
+                    .flatMap(createBillingAccountTask -> createBillingAccountTask.getDocument(ctxt.getSession()))
+                    .switchIfEmpty(Observable.error(new TaskObservableExecutionException(ctxt,"Billing account not found")))
+                    .map(billingAccount -> {
+                        CreateUpdatePartyRolesJobRequest request = new CreateUpdatePartyRolesJobRequest();
+                        request.setRoleRequests(new ArrayList<>());
+                        BillingAccountCreateUpdateRoleRequestRequest newPartyRole = new BillingAccountCreateUpdateRoleRequestRequest();
+                        request.getRoleRequests().add(newPartyRole);
+                        newPartyRole.setPartyId(ctxt.getParentInternalJob().partyId);
+                        newPartyRole.setBaId(billingAccount.getUid());
+                        newPartyRole.setTypes(new ArrayList<>());
+                        newPartyRole.getTypes().add(RoleTypePublished.BILL_RECEIVER);
+                        newPartyRole.getTypes().add(RoleTypePublished.HOLDER);
+                        newPartyRole.getTypes().add(RoleTypePublished.PAYER);
+                        return request;
+                    });
         }
 
         @Override
@@ -133,33 +131,38 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
     @TaskProcessingForClass(CreateBillingAccountJob.UpdateBaPartyRolesTask.class)
     public static class CreateUpdateBaPartyRolesService extends DocumentUpdateTaskProcessingService<CreateBillingAccountJob,BillingAccount,CreateBillingAccountJob.UpdateBaPartyRolesTask>{
         @Override
-        public boolean preprocess(TaskContext<CreateBillingAccountJob, CreateBillingAccountJob.UpdateBaPartyRolesTask> context) throws TaskExecutionException {
-            context.getTask().setDocKey(context.getParentJob().baLink.getKey());
-            return true;
+        public Observable<TaskProcessingResult<CreateBillingAccountJob,CreateBillingAccountJob.UpdateBaPartyRolesTask>> preprocess(TaskContext<CreateBillingAccountJob, CreateBillingAccountJob.UpdateBaPartyRolesTask> context){
+            Preconditions.checkNotNull(context.getParentInternalJob().baLink,"The ba Link should be set");
+            context.getInternalTask().setDocKey(context.getParentInternalJob().baLink.getKey());
+            return TaskProcessingResult.build(context,true);
         }
 
         @Override
-        protected boolean processDocument(TaskContext<CreateBillingAccountJob, CreateBillingAccountJob.UpdateBaPartyRolesTask> ctxt, BillingAccount doc) throws DaoException, StorageException, TaskExecutionException {
-            PartyRoleLink roleLink = new PartyRoleLink();
-            roleLink.setPid(ctxt.getParentJob().partyId);
-            roleLink.setRoleUid(ctxt.getDependentTask(CreatePartyRolesTask.class).roleUid);
-            doc.addPartyRoles(roleLink);
-            return false;
+        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
+            return ctxtAndDoc.getCtxt().getDependentTask(CreatePartyRolesTask.class)
+                    .map(createPartyRolesTask -> {
+                        PartyRoleLink roleLink = new PartyRoleLink();
+                        roleLink.setPid(ctxtAndDoc.getCtxt().getParentInternalJob().partyId);
+                        roleLink.setRoleUid(createPartyRolesTask.roleUid);
+                        ctxtAndDoc.getDoc().addPartyRoles(roleLink);
+                        return new ProcessingDocumentResult(ctxtAndDoc,false);
+                    });
         }
     }
 
     @TaskProcessingForClass(CreateBillingCycleJobTask.class)
     public static class CreateBillingCycleTaskProcessingService extends StandardSubJobProcessTaskProcessingService<CreateBillingAccountJob,CreateBillingCycleJob,CreateBillingCycleJobTask> {
-        @Override
-        protected CreateBillingCycleJob buildSubJob(TaskContext<CreateBillingAccountJob,CreateBillingCycleJobTask> ctxt) throws DaoException, StorageException {
-            CreateBillingCycleJob job = ctxt.getSession().newEntity(CreateBillingCycleJob.class);
-            BillingAccount ba = ctxt.getDependentTask(CreateBillingAccountTask.class).blockingGetDocument(ctxt.getSession());
 
-            job.baLink = ba.newLink();
-            job.startDate = ba.getCreationDate();
-            return job;
+        @Override
+        protected Observable<BuildSubJobResult> buildSubJob(TaskContext<CreateBillingAccountJob,CreateBillingCycleJobTask> ctxt){
+            return ctxt.getDependentTask(CreateBillingAccountTask.class)
+                    .flatMap(createBillingAccountTask -> createBillingAccountTask.getDocument(ctxt.getSession()))
+                    .map(billingAccount -> {
+                        CreateBillingCycleJob job = ctxt.getSession().newEntity(CreateBillingCycleJob.class);
+                        job.baLink = billingAccount.newLink();
+                        job.startDate = billingAccount.getCreationDate();
+                        return new BuildSubJobResult(ctxt,job);
+                    });
         }
     }
-
-
 }

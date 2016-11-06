@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.exception;
@@ -29,16 +31,15 @@ public class JobExecutionException extends Exception {
     AbstractJob job;
 
     public JobExecutionException(JobContext<?> ctxt, String message) {
-        this(ctxt.getJob(),ctxt.getJobState().getState(),message);
+        this(ctxt.getInternalJob(),ctxt.getJobState().getState(),message);
     }
 
     public JobExecutionException(JobContext<?> ctxt, String message,Throwable e) {
-        this(ctxt.getJob(),ctxt.getJobState().getState(),message,e);
+        this(ctxt.getInternalJob(),ctxt.getJobState().getState(),message,e);
     }
 
-
     public JobExecutionException(JobContext<?> ctxt, Throwable e) {
-        this(ctxt.getJob(),ctxt.getJobState().getState(),e);
+        this(ctxt.getInternalJob(),ctxt.getJobState().getState(),e);
     }
 
 
@@ -63,4 +64,11 @@ public class JobExecutionException extends Exception {
     public AbstractJob getJob(){ return job;}
     public State getState(){ return state;}
 
+    @Override
+    public String toString(){
+        StringBuffer sb = new StringBuffer();
+        sb.append("Job[").append(job.getClass()).append("/").append(job.getUid()).append("] ");
+        sb.append(super.toString());
+        return sb.toString();
+    }
 }

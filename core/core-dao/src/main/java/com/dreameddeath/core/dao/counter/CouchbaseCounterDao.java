@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.dao.counter;
@@ -37,7 +39,7 @@ public class CouchbaseCounterDao{
     private CouchbaseDocumentDao baseDao;
     private BlockingCouchbaseCounterDao blockingDao;
     private final KeyPattern keyPattern;
-    private Long defaultValue;
+    private Long baseValue;
     private Long modulus;
     private Integer expiration;
     private CallingMode mode;
@@ -50,17 +52,17 @@ public class CouchbaseCounterDao{
         else return baseDao.getClient();
     }
 
-    public CouchbaseCounterDao(String key, Long defaultValue, Long modulus, Integer expiration){
+    public CouchbaseCounterDao(String key, Long baseValue, Long modulus, Integer expiration){
         if(key!=null){
             this.keyPattern=new KeyPattern(key);
         }
         else{
             this.keyPattern = null;
         }
-        this.defaultValue = defaultValue;
+        this.baseValue = baseValue;
         this.modulus = modulus;
         this.expiration = expiration;
-        if((expiration==null) &&(defaultValue==null)){
+        if((expiration==null) &&(baseValue ==null)){
             mode = CallingMode.BASE;
         }
         else if(expiration==null){
@@ -73,7 +75,7 @@ public class CouchbaseCounterDao{
     }
 
     public CouchbaseCounterDao(Builder builder){
-        this(builder.getKeyPattern(), builder.getDefaultValue(), builder.getModulus(), builder.getExpiration().intValue());
+        this(builder.getKeyPattern(), builder.getBaseValue(), builder.getModulus(), builder.getExpiration().intValue());
         baseDao = builder.getBaseDao();
     }
 
@@ -104,24 +106,24 @@ public class CouchbaseCounterDao{
             else {
                 result = getClient().asyncCounter(key, 0L);
             }
-            result=result.map(val->((val<0)?defaultValue:val)+by);
+            result=result.map(val->((val<0)? baseValue :val)+by);
         }
         else{
             switch (mode) {
                 case WITH_DEFAULT:
                     if(session.getKeyPrefix()!=null) {
-                        result = getClient().asyncCounter(key, by, defaultValue);
+                        result = getClient().asyncCounter(key, by, baseValue+by);
                     }
                     else{
-                        result = getClient().asyncCounter(key, by, defaultValue, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, by, baseValue+by, WriteParams.create().with(session.getKeyPrefix()));
                     }
                     break;
                 case WITH_DEFAULT_AND_EXPIRATION:
                     if(session.getKeyPrefix()!=null) {
-                        result = getClient().asyncCounter(key, by, defaultValue, expiration);
+                        result = getClient().asyncCounter(key, by, baseValue+by, expiration);
                     }
                     else{
-                        result = getClient().asyncCounter(key, by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, by, baseValue+by, expiration, WriteParams.create().with(session.getKeyPrefix()));
                     }
                     break;
                 default:
@@ -156,24 +158,24 @@ public class CouchbaseCounterDao{
             else {
                 result = getClient().asyncCounter(key, 0L);
             }
-            result=result.map(val->((val<0)?defaultValue:val)-by);
+            result=result.map(val->((val<0)? baseValue :val)-by);
         }
         else{
             switch (mode) {
                 case WITH_DEFAULT:
                     if(session.getKeyPrefix()!=null) {
-                        result = getClient().asyncCounter(key, -by, defaultValue);
+                        result = getClient().asyncCounter(key, -by, baseValue);
                     }
                     else{
-                        result = getClient().asyncCounter(key, -by, defaultValue, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, -by, baseValue, WriteParams.create().with(session.getKeyPrefix()));
                     }
                     break;
                 case WITH_DEFAULT_AND_EXPIRATION:
                     if(session.getKeyPrefix()!=null) {
-                        result = getClient().asyncCounter(key, -by, defaultValue, expiration);
+                        result = getClient().asyncCounter(key, -by, baseValue, expiration);
                     }
                     else{
-                        result = getClient().asyncCounter(key, -by, defaultValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
+                        result = getClient().asyncCounter(key, -by, baseValue, expiration, WriteParams.create().with(session.getKeyPrefix()));
                     }
                     break;
                 default:
@@ -196,7 +198,7 @@ public class CouchbaseCounterDao{
 
     public static class Builder{
         private String keyPattern=null;
-        private Long defaultValue;
+        private Long baseValue=0L;
         private Long expiration=0L;
         private Long modulus;
         private ICouchbaseBucket client;
@@ -207,13 +209,13 @@ public class CouchbaseCounterDao{
             return this;
         }
 
-        public Builder withDefaultValue(Long defaultVal){
-            defaultValue = defaultVal;
+        public Builder withBaseValue(Long baseValue){
+            this.baseValue = baseValue;
             return this;
         }
 
-        public Builder withDefaultValue(long defaultVal){
-            defaultValue = defaultVal;
+        public Builder withBaseValue(long baseValue){
+            this.baseValue = baseValue;
             return this;
         }
 
@@ -248,7 +250,7 @@ public class CouchbaseCounterDao{
         }
 
         public String getKeyPattern(){return keyPattern;}
-        public Long getDefaultValue(){return defaultValue;}
+        public Long getBaseValue(){return baseValue;}
         public Long getExpiration(){return expiration;}
         public Long getModulus(){return modulus;}
         public ICouchbaseBucket getClient(){return client;}

@@ -1,29 +1,29 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.service.context;
 
 import com.codahale.metrics.MetricRegistry;
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.dao.TaskDao;
-import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
@@ -31,12 +31,10 @@ import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
-import rx.Subscriber;
+import rx.Observable;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
@@ -46,13 +44,10 @@ public class JobContext<TJOB extends AbstractJob> {
     private final IJobExecutorService<TJOB> executorService;
     private final IJobProcessingService<TJOB> processingService;
     private final ExecutorClientFactory clientFactory;
-    //private final IExecutorServiceFactory executorFactory;
-    //private final IProcessingServiceFactory processingFactory;
     private final TJOB job;
     private final MetricRegistry metricRegistry;
-    private boolean isJobSaved;
-    private final List<TaskContext<TJOB,?>> tasks=new ArrayList<>();
-    private int loadedTaskCounter=0;
+    private final Set<TaskContext<TJOB,AbstractTask>> taskContextsCache;
+    private final Map<String,String> sharedTaskTempIdMap;
 
     private JobContext(Builder<TJOB> jobCtxtBuilder){
         this.session = jobCtxtBuilder.session;
@@ -61,163 +56,164 @@ public class JobContext<TJOB extends AbstractJob> {
         this.executorService = jobCtxtBuilder.jobExecutorService;
         this.processingService = jobCtxtBuilder.jobProcessingService;
         this.metricRegistry=jobCtxtBuilder.metricRegistry;
-        updateIsJobSaved();
+        this.sharedTaskTempIdMap =jobCtxtBuilder.sharedTaskTempIdMap;
+        this.taskContextsCache=new TreeSet<>();
+        jobCtxtBuilder.taskContextsCache.forEach(ctxt->new TaskContext.Builder<>(this,ctxt).build());
     }
 
-    public ICouchbaseSession getSession(){return session;}
-    public IUser getUser(){ return session.getUser();}
-    public ExecutorClientFactory getClientFactory(){return clientFactory;}
-    public TJOB getJob() {
-        return job;
+    public ICouchbaseSession getSession(){
+        return session;
     }
+
+    public IUser getUser(){
+        return session.getUser();
+    }
+
+    public ExecutorClientFactory getClientFactory(){
+        return clientFactory;
+    }
+
+    public Observable<TJOB> getJob() {
+        return session.asyncGet(job.getBaseMeta().getKey(),(Class<TJOB>)job.getClass())
+                .map(freshJob->{freshJob.getBaseMeta().freeze();return freshJob;});
+    }
+
+    public Class<TJOB> getJobClass(){
+        return (Class<TJOB>)job.getClass();
+    }
+
     public ProcessState getJobState(){
         return job.getStateInfo();
     }
-    public List<TaskContext<TJOB,?>> getTaskContexts() {
-        return Collections.unmodifiableList(tasks);
-    }
 
-    public <TTASK extends AbstractTask> TaskContext<TJOB,TTASK> getTaskContext(int pos, Class<TTASK> taskClass) {
-        return (TaskContext<TJOB,TTASK>)tasks.get(pos);
-    }
-
-    public <TTASK extends AbstractTask> TTASK getTask(int pos,Class<TTASK> taskClass) {
-        return (TTASK)tasks.get(pos).getTask();
-    }
-
-    public <TTASK extends AbstractTask> List<TTASK> getTasks(Class<TTASK> taskClass) {
-        List<TTASK> result = new LinkedList<>();
-        for(TaskContext<TJOB,?> taskCtxt : tasks){
-            if(taskClass.isAssignableFrom(taskCtxt.getTask().getClass())){
-                result.add((TTASK)taskCtxt.getTask());
+    public <TTASK extends AbstractTask> List<TaskContext<TJOB,TTASK>> getTasks(Class<TTASK> taskClass) {
+        List<TaskContext<TJOB,TTASK>> result = new LinkedList<>();
+        synchronized (taskContextsCache) {
+            for (TaskContext<TJOB, ? extends AbstractTask> taskCtxt : taskContextsCache) {
+                if (taskClass.isAssignableFrom(taskCtxt.getTaskClass())) {
+                    result.add((TaskContext<TJOB, TTASK>) taskCtxt);
+                }
             }
         }
         return result;
     }
 
-
-
     public boolean isJobSaved() {
-        return isJobSaved;
+        return job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC);
     }
 
-    public void updateIsJobSaved(){
-        this.isJobSaved = job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC);
-    }
-
-    public void execute() throws JobExecutionException{
+    public Observable<JobContext<TJOB>> execute(){
         this.job.getStateInfo().setLastRunError(null);
-        executorService.execute(this);
+        return executorService.execute(this);
     }
 
-    public void save() throws ValidationException,DaoException,StorageException{
-        List<AbstractTask> tasksWithoutIds=new ArrayList<>(tasks.size());
-        List<TaskContext<TJOB,?>> tasksToSave=new ArrayList<>(tasks.size());
-        //Update tasks ids before continuing
-        for(TaskContext<TJOB,?> taskContext:tasks){
-            if(taskContext.getTask().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
-                if(taskContext.getTask().getId()==null){
-                    tasksWithoutIds.add(taskContext.getTask());
-                }
-                tasksToSave.add(taskContext);
-            }
-        }
-        assignIds(tasksWithoutIds);
-        for(TaskContext<TJOB,?> taskContext:tasksToSave){
-            taskContext.save();
-        }
-        //Save the job itself
-        session.toBlocking().blockingSave(job);
-        updateIsJobSaved();
+    public Observable<JobContext<TJOB>> asyncSave(){
+        return getPendingTasks()
+                .filter(taskCtxt->taskCtxt.getId()==null)
+                .toList()//merge
+                .flatMap(this::assignTaskContextIds)
+                .toList()//Merge
+                .flatMap(fullList->getPendingTasks())
+                .filter(TaskContext::isNew)
+                .flatMap(TaskContext::asyncSave)
+                .toList()
+                .flatMap(listTasks->session.asyncSave(job))
+                .map(newJob->new Builder<>(newJob,this).build());
     }
 
-
-    public Collection<AbstractTask> assignIds(Collection<AbstractTask> tasks) throws DaoException,StorageException{
-        Long cntNewValue = session.toBlocking().blockingIncrCounter(String.format(TaskDao.TASK_CNT_FMT, job.getUid()), tasks.size());
-        for(AbstractTask task:tasks){
-            if(task.getId()==null){
-                long id = cntNewValue--;
-                if(task.getParentTaskId()!=null){
-                    task.setId(task.getParentTaskId()+"-"+id);
-                }
-                else{
-                    task.setId(Long.toString(id));
-                }
-            }
-            job.addTask(task.getId());
-        }
-        return tasks;
+    public <TTASK extends AbstractTask> Observable<TaskContext<TJOB,TTASK>> assignTaskContextId(TaskContext<TJOB,TTASK> taskContext) {
+        return (Observable) assignTaskContextIds(Collections.singletonList(taskContext));
     }
 
-
-    public void resyncTasksContext() throws DaoException,StorageException,InterruptedException{
-        /**
-         * TODO : force reload of the job itself (not required if optimistic locking), then load all task not yet loaded
-         */
-        //int nbTaskContext =tasks.size();  //(int)session.getCounter(String.format(TaskDao.TASK_CNT_FMT,job.getUid()));
-        if(tasks.size()<job.getTasks().size()) {
-            List<String> missingTaskIds = new ArrayList<>(job.getTasks().size()-tasks.size());
-            for(String taskId:job.getTasks()){
-                TaskContext<TJOB,?> foundTaskContext = null;
-                for(TaskContext<TJOB,?> taskContext:tasks){
-                    if(taskContext.getTask().getId().equals(taskId)){
-                        foundTaskContext = taskContext;
-                        break;
+    public Observable<TaskContext<TJOB,? extends AbstractTask>> assignTaskContextIds(Collection<? extends TaskContext<TJOB,? extends AbstractTask>> taskContexts){
+        try {
+            //Get the right number of ids
+            Observable<Long> counterIncObs = session.asyncIncrCounter(
+                        String.format(TaskDao.TASK_CNT_FMT, job.getUid()),
+                        taskContexts.stream().filter(ctxt->ctxt.getId()==null).count()
+                    );
+            return counterIncObs.map(cntValue -> {
+                Long cntCurrValue = cntValue;
+                for (TaskContext<TJOB,?> taskContext : taskContexts) {
+                    if (taskContext.getId() == null) {
+                        long id = cntCurrValue--;
+                        if (taskContext.getParentTaskId() != null) {//TODO should be managed at task level
+                            taskContext.setId(taskContext.getParentTaskId() + "-" + id);
+                        } else {
+                            taskContext.setId(Long.toString(id));
+                        }
+                    }
+                    synchronized (job) {
+                        job.addTask(taskContext.getId());
                     }
                 }
-                if(foundTaskContext==null){
-                    missingTaskIds.add(taskId);
-                }
-            }
-            final CountDownLatch nbToLoad = new CountDownLatch(missingTaskIds.size());
-            final AtomicInteger nbFailure=new AtomicInteger(0);
-            final String uid = job.getUid().toString();
-            for(String missingTaskId:missingTaskIds) {
-                session.asyncGetFromKeyParams(AbstractTask.class,uid,missingTaskId)
-                        .map(task->TaskContext.newContext(JobContext.this,task))
-                        .subscribe(new Subscriber<TaskContext>() {
-                            @Override
-                            public void onCompleted() {
-                                nbToLoad.countDown();
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-                                nbToLoad.countDown();
-                                nbFailure.incrementAndGet();
-                            }
-
-                            @Override
-                            public void onNext(TaskContext taskContext) {
-                                tasks.add(taskContext);
-                            }
-                        });
-                nbToLoad.await(1, TimeUnit.MINUTES);
-            }
-            for(TaskContext<TJOB,?> taskContext:tasks){
-                taskContext.updatePreRequisistes();
-            }
+                return taskContexts;
+            }).flatMap(Observable::from);
+        }
+        catch(DaoException e){
+            return Observable.error(new DaoObservableException(e));
         }
     }
 
-    public TaskContext<TJOB,?> getNextExecutableTask(boolean resync) throws DaoException,StorageException,InterruptedException{
-        List<TaskContext<TJOB,?>> contexts=getPendingTasks(resync);
-        for(TaskContext<TJOB,?> context:contexts){
-            if(context.getTaskState().isDone()){
-               continue;
-            }
-            boolean allPreRequisitesValid = true;
-            for(TaskContext<TJOB,?> prereqCtxt:context.getPreRequisites()){
-                if(!prereqCtxt.getTaskState().isDone()){
-                    allPreRequisitesValid=false;
+    public Observable<TaskContext<TJOB,AbstractTask>> getTaskContexts(){
+        final List<TaskContext<TJOB,AbstractTask>> currTaskContexts;
+        synchronized (taskContextsCache){
+            currTaskContexts=new ArrayList<>(taskContextsCache);
+        }
+        List<String> missingTaskIds = new ArrayList<>(job.getTasks().size());
+        List<Observable<TaskContext<TJOB,AbstractTask>>> missingAbstractJobsObservable=new ArrayList<>(missingTaskIds.size());
+        Set<String> attachedTasks = job.getTasks();
+        //Loop on attached tasks to find out not yet loaded ones (ids)
+        for(String taskId:attachedTasks){
+            TaskContext<TJOB,AbstractTask> foundTaskContext = null;
+            for(TaskContext<TJOB,AbstractTask> taskContext: currTaskContexts){
+                if(taskId.equals(taskContext.getId())){
+                    foundTaskContext = taskContext;
                     break;
                 }
             }
-            if(allPreRequisitesValid){
-                return context;
+            if(foundTaskContext==null){
+                missingTaskIds.add(taskId);
             }
         }
-        return null;
+        final String uid = job.getUid().toString();
+        //Perform loading of missing ones
+        for(String missingTaskId:missingTaskIds) {
+            Observable<TaskContext<TJOB,AbstractTask>> taskContextObservable= session.asyncGetFromKeyParams(AbstractTask.class,uid,missingTaskId)
+                    .map(task->TaskContext.newContext(JobContext.this,task));
+            missingAbstractJobsObservable.add(taskContextObservable);
+        }
+        //Merge loading in one global list
+        return Observable.merge(missingAbstractJobsObservable)
+                .reduce(new ArrayList<>(currTaskContexts),
+                        (list,taskContext)->{list.add(taskContext);return list;}
+                        )
+                //Ask child tasks to update their pre-requisites
+                /*.map(taskContextArrayList->{
+                    taskContextArrayList.forEach(TaskContext::updatePendingPreRequisistes);
+                    return taskContextArrayList;
+                })*/
+                .flatMap(Observable::from);
+    }
+
+    public Observable<TaskContext<TJOB,AbstractTask>> getNextExecutableTasks(boolean resync){
+        Observable<TaskContext<TJOB,AbstractTask>> pendingTaskContextsObservable;
+        if(resync){
+            pendingTaskContextsObservable=session.asyncGet(job.getBaseMeta().getKey(),(Class<TJOB>) job.getClass())
+                    .map(newJob->new Builder<>(newJob,this).build())
+                    .flatMap(JobContext::getPendingTasks);
+        }
+        else{
+            pendingTaskContextsObservable=getPendingTasks();
+        }
+        return pendingTaskContextsObservable.concatMap(taskCtxt->
+                    taskCtxt.getPreRequisites()
+                        .filter(preReqCxt->!preReqCxt.getTaskState().isDone())
+                        .count()
+                        .filter(resCount->resCount==0)
+                        .map(resCount->taskCtxt)
+                )
+                .map(taskCxt->taskCxt);
     }
 
 
@@ -229,21 +225,12 @@ public class JobContext<TJOB extends AbstractJob> {
         return processingService;
     }
 
-    public TaskContext<TJOB,?> getNextExecutableTask() throws DaoException,StorageException,InterruptedException{
-        return getNextExecutableTask(false);
+    public Observable<TaskContext<TJOB,AbstractTask>> getNextExecutableTasks() {
+        return getNextExecutableTasks(false);
     }
 
-    public List<TaskContext<TJOB,?>> getPendingTasks(boolean forceResync) throws DaoException,StorageException,InterruptedException{
-        if(forceResync || tasks.size()==0){
-            resyncTasksContext();
-        }
-        List<TaskContext<TJOB,?>> result=new ArrayList<>();
-        for(TaskContext<TJOB,?> currCtxt:tasks){
-            if(!currCtxt.getTaskState().isDone()){
-                result.add(currCtxt);
-            }
-        }
-        return result;
+    public Observable<TaskContext<TJOB,AbstractTask>> getPendingTasks(){
+        return getTaskContexts().filter(taskCtxt->(!taskCtxt.getTaskState().isDone() || taskCtxt.isNew()));
     }
 
     public static <T extends AbstractJob> JobContext<T> newContext(Builder<T> builder){
@@ -252,19 +239,49 @@ public class JobContext<TJOB extends AbstractJob> {
 
 
     public <TTASK extends AbstractTask> TaskContext<TJOB,TTASK> addTask(TTASK task){
-        return TaskContext.newContext(this,task);//Note the addTask(taskCtxt is called by the TaskContext constructor)
+        return TaskContext.newContext(this,task);//Note the addTask(taskCtxt) - then cache update also - is called by the TaskContext constructor)
     }
 
-    //Package level to be called by TaskContext
-    void addTask(TaskContext<TJOB,?> ctxt){
-        tasks.add(ctxt);
-        if(ctxt.getTask().getJobUid()==null){
-            ctxt.getTask().setJobUid(job.getUid());
+    //Package level to be called only by TaskContext
+    void addTask(TaskContext<TJOB,AbstractTask> ctxt){
+        synchronized (taskContextsCache) {
+            taskContextsCache.remove(ctxt);
+            taskContextsCache.add(ctxt);
         }
+
+        if(ctxt.getJobUid()==null){
+            ctxt.setJobUid(job.getUid());
+        }
+    }
+
+    public ProcessState getStateInfo() {
+        return job.getStateInfo();
+    }
+
+    public Map<String,String> getSharedTaskTempIdMap() {
+        return Collections.unmodifiableMap(sharedTaskTempIdMap) ;
+    }
+
+    public void setState(ProcessState.State state) {
+        this.job.getStateInfo().setState(state);
+    }
+
+    public UUID getJobId() {
+        return job.getUid();
+    }
+
+    public TJOB getInternalJob() {
+        return job;
+    }
+
+    public boolean isNew() {
+        return job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW);
     }
 
     public static class Builder<T extends AbstractJob>{
         private final T job;
+        private final Map<String,String> sharedTaskTempIdMap;
+        private final Set<TaskContext<T,AbstractTask>> taskContextsCache;
         private ExecutorClientFactory clientFactory;
         private ICouchbaseSession session;
         private IJobExecutorService<T> jobExecutorService=null;
@@ -273,7 +290,21 @@ public class JobContext<TJOB extends AbstractJob> {
 
         public Builder(T job){
             this.job= job;
+            this.sharedTaskTempIdMap =new ConcurrentHashMap<>();
+            this.taskContextsCache=new TreeSet<>();
         }
+
+        public Builder(T job,JobContext<T> rootJobCtxt){
+            this.job= job;
+            this.sharedTaskTempIdMap =rootJobCtxt.sharedTaskTempIdMap;
+            this.jobExecutorService = rootJobCtxt.executorService;
+            this.jobProcessingService = rootJobCtxt.processingService;
+            this.metricRegistry =rootJobCtxt.metricRegistry;
+            this.clientFactory = rootJobCtxt.clientFactory;
+            this.session = rootJobCtxt.session;
+            this.taskContextsCache=rootJobCtxt.taskContextsCache;
+        }
+
 
         public Builder<T> withSession(ICouchbaseSession session) {
             this.session = session;
@@ -300,13 +331,8 @@ public class JobContext<TJOB extends AbstractJob> {
             return this;
         }
 
-        public Builder<T> fromJobContext(JobContext<T> jobContext){
-            this.jobExecutorService = jobContext.executorService;
-            this.jobProcessingService = jobContext.processingService;
-            this.metricRegistry =jobContext.metricRegistry;
-            this.clientFactory = jobContext.clientFactory;
-            this.session = jobContext.session;
-            return this;
+        public JobContext<T> build() {
+            return new JobContext<>(this);
         }
     }
 }

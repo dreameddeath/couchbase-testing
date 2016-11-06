@@ -19,14 +19,13 @@
 package com.dreameddeath.couchbase.core.process.remote.service;
 
 import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
-import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
-import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.exception.JobObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
@@ -39,8 +38,11 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExisting
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.StateInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import rx.Observable;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
@@ -110,98 +112,128 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response runJobCreate(@Context IUser user,
+    public void runJobCreate(@Context IUser user,
                                  @QueryParam(SUBMIT_ONLY_QUERY_PARAM) Boolean submitOnly,
                                  @QueryParam(REQUEST_UID_QUERY_PARAM) String requestUid,
-                                 TREQ request) {
+                                 TREQ request,
+                                 @Suspended final AsyncResponse asyncResponse){
         try {
-            JobContext<TJOB> result;
             TJOB job = buildJobFromRequest(request);
             if(StringUtils.isNotEmpty(requestUid)){
                 job.setRequestUid(requestUid);
             }
+            Observable<JobContext<TJOB>> jobCtxtObs;
             if (submitOnly!=null && submitOnly) {
-                result = jobExecutorClient.submitJob(job, user);
+                jobCtxtObs= jobExecutorClient.submitJob(job, user);
             }
             else {
-                result = jobExecutorClient.executeJob(job, user);
+                jobCtxtObs = jobExecutorClient.executeJob(job, user);
             }
-            return buildJaxrsResponse(result.getJob());
+            jobCtxtObs
+                    .map(ctxt->buildJaxrsResponse(ctxt.getInternalJob()))
+                    .onErrorResumeNext(this::manageStandardErrors)
+                    .subscribe(asyncResponse::resume,(throwable -> {
+                        try {
+                            if(throwable instanceof DuplicateJobExecutionException) {
+                                DuplicateJobExecutionException e = (DuplicateJobExecutionException) throwable;
+                                AlreadyExistingJob result = new AlreadyExistingJob();
+                                result.key = e.getOwnerDocumentKey();
+                                try {
+                                    ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
+                                    AbstractJob conflictingJob = session.toBlocking().blockingGet(e.getOwnerDocumentKey(), AbstractJob.class);
+                                    result.requestUid = conflictingJob.getRequestUid();
+                                    result.uid = conflictingJob.getUid().toString();
+                                    result.jobModelId = conflictingJob.getModelId().toString();
+                                } catch (Throwable lookupError) {
+                                    //ignore error
+                                }
+                                asyncResponse.resume(Response.status(Response.Status.CONFLICT).entity(result).build());
+                            } else {
+                                asyncResponse.resume(throwable);
+                            }
+                        }
+                        catch(Throwable e){
+                            asyncResponse.resume(e);
+                        }
+                    }));
         }
-        catch (DuplicateJobExecutionException e) {
-            AlreadyExistingJob result = new AlreadyExistingJob();
-            result.key=e.getOwnerDocumentKey();
-            try {
-                ICouchbaseSession session=sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
-                AbstractJob conflictingJob = session.toBlocking().blockingGet(e.getOwnerDocumentKey(),AbstractJob.class);
-                result.requestUid = conflictingJob.getRequestUid();
-                result.uid=conflictingJob.getUid().toString();
-                result.jobModelId=conflictingJob.getModelId().toString();
-            }
-            catch(Throwable lookupError){
-                //ignore error
-            }
-            return Response.status(Response.Status.CONFLICT).entity(result).build();
-        }
-        catch (JobExecutionException e) {
-            throw new RuntimeException(e);
+        catch (Throwable e){
+            asyncResponse.resume(e);
         }
     }
 
     @GET
     @Path("/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getJob(@Context IUser user,
-                           @PathParam("uid") String uid) {
-        ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
+    public void getJob(@Context IUser user,
+                           @PathParam("uid") String uid,
+                           @Suspended AsyncResponse asyncResponse) {
         try {
-            TJOB job = ProcessUtils.loadJob(session, uid, jobClass);
-            return buildJaxrsResponse(job);
+            ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
+            ProcessUtils.asyncLoadJob(session, uid, jobClass)
+                    .map(this::buildJaxrsResponse)
+                    .onErrorResumeNext(this::manageStandardErrors)
+                    .subscribe(asyncResponse::resume, asyncResponse::resume)
+            ;
         }
-        catch(DocumentNotFoundException e) {
-            throw new NotFoundException(e);
-        }
-        catch(StorageException|DaoException e) {
-            throw new InternalServerErrorException(e);
+        catch (Throwable e){
+            asyncResponse.resume(e);
         }
     }
 
     @PUT
     @Path("/{uid}/{action:cancel|resume}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateJob(@Context IUser user,
-                                @PathParam("uid")String uid,
-                                @QueryParam(REQUEST_UID_QUERY_PARAM) String requestUid,
-                                @PathParam("action") ActionRequest actionRequest){
+    public void updateJob(@Context final IUser user,
+                                @PathParam("uid") final String uid,
+                                @QueryParam(REQUEST_UID_QUERY_PARAM) final String requestUid,
+                                @PathParam("action") final ActionRequest actionRequest,
+                                @Suspended final AsyncResponse asyncResponse){
         if(actionRequest==null){
-            throw new BadRequestException("The action is inconsistent");
+            asyncResponse.resume(new BadRequestException("The action is inconsistent"));
         }
         try {
             ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
-            TJOB job = ProcessUtils.loadJob(session, uid, jobClass);
-            if(job==null){
-                throw new NotFoundException("The job "+uid+ " isn't existing");
-            }
-            if(StringUtils.isNotEmpty(requestUid)){
-                if(!requestUid.equals(job.getRequestUid())){
-                    throw new NotFoundException("The job "+job.getBaseMeta().getKey()+ " hasn't right request id <"+requestUid+"> but <"+job.getRequestUid());
-                }
-            }
-            JobContext<TJOB> result;
-            switch (actionRequest) {
-                case RESUME:
-                    result = jobExecutorClient.resumeJob(job, user);
-                    break;
-                case CANCEL:
-                    result = jobExecutorClient.cancelJob(job, user);
-                    break;
-                default:
-                    throw new NotSupportedException("Not managed action :"+actionRequest+" on job "+uid);
-            }
-            return buildJaxrsResponse(result.getJob());
+            ProcessUtils.asyncLoadJob(session, uid, jobClass)
+                    .flatMap(job->this.checkRequestId(requestUid,job))
+                    .flatMap(job->{
+                        switch (actionRequest) {
+                            case RESUME:
+                                return jobExecutorClient.resumeJob(job, user);
+                            case CANCEL:
+                                return jobExecutorClient.cancelJob(job, user);
+                            default:
+                                return Observable.error(new NotSupportedException("Not managed action :"+actionRequest+" on job "+uid));
+                        }
+                    })
+                    .map(ctxt->this.buildJaxrsResponse(ctxt.getInternalJob()))
+                    .onErrorResumeNext(this::manageStandardErrors)
+                    .subscribe(asyncResponse::resume,asyncResponse::resume);
         }
-        catch(StorageException|DaoException|JobExecutionException e){
-            throw new InternalServerErrorException(e);
+        catch(Throwable e){
+            asyncResponse.resume(new InternalServerErrorException(e));
         }
+    }
+
+    private Observable<Response> manageStandardErrors(Throwable throwable) {
+        if(throwable instanceof StorageObservableException && ((StorageObservableException)throwable).isDocumentNotFoundException()){
+            DocumentNotFoundException e = (DocumentNotFoundException)((StorageObservableException)throwable).getCause();
+            return Observable.error(new NotFoundException("The job "+e.getKey()+ " isn't existing"));
+        }
+        else if(throwable instanceof JobObservableExecutionException && throwable.getCause()!=null){
+            return Observable.error(throwable.getCause());
+        }
+        else{
+            return Observable.error(throwable);
+        }
+    }
+
+    private Observable<TJOB> checkRequestId(final String requestUid, final TJOB job) {
+        if(StringUtils.isNotEmpty(requestUid)){
+            if(!requestUid.equals(job.getRequestUid())){
+                return Observable.error(new NotFoundException("The job "+job.getBaseMeta().getKey()+ " hasn't right request id <"+requestUid+"> but <"+job.getRequestUid()));
+            }
+        }
+        return Observable.just(job);
     }
 }

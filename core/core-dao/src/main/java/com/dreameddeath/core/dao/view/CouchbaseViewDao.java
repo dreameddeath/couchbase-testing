@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.dao.view;
@@ -21,7 +23,7 @@ import com.couchbase.client.java.view.ViewRow;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.dao.document.IDaoWithKeyPattern;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.model.view.*;
 import com.dreameddeath.core.dao.model.view.impl.ViewAsyncQueryResult;
@@ -61,8 +63,8 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
         StringBuilder sb = new StringBuilder();
         sb.append("function (doc, meta) {\n");
         //Append Prefix if needed
-        if(parentDao instanceof  CouchbaseDocumentWithKeyPatternDao){
-            String pattern = ((CouchbaseDocumentWithKeyPatternDao)parentDao).getKeyPattern().getKeyPatternStr();
+        if(parentDao instanceof IDaoWithKeyPattern){
+            String pattern = ((IDaoWithKeyPattern)parentDao).getKeyPattern().getKeyPatternStr();
             pattern = pattern.replaceAll("([/\\$])","\\\\$1");
             sb.append("if(/^(?:[^\\$]+\\$)?").append(pattern).append("$/.test(meta.id)==false) return;");
             sb.append("\n");
@@ -89,14 +91,14 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
                 @Override public TVALUE getValue() { return value;}
                 @Override public String getDocKey() {return docKey;}
                 @Override public String getPrefix() {return keyPrefix;}
-                @Override public Observable<TDOC> getDoc(ICouchbaseSession session) {return (Observable<TDOC>)session.asyncGet(docKey);}
+                @Override public Observable<TDOC> getDoc(ICouchbaseSession session) {return session.asyncGet(docKey);}
                 @Override public IBlockingViewQueryRow<TKEY, TVALUE, TDOC> toBlocking() {
                     return new IBlockingViewQueryRow<TKEY, TVALUE, TDOC>() {
                         @Override public TKEY getKey() {return key;}
                         @Override public TVALUE getValue() { return value;}
                         @Override public String getDocKey() { return docKey;}
                         @Override public String getPrefix() {return keyPrefix;}
-                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().blockingGet(docKey);}
+                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return session.toBlocking().blockingGet(docKey);}
                     };
                 }
             };
@@ -120,14 +122,14 @@ public abstract class CouchbaseViewDao<TKEY,TVALUE,TDOC extends CouchbaseDocumen
                 @Override public TVALUE getValue() { return value;}
                 @Override public String getDocKey() {return docKey;}
                 @Override public String getPrefix() {return keyPrefix;}
-                @Override public Observable<TDOC> getDoc(ICouchbaseSession session) {return (Observable<TDOC>)session.asyncGet(docKey);}
+                @Override public Observable<TDOC> getDoc(ICouchbaseSession session) {return session.asyncGet(docKey);}
                 @Override public IBlockingViewQueryRow<TKEY, TVALUE, TDOC> toBlocking() {
                     return new IBlockingViewQueryRow<TKEY, TVALUE, TDOC>() {
                         @Override public TKEY getKey() {return key;}
                         @Override public TVALUE getValue() { return value;}
                         @Override public String getDocKey() { return docKey;}
                         @Override public String getPrefix() {return keyPrefix;}
-                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return (TDOC)session.toBlocking().blockingGet(docKey);}
+                        @Override public TDOC getDoc(ICouchbaseSession session) throws DaoException, StorageException {return session.toBlocking().blockingGet(docKey);}
                     };
                 }
             };

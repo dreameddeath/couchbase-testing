@@ -12,4 +12,5 @@ The purpose of this module is to provide tools to manage soap web service like r
 
 TODO
 --------------------------
-Everything
+- Manage automated retries
+- Manage timeouts properly

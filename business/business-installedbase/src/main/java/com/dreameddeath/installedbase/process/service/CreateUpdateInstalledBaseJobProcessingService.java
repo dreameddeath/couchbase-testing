@@ -1,31 +1,31 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.installedbase.process.service;
 
-import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
-import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.exception.TaskExecutionException;
+import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.tasks.NoOpTask;
-import com.dreameddeath.core.process.service.context.JobContext;
-import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.*;
 import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
@@ -37,6 +37,7 @@ import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBase
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseResponse;
 import com.dreameddeath.installedbase.service.ICreateUpdateInstalledBaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
@@ -44,8 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @JobProcessingForClass(CreateUpdateInstalledBaseJob.class)
 public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobProcessingService<CreateUpdateInstalledBaseJob> {
     @Override
-    public boolean init(JobContext<CreateUpdateInstalledBaseJob> context) throws JobExecutionException {
-        CreateUpdateInstalledBaseJob job = context.getJob();
+    public Observable<JobProcessingResult<CreateUpdateInstalledBaseJob>> init(JobContext<CreateUpdateInstalledBaseJob> context){
+        CreateUpdateInstalledBaseJob job = context.getInternalJob();
         //Algorithm :
         // * create all contracts without contents :
         //     * create structure
@@ -70,7 +71,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
                )
             {
                 TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> emptyCreateTaskContext = context.addTask(new InitEmptyInstalledBase());
-                emptyCreateTaskContext.getTask().setContractTempId(contract.tempId);
+                emptyCreateTaskContext.getInternalTask().setContractTempId(contract.tempId);
                 emptyCreateTaskContext.chainWith(
                         new UpdateInstalledBaseTask()
                 );
@@ -81,34 +82,27 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
             }
         }
 
-        return true;
+        return JobProcessingResult.build(context,true);
     }
 
     @TaskProcessingForClass(InitEmptyInstalledBase.class)
     public static class InitEmptyInstalledBaseProcessingService extends DocumentCreateTaskProcessingService<CreateUpdateInstalledBaseJob,InstalledBase,InitEmptyInstalledBase> {
-
         @Override
-        public InstalledBase buildDocument(TaskContext<CreateUpdateInstalledBaseJob,InitEmptyInstalledBase> ctxt){
+        protected Observable<ContextAndDocument> buildDocument(TaskContext<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase> ctxt) {
             InstalledBase result = ctxt.getSession().newEntity(InstalledBase.class);
-            return result;
+            return buildContextAndDocumentObservable(ctxt,result);
         }
 
         @Override
-        public boolean updatejob(TaskContext<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase> ctxt) throws TaskExecutionException {
-            InitEmptyInstalledBase task = ctxt.getTask();
-            CreateUpdateInstalledBaseResponse.Contract result = new CreateUpdateInstalledBaseResponse.Contract();
-            result.tempId = task.getContractTempId();
-            try {
-                result.id = task.blockingGetDocument(ctxt.getSession()).getUid();
-            }
-            catch(DaoException e){
-                throw new TaskExecutionException(ctxt,"Dao error during retrieval of doc "+task.getDocKey(),e);
-            }
-            catch(StorageException e){
-                throw new TaskExecutionException(ctxt,"Storage error during retrieval of doc "+task.getDocKey(),e);
-            }
-            ctxt.getParentJob().getResult().contracts.add(result);
-            return true;
+        public Observable<UpdateJobTaskProcessingResult<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase>> updatejob(CreateUpdateInstalledBaseJob job, InitEmptyInstalledBase task, ICouchbaseSession session) {
+            return task.getDocument(session)
+                        .map(installedBase -> {
+                            final CreateUpdateInstalledBaseResponse.Contract result = new CreateUpdateInstalledBaseResponse.Contract();
+                            result.tempId = task.getContractTempId();
+                            result.id=installedBase.getUid();
+                            job.getResult().contracts.add(result);
+                            return new UpdateJobTaskProcessingResult<>(job,task,true);
+                        });
         }
     }
 
@@ -126,47 +120,44 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
         }
 
         @Override
-        public boolean preprocess(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt ) throws TaskExecutionException{
-            UpdateInstalledBaseTask task=ctxt.getTask();
-            if(task.getContractUid()!=null){
+        public Observable<TaskProcessingResult<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask>> preprocess(final TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt ){
+            if(ctxt.getInternalTask().getContractUid()!=null){
                 try {
-                    task.setDocKey(ctxt.getSession().getKeyFromUID(task.getContractUid(), InstalledBase.class));
+                    ctxt.getInternalTask().setDocKey(ctxt.getSession().getKeyFromUID(ctxt.getInternalTask().getContractUid(), InstalledBase.class));
+                    return TaskProcessingResult.build(ctxt,false);
                 }
                 catch(DaoException e){
-                    throw new TaskExecutionException(ctxt,"Cannot build key from uid <"+task.getContractUid()+">");
+                    return Observable.error(new TaskObservableExecutionException(ctxt,"Cannot build key from uid <"+ctxt.getInternalTask().getContractUid()+">"));
                 }
             }
             else {
-                InitEmptyInstalledBase creationInstalledBase = ctxt.getDependentTask(InitEmptyInstalledBase.class);
-                if (creationInstalledBase != null) {
-                    task.setDocKey(creationInstalledBase.getDocKey());
-                    task.setTempContractId(creationInstalledBase.getContractTempId());
-                }
-                else{
-                    throw new TaskExecutionException(ctxt,"Inconsistent State : neither existing InstalledBase nor InitTask found");
-                }
+                return ctxt.getDependentTask(InitEmptyInstalledBase.class)
+                        .map(creationInstalledBase -> {
+                            ctxt.getInternalTask().setDocKey(creationInstalledBase.getDocKey());
+                            ctxt.getInternalTask().setTempContractId(creationInstalledBase.getContractTempId());
+                            return new TaskProcessingResult<>(ctxt,false);
+                        });
             }
-            return false;
         }
 
         @Override
-        public boolean processDocument(TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt, InstalledBase installBase) throws TaskExecutionException{
+        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
             CreateUpdateInstalledBaseRequest.Contract refContract=null;
-            for(CreateUpdateInstalledBaseRequest.Contract currContract:ctxt.getParentJob().getRequest().contracts){
-                if (ctxt.getTask().getTempContractId() != null && ctxt.getTask().getTempContractId().equals(currContract.tempId)) {
+            for(CreateUpdateInstalledBaseRequest.Contract currContract:ctxtAndDoc.getCtxt().getParentInternalJob().getRequest().contracts){
+                if (ctxtAndDoc.getCtxt().getInternalTask().getTempContractId() != null && ctxtAndDoc.getCtxt().getInternalTask().getTempContractId().equals(currContract.tempId)) {
                     refContract=currContract;
                     break;
                 }
-                else if(ctxt.getTask().getContractUid().equals(currContract.id)){
+                else if(ctxtAndDoc.getCtxt().getInternalTask().getContractUid().equals(currContract.id)){
                     refContract=currContract;
                     break;
                 }
             }
             if(refContract==null){
-                throw new TaskExecutionException(ctxt,"Inconsitent State, cannot find Contract in installed base "+ctxt.getTask().getDocKey());
+                return Observable.error(new TaskObservableExecutionException(ctxtAndDoc.getCtxt(),"Inconsitent State, cannot find Contract in installed base "+ctxtAndDoc.getCtxt().getInternalTask().getDocKey()));
             }
-            service.manageCreateUpdate(ctxt.getParentJob().getRequest(),installBase,refContract);
-            return true;
+            service.manageCreateUpdate(ctxtAndDoc.getCtxt().getParentInternalJob().getRequest(),ctxtAndDoc.getDoc(),refContract);
+            return new ProcessingDocumentResult(ctxtAndDoc,false).toObservable();
         }
     }
 }

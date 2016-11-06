@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.model.v1.base;
@@ -42,6 +44,7 @@ public class ProcessState extends CouchbaseDocumentElement {
     public boolean isPrepared(){ return state.get().compareTo(State.PREPROCESSED)>=0; }
     public boolean isProcessed(){ return state.get().compareTo(State.PROCESSED)>=0; }
     public boolean isFinalized(){ return state.get().compareTo(State.POSTPROCESSED)>=0; }
+    public boolean isNotified(){ return state.get().compareTo(State.NOTIFIED)>=0; }
     public boolean isJobUpdated(){ return state.get().compareTo(State.JOBUPDATED)>=0; }
     public boolean isDone(){ return state.get().compareTo(State.DONE)>=0; }
 
@@ -53,8 +56,10 @@ public class ProcessState extends CouchbaseDocumentElement {
         PREPROCESSED,
         PROCESSED, //Processing Done
         POSTPROCESSED,
+        NOTIFIED,
         JOBUPDATED, //Task only
-        DONE//Cleaning done
+        DONE,//Cleaning done
+        CANCELLED
     }
 
 }

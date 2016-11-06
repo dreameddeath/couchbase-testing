@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.dao.factory;
@@ -27,7 +29,7 @@ import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.dao.document.IDaoWithKeyPattern;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
 import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
 import com.dreameddeath.core.dao.model.utils.DaoInfo;
@@ -102,7 +104,7 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
 
     public <T extends CouchbaseDocument> void addDaoFor(Class<T> entityClass,CouchbaseDocumentDao<T> dao) throws DuplicateMappedEntryInfoException{
         dao.init();
-        String pattern = (dao instanceof CouchbaseDocumentWithKeyPatternDao)?((CouchbaseDocumentWithKeyPatternDao) dao).getKeyPattern().getKeyPatternStr():".*";
+        String pattern = (dao instanceof IDaoWithKeyPattern)?((IDaoWithKeyPattern) dao).getKeyPattern().getKeyPatternStr():".*";
 
         if(!documentInfoMapper.contains(entityClass)){
             documentInfoMapper.addDocument(entityClass,pattern);

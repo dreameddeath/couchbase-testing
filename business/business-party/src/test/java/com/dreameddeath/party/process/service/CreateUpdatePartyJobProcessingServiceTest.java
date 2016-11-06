@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.party.process.service;
@@ -99,10 +101,10 @@ public class CreateUpdatePartyJobProcessingServiceTest {
         request.person.firstName = "christophe";
         request.person.lastName = "jeunesse";
 
-        JobContext<CreateUpdatePartyJob> createJobJobContext =executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE);
+        JobContext<CreateUpdatePartyJob> createJobJobContext =executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE).toBlocking().single();
 
         ICouchbaseSession controlSession = cbPlugin.getSessionFactory().newReadOnlySession(null);
-        CreateUpdatePartyJob inDbJob = controlSession.toBlocking().blockingGet(createJobJobContext.getJob().getBaseMeta().getKey(),CreateUpdatePartyJob.class);
+        CreateUpdatePartyJob inDbJob = controlSession.toBlocking().blockingGet(createJobJobContext.getInternalJob().getBaseMeta().getKey(),CreateUpdatePartyJob.class);
         assertEquals(inDbJob.getStateInfo().getState(), ProcessState.State.DONE);
         CreateUpdatePartyJob.CreatePartyTask inDbTask = controlSession.toBlocking().blockingGet(createUpdatePartyJob.getBaseMeta().getKey()+"/task/1",CreateUpdatePartyJob.CreatePartyTask.class);
         Party inDbParty = controlSession.toBlocking().blockingGet(inDbTask.getDocKey(),Party.class);

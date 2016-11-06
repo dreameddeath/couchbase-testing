@@ -9,7 +9,6 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
-import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.model.view.IViewKeyTranscoder;
@@ -110,7 +109,7 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
         List<CouchbaseCounterDao.Builder> result = new ArrayList<>();
 #foreach($counter in $counters)
         result.add(
-                new CouchbaseCounterDao.Builder().withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN).withDefaultValue(${counter.defaultValue}).withBaseDao(this)
+                new CouchbaseCounterDao.Builder().withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN).withBaseValue(${counter.defaultValue}).withBaseDao(this)
         );
 #end
         return result;

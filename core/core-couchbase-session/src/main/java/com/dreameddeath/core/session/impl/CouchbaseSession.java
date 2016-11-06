@@ -55,9 +55,9 @@ public class CouchbaseSession implements ICouchbaseSession {
     final private IUser user;
     final private IBlockingCouchbaseSession blockingSession;
 
-    private final BucketDocumentCache sessionCache = new BucketDocumentCache(this);
-    private final Map<String,CouchbaseUniqueKey> keyCache = new ConcurrentHashMap<>();
-    private final Map<String,Long> counters = new ConcurrentHashMap<>();
+    private final BucketDocumentCache sessionCache; //= new BucketDocumentCache(this);
+    private final Map<String,CouchbaseUniqueKey> keyCache; //= new ConcurrentHashMap<>();
+    private final Map<String,Long> counters; //= new ConcurrentHashMap<>();
     private volatile boolean temporaryReadOnlyMode;
 
     public CouchbaseSession(CouchbaseSessionFactory factory, IUser user){
@@ -73,12 +73,20 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     public CouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user,String keyPrefix) {
-        sessionFactory = factory;
-        dateTimeService = factory.getDateTimeServiceFactory().getService();
-        sessionType = type;
+        this(factory, type, user,keyPrefix,new ConcurrentHashMap<>(),new ConcurrentHashMap<>(),null);
+    }
+
+    private CouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user,String keyPrefix,
+                             Map<String,CouchbaseUniqueKey> keyCache,Map<String,Long> counters,BucketDocumentCache sessionCache) {
+        this.sessionFactory = factory;
+        this.dateTimeService = factory.getDateTimeServiceFactory().getService();
+        this.sessionType = type;
         this.user = user;
         this.keyPrefix = keyPrefix;
         this.blockingSession = new BlockingCouchbaseSession(this);
+        this.sessionCache=(sessionCache!=null)?sessionCache:new BucketDocumentCache(this);
+        this.keyCache=keyCache;
+        this.counters=counters;
     }
 
     @Override
@@ -110,20 +118,12 @@ public class CouchbaseSession implements ICouchbaseSession {
         return sessionType;
     }
 
-    @Override
-    public void setTemporaryReadOnlyMode(boolean active) {
-        this.temporaryReadOnlyMode=active;
-    }
-
-    public boolean isTemporaryReadOnlyMode() {
-        return temporaryReadOnlyMode;
-    }
 
     public boolean isCalcOnly(){
         return sessionType== SessionType.CALC_ONLY;
     }
     public boolean isReadOnly(){
-        return (sessionType== SessionType.READ_ONLY)||isTemporaryReadOnlyMode();
+        return (sessionType== SessionType.READ_ONLY);
     }
 
     protected void checkReadOnly(CouchbaseDocument doc) throws ReadOnlyException{
@@ -252,14 +252,14 @@ public class CouchbaseSession implements ICouchbaseSession {
 
 
     @Override
-    public Observable<CouchbaseDocument> asyncGet(String key){
+    public <T extends CouchbaseDocument> Observable<T> asyncGet(String key){
         try {
-            CouchbaseDocument cachedObj = sessionCache.get(key);
+            T cachedObj = sessionCache.get(key);
             if (cachedObj != null) {
                 return Observable.just(cachedObj);
             } else {
-                CouchbaseDocumentDao dao = sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
-                Observable<CouchbaseDocument> result = (Observable<CouchbaseDocument>) dao.asyncGet(this, key);
+                CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
+                Observable<T> result = dao.asyncGet(this, key);
                 result.doOnNext(this::updateCache);
                 return result;
             }
@@ -460,8 +460,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         });
     }
 
-
-
     @Override
     public Observable<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
         try {
@@ -475,16 +473,12 @@ public class CouchbaseSession implements ICouchbaseSession {
         catch(DaoException e){
             throw new DaoObservableException(e);
         }
-
     }
-
-
 
     @Override
     public Observable<Boolean> asyncRemoveUniqueKey(String internalKey) {
         try {
             final CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
-            //CouchbaseUniqueKey obj = ;
             return asyncGetUniqueKey(internalKey).map(keyDoc -> {
                         try {
                             checkReadOnly(keyDoc);
@@ -522,5 +516,50 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public <TKEY,TVALUE,T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY,TVALUE,T >> executeAsyncQuery(IViewQuery<TKEY,TVALUE,T> query) {
         return query.getDao().asyncQuery(this,isCalcOnly(),query);
+    }
+
+
+    @Override
+    public ICouchbaseSession getTemporaryReadOnlySession() {
+        return new TemporaryCouchbaseSession(sessionFactory,sessionType,user,keyPrefix,keyCache,counters,sessionCache);
+    }
+
+    @Override
+    public ICouchbaseSession toParentSession() {
+        throw new IllegalStateException();
+    }
+
+    private class TemporaryCouchbaseSession extends CouchbaseSession implements ICouchbaseSession{
+        private final IBlockingCouchbaseSession blockingCouchbaseSession;
+
+        private TemporaryCouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user, String keyPrefix, Map<String, CouchbaseUniqueKey> keyCache, Map<String, Long> counters, BucketDocumentCache sessionCache) {
+            super(factory, type, user, keyPrefix, keyCache, counters, sessionCache);
+            this.blockingCouchbaseSession = new BlockingCouchbaseSession(this);
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return true;
+        }
+
+        @Override
+        public <T extends CouchbaseDocument> T updateCache(T doc){
+            return CouchbaseSession.this.updateCache(doc);
+        }
+
+        @Override
+        public IBlockingCouchbaseSession toBlocking() {
+            return blockingCouchbaseSession;
+        }
+
+        @Override
+        public ICouchbaseSession getTemporaryReadOnlySession() {
+            return this;
+        }
+
+        @Override
+        public ICouchbaseSession toParentSession() {
+            return CouchbaseSession.this;
+        }
     }
 }

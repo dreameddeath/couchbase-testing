@@ -240,7 +240,8 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 result = result.flatMap(val -> getClient().asyncAdd(val));
             }
         }
-        return result.map(new FuncUpdateStateSync(obj)).onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
+        return result.map(new FuncUpdateStateSync(obj))
+                .map(this::managePostReading).onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
     }
 
     public <T extends CouchbaseDocument> Observable<T> mapObservableException(T doc,Throwable e){
@@ -262,17 +263,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             else {
                 result = getClient().asyncGet(key, baseClass);
             }
-            result = result.map(val -> {
-                        if (val.getBaseMeta().hasFlag(DocumentFlag.Deleted)) {
-                            val.getBaseMeta().setStateDeleted();
-                        }
-                        else {
-                            val.getBaseMeta().setStateSync();
-                        }
-                        return val;
-                    }
-            );
-
+            result = result.map(this::managePostReading);
             return result;
         }
         catch(Throwable e){
@@ -295,6 +286,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                 }
             }
             return result.map(new FuncUpdateStateSync(obj))
+                    .map(this::managePostReading)
                     .onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
         }
         catch(Throwable e){
@@ -313,10 +305,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             if (!isCalcOnly) {
                 result = result.flatMap(val -> getClient().asyncDelete(val));
             }
-            result = result.map(val -> {
-                val.getBaseMeta().setStateDeleted();
-                return val;
-            });
+            result = result.map(this::managePostReading);
             return result.onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
         }
         catch(Throwable e){
@@ -332,6 +321,22 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         this.isReadOnly=isReadOnly;
     }
 
+
+    //To be reused by cache Read
+    public final T managePostReading(T obj){
+        obj =manageDaoLevelTransientFields(obj);
+        if (obj.getBaseMeta().hasFlag(DocumentFlag.Deleted)) {
+            obj.getBaseMeta().setStateDeleted();
+        }
+        else {
+            obj.getBaseMeta().setStateSync();
+        }
+        return obj;
+    }
+
+    public T manageDaoLevelTransientFields(T obj){
+        return obj;
+    }
 
     public class BlockingDao{
         public T blockingGet(ICouchbaseSession session, String key) throws DaoException,StorageException{
@@ -392,5 +397,4 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             }
         }
     }
-
 }

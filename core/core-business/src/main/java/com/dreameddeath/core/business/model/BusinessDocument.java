@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.business.model;
@@ -30,13 +32,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import org.joda.time.DateTime;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
-public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument implements IHasUniqueKeysRef,IVersionedEntity{
+public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument implements IVersionedEntity{
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
@@ -60,8 +61,6 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
      */
     @DocumentProperty("docUniqKeys")
     private SetProperty<String> docUniqKeys = new HashSetProperty<>(BusinessDocument.this);
-    private Set<String> inDbUniqKeys = new HashSet<>();
-
 
     public final Long getDocRevision(){ return revision; }
     public final void setDocRevision(Long rev){ revision=rev; }
@@ -74,32 +73,6 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
     // DocUniqKeys Accessors
     public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
     public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
-    @Override
-    public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
-
-    protected void syncKeyWithDb(){
-        inDbUniqKeys.clear();
-        inDbUniqKeys.addAll(docUniqKeys.get());
-        docUniqKeys.clear();
-    }
-
-    public Set<String> getToBeDeletedUniqueKeys(){
-        Set<String> toRemoveKeyList=new HashSet<>(inDbUniqKeys);
-        toRemoveKeyList.addAll(docUniqKeys.get());
-        return toRemoveKeyList;
-    }
-
-    @Override
-    public Set<String> getRemovedUniqueKeys(){
-        Set<String> removed=new HashSet<>(inDbUniqKeys);
-        removed.removeAll(docUniqKeys.get());
-        return removed;
-    }
-
-    @Override
-    public boolean isInDbKey(String key) {
-        return inDbUniqKeys.contains(key);
-    }
 
     public BusinessDocument(){
         super(null);
@@ -110,20 +83,13 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
         return (MetaInfo) getBaseMeta();
     }
 
-    public class MetaInfo extends BaseMetaInfo {
+    public class MetaInfo extends BaseMetaInfo implements IHasUniqueKeysRef {
+        private final Set<String> inDbUniqKeys = new HashSet<>();
 
-        private Collection<BusinessDocumentLink> reverseLinks=new HashSet<>();
-
-        public void addReverseLink(BusinessDocumentLink lnk){ reverseLinks.add(lnk); }
-        public void removeReverseLink(BusinessDocumentLink lnk){ reverseLinks.remove(lnk); }
-
-
-        @Override
-        public void setStateDirty(){
-            super.setStateDirty();
-            for(BusinessDocumentLink link: reverseLinks){
-                link.syncFields();
-            }
+        private void syncKeyWithDb(){
+            inDbUniqKeys.clear();
+            inDbUniqKeys.addAll(docUniqKeys.get());
+            docUniqKeys.clear();
         }
 
         @Override
@@ -137,5 +103,27 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
             syncKeyWithDb();
             super.setStateSync();
         }
+
+        public Set<String> getToBeDeletedUniqueKeys(){
+            Set<String> toRemoveKeyList=new HashSet<>(inDbUniqKeys);
+            toRemoveKeyList.addAll(docUniqKeys.get());
+            return toRemoveKeyList;
+        }
+
+        @Override
+        public Set<String> getRemovedUniqueKeys(){
+            Set<String> removed=new HashSet<>(inDbUniqKeys);
+            removed.removeAll(docUniqKeys.get());
+            return removed;
+        }
+
+        @Override
+        public boolean isInDbKey(String key) {
+            return inDbUniqKeys.contains(key);
+        }
+
+        @Override
+        public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
+
     }
 }

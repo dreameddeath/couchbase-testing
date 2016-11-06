@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.model.v1.base;
@@ -21,10 +23,10 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
-import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+import com.dreameddeath.core.model.property.impl.TreeSetProperty;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -32,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
@@ -67,7 +69,7 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
      *  dependencies : List of task Id being a pre-requisite
      */
     @DocumentProperty("dependencies")
-    private ListProperty<String> dependencies = new ArrayListProperty<>(AbstractTask.this);
+    private SetProperty<String> dependencies = new TreeSetProperty<>(AbstractTask.this);
     /**
      *  stateInfo : Gives job current state info
      */
@@ -87,10 +89,10 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
     public void setId(String val) { id.set(val); }
 
     // Dependency Accessors
-    public List<String> getDependencies() { return dependencies.get(); }
+    public Set<String> getDependencies() { return dependencies.get(); }
     public void setDependencies(Collection<String> taskKeys) { dependencies.set(taskKeys); }
-    public boolean addDependency(String taskKey){ return dependencies.add(taskKey); }
-    public boolean removeDependency(String taskKey){ return dependencies.remove(taskKey); }
+    public synchronized boolean addDependency(String taskKey){ return dependencies.add(taskKey); }
+    public synchronized boolean removeDependency(String taskKey){ return dependencies.remove(taskKey); }
 
     // stateInfo accessors
     public ProcessState getStateInfo() { return stateInfo.get(); }

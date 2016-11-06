@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.model.v1.tasks;
@@ -43,8 +45,8 @@ public abstract class DocumentUpdateTask<T extends CouchbaseDocument> extends Ab
     public String getDocKey(){return docKey.get(); }
     public DocumentUpdateTask<T> setDocKey(String docKey){this.docKey.set(docKey); return this;}
 
-    public T blockingGetDocument(ICouchbaseSession session)throws DaoException, StorageException {return (T)session.toBlocking().blockingGet(getDocKey());}
-    public Observable<T> getDocument(ICouchbaseSession session)throws DaoException, StorageException {return (Observable<T>)session.asyncGet(getDocKey());}
+    public T blockingGetDocument(ICouchbaseSession session)throws DaoException, StorageException {return session.toBlocking().blockingGet(getDocKey());}
+    public Observable<T> getDocument(ICouchbaseSession session)throws DaoException, StorageException {return session.asyncGet(getDocKey());}
 
 
 

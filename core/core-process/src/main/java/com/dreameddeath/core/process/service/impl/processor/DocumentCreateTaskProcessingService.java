@@ -1,30 +1,33 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.service.impl.processor;
 
-import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.validation.ValidationException;
+import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.process.exception.TaskExecutionException;
+import com.dreameddeath.core.process.exception.AlreadyCreatedDocumentObservableException;
+import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
-import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskProcessingResult;
+import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
@@ -32,52 +35,103 @@ import com.dreameddeath.core.process.service.context.TaskContext;
 public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJob,TDOC extends CouchbaseDocument,T extends DocumentCreateTask<TDOC>> extends StandardTaskProcessingService<TJOB,T> {
 
     @Override
-    public final boolean process(TaskContext<TJOB,T> ctxt) throws TaskExecutionException {
-        T task = ctxt.getTask();
-        try {
-            //Recovery mode
-            if(task.getDocKey()!=null){
-                if(ctxt.getSession().toBlocking().blockingGet(task.getDocKey())!=null){
-                    return false;
-                }
-                else{
-                    cleanupBeforeRetryBuildDocument(ctxt);
-                    task.setDocKey(null);
-                    ctxt.save();
-                }
-            }
-            TDOC doc;
-            try {
-                ctxt.getSession().setTemporaryReadOnlyMode(true);
-                doc=buildDocument(ctxt);
-            }
-            finally {
-                ctxt.getSession().setTemporaryReadOnlyMode(false);
-            }
-
-            //Prebuild key
-            task.setDocKey(ctxt.getSession().toBlocking().blockingBuildKey(doc).getBaseMeta().getKey());
-            //Attach it to the document
-            ctxt.save();
-            //Save Document afterwards
-            ctxt.getSession().toBlocking().blockingSave(doc);
-        }
-        catch(ValidationException e){
-            throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Validation error", e);
-        }
-        catch(DaoException e){
-            throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Dao error", e);
-        }
-        catch(StorageException e){
-            throw new TaskExecutionException(task, ProcessState.State.PROCESSED,"Storage error", e);
-        }
-        return false; //No need to save (retry allowed)
+    public final Observable<TaskProcessingResult<TJOB,T>> process(TaskContext<TJOB,T> origCtxt) {
+        return Observable.just(origCtxt)
+                .flatMap(this::manageRetry)
+                .map(this::toTemporarySession)
+                .flatMap(this::buildDocument)
+                .map(this::toStandardSession)
+                .flatMap(this::buildAndSetDocKey)
+                .flatMap(this::saveContext)
+                .flatMap(this::saveDoc)
+                .map(result->new TaskProcessingResult<>(result.ctxt,false))
+                .onErrorResumeNext(throwable->manageError(throwable,origCtxt));
     }
 
-    protected void cleanupBeforeRetryBuildDocument(TaskContext<TJOB, T> ctxt) {
-
+    private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable e,TaskContext<TJOB,T> origCtxt){
+        if(e instanceof AlreadyCreatedDocumentObservableException){
+            AlreadyCreatedDocumentObservableException processedObservableException = (AlreadyCreatedDocumentObservableException) e;
+            return TaskProcessingResult.build(processedObservableException.getCtxt(),false);
+        }
+        else if(e instanceof TaskObservableExecutionException) {
+            return Observable.error(e);
+        }
+        else{
+            return Observable.error(new TaskObservableExecutionException(origCtxt,"Error during execution",e));
+        }
     }
 
-    protected abstract TDOC buildDocument(TaskContext<TJOB,T> ctxt) throws DaoException,StorageException;
+    private TaskContext<TJOB, T> toTemporarySession(TaskContext<TJOB, T> taskContext) {
+        return taskContext.getTemporaryReadOnlySessionContext();
+    }
 
+    private ContextAndDocument toStandardSession(ContextAndDocument contextAndDocument) {
+        return new ContextAndDocument(contextAndDocument.ctxt.getStandardSessionContext(),contextAndDocument.doc);
+    }
+
+    private Observable<TaskContext<TJOB,T>> manageRetry(TaskContext<TJOB, T> origCtxt) {
+        if(origCtxt.getInternalTask().getDocKey()!=null) {
+            return origCtxt.getSession().asyncGet(origCtxt.getInternalTask().getDocKey())
+                    .flatMap(foundDoc->Observable.<TaskContext<TJOB,T>>error(new AlreadyCreatedDocumentObservableException(origCtxt,foundDoc)))
+                    .onErrorResumeNext(throwable -> {
+                        if(!(throwable instanceof StorageObservableException) || !(((StorageObservableException)throwable).getCause() instanceof DocumentNotFoundException)){
+                            return Observable.error(throwable);
+                        }
+                        return manageCleanup(origCtxt);
+                    });
+        }
+        else {
+            return Observable.just(origCtxt);
+        }
+    }
+
+    private Observable<TaskContext<TJOB, T>> manageCleanup(TaskContext<TJOB, T> origCtxt) {
+        return cleanupBeforeRetryBuildDocument(origCtxt)
+                .map(newCtxt->{
+                    newCtxt.getInternalTask().setDocKey(null);
+                    return newCtxt;
+                })
+                .flatMap(TaskContext::asyncSave);
+    }
+
+    private Observable<ContextAndDocument> saveContext(final ContextAndDocument contextAndDocument) {
+        return contextAndDocument.ctxt.asyncSave().map(savedContext->new ContextAndDocument(savedContext,contextAndDocument.doc));
+    }
+
+    private Observable<ContextAndDocument> saveDoc(final ContextAndDocument contextAndDocument) {
+        return contextAndDocument.ctxt.getSession().asyncSave(contextAndDocument.doc).map(savedDoc->new ContextAndDocument(contextAndDocument.ctxt,savedDoc));
+    }
+
+    private Observable<ContextAndDocument> buildAndSetDocKey(ContextAndDocument contextAndDocument) {
+        return contextAndDocument.ctxt.getSession().asyncBuildKey(contextAndDocument.doc)
+                .map(docWithKey->{
+                    contextAndDocument.ctxt.getInternalTask().setDocKey(docWithKey.getBaseMeta().getKey());
+                    return new ContextAndDocument(contextAndDocument.ctxt,docWithKey);
+                });
+    }
+
+    protected Observable<TaskContext<TJOB,T>> cleanupBeforeRetryBuildDocument(TaskContext<TJOB, T> ctxt) {
+        return Observable.just(ctxt);
+    }
+
+    protected abstract Observable<ContextAndDocument> buildDocument(TaskContext<TJOB,T> ctxt);
+
+
+    protected final Observable<ContextAndDocument> buildContextAndDocumentObservable(TaskContext<TJOB, T> ctxt, TDOC doc){
+        return Observable.just(new ContextAndDocument(ctxt,doc));
+    }
+
+    protected class ContextAndDocument{
+        private final TaskContext<TJOB,T> ctxt;
+        private final TDOC doc;
+
+        protected ContextAndDocument(TaskContext<TJOB, T> ctxt, TDOC doc) {
+            this.ctxt = ctxt;
+            this.doc = doc;
+        }
+
+        public Observable<ContextAndDocument> toObservable(){
+            return Observable.just(this);
+        }
+    }
 }
