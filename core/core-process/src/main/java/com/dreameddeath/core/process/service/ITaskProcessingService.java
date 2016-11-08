@@ -22,6 +22,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.dreameddeath.core.process.service.context.UpdateJobTaskProcessingResult;
 import rx.Observable;
@@ -34,8 +35,7 @@ public interface ITaskProcessingService<TJOB extends AbstractJob,T extends Abstr
     Observable<TaskProcessingResult<TJOB,T>> preprocess(final TaskContext<TJOB,T> ctxt);
     Observable<TaskProcessingResult<TJOB,T>> process(final TaskContext<TJOB,T> ctxt);
     Observable<TaskProcessingResult<TJOB,T>> postprocess(final TaskContext<TJOB,T> ctxt);
-    Observable<TaskProcessingResult<TJOB,T>> notify(final TaskContext<TJOB,T> ctxt);
-    Observable<TaskProcessingResult<TJOB,T>> finish(final TaskContext<TJOB,T> ctxt);
+    Observable<TaskNotificationBuildResult<TJOB,T>> buildNotifications(final TaskContext<TJOB,T> ctxt);
     Observable<TaskProcessingResult<TJOB,T>> cleanup(final TaskContext<TJOB,T> ctxt);
     Observable<UpdateJobTaskProcessingResult<TJOB,T>> updatejob(final TJOB job, final T task, final ICouchbaseSession session);
 }

@@ -20,6 +20,7 @@ package com.dreameddeath.core.process.service;
 
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import rx.Observable;
 
@@ -31,6 +32,6 @@ public interface IJobProcessingService<T extends AbstractJob>{
     Observable<JobProcessingResult<T>> init(JobContext<T> context);
     Observable<JobProcessingResult<T>> preprocess(JobContext<T> context);
     Observable<JobProcessingResult<T>> postprocess(JobContext<T> context);
-    Observable<JobProcessingResult<T>> notify(JobContext<T> context);
+    Observable<JobNotificationBuildResult<T>> buildNotifications(JobContext<T> context);
     Observable<JobProcessingResult<T>> cleanup(JobContext<T> context);
 }

@@ -18,24 +18,27 @@
 
 package com.dreameddeath.core.process.model.v1.base;
 
+import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
+import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.SetProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.TreeSetProperty;
+import com.dreameddeath.core.notification.model.v1.EventLink;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
@@ -53,6 +56,11 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
     @Override
     public final EntityModelId getModelId(){
         return fullEntityId;
+    }
+
+    public AbstractTask() {
+        super(null);
+        super.setBaseMeta(AbstractTask.this.new MetaInfo());
     }
 
     /**
@@ -80,6 +88,16 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
      */
     @DocumentProperty("parentTaskId")
     private transient Property<String> parentTaskId = new ImmutableProperty<>(AbstractTask.this);
+    /**
+     *  notifications : List of attached notifications
+     */
+    @DocumentProperty("notifications")
+    private ListProperty<EventLink> notifications = new ArrayListProperty<>(AbstractTask.this);
+    /**
+     *  docUniqKeys : List of uniqueness Keys attached to this document
+     */
+    @DocumentProperty("docUniqKeys")
+    private SetProperty<String> docUniqKeys = new HashSetProperty<>(AbstractTask.this);
 
     // jobUid accessors
     public UUID getJobUid() { return jobUid.get(); }
@@ -98,6 +116,11 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
     public ProcessState getStateInfo() { return stateInfo.get(); }
     public void setStateInfo(ProcessState val) { stateInfo.set(val); }
 
+    // DocUniqKeys Accessors
+    public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
+    public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
+
+
     /**
      * Getter of parentTaskId
      * @return the content
@@ -108,5 +131,85 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
      * @param val the new content
      */
     public void setParentTaskId(String val) { parentTaskId.set(val); }
+    /**
+     * Getter of notifications
+     * @return the whole (immutable) list of notifications
+     */
+    public List<EventLink> getNotifications() { return notifications.get(); }
+    /**
+     * Setter of notifications
+     * @param newNotifications the new collection of notifications
+     */
+    public void setNotifications(Collection<EventLink> newNotifications) { notifications.set(newNotifications); }
+    /**
+     * Add a new entry to the property notifications
+     * @param newNotifications the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addNotifications(EventLink newNotifications){ return notifications.add(newNotifications); }
+    /**
+     * Add a new entry to the property notifications at the specified position
+     * @param index the new entry to be added
+     * @param newNotifications the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addNotifications(int index,EventLink newNotifications){ return notifications.add(newNotifications); }
+    /**
+     * Remove an entry to the property notifications
+     * @param oldNotifications the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeNotifications(EventLink oldNotifications){ return notifications.remove(oldNotifications); }
+    /**
+     * Remove an entry to the property notifications at the specified position
+     * @param index the position of element to be removed
+     * @return the entry removed if any
+     */
+    public EventLink removeNotifications(int index){ return notifications.remove(index); }
 
+    public MetaInfo getMeta(){
+        return (MetaInfo) getBaseMeta();
+    }
+
+    public class MetaInfo extends BaseMetaInfo implements IHasUniqueKeysRef {
+        private Set<String> inDbUniqKeys = new HashSet<>();
+
+        @Override
+        public void setStateDeleted(){
+            //syncKeyWithDb(); voluntary to key in db values up to date
+            super.setStateDeleted();
+        }
+
+        @Override
+        public void setStateSync(){
+            syncKeyWithDb();
+            super.setStateSync();
+        }
+        @Override
+        public final boolean addDocUniqKeys(String key){ return docUniqKeys.add(key); }
+
+        protected void syncKeyWithDb(){
+            inDbUniqKeys.clear();
+            inDbUniqKeys.addAll(docUniqKeys.get());
+            docUniqKeys.clear();
+        }
+
+        public Set<String> getToBeDeletedUniqueKeys(){
+            Set<String> toRemoveKeyList=new HashSet<>(inDbUniqKeys);
+            toRemoveKeyList.addAll(docUniqKeys.get());
+            return toRemoveKeyList;
+        }
+
+        @Override
+        public Set<String> getRemovedUniqueKeys(){
+            Set<String> removed=new HashSet<>(inDbUniqKeys);
+            removed.removeAll(docUniqKeys.get());
+            return removed;
+        }
+
+        @Override
+        public boolean isInDbKey(String key) {
+            return inDbUniqKeys.contains(key);
+        }
+    }
 }

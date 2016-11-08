@@ -35,6 +35,7 @@ import com.dreameddeath.infrastructure.daemon.utils.ServerConnectorUtils;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
+import com.dreameddeath.infrastructure.plugin.notification.NotificationWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.config.InfrastructureProcessPluginConfigProperties;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
@@ -77,6 +78,8 @@ public class ProcessesWebServerPluginTest {
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdocprocess").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty("test").getName(),"test");
         final AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
@@ -87,6 +90,7 @@ public class ProcessesWebServerPluginTest {
         daemon.addWebServer(RestWebServer.builder().withName("tests")
                 //.withServiceDiscoveryManager(true)
                 .withPlugin(CouchbaseWebServerPlugin.builder())
+                .withPlugin(NotificationWebServerPlugin.builder())
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withApplicationContextConfig("applicationContext.xml"));
 
@@ -95,6 +99,7 @@ public class ProcessesWebServerPluginTest {
             try {
                 ProcessesWebServerPlugin plugin=daemon.getAdditionalWebServers().get(0).getPlugin(ProcessesWebServerPlugin.class);
                 CouchbaseWebServerPlugin cbPlugin=daemon.getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
+
                 {
                     IJobExecutorClient<TestDocCreateJob> executorClient = plugin.getExecutorClientFactory().buildJobClient(TestDocCreateJob.class);
                     TestDocCreateJob createJob = new TestDocCreateJob();

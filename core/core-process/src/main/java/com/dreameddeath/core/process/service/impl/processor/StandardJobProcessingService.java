@@ -21,6 +21,7 @@ package com.dreameddeath.core.process.service.impl.processor;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import rx.Observable;
 
@@ -40,8 +41,8 @@ public abstract class StandardJobProcessingService<T extends AbstractJob> implem
     }
 
     @Override
-    public Observable<JobProcessingResult<T>> notify(JobContext<T> context){
-        return JobProcessingResult.build(context,false);
+    final public Observable<JobNotificationBuildResult<T>> buildNotifications(JobContext<T> context){
+        return JobNotificationBuildResult.build(context);
     }
 
     @Override

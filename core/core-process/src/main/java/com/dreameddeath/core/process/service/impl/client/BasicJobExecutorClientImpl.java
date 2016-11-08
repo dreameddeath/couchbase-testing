@@ -25,6 +25,7 @@ import com.dreameddeath.core.dao.exception.validation.ValidationObservableExcept
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobObservableExecutionException;
@@ -56,14 +57,16 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     private final IProcessingServiceFactory processingServiceFactory;
     private final IJobExecutorService<T> executorService;
     private final IJobProcessingService<T> processingService;
+    private final IEventBus eventBus;
     private final MetricRegistry metricRegistry;
 
-    public BasicJobExecutorClientImpl(Class<T> jobClass, ExecutorClientFactory clientFactory, ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
+    public BasicJobExecutorClientImpl(Class<T> jobClass, ExecutorClientFactory clientFactory, ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory,IEventBus bus, MetricRegistry registry){
         this.jobClass = jobClass;
         this.parentClientFactory = clientFactory;
         this.sessionFactory =sessionFactory;
         this.executorServiceFactory =executorServiceFactory;
         this.processingServiceFactory = processingServiceFactory;
+        this.eventBus=bus;
         try {
             this.executorService = executorServiceFactory.getJobExecutorServiceForClass(jobClass);
             this.processingService = processingServiceFactory.getJobProcessingServiceForClass(jobClass);
@@ -81,6 +84,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
+                .withEventBus(eventBus)
         );
         Observable<JobContext<T>> sourceCtxtObs;
         if (StringUtils.isNotEmpty(job.getRequestUid())) {
@@ -126,6 +130,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
+                .withEventBus(eventBus)
         );
         return ctxt.asyncSave();
     }
@@ -137,6 +142,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
+                .withEventBus(eventBus)
         );
 
         return ctxt.execute();

@@ -1,23 +1,26 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.process.service.factory.impl;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
+import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.model.discovery.JobExecutorClientInfo;
 import com.dreameddeath.core.process.model.discovery.TaskExecutorClientInfo;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -45,6 +48,7 @@ public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExe
     private static final Logger LOG = LoggerFactory.getLogger(ExecutorClientFactory.class);
     private final JobExecutorClientRegistrar jobRegistrar;
     private final TaskExecutorClientRegistrar taskRegistrar;
+    private final IEventBus bus;
     private final ICouchbaseSessionFactory couchbaseSessionFactory;
     private final IExecutorServiceFactory executorServiceFactory;
     private final IProcessingServiceFactory processingServiceFactory;
@@ -52,30 +56,33 @@ public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExe
     private final Map<Class<? extends AbstractJob>,IJobExecutorClient<? extends AbstractJob>> jobClientMap=new ConcurrentHashMap<>();
     private final Map<TaskClientKey<? extends AbstractJob,? extends AbstractTask>,ITaskExecutorClient<? extends AbstractJob,? extends AbstractTask>> taskClientMap=new ConcurrentHashMap<>();
 
-    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory, MetricRegistry registry,JobExecutorClientRegistrar jobRegistrar,TaskExecutorClientRegistrar taskRegistrar){
+    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory,IEventBus bus, MetricRegistry registry,JobExecutorClientRegistrar jobRegistrar,TaskExecutorClientRegistrar taskRegistrar){
         this.couchbaseSessionFactory = couchbaseSessionFactory;
         this.executorServiceFactory = executorServiceFactory;
         this.processingServiceFactory=processingServiceFactory;
         this.metricRegistry = registry;
         this.jobRegistrar = jobRegistrar;
         this.taskRegistrar = taskRegistrar;
+        this.bus=bus;
     }
 
 
-    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
-        this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,registry,null,null);
+    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory,IEventBus bus, MetricRegistry registry){
+        this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,bus,registry,null,null);
+    }
+
+    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory,IEventBus bus){
+        this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,bus,null);
     }
 
     public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory){
-        this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,null);
+        this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,null,null);
     }
 
-
     private <TJOB extends AbstractJob> IJobExecutorClient<TJOB> createJobClient(Class<TJOB> jobClass){
-        IJobExecutorClient<TJOB> jobClient = new BasicJobExecutorClientImpl<>(jobClass, this, couchbaseSessionFactory, executorServiceFactory, processingServiceFactory, metricRegistry);
+        IJobExecutorClient<TJOB> jobClient = new BasicJobExecutorClientImpl<>(jobClass, this, couchbaseSessionFactory, executorServiceFactory, processingServiceFactory,bus, metricRegistry);
         if(jobRegistrar!=null) {
             try {
-
                 JobExecutorClientInfo info = new JobExecutorClientInfo(jobClient);
                 jobRegistrar.enrich(info);
                 jobRegistrar.register(info);

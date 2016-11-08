@@ -24,6 +24,7 @@ import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.user.IUser;
 import rx.Observable;
@@ -116,8 +117,8 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
         }
 
         @Override
-        public Observable<JobProcessingResult<T>> notify(JobContext<T> context){
-            return JobProcessingResult.build(context,false);
+        public Observable<JobNotificationBuildResult<T>> buildNotifications(JobContext<T> context){
+            return JobNotificationBuildResult.build(context);
         }
 
         @Override

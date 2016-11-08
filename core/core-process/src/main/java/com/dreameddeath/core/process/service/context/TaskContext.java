@@ -20,6 +20,7 @@ package com.dreameddeath.core.process.service.context;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
@@ -194,6 +195,10 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
         task.setJobUid(jobUid);
     }
 
+    public IEventBus getEventBus() {
+        return jobContext.getEventBus();
+    }
+
     public static class Builder<TJOB extends AbstractJob,T extends AbstractTask>{
         private final JobContext<TJOB> jobContext;
         private final T task;
@@ -218,7 +223,6 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
         public Builder(JobContext<TJOB> parentJob,TaskContext<TJOB,T> taskContext){
             this(parentJob,taskContext,taskContext.getInternalTask(),taskContext.getSession());
         }
-
 
         public Builder(TaskContext<TJOB,T> taskContext,T task){
             this(taskContext,task,taskContext.getSession());

@@ -32,6 +32,7 @@ import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
+import com.dreameddeath.infrastructure.plugin.notification.NotificationWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.config.InfrastructureProcessPluginConfigProperties;
 import com.dreameddeath.party.model.v1.Party;
@@ -81,7 +82,10 @@ public class RemoteJobTests {
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("party").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty("party").getName(),"test");
+
         AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
                 .withUserFactory(new StandardMockUserFactory())
@@ -91,6 +95,7 @@ public class RemoteJobTests {
         daemon.addWebServer(RestWebServer.builder().withName("tests")
                 //.withServiceDiscoveryManager(true)
                 .withPlugin(CouchbaseWebServerPlugin.builder())
+                .withPlugin(NotificationWebServerPlugin.builder())
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withDateTimeServiceFactory(new DateTimeServiceFactory(new MockDateTimeServiceImpl(MockDateTimeServiceImpl.Calculator.fixedCalculator(dateTimeRef))))
                 .withApplicationContextConfig("META-INF/spring/party.test.applicationContext.xml"));

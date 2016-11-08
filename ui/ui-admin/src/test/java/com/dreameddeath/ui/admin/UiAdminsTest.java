@@ -33,6 +33,7 @@ import com.dreameddeath.infrastructure.daemon.webserver.RestWebServer;
 import com.dreameddeath.infrastructure.daemon.webserver.WebAppWebServer;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
+import com.dreameddeath.infrastructure.plugin.notification.NotificationWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
@@ -60,6 +61,9 @@ public class UiAdminsTest {
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdocprocess").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
+
         ConfigManagerFactory.addPersistentConfigurationEntry(CuratorConfigProperties.CURATOR_SHARED_CONFIG_PATH_FOR_NAME.getProperty("test1").getName(), "/test1-path");
         ConfigManagerFactory.addPersistentConfigurationEntry(CuratorConfigProperties.CURATOR_SHARED_CONFIG_DESCR_FOR_NAME.getProperty("test1").getName(), "A first testing path");
         ConfigManagerFactory.addPersistentConfigurationEntry(CuratorConfigProperties.CURATOR_SHARED_CONFIG_PATH_FOR_NAME.getProperty("test2").getName(), "/test2-path");
@@ -90,8 +94,10 @@ public class UiAdminsTest {
                 .build();
         daemon2.addWebServer(RestWebServer.builder().withName("testing-rest")
                 .withPlugin(CouchbaseWebServerPlugin.builder())
+                .withPlugin(NotificationWebServerPlugin.builder())
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
+
         daemon2.addWebServer(ProxyWebServer.builder().withName("testing-rest-proxy")
                 .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get(),"REST")
                 .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,"tests","REST")

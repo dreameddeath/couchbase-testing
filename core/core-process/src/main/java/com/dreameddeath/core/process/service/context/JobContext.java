@@ -23,6 +23,7 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.dao.TaskDao;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
@@ -48,6 +49,7 @@ public class JobContext<TJOB extends AbstractJob> {
     private final MetricRegistry metricRegistry;
     private final Set<TaskContext<TJOB,AbstractTask>> taskContextsCache;
     private final Map<String,String> sharedTaskTempIdMap;
+    private final IEventBus eventBus;
 
     private JobContext(Builder<TJOB> jobCtxtBuilder){
         this.session = jobCtxtBuilder.session;
@@ -58,6 +60,7 @@ public class JobContext<TJOB extends AbstractJob> {
         this.metricRegistry=jobCtxtBuilder.metricRegistry;
         this.sharedTaskTempIdMap =jobCtxtBuilder.sharedTaskTempIdMap;
         this.taskContextsCache=new TreeSet<>();
+        this.eventBus=jobCtxtBuilder.bus;
         jobCtxtBuilder.taskContextsCache.forEach(ctxt->new TaskContext.Builder<>(this,ctxt).build());
     }
 
@@ -278,10 +281,15 @@ public class JobContext<TJOB extends AbstractJob> {
         return job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW);
     }
 
+    public IEventBus getEventBus() {
+        return eventBus;
+    }
+
     public static class Builder<T extends AbstractJob>{
         private final T job;
         private final Map<String,String> sharedTaskTempIdMap;
         private final Set<TaskContext<T,AbstractTask>> taskContextsCache;
+        private IEventBus bus;
         private ExecutorClientFactory clientFactory;
         private ICouchbaseSession session;
         private IJobExecutorService<T> jobExecutorService=null;
@@ -303,6 +311,7 @@ public class JobContext<TJOB extends AbstractJob> {
             this.clientFactory = rootJobCtxt.clientFactory;
             this.session = rootJobCtxt.session;
             this.taskContextsCache=rootJobCtxt.taskContextsCache;
+            this.bus=rootJobCtxt.eventBus;
         }
 
 
@@ -313,6 +322,11 @@ public class JobContext<TJOB extends AbstractJob> {
 
         public Builder<T> withClientFactory(ExecutorClientFactory clientFactory) {
             this.clientFactory = clientFactory;
+            return this;
+        }
+
+        public Builder<T> withEventBus(IEventBus bus){
+            this.bus=bus;
             return this;
         }
 

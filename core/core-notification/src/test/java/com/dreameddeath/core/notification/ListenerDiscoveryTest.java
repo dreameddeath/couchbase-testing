@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.notification;
@@ -92,10 +94,10 @@ public class ListenerDiscoveryTest extends Assert {
     public void setupBus() throws Exception{
         //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getName(),4);
         metricRegistry=new MetricRegistry();
-        bus = new EventBusImpl(metricRegistry);
-        //EventListenerFactory factory = new EventListenerFactory();
         client = curatorUtils.getClient(NAME_SPACE_PREFIX);
         discoverer = new ListenerDiscoverer(client, BASE_PATH);
+        //EventListenerFactory factory = new EventListenerFactory();
+        bus = new EventBusImpl(metricRegistry);
         ListenerInfoManager manager = new ListenerInfoManager();
         EventListenerFactory listenerFactory = new EventListenerFactory();
         listenerFactory.setListenerInfoManager(manager);

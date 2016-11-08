@@ -26,6 +26,7 @@ import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.service.*;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
@@ -120,7 +121,7 @@ public class BasicTaskExecutorClientImpl<TJOB extends AbstractJob,TTASK extends 
         }
 
         @Override
-        public Observable<JobProcessingResult<TJOB>> notify(JobContext<TJOB> context){
+        public Observable<JobNotificationBuildResult<TJOB>> buildNotifications(JobContext<TJOB> context){
             throw new JobObservableExecutionException(new JobExecutionException(context,"Shouldn't occurs from task Client <"+taskClass.getName()+">"));
         }
 

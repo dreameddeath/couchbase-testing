@@ -19,6 +19,7 @@
 package com.dreameddeath.core.process.service.impl.executor;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.process.exception.JobObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
@@ -26,6 +27,7 @@ import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.model.v1.base.ProcessState.State;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
+import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import rx.Observable;
@@ -115,7 +117,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
                     )
                     .flatMap(ctxt ->
                             manageStateProcessing(ctxt,
-                                    (inCtxt) -> inCtxt.getProcessingService().notify(inCtxt),
+                                    this::manageNotifications,
                                     State.NOTIFIED,
                                     (inCtxt) -> inCtxt.getJobState().isNotified()
                             )
@@ -135,6 +137,32 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
                 return Observable.error(new JobObservableExecutionException(origCtxt,e));
             }
 
+    }
+
+    private Observable<? extends JobProcessingResult<T>> manageNotifications(JobContext<T> context) {
+        return context.getProcessingService().buildNotifications(context)
+                .flatMap(this::manageNotificationsRetry)
+                .flatMap(this::submitNotifications)
+                .onErrorResumeNext(throwable->this.manageError(throwable,context));
+    }
+
+    private Observable<JobProcessingResult<T>> submitNotifications(JobNotificationBuildResult<T> jobNotifBuildRes) {
+        return Observable.from(jobNotifBuildRes.getEventMap().values())
+                .flatMap(event->jobNotifBuildRes.getContext().getEventBus().asyncFireEvent(event,jobNotifBuildRes.getContext().getSession()))
+                .toList()
+                .flatMap(eventFireResults ->{
+                        if(eventFireResults.stream().filter(res->!res.isSuccess()).count()>0){
+                            return Observable.error(new JobObservableExecutionException(jobNotifBuildRes.getContext(),"Errors duering notifications"));
+                        }
+                        return JobProcessingResult.build(jobNotifBuildRes.getContext(),true);
+                });
+    }
+
+    private Observable<JobNotificationBuildResult<T>> manageNotificationsRetry(final JobNotificationBuildResult<T> origJobNotificationBuildResult) {
+       return Observable.from(origJobNotificationBuildResult.getContext().getInternalJob().getNotifications())
+                .flatMap(eventLink -> eventLink.<Event>getEvent(origJobNotificationBuildResult.getContext().getSession()))
+                .toList()
+                .map(events->new JobNotificationBuildResult<>(origJobNotificationBuildResult,events, JobNotificationBuildResult.DuplicateMode.REPLACE));
     }
 
     private Observable<? extends JobProcessingResult<T>> executeTasks(JobContext<T> inCtxt) {

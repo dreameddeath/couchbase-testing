@@ -24,21 +24,21 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
+import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.SetProperty;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.TreeSetProperty;
+import com.dreameddeath.core.notification.model.v1.EventLink;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.dreameddeath.core.validation.annotation.Unique;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
@@ -93,7 +93,11 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
      */
     @DocumentProperty("docUniqKeys")
     private SetProperty<String> docUniqKeys = new HashSetProperty<>(AbstractJob.this);
-    private Set<String> inDbUniqKeys = new HashSet<>();
+    /**
+     *  notifications : List of attached notifications
+     */
+    @DocumentProperty("notifications")
+    private ListProperty<EventLink> notifications = new ArrayListProperty<>(AbstractJob.this);
 
     // uid accessors
     public UUID getUid() { return uid.get(); }
@@ -154,11 +158,48 @@ public abstract class AbstractJob extends CouchbaseDocument implements IVersione
     public final Set<String> getDocUniqKeys() { return docUniqKeys.get(); }
     public final void setDocUniqKeys(Set<String> vals) { docUniqKeys.set(vals); }
 
+    /**
+     * Getter of notifications
+     * @return the whole (immutable) list of notifications
+     */
+    public List<EventLink> getNotifications() { return notifications.get(); }
+    /**
+     * Setter of notifications
+     * @param newNotifications the new collection of notifications
+     */
+    public void setNotifications(Collection<EventLink> newNotifications) { notifications.set(newNotifications); }
+    /**
+     * Add a new entry to the property notifications
+     * @param newNotifications the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addNotifications(EventLink newNotifications){ return notifications.add(newNotifications); }
+    /**
+     * Add a new entry to the property notifications at the specified position
+     * @param index the new entry to be added
+     * @param newNotifications the new entry to be added
+     * @return true if the entry has been added
+     */
+    public boolean addNotifications(int index,EventLink newNotifications){ return notifications.add(newNotifications); }
+    /**
+     * Remove an entry to the property notifications
+     * @param oldNotifications the entry to be remove
+     * @return true if the entry has been removed
+     */
+    public boolean removeNotifications(EventLink oldNotifications){ return notifications.remove(oldNotifications); }
+    /**
+     * Remove an entry to the property notifications at the specified position
+     * @param index the position of element to be removed
+     * @return the entry removed if any
+     */
+    public EventLink removeNotifications(int index){ return notifications.remove(index); }
+
     public MetaInfo getMeta(){
         return (MetaInfo) getBaseMeta();
     }
 
     public class MetaInfo extends BaseMetaInfo implements IHasUniqueKeysRef{
+        private Set<String> inDbUniqKeys = new HashSet<>();
 
         @Override
         public void setStateDeleted(){

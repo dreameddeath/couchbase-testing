@@ -24,6 +24,7 @@ import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.dreameddeath.core.process.service.context.UpdateJobTaskProcessingResult;
 import com.dreameddeath.core.service.client.IServiceClient;
@@ -198,14 +199,10 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
         return new UpdateJobTaskProcessingResult<>(job,task,false).toObservable();
     }
 
-    @Override
-    public Observable<TaskProcessingResult<TJOB,TTASK>> notify(TaskContext<TJOB, TTASK> ctxt) {
-        return TaskProcessingResult.build(ctxt,false);
-    }
 
     @Override
-    public Observable<TaskProcessingResult<TJOB,TTASK>> finish(TaskContext<TJOB, TTASK> ctxt){
-        return TaskProcessingResult.build(ctxt,false);
+    public Observable<TaskNotificationBuildResult<TJOB, TTASK>> buildNotifications(TaskContext<TJOB, TTASK> ctxt) {
+        return TaskNotificationBuildResult.build(ctxt);
     }
 
     @Override

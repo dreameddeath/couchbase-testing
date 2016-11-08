@@ -28,6 +28,7 @@ import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.model.v1.tasks.SubJobProcessTask;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.dreameddeath.core.process.service.context.UpdateJobTaskProcessingResult;
 import rx.Observable;
@@ -133,13 +134,8 @@ public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB exte
     }
 
     @Override
-    public Observable<TaskProcessingResult<TPARENTJOB,TTASK>> notify(TaskContext<TPARENTJOB, TTASK> ctxt) {
-        return Observable.just(new TaskProcessingResult<>(ctxt,false));
-    }
-
-    @Override
-    public Observable<TaskProcessingResult<TPARENTJOB,TTASK>> finish(TaskContext<TPARENTJOB,TTASK>  ctxt) {
-        return Observable.just(new TaskProcessingResult<>(ctxt,false));
+    public Observable<TaskNotificationBuildResult<TPARENTJOB, TTASK>> buildNotifications(TaskContext<TPARENTJOB, TTASK> ctxt) {
+        return TaskNotificationBuildResult.build(ctxt);
     }
 
     @Override

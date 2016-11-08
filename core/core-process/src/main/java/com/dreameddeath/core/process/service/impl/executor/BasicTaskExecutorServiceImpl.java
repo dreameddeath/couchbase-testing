@@ -18,12 +18,14 @@
 
 package com.dreameddeath.core.process.service.impl.executor;
 
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState.State;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import rx.Observable;
 import rx.functions.Func1;
@@ -99,11 +101,11 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                                     (inCtxt)->inCtxt.getTaskState().isFinalized()
                             )
                     )
-                    .flatMap(ctxt->
+                    .flatMap(ctxt ->
                             manageStateProcessing(ctxt,
-                                    (inCtxt)->inCtxt.getProcessingService().notify(inCtxt),
+                                    this::manageNotifications,
                                     State.NOTIFIED,
-                                    (inCtxt)->inCtxt.getTaskState().isNotified()
+                                    (inCtxt) -> inCtxt.getTaskState().isNotified()
                             )
                     )
                     .flatMap(ctxt->
@@ -134,4 +136,44 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
             return ctxt.getProcessingService().process(ctxt);
         }
     }
+
+    private Observable<? extends TaskProcessingResult<TJOB,T>> manageNotifications(final TaskContext<TJOB,T> origContext) {
+        final TaskContext<TJOB,T> readOnlyContext=origContext.getTemporaryReadOnlySessionContext();
+        return readOnlyContext
+                .getProcessingService().buildNotifications(readOnlyContext)
+                .flatMap(taskNotificationBuildResult -> TaskNotificationBuildResult.build(taskNotificationBuildResult.getContext().getStandardSessionContext(),taskNotificationBuildResult.getEventMap().values()))
+                .flatMap(this::manageNotificationsRetry)
+                .flatMap(this::submitNotifications)
+                .onErrorResumeNext(throwable->this.manageError(throwable,origContext));
+    }
+
+    private Observable<TaskProcessingResult<TJOB,T>> submitNotifications(TaskNotificationBuildResult<TJOB,T> jobNotifBuildRes) {
+        return Observable.from(jobNotifBuildRes.getEventMap().values())
+                .flatMap(event->jobNotifBuildRes.getContext().getEventBus().asyncFireEvent(event,jobNotifBuildRes.getContext().getSession()))
+                .toList()
+                .flatMap(eventFireResults ->{
+                    if(eventFireResults.stream().filter(res->!res.isSuccess()).count()>0){
+                        return Observable.error(new TaskObservableExecutionException(jobNotifBuildRes.getContext(),"Errors duering notifications"));
+                    }
+                    return TaskProcessingResult.build(jobNotifBuildRes.getContext(),true);
+                });
+    }
+
+    private Observable<TaskNotificationBuildResult<TJOB,T>> manageNotificationsRetry(final TaskNotificationBuildResult<TJOB,T> origTaskNotificationBuildResult) {
+        return Observable.from(origTaskNotificationBuildResult.getContext().getInternalTask().getNotifications())
+                .flatMap(eventLink -> eventLink.<Event>getEvent(origTaskNotificationBuildResult.getContext().getSession()))
+                .toList()
+                .map(events->new TaskNotificationBuildResult<>(origTaskNotificationBuildResult,events, TaskNotificationBuildResult.DuplicateMode.REPLACE));
+    }
+
+    private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable throwable, TaskContext<TJOB,T> inCtxt) {
+        inCtxt.getInternalTask().getBaseMeta().unfreeze();
+        if(throwable instanceof TaskObservableExecutionException){
+            return Observable.error(throwable);
+        }
+        else{
+            return Observable.error(new TaskObservableExecutionException(inCtxt,"Unexpected error",throwable));
+        }
+    }
+
 }
