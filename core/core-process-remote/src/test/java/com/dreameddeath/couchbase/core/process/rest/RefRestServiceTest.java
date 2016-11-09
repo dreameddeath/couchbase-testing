@@ -18,6 +18,8 @@
 
 package com.dreameddeath.couchbase.core.process.rest;
 
+import com.dreameddeath.core.notification.dao.EventDao;
+import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
 import com.dreameddeath.core.process.exception.JobObservableExecutionException;
@@ -85,6 +87,8 @@ public class RefRestServiceTest extends Assert {
         CouchbaseSessionFactory sessionFactory = new CouchbaseSessionFactory.Builder().build();
         sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TaskDao().setClient(cbSimulator));
+        sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
+        sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
 
         ExecutorServiceFactory execFactory=new ExecutorServiceFactory();

@@ -18,13 +18,20 @@
 
 package com.dreameddeath.core.process;
 
+import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
+import com.dreameddeath.core.notification.dao.EventDao;
+import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
 import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
 import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
 import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.notification.model.v1.EventLink;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
@@ -38,6 +45,7 @@ import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
+import com.dreameddeath.core.process.services.TestDocNotificationListener;
 import com.dreameddeath.core.process.services.TestJobCreateService;
 import com.dreameddeath.core.process.services.model.TestDocJobCreate;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
@@ -50,6 +58,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
@@ -57,6 +67,7 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 01/11/2016.
  */
 public class ProcessesBaseTest extends Assert {
+    public static Logger LOG= LoggerFactory.getLogger(ProcessesBaseTest.class);
     public static final String BASE_PATH = "testEventsProcess";
     private static CuratorTestUtils curatorUtils;
     private static ExecutorClientFactory executorClientFactory;
@@ -64,6 +75,8 @@ public class ProcessesBaseTest extends Assert {
     private static CuratorFramework curatorFramework;
     private static IEventBus bus;
     private static ListenerDiscoverer discoverer;
+    private static CouchbaseSessionFactory sessionFactory;
+    private static TestDocNotificationListener listener;
 
     @BeforeClass
     public static void initialise() throws Exception {
@@ -71,8 +84,10 @@ public class ProcessesBaseTest extends Assert {
 
         cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
-        CouchbaseSessionFactory sessionFactory = new CouchbaseSessionFactory.Builder().build();
+        sessionFactory = new CouchbaseSessionFactory.Builder().build();
         sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(cbSimulator));
+        sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
+        sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TaskDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TestChildDocDao().setClient(cbSimulator));
@@ -86,6 +101,10 @@ public class ProcessesBaseTest extends Assert {
         TaskExecutorClientRegistrar taskRegistrar=new TaskExecutorClientRegistrar(curatorFramework,"D1","W1");
 
         bus = new EventBusImpl();
+        listener = new TestDocNotificationListener();
+        listener.setDefaultSessionUser(AnonymousUser.INSTANCE);
+        listener.setSessionFactory(sessionFactory);
+        bus.addListener(listener);
         discoverer = new ListenerDiscoverer(curatorFramework, BASE_PATH);
         ListenerInfoManager manager = new ListenerInfoManager();
         EventListenerFactory listenerFactory = new EventListenerFactory();
@@ -125,6 +144,26 @@ public class ProcessesBaseTest extends Assert {
         TestDoc createdDoc = cbSimulator.toBlocking().get(createJobTask.getDocKey(), TestDoc.class);
         assertEquals(new Integer(2*job.initIntValue), createdDoc.intValue);
         assertEquals(job.name, createdDoc.name);
+        assertEquals(2,createJobTask.getNotifications().size());
+        for(EventLink link:createJobTask.getNotifications()) {
+            try {
+                ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, AnonymousUser.INSTANCE);
+                Event event = link.getEvent(session).toBlocking().single();
+                assertNotNull(event);
+                assertEquals("test/testdocevent/1.0.0",link.getEventType());
+                assertEquals(event.getId(),link.getUid());
+            } catch (AssertionError e) {
+                throw e;
+            } catch (Throwable e) {
+                assertTrue(e instanceof StorageObservableException);
+                assertTrue(e.getCause() instanceof DocumentNotFoundException);
+                assertEquals("core/createdocumenttaskevent/1.0.0",link.getEventType());
+            }
+        }
+        Thread.sleep(50);
+        assertEquals(2,TestDocNotificationListener.mapCounter.size());
+        assertEquals(1,TestDocNotificationListener.mapCounter.get("Create").get());
+        assertEquals(1,TestDocNotificationListener.mapCounter.get("Update").get());
     }
 
     @AfterClass

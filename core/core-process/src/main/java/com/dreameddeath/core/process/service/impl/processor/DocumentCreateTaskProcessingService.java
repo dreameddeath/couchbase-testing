@@ -24,8 +24,10 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.AlreadyCreatedDocumentObservableException;
 import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.notification.CreateDocumentTaskEvent;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import rx.Observable;
 
@@ -48,7 +50,16 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
                 .onErrorResumeNext(throwable->manageError(throwable,origCtxt));
     }
 
-    private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable e,TaskContext<TJOB,T> origCtxt){
+    @Override
+    public Observable<TaskNotificationBuildResult<TJOB, T>> buildNotifications(TaskContext<TJOB, T> ctxt) {
+        CreateDocumentTaskEvent event = new CreateDocumentTaskEvent();
+        event.setDocKey(ctxt.getInternalTask().getDocKey());
+
+        return super.buildNotifications(ctxt)
+                .flatMap(parentRes->TaskNotificationBuildResult.build(parentRes, TaskNotificationBuildResult.DuplicateMode.ERROR, event));
+    }
+
+    private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable e, TaskContext<TJOB,T> origCtxt){
         if(e instanceof AlreadyCreatedDocumentObservableException){
             AlreadyCreatedDocumentObservableException processedObservableException = (AlreadyCreatedDocumentObservableException) e;
             return TaskProcessingResult.build(processedObservableException.getCtxt(),false);

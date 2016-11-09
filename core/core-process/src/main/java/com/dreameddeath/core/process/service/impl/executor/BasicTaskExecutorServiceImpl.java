@@ -18,11 +18,12 @@
 
 package com.dreameddeath.core.process.service.impl.executor;
 
-import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.notification.model.v1.EventLink;
 import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState.State;
+import com.dreameddeath.core.process.model.v1.notification.AbstractTaskEvent;
 import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
@@ -31,6 +32,7 @@ import rx.Observable;
 import rx.functions.Func1;
 
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
@@ -143,8 +145,28 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                 .getProcessingService().buildNotifications(readOnlyContext)
                 .flatMap(taskNotificationBuildResult -> TaskNotificationBuildResult.build(taskNotificationBuildResult.getContext().getStandardSessionContext(),taskNotificationBuildResult.getEventMap().values()))
                 .flatMap(this::manageNotificationsRetry)
+                .flatMap(this::attachEvents)
                 .flatMap(this::submitNotifications)
                 .onErrorResumeNext(throwable->this.manageError(throwable,origContext));
+    }
+
+    private Observable<TaskNotificationBuildResult<TJOB, T>> attachEvents(final TaskNotificationBuildResult<TJOB, T> origTaskNotificationBuildRes) {
+        return Observable.from(origTaskNotificationBuildRes.getEventMap().values())
+                .flatMap(event->{
+                    if(event.getBaseMeta().getKey()!=null){
+                        return Observable.just(event);
+                    }
+                    else{
+                        return origTaskNotificationBuildRes.getContext().getSession().asyncBuildKey(event);
+                    }
+                })
+                .toList()
+                .flatMap(events->{
+                    origTaskNotificationBuildRes.getContext().getInternalTask().setNotifications(
+                            events.stream().map(EventLink::new).collect(Collectors.toList())
+                    );
+                    return TaskNotificationBuildResult.build(origTaskNotificationBuildRes.getContext(),events);
+                });
     }
 
     private Observable<TaskProcessingResult<TJOB,T>> submitNotifications(TaskNotificationBuildResult<TJOB,T> jobNotifBuildRes) {
@@ -161,7 +183,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
 
     private Observable<TaskNotificationBuildResult<TJOB,T>> manageNotificationsRetry(final TaskNotificationBuildResult<TJOB,T> origTaskNotificationBuildResult) {
         return Observable.from(origTaskNotificationBuildResult.getContext().getInternalTask().getNotifications())
-                .flatMap(eventLink -> eventLink.<Event>getEvent(origTaskNotificationBuildResult.getContext().getSession()))
+                .flatMap(eventLink -> eventLink.<AbstractTaskEvent>getEvent(origTaskNotificationBuildResult.getContext().getSession()))
                 .toList()
                 .map(events->new TaskNotificationBuildResult<>(origTaskNotificationBuildResult,events, TaskNotificationBuildResult.DuplicateMode.REPLACE));
     }

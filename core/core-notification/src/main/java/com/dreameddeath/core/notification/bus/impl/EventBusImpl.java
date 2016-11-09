@@ -187,10 +187,19 @@ public class EventBusImpl implements IEventBus {
                 }
         )
         .map(eventMetricContext::beforeInitialSave)
-        .flatMap(session::asyncSave)
+        .flatMap(event->saveIfNeeded(event,session))
         .map(eventMetricContext::afterInitialSave)
         .flatMap(event->this.submitEvent(event,session,eventMetricContext))
         .doOnError(eventMetricContext::stop);
+    }
+
+    private <T extends Event> Observable<T> saveIfNeeded(T event,ICouchbaseSession session) {
+        if(event.getListeners().size()>0){
+            return session.asyncSave(event);
+        }
+        else{
+            return Observable.just(event);
+        }
     }
 
     @Override
@@ -267,17 +276,24 @@ public class EventBusImpl implements IEventBus {
                         )
                 .map(EventFireResult.Builder::build)
                 .flatMap(eventResult->{
-                    if(eventResult.areAllNotificationsInDb()){
-                        eventResult.getEvent().setStatus(Event.Status.NOTIFICATIONS_IN_DB);
+                    if(eventResult.getResults().size()==0){
+                        return Observable.just(eventResult);
                     }
-                    eventMetricContext.beforeFinalSave();
-                    return session
-                            .asyncSave(eventResult.getEvent())
-                            .map(savedEvent->eventResult)
-                            .map(eventMetricContext::afterFinalSave)
-                            .onErrorResumeNext(eventResult::withSaveError)
-                            .map(eventRes->eventMetricContext.stop(eventResult))
-                            ;
+                    else{
+                        if(eventResult.areAllNotificationsInDb()){
+                            eventResult.getEvent().setStatus(Event.Status.NOTIFICATIONS_IN_DB);
+                        }
+                        eventMetricContext.beforeFinalSave();
+
+                        return session
+                                .asyncSave(eventResult.getEvent())
+                                .map(savedEvent->EventFireResult.builder(eventResult,savedEvent).build())
+                                .map(eventMetricContext::afterFinalSave)
+                                .onErrorResumeNext(eventResult::withSaveError)
+                                .map(eventRes->eventMetricContext.stop(eventRes))
+                                ;
+                    }
+
                 })
                 ;
     }

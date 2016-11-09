@@ -22,6 +22,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.model.TestDoc;
+import com.dreameddeath.core.process.model.TestDocEvent;
 import com.dreameddeath.core.process.service.context.*;
 import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
@@ -58,6 +59,14 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
             job.createdKey = task.getDocKey();
             return new UpdateJobTaskProcessingResult<>(job,task,true).toObservable();
         }
+
+        @Override
+        public Observable<TaskNotificationBuildResult<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask>> buildNotifications(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask> ctxt) {
+            TestDocEvent event=new TestDocEvent();
+            event.sourceTask="Create";
+            return super.buildNotifications(ctxt)
+                    .flatMap(taskNotifEvent->TaskNotificationBuildResult.build(taskNotifEvent,event));
+        }
     }
 
     @TaskProcessingForClass(TestDocJobCreate.TestJobUpdateTask.class)
@@ -75,6 +84,14 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
         protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
             ctxtAndDoc.getDoc().intValue*=2;
             return new ProcessingDocumentResult(ctxtAndDoc,true).toObservable();
+        }
+
+        @Override
+        public Observable<TaskNotificationBuildResult<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask>> buildNotifications(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask> ctxt) {
+            TestDocEvent event=new TestDocEvent();
+            event.sourceTask="Update";
+            return super.buildNotifications(ctxt)
+                    .flatMap(taskNotifEvent->TaskNotificationBuildResult.build(taskNotifEvent,event));
         }
     }
 

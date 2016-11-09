@@ -1,22 +1,25 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.notification;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
@@ -76,6 +79,16 @@ public class EventNotificationTest extends Assert{
     @Test
     public void eventBusTest() throws Exception{
         NotificationTestListener.clear();
+
+        //test.setCorrelationId(test.toAdd.toString());
+        {
+            ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
+            EventFireResult<NoListenerEventTest> result = bus.fireEvent(new NoListenerEventTest(), session);
+            assertTrue(result.isSuccess());
+            assertTrue(result.getResults().size()==0);
+            assertTrue(result.getEvent().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW));
+        }
+
         List<EventTest> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {

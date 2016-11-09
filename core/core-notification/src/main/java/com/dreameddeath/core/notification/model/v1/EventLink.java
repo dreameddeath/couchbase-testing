@@ -19,8 +19,10 @@
 package com.dreameddeath.core.notification.model.v1;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import rx.Observable;
@@ -36,6 +38,23 @@ public class EventLink extends CouchbaseDocumentElement {
      */
     @DocumentProperty("uid")
     private Property<UUID> uid = new ImmutableProperty<>(EventLink.this);
+    /**
+     *  eventType : Type
+     */
+    @DocumentProperty("eventType")
+    private Property<String> eventType = new ImmutableProperty<>(EventLink.this);
+
+    /**
+     * Getter of eventType
+     * @return the value of eventType
+     */
+    public String getEventType() { return eventType.get(); }
+    /**
+     * Setter of eventType
+     * @param val the new value for eventType
+     */
+    public void setEventType(String val) { eventType.set(val); }
+
 
     /**
      * Getter of uid
@@ -69,14 +88,18 @@ public class EventLink extends CouchbaseDocumentElement {
     }
 
     public EventLink(Event event){
+        DocumentEntity annot=event.getClass().getAnnotation(DocumentEntity.class);
+        if(annot!=null){
+            setEventType(EntityModelId.build(annot, event.getClass()).toString());
+        }
         setUid(event.getId());
     }
 
     public EventLink(EventLink link){
+        setEventType(link.eventType.get());
         setUid(link.uid.get());
     }
 
     public EventLink(){
-
     }
 }
