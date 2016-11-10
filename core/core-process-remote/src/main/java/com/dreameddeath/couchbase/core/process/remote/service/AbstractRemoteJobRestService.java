@@ -37,6 +37,8 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.ActionRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExistingJob;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.StateInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
@@ -54,6 +56,7 @@ import java.lang.reflect.InvocationTargetException;
  * Created by Christophe Jeunesse on 15/01/2016.
  */
 public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ,TRESP> extends AbstractRestExposableService {
+    private final static Logger LOG = LoggerFactory.getLogger(AbstractRemoteJobRestService.class);
     public static final String REQUEST_UID_QUERY_PARAM = "requestUid";
     public static final String SUBMIT_ONLY_QUERY_PARAM = "submitOnly";
     private final Class<TJOB> jobClass;
@@ -149,10 +152,12 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                                 }
                                 asyncResponse.resume(Response.status(Response.Status.CONFLICT).entity(result).build());
                             } else {
+                                LOG.error("An error occurs while executing job <"+(requestUid!=null?requestUid:"null")+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable);
                                 asyncResponse.resume(throwable);
                             }
                         }
                         catch(Throwable e){
+                            LOG.error("An error occurs while executing job <"+requestUid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable);
                             asyncResponse.resume(e);
                         }
                     }));
@@ -173,6 +178,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
             ProcessUtils.asyncLoadJob(session, uid, jobClass)
                     .map(this::buildJaxrsResponse)
                     .onErrorResumeNext(this::manageStandardErrors)
+                    .doOnError(throwable -> LOG.error("An error occurs while executing job <"+uid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable))
                     .subscribe(asyncResponse::resume, asyncResponse::resume)
             ;
         }
@@ -208,9 +214,11 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                     })
                     .map(ctxt->this.buildJaxrsResponse(ctxt.getInternalJob()))
                     .onErrorResumeNext(this::manageStandardErrors)
+                    .doOnError(throwable -> LOG.error("An error occurs while executing job <"+requestUid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable))
                     .subscribe(asyncResponse::resume,asyncResponse::resume);
         }
         catch(Throwable e){
+            LOG.error("An error occurs while executing job <"+requestUid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",e);
             asyncResponse.resume(new InternalServerErrorException(e));
         }
     }

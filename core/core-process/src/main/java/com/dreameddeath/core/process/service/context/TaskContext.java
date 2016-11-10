@@ -256,6 +256,16 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
     }
 
     @Override
+    public String toString(){
+        return super.toString()+
+                "{ tid:"+(task.getId()!=null?task.getId():"unknown")+","+
+                "  type:"+task.getClass().getName()+","+
+                "  jid:"+jobContext.getJobId()+","+
+                "  jtype:"+jobContext.getInternalJob().getClass().getName()+"}";
+
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

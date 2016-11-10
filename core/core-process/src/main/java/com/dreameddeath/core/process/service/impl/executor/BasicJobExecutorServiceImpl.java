@@ -30,6 +30,8 @@ import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -43,7 +45,7 @@ import java.util.function.Predicate;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobExecutorService<T> {
-
+    private final static Logger LOG = LoggerFactory.getLogger(BasicJobExecutorServiceImpl.class);
     public Observable<JobContext<T>> onSave(JobContext<T> ctxt, ProcessState.State state) {
         return Observable.just(ctxt);
     }
@@ -129,14 +131,21 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
                                     (inCtxt) -> inCtxt.getJobState().isDone()
                             )
                     )
-                    .flatMap(JobContext::asyncSave);
+                    .flatMap(JobContext::asyncSave)
+                    .doOnError(throwable -> this.logError(origCtxt,throwable));
 
             } catch (JobObservableExecutionException e) {
+                this.logError(origCtxt,e);
                 return Observable.error(e);
             } catch (Throwable e) {
+                this.logError(origCtxt,e);
                 return Observable.error(new JobObservableExecutionException(origCtxt,e));
             }
 
+    }
+
+    private void logError(JobContext<T> origCtxt, Throwable e) {
+        LOG.error("An error occurs during Job <"+origCtxt.toString()+">",e);
     }
 
     private Observable<? extends JobProcessingResult<T>> manageNotifications(JobContext<T> context) {

@@ -75,10 +75,6 @@ public class ExecutorClientFactory implements IJobExecutorClientFactory,ITaskExe
         this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,bus,null);
     }
 
-    public ExecutorClientFactory(ICouchbaseSessionFactory couchbaseSessionFactory, ExecutorServiceFactory executorServiceFactory, ProcessingServiceFactory processingServiceFactory){
-        this(couchbaseSessionFactory,executorServiceFactory,processingServiceFactory,null,null);
-    }
-
     private <TJOB extends AbstractJob> IJobExecutorClient<TJOB> createJobClient(Class<TJOB> jobClass){
         IJobExecutorClient<TJOB> jobClient = new BasicJobExecutorClientImpl<>(jobClass, this, couchbaseSessionFactory, executorServiceFactory, processingServiceFactory,bus, metricRegistry);
         if(jobRegistrar!=null) {

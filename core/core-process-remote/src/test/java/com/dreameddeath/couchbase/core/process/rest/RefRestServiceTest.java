@@ -18,8 +18,16 @@
 
 package com.dreameddeath.couchbase.core.process.rest;
 
+import com.dreameddeath.core.depinjection.IDependencyInjector;
+import com.dreameddeath.core.notification.bus.IEventBus;
+import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
 import com.dreameddeath.core.notification.dao.EventDao;
 import com.dreameddeath.core.notification.dao.NotificationDao;
+import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
+import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
+import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
+import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.utils.ListenerInfoManager;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
 import com.dreameddeath.core.process.exception.JobObservableExecutionException;
@@ -46,6 +54,8 @@ import com.dreameddeath.couchbase.core.process.rest.process.rest.RestTestDocJobU
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -57,12 +67,17 @@ import java.util.UUID;
  * Created by Christophe Jeunesse on 04/01/2016.
  */
 public class RefRestServiceTest extends Assert {
+    private static final String BASE_PATH = "testRest";
     private static TestingRestServer server;
 
     private static AnnotationProcessorTestingWrapper.Result generatorResult;
     private static CuratorTestUtils curatorUtils;
     private static ExecutorClientFactory executorClientFactory;
     private static CouchbaseBucketSimulator cbSimulator;
+    private static CuratorFramework curatorFramework;
+    private static IEventBus bus;
+    private static ListenerDiscoverer discoverer;
+
 
     public static void compileTestServiceGen() throws Exception{
         AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
@@ -78,7 +93,9 @@ public class RefRestServiceTest extends Assert {
     public static void initialise() throws Exception{
         compileTestServiceGen();
         curatorUtils = new CuratorTestUtils().prepare(1);
-        server = new TestingRestServer("serverTesting", curatorUtils.getClient("TestServicesTest"));
+        curatorFramework = curatorUtils.getClient("TestServicesTest");
+
+        server = new TestingRestServer("serverTesting", curatorFramework);
         BaseRemoteClientFactory remoteClientFactory = new BaseRemoteClientFactory();
         remoteClientFactory.setClientFactory(server.getClientFactory());
 
@@ -90,6 +107,26 @@ public class RefRestServiceTest extends Assert {
         sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
+
+        bus = new EventBusImpl();
+        discoverer = new ListenerDiscoverer(curatorFramework, BASE_PATH);
+        ListenerInfoManager manager = new ListenerInfoManager();
+        EventListenerFactory listenerFactory = new EventListenerFactory();
+        listenerFactory.setListenerInfoManager(manager);
+        listenerFactory.setDependencyInjector(new IDependencyInjector() {
+            @Override public <T> T getBeanOfType(Class<T> clazz) {return null;}
+            @Override public <T> T autowireBean(T bean,String beanName) {
+                if(bean instanceof AbstractNotificationProcessor){
+                    ((AbstractNotificationProcessor)bean).setSessionFactory(sessionFactory);
+                }
+                return bean;
+            }
+        });
+        listenerFactory.registerFromManager();
+        discoverer.addListener(new ListenerAutoSubscribe(bus,listenerFactory).setSessionFactory(sessionFactory));
+        discoverer.start();
+        bus.start();
+
 
         ExecutorServiceFactory execFactory=new ExecutorServiceFactory();
         ProcessingServiceWithRemoteCapabilityFactory processFactory=new ProcessingServiceWithRemoteCapabilityFactory();
@@ -105,9 +142,11 @@ public class RefRestServiceTest extends Assert {
         server.registerBeanClass("testJobUpdate",RestTestDocJobUpdateService.class);
         server.registerBeanClass("testJobUpdateGen",RemoteTestDocJobUpdateGenService.class);
         server.registerBeanObject("couchbaseSessionFactory",sessionFactory);
-        executorClientFactory = new ExecutorClientFactory(sessionFactory,execFactory,processFactory);
+        executorClientFactory = new ExecutorClientFactory(sessionFactory,execFactory,processFactory,bus);
         server.registerBeanObject("stdJobExecutorFactory", executorClientFactory);
         server.start();
+
+
         Thread.sleep(100);
     }
 
@@ -159,6 +198,15 @@ public class RefRestServiceTest extends Assert {
 
     @AfterClass
     public static void clean() throws Throwable{
+        if(discoverer!=null){
+            discoverer.stop();
+        }
+        if(bus!=null) {
+            bus.stop();
+        }
+        if(curatorFramework!=null && curatorFramework.getState()== CuratorFrameworkState.STARTED){
+            curatorFramework.close();
+        }
         if(curatorUtils!=null){
             curatorUtils.stop();
         }

@@ -28,6 +28,8 @@ import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
  * Created by Christophe Jeunesse on 21/05/2014.
  */
 public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends AbstractTask> implements ITaskExecutorService<TJOB,T> {
+    private final static Logger LOG = LoggerFactory.getLogger(BasicTaskExecutorServiceImpl.class);
     public Observable<TaskContext<TJOB,T>> onSave(TaskContext<TJOB,T> ctxt, State state){
         return Observable.just(ctxt);
     }
@@ -117,15 +120,21 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                                     (inCtxt)->inCtxt.getTaskState().isDone()
                             )
                     )
-                    .flatMap(TaskContext::asyncSave);
+                    .flatMap(TaskContext::asyncSave)
+                    .doOnError(throwable -> this.logError(origCtxt,throwable));
 
         }
         catch(TaskObservableExecutionException e){
+            this.logError(origCtxt,e);
             throw e;
         }
         catch (Throwable e){
             throw new TaskObservableExecutionException(origCtxt,"Unexpected Error",e);
         }
+    }
+
+    private void logError(TaskContext<TJOB, T> origCtxt, Throwable e) {
+        LOG.error("An error occurs during task <"+origCtxt.toString()+">",e);
     }
 
     private Observable<TaskProcessingResult<TJOB,T>> runTask(final TaskContext<TJOB,T> ctxt){

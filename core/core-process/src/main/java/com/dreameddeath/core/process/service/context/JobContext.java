@@ -285,6 +285,14 @@ public class JobContext<TJOB extends AbstractJob> {
         return eventBus;
     }
 
+
+    @Override
+    public String toString(){
+        return super.toString()+
+                "{ id:"+job.getUid()+","+
+                "  type:"+job.getClass().getName()+"}";
+    }
+
     public static class Builder<T extends AbstractJob>{
         private final T job;
         private final Map<String,String> sharedTaskTempIdMap;
