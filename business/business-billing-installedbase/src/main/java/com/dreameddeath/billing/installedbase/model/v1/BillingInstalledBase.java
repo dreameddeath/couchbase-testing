@@ -16,7 +16,7 @@
  *
  */
 
-package com.dreameddeath.billing.model.installedbase;
+package com.dreameddeath.billing.installedbase.model.v1;
 
 import com.dreameddeath.billing.model.v1.account.BillingAccount;
 import com.dreameddeath.billing.model.v1.account.BillingAccountContributor;
@@ -44,7 +44,7 @@ import java.util.List;
  */
 @DocumentEntity(domain = "billing",name="base",version = "1.0.0")
 @DaoEntity(baseDao= BusinessCouchbaseDocumentWithKeyPatternDao.class,dbPath = "base/",idPattern = "\\d{5}",idFormat = "%05d")
-@ParentEntity(c= BillingAccount.class,keyPath = "ba.key",separator = "/")
+@ParentEntity(c= BillingAccount.class,keyPath = "ba.key")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 public class BillingInstalledBase extends BillingAccountContributor {
     /**

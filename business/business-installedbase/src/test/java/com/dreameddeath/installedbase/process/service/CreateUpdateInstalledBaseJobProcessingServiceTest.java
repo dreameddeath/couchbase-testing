@@ -102,8 +102,10 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
                 .withPlugin(NotificationWebServerPlugin.builder())
                 .withPlugin(ProcessesWebServerPlugin.builder())
                 .withDateTimeServiceFactory(new DateTimeServiceFactory(new MockDateTimeServiceImpl(MockDateTimeServiceImpl.Calculator.fixedCalculator(dateTimeRef))))
-                .withApplicationContextConfig("META-INF/spring/webserver.installedbase.processes.applicationContext.xml"));
+                .withApplicationContextConfig("applicationContext.xml"));
 
+        /*daemon.getAdditionalWebServers("tests").get(0).getPlugin(NotificationWebServerPlugin.class)
+                .getEventBus().addListener(new CreateUpdateInstalledBaseEventListener());*/
         daemonWrapper = new DaemonWrapperForTesting(daemon);
         daemonWrapper.start();
     }
@@ -133,6 +135,8 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             assertEquals(0,installedBase.getContract().getStatuses().size());
             assertEquals(0,installedBase.getOffers().stream().flatMap(elt->elt.getStatuses().stream()).count());
             assertEquals(0,installedBase.getPsList().stream().flatMap(elt->elt.getStatuses().stream()).count());
+            Thread.sleep(50);
+            assertEquals(1,CreateUpdateInstalledBaseEventListener.counter.get());
         }
         {
             Map<String, Object> params = new HashMap<>();
@@ -151,6 +155,9 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             assertEquals(1,installedBase.getContract().getStatuses().size());
             assertEquals(4,installedBase.getOffers().stream().flatMap(elt->elt.getStatuses().stream()).count());
             assertEquals(2,installedBase.getPsList().stream().flatMap(elt->elt.getStatuses().stream()).count());
+
+            Thread.sleep(50);
+            assertEquals(2,CreateUpdateInstalledBaseEventListener.counter.get());
         }
 
     }

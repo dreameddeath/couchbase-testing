@@ -29,6 +29,7 @@ import com.dreameddeath.core.process.service.context.*;
 import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
+import com.dreameddeath.installedbase.model.notifications.v1.CreateUpdateInstalledBaseEvent;
 import com.dreameddeath.installedbase.model.v1.InstalledBase;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob.InitEmptyInstalledBase;
@@ -154,10 +155,18 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
                 }
             }
             if(refContract==null){
-                return Observable.error(new TaskObservableExecutionException(ctxtAndDoc.getCtxt(),"Inconsitent State, cannot find Contract in installed base "+ctxtAndDoc.getCtxt().getInternalTask().getDocKey()));
+                return Observable.error(new TaskObservableExecutionException(ctxtAndDoc.getCtxt(),"Inconsistent State, cannot find Contract in installed base "+ctxtAndDoc.getCtxt().getInternalTask().getDocKey()));
             }
             service.manageCreateUpdate(ctxtAndDoc.getCtxt().getParentInternalJob().getRequest(),ctxtAndDoc.getDoc(),refContract);
             return new ProcessingDocumentResult(ctxtAndDoc,false).toObservable();
+        }
+
+        @Override
+        public Observable<TaskNotificationBuildResult<CreateUpdateInstalledBaseJob, UpdateInstalledBaseTask>> buildNotifications(TaskContext<CreateUpdateInstalledBaseJob, UpdateInstalledBaseTask> ctxt) {
+            CreateUpdateInstalledBaseEvent event = new CreateUpdateInstalledBaseEvent();
+            event.setInstalledBaseKey(ctxt.getInternalTask().getDocKey());
+            return super.buildNotifications(ctxt)
+                    .flatMap(taskNotifRes->TaskNotificationBuildResult.build(taskNotifRes,event));
         }
     }
 }
