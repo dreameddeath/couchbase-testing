@@ -50,6 +50,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CuratorFrameworkFactoryTest extends Assert{
@@ -277,6 +278,8 @@ public class CuratorFrameworkFactoryTest extends Assert{
         final AtomicInteger errors=new AtomicInteger(0);
         final AtomicInteger nbRegister=new AtomicInteger(0);
         final AtomicInteger nbUnRegister=new AtomicInteger(0);
+        final AtomicInteger nbUnRegisterAtClosure=new AtomicInteger(0);
+        final AtomicBoolean isClosure=new AtomicBoolean(false);
         final AtomicInteger nbUpdate=new AtomicInteger(0);
         final TestPathRegistrarClass firstObj = new TestPathRegistrarClass(UUID.randomUUID(),"first:value1","1.1.0");
         final TestPathRegistrarClass firstObjUpdatedUpperVersion = new TestPathRegistrarClass(firstObj.uid,"first:value1_updated","1.2.0");
@@ -288,7 +291,7 @@ public class CuratorFrameworkFactoryTest extends Assert{
         final ICuratorPathDiscoveryListener<TestPathRegistrarClass> listener = new ICuratorPathDiscoveryListener<TestPathRegistrarClass>() {
             private List<TestPathRegistrarClass> listchecksRegister =new ArrayList<>(Arrays.asList(firstObj,secondObj,thirdObj));
             private List<TestPathRegistrarClass> listchecksUnRegister =new ArrayList<>(Arrays.asList(firstObj));
-
+            private List<TestPathRegistrarClass> listchecksUnRegisterAtClosure =new ArrayList<>(Arrays.asList(secondObj,thirdObj));
             @Override
             public void onRegister(String uid, TestPathRegistrarClass obj) {
                 synchronized (lock) {
@@ -324,22 +327,34 @@ public class CuratorFrameworkFactoryTest extends Assert{
             public void onUnregister(String uid, TestPathRegistrarClass oldObj) {
                 synchronized (lock) {
                     LOG.info("Received un-registered {} of {}", uid, oldObj);
-                    int pos = nbUnRegister.incrementAndGet();
-                    try {
-                        if (pos == 1) {
-                            assertEquals(firstObjUpdatedUpperVersion.value1, oldObj.value1);
-                            assertEquals(firstObjUpdatedUpperVersion.version(), oldObj.version());
-                            assertEquals(firstObjUpdatedUpperVersion.uid.toString(), oldObj.uid.toString());
-                            assertEquals(firstObjUpdatedUpperVersion.uid.toString(), uid);
-                        } else {
-                            LOG.info("Removing from {} / {}", listchecksUnRegister, oldObj);
-                            assertTrue(listchecksUnRegister.remove(oldObj));
+                    if(!isClosure.get()) {
+                        int pos = nbUnRegister.incrementAndGet();
+                        try {
+                            if (pos == 1) {
+                                assertEquals(firstObjUpdatedUpperVersion.value1, oldObj.value1);
+                                assertEquals(firstObjUpdatedUpperVersion.version(), oldObj.version());
+                                assertEquals(firstObjUpdatedUpperVersion.uid.toString(), oldObj.uid.toString());
+                                assertEquals(firstObjUpdatedUpperVersion.uid.toString(), uid);
+                            } else{
+                                LOG.info("Removing from {} / {}", listchecksUnRegister, oldObj);
+                                assertTrue(listchecksUnRegister.remove(oldObj));
+                            }
+                        } catch (Throwable e) {
+                            errors.incrementAndGet();
+                            LOG.error("Unregister issue", e);
                         }
-                    } catch (Throwable e) {
-                        errors.incrementAndGet();
-                        LOG.error("Unregister issue", e);
                     }
-
+                    else{
+                        nbUnRegisterAtClosure.incrementAndGet();
+                        try{
+                            LOG.info("Removing from {} / {}", listchecksUnRegister, oldObj);
+                            assertTrue(listchecksUnRegisterAtClosure.remove(oldObj));
+                        }
+                        catch (Throwable e) {
+                            errors.incrementAndGet();
+                            LOG.error("Unregister at cloure issue", e);
+                        }
+                    }
                     lock.notify();
                 }
             }
@@ -405,9 +420,11 @@ public class CuratorFrameworkFactoryTest extends Assert{
             registrar.register(thirdObj);
             lock.wait(10000, 0);
             assertEquals(3,nbRegister.get());
+            isClosure.compareAndSet(false,true);
             registrar.close();
         }
         discovery.stop();
+        assertEquals(2,nbUnRegisterAtClosure.get());
         client.close();
         assertEquals(0L,errors.get());
     }

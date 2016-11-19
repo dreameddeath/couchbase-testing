@@ -38,16 +38,21 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
 
     @Override
     public final Observable<TaskProcessingResult<TJOB,T>> process(TaskContext<TJOB,T> origCtxt) {
-        return Observable.just(origCtxt)
-                .flatMap(this::manageRetry)
-                .map(this::toTemporarySession)
-                .flatMap(this::buildDocument)
-                .map(this::toStandardSession)
-                .flatMap(this::buildAndSetDocKey)
-                .flatMap(this::saveContext)
-                .flatMap(this::saveDoc)
-                .map(result->new TaskProcessingResult<>(result.ctxt,false))
-                .onErrorResumeNext(throwable->manageError(throwable,origCtxt));
+        try {
+            return Observable.just(origCtxt)
+                    .flatMap(this::manageRetry)
+                    .map(this::toTemporarySession)
+                    .flatMap(this::buildDocument)
+                    .map(this::toStandardSession)
+                    .flatMap(this::buildAndSetDocKey)
+                    .flatMap(this::saveContext)
+                    .flatMap(this::saveDoc)
+                    .map(result -> new TaskProcessingResult<>(result.ctxt, false))
+                    .onErrorResumeNext(throwable -> manageError(throwable, origCtxt,false));
+        }
+        catch(Throwable e){
+            return manageError(e,origCtxt,true);
+        }
     }
 
     @Override
@@ -59,7 +64,7 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
                 .flatMap(parentRes->TaskNotificationBuildResult.build(parentRes, TaskNotificationBuildResult.DuplicateMode.ERROR, event));
     }
 
-    private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable e, TaskContext<TJOB,T> origCtxt){
+    private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable e, TaskContext<TJOB,T> origCtxt,boolean isPreparation){
         if(e instanceof AlreadyCreatedDocumentObservableException){
             AlreadyCreatedDocumentObservableException processedObservableException = (AlreadyCreatedDocumentObservableException) e;
             return TaskProcessingResult.build(processedObservableException.getCtxt(),false);
@@ -68,7 +73,7 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
             return Observable.error(e);
         }
         else{
-            return Observable.error(new TaskObservableExecutionException(origCtxt,"Error during execution",e));
+            return Observable.error(new TaskObservableExecutionException(origCtxt,isPreparation?"Error during setup":"Error during execution",e));
         }
     }
 

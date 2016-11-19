@@ -78,6 +78,8 @@ public class ProxyServlet extends AsyncProxyServlet{
     private final ConcurrentMap<ServiceUid,ServiceProvider<CuratorDiscoveryServiceDescription<?>>> serviceMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<ServiceUid,ProxyClientInstanceInfo> proxyClientMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String,ProxyClientRegistrar> proxyClientRegistrarMap = new ConcurrentHashMap<>();
+    private final List<ListenerRegistered> listenerRegisteredList=new ArrayList<>();
+
     private final AtomicBoolean forHttp2=new AtomicBoolean(false);
     private String prefix;
     private String serviceType;
@@ -86,6 +88,8 @@ public class ProxyServlet extends AsyncProxyServlet{
     private AbstractWebServer parentWebServer;
     private Collection<String> domainsList;
     private HttpClient http2Client;
+    private ProxyServletLifeCycleListener lifeCycleListener;
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         forHttp2.set(false);
@@ -103,10 +107,38 @@ public class ProxyServlet extends AsyncProxyServlet{
             serviceType = RestServiceTypeHelper.SERVICE_TYPE;
         }
         parentWebServer = (AbstractWebServer)config.getServletContext().getAttribute(AbstractServletContextHandler.GLOBAL_WEBSERVER_PARAM_NAME);
-        parentWebServer.getLifeCycle().addLifeCycleListener(new ProxyServletLifeCycle());
+        lifeCycleListener = new ProxyServletLifeCycleListener();
+        parentWebServer.getLifeCycle().addLifeCycleListener(lifeCycleListener);
+
         domainsList = (Collection<String>)config.getServletContext().getAttribute(SERVICE_DISCOVERER_DOMAINS_PARAM_NAME);
         Preconditions.checkNotNull(parentWebServer.getServiceDiscoveryManager(),"A service discovery manager should be defined for proxy servlet");
     }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        if(http2Client!=null){
+            try {
+                http2Client.stop();
+            }
+            catch (Exception e){
+                    _log.warn("Error during http2 client stop",e);
+            }
+        }
+        if(parentWebServer!=null){
+            if(lifeCycleListener!=null) {
+                try {
+                    parentWebServer.getLifeCycle().removeLifeCycleListener(lifeCycleListener);
+                }
+                catch(Exception e){
+                    _log.warn("Error during lifeCycle unregister",e);
+                }
+                lifeCycleListener=null;
+            }
+            parentWebServer=null;
+        }
+    }
+
 
     @Override
     protected HttpClient newHttpClient() {
@@ -277,33 +309,30 @@ public class ProxyServlet extends AsyncProxyServlet{
         }
     }
 
-    @Override
-    public void destroy() {
-        super.destroy();
-        if(http2Client!=null){
-            try {
-                http2Client.stop();
-            }
-            catch (Exception e){
-                if (_log.isDebugEnabled())
-                    _log.debug(e);
-            }
+
+    private class ListenerRegistered{
+        private final AbstractServiceDiscoverer<?,CuratorDiscoveryServiceDescription<?>> discoverer;
+        private final IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>> listener;
+
+        ListenerRegistered(AbstractServiceDiscoverer<?, CuratorDiscoveryServiceDescription<?>> discoverer, IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>> listener) {
+            this.discoverer = discoverer;
+            this.listener = listener;
         }
     }
 
-    private class ProxyServletLifeCycle implements LifeCycle.Listener {
+    private class ProxyServletLifeCycleListener implements LifeCycle.Listener {
         @Override public void lifeCycleStarting(LifeCycle lifeCycle) {}
         @Override public void lifeCycleStarted(LifeCycle lifeCycle) {
             for(String domain:domainsList){
                 LOG.info("Registering domain {} and type {} for proxy of webserver {}",domain,serviceType,parentWebServer.getUuid().toString());
-                AbstractServiceDiscoverer<?,CuratorDiscoveryServiceDescription<?>> newService;
+                AbstractServiceDiscoverer<?,CuratorDiscoveryServiceDescription<?>> serviceDiscovered;
                 try{
-                    newService = parentWebServer.getServiceDiscoveryManager().getServiceDiscoverer(domain,serviceType);
+                    serviceDiscovered = parentWebServer.getServiceDiscoveryManager().getServiceDiscoverer(domain,serviceType);
                 }
                 catch (Exception e){
                     throw new RuntimeException("Cannot get "+domain+" for service type "+serviceType,e);
                 }
-                newService.addListener(new IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>>() {
+                IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>> listener=serviceDiscovered.addListener(new IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>>() {
                     @Override
                     public void onProviderRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider, ServiceDescription descr) {
                         final ServiceUid suid= new ServiceUid(descr.getName(),descr.getVersion());
@@ -316,7 +345,7 @@ public class ProxyServlet extends AsyncProxyServlet{
                                         proxyClientInfo.setServiceName(ServiceNamingUtils.buildServiceFullName(suid.getServiceId(), suid.getVersion()));
                                         proxyClientInfo.setCreationDate(DateTime.now());
                                         proxyClientInfo.setServiceType(serviceType);
-                                        proxyClientInfo.setUri("http://"+ServletUtils.normalizePath(endPointDescription.host()+":"+endPointDescription.port()+"/"+endPointDescription.path()+"/"+suid.getServiceId()+"/"+suid.getVersion(),false));
+                                        proxyClientInfo.setUri("http://"+endPointDescription.host()+":"+endPointDescription.port()+ServletUtils.normalizePath("/"+endPointDescription.path()+"/"+suid.getServiceId()+"/"+suid.getVersion(),false));
                                         registrar.enrich(proxyClientInfo);
                                         registrar.register(proxyClientInfo);
                                         proxyClientMap.put(suid,proxyClientInfo);
@@ -338,16 +367,29 @@ public class ProxyServlet extends AsyncProxyServlet{
                     public void onProviderUnRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider, ServiceDescription descr) {
                         ServiceUid suid= new ServiceUid(descr.getName(),descr.getVersion());
                         serviceMap.remove(suid);
-                        proxyClientMap.remove(suid);
+                        ProxyClientRegistrar registrar = proxyClientRegistrarMap.get(discoverer.getDomain());
+                        ProxyClientInstanceInfo clientInfo = proxyClientMap.remove(suid);
+                        if(registrar!=null && clientInfo!=null){
+                            try {
+                                registrar.deregister(clientInfo);
+                            }
+                            catch(Throwable e){
+                                LOG.error("Error during unregistrer on domain <"+discoverer.getDomain()+"> for client <"+clientInfo.getUid()+":"+clientInfo.getUri()+">",e);
+                            }
+                        }
                     }
                 });
-                serviceDiscoverers.add(newService);
+                listenerRegisteredList.add(new ListenerRegistered(serviceDiscovered,listener));
+                serviceDiscoverers.add(serviceDiscovered);
             }
         }
         @Override public void lifeCycleFailure(LifeCycle lifeCycle, Throwable throwable) {
             lifeCycleStopping(lifeCycle);
         }
         @Override public void lifeCycleStopping(LifeCycle lifeCycle) {
+            listenerRegisteredList.forEach(listenerRegistered -> listenerRegistered.discoverer.removeListener(listenerRegistered.listener));
+            listenerRegisteredList.clear();
+            //Should not occur
             proxyClientRegistrarMap.values().forEach(ProxyClientRegistrar::close);
             proxyClientRegistrarMap.clear();
             serviceDiscoverers.clear();

@@ -138,6 +138,9 @@ public abstract class AbstractGenericCuratorDiscoveryImpl<TDATA,TLISTENER extend
         if (pathCache != null) {
             pathCache.close();
         }
+        //Simulate removal of entries as if they weren't there
+        List<String> listUidToRemove = new ArrayList<>(instanceCache.keySet());
+        listUidToRemove.forEach(this::remove);
         instanceCache.clear();
         for (TDISCOVERY listener : lifeCycleListeners) {
             listener.onStop(this, false);

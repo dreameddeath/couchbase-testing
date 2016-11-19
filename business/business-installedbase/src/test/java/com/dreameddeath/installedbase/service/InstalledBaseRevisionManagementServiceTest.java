@@ -1,3 +1,21 @@
+/*
+ *
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
+ *
+ */
+
 package com.dreameddeath.installedbase.service;
 
 import com.dreameddeath.core.date.IDateTimeService;
@@ -20,6 +38,7 @@ import com.dreameddeath.installedbase.process.model.v1.InstalledBaseUpdateResult
 import com.dreameddeath.installedbase.process.model.v1.InstalledItemUpdateResult;
 import com.dreameddeath.installedbase.process.model.v1.LinkUpdateResult;
 import com.dreameddeath.installedbase.process.model.v1.StatusUpdateResult;
+import com.dreameddeath.installedbase.service.impl.InstalledBaseRevisionManagementServiceImpl;
 import com.dreameddeath.installedbase.service.utils.InstalledItemRevisionsToApply;
 import com.dreameddeath.testing.dataset.DatasetManager;
 import junitparams.JUnitParamsRunner;
@@ -49,12 +68,12 @@ public class InstalledBaseRevisionManagementServiceTest {
     private static final DateTime REFERENCE_DATE = DateTime.parse("2016-01-01T00:00:00");
 
     private final AtomicReference<DateTime> dateTimeRef=new AtomicReference<>(REFERENCE_DATE);
-    private InstalledBaseRevisionManagementService service;
+    private InstalledBaseRevisionManagementServiceImpl service;
     private DatasetManager manager;
 
     @Before
     public void buildInstalledBaseRevisionManagementService(){
-        service = new InstalledBaseRevisionManagementService();
+        service = new InstalledBaseRevisionManagementServiceImpl();
         service.setDateTimeService(new MockDateTimeServiceImpl(MockDateTimeServiceImpl.Calculator.fixedCalculator(dateTimeRef)));
         manager = new DatasetManager();
         manager.addDatasetsFromResourceFilename("datasets/installedOfferRevisionDataset.json_dataset");

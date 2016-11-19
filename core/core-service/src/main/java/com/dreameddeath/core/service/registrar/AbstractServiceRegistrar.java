@@ -34,12 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 03/09/2016.
@@ -50,7 +46,8 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
     private final String domain;
     private final String serviceType;
     private final ServiceDiscovery<T> serviceDiscovery;
-    private final Set<AbstractExposableService> services = new CopyOnWriteArraySet<>();
+    private final List<AbstractExposableService> pendingRegistrar = new ArrayList<>();
+    private final Map<AbstractExposableService,ServiceInstance<T>> services = new HashMap<>();
     private boolean isStarted=false;
 
 
@@ -73,31 +70,36 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
         curatorClient.blockUntilConnected(10, TimeUnit.SECONDS);
         serviceDiscovery.start();
 
-        for(AbstractExposableService foundService:services) {
-            registerService(foundService);
+        for(AbstractExposableService pendingService:pendingRegistrar){
+            registerService(pendingService);
         }
-
+        pendingRegistrar.clear();
         isStarted=true;
     }
 
     public synchronized void stop() throws IOException {
+        for(Map.Entry<AbstractExposableService,ServiceInstance<T>> foundService:services.entrySet()) {
+            try {
+                unregisterService(foundService.getKey(), foundService.getValue());
+            }
+            catch (Throwable e){
+                LOG.error("Error during Service unregister",e);
+            }
+        }
+        services.clear();
         isStarted=false;
         if(serviceDiscovery!=null)
         serviceDiscovery.close();
-        services.clear();
     }
 
-    public List<ServiceInstance<T>> getServicesInstanceDescription(){
-        return services.stream()
-                .map(this::buildServiceInstanceDescription)
-                .collect(Collectors.toList());
+    public Collection<ServiceInstance<T>> getServicesInstanceDescription(){
+        return services.values();
     }
 
     protected abstract ServiceInstance<T> buildServiceInstanceDescription(AbstractExposableService service);
 
 
     protected T initServiceInstanceDescription(AbstractExposableService service, T serviceDescr) {
-
         ServiceDef annotDef = service.getClass().getAnnotation(ServiceDef.class);
         Preconditions.checkNotNull(annotDef,"The service %s should have the annotation %s",service.getClass(),ServiceDef.class.getSimpleName());
         serviceDescr.setDomain(annotDef.domain());
@@ -112,11 +114,10 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
     }
 
     public Set<AbstractExposableService> getServices(){
-        return Collections.unmodifiableSet(services);
+        return Collections.unmodifiableSet(services.keySet());
     }
 
-    public void addService(AbstractExposableService service){
-        services.add(service);
+    public synchronized void addService(AbstractExposableService service){
         if(isStarted){
             try {
                 registerService(service);
@@ -125,13 +126,27 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
                 throw new RuntimeException(e);
             }
         }
+        else{
+            pendingRegistrar.add(service);
+        }
     }
 
-    protected void registerService(AbstractExposableService service)throws Exception{
+    private String buildServicePath(ServiceInstance<T> newServiceDef){
+        //TODO refactor to manage domain/payload data update
+        return ServiceNamingUtils.buildServerServicePath(curatorClient,domain, newServiceDef.getPayload());
+    }
+
+    private void registerService(AbstractExposableService service)throws Exception{
         ServiceInstance<T> newServiceDef = buildServiceInstanceDescription(service);
-        String servicePath= ServiceNamingUtils.buildServerServicePath(curatorClient,domain, newServiceDef.getPayload());
+        String servicePath = buildServicePath(newServiceDef);//Needed to precreate the path
+        services.put(service,newServiceDef);
         serviceDiscovery.registerService(newServiceDef);
-        LOG.info("Service {} registred with id {} within domain {} in path {}", newServiceDef.getName(), newServiceDef.getId(), domain,servicePath);
+        LOG.info("Service {} registered with id {} within domain {} in path {}", newServiceDef.getName(), newServiceDef.getId(), domain, servicePath);
+    }
+
+    private void unregisterService(AbstractExposableService service,ServiceInstance<T> newServiceDef)throws Exception{
+        serviceDiscovery.unregisterService(newServiceDef);
+        LOG.info("Service {} unregistered with id {} within domain {} in path {}", newServiceDef.getName(), newServiceDef.getId(), domain,buildServicePath(newServiceDef));
     }
 
 }

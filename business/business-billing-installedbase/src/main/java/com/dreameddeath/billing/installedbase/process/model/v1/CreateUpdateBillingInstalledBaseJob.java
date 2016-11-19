@@ -16,11 +16,15 @@
  *
  */
 
-/**
- * Created by Christophe Jeunesse on 18/05/2016.
- */
-@DocumentPackageDefault(domain = EntityConstants.DOMAIN,version = "1.0")
-package com.dreameddeath.billing.model.v1;
+package com.dreameddeath.billing.installedbase.process.model.v1;
 
-import com.dreameddeath.billing.annotation.EntityConstants;
-import com.dreameddeath.core.model.annotation.DocumentPackageDefault;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+
+/**
+ * Created by Christophe Jeunesse on 16/11/2016.
+ */
+@DocumentEntity()
+public class CreateUpdateBillingInstalledBaseJob extends AbstractJob{
+
+}

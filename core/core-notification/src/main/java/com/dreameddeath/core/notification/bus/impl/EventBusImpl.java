@@ -20,8 +20,6 @@ package com.dreameddeath.core.notification.bus.impl;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
-import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
-import com.dreameddeath.core.dao.exception.validation.ValidationObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
@@ -34,7 +32,7 @@ import com.dreameddeath.core.notification.metrics.EventBusMetrics;
 import com.dreameddeath.core.notification.metrics.NotificationMetrics;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
-import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
+import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
 import com.google.common.base.Preconditions;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
@@ -229,22 +227,18 @@ public class EventBusImpl implements IEventBus {
                         return notifObsRes;
                     })
                     .onErrorResumeNext(throwable -> {
-                        if(throwable instanceof ValidationObservableException){
-                            ValidationFailure validationFailure = ((ValidationObservableException)throwable).getCause().getFailure();
-                            if(validationFailure instanceof ValidationCompositeFailure) {
-                                DuplicateUniqueKeyDaoException duplicateUniqueKeyDaoException = ((ValidationCompositeFailure) validationFailure).findException(DuplicateUniqueKeyDaoException.class);
-                                if(duplicateUniqueKeyDaoException!=null) {
-                                    return Observable.just(duplicateUniqueKeyDaoException.getOwnerDocumentKey())
-                                            .map(notificationMetricContext::beforeReadDuplicate)
-                                            .flatMap(notifId->session.asyncGet(notifId,Notification.class))
-                                            .map(notificationMetricContext::afterReadDuplicate)
-                                            .map(notif->{
-                                                notif.incNbAttempts();
-                                                return notif;
-                                            });
-                                }
-                            }
+                        DuplicateUniqueKeyDaoException duplicateUniqueKeyDaoException = ValidationExceptionUtils.findUniqueKeyException(throwable);
+                        if(duplicateUniqueKeyDaoException!=null) {
+                            return Observable.just(duplicateUniqueKeyDaoException.getOwnerDocumentKey())
+                                    .map(notificationMetricContext::beforeReadDuplicate)
+                                    .flatMap(notifId->session.asyncGet(notifId,Notification.class))
+                                    .map(notificationMetricContext::afterReadDuplicate)
+                                    .map(notif->{
+                                        notif.incNbAttempts();
+                                        return notif;
+                                    });
                         }
+
                         if(throwable instanceof RuntimeException){
                             throw (RuntimeException)throwable;
                         }

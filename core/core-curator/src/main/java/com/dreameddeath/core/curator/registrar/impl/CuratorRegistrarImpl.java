@@ -91,6 +91,8 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
                 LOG.error("Cannot close node "+entry.getValue().getActualPath());
             }
         });
+        registered.clear();
+        registeredValues.clear();
     }
 
     @Override
@@ -116,7 +118,18 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
     public synchronized final void deregister(T obj) throws Exception{
         if(registered.containsKey(obj.getUid())){
             try {
+                PersistentNode entry =registered.get(obj.getUid());
+                String path = entry.getActualPath();
+                if(path!=null){
+                    LOG.info("Un-registring path {}",path);
+                }
+                else{
+                    LOG.info("Un-registring strange path {}",CuratorUtils.buildPath(basePath,obj.getUid()));
+                }
                 registered.get(obj.getUid()).close();
+            }
+            catch(Throwable e){
+                LOG.error("Cannot unregister path "+obj.getUid());
             }
             finally {
                 registered.remove(obj.getUid());

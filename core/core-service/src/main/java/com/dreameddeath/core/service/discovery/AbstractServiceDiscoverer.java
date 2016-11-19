@@ -344,7 +344,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         }
     }
 
-    public void addListener(IServiceDiscovererListener<T> listener){
+    public IServiceDiscovererListener<T> addListener(IServiceDiscovererListener<T> listener){
         Map<String,ProviderInfo> copy = new HashMap<>(serviceProviderMap);
         listeners.add(listener);
         for(Map.Entry<String,ProviderInfo> entry :copy.entrySet()){
@@ -355,6 +355,21 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
                 LOG.error("Error on register "+entry.getValue().infoDescription.getFullName()+" for listener "+listener,e);
             }
         }
+        return listener;
+    }
+
+    public IServiceDiscovererListener<T> removeListener(IServiceDiscovererListener<T> listener){
+        Map<String,ProviderInfo> copy = new HashMap<>(serviceProviderMap);
+        if(listeners.remove(listener)) {
+            for (Map.Entry<String, ProviderInfo> entry : copy.entrySet()) {
+                try {
+                    listener.onProviderUnRegister(AbstractServiceDiscoverer.this, entry.getValue().providerSupplier.getServiceProvider(), entry.getValue().infoDescription);
+                } catch (Exception e) {
+                    LOG.error("Error on unregister " + entry.getValue().infoDescription.getFullName() + " for listener " + listener, e);
+                }
+            }
+        }
+        return listener;
     }
 
 

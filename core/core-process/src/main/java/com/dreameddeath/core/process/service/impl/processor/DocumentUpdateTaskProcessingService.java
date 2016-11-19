@@ -41,7 +41,6 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
 
     @Override
     public Observable<TaskProcessingResult<TJOB,T>> process(final TaskContext<TJOB,T> origCtxt){
-        //final DocumentUpdateTask<TDOC> task = origCtxt.getInternalTask();
         Preconditions.checkNotNull(origCtxt.getInternalTask().getDocKey(),"The document to update hasn't key for task %s of type %s",origCtxt.getInternalTask().getId(),origCtxt.getInternalTask().getClass().getName());
         try {
             return buildContextAndDocument(origCtxt)
@@ -49,17 +48,14 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
                     .flatMap(this::manageProcessDocument)
                     .flatMap(this::managePostProcessing)
                     .map(ctxtAndDoc -> new TaskProcessingResult<>(ctxtAndDoc.getCtxt(), false))
-                    .onErrorResumeNext(throwable -> this.manageError(throwable,origCtxt));
-        }
-        catch(TaskObservableExecutionException e){
-            return Observable.error(e);
+                    .onErrorResumeNext(throwable -> this.manageError(throwable,origCtxt,false));
         }
         catch(Throwable e){
-            return Observable.error(new TaskObservableExecutionException(origCtxt,"Unexpected error",e));
+            return manageError(e,origCtxt,true);
         }
     }
 
-    private Observable<TaskProcessingResult<TJOB, T>> manageError(Throwable throwable, TaskContext<TJOB, T> origCtxt) {
+    private Observable<TaskProcessingResult<TJOB, T>> manageError(Throwable throwable, TaskContext<TJOB, T> origCtxt,boolean isPreparation) {
         if(throwable instanceof AlreadyUpdatedTaskObservableException){
             AlreadyUpdatedTaskObservableException e=(AlreadyUpdatedTaskObservableException)throwable;
             return TaskProcessingResult.build(e.getCtxt(),true);
@@ -68,7 +64,7 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
             return Observable.error(throwable);
         }
         else{
-            return Observable.error(new TaskObservableExecutionException(origCtxt,"Error during execution",throwable));
+            return Observable.error(new TaskObservableExecutionException(origCtxt,isPreparation?"Error during Preparation":"Error during execution",throwable));
         }
     }
 
@@ -124,15 +120,15 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         }
         else{
             if(ctxtAndDoc.getCtxt().isNew()){
-                return saveContext(ctxtAndDoc).flatMap(this::performCleanup);
+                return saveContext(ctxtAndDoc).flatMap(this::performTaskCleanup);
             }
             else{
-                return performCleanup(ctxtAndDoc);
+                return performTaskCleanup(ctxtAndDoc);
             }
         }
     }
 
-    private Observable<ContextAndDocument> performCleanup(final ContextAndDocument origCtxtAndDoc){
+    private Observable<ContextAndDocument> performTaskCleanup(final ContextAndDocument origCtxtAndDoc){
         if(origCtxtAndDoc.getCtxt().getInternalTask().getUpdatedWithDoc()){
             return cleanTaskBeforeRetryProcessing(origCtxtAndDoc)
             .map(ctxtAndDoc->{ctxtAndDoc.getCtxt().getInternalTask().setUpdatedWithDoc(false);return ctxtAndDoc;})

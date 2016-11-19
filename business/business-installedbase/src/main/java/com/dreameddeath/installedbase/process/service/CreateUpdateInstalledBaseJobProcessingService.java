@@ -61,8 +61,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
         //     * attach to billing account
         // * Loop on all contracts with inter contracts links toward new items :
         //     * create them
-
-
+        
         for (CreateUpdateInstalledBaseRequest.Contract contract : job.getRequest().contracts) {
 
             //Create target contracts if needed

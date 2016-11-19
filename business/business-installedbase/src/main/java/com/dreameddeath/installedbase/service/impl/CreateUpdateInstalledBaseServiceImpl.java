@@ -1,20 +1,22 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
-package com.dreameddeath.installedbase.service;
+package com.dreameddeath.installedbase.service.impl;
 
 import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.installedbase.model.v1.InstalledBase;
@@ -27,6 +29,8 @@ import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductSe
 import com.dreameddeath.installedbase.model.v1.tariff.InstalledDiscount;
 import com.dreameddeath.installedbase.model.v1.tariff.InstalledTariff;
 import com.dreameddeath.installedbase.process.model.v1.*;
+import com.dreameddeath.installedbase.service.ICreateUpdateInstalledBaseService;
+import com.dreameddeath.installedbase.service.IInstalledBaseRevisionManagementService;
 import com.dreameddeath.installedbase.service.utils.*;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -36,8 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Created by Christophe Jeunesse on 16/10/2014.
  */
-public class CreateUpdateInstalledBaseService implements ICreateUpdateInstalledBaseService{
-    private final static Logger LOG= LoggerFactory.getLogger(CreateUpdateInstalledBaseService.class);
+public class CreateUpdateInstalledBaseServiceImpl implements ICreateUpdateInstalledBaseService {
+    private final static Logger LOG= LoggerFactory.getLogger(CreateUpdateInstalledBaseServiceImpl.class);
 
     private IInstalledBaseRevisionManagementService revisionManagementService;
     private IDateTimeService dateTimeService;

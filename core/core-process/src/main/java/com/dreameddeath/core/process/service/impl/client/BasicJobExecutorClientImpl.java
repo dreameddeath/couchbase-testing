@@ -40,7 +40,7 @@ import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
+import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
 import rx.Observable;
 
 import java.util.UUID;
@@ -100,15 +100,13 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
                         if(throwable instanceof ValidationObservableException && throwable.getCause()!=null){
                             throwable = throwable.getCause();
                         }
+
                         if (throwable instanceof ValidationException) {
-                            ValidationException e = (ValidationException) throwable;
-                            if ((e.getFailure() != null) && (e.getFailure() instanceof ValidationCompositeFailure)) {
-                                DuplicateUniqueKeyDaoException duplicate = (((ValidationCompositeFailure) e.getFailure()).findException(DuplicateUniqueKeyDaoException.class));
-                                if (duplicate != null) {
-                                    return Observable.error(new JobObservableExecutionException(new DuplicateJobExecutionException(ctxt, "DuplicateJob creation", duplicate.getCause())));
-                                }
+                            DuplicateUniqueKeyDaoException duplicateException = ValidationExceptionUtils.findUniqueKeyException((ValidationException)throwable);
+                            if (duplicateException != null) {
+                                return Observable.error(new JobObservableExecutionException(new DuplicateJobExecutionException(ctxt, "DuplicateJob creation", duplicateException.getCause())));
                             }
-                            return Observable.error(new JobObservableExecutionException(ctxt, "Cannot perform initial save due to validation error", e));
+                            return Observable.error(new JobObservableExecutionException(ctxt, "Cannot perform initial save due to validation error", throwable));
                         }
                         else {
                             return Observable.error(new JobObservableExecutionException(ctxt, "Cannot perform initial save (unexpected error)", throwable));
