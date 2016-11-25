@@ -18,6 +18,7 @@
 
 package com.dreameddeath.core.session.impl;
 
+import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.document.IDaoForDocumentWithUID;
@@ -527,6 +528,15 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public ICouchbaseSession toParentSession() {
         throw new IllegalStateException();
+    }
+
+    public <T extends CouchbaseDocument> ICouchbaseBucket getClientForClass(Class<T> clazz){
+        try {
+            return sessionFactory.getDocumentDaoFactory().getDaoForClass(clazz).getClient();
+        }
+        catch(DaoNotFoundException e){
+            return null;
+        }
     }
 
     private class TemporaryCouchbaseSession extends CouchbaseSession implements ICouchbaseSession{

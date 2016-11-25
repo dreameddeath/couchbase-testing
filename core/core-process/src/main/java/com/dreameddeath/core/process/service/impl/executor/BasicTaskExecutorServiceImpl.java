@@ -18,7 +18,12 @@
 
 package com.dreameddeath.core.process.service.impl.executor;
 
+import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
+import com.dreameddeath.core.dao.exception.DaoObservableException;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.model.v1.EventLink;
+import com.dreameddeath.core.process.exception.IExecutionExceptionNoLog;
 import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
@@ -33,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.functions.Func1;
 
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -133,8 +139,31 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
         }
     }
 
-    private void logError(TaskContext<TJOB, T> origCtxt, Throwable e) {
-        LOG.error("An error occurs during task <"+origCtxt.toString()+">",e);
+    private void logError(TaskContext<TJOB, T> origCtxt, Throwable orig) {
+        Throwable e=orig;
+        while(e!=null) {
+            if(e instanceof IExecutionExceptionNoLog) {
+                return;
+            }
+            else if (e instanceof TaskObservableExecutionException) {
+                e = e.getCause();
+                //Skip TaskExecutionException
+                if (e != null && e.getCause() != null) {
+                    e = e.getCause();
+                }
+            }
+            else if(e instanceof DaoObservableException && e.getCause()!=null){
+                e = e.getCause();
+            }
+            else if(e instanceof StorageObservableException && e.getCause()!=null) {
+                e = e.getCause();
+            }
+            else {
+                break;
+            }
+        }
+
+        LOG.error("An error occurs during task <"+origCtxt.toString()+">",orig);
     }
 
     private Observable<TaskProcessingResult<TJOB,T>> runTask(final TaskContext<TJOB,T> ctxt){
@@ -171,30 +200,51 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                 })
                 .toList()
                 .flatMap(events->{
-                    origTaskNotificationBuildRes.getContext().getInternalTask().setNotifications(
-                            events.stream().map(EventLink::new).collect(Collectors.toList())
-                    );
-                    return TaskNotificationBuildResult.build(origTaskNotificationBuildRes.getContext(),events);
+                    final List<EventLink> newListToSubmit = events.stream().map(EventLink::new).collect(Collectors.toList());
+                    final List<EventLink> listExistingAttachedElements = origTaskNotificationBuildRes.getContext().getInternalTask().getNotifications();
+                    final List<EventLink> listNotAttached = newListToSubmit.stream().filter(newEventLink->!listExistingAttachedElements.contains(newEventLink)).collect(Collectors.toList());
+                    if(listNotAttached.size()>0) {
+                        origTaskNotificationBuildRes.getContext().getInternalTask().setNotifications(newListToSubmit);
+                        return origTaskNotificationBuildRes.getContext().asyncSave()
+                                .flatMap(savedCtxt->TaskNotificationBuildResult.build(savedCtxt,events));
+                    }
+                    else {
+                        return TaskNotificationBuildResult.build(origTaskNotificationBuildRes.getContext(), events);
+                    }
                 });
     }
 
-    private Observable<TaskProcessingResult<TJOB,T>> submitNotifications(TaskNotificationBuildResult<TJOB,T> jobNotifBuildRes) {
-        return Observable.from(jobNotifBuildRes.getEventMap().values())
-                .flatMap(event->jobNotifBuildRes.getContext().getEventBus().asyncFireEvent(event,jobNotifBuildRes.getContext().getSession()))
+    private Observable<TaskProcessingResult<TJOB,T>> submitNotifications(TaskNotificationBuildResult<TJOB,T> taskNotifBuildRes) {
+        return Observable.from(taskNotifBuildRes.getEventMap().values())
+                .flatMap(event->taskNotifBuildRes.getContext().getEventBus().asyncFireEvent(event,taskNotifBuildRes.getContext().getSession()))
                 .toList()
-                .flatMap(eventFireResults ->{
+                .flatMap(eventFireResults->{
                     if(eventFireResults.stream().filter(res->!res.isSuccess()).count()>0){
-                        return Observable.error(new TaskObservableExecutionException(jobNotifBuildRes.getContext(),"Errors duering notifications"));
+                        return Observable.error(new TaskObservableExecutionException(taskNotifBuildRes.getContext(),"Errors duering notifications"));
                     }
-                    return TaskProcessingResult.build(jobNotifBuildRes.getContext(),true);
+                    return TaskProcessingResult.build(taskNotifBuildRes.getContext(),true);
                 });
     }
 
     private Observable<TaskNotificationBuildResult<TJOB,T>> manageNotificationsRetry(final TaskNotificationBuildResult<TJOB,T> origTaskNotificationBuildResult) {
         return Observable.from(origTaskNotificationBuildResult.getContext().getInternalTask().getNotifications())
-                .flatMap(eventLink -> eventLink.<AbstractTaskEvent>getEvent(origTaskNotificationBuildResult.getContext().getSession()))
+                .flatMap(eventLink -> manageNotificationRead(eventLink,origTaskNotificationBuildResult.getContext().getSession()))
                 .toList()
                 .map(events->new TaskNotificationBuildResult<>(origTaskNotificationBuildResult,events, TaskNotificationBuildResult.DuplicateMode.REPLACE));
+    }
+
+    private Observable<AbstractTaskEvent> manageNotificationRead(EventLink eventLink, ICouchbaseSession session) {
+        return eventLink.<AbstractTaskEvent>getEvent(session)
+                .onErrorResumeNext(origThrowable-> {
+                    Throwable throwable = origThrowable;
+                    if(throwable instanceof StorageObservableException){
+                        throwable = throwable.getCause();
+                    }
+                    if(throwable instanceof DocumentNotFoundException){
+                        return Observable.empty();
+                    }
+                    return Observable.error(origThrowable);
+                });
     }
 
     private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable throwable, TaskContext<TJOB,T> inCtxt) {
@@ -206,5 +256,4 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
             return Observable.error(new TaskObservableExecutionException(inCtxt,"Unexpected error",throwable));
         }
     }
-
 }

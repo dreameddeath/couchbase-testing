@@ -236,6 +236,11 @@ public class JobContext<TJOB extends AbstractJob> {
         return getTaskContexts().filter(taskCtxt->(!taskCtxt.getTaskState().isDone() || taskCtxt.isNew()));
     }
 
+    public Observable<TaskContext<TJOB,AbstractTask>> getExecutedTasks(){
+        return getTaskContexts().filter(taskCtxt->taskCtxt.getTaskState().isDone());
+    }
+
+
     public static <T extends AbstractJob> JobContext<T> newContext(Builder<T> builder){
         return new JobContext<>(builder);
     }

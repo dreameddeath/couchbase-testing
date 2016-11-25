@@ -53,7 +53,7 @@ public class TaskNotificationBuildResult<TJOB extends AbstractJob,TTASK extends 
 
 
     private TaskNotificationBuildResult<TJOB,TTASK> addElement(AbstractTaskEvent event, DuplicateMode duplicateMode){
-        String taskKey =context.getInternalTask().getBaseMeta().getKey();
+        String taskKey = context.getInternalTask().getBaseMeta().getKey();
         Preconditions.checkArgument(StringUtils.isNotEmpty(taskKey),"The key must be defined");
         EntityModelId origModelId = CouchbaseDocumentReflection.getReflectionFromClass(event.getClass()).getStructure().getEntityModelId();
         EntityModelId applicableModelId = new EntityModelId(origModelId.getDomain(),origModelId.getName(), (EntityVersion)null);

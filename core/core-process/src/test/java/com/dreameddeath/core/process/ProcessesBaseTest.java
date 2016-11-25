@@ -38,6 +38,8 @@ import com.dreameddeath.core.process.dao.TaskDao;
 import com.dreameddeath.core.process.dao.TestChildDocDao;
 import com.dreameddeath.core.process.dao.TestDocDao;
 import com.dreameddeath.core.process.model.TestDoc;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.registrar.JobExecutorClientRegistrar;
 import com.dreameddeath.core.process.registrar.TaskExecutorClientRegistrar;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
@@ -48,6 +50,8 @@ import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFacto
 import com.dreameddeath.core.process.services.TestDocNotificationListener;
 import com.dreameddeath.core.process.services.TestJobCreateService;
 import com.dreameddeath.core.process.services.model.TestDocJobCreate;
+import com.dreameddeath.core.process.testing.TestingJobExcecutorServiceImpl;
+import com.dreameddeath.core.process.testing.TestingTaskExecutionServiceImpl;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
@@ -77,6 +81,8 @@ public class ProcessesBaseTest extends Assert {
     private static ListenerDiscoverer discoverer;
     private static CouchbaseSessionFactory sessionFactory;
     private static TestDocNotificationListener listener;
+    private static ExecutorServiceFactory execFactory;
+    private static ProcessingServiceFactory processFactory;
 
     @BeforeClass
     public static void initialise() throws Exception {
@@ -92,8 +98,8 @@ public class ProcessesBaseTest extends Assert {
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TestChildDocDao().setClient(cbSimulator));
 
-        ExecutorServiceFactory execFactory = new ExecutorServiceFactory();
-        ProcessingServiceFactory processFactory = new ProcessingServiceFactory();
+        execFactory = new ExecutorServiceFactory();
+        processFactory = new ProcessingServiceFactory();
         processFactory.addJobProcessingService(TestJobCreateService.class);
 
         curatorFramework=curatorUtils.getClient("testProcesses");
@@ -131,6 +137,9 @@ public class ProcessesBaseTest extends Assert {
 
     @Test
     public void runTest() throws Exception {
+        execFactory.addJobExecutorService(AbstractJob.class, TestingJobExcecutorServiceImpl.class);
+        execFactory.addTaskExecutorService(AbstractTask.class, TestingTaskExecutionServiceImpl.class);
+
         IJobExecutorClient<TestDocJobCreate> jobClient = executorClientFactory.buildJobClient(TestDocJobCreate.class);
         TestDocJobCreate job = new TestDocJobCreate();
         job.initIntValue = 10;

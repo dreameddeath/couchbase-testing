@@ -79,7 +79,6 @@ public class EventLink extends CouchbaseDocumentElement {
         EventLink eventLink = (EventLink) o;
 
         return uid != null ? uid.equals(eventLink.uid) : eventLink.uid == null;
-
     }
 
     @Override

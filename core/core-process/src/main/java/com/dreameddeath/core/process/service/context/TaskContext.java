@@ -106,7 +106,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
                     return ctxt;
                 })
                 .toList()
-                .flatMap(listDepedancyCtxt-> getSession().asyncSave(this.task))
+                .flatMap(listDependencyCtxt-> getSession().asyncSave(this.task))
                 .map(savedTask-> new Builder<>(this,savedTask).build());
     }
 

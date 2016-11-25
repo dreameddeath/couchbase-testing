@@ -81,6 +81,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     public Map<Class,Transcoder<? extends Document, ?>> transcoderMap = new HashMap<>();
     public Map<String,Map<String,ScriptObjectMirror>> viewsMaps = new HashMap<>();
     public Set<CouchbaseDCPConnectorSimulator> dcpSimulators= new HashSet<>();
+    private List<ICouchbaseOnWriteListener> onWriteListeners = new ArrayList<>();
 
     private void initTranscoders(){
         transcoderMap.put(CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER.documentType(), CouchbaseAsyncBucket.JSON_OBJECT_TRANSCODER);
@@ -155,6 +156,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
     public synchronized Long updateCacheCounter(String key,Long by,Long defaultValue,Integer expiration) throws StorageException{
         DocumentSimulator foundDoc = dbContent.get(key);
+
         if(foundDoc==null){
             if(defaultValue!=null){
                 foundDoc = new DocumentSimulator(this);
@@ -163,8 +165,10 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 foundDoc.setExpiry(expiration);
                 foundDoc.setKey(key);
                 foundDoc.setData(Unpooled.wrappedBuffer(defaultValue.toString().getBytes()));
+                notifyListenerBeforeUpdateCounter(ImpactMode.ADD,key,0L,defaultValue);
                 dbContent.put(foundDoc.getKey(), foundDoc);
-                notifyUpdate(ImpactMode.ADD,foundDoc);
+                notifyDcpUpdate(ImpactMode.ADD,foundDoc);
+                notifyListenerAfterUpdateCounter(ImpactMode.ADD,key,0L,defaultValue);
                 LOG.trace("Returning {} for counter {}",defaultValue,key);
                 return defaultValue;
             }
@@ -174,10 +178,12 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
         try {
             Long result = Long.parseLong(new String(foundDoc.getData().array()));
+            notifyListenerBeforeUpdateCounter(ImpactMode.UPDATE,key,result,result+by);
             foundDoc.setCas(foundDoc.getCas()+1);
             result+=by;
             foundDoc.setData(Unpooled.wrappedBuffer(result.toString().getBytes()));
-            notifyUpdate(ImpactMode.UPDATE,foundDoc);
+            notifyDcpUpdate(ImpactMode.UPDATE,foundDoc);
+            notifyListenerAfterUpdateCounter(ImpactMode.UPDATE,key,result,result+by);
             LOG.trace("Returning {} for counter {}",result,key);
             return result;
         }
@@ -186,9 +192,34 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
     }
 
-    public void notifyUpdate(ImpactMode mode,DocumentSimulator doc){
+    private void notifyListenerBeforeUpdateCounter(ImpactMode mode, String key, Long before, long after)throws StorageException {
+        for(ICouchbaseOnWriteListener listener:onWriteListeners){
+            listener.onBeforeCounterWrite(mode,key,before,after);
+        }
+    }
+
+    private void notifyListenerAfterUpdateCounter(ImpactMode mode, String key, Long before, long after)throws StorageException {
+        for(ICouchbaseOnWriteListener listener:onWriteListeners){
+            listener.onAfterCounterWrite(mode,key,before,after);
+        }
+    }
+
+
+    private void notifyDcpUpdate(ImpactMode mode, DocumentSimulator doc){
         for(CouchbaseDCPConnectorSimulator simulator:dcpSimulators){
             simulator.notifyUpdate(mode,doc);
+        }
+    }
+
+    private <T extends CouchbaseDocument> void notifyListenerBeforeUpdate(ImpactMode mode, BucketDocument<T> bucketDoc) throws  StorageException{
+        for(ICouchbaseOnWriteListener listener:onWriteListeners){
+            listener.onBeforeWrite(mode,bucketDoc.content());
+        }
+    }
+
+    private <T extends CouchbaseDocument> void notifyListenerAfterUpdate(ImpactMode mode,Document<T> document)throws  StorageException{
+        for(ICouchbaseOnWriteListener listener:onWriteListeners){
+            listener.onAfterWrite(mode,document.content());
         }
     }
 
@@ -243,6 +274,9 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         if((foundDoc!=null) && mode.equals(ImpactMode.ADD)){
             throw new DocumentAlreadyExistsException("Key <"+bucketDoc.id()+"> already existing in couchbase simulator");
         }
+
+        notifyListenerBeforeUpdate(mode,bucketDoc);
+
         if(foundDoc==null){
             foundDoc = new DocumentSimulator(this);
             foundDoc.setKey(bucketDoc.id());
@@ -281,14 +315,16 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 break;
         }
 
-        notifyUpdate(mode,foundDoc);
+        notifyDcpUpdate(mode,foundDoc);
 
         Document<T> result = getFromCache(bucketDoc.id(),docType);
         if(mode==ImpactMode.DELETE){
             dbContent.remove(bucketDoc.id());
         }
+        notifyListenerAfterUpdate(mode,result);
         return result;
     }
+
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String id,Class<T> entity) {
@@ -835,4 +871,18 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
 
     }
+
+
+    public boolean addOnWriteListener(ICouchbaseOnWriteListener listener){
+        return this.onWriteListeners.add(listener);
+    }
+
+    public boolean removeOnWriteListener(ICouchbaseOnWriteListener listener){
+        return this.onWriteListeners.remove(listener);
+    }
+
+
+
+
+
 }

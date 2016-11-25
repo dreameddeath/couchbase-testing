@@ -50,7 +50,7 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
     }
 
 
-    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T>  addTaskExecutorService(Class<T> entityClass, Class<ITaskExecutorService<TJOB,T>> serviceClass){
+    public <TJOB extends AbstractJob,T extends AbstractTask> ITaskExecutorService<TJOB,T>  addTaskExecutorService(Class<T> entityClass, Class<? extends ITaskExecutorService> serviceClass){
         try {
             ITaskExecutorService<TJOB,T> service =serviceClass.newInstance();
             addTaskExecutorServiceFor(entityClass,service);
@@ -88,7 +88,7 @@ public class ExecutorServiceFactory implements IExecutorServiceFactory {
         return getTaskExecutorServiceForClass(entityClass,entityClass);
     }
 
-    public <T extends AbstractJob> IJobExecutorService<T> addJobExecutorService(Class<T> entityClass, Class<IJobExecutorService<T>> serviceClass){
+    public <T extends AbstractJob> IJobExecutorService<T> addJobExecutorService(Class<T> entityClass, Class<? extends IJobExecutorService> serviceClass){
         try {
             IJobExecutorService<T> service =serviceClass.newInstance();
             addJobExecutorServiceFor(entityClass,service);

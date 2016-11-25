@@ -142,6 +142,6 @@ public class RxJavaInvoker {
 
 
     private <T> Observable<T> build(Future<T> future){
-        return Observable.from(future).observeOn(Schedulers.io());
+        return Observable.from(future).subscribeOn(Schedulers.io());
     }
 }

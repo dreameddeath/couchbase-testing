@@ -18,8 +18,11 @@
 
 package com.dreameddeath.core.process.service.impl.executor;
 
+import com.dreameddeath.core.couchbase.exception.StorageObservableException;
+import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.process.exception.IExecutionExceptionNoLog;
 import com.dreameddeath.core.process.exception.JobObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
@@ -38,6 +41,8 @@ import rx.schedulers.Schedulers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 
 
@@ -144,7 +149,30 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
 
     }
 
-    private void logError(JobContext<T> origCtxt, Throwable e) {
+    private void logError(JobContext<T> origCtxt, final Throwable orig) {
+        Throwable e=orig;
+        while(e!=null) {
+            if(e instanceof IExecutionExceptionNoLog) {
+                return;
+            }
+            else if (e instanceof JobObservableExecutionException) {
+                e = e.getCause();
+                //Skip JobExecutionException
+                if (e != null && e.getCause() != null) {
+                    e = e.getCause();
+                }
+            }
+            else if(e instanceof DaoObservableException && e.getCause()!=null){
+                e = e.getCause();
+            }
+            else if(e instanceof StorageObservableException && e.getCause()!=null) {
+                e = e.getCause();
+            }
+            else {
+                break;
+            }
+        }
+
         LOG.error("An error occurs during Job <"+origCtxt.toString()+">",e);
     }
 
@@ -204,20 +232,22 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
                 });
     }
 
-    private Observable<JobContext<T>> manageJobUpdatesRetry(JobContext<T> context) {
-        //TODO manage retry of jobUpdate calls
-        return Observable.just(context);
+    private Observable<JobContext<T>> manageJobUpdatesRetry(final JobContext<T> inCtxt) {
+        final ICouchbaseSession readOnlySession=inCtxt.getSession().getTemporaryReadOnlySession();
+        inCtxt.getInternalJob().getBaseMeta().unfreeze();
+
+        final Set<String> taskIdsUpdatedForTask= new TreeSet<>(inCtxt.getInternalJob().getJobUpdatedForTasks());
+        return inCtxt.getExecutedTasks()
+                .filter(task->!taskIdsUpdatedForTask.contains(task.getId()))
+                .toList()
+                .flatMap(listTasks->manageJobUpdateFromFilteredTasks(inCtxt,listTasks));
+
     }
 
     private Observable<JobTasksResult> executePendingTasks(JobContext<T> inCtxt){
         inCtxt.getInternalJob().getBaseMeta().freeze();
         return inCtxt.getNextExecutableTasks()
-                .flatMap(taskCtxt->{
-                    if(taskCtxt.isNew()){return taskCtxt.asyncSave();}
-                    else{return Observable.just(taskCtxt);}
-                })
-                .observeOn(Schedulers.computation())
-                .flatMap(TaskContext::execute)
+                .flatMap(this::runTask)
                 .toList()
                 .switchIfEmpty(Observable.just(Collections.emptyList()))
                 .flatMap(listExecutedTasks->manageJobUpdate(inCtxt,listExecutedTasks))
@@ -232,21 +262,45 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
                 ;
     }
 
-    private Observable<JobTasksResult> manageJobUpdate(JobContext<T> inCtxt, List<TaskContext<T, AbstractTask>> listExecutedTasks) {
+    private Observable<TaskContext<T,AbstractTask>> runTask(TaskContext<T,AbstractTask> origTask){
+       return Observable.just(origTask)
+                .flatMap(taskCtxt->{
+                    if(taskCtxt.isNew()){return taskCtxt.asyncSave();}
+                    else{return Observable.just(taskCtxt);}
+                })
+                .subscribeOn(Schedulers.computation())
+                .flatMap(TaskContext::execute);
+    }
+
+    private Observable<JobContext<T>> manageJobUpdateFromFilteredTasks(JobContext<T> inCtxt,List<TaskContext<T, AbstractTask>> listExecutedTasks){
         final ICouchbaseSession readOnlySession=inCtxt.getSession().getTemporaryReadOnlySession();
-        inCtxt.getInternalJob().getBaseMeta().unfreeze();
+        final T job = inCtxt.getInternalJob();
+        job.getBaseMeta().unfreeze();
         return Observable.from(listExecutedTasks)
-                .flatMap(taskCtxt->taskCtxt.getProcessingService().updatejob(inCtxt.getInternalJob(),taskCtxt.getInternalTask(),readOnlySession))
-                .map(resultUpdate->resultUpdate.getJob().addJobUpdatedForTask(resultUpdate.getTask().getId()))
-                .toList()
-                .flatMap(listJobUpdatedResult->{
-                    if(listJobUpdatedResult.stream().filter(b->b).count()>0) {
-                        return inCtxt.asyncSave();
-                    }
-                    else{
-                        return Observable.just(inCtxt);
+                .flatMap(taskCtxt->{
+                    synchronized (job){
+                        return taskCtxt.getProcessingService().updatejob(job,taskCtxt.getInternalTask(),readOnlySession);
                     }
                 })
+                .map(resultUpdate->{
+                    synchronized (job){
+                        return job.addJobUpdatedForTask(resultUpdate.getTask().getId());
+                    }
+                })
+                .toList()
+                .flatMap(listJobUpdatedResult->{
+                    JobContext<T> jobContext = JobContext.newContext(new JobContext.Builder<>(job,inCtxt));
+                    if(listJobUpdatedResult.stream().filter(b->b).count()>0) {
+                        return jobContext.asyncSave();
+                    }
+                    else{
+                        return Observable.just(jobContext);
+                    }
+                });
+    }
+
+    private Observable<JobTasksResult> manageJobUpdate(JobContext<T> inCtxt, List<TaskContext<T, AbstractTask>> listExecutedTasks) {
+        return manageJobUpdateFromFilteredTasks(inCtxt,listExecutedTasks)
                 .map(savedJobContext->new JobTasksResult(savedJobContext,listExecutedTasks));
 
     }
