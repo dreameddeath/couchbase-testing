@@ -149,14 +149,17 @@ public class RxJavaInvoker {
                     public void completed(Response o) {
                         if(responseType==null){
                             emitter.onNext((T) o);
+                            emitter.onCompleted();
                         }
                         else {
                             try {
                                 emitter.onNext(o.readEntity(responseType));
+                                emitter.onCompleted();
                             } catch (Throwable e) {
                                 emitter.onError(e);
                             }
                         }
+
                     }
 
                     @Override
