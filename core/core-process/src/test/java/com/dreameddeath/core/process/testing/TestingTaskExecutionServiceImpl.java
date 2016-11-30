@@ -95,7 +95,10 @@ public class TestingTaskExecutionServiceImpl<TJOB extends AbstractJob,T extends 
         private final TaskContext<TJOB, T> origContext;
         private TaskErrorState nextErrorState =TaskErrorState.ERROR_BEFORE_SAVE_TASK;
         private ProcessState.State lastStateStartErrorLoop=null;
+        private ProcessState.State maxStateReached=null;
         private int currStateNbErrorLoop=0;
+        private int nbMultipleConsecutiveSaves=0;
+        private int nbMaxReachedReattempt=0;
 
         public TestingFailureGeneratorWriteListener(TaskContext<TJOB, T> origCtxt) {
             this.origContext =origCtxt;
@@ -121,14 +124,35 @@ public class TestingTaskExecutionServiceImpl<TJOB extends AbstractJob,T extends 
                 if(nextErrorState==TaskErrorState.ERROR_BEFORE_SAVE_TASK){
                     if(currTaskState==lastStateStartErrorLoop){
                         currStateNbErrorLoop++;
-                        if(currStateNbErrorLoop>10){
-                            currStateNbErrorLoop=0;
+                        if(currStateNbErrorLoop>5*5){
+                            throw new IllegalStateException("too many attempt");
+                        }
+                        if(currStateNbErrorLoop%5==0){
+                            nbMultipleConsecutiveSaves+=currStateNbErrorLoop/5;
+                        }
+                        if(nbMultipleConsecutiveSaves>0){
+                            nbMultipleConsecutiveSaves--;
                             return;
                         }
                     }
                     else{
                         lastStateStartErrorLoop=currTaskState;
+                        if(maxStateReached==null || lastStateStartErrorLoop.ordinal()>maxStateReached.ordinal()){
+                            maxStateReached=currTaskState;
+                            nbMaxReachedReattempt=0;
+                        }
+                        else{
+                            nbMaxReachedReattempt++;
+                        }
                         currStateNbErrorLoop=0;
+                        nbMultipleConsecutiveSaves=0;
+                        if(nbMaxReachedReattempt>10){
+                            throw new IllegalStateException("too many attempt");
+                        }
+                        if(nbMaxReachedReattempt>2){
+                            return;
+                        }
+
                     }
                     nextErrorState = TaskErrorState.ERROR_AFTER_SAVE_TASK;
                     throw new FakeStorageException();

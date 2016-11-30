@@ -22,6 +22,7 @@ import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.TestDoc;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateOrUpdateTask;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.validation.annotation.NotNull;
@@ -47,5 +48,21 @@ public class TestDocJobCreate extends AbstractJob {
 
     @DocumentEntity(domain = "test",version = "1.0")
     public static class TestJobUpdateTask extends DocumentUpdateTask<TestDoc>{
+    }
+
+    @DocumentEntity(domain = "test",version = "1.0")
+    public static class TestJobCreateUpdateTaskForNew extends DocumentCreateOrUpdateTask<TestDoc> {
+    }
+
+    @DocumentEntity(domain = "test",version = "1.0")
+    public static class TestJobCreateUpdateTaskForExisting extends DocumentCreateOrUpdateTask<TestDoc> {
+        @DocumentProperty
+        public boolean fromRead;
+
+        public TestJobCreateUpdateTaskForExisting() {}
+
+        public TestJobCreateUpdateTaskForExisting(boolean fromRead){
+            this.fromRead = fromRead;
+        }
     }
 }

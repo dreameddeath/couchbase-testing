@@ -18,16 +18,19 @@
 
 package com.dreameddeath.core.process.services;
 
+import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
 import com.dreameddeath.core.process.model.TestDoc;
 import com.dreameddeath.core.process.model.TestDocEvent;
 import com.dreameddeath.core.process.service.context.*;
+import com.dreameddeath.core.process.service.impl.processor.DocumentCreateOrUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
 import com.dreameddeath.core.process.services.model.TestDocJobCreate;
+import com.google.common.base.Preconditions;
 import rx.Observable;
 
 /**
@@ -37,9 +40,11 @@ import rx.Observable;
 public class TestJobCreateService extends StandardJobProcessingService<TestDocJobCreate> {
     @Override
     public Observable<JobProcessingResult<TestDocJobCreate>> init(JobContext<TestDocJobCreate> context){
-        context.addTask(new TestDocJobCreate.TestJobCreateTask())
+        TaskContext<TestDocJobCreate,?> updateTask=context.addTask(new TestDocJobCreate.TestJobCreateTask())
                 .chainWith(new TestDocJobCreate.TestJobUpdateTask());
-                //.chainWith(new TestDocJobCreate.TestDocSubJobCreateTask());
+        updateTask.chainWith(new TestDocJobCreate.TestJobCreateUpdateTaskForNew());
+        updateTask.chainWith(new TestDocJobCreate.TestJobCreateUpdateTaskForExisting(true))
+                .chainWith(new TestDocJobCreate.TestJobCreateUpdateTaskForExisting(false));
         return JobProcessingResult.build(context,false);
     }
 
@@ -94,5 +99,73 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
                     .flatMap(taskNotifEvent->TaskNotificationBuildResult.build(taskNotifEvent,event));
         }
     }
+
+
+    @TaskProcessingForClass(TestDocJobCreate.TestJobCreateUpdateTaskForNew.class)
+    public static class TestJobCreateUpdateTaskForNewService extends DocumentCreateOrUpdateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobCreateUpdateTaskForNew>{
+        @Override
+        protected Observable<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForNew> taskContext) {
+            return new FindAndGetResult(taskContext,null).toObservable();
+        }
+
+        @Override
+        protected Observable<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForNew> taskContext) {
+            TestDoc newDoc = new TestDoc();
+            newDoc.name = taskContext.getParentInternalJob().name+"ForNew";
+            newDoc.intValue = 0;
+            return buildContextAndDocumentObservable(taskContext,newDoc);
+        }
+
+        @Override
+        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxt) {
+            ctxt.getDoc().intValue += ctxt.getCtxt().getParentInternalJob().initIntValue;
+            return new ProcessingDocumentResult(false,ctxt).toObservable();
+        }
+
+        @Override
+        protected Observable<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
+            return ctxt.getCtxt().getSession().asyncGet(e.getOwnerDocumentKey(), TestDoc.class)
+                    .map(doc->new DuplicateUniqueKeyCheckResult(ctxt.getCtxt(),doc));
+        }
+    }
+
+
+    @TaskProcessingForClass(TestDocJobCreate.TestJobCreateUpdateTaskForExisting.class)
+    public static class TestJobCreateUpdateTaskForExistingService extends DocumentCreateOrUpdateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobCreateUpdateTaskForExisting>{
+        @Override
+        protected Observable<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForExisting> taskContext) {
+            if(taskContext.getInternalTask().fromRead){
+                return taskContext.getDependentTask(TestDocJobCreate.TestJobCreateTask.class)
+                        .flatMap(testJobCreateTask -> testJobCreateTask.getDocument(taskContext.getSession()))
+                        .map(testDoc->new FindAndGetResult(taskContext,testDoc));
+            }
+            else {
+                return new FindAndGetResult(taskContext, null).toObservable();
+            }
+        }
+
+        @Override
+        protected Observable<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForExisting> taskContext) {
+            TestDoc newDoc = new TestDoc();
+            newDoc.name = taskContext.getParentInternalJob().name;
+            newDoc.intValue = 0;
+            return buildContextAndDocumentObservable(taskContext,newDoc);
+        }
+
+        @Override
+        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxt) {
+            ctxt.getDoc().intValue += ctxt.getCtxt().getParentInternalJob().initIntValue;
+            return new ProcessingDocumentResult(false,ctxt).toObservable();
+        }
+
+        @Override
+        protected Observable<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
+            TestDocJobCreate.TestJobCreateTask testJobCreateTask = ctxt.getCtxt().getDependentTask(TestDocJobCreate.TestJobCreateTask.class).toBlocking().first();
+            Preconditions.checkArgument(testJobCreateTask.getDocKey().equals(e.getOwnerDocumentKey()));
+            return ctxt.getCtxt().getSession().asyncGet(e.getOwnerDocumentKey(), TestDoc.class)
+                    .map(doc->new DuplicateUniqueKeyCheckResult(ctxt.getCtxt(),doc));
+        }
+    }
+
 
 }

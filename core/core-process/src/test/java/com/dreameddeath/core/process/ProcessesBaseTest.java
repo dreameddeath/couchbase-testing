@@ -130,10 +130,8 @@ public class ProcessesBaseTest extends Assert {
         discoverer.start();
 
         bus.start();
-
         executorClientFactory = new ExecutorClientFactory(sessionFactory,execFactory,processFactory,bus,null,jobRegistrar,taskRegistrar);
     }
-
 
     @Test
     public void runTest() throws Exception {
@@ -146,15 +144,14 @@ public class ProcessesBaseTest extends Assert {
         job.name = "testValu1";
         job.tempUid = UUID.randomUUID().toString();
         JobContext<TestDocJobCreate> context = jobClient.executeJob(job, AnonymousUser.INSTANCE).toBlocking().single();
-
         assertTrue(context.getJobState().isDone());
         TestDocJobCreate.TestJobCreateTask createJobTask = context.getTasks(TestDocJobCreate.TestJobCreateTask.class).get(0).getInternalTask();
         assertEquals(createJobTask.getDocKey(),context.getInternalJob().createdKey);
         TestDoc createdDoc = cbSimulator.toBlocking().get(createJobTask.getDocKey(), TestDoc.class);
-        assertEquals(new Integer(2*job.initIntValue), createdDoc.intValue);
+        assertEquals(new Integer(job.initIntValue/*create*/*2/*update*/+job.initIntValue/*updateFromRead*/+job.initIntValue/*updateFromDuplicate*/), createdDoc.intValue);
         assertEquals(job.name, createdDoc.name);
         assertEquals(2,createJobTask.getNotifications().size());
-        for(EventLink link:createJobTask.getNotifications()) {
+        for(EventLink link:createJobTask.getNotifications()){
             try {
                 ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, AnonymousUser.INSTANCE);
                 Event event = link.getEvent(session).toBlocking().single();
@@ -173,6 +170,8 @@ public class ProcessesBaseTest extends Assert {
         assertEquals(2,TestDocNotificationListener.mapCounter.size());
         assertEquals(1,TestDocNotificationListener.mapCounter.get("Create").get());
         assertEquals(1,TestDocNotificationListener.mapCounter.get("Update").get());
+
+
     }
 
     @AfterClass

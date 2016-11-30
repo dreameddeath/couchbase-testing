@@ -47,6 +47,7 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
                     .flatMap(this::manageCleanupBeforeRetry)
                     .flatMap(this::manageProcessDocument)
                     .flatMap(this::managePostProcessing)
+                    .flatMap(this::saveDoc)
                     .map(ctxtAndDoc -> new TaskProcessingResult<>(ctxtAndDoc.getCtxt(), false))
                     .onErrorResumeNext(throwable -> this.manageError(throwable,origCtxt,false));
         }
@@ -55,7 +56,7 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         }
     }
 
-    private Observable<TaskProcessingResult<TJOB, T>> manageError(Throwable throwable, TaskContext<TJOB, T> origCtxt,boolean isPreparation) {
+    protected Observable<TaskProcessingResult<TJOB, T>> manageError(Throwable throwable, TaskContext<TJOB, T> origCtxt,boolean isPreparation) {
         if(throwable instanceof AlreadyUpdatedTaskObservableException){
             AlreadyUpdatedTaskObservableException e=(AlreadyUpdatedTaskObservableException)throwable;
             return TaskProcessingResult.build(e.getCtxt(),true);
@@ -68,22 +69,22 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         }
     }
 
-    private Observable<ProcessingDocumentResult> manageProcessDocument(ContextAndDocument contextAndDocument) {
+    protected Observable<ProcessingDocumentResult> manageProcessDocument(ContextAndDocument contextAndDocument) {
         return processDocument(new ContextAndDocument(contextAndDocument.getDoc(),contextAndDocument.getCtxt().getTemporaryReadOnlySessionContext()))
                 .map(resProcessing->new ProcessingDocumentResult(resProcessing.isTaskUpdated(),resProcessing.getDocUpdated(),resProcessing.getCtxt().getStandardSessionContext()));
     }
 
-    private Observable<ContextAndDocument> managePostProcessing(ProcessingDocumentResult processingDocumentResult) {
+    protected Observable<ContextAndDocument> managePostProcessing(ProcessingDocumentResult processingDocumentResult) {
         if(processingDocumentResult.isTaskUpdated()){
             return saveContext(processingDocumentResult.ctxtAndDoc)
-                    .flatMap(this::attachTaskDefAndSaveDoc);
+                    .flatMap(this::attachTaskDef);
         }
         else{
-            return attachTaskDefAndSaveDoc(processingDocumentResult.ctxtAndDoc);
+            return attachTaskDef(processingDocumentResult.ctxtAndDoc);
         }
     }
 
-    private Observable<ContextAndDocument> attachTaskDefAndSaveDoc(ContextAndDocument contextAndDocument){
+    protected Observable<ContextAndDocument> attachTaskDef(ContextAndDocument contextAndDocument){
         try {
             CouchbaseDocumentAttachedTaskRef attachedTaskRef = new CouchbaseDocumentAttachedTaskRef();
             attachedTaskRef.setJobUid(contextAndDocument.getCtxt().getJobContext().getJobId());
@@ -91,14 +92,12 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
             attachedTaskRef.setTaskId(contextAndDocument.getCtxt().getId());
             attachedTaskRef.setTaskClass(contextAndDocument.getCtxt().getTaskClass().getName());
             contextAndDocument.getDoc().addAttachedTaskRef(attachedTaskRef);
-            return saveDoc(contextAndDocument);
+            return Observable.just(contextAndDocument);
         }
         catch(DuplicateAttachedTaskException e){
             return Observable.error(new TaskObservableExecutionException(contextAndDocument.getCtxt(),"DuplicateTask attachement",e));
         }
-
     }
-
 
     /**
      * Allow a clean up of task result before retry the processing of the document
@@ -113,14 +112,15 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
                 .map(doc->new ContextAndDocument(doc,ctxt));
     }
 
-    private Observable<ContextAndDocument> manageCleanupBeforeRetry(final ContextAndDocument ctxtAndDoc){
+    protected Observable<ContextAndDocument> manageCleanupBeforeRetry(final ContextAndDocument ctxtAndDoc){
         CouchbaseDocumentAttachedTaskRef reference=ctxtAndDoc.getDoc().getAttachedTaskRef(ctxtAndDoc.ctxt.getInternalTask());
         if(reference!=null) {
             return Observable.<ContextAndDocument>error(new AlreadyUpdatedTaskObservableException(ctxtAndDoc.getCtxt(),ctxtAndDoc.getDoc()));
         }
         else{
             if(ctxtAndDoc.getCtxt().isNew()){
-                return saveContext(ctxtAndDoc).flatMap(this::performTaskCleanup);
+                return saveContext(ctxtAndDoc)
+                        .flatMap(this::performTaskCleanup);
             }
             else{
                 return performTaskCleanup(ctxtAndDoc);
@@ -128,10 +128,14 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         }
     }
 
+
     private Observable<ContextAndDocument> performTaskCleanup(final ContextAndDocument origCtxtAndDoc){
         if(origCtxtAndDoc.getCtxt().getInternalTask().getUpdatedWithDoc()){
             return cleanTaskBeforeRetryProcessing(origCtxtAndDoc)
-            .map(ctxtAndDoc->{ctxtAndDoc.getCtxt().getInternalTask().setUpdatedWithDoc(false);return ctxtAndDoc;})
+            .map(ctxtAndDoc->{
+                ctxtAndDoc.getCtxt().getInternalTask().setUpdatedWithDoc(false);
+                return ctxtAndDoc;
+            })
             .flatMap(this::saveContext);
         }
         else{
@@ -139,11 +143,11 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         }
     }
 
-    private Observable<ContextAndDocument> saveContext(final ContextAndDocument ctxtAndDoc){
+    protected Observable<ContextAndDocument> saveContext(final ContextAndDocument ctxtAndDoc){
         return ctxtAndDoc.getCtxt().asyncSave().map(ctxt->new ContextAndDocument(ctxtAndDoc.getDoc(),ctxt));
     }
 
-    private Observable<ContextAndDocument> saveDoc(final ContextAndDocument ctxtAndDoc){
+    protected Observable<ContextAndDocument> saveDoc(final ContextAndDocument ctxtAndDoc){
         return ctxtAndDoc.getCtxt().getSession().asyncSave(ctxtAndDoc.getDoc()).map(doc->new ContextAndDocument(doc,ctxtAndDoc.getCtxt()));
     }
 
@@ -186,7 +190,6 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
             this.taskUpdated = taskUpdated;
         }
 
-
         public boolean isTaskUpdated() {
             return taskUpdated;
         }
@@ -197,6 +200,10 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
 
         public TaskContext<TJOB, T> getCtxt() {
             return ctxtAndDoc.getCtxt();
+        }
+
+        public ContextAndDocument getCtxtAndDoc(){
+            return ctxtAndDoc;
         }
 
         public Observable<ProcessingDocumentResult> toObservable(){
@@ -212,6 +219,12 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
             this.doc = doc;
             this.ctxt = ctxt;
         }
+
+        protected ContextAndDocument(TaskContext<TJOB, T> ctxt,TDOC doc) {
+            this.doc = doc;
+            this.ctxt = ctxt;
+        }
+
 
         public TDOC getDoc() {
             return doc;

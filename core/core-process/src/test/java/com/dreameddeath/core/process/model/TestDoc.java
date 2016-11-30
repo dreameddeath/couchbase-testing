@@ -21,13 +21,14 @@ package com.dreameddeath.core.process.model;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractProcessCouchbaseDocument;
+import com.dreameddeath.core.validation.annotation.Unique;
 
 /**
  * Created by Christophe Jeunesse on 01/11/2016.
  */
 @DocumentEntity(domain = "test",version = "1.0")
 public class TestDoc extends AbstractProcessCouchbaseDocument {
-    @DocumentProperty
+    @DocumentProperty @Unique(nameSpace = "testDoc")
     public String name;
     @DocumentProperty
     public Integer intValue;
