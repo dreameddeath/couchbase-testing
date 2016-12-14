@@ -1,6 +1,7 @@
 package com.dreameddeath.installedbase.process.model.v1;
 
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
@@ -12,6 +13,7 @@ import org.joda.time.DateTime;
 /**
  * Created by Christophe Jeunesse on 22/03/2016.
  */
+@DocumentEntity
 public class StatusUpdateResult extends VersionedDocumentElement{
     /**
      *  action : The action on the status

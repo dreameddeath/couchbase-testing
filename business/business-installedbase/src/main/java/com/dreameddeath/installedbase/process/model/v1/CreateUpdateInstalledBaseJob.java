@@ -80,6 +80,11 @@ public class CreateUpdateInstalledBaseJob extends AbstractJob{
          */
         @DocumentProperty("tempContractId")
         private Property<String> tempContractId = new StandardProperty<>(UpdateInstalledBaseTask.this);
+        /**
+         *  updateResult : result of the update
+         */
+        @DocumentProperty("updateResult")
+        private Property<InstalledBaseUpdateResult> updateResult = new StandardProperty<>(UpdateInstalledBaseTask.this);
 
         // contractUid accessors
         public String getContractUid() { return contractUid.get(); }
@@ -95,6 +100,17 @@ public class CreateUpdateInstalledBaseJob extends AbstractJob{
          * @param val the new value of tempContractId
          */
         public void setTempContractId(String val) { tempContractId.set(val); }
+
+        /**
+         * Getter of updateResult
+         * @return the value of updateResult
+         */
+        public InstalledBaseUpdateResult getUpdateResult() { return updateResult.get(); }
+        /**
+         * Setter of updateResult
+         * @param val the new value of updateResult
+         */
+        public void setUpdateResult(InstalledBaseUpdateResult val) { updateResult.set(val); }
 
     }
 }

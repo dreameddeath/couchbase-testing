@@ -127,7 +127,8 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE).toBlocking().single();
 
             ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().blockingGetDocument(session);
+            CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask updateInstalledBaseTask =session.asyncGet(createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().getBaseMeta().getKey(),CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).toBlocking().single();
+            InstalledBase installedBase = updateInstalledBaseTask.blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);
             assertNotNull(installedBase.getContract());
             assertEquals(4,installedBase.getOffers().size());
@@ -147,7 +148,8 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
 
             JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE).toBlocking().single();
             ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
-            InstalledBase installedBase = createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().blockingGetDocument(session);
+            CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask updateInstalledBaseTask =session.asyncGet(createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().getBaseMeta().getKey(),CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).toBlocking().single();
+            InstalledBase installedBase = updateInstalledBaseTask.blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);
             assertNotNull(installedBase.getContract());
             assertEquals(4,installedBase.getOffers().size());

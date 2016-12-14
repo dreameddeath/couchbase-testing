@@ -36,6 +36,7 @@ import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBase
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseRequest;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseResponse;
+import com.dreameddeath.installedbase.process.model.v1.InstalledBaseUpdateResult;
 import com.dreameddeath.installedbase.service.ICreateUpdateInstalledBaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
@@ -156,8 +157,9 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
             if(refContract==null){
                 return Observable.error(new TaskObservableExecutionException(ctxtAndDoc.getCtxt(),"Inconsistent State, cannot find Contract in installed base "+ctxtAndDoc.getCtxt().getInternalTask().getDocKey()));
             }
-            service.manageCreateUpdate(ctxtAndDoc.getCtxt().getParentInternalJob().getRequest(),ctxtAndDoc.getDoc(),refContract);
-            return new ProcessingDocumentResult(ctxtAndDoc,false).toObservable();
+            InstalledBaseUpdateResult updateResult = service.manageCreateUpdate(ctxtAndDoc.getCtxt().getParentInternalJob().getRequest(),ctxtAndDoc.getDoc(),refContract);
+            ctxtAndDoc.getCtxt().getInternalTask().setUpdateResult(updateResult);
+            return new ProcessingDocumentResult(ctxtAndDoc,true).toObservable();
         }
 
         @Override

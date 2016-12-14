@@ -1,5 +1,6 @@
 package com.dreameddeath.installedbase.process.model.v1;
 
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 22/03/2016.
  */
+@DocumentEntity
 public class LinkUpdateResult extends CouchbaseDocumentElement {
     /**
      *  targetId : target of the link

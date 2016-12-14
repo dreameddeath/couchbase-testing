@@ -1,6 +1,7 @@
 package com.dreameddeath.installedbase.process.model.v1;
 
 import com.dreameddeath.core.business.model.VersionedDocumentElement;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -9,6 +10,7 @@ import com.dreameddeath.installedbase.model.v1.common.InstalledItemRevision;
 /**
  * Created by Christophe Jeunesse on 01/04/2016.
  */
+@DocumentEntity
 public class RevisionUpdateResult  extends VersionedDocumentElement {
     /**
      *  action : Type of action applied
