@@ -48,6 +48,7 @@ public abstract class BusinessDocumentLink<T extends CouchbaseDocument> extends 
         }
         return keyVal;
     }
+
     public final void setKey(String key){
         Preconditions.checkNotNull(key);
         this.key.set(key);

@@ -32,6 +32,7 @@ import com.dreameddeath.core.service.utils.ServiceInstanceSerializerImpl;
 import com.dreameddeath.core.service.utils.ServiceNamingUtils;
 import com.dreameddeath.core.service.utils.UriUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
@@ -56,7 +57,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
     private final ConcurrentMap<String,ProviderInfo> serviceProviderMap=new ConcurrentHashMap<>();
     private final List<IServiceDiscovererListener> listeners=new CopyOnWriteArrayList<>();
     private final String domain;
-    private final String serviceType;
+    private final String serviceTechnicalType;
     private final CountDownLatch started = new CountDownLatch(1);
 
     private class ProviderInfo{
@@ -71,15 +72,15 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
 
     @Override
     protected void preparePath() {
-        ServiceNamingUtils.buildServiceDiscovererDomain(getClient(),domain,serviceType);
+        ServiceNamingUtils.buildServiceDiscovererDomain(getClient(),domain, serviceTechnicalType);
         super.preparePath();
     }
 
     protected abstract Class<T> getDescriptionClass();
 
-    public AbstractServiceDiscoverer(final CuratorFramework client, final String domain,String serviceType){
-        super(client,ServiceNamingUtils.buildServiceDomainPathName(domain,serviceType, ServiceNamingUtils.DomainPathType.SERVER));
-        this.serviceType = serviceType;
+    public AbstractServiceDiscoverer(final CuratorFramework client, final String domain,String serviceTechnicalType){
+        super(client,ServiceNamingUtils.buildServiceDomainPathName(domain, serviceTechnicalType, ServiceNamingUtils.DomainPathType.SERVER));
+        this.serviceTechnicalType = serviceTechnicalType;
         this.domain = domain;
         this.serviceDiscovery = ServiceDiscoveryBuilder.builder(getDescriptionClass())
                 .serializer((InstanceSerializer<T>)new ServiceInstanceSerializerImpl())
@@ -298,7 +299,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
             if(foundServiceInfoDescription ==null){
                 foundServiceInfoDescription  = new ServiceInfoDescription();
                 foundServiceInfoDescription.setName(name);
-                foundServiceInfoDescription.setType(serviceType);
+                foundServiceInfoDescription.setTechType(serviceTechnicalType);
                 mapServiceByName.put(name,foundServiceInfoDescription);
             }
 
@@ -306,6 +307,14 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
             ServiceInfoVersionDescription<TSPEC> foundServiceVersionInfoDescription = foundServiceInfoDescription.addIfNeededServiceVersionInfoDescriptionMap(version, new ServiceInfoVersionDescription());
             try {
                 for (ServiceInstance<T> instance : entry.getValue().providerSupplier.getServiceProvider().getAllInstances()) {
+                    if(foundServiceInfoDescription.getFuncType()==null){
+                        foundServiceInfoDescription.setFuncType(instance.getPayload().getType());
+                    }
+                    else{
+                        String currentType=foundServiceInfoDescription.getFuncType();
+                        String instanceType = instance.getPayload().getType();
+                        Preconditions.checkArgument(currentType.equalsIgnoreCase(instanceType),"Cannot have multiple functional Type for service %s (%s vs %s)",fullName,currentType,instanceType);
+                    }
                     if(foundServiceVersionInfoDescription.getFullName()==null){
                         foundServiceVersionInfoDescription.setFullName(fullName);
                         foundServiceVersionInfoDescription.setState(instance.getPayload().getState());
@@ -381,8 +390,8 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         return buildInstanceDescription(this.getInstance(fullName,id));
     }
 
-    public String getServiceType() {
-        return serviceType;
+    public String getServiceTechnicalType() {
+        return serviceTechnicalType;
     }
 
 }

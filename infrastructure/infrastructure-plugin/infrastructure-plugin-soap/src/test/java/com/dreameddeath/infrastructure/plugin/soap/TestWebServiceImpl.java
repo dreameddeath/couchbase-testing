@@ -30,7 +30,7 @@ import javax.jws.WebParam;
 /**
  * Created by Christophe Jeunesse on 09/09/2016.
  */
-@ServiceDef(domain = "test",name = "soapTest",version = "1.0")
+@ServiceDef(domain = "test",type="test",name = "soapTest",version = "1.0")
 public class TestWebServiceImpl extends AbstractSoapExposableService implements TestWebService {
     @Override
     public TestResponse testOperation(@WebParam(partName = "parameters", name = "TestRequest", targetNamespace = "http://www.dreameddeath.com/Interfaces/test/v0/data/in") TestRequest parameters) throws TestFault {

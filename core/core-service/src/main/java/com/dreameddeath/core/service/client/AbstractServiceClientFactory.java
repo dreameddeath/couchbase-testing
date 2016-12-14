@@ -56,7 +56,7 @@ public abstract class AbstractServiceClientFactory<TCLIENT extends IServiceClien
         instanceInfo.setCreationDate(DateTime.now());
         instanceInfo.setServiceName(client.getFullName());
         instanceInfo.setUid(client.getUuid().toString());
-        instanceInfo.setServiceType(serviceDiscoverer.getServiceType());
+        instanceInfo.setServiceType(serviceDiscoverer.getServiceTechnicalType());
         try {
             String path=clientRegistrar.register(instanceInfo);
             LOG.info("Registering client for service {} on path {}",client.getFullName(),path);

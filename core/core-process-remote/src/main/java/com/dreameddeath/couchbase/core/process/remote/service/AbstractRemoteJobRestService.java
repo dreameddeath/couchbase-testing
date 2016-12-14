@@ -42,12 +42,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
 
-import javax.ws.rs.*;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -57,6 +57,7 @@ import java.lang.reflect.InvocationTargetException;
  */
 public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ,TRESP> extends AbstractRestExposableService {
     private final static Logger LOG = LoggerFactory.getLogger(AbstractRemoteJobRestService.class);
+    public static final String SERVICE_TYPE="process";
     public static final String REQUEST_UID_QUERY_PARAM = "requestUid";
     public static final String SUBMIT_ONLY_QUERY_PARAM = "submitOnly";
     private final Class<TJOB> jobClass;
@@ -113,13 +114,11 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
         }
     }
 
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    public void runJobCreate(@Context IUser user,
-                                 @QueryParam(SUBMIT_ONLY_QUERY_PARAM) Boolean submitOnly,
-                                 @QueryParam(REQUEST_UID_QUERY_PARAM) String requestUid,
+    public void doRunJobCreate(IUser user,
+                                 Boolean submitOnly,
+                                 String requestUid,
                                  TREQ request,
-                                 @Suspended final AsyncResponse asyncResponse){
+                                 final AsyncResponse asyncResponse){
         try {
             TJOB job = buildJobFromRequest(request);
             if(StringUtils.isNotEmpty(requestUid)){
@@ -167,12 +166,9 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
         }
     }
 
-    @GET
-    @Path("/{uid}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public void getJob(@Context IUser user,
-                           @PathParam("uid") String uid,
-                           @Suspended AsyncResponse asyncResponse) {
+    public void doGetJob(IUser user,
+                       String uid,
+                       AsyncResponse asyncResponse) {
         try {
             ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
             ProcessUtils.asyncLoadJob(session, uid, jobClass)
@@ -187,14 +183,12 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
         }
     }
 
-    @PUT
-    @Path("/{uid}/{action:cancel|resume}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public void updateJob(@Context final IUser user,
-                                @PathParam("uid") final String uid,
-                                @QueryParam(REQUEST_UID_QUERY_PARAM) final String requestUid,
-                                @PathParam("action") final ActionRequest actionRequest,
-                                @Suspended final AsyncResponse asyncResponse){
+    public void doUpdateJob(final IUser user,
+                            final String uid,
+                            final String requestUid,
+                            final ActionRequest actionRequest,
+                            AsyncResponse asyncResponse)
+    {
         if(actionRequest==null){
             asyncResponse.resume(new BadRequestException("The action is inconsistent"));
         }

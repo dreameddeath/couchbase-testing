@@ -36,7 +36,7 @@ import javax.ws.rs.HttpMethod;
 /**
  * Created by Christophe Jeunesse on 05/03/2015.
  */
-@ExposeService(path="/TestServiceGen",domain = "test",name = "testServiceGen",version = "1.0",status = VersionStatus.STABLE)
+@ExposeService(path="/TestServiceGen",type="test",domain = "test",name = "testServiceGen",version = "1.0",status = VersionStatus.STABLE)
 public class TestServiceGenImpl implements ITestService {
     @Override
     @ExposeMethod(

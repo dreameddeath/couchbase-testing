@@ -48,7 +48,7 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
     private final ProcessorClientPreInit executorClientsPreInit;
     private final IRemoteClientFactory remoteClientFactory;
 
-    public ProcessesWebServerPlugin(AbstractWebServer server,Builder builder) {
+    public ProcessesWebServerPlugin(AbstractWebServer<?> server,Builder builder) {
         super(server);
         CouchbaseWebServerPlugin couchbasePlugin = server.getPlugin(CouchbaseWebServerPlugin.class);
         NotificationWebServerPlugin notificationWebServerPlugin=server.getPlugin(NotificationWebServerPlugin.class);

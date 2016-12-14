@@ -105,7 +105,7 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
     public static class TestJobCreateUpdateTaskForNewService extends DocumentCreateOrUpdateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobCreateUpdateTaskForNew>{
         @Override
         protected Observable<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForNew> taskContext) {
-            return new FindAndGetResult(taskContext,null).toObservable();
+            return new FindAndGetResult(taskContext).toObservable();
         }
 
         @Override
@@ -140,7 +140,7 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
                         .map(testDoc->new FindAndGetResult(taskContext,testDoc));
             }
             else {
-                return new FindAndGetResult(taskContext, null).toObservable();
+                return new FindAndGetResult(taskContext).toObservable();
             }
         }
 

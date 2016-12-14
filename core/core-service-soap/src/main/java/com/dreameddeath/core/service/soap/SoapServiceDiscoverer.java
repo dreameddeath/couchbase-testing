@@ -40,6 +40,8 @@ public class SoapServiceDiscoverer extends AbstractServiceDiscoverer<String,Soap
 
     @Override
     protected ServiceInstanceDescription buildInstanceDescription(ServiceInstance<SoapCuratorDiscoveryServiceDescription> instance) {
-        return new SoapServiceInstanceDescription(instance);
+        SoapServiceInstanceDescription soapServiceInstanceDescription = new SoapServiceInstanceDescription(instance);
+
+        return soapServiceInstanceDescription;
     }
 }

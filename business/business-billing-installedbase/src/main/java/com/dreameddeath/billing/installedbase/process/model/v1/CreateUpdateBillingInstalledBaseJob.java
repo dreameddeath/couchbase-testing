@@ -19,12 +19,32 @@
 package com.dreameddeath.billing.installedbase.process.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 
 /**
  * Created by Christophe Jeunesse on 16/11/2016.
  */
-@DocumentEntity()
+@DocumentEntity
 public class CreateUpdateBillingInstalledBaseJob extends AbstractJob{
+    /**
+     *  installedBaseKey : the installed base orig key
+     */
+    @DocumentProperty("installedBaseKey")
+    private Property<String> installedBaseKey = new ImmutableProperty<>(CreateUpdateBillingInstalledBaseJob.this);
+
+    /**
+     * Getter of installedBaseKey
+     * @return the value of installedBaseKey
+     */
+    public String getInstalledBaseKey() { return installedBaseKey.get(); }
+    /**
+     * Setter of installedBaseKey
+     * @param val the new value for installedBaseKey
+     */
+    public void setInstalledBaseKey(String val) { installedBaseKey.set(val); }
+
 
 }

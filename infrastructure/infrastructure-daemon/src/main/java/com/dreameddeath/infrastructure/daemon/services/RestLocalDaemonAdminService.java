@@ -42,13 +42,14 @@ import javax.ws.rs.core.MediaType;
  * Created by Christophe Jeunesse on 14/08/2015.
  */
 @Path("/daemon")
-@ServiceDef(domain=RestLocalDaemonAdminService.DAEMON_SERVICE_DOMAIN,name=RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,status = VersionStatus.STABLE)
+@ServiceDef(domain=RestLocalDaemonAdminService.DAEMON_SERVICE_DOMAIN,type=RestLocalDaemonAdminService.DAEMON_SERVICE_TYPE,name=RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,status = VersionStatus.STABLE)
 @Api(value = "/daemon", description = "Daemon Administration service")
 public class RestLocalDaemonAdminService extends AbstractRestExposableService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalDaemonAdminService.class);
     public static final String DAEMON_SERVICE_DOMAIN ="admin";
     public static final String DAEMON_SERVICE_NAME ="daemon#admin";
     public static final String DAEMON_SERVICE_VERSION ="1.0";
+    public static final String DAEMON_SERVICE_TYPE = "admin";
 
     private final RestLocalConfigAdminService configAdminService=new RestLocalConfigAdminService();
     private RestLocalWebServerAdminService webServerAdminResource;
@@ -129,7 +130,7 @@ public class RestLocalDaemonAdminService extends AbstractRestExposableService {
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    @Path("{name}/metrics")
+    @Path("metrics")
     @ApiOperation(value = "give metrics on a given daemon",
             response = MetricRegistry.class,
     position = 3)

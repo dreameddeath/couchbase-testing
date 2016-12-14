@@ -32,7 +32,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 25/10/2016.
  */
 @Path("/")
-@ServiceDef(domain = "test",name="testRestListener",version = "1.0")
+@ServiceDef(domain = "test",type=AbstractRemoteConsumerRest.SERVICE_DEF_TYPE,name="testRestListener",version = "1.0")
 public class NotificationTestConsumerRest extends AbstractRemoteConsumerRest<NotificationTestListener>{
 
     @Override

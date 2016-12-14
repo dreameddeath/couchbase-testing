@@ -23,6 +23,7 @@ import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
+import com.google.common.base.Preconditions;
 import rx.Observable;
 
 /**
@@ -32,6 +33,15 @@ import rx.Observable;
 public class CreateUpdateBillingInstalledBaseProcessingService extends StandardJobProcessingService<CreateUpdateBillingInstalledBaseJob> {
     @Override
     public Observable<JobProcessingResult<CreateUpdateBillingInstalledBaseJob>> init(JobContext<CreateUpdateBillingInstalledBaseJob> context) {
+        Preconditions.checkNotNull(context.getInternalJob().getInstalledBaseKey(),"The installed base Key must be provided");
+
+        //TODO manage cross domain lookup
+        //a billing account shouldn't be able to read directly the database of a given version
+
+        //Step one : Create "BillingInstalledBase" or update child document
+        //Step two : If created, add it to parent
+
+        //context.addTask(new CreateUpdateBillingInstalledBaseTask())
         return null;
     }
 }

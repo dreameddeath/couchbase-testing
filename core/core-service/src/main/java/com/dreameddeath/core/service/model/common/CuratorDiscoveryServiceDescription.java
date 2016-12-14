@@ -33,6 +33,8 @@ import java.util.TreeSet;
 public abstract class CuratorDiscoveryServiceDescription<TSPEC> {
     @JsonProperty("domain")
     private String domain;
+    @JsonProperty("type")
+    private String type;
     @JsonProperty("name")
     private String name;
     @JsonProperty("version")
@@ -53,6 +55,13 @@ public abstract class CuratorDiscoveryServiceDescription<TSPEC> {
     }
     public void setDomain(String domain) {
         this.domain = domain;
+    }
+
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getName() {

@@ -44,7 +44,7 @@ import javax.ws.rs.core.Response;
  * Created by Christophe Jeunesse on 17/03/2015.
  */
 @Path("/TestService")
-@ServiceDef(domain = "test",name="testService",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain = "test",type="other",name="testService",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractRestExposableService {
     private RestServiceClientFactory clientFactory;

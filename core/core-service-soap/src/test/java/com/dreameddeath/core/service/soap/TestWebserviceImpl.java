@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 08/09/2016.
  */
-@ServiceDef(domain = SoapTestingServer.DOMAIN,name = "TestWebserviceSoap",version = "1.0")
+@ServiceDef(domain = SoapTestingServer.DOMAIN,type="test",name = "TestWebserviceSoap",version = "1.0")
 public class TestWebserviceImpl extends AbstractSoapExposableService implements TestWebService {
     @Resource
     private WebServiceContext webServiceContext;

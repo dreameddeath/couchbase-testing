@@ -262,7 +262,7 @@
         <!-- webjars -->
         <webjars.locator.version>0.28</webjars.locator.version>
         <webjars.requirejs.version>2.1.20</webjars.requirejs.version>
-        <webjars.swagger-ui.version>2.1.3</webjars.swagger-ui.version>
+        <webjars.swagger-ui.version>2.2.5</webjars.swagger-ui.version>
         <webjars.angular-js.version>1.4.3</webjars.angular-js.version>
         <webjars.angular-ui-bootstrap.version>0.14.3</webjars.angular-ui-bootstrap.version>
         <webjars.angular-ui-router.version>0.2.15</webjars.angular-ui-router.version>

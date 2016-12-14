@@ -57,6 +57,7 @@ public class BillingInstalledBaseItemStatus extends CouchbaseDocumentElement {
     public enum Status{
         ACTIVE,
         SUSPENDED,
-        CLOSED
+        CLOSED,
+        CANCELLED
     }
 }

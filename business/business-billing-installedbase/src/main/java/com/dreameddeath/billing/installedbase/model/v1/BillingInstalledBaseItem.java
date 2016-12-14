@@ -38,12 +38,12 @@ public class BillingInstalledBaseItem extends CouchbaseDocumentElement {
      *  id : internal id of the item for crossrefs
      */
     @DocumentProperty("id")
-    private Property<Long> id = new StandardProperty<Long>(BillingInstalledBaseItem.this);
+    private Property<Long> id = new StandardProperty<>(BillingInstalledBaseItem.this);
     /**
      *  statuses : List of statuses (history by dates)
      */
     @DocumentProperty("statuses")
-    private ListProperty<BillingInstalledBaseItemStatus> statuses = new ArrayListProperty<BillingInstalledBaseItemStatus>(BillingInstalledBaseItem.this);
+    private ListProperty<BillingInstalledBaseItemStatus> statuses = new ArrayListProperty<>(BillingInstalledBaseItem.this);
 
     // id accessors
     public Long getId() { return id.get(); }

@@ -56,7 +56,7 @@ public class RestServiceRegistrar extends AbstractServiceRegistrar<RestCuratorDi
         Swagger swagger = new Swagger();
         swagger.setBasePath((service.getEndPoint().path()+"/"+service.getAddress()+"/"+pathAnnot.value()).replaceAll("/{2,}","/"));
         swagger.setHost(service.getEndPoint().host());
-
+        swagger.setVendorExtension("x-JavaServiceApiRootPath",pathAnnot.value());
         Reader reader=new Reader(swagger);
         reader.read(service.getClass());
         serviceDescr.setSwagger(reader.getSwagger());

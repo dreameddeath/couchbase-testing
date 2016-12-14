@@ -62,11 +62,11 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                         self.clients=[];
                         self.proxies=[];
                         self.refreshClients=function(){
-                            ServicesDomainClientInstances.list({"domain":domain,type:service.type,fullname:self.fullName},function(dataClients){
+                            ServicesDomainClientInstances.list({"domain":domain,type:service.techType,fullname:self.fullName},function(dataClients){
                                 self.clients.length=0;
                                 self.clients.push.apply(self.clients,dataClients);
                             })
-                            ServicesDomainProxyInstances.list({"domain":domain,type:service.type,fullname:self.fullName},function(dataProxies){
+                            ServicesDomainProxyInstances.list({"domain":domain,type:service.techType,fullname:self.fullName},function(dataProxies){
                                 self.proxies.length=0;
                                 self.proxies.push.apply(self.proxies,dataProxies);
                                 //self.proxies=dataProxies;
@@ -112,11 +112,25 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                             for(var version in currService.versions){
                                 var currVersion = currService.versions[version];
                                 if(currVersion.fullName==$scope.currVersionFullName){
+                                    var testToolName="unknown";
+                                    var testToolLink="#";
+                                    if(currService.techType=='REST'){
+                                        var swaggerSpecUrl = encodeURIComponent("/apis/apps-admin/domains/"+encodeURIComponent($stateParams.domain)+"/"+encodeURIComponent(currService.techType)+"/specifications/"+encodeURIComponent($scope.currVersionFullName));
+                                        var instancesGetUrl = encodeURIComponent("/apis/apps-admin/domains/"+encodeURIComponent($stateParams.domain)+"/"+encodeURIComponent(currService.techType)+"/instances/"+encodeURIComponent($scope.currVersionFullName));
+                                        var proxiesGetUrl = encodeURIComponent("/apis/apps-admin/domains/"+encodeURIComponent($stateParams.domain)+"/"+encodeURIComponent(currService.techType)+"/proxies/"+encodeURIComponent($scope.currVersionFullName));
+                                        testToolName='Swagger';
+                                        testToolLink = requirejs.toUrl('apps-admin-service-swagger.html')+
+                                                    "?url="+swaggerSpecUrl
+                                                    +"&instances="+instancesGetUrl
+                                                    +"&proxies="+proxiesGetUrl
+                                                    ;
+                                    }
                                     $scope.currServiceVersionInfo={
                                             serviceName:currService.name,
-                                            serviceType:currService.type,
+                                            serviceType:currService.techType,
                                             "version":version,
-                                            swaggerUrl:encodeURIComponent("/apis/apps-admin/domains/"+encodeURIComponent($stateParams.domain)+"/"+encodeURIComponent(currService.type)+"/specifications/"+encodeURIComponent($scope.currVersionFullName))
+                                            "testToolName":testToolName,
+                                            "testToolLink":testToolLink
                                     };
                                     for(var key in currVersion){
                                         $scope.currServiceVersionInfo[key]=currVersion[key];
@@ -135,42 +149,6 @@ define(['angular','angular-route','angular-animate','apps-admin-service-resource
                                     for(var pos=0;pos<data.length;++pos){
                                         $scope.services.push( new Service($stateParams.domain,data[pos]));
                                     }
-                                    /*                                                name:currService.name,
-                                                                                    type:currService.type,
-                                                                                    versions:versions,
-                                                                                    nbVersions:function(){
-                                                                                        return Object.keys(this.versions).length;
-                                                                                    }
-                                                                                });
-                                        var currService = data[pos];
-                                        //var versions = currService.versions;
-                                        var versions = [];
-                                        for(var version in currService.versions){
-                                            versions.push(new ServiceVersion($stateParams.domain,))
-                                            var currServiceVersion = versions[version];
-                                            currServiceVersion.clients=[];
-                                            currServiceVersion.proxies=[];
-                                            currServiceVersion.refreshClients=function(){
-                                                //currServiceVersion.clients=[];
-                                                ServicesDomainClientInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(dataClients){
-                                                    currServiceVersion.clients=dataClients;
-                                                })
-
-                                                ServicesDomainProxyInstances.list({domain:$stateParams.domain,type:currService.type,fullname:currServiceVersion.fullName},function(dataProxies){
-                                                    currServiceVersion.proxies=dataProxies;
-                                                });
-                                            };
-                                            currServiceVersion.refreshClients();
-                                        }
-                                        $scope.services.push({
-                                            name:currService.name,
-                                            type:currService.type,
-                                            versions:versions,
-                                            nbVersions:function(){
-                                                return Object.keys(this.versions).length;
-                                            }
-                                        });
-                                    }*/
                                     $scope.updateCurrServiceVersion();
                                 })
                             }

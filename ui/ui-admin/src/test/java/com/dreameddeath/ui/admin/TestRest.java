@@ -36,7 +36,7 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 24/08/2015.
  */
 @Path("/tests")
-@ServiceDef(domain = "test",name="test",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain = "test",type="test",name="test",version="1.0",status = VersionStatus.STABLE)
 @Api
 public class TestRest extends AbstractRestExposableService {
 

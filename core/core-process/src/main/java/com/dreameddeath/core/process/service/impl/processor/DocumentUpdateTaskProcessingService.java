@@ -233,5 +233,9 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         public TaskContext<TJOB, T> getCtxt() {
             return ctxt;
         }
+
+        public Observable<ContextAndDocument> toObservable(){
+            return Observable.just(this);
+        }
     }
 }

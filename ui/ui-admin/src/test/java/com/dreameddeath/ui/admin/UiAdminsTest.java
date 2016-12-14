@@ -37,6 +37,7 @@ import com.dreameddeath.infrastructure.plugin.notification.NotificationWebServer
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
+import com.dreameddeath.testing.plugin.proxy.service.ProxyTestWebServerPlugin;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.After;
 import org.junit.Before;
@@ -85,7 +86,9 @@ public class UiAdminsTest {
         daemon.addWebServer(WebAppWebServer.builder().withName("apps-admin-tests")
                 .withApplicationContextConfig("testadmin.applicationContext.xml")
                 .withApiPath("/apis")
-                .withForTesting(MANUAL_TEST_MODE));
+                .withForTesting(MANUAL_TEST_MODE)
+                .withPlugin(new ProxyTestWebServerPlugin.Builder())
+        );
         daemons.add(daemon);
         daemon.getDaemonLifeCycle().start();
         final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client)

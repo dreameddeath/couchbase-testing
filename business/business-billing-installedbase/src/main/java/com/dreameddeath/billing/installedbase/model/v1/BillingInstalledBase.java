@@ -31,10 +31,11 @@ import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.NumericProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardLongProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.dreameddeath.installedbase.model.v1.common.InstalledBaseLink;
+import com.dreameddeath.core.validation.annotation.Unique;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,15 +49,15 @@ import java.util.List;
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 public class BillingInstalledBase extends BillingAccountContributor {
     /**
+     *  installedBaseKey : The installed base parent key
+     */
+    @DocumentProperty("installedBaseKey") @Unique(nameSpace = "billingInstalledBaseOrigKey")
+    private Property<String> installedBaseKey = new ImmutableProperty<>(BillingInstalledBase.this);
+    /**
      *  ba : Link toward the parent billing account
      */
     @DocumentProperty(value = "ba",getter = "getBaLink",setter = "setBaLink") @NotNull
     private Property<BillingAccountLink> ba = new StandardProperty<>(BillingInstalledBase.this);
-    /**
-     *  installedBaseLink : Link toward the installed based being billed
-     */
-    @DocumentProperty("installedBaseLink") @NotNull
-    private Property<InstalledBaseLink> installedBaseLink = new StandardProperty<InstalledBaseLink>(BillingInstalledBase.this);
     /**
      *  billingItems : List the corresponding billing Items
      */
@@ -67,7 +68,6 @@ public class BillingInstalledBase extends BillingAccountContributor {
      */
     @DocumentProperty("itemIdNextKey")
     private NumericProperty<Long> itemIdNextKey = new StandardLongProperty(BillingInstalledBase.this);
-
 
     // BillingItems Accessors
     public List<BillingInstalledBaseItem> getBillingItems() { return billingInstalledBaseItems.get(); }
@@ -87,9 +87,17 @@ public class BillingInstalledBase extends BillingAccountContributor {
         return (T) getItemById(id);
     }
 
-    // installedBaseLink accessors
-    public InstalledBaseLink getInstalledBaseLink() { return installedBaseLink.get(); }
-    public void setInstalledBaseLink(InstalledBaseLink val) { installedBaseLink.set(val); }
+    /**
+     * Getter of installedBaseKey
+     * @return the value of installedBaseKey
+     */
+    public String getInstalledBaseKey() { return installedBaseKey.get(); }
+    /**
+     * Setter of installedBaseKey
+     * @param val the new value for installedBaseKey
+     */
+    public void setInstalledBaseKey(String val) { installedBaseKey.set(val); }
+
 
     // ba accessors
     public BillingAccountLink getBaLink() { return ba.get(); }

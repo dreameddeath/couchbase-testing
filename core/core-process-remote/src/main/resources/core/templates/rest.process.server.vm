@@ -19,8 +19,17 @@ package ${service.packageName};
 import javax.annotation.Generated;
 
 import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.dreameddeath.core.user.IUser;
+import com.dreameddeath.couchbase.core.process.remote.model.rest.ActionRequest;
 import com.dreameddeath.couchbase.core.process.remote.service.AbstractRemoteJobRestService;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
+
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ApiResponse;
 
 import java.util.stream.Collectors;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -30,7 +39,21 @@ import java.util.Map;
 import ${importName};
 #end
 
+import javax.ws.rs.POST;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+
+import static com.dreameddeath.couchbase.core.process.remote.service.AbstractRemoteJobRestService.REQUEST_UID_QUERY_PARAM;
+import static com.dreameddeath.couchbase.core.process.remote.service.AbstractRemoteJobRestService.SUBMIT_ONLY_QUERY_PARAM;
+
 
 @Generated(
     value = "${generator.name}",
@@ -38,8 +61,9 @@ import javax.ws.rs.Path;
     comments = "${generator.comment}"
 )
 
-@ServiceDef(domain = "${service.domain}",name="${service.name}",version = "${service.version}")
+@ServiceDef(domain = "${service.domain}",type=AbstractRemoteJobRestService.SERVICE_TYPE,name="${service.name}",version = "${service.version}")
 @Path("${service.path}")
+@Api(value = "${service.path}", description = "${service.descr}")
 public class ${service.className} extends AbstractRemoteJobRestService<${service.job.shortName},${service.request.shortName},${service.response.shortName}> {
     @Override
     protected ${service.job.shortName} buildJobFromRequest(${service.request.shortName} request) {
@@ -52,15 +76,60 @@ public class ${service.className} extends AbstractRemoteJobRestService<${service
         return ${service.response.mapFctName}(job);
     }
 
-    public static class WrappedResponse extends RemoteJobResultWrapper<${service.response.shortName}> {
-        public WrappedResponse(${service.response.shortName} result) {
+    public static class WrappedResponse${service.response.shortName} extends RemoteJobResultWrapper<${service.response.shortName}> {
+        public WrappedResponse${service.response.shortName}(${service.response.shortName} result) {
             super(result);
         }
     }
 
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponses(value = {
+          @ApiResponse(code = 200, message= "The processing result",response = WrappedResponse${service.response.shortName}.class),
+          @ApiResponse(code = 409, message = "Conflict with request uid")
+    })
+    public void runJobCreate(@Context IUser user,
+                                 @QueryParam(SUBMIT_ONLY_QUERY_PARAM) Boolean submitOnly,
+                                 @QueryParam(REQUEST_UID_QUERY_PARAM) String requestUid,
+                                 ${service.request.shortName} request,
+                                 @Suspended final AsyncResponse asyncResponse){
+        super.doRunJobCreate(user,submitOnly,requestUid,request,asyncResponse);
+    }
+
+    @GET
+    @Path("/{uid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponses(value = {
+              @ApiResponse(code = 200, message= "The processing result",response = WrappedResponse${service.response.shortName}.class),
+              @ApiResponse(code = 404, message = "Job not found")
+    })
+    public void getJob(@Context IUser user,
+                       @PathParam("uid") String uid,
+                       @Suspended AsyncResponse asyncResponse) {
+       super.doGetJob(user,uid,asyncResponse);
+    }
+
+    @PUT
+    @Path("/{uid}/{action:cancel|resume}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponses(value = {
+              @ApiResponse(code = 200, message= "The processing result",response = WrappedResponse${service.response.shortName}.class),
+              @ApiResponse(code = 404, message = "Job not found")
+    })
+    public void updateJob(  @Context final IUser user,
+                            @PathParam("uid") final String uid,
+                            @QueryParam(REQUEST_UID_QUERY_PARAM) final String requestUid,
+                            @PathParam("action") final ActionRequest actionRequest,
+                            @Suspended final AsyncResponse asyncResponse)
+    {
+        super.doUpdateJob(user,uid,requestUid,actionRequest,asyncResponse);
+    }
+
+
     @Override
-    protected final Class<WrappedResponse> getResponseClass(){
-        return WrappedResponse.class;
+    protected final Class<WrappedResponse${service.response.shortName}> getResponseClass(){
+        return WrappedResponse${service.response.shortName}.class;
     }
 
 #foreach($model in $service.models.values())

@@ -33,11 +33,11 @@ public class BillingAccountContributorLink extends BusinessDocumentLink<BillingA
      */
     @DocumentProperty("type")
     private Property<ContributorType> type = new ImmutableProperty<>(BillingAccountContributorLink.this);
-
-    // type accessors
-    public BillingAccountContributor.ContributorType getType() { return type.get(); }
-    public void setType(BillingAccountContributor.ContributorType val) { type.set(val); }
-
+    /**
+     *  sourceKey : The source key being used as a ref for contributor
+     */
+    @DocumentProperty("sourceKey")
+    private Property<String> sourceKey = new ImmutableProperty<>(BillingAccountContributorLink.this);
 
     public BillingAccountContributorLink(){}
     public BillingAccountContributorLink (BillingAccountContributor contributor){
@@ -49,4 +49,18 @@ public class BillingAccountContributorLink extends BusinessDocumentLink<BillingA
         this.setType(srcLink.getType());
     }
 
+    // type accessors
+    public BillingAccountContributor.ContributorType getType() { return type.get(); }
+    public void setType(BillingAccountContributor.ContributorType val) { type.set(val); }
+
+    /**
+     * Getter of sourceKey
+     * @return the value of sourceKey
+     */
+    public String getSourceKey() { return sourceKey.get(); }
+    /**
+     * Setter of sourceKey
+     * @param val the new value for sourceKey
+     */
+    public void setSourceKey(String val) { sourceKey.set(val); }
 }

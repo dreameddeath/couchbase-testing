@@ -47,6 +47,7 @@ import java.util.List;
  */
 public abstract class AbstractRemoteConsumerRest<T extends IEventListener> extends AbstractRestExposableService {
     private final static Logger LOG = LoggerFactory.getLogger(AbstractRemoteConsumerRest.class);
+    public static final String SERVICE_DEF_TYPE = "listener";
     public static final String REMOTE_SERVICE_DOMAIN = "remote.service.domain";
     public static final String REMOTE_SERVICE_NAME = "remote.service.name";
     public static final String REMOTE_SERVICE_VERSION = "remote.service.version";

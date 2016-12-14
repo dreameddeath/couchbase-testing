@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.helper;
@@ -33,11 +35,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
 
+import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.DATA_SERVICE_TYPE;
+
 /**
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 @Path("testDomain/v1.0/test") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
-@ServiceDef(domain="test",name="dao$testDomain$test",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain="test",type=DATA_SERVICE_TYPE,name="dao$testDomain$test",version="1.0",status = VersionStatus.STABLE)
 @Api(value = "testDomain/v1.0/test", description = "Basic resource")
 public class TestDaoRestService extends AbstractDaoRestService {
 

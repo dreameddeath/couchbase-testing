@@ -24,19 +24,24 @@ import com.dreameddeath.infrastructure.daemon.servlet.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 28/08/2015.
  */
-public class WebAppWebServer extends AbstractWebServer{
+public class WebAppWebServer extends AbstractWebServer<WebAppWebServer.Builder>{
     public WebAppWebServer(Builder builder){
         super(builder);
-        List<ServletContextHandler> handlersList = new ArrayList<>();
+    }
 
+    @Override
+    protected List<ServletContextHandler> buildContextHandlers(Builder builder) {
+        List<ServletContextHandler> handlersList = super.buildContextHandlers(builder);
         WebAppServletContextHandler webAppHandler = new WebAppServletContextHandler(this,builder.path,builder.resourcePath);
         handlersList.add(webAppHandler);
         WebJarsServletContextHandler webJarHandler= new WebJarsServletContextHandler(this,builder.getLibsPath(),builder.webJarsSubPath,builder.forTesting);
@@ -58,15 +63,7 @@ public class WebAppWebServer extends AbstractWebServer{
             }
             handlersList.add(new RestServicesServletContextHandler(this,builder.applicationContextConfig,path,getServiceDiscoveryManager()));
         }
-
-        ContextHandlerCollection contexts = new ContextHandlerCollection();
-        ServletContextHandler[] handlersArray =  new ServletContextHandler[handlersList.size()];
-        for(int handlerPos=0;handlerPos<handlersArray.length;++handlerPos){
-            handlersArray[handlerPos] = handlersList.get(handlerPos);
-        }
-        contexts.setHandlers(handlersArray);
-
-        setHandler(contexts);
+        return handlersList;
     }
 
     public static Builder builder(){

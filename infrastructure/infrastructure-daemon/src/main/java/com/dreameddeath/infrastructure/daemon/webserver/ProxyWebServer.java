@@ -23,19 +23,24 @@ import com.dreameddeath.infrastructure.daemon.servlet.ProxyServletContextHandler
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 21/08/2015.
  */
-public class ProxyWebServer extends AbstractWebServer {
+public class ProxyWebServer extends AbstractWebServer<ProxyWebServer.Builder> {
     public ProxyWebServer(Builder builder){
         super(builder);
+    }
 
-        List<ServletContextHandler> handlersList = new ArrayList<>();
+    @Override
+    protected List<ServletContextHandler> buildContextHandlers(Builder builder){
+        List<ServletContextHandler> handlersList = super.buildContextHandlers(builder);
 
         for(String serviceType:builder.perServiceTypediscoverDomains.keySet()) {
             Collection<String> domains = builder.perServiceTypediscoverDomains.get(serviceType);
@@ -43,13 +48,7 @@ public class ProxyWebServer extends AbstractWebServer {
             handlersList.add(new ProxyServletContextHandler(this, domains,serviceType,builder.perServiceTypePath.get(serviceType)));
         }
 
-        ContextHandlerCollection contexts = new ContextHandlerCollection();
-        ServletContextHandler[] handlersArray =  new ServletContextHandler[handlersList.size()];
-        for(int handlerPos=0;handlerPos<handlersArray.length;++handlerPos){
-            handlersArray[handlerPos] = handlersList.get(handlerPos);
-        }
-        contexts.setHandlers(handlersArray);
-        setHandler(contexts);
+        return handlersList;
     }
 
     public static Builder builder(){

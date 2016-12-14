@@ -39,6 +39,8 @@ import org.eclipse.jetty.http2.HTTP2Cipher;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -54,7 +56,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 21/08/2015.
  */
-public abstract class AbstractWebServer {
+public abstract class AbstractWebServer<TBUILDER extends AbstractWebServer.Builder<? extends AbstractWebServer.Builder>> {
     public static final String GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME = "globalCuratorClient";
     public static final String GLOBAL_DAEMON_LIFE_CYCLE_PARAM_NAME = "daemonLifeCycle";
     public static final String GLOBAL_DAEMON_PARAM_NAME = "daemon";
@@ -96,7 +98,8 @@ public abstract class AbstractWebServer {
         return null;
     }
 
-    public AbstractWebServer(Builder<?> builder) {
+    public AbstractWebServer(TBUILDER origBuilder) {
+        AbstractWebServer.Builder<?> builder = origBuilder;
         uuid = UUID.randomUUID();
         parentDaemon = builder.daemon;
         name = builder.name;
@@ -202,6 +205,27 @@ public abstract class AbstractWebServer {
         }
 
         webServerMetrics.markRootKeys();
+
+        //Build Servlet Handlers
+        List<ServletContextHandler> handlersList = new ArrayList<>();
+
+        handlersList.addAll(buildContextHandlers(origBuilder));
+
+        for(AbstractWebServerPlugin plugin:this.plugins){
+            handlersList.addAll(plugin.buildAdditionnalContextHandlers());
+        }
+
+        ContextHandlerCollection contexts = new ContextHandlerCollection();
+        ServletContextHandler[] handlersArray =  new ServletContextHandler[handlersList.size()];
+        for(int handlerPos=0;handlerPos<handlersArray.length;++handlerPos){
+            handlersArray[handlerPos] = handlersList.get(handlerPos);
+        }
+        contexts.setHandlers(handlersArray);
+        setHandler(contexts);
+    }
+
+    protected List<ServletContextHandler> buildContextHandlers(TBUILDER builder){
+        return new ArrayList<>();
     }
 
 

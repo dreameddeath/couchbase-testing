@@ -45,7 +45,7 @@ import ${import};
     comments = "${generator.comment}"
 )
 @Path("$esc.java($service.path)")
-@ServiceDef(domain="${service.domain}",name="${service.name}",version="${service.version}",status = VersionStatus.${service.status.name()})
+@ServiceDef(domain="${service.domain}",type="${service.type}",name="${service.name}",version="${service.version}",status = VersionStatus.${service.status.name()})
 @Api(value = "$esc.java($service.path)", description = "$esc.java($service.description)")
 public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${service.className}> {
     private ${service.className} serviceImpl;

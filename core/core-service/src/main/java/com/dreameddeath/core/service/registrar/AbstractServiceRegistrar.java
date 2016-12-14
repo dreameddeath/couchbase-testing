@@ -44,7 +44,6 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
     private static final Logger LOG = LoggerFactory.getLogger(AbstractServiceRegistrar.class);
     private final CuratorFramework curatorClient;
     private final String domain;
-    private final String serviceType;
     private final ServiceDiscovery<T> serviceDiscovery;
     private final List<AbstractExposableService> pendingRegistrar = new ArrayList<>();
     private final Map<AbstractExposableService,ServiceInstance<T>> services = new HashMap<>();
@@ -56,7 +55,6 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
     public AbstractServiceRegistrar(CuratorFramework curatorClient, String domain,String serviceType){
         this.curatorClient = curatorClient;
         this.domain = domain;
-        this.serviceType = serviceType;
         String fullPath = ServiceNamingUtils.buildServiceDiscovererDomain(curatorClient,domain,serviceType);
         serviceDiscovery = ServiceDiscoveryBuilder.builder(getDescriptionClass())
                 .serializer((InstanceSerializer<T>)new ServiceInstanceSerializerImpl())
@@ -104,6 +102,7 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
         Preconditions.checkNotNull(annotDef,"The service %s should have the annotation %s",service.getClass(),ServiceDef.class.getSimpleName());
         serviceDescr.setDomain(annotDef.domain());
         serviceDescr.setName(annotDef.name());
+        serviceDescr.setType(annotDef.type());
         serviceDescr.setState(annotDef.status().name());
         serviceDescr.setVersion(annotDef.version());
         serviceDescr.setProtocols(service.getEndPoint().protocols());
@@ -148,5 +147,4 @@ public abstract class AbstractServiceRegistrar<T extends CuratorDiscoveryService
         serviceDiscovery.unregisterService(newServiceDef);
         LOG.info("Service {} unregistered with id {} within domain {} in path {}", newServiceDef.getName(), newServiceDef.getId(), domain,buildServicePath(newServiceDef));
     }
-
 }

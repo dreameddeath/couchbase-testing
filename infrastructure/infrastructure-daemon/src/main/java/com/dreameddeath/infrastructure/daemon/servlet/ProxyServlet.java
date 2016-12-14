@@ -38,6 +38,7 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpClientTransport;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.http2.client.HTTP2Client;
 import org.eclipse.jetty.http2.client.http.HttpClientTransportOverHTTP2;
@@ -139,6 +140,10 @@ public class ProxyServlet extends AsyncProxyServlet{
         }
     }
 
+    @Override
+    protected void addViaHeader(Request proxyRequest) {
+        proxyRequest.header(HttpHeader.VIA, proxyRequest.getVersion() + getViaHost());
+    }
 
     @Override
     protected HttpClient newHttpClient() {

@@ -56,7 +56,7 @@ public class AbstractDaemon {
     private final CuratorFramework curatorClient;
     private final IUserFactory userFactory;
     private final RestWebServer adminWebServer;
-    private final List<AbstractWebServer> additionalWebServers = new ArrayList<>();
+    private final List<AbstractWebServer<?>> additionalWebServers = new ArrayList<>();
     private final List<AbstractDaemonPlugin> plugins = new ArrayList<>();
 
     protected static CuratorFramework setupDefaultCuratorClient(){
@@ -136,7 +136,7 @@ public class AbstractDaemon {
         return adminWebServer;
     }
 
-    public List<AbstractWebServer> getAdditionalWebServers(){
+    public List<AbstractWebServer<?>> getAdditionalWebServers(){
         return Collections.unmodifiableList(additionalWebServers);
     }
 

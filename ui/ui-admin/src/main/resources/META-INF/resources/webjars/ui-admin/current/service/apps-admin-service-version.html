@@ -32,7 +32,7 @@
         <div class="row"><div class="col-md-3">Name</div><div class="col-md-9">{{currServiceVersionInfo.serviceName}}</div></div>
         <div class="row"><div class="col-md-3">Version</div><div class="col-md-9">{{currServiceVersionInfo.version}}</div></div>
         <div class="row"><div class="col-md-3">State</div><div class="col-md-9"><span ng-class="{STABLE:'label label-success',DEPRECATED:'label label-danger',TESTING:'label label-warning'}[currServiceVersionInfo.state]">{{currServiceVersionInfo.state}}</span></div></div>
-        <div class="row"><div class="col-md-3">Swagger</div><div class="col-md-9"><a href="libs/webjars/swagger-ui/2.1.3/index.html?url={{currServiceVersionInfo.swaggerUrl}}" target="_blank">Show</a></div></div>
+        <div class="row"><div class="col-md-3">{{currServiceVersionInfo.testToolName}}</div><div class="col-md-9"><a href="{{currServiceVersionInfo.testToolLink}}" target="_blank">Show</a></div></div>
         <div class="row"><div class="col-md-12">&nbsp;</div></div>
         <div class="row">
             <div class="col-md-12">

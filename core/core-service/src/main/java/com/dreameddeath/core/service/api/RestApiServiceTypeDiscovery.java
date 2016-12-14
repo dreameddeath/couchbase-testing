@@ -120,8 +120,8 @@ public class RestApiServiceTypeDiscovery {
         return result;
     }
 
-    @Path("/{type}")
-    public RestApiServiceDiscovery getTypeInstance(@PathParam("type")String serviceType){
+    @Path("/{techType}")
+    public RestApiServiceDiscovery getTypeInstance(@PathParam("techType")String serviceType){
         RestApiServiceDiscovery service = serviceTypesMap.get(serviceType);
         if(service==null){
             throw new NotFoundException("Cannot find service type <"+serviceType+"> on domain <"+domain+">");
