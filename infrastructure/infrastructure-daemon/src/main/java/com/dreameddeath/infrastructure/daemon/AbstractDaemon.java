@@ -140,7 +140,7 @@ public class AbstractDaemon {
         return Collections.unmodifiableList(additionalWebServers);
     }
 
-    public List<AbstractWebServer> getAdditionalWebServers(final String name){
+    public List<AbstractWebServer<?>> getAdditionalWebServers(final String name){
         return additionalWebServers.stream().filter(srv->srv.getName().equals(name)).collect(Collectors.toList());
     }
 
