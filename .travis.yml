@@ -12,13 +12,24 @@ cache:
 env:
  global:
     - PROTOBUF_VERSION=2.5.0
+    - secure: "G+IJI0gmkRZ1AE8oFqUCJ+vnweTw5j/z5e82VitnpGZ7rSQIXAoLLzKLP0qhWu54OGYN06zgaDPx7mfcM5hexCm74Q1Lox1/JLAnzNtW8uN+4rZvl0zOnx0SLoOaN795fmxtYud0E9oX9nU04V/iO+mQ0bjiO3RPfSM2doHfG3k="
 
 before_install:
   - chmod +x ./install-protobuf.sh
   - ./install-protobuf.sh
   - export PATH=$PATH:${HOME}/protobuf/bin
   - echo "MAVEN_OPTS='-Xmx2g -XX:MaxPermSize=512m'" > ~/.mavenrc
-
 install : true
+
+addons:
+  coverity_scan:
+    project:
+      name: "dreameddeath/couchbase-testing"
+      description: "Build submitted via Travis CI"
+    notification_email: christophejeunesse@hotmail.com
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn -B clean test jacoco:report coveralls:report"
+    branch_pattern: master
+
 
 script: mvn -B clean test jacoco:report coveralls:report
