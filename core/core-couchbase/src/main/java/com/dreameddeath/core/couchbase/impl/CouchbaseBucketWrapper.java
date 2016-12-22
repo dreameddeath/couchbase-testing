@@ -541,7 +541,7 @@ public class CouchbaseBucketWrapper implements ICouchbaseBucket {
         return asyncCounter(key, by, by, params);
     }
 
-    public class DocumentResync<T extends CouchbaseDocument> implements Func1<BucketDocument<T>, T>{
+    public static class DocumentResync<T extends CouchbaseDocument> implements Func1<BucketDocument<T>, T>{
         private final BucketDocument<T> origBucketDoc;
         private final ICouchbaseTranscoder<T> transcoder;
 

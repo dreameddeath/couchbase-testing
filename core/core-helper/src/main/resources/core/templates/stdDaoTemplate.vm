@@ -109,7 +109,11 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
         List<CouchbaseCounterDao.Builder> result = new ArrayList<>();
 #foreach($counter in $counters)
         result.add(
-                new CouchbaseCounterDao.Builder().withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN).withBaseValue(${counter.defaultValue}).withBaseDao(this)
+                new CouchbaseCounterDao.Builder()
+                        .withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN)
+                        .withBaseValue(${counter.defaultValue})#if($counter.modulus!=0)
+                        .withModulus(${counter.modulus})#end
+                        .withBaseDao(this)
         );
 #end
         return result;

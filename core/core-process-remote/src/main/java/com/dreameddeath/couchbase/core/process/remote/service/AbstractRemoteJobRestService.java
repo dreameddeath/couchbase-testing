@@ -37,6 +37,7 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.ActionRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExistingJob;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.StateInfo;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,10 +128,13 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
             Observable<JobContext<TJOB>> jobCtxtObs;
             if (submitOnly!=null && submitOnly) {
                 jobCtxtObs= jobExecutorClient.submitJob(job, user);
+                Preconditions.checkNotNull(jobCtxtObs,"The submit job returned a null value {}",request.toString());
             }
             else {
                 jobCtxtObs = jobExecutorClient.executeJob(job, user);
+                Preconditions.checkNotNull(jobCtxtObs,"The execute job returned a null value {}",request.toString());
             }
+
             jobCtxtObs
                     .map(ctxt->buildJaxrsResponse(ctxt.getInternalJob()))
                     .onErrorResumeNext(this::manageStandardErrors)

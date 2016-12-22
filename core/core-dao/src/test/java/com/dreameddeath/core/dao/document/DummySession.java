@@ -29,6 +29,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.IUser;
 import org.joda.time.DateTime;
 import rx.Observable;
@@ -40,56 +41,56 @@ public class DummySession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass)  {
-        return null;
+        return Observable.empty();
     }
 
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params) {
-        return null;
+        return Observable.empty();
     }
 
     @Override
     public <T extends CouchbaseDocument> String getKeyFromKeyParams(Class<T> targetClass, Object... params)  {
-        return null;
+        return "";
     }
 
 
     @Override
     public Observable<Long> asyncGetCounter(String key) {
-        return null;
+        return Observable.empty();
     }
 
     @Override
     public Observable<Long> asyncIncrCounter(String key, long byVal) {
-        return null;
+        return Observable.empty();
     }
 
     @Override
     public Observable<Long> asyncDecrCounter(String key, long byVal) {
-        return null;
+        return Observable.empty();
     }
 
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String key)  {
-        return null;
+        return Observable.empty();
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncGet(String key, Class<T> targetClass)  {
-        return null;
+        return Observable.empty();
     }
 
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc)  {
-        return null;
+        return Observable.just(doc);
     }
 
     @Override
     public <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass)  {
-        return null;
+        return "";
     }
 
     @Override
@@ -99,33 +100,33 @@ public class DummySession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> T attachEntity(T entity) {
-        return null;
+        return entity;
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncBuildKey(T obj)  {
-        return null;
+        return Observable.just(obj);
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncCreate(T obj)  {
-        return null;
+        return Observable.just(obj);
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncSave(T obj)  {
-        return null;
+        return Observable.just(obj);
     }
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncUpdate(T obj)  {
-        return null;
+        return Observable.just(obj);
     }
 
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncDelete(T obj)  {
-        return null;
+        return Observable.just(obj);
     }
 
     @Override
@@ -137,24 +138,24 @@ public class DummySession implements ICouchbaseSession {
 
     @Override
     public Observable<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
-        return null;
+        return Observable.empty();
     }
 
 
     @Override
     public <T extends CouchbaseDocument> Observable<T> asyncAddOrUpdateUniqueKey(T doc, String value, String nameSpace) {
-        return null;
+        return Observable.just(doc);
     }
 
 
     @Override
     public Observable<Boolean> asyncRemoveUniqueKey(String internalKey) {
-        return null;
+        return Observable.empty();
     }
 
     @Override
     public DateTime getCurrentDate() {
-        return null;
+        return DateTime.now();
     }
 
     @Override
@@ -194,19 +195,17 @@ public class DummySession implements ICouchbaseSession {
 
     @Override
     public IUser getUser() {
-        return null;
+        return AnonymousUser.INSTANCE;
     }
-
-
 
     @Override
     public ICouchbaseSession getTemporaryReadOnlySession() {
-        return null;
+        return this;
     }
 
     @Override
     public ICouchbaseSession toParentSession() {
-        return null;
+        return this;
     }
 
     public IBlockingCouchbaseSession toBlocking(){
@@ -223,7 +222,7 @@ public class DummySession implements ICouchbaseSession {
 
             @Override
             public <T extends CouchbaseDocument> T blockingRefresh(T doc) throws DaoException, StorageException {
-                return null;
+                return doc;
             }
 
             @Override
@@ -238,32 +237,32 @@ public class DummySession implements ICouchbaseSession {
 
             @Override
             public <T extends CouchbaseDocument> T blockingBuildKey(T obj) throws DaoException, StorageException {
-                return null;
+                return obj;
             }
 
             @Override
             public <T extends CouchbaseDocument> T blockingCreate(T obj) throws ValidationException, DaoException, StorageException {
-                return null;
+                return obj;
             }
 
             @Override
             public <T extends CouchbaseDocument> T blockingSave(T obj) throws ValidationException, DaoException, StorageException {
-                return null;
+                return obj;
             }
 
             @Override
             public <T extends CouchbaseDocument> T blockingUpdate(T obj) throws ValidationException, DaoException, StorageException {
-                return null;
+                return obj;
             }
 
             @Override
             public <T extends CouchbaseDocument> T blockingDelete(T obj) throws ValidationException, DaoException, StorageException {
-                return null;
+                return obj;
             }
 
             @Override
             public <T extends CouchbaseDocument> T blockingValidate(T doc) throws ValidationException {
-                return null;
+                return doc;
             }
 
             @Override

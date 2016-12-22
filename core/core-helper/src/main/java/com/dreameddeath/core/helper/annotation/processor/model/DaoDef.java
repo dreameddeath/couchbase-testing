@@ -130,7 +130,7 @@ public class DaoDef {
     }
 
     public boolean isUidTypeLong() {
-        return UidType.LONG.equals(type);
+        return UidType.LONG.equals(uidType);
     }
 
     public UidType getUidType() {

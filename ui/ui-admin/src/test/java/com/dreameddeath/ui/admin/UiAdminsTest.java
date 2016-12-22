@@ -23,7 +23,7 @@ import com.dreameddeath.core.curator.config.CuratorConfigProperties;
 import com.dreameddeath.core.curator.config.SharedConfigurationUtils;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.service.soap.SoapServiceTypeHelper;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;

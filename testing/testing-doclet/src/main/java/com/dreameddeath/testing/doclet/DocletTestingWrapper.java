@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.testing.doclet;
@@ -48,7 +50,7 @@ public class DocletTestingWrapper {
         this(sourceDirectory, new String[0], fileNames);
     }
 
-    protected DocletTestingWrapper(File sourceDirectory, String[] packageNames, File[] fileNames) {
+    private DocletTestingWrapper(File sourceDirectory, String[] packageNames, File[] fileNames) {
         this.sourceDirectory = sourceDirectory;
         this.packageNames = packageNames;
         this.fileNames = fileNames;
@@ -84,6 +86,9 @@ public class DocletTestingWrapper {
         );*/
 
         JavadocTool javadocTool = JavadocTool.make0(context);
+        if(javadocTool==null){
+            throw new IllegalStateException("Cannot build javadoc tool");
+        }
         try {
 
             rootDoc = javadocTool.getRootDocImpl(
@@ -104,8 +109,8 @@ public class DocletTestingWrapper {
             throw new RuntimeException(ex);
         }
 
-        if (log.isTraceEnabled()) {
-            for (ClassDoc classDoc : getRootDoc().classes()) {
+        if (log.isTraceEnabled() && rootDoc!=null) {
+            for (ClassDoc classDoc : rootDoc.classes()) {
                 log.trace("Parsed Javadoc class source: " + classDoc.position() + " with inline tags: " + classDoc.inlineTags().length );
             }
         }

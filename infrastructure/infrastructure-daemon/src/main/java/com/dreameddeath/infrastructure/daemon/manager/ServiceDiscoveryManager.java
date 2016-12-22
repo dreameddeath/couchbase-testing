@@ -26,8 +26,8 @@ import com.dreameddeath.core.service.model.common.CuratorDiscoveryServiceDescrip
 import com.dreameddeath.core.service.registrar.AbstractServiceRegistrar;
 import com.dreameddeath.core.service.registrar.ClientRegistrar;
 import com.dreameddeath.core.service.registrar.RestServiceRegistrar;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
 import com.dreameddeath.core.service.utils.ServiceTypeUtils;
+import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
 import org.apache.curator.framework.CuratorFramework;
 

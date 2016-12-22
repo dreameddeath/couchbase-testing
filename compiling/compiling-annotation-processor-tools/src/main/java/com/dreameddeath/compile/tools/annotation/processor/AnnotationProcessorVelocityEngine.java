@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.compile.tools.annotation.processor;
@@ -126,7 +128,10 @@ public class AnnotationProcessorVelocityEngine {
         Writer writer = jfo.openWriter();
         getTemplate(templateName).merge(context, writer);
         writer.close();
-        ((VelocityLogger)context.get("message")).note("Generating source file " + jfo.getName());
+        VelocityLogger logger=((VelocityLogger)context.get("message"));
+        if(logger!=null) {
+            logger.note("Generating source file " + jfo.getName());
+        }
     }
 
     public static void createResourceFile(ProcessingEnvironment env,VelocityContext context,String templateName,String filename)throws IOException{
@@ -140,7 +145,10 @@ public class AnnotationProcessorVelocityEngine {
         Writer writer = jfo.openWriter();
         getTemplate(templateName).merge(context, writer);
         writer.close();
-        ((VelocityLogger)context.get("message")).note("Generating resource file " + jfo.getName());
+        VelocityLogger logger=((VelocityLogger)context.get("message"));
+        if(logger!=null) {
+            logger.note("Generating resource file " + jfo.getName());
+        }
     }
 
     public static class VelocityLogger{

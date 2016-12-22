@@ -89,7 +89,7 @@ public class ClassUtils {
             Class currChild = iterator.next();
             Type parentGenericType = null;
             //Everything is a class
-            if(!currParent.isInterface()){
+            if(currParent!=null && !currParent.isInterface()){
                 parentGenericType = currChild.getGenericSuperclass();
             }
             else if(currChild.isInterface()){

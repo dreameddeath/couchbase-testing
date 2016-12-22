@@ -73,7 +73,7 @@ public class JettyHttpClientConduitFactory implements HTTPConduitFactory {
     private HttpVersionPolicy httpVersionPolicy=null;
     private int connectionTimeout=0;
     private int connectionMaxIdle=0;
-    private Executor httpClientExecutor=null;
+    private volatile Executor httpClientExecutor=null;
     private final AtomicInteger clientId=new AtomicInteger();
 
     public JettyHttpClientConduitFactory() {

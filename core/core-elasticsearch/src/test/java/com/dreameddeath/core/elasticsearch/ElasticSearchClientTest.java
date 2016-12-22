@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.elasticsearch;
@@ -151,7 +153,7 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testIndexingDocument() throws Exception{
-        ElasticSearchClient client = new ElasticSearchClient(server.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE));
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE),false);
         TestDoc doc = new TestDoc();
         doc.firstName = "firstName1";
         doc.lastName = "lastName1";
@@ -196,7 +198,7 @@ public class ElasticSearchClientTest {
 
     @Test
     public void testDcpFlow()throws Exception{
-        ElasticSearchClient client = new ElasticSearchClient(server.getClient(),ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE));
+        ElasticSearchClient client = new ElasticSearchClient(server.getClient(),ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE),false);
         CouchbaseBucketSimulator cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         Map<String,ITranscoder> transcoderMap = new HashMap<>();

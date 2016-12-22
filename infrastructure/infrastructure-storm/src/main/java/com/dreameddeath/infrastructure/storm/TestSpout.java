@@ -31,8 +31,8 @@ import java.util.Map;
  * Created by Christophe Jeunesse on 29/11/2014.
  */
 public class TestSpout implements IRichSpout {
-    SpoutOutputCollector collector;
-    private int pos=1;
+    private volatile SpoutOutputCollector collector;
+    private volatile int pos=1;
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
         outputFieldsDeclarer.declare(new Fields("test"));
@@ -45,6 +45,7 @@ public class TestSpout implements IRichSpout {
 
     @Override
     public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
+        collector=spoutOutputCollector;
         //topologyContext.getRawTopology().
         //TOTO init view criterion
     }

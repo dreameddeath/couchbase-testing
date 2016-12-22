@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.notification.metrics;
@@ -34,6 +36,7 @@ public class NotificationMetrics implements Closeable {
     protected final Timer totals;
     protected final Timer errors;
     protected final Timer saves;
+    protected final Timer duplicates;
     protected final Timer queueDuration;
     protected final Timer submitDuration;
 
@@ -50,6 +53,7 @@ public class NotificationMetrics implements Closeable {
             totals = registry.timer(baseName + ",Attribute=Totals");
             errors = registry.timer(baseName + ",Attribute=Errors");
             saves = registry.timer(baseName + ",Attribute=Saves");
+            duplicates = registry.timer(baseName + ",Attribute=Duplicates");
             queueDuration = registry.timer(baseName + ",Attribute=Queue");
             submitDuration = registry.timer(baseName + ",Attribute=Submit");
         }
@@ -58,6 +62,7 @@ public class NotificationMetrics implements Closeable {
             errors=null;
             inRequests=null;
             saves=null;
+            duplicates=null;
             queueDuration=null;
             submitDuration=null;
         }
@@ -78,6 +83,7 @@ public class NotificationMetrics implements Closeable {
             registry.remove(baseName + ",Attribute=Errors");
             registry.remove(baseName + ",Attribute=Queue");
             registry.remove(baseName + ",Attribute=Saves");
+            registry.remove(baseName + ",Attribute=Duplicates");
             registry.remove(baseName + ",Attribute=Submit");
         }
     }
@@ -90,11 +96,11 @@ public class NotificationMetrics implements Closeable {
         private Timer.Context submitToListener=null;
 
         private Context(){
-            total = totals!=null?totals.time():null;
+            total = (totals!=null)?totals.time():null;
         }
 
         public Notification beforeSave(Notification notif){
-            save =saves!=null?saves.time():null;
+            save =(saves!=null)?saves.time():null;
             return notif;
         }
 
@@ -104,7 +110,7 @@ public class NotificationMetrics implements Closeable {
         }
 
         public String beforeReadDuplicate(String s) {
-            duplicate=null;
+            duplicate=(duplicates!=null)?duplicates.time():null;
             return s;
         }
         public Notification afterReadDuplicate(Notification notificationObservable) {

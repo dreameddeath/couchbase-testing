@@ -32,6 +32,8 @@ import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +43,7 @@ import java.util.regex.Pattern;
  * Created by Christophe Jeunesse on 29/05/2015.
  */
 public abstract class AbstractDCPFlowHandler {
+    private final static Logger LOG = LoggerFactory.getLogger(AbstractDCPFlowHandler.class);
     private final Handler handler;
     private final MappingMode mappingMode;
     //private final Counter eventCounter;
@@ -189,12 +192,14 @@ public abstract class AbstractDCPFlowHandler {
                         byte[] messageContent = message.content().array();
                         metricContext = mutationMetrics.start((long) messageContent.length);
                         ITranscoder transcoder = findTranscoder(message);
-                        CouchbaseDocument doc = transcoder.decode(messageContent);
-                        doc.getBaseMeta().setKey(message.key());
-                        doc.getBaseMeta().setCas(message.cas());
-                        doc.getBaseMeta().setEncodedFlags(message.flags());
-                        doc.getBaseMeta().setDbData(messageContent);
-                        manageMutationMessage(event.asMutationMessage(), doc);
+                        if(transcoder!=null) {
+                            CouchbaseDocument doc = transcoder.decode(messageContent);
+                            doc.getBaseMeta().setKey(message.key());
+                            doc.getBaseMeta().setCas(message.cas());
+                            doc.getBaseMeta().setEncodedFlags(message.flags());
+                            doc.getBaseMeta().setDbData(messageContent);
+                            manageMutationMessage(event.asMutationMessage(), doc);
+                        }
                         break;
                     case DELETION:
                         metricContext = deletionMetrics.start();
@@ -205,6 +210,7 @@ public abstract class AbstractDCPFlowHandler {
                         manageSnapshotMessage(new SnapshotMessage(event.asSnapshotMessage()));
                         break;
                     default:
+                        LOG.warn("Unmanaged event message {}",event.message().getClass());
                 }
                 if(metricContext!=null){
                     metricContext.stop();

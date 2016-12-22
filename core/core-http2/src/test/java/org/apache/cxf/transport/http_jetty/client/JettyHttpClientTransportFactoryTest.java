@@ -63,12 +63,13 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
     public static final String PORT = allocatePort(JettyHttpClientTransportFactoryTest.class);
     public static final String PORT_INV = allocatePort(JettyHttpClientTransportFactoryTest.class, 2);
 
-    static Endpoint ep;
-    static String request;
-    static Greeter g;
-    static MetricRegistry registry;
-    static Slf4jReporter reporter;
-    static boolean fakeAddressDone;
+    private static Endpoint ep=null;
+    private static String request=null;
+    private static Greeter g=null;
+    private static MetricRegistry registry=null;
+    private static Slf4jReporter reporter=null;
+    private static boolean fakeAddressDone=false;
+
     @BeforeClass
     public static void start() throws Exception {
         fakeAddressDone=false;
@@ -152,7 +153,6 @@ public class JettyHttpClientTransportFactoryTest extends AbstractBusClientServer
         }
         if(ep!=null) {
             ep.stop();
-            ep = null;
         }
         if(reporter!=null) {
             reporter.report();

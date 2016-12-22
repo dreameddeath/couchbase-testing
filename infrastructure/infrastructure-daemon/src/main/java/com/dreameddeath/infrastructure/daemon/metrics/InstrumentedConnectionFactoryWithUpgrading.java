@@ -44,7 +44,9 @@ public class InstrumentedConnectionFactoryWithUpgrading<T extends ConnectionFact
     public Connection upgradeConnection(Connector connector, EndPoint endPoint, MetaData.Request upgradeRequest, HttpFields responseFields) throws BadMessageException {
         upgradesCounter.inc();
         Connection connection=connectionFactory.upgradeConnection(connector, endPoint, upgradeRequest, responseFields);
-        addListener(connection);
+        if(connection!=null) {
+            addListener(connection);
+        }
         return connection;
     }
 }

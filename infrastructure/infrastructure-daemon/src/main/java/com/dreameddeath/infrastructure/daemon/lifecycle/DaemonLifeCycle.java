@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.infrastructure.daemon.lifecycle;
@@ -23,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,7 +45,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
         creationDate = new DateTime();
     }
 
-    private void manageException(Exception e,String action) throws Exception{
+    synchronized private void manageException(Exception e,String action) throws Exception{
         LOG.error("Error during "+action,e);
         status=Status.FAILED;
         for(Listener listener:listeners){
@@ -61,7 +62,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
 
     private void sortListener(boolean reverse){
         final int coef = (reverse)?-1:1;
-        Collections.sort(listeners, (l1, l2) -> coef *Integer.compare(l1.getRank(), l2.getRank()));
+        listeners.sort((l1, l2) -> coef * Integer.compare(l1.getRank(), l2.getRank()));
     }
 
     @Override

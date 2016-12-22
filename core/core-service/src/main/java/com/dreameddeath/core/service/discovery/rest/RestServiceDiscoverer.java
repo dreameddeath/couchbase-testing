@@ -22,7 +22,7 @@ import com.dreameddeath.core.service.discovery.AbstractServiceDiscoverer;
 import com.dreameddeath.core.service.model.common.ServiceInstanceDescription;
 import com.dreameddeath.core.service.model.rest.RestCuratorDiscoveryServiceDescription;
 import com.dreameddeath.core.service.model.rest.RestServiceInstanceDescription;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import io.swagger.models.Swagger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.x.discovery.ServiceInstance;

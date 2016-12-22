@@ -19,7 +19,7 @@
 package com.dreameddeath.core.service.soap.model;
 
 import com.dreameddeath.core.service.model.common.ServiceInstanceDescription;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import org.apache.curator.x.discovery.ServiceInstance;
 
 /**

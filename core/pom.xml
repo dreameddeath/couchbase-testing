@@ -58,6 +58,7 @@
         <module>core-log</module>
         <module>core-context</module>
         <module>core-http2</module>
+        <module>core-query</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

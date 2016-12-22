@@ -21,7 +21,7 @@ package com.dreameddeath.infrastructure.plugin.soap;
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.json.JsonProviderFactory;
 import com.dreameddeath.core.service.soap.SoapServiceTypeHelper;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;

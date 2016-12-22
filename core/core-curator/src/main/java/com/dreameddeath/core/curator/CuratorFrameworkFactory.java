@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.curator;
@@ -24,18 +26,20 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.ensemble.EnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorTempFramework;
-import org.apache.curator.framework.api.*;
+import org.apache.curator.framework.api.ACLProvider;
+import org.apache.curator.framework.api.CompressionProvider;
+import org.apache.curator.framework.api.CuratorEventType;
 import org.apache.curator.utils.ZookeeperFactory;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 19/01/2015.
@@ -127,53 +131,26 @@ public class CuratorFrameworkFactory{
         private String connectionString=null;
 
         private void addClosureListener(CuratorFramework framework){
-            framework.getCuratorListenable().addListener(new CuratorListener() {
-                @Override
-                public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
-                    if(event.getType().equals(CuratorEventType.CLOSING)){
-                        Iterator<Map.Entry<String,CuratorFramework>> iterator =curatorFrameworkConcurrentMap.entrySet().iterator();
-                        while(iterator.hasNext()){
-                            Map.Entry<String,CuratorFramework> nextEntry = iterator.next();
-                            if(nextEntry.getValue().equals(client)){
-                                iterator.remove();
-                            }
-                        }
-                    }
+            framework.getCuratorListenable().addListener((client, event) -> {
+                if(event.getType().equals(CuratorEventType.CLOSING)){
+                    curatorFrameworkConcurrentMap.entrySet().removeIf(nextEntry -> nextEntry.getValue().equals(client));
                 }
             });
         }
 
         public CuratorFramework build() throws DuplicateClusterClientException,BadConnectionStringException{
             if(connectionString==null){
-                throw new BadConnectionStringException(connectionString);
+                throw new BadConnectionStringException(null);
             }
-            List<String> servers = new ArrayList();
-            CuratorFramework oldFramework=null;
-            synchronized (curatorFrameworkConcurrentMap) {
-                for (String server : connectionString.split(CONNECTION_STRING_SEPARATOR)) {
-                    server = server.trim().toLowerCase();
-                    servers.add(server);
-                    if (curatorFrameworkConcurrentMap.containsKey(server)) {
-                        CuratorFramework foundFramework = curatorFrameworkConcurrentMap.get(server);
-                        if((oldFramework!=null) && (oldFramework!=foundFramework)){
-                            ///TODO throw an error
-                        }
-                        oldFramework = foundFramework;
-                    }
-                }
-                if(oldFramework==null){
-                    CuratorFramework newCuratorFramework =effectiveBuilder.build();
-                    for(String server:servers){
-                        curatorFrameworkConcurrentMap.putIfAbsent(server,newCuratorFramework);
-                    }
-                    addClosureListener(newCuratorFramework);
-                    return newCuratorFramework;
-                }
-                else{
-                    throw new DuplicateClusterClientException(servers,"The given connection address already exists",oldFramework);
-                    //return oldFramework;
-                }
+            List<String> servers = Arrays.stream(connectionString.split(CONNECTION_STRING_SEPARATOR)).map(server->server.trim().toLowerCase()).collect(Collectors.toList());
+            List<CuratorFramework> alreadyAssignedServer=servers.stream().map(curatorFrameworkConcurrentMap::get).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+            if(alreadyAssignedServer.size()>=1) {
+                throw new DuplicateClusterClientException(servers,"The given connection address already exists",alreadyAssignedServer.get(0));
             }
+            final CuratorFramework newCuratorFramework =effectiveBuilder.build();
+            addClosureListener(newCuratorFramework);
+            servers.forEach(server->curatorFrameworkConcurrentMap.put(server,newCuratorFramework));
+            return newCuratorFramework;
         }
 
         public CuratorTempFramework buildTemp(){return effectiveBuilder.buildTemp();}
@@ -186,7 +163,7 @@ public class CuratorFrameworkFactory{
 
         public Builder connectString(String connectString) throws BadConnectionStringException{
             if(connectString==null){
-                throw new BadConnectionStringException(connectString);
+                throw new BadConnectionStringException(null);
             }
             else if(!CONNECTION_STRING_PATTERN.matcher(connectString).matches()){
                 throw new BadConnectionStringException(connectString);

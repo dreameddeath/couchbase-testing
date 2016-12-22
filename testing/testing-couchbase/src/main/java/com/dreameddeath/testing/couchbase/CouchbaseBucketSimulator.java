@@ -223,14 +223,14 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         }
     }
 
-    public void addCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
+    synchronized public void addCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
         dcpSimulators.add(simulator);
         for(DocumentSimulator doc :dbContent.values()){
             simulator.notifyUpdate(ImpactMode.ADD,doc);
         }
     }
 
-    public void removeCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
+    synchronized public void removeCouchbaseDcpSimulator(CouchbaseDCPConnectorSimulator simulator){
         dcpSimulators.remove(simulator);
     }
 
@@ -541,7 +541,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
             }
             catch(ScriptException e){
                 throw new ViewCompileException(
-                        String.format("Cannot compile %s/%s with content :\n%s\nEOFCONTENT",
+                        String.format("Cannot compile %s/%s with content :%n%s%nEOFCONTENT",
                                 designDoc,
                                 viewDef.getKey(),
                                 scriptContent
@@ -800,7 +800,18 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
         public Object value() {return value;}
         public JsonDocument document() {return document(JsonDocument.class);}
         public <D extends Document<?>> D document(Class<D> target) {
-            try { return JacksonTransformers.MAPPER.readValue(wrapper.dbContent.get(id()).getData().array(), target);}
+            try {
+                DocumentSimulator documentSimulator;
+                synchronized (wrapper) {
+                    documentSimulator=wrapper.dbContent.get(id());
+                }
+                if(documentSimulator!=null) {
+                    return JacksonTransformers.MAPPER.readValue(documentSimulator.getData().array(), target);
+                }
+                else{
+                    return null;
+                }
+            }
             catch(Exception e){ throw new RuntimeException("Unexpected exception",e);}
         }
     }

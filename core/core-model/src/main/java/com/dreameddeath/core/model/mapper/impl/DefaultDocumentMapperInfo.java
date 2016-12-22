@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.model.mapper.impl;
@@ -25,6 +27,7 @@ import com.dreameddeath.core.model.mapper.IKeyMappingInfo;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,9 +36,9 @@ import java.util.regex.Pattern;
  */
 public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
     public static final String KEY_PREFIX_PATTERN_STR = "(?:(\\w+)\\$)?";
-    private Map<Class<? extends CouchbaseDocument>, IDocumentClassMappingInfo> perClassInfoMap
+    private ConcurrentMap<Class<? extends CouchbaseDocument>, IDocumentClassMappingInfo> perClassInfoMap
             = new ConcurrentHashMap<>();
-    private Map<Pattern,IDocumentClassMappingInfo> keyInfoMap
+    private ConcurrentMap<Pattern,IDocumentClassMappingInfo> keyInfoMap
             = new ConcurrentHashMap<>();
 
     @Override
@@ -45,11 +48,10 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
 
     @Override
     public synchronized void addDocument(Class<? extends CouchbaseDocument> docClass,String keyPattern) throws DuplicateMappedEntryInfoException {
-        if (perClassInfoMap.containsKey(docClass)) {
+        IDocumentClassMappingInfo oldMappingInfo =perClassInfoMap.putIfAbsent(docClass, new DefaultDocumentClassInfoMapping(docClass, null, keyPattern));
+        if(oldMappingInfo!=null){
             throw new DuplicateMappedEntryInfoException("The class <"+docClass+"> is already mapped");
         }
-
-        perClassInfoMap.put(docClass, new DefaultDocumentClassInfoMapping(docClass, null, keyPattern));
         try {
             addKeyPattern(docClass, keyPattern);
         }
@@ -113,7 +115,7 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
     }
 
     @Override
-    public IKeyMappingInfo getMappingFromKey(String key) throws MappingNotFoundException{
+    public synchronized IKeyMappingInfo getMappingFromKey(String key) throws MappingNotFoundException{
         String effectiveKey = key;
         for(Map.Entry<Pattern,IDocumentClassMappingInfo> entry:keyInfoMap.entrySet()){
             Matcher matcher = entry.getKey().matcher(effectiveKey);
@@ -157,7 +159,7 @@ public class DefaultDocumentMapperInfo implements IDocumentInfoMapper{
     }
 
     @Override
-    public boolean contains(Class<? extends CouchbaseDocument> docClass) {
+    public synchronized boolean contains(Class<? extends CouchbaseDocument> docClass) {
         return perClassInfoMap.containsKey(docClass);
     }
 }

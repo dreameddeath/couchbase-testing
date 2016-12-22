@@ -200,7 +200,7 @@ public class CouchbaseCounterDao{
         private String keyPattern=null;
         private Long baseValue=0L;
         private Long expiration=0L;
-        private Long modulus;
+        private Long modulus=null;
         private ICouchbaseBucket client;
         private CouchbaseDocumentDao baseDao;
 
@@ -230,12 +230,22 @@ public class CouchbaseCounterDao{
         }
 
         public Builder withModulus(Long modulus){
-            this.modulus = modulus;
+            if(modulus!=null && modulus==0L){
+                this.modulus=null;
+            }
+            else {
+                this.modulus = modulus;
+            }
             return this;
         }
 
         public Builder withModulus(long modulus){
-            this.modulus = modulus;
+            if(modulus==0L){
+                this.modulus=null;
+            }
+            else {
+                this.modulus = modulus;
+            }
             return this;
         }
 

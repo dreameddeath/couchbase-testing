@@ -87,9 +87,12 @@ public abstract class DRPCFunction<TIN,TOUT> extends BaseFunction {
             String drpcStrInput = MAPPER.writeValueAsString(processedInput);
             String outputResult = drpcClient.execute(drpcFunctionName,drpcStrInput);
             List<List<TOUT>> parsingResult = MAPPER.readValue(outputResult,getTypeReference());
-
-            DRPCResultProcess(parsingResult.get(0).get(0), tridentCollector);
-
+            if(parsingResult!=null && parsingResult.size()>0 && parsingResult.get(0).size()>0) {
+                DRPCResultProcess(parsingResult.get(0).get(0), tridentCollector);
+            }
+            else{
+                throw new RuntimeException("Unparsable result");
+            }
         }
         catch(Exception e){
             LOG.error("Error",e);

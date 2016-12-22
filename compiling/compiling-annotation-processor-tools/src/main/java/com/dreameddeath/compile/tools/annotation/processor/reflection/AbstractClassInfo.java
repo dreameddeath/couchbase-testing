@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.compile.tools.annotation.processor.reflection;
@@ -36,8 +38,8 @@ import java.util.*;
  */
 public abstract class AbstractClassInfo extends AnnotatedInfo {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractClassInfo.class);
-    private static Map<TypeElement,AbstractClassInfo> typeElementToInfoMap = new HashMap<>();
-    private static Map<Class,AbstractClassInfo> classToInfoMap = new HashMap<>();
+    private static final Map<TypeElement,AbstractClassInfo> typeElementToInfoMap = new HashMap<>();
+    private static final Map<Class,AbstractClassInfo> classToInfoMap = new HashMap<>();
 
 
     public static <T extends Annotation> AbstractClassInfo getClassInfoFromAnnot(T annot,AnnotGetter<T> getter){
@@ -117,7 +119,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             if (currElement instanceof TypeElement) {
                 result = currElement.getSimpleName() + "$" + result;
             } else if (currElement instanceof PackageElement) {
-                if (!"".equals(currElement.getSimpleName())) {
+                if (!"".equals(currElement.getSimpleName().toString())) {
                     result = ((PackageElement) currElement).getQualifiedName() + "." + result;
                 }
             }
@@ -171,10 +173,14 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     private void init(){
         if(typeElement!=null){
-            typeElementToInfoMap.put(typeElement,this);
+            synchronized (typeElementToInfoMap) {
+                typeElementToInfoMap.put(typeElement, this);
+            }
         }
         if(clazz!=null){
-            classToInfoMap.put(clazz,this);
+            synchronized (classToInfoMap) {
+                classToInfoMap.put(clazz, this);
+            }
         }
         if(typeElement!=null){
             if(typeElement.getEnclosingElement() instanceof TypeElement){

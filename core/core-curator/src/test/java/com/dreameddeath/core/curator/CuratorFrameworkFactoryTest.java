@@ -95,7 +95,8 @@ public class CuratorFrameworkFactoryTest extends Assert{
         client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
         String[] servers = connectionString.split(CuratorFrameworkFactory.CONNECTION_STRING_SEPARATOR);
         try{
-            CuratorFrameworkFactory.newClientInstance(servers[2] + "," + servers[1], new ExponentialBackoffRetry(1000, 3));
+            CuratorFramework framework =CuratorFrameworkFactory.newClientInstance(servers[2] + "," + servers[1], new ExponentialBackoffRetry(1000, 3));
+            framework.close();
             fail("The duplicate exception hasn't been raised");
         }
         catch(DuplicateClusterClientException e){

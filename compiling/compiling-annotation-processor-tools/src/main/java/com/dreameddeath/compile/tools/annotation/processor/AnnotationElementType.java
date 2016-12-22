@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.compile.tools.annotation.processor;
@@ -19,6 +21,7 @@ package com.dreameddeath.compile.tools.annotation.processor;
 import com.dreameddeath.compile.tools.annotation.exception.AnnotationProcessorException;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.*;
 import com.dreameddeath.core.java.utils.ClassUtils;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +84,9 @@ public enum AnnotationElementType {
     public static AnnotatedInfo getInfoOf(Element element) throws AnnotationProcessorException{
         switch(getTypeOf(element)){
             case METHOD:
-                return new MethodInfo(getParentTypeInfo((ExecutableElement)element),(ExecutableElement)element);
+                AbstractClassInfo parentClassInfo = getParentTypeInfo((ExecutableElement)element);
+                Preconditions.checkNotNull(parentClassInfo,"Cannot get parent class info of method {}",element);
+                return new MethodInfo(parentClassInfo,(ExecutableElement)element);
             case INTERFACE:
             case ANNOTATION:
             case CLASS:
@@ -107,7 +112,9 @@ public enum AnnotationElementType {
     }
 
     private static AbstractClassInfo getParentTypeInfo(ExecutableElement element) throws AnnotationProcessorException{
-        return AbstractClassInfo.getClassInfo(getParentTypeElement(element));
+        TypeElement parentTypeElement = getParentTypeElement(element);
+        Preconditions.checkNotNull(parentTypeElement,"Cannot get the parent class of method {}",element);
+        return AbstractClassInfo.getClassInfo(parentTypeElement);
     }
 
     private static AbstractClassInfo getParentTypeInfo(VariableElement element) throws AnnotationProcessorException{

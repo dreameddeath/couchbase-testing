@@ -49,17 +49,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CouchbaseSession implements ICouchbaseSession {
-    final private CouchbaseSessionFactory sessionFactory;
-    final private String keyPrefix;
-    final private SessionType sessionType;
-    final private IDateTimeService dateTimeService;
-    final private IUser user;
-    final private IBlockingCouchbaseSession blockingSession;
+    private final CouchbaseSessionFactory sessionFactory;
+    private final String keyPrefix;
+    private final SessionType sessionType;
+    private final IDateTimeService dateTimeService;
+    private final IUser user;
+    private final IBlockingCouchbaseSession blockingSession;
 
-    private final BucketDocumentCache sessionCache; //= new BucketDocumentCache(this);
-    private final Map<String,CouchbaseUniqueKey> keyCache; //= new ConcurrentHashMap<>();
-    private final Map<String,Long> counters; //= new ConcurrentHashMap<>();
-    private volatile boolean temporaryReadOnlyMode;
+    private final BucketDocumentCache sessionCache;
+    private final Map<String,CouchbaseUniqueKey> keyCache;
+    private final Map<String,Long> counters;
 
     public CouchbaseSession(CouchbaseSessionFactory factory, IUser user){
         this(factory, SessionType.READ_ONLY,user);

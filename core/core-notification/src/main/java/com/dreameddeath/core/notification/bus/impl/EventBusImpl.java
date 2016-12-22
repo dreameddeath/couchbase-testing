@@ -83,7 +83,7 @@ public class EventBusImpl implements IEventBus {
     }
 
     @Override
-    public void addLifeCycleListener(IEventBusLifeCycleListener listener) {
+    public synchronized void addLifeCycleListener(IEventBusLifeCycleListener listener) {
         lifeCycleListeners.add(listener);
     }
 
@@ -332,7 +332,11 @@ public class EventBusImpl implements IEventBus {
                 correlationId = event.getId().toString();
             }
 
-            int index = Math.abs((correlationId+notification.getListenerName()).hashCode())%ringBuffers.length;
+            int modulus = (correlationId+notification.getListenerName()).hashCode()%ringBuffers.length;
+            if(modulus<0){
+                modulus +=ringBuffers.length;
+            }
+            int index = modulus;
             notificationMetricContext.submitToQueue();
             ringBuffers[index].publishEvent(translator,event,notification,notificationMetricContext);
         }

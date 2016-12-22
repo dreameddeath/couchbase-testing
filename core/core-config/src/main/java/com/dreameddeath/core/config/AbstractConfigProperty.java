@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.config;
@@ -19,6 +21,7 @@ package com.dreameddeath.core.config;
 import com.dreameddeath.core.config.exception.ConfigPropertyValueNotFoundException;
 import com.dreameddeath.core.config.internal.ExtendedPropertyWrapper;
 import com.dreameddeath.core.config.internal.ReferencePropertyWrapper;
+import com.dreameddeath.core.java.utils.ClassUtils;
 import com.netflix.config.PropertyWrapper;
 import org.joda.time.DateTime;
 
@@ -53,12 +56,13 @@ public abstract class AbstractConfigProperty<T> implements IConfigProperty<T> {
 
 
     public static <T> PropertyWrapper<T> buildDefaultWrapperWithRef(String name, final IConfigProperty<T> defaultValueRef) {
+        @SuppressWarnings("unchecked")
+        final Class<T> clazz=ClassUtils.getEffectiveGenericType(defaultValueRef.getClass(),IConfigProperty.class,0);
         return new ReferencePropertyWrapper<T>(name, defaultValueRef) {
-            private Class<T> clazz=null;
             @Override
             @SuppressWarnings("unchecked")
             public T getLocalValue() {
-                return prop.getCachedValue(clazz).get();
+                return prop.getCachedValue(clazz).orNull();
             }
         };
     }

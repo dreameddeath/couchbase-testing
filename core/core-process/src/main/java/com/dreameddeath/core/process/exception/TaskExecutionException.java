@@ -27,8 +27,8 @@ import com.dreameddeath.core.process.service.context.TaskContext;
  * Created by Christophe Jeunesse on 05/08/2014.
  */
 public class TaskExecutionException extends Exception {
-    State state;
-    AbstractTask task;
+    private State state;
+    private AbstractTask task;
 
     public TaskExecutionException(TaskContext ctxt, String message) {
         super(message);

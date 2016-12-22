@@ -152,21 +152,25 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
     private void logError(JobContext<T> origCtxt, final Throwable orig) {
         Throwable e=orig;
         while(e!=null) {
+            Throwable eCause = e.getCause();
             if(e instanceof IExecutionExceptionNoLog) {
                 return;
             }
-            else if (e instanceof JobObservableExecutionException) {
-                e = e.getCause();
+            else if (e instanceof JobObservableExecutionException && eCause!=null) {
+                Throwable jobExecutionExceptionCause = eCause.getCause();
                 //Skip JobExecutionException
-                if (e != null && e.getCause() != null) {
-                    e = e.getCause();
+                if (jobExecutionExceptionCause!=null) {
+                    e = jobExecutionExceptionCause;
+                }
+                else{
+                    e=eCause;
                 }
             }
-            else if(e instanceof DaoObservableException && e.getCause()!=null){
-                e = e.getCause();
+            else if(e instanceof DaoObservableException && eCause!=null){
+                e = eCause;
             }
-            else if(e instanceof StorageObservableException && e.getCause()!=null) {
-                e = e.getCause();
+            else if(e instanceof StorageObservableException && eCause!=null) {
+                e = eCause;
             }
             else {
                 break;

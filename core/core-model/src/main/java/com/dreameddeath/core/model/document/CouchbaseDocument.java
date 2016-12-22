@@ -143,7 +143,7 @@ public class CouchbaseDocument implements HasParent {
         }
 
         public final void removeFlags(Collection<DocumentFlag> flags){
-            this.flags.remove(flags);
+            this.flags.removeAll(flags);
         }
 
         public boolean hasFlag(DocumentFlag flag){
@@ -257,10 +257,11 @@ public class CouchbaseDocument implements HasParent {
         }
     }
 
-    public boolean equals(CouchbaseDocument doc){
+    @Override
+    public boolean equals(Object doc){
         if     (doc == null){ return false;}
         else if(doc == this){ return true; }
-        else if(meta.getKey()!=null) { return meta.getKey().equals(doc.meta.getKey()); }
+        else if(meta.getKey()!=null && doc instanceof CouchbaseDocument) { return meta.getKey().equals(((CouchbaseDocument)doc).meta.getKey()); }
         else                { return false; }
     }
 

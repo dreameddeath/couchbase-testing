@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.infrastructure.daemon.servlet;
@@ -49,13 +51,13 @@ public class RequireJsServlet extends HttpServlet {
     private String response;
     private String eTag;
 
-    private void buildResponse(){
+    synchronized private void buildResponse(){
         if(manualTesting){
             try {
                 List<String> prefixes = new ArrayList<>();
                 prefixes.add(libFullPath);
 
-                Map<String,String> webJars = (new WebJarAssetLocator(
+                Map<String, String> webJars = (new WebJarAssetLocator(
                         WebJarAssetLocator.getFullPathIndex(
                                 Pattern.compile(".*"),
                                 new URLClassLoader(new URL[]{new File(ServletUtils.LOCAL_WEBAPP_SRC).toURI().toURL()}),
@@ -63,9 +65,8 @@ public class RequireJsServlet extends HttpServlet {
                         )
                 )).getWebJars();
                 response = RequireJS.generateSetupJavaScript(prefixes, webJars);
-            }
-            catch(MalformedURLException e){
-                throw new RuntimeException("Cannot setup testing env",e);
+            } catch (MalformedURLException e) {
+                throw new RuntimeException("Cannot setup testing env", e);
             }
         }
         else {
@@ -93,7 +94,6 @@ public class RequireJsServlet extends HttpServlet {
         }
         libFullPath = config.getInitParameter(APPS_WEBJARS_LIBS_FULL_PATH);
         buildResponse();
-
     }
 
     @Override

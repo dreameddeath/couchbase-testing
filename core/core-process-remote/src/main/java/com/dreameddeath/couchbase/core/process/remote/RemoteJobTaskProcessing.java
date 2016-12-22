@@ -49,7 +49,7 @@ import java.util.UUID;
  */
 public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJob,TTASK extends RemoteJobProcessTask<TREQ,TRESP>> implements ITaskProcessingService<TJOB,TTASK>, IHasServiceClient{
     private IRemoteClientFactory remoteClientFactory;
-    private IRestServiceClient remoteJobProcessingClient;
+    private volatile IRestServiceClient remoteJobProcessingClient;
 
     @Inject
     public void setRemoteJobClientFactory(IRemoteClientFactory remoteClientFactory) {

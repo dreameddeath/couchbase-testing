@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.config;
@@ -23,6 +25,8 @@ import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,13 +36,13 @@ import java.io.IOException;
  * Created by Christophe Jeunesse on 20/01/2015.
  */
 public class ConfigManagerFactory {
-
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigManagerFactory.class);
     private final static BaseConfiguration defaultValueConfig;
     private final static ConcurrentCompositeConfiguration centralizedConfig;
     private final static ConcurrentCompositeConfiguration localDefault;
     private final static PropertiesConfiguration localOverride;
-    private final static BaseConfiguration localTempOverride;
 
+    private final static BaseConfiguration localTempOverride;
     public static final String LOCAL_OVERRIDE_PROPERTIES_FILENAME = "local.override.properties";
 
     static{
@@ -111,9 +115,12 @@ public class ConfigManagerFactory {
         File oldFile = localOverride.getFile();
         localOverride.setFileName(filename);
         localOverride.save(filename);
-        oldFile.delete();
+        if(oldFile!=null) {
+            if(!oldFile.delete()){
+                LOG.warn("Failing to delete old property file {}",oldFile.getAbsolutePath());
+            }
+        }
     }
-
 
     public static AbstractConfiguration getConfig(PriorityDomain priority){
         switch (priority) {

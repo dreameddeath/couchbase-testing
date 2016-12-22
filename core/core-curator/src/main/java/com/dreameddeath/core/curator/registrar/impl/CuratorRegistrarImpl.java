@@ -77,22 +77,24 @@ public abstract class CuratorRegistrarImpl<T extends IRegisterable> implements I
 
     @Override @PreDestroy
     public synchronized final void close() {
-        registered.entrySet().forEach(entry -> {
-            try {
-                String path = entry.getValue().getActualPath();
-                if(path!=null){
-                    LOG.info("Un-registring path {}",path);
-                }
-                else{
-                    LOG.info("Un-registring strange path {}",CuratorUtils.buildPath(basePath,registeredValues.get(entry.getKey()).getUid()));
-                }
-                entry.getValue().close();
-            } catch (IOException e) {
-                LOG.error("Cannot close node "+entry.getValue().getActualPath());
-            }
-        });
+        registered.entrySet().forEach(this::cleanupEntry);
         registered.clear();
         registeredValues.clear();
+    }
+
+    private synchronized void cleanupEntry(final Map.Entry<String,PersistentNode> entry){
+        try {
+            String path = entry.getValue().getActualPath();
+            if(path!=null){
+                LOG.info("Un-registring path {}",path);
+            }
+            else{
+                LOG.info("Un-registring strange path {}",CuratorUtils.buildPath(basePath,registeredValues.get(entry.getKey()).getUid()));
+            }
+            entry.getValue().close();
+        } catch (IOException e) {
+            LOG.error("Cannot close node "+entry.getValue().getActualPath());
+        }
     }
 
     @Override

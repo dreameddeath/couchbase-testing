@@ -1,22 +1,25 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.service.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.*;
+import com.google.common.base.Preconditions;
 
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
@@ -45,7 +48,7 @@ public class ServiceExpositionParamInfo {
     private void initFromAttributePath(String name,String attributePath,MethodInfo methodInfo){
         this.name = name;
         //;
-        if((attributePath == null) || attributePath.equals("") || attributePath.split("\\.").length==1){
+        if(attributePath.equals("") || !attributePath.contains(".")){
             isSimpleMapping = true;
             getterString = attributePath;
             setterString = attributePath+"="+name;
@@ -72,7 +75,8 @@ public class ServiceExpositionParamInfo {
                 else{
                     //First try to access by getter/Setter
                     String attributeMethodSuffix = attributeElement.substring(0, 1).toUpperCase() + attributeElement.substring(1);
-                    FieldInfo fieldInfo = null;
+                    FieldInfo fieldInfo=null;
+                    Preconditions.checkNotNull(currentElement,"The attribute element %s doesn't have matching current value within atrribute %s and path %s",attributeElement,name,attributePath);
                     MethodInfo getterMethod = currentElement.getMethod("get" + attributeMethodSuffix);
                     MethodInfo setterMethod = null;
                     if (getterMethod != null) {
@@ -96,6 +100,7 @@ public class ServiceExpositionParamInfo {
                         if (getterMethod != null) {
                             getterString += "." + getterMethod.getName() + "()";
                         } else {
+                            Preconditions.checkNotNull(fieldInfo,"neither getter method no field info found for attribute %s",name);
                             getterString += "." + fieldInfo.getName();
                         }
                     } else {
@@ -104,6 +109,7 @@ public class ServiceExpositionParamInfo {
                             setterString = getterString + "." + setterMethod.getName() + "(" + name + ")";
                             getterString += getterString + "." + getterMethod.getName() + "()";
                         } else {
+                            Preconditions.checkNotNull(fieldInfo,"neither getter method no field info found for attribute %s",name);
                             setterString = getterString + "." + fieldInfo.getName() + "=" + name;
                             getterString += "." + fieldInfo.getName();
                             typeInfo = fieldInfo.getType();

@@ -19,7 +19,7 @@
 package com.dreameddeath.core.service.model.rest;
 
 import com.dreameddeath.core.service.model.common.ServiceInstanceDescription;
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.models.Swagger;
 import org.apache.curator.x.discovery.ServiceInstance;

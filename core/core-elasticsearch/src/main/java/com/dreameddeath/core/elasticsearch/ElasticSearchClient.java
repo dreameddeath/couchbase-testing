@@ -1,17 +1,19 @@
 /*
- * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright Christophe Jeunesse
+ *  *
+ *  *    Licensed under the Apache License, Version 2.0 (the "License");
+ *  *    you may not use this file except in compliance with the License.
+ *  *    You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  *    Unless required by applicable law or agreed to in writing, software
+ *  *    distributed under the License is distributed on an "AS IS" BASIS,
+ *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  *    See the License for the specific language governing permissions and
+ *  *    limitations under the License.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 package com.dreameddeath.core.elasticsearch;
@@ -37,16 +39,22 @@ import org.elasticsearch.index.VersionType;
 import org.elasticsearch.node.NodeBuilder;
 import rx.Observable;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 /**
  * Created by Christophe Jeunesse on 25/05/2015.
  */
-public class ElasticSearchClient {
+public class ElasticSearchClient implements Closeable {
     private Client client;
+    private boolean hasClientOwnerShip;
     private ObjectMapper objectMapper;
 
-    public ElasticSearchClient(Client client,ObjectMapper mapper){
+
+    public ElasticSearchClient(Client client,ObjectMapper mapper,boolean hasClientOwnerShip){
         this.client = client;
         objectMapper = mapper;
+        this.hasClientOwnerShip=hasClientOwnerShip;
     }
 
     public boolean isIndexExists(String indexName){
@@ -72,7 +80,7 @@ public class ElasticSearchClient {
 
 
     public ElasticSearchClient(String clusterName,ObjectMapper mapper){
-        this(NodeBuilder.nodeBuilder().client(true).clusterName(clusterName).build().client(),mapper);
+        this(NodeBuilder.nodeBuilder().client(true).clusterName(clusterName).build().client(),mapper,true);
     }
 
     public Observable<GetResponse> get(String indexName,String type,String key){
@@ -155,5 +163,12 @@ public class ElasticSearchClient {
 
     public Client getInternalClient() {
         return client;
+    }
+
+    @Override
+    public void close() throws IOException {
+        if(client!=null && hasClientOwnerShip){
+            client.close();
+        }
     }
 }

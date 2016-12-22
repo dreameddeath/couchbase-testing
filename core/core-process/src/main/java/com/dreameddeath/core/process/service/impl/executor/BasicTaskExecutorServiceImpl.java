@@ -33,6 +33,7 @@ import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -142,21 +143,24 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
     private void logError(TaskContext<TJOB, T> origCtxt, Throwable orig) {
         Throwable e=orig;
         while(e!=null) {
+            Throwable eCause = e.getCause();
             if(e instanceof IExecutionExceptionNoLog) {
                 return;
             }
-            else if (e instanceof TaskObservableExecutionException) {
-                e = e.getCause();
-                //Skip TaskExecutionException
-                if (e != null && e.getCause() != null) {
-                    e = e.getCause();
+            else if (e instanceof TaskObservableExecutionException && eCause!=null) {
+                Throwable taskExecExceptionCause = eCause.getCause();
+                if (taskExecExceptionCause != null) {
+                    e = taskExecExceptionCause;
+                }
+                else{
+                    e=eCause;
                 }
             }
-            else if(e instanceof DaoObservableException && e.getCause()!=null){
-                e = e.getCause();
+            else if(e instanceof DaoObservableException && eCause!=null){
+                e = eCause;
             }
-            else if(e instanceof StorageObservableException && e.getCause()!=null) {
-                e = e.getCause();
+            else if(e instanceof StorageObservableException && eCause!=null) {
+                e = eCause;
             }
             else {
                 break;
@@ -168,7 +172,9 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
 
     private Observable<TaskProcessingResult<TJOB,T>> runTask(final TaskContext<TJOB,T> ctxt){
         if(ctxt.isSubJobTask()) {
-            return ctxt.getSubJob()
+            Observable<? extends AbstractJob> subJobObs = ctxt.getSubJob();
+            Preconditions.checkNotNull(subJobObs,"Cannot get sub job observable for task {}",ctxt.getId());
+            return subJobObs
                     .flatMap(subJob -> ctxt.getJobContext().getClientFactory().buildJobClient((Class<AbstractJob>) subJob.getClass()).executeJob(subJob, ctxt.getUser()))
                     .flatMap(subJobCtxt -> TaskProcessingResult.build(ctxt, true));
         }

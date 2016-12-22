@@ -27,8 +27,7 @@ addons:
       name: "dreameddeath/couchbase-testing"
       description: "Build submitted via Travis CI"
     notification_email: christophejeunesse@hotmail.com
-    build_command_prepend: "mvn clean"
-    build_command:   "mvn -B clean test jacoco:report coveralls:report"
+    build_command:   "mvn -B clean test > /dev/null"
     branch_pattern: master
 
 

@@ -24,9 +24,9 @@ import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -37,7 +37,7 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
     private final String name;
     private final String type;
     private final String version;
-    private final CopyOnWriteArrayList<EntityModelId> listenedEvents = new CopyOnWriteArrayList<>();
+    private volatile List<EntityModelId> listenedEvents = null;
     private final ConcurrentHashMap<EntityModelId,Boolean> modelIdEligibilityMap = new ConcurrentHashMap<>();
 
     public AbstractDiscoverableListener(ListenerDescription description){
@@ -74,26 +74,26 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
 
     public Boolean calcEligibility(EntityModelId modelId){
         boolean result=false;
-        for(EntityModelId acceptedModelId:listenedEvents){
-            result = modelId.getDomain().equals(acceptedModelId.getDomain()) &&
-                    modelId.getName().equals(acceptedModelId.getName()) &&
-                    (
-                        acceptedModelId.getEntityVersion()==null ||
-                        acceptedModelId.getEntityVersion().compareTo(modelId.getEntityVersion())<=0
-                    );
-            if(result){
-                break;
+        List<EntityModelId> modelIdList = listenedEvents;
+        if(modelIdList!=null) {
+            for (EntityModelId acceptedModelId : modelIdList) {
+                result = modelId.getDomain().equals(acceptedModelId.getDomain()) &&
+                        modelId.getName().equals(acceptedModelId.getName()) &&
+                        (
+                                acceptedModelId.getEntityVersion() == null ||
+                                        acceptedModelId.getEntityVersion().compareTo(modelId.getEntityVersion()) <= 0
+                        );
+                if (result) {
+                    break;
+                }
             }
         }
         return result;
     }
 
-    public synchronized void setDescription(ListenerDescription description){
+    public void setDescription(ListenerDescription description){
         this.description = description;
-        List<EntityModelId> newModelsList = description.getListenedEvents().stream().map(ListenedEvent::getType).collect(Collectors.toList());
-
-        listenedEvents.retainAll(newModelsList);
-        listenedEvents.addAllAbsent(newModelsList);
+        this.listenedEvents = Collections.unmodifiableList(description.getListenedEvents().stream().map(ListenedEvent::getType).collect(Collectors.toList()));
         modelIdEligibilityMap.clear();
     }
 }

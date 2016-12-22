@@ -25,13 +25,12 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
  * Created by Christophe Jeunesse on 10/04/2015.
  */
 public class CounterDef {
-    private String name;
-    private String dbName;
-    private String pattern;
-    private DbPathDef dbPathDef;
-    private boolean isKeyGen;
-    private long defaultValue;
-    private long modulus;
+    private final String name;
+    private final String dbName;
+    private final DbPathDef dbPathDef;
+    private final boolean isKeyGen;
+    private final long defaultValue;
+    private final long modulus;
 
     public CounterDef(CouchbaseDocumentReflection docReflection, Counter annot, DbPathDef pathDef) {
         name = annot.name();
@@ -76,6 +75,7 @@ public class CounterDef {
         return "{" +
                 "fullName:" + getName() + ",\n" +
                 "dbName:" + getDbName() + ",\n" +
+                "modulus:" + getModulus() + ",\n" +
                 "pattern:" + getFullPattern() + ",\n" +
                 "format:" + getFullFormat() + ",\n" +
                 "}";

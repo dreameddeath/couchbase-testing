@@ -18,7 +18,7 @@
 
 package com.dreameddeath.infrastructure.daemon.webserver;
 
-import com.dreameddeath.core.service.utils.RestServiceTypeHelper;
+import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.servlet.*;
 import com.google.common.base.Preconditions;
