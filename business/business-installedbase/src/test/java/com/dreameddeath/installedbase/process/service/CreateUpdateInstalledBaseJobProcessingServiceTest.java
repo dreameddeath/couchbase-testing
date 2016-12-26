@@ -19,6 +19,7 @@
 package com.dreameddeath.installedbase.process.service;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
+import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
@@ -168,6 +169,7 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
     public void close() throws Exception {
         if(daemonWrapper!=null) daemonWrapper.stop();
         if (testUtils != null) testUtils.stop();
+        CuratorFrameworkFactory.cleanup();
     }
 
 

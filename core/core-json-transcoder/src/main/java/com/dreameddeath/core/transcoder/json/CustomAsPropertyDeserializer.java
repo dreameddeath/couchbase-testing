@@ -102,9 +102,14 @@ public class CustomAsPropertyDeserializer extends AsPropertyTypeDeserializer {
                 tb.writeString(defaultTypeId);
             }
             tb.writeEndObject();
-            try(JsonParser newJp=JsonParserSequence.createFlattened(false,tb.asParser(jp), jp)) {
+            JsonParser newJp=JsonParserSequence.createFlattened(false,tb.asParser(jp), jp);
+            try{
                 newJp.nextToken();
                 return deser.deserialize(newJp, ctxt);
+            }
+            catch(IOException e){
+                newJp.close();
+                throw e;
             }
         }
         else{

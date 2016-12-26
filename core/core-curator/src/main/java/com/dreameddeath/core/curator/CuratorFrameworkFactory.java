@@ -29,8 +29,12 @@ import org.apache.curator.framework.CuratorTempFramework;
 import org.apache.curator.framework.api.ACLProvider;
 import org.apache.curator.framework.api.CompressionProvider;
 import org.apache.curator.framework.api.CuratorEventType;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.utils.ZookeeperFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -45,6 +49,7 @@ import java.util.stream.Collectors;
  * Created by Christophe Jeunesse on 19/01/2015.
  */
 public class CuratorFrameworkFactory{
+    private final static Logger LOG = LoggerFactory.getLogger(CuratorFrameworkFactory.class);
     public static String CONNECTION_STRING_SEPARATOR = ",";
     public static Pattern CONNECTION_STRING_PATTERN = Pattern.compile("^\\s*((\\w+)(\\.\\w+)*:\\d+)(\\s*,\\s*(\\w+)(\\.\\w+)*:\\d+)*\\s*$");
 
@@ -134,8 +139,14 @@ public class CuratorFrameworkFactory{
             framework.getCuratorListenable().addListener((client, event) -> {
                 if(event.getType().equals(CuratorEventType.CLOSING)){
                     curatorFrameworkConcurrentMap.entrySet().removeIf(nextEntry -> nextEntry.getValue().equals(client));
+                    LOG.info("Closing framework {}",framework);
                 }
             });
+        }
+
+
+        private void addEventLogListener(final CuratorFramework framework,final String name){
+            framework.getCuratorListenable().addListener((client, event) -> LOG.info("Receiving event {} for curator client {}",event,name));
         }
 
         public CuratorFramework build() throws DuplicateClusterClientException,BadConnectionStringException{
@@ -246,5 +257,21 @@ public class CuratorFrameworkFactory{
             namespace(nameSpacePrefix);
             this.nameSpacePrefix = nameSpacePrefix;
         }
+    }
+
+    public static void cleanup(){
+        List<CuratorFramework> curatorFrameworkList = new ArrayList<>(curatorFrameworkConcurrentMap.values());
+        curatorFrameworkList.forEach(client->{
+            try{
+                if(client.getState().equals(CuratorFrameworkState.STARTED)){
+                    client.close();
+                }
+            }
+            catch (Throwable e){
+                LOG.error("Error during client stop",e);
+            }
+        });
+
+        curatorFrameworkConcurrentMap.clear();
     }
 }

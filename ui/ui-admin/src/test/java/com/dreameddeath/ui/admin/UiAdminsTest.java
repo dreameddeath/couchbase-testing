@@ -19,6 +19,7 @@
 package com.dreameddeath.ui.admin;
 
 import com.dreameddeath.core.config.ConfigManagerFactory;
+import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import com.dreameddeath.core.curator.config.CuratorConfigProperties;
 import com.dreameddeath.core.curator.config.SharedConfigurationUtils;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
@@ -80,7 +81,7 @@ public class UiAdminsTest {
         SharedConfigurationUtils.setupZookeeperConfigSource(client,"test2");
         SharedConfigurationUtils.registerZookeeperConfigSource(client,"test1");
 
-        AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client)
+        AbstractDaemon daemon = AbstractDaemon.builder().withName("testing Daemon 1").withCuratorFramework(client,false)
                 .withUserFactory(new StandardMockUserFactory())
                 .build();
         daemon.addWebServer(WebAppWebServer.builder().withName("apps-admin-tests")
@@ -91,7 +92,7 @@ public class UiAdminsTest {
         );
         daemons.add(daemon);
         daemon.getDaemonLifeCycle().start();
-        final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client)
+        final AbstractDaemon daemon2=AbstractDaemon.builder().withName("testing Daemon 2").withCuratorFramework(client,false)
                 .withUserFactory(new StandardMockUserFactory())
                 .withPlugin(CouchbaseDaemonPlugin.builder().withBucketFactory(new CouchbaseBucketFactorySimulator()))
                 .build();
@@ -132,6 +133,7 @@ public class UiAdminsTest {
             daemon.getDaemonLifeCycle().stop();
             daemon.getDaemonLifeCycle().join();
         }
+        CuratorFrameworkFactory.cleanup();
         testUtils.stop();
     }
 }

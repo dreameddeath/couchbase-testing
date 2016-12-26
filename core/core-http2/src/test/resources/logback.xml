@@ -24,7 +24,7 @@
         </encoder>
     </appender>
 
-    <root level="${TEST_LOG_LEVEL:-INFO">
+    <root level="${TEST_LOG_LEVEL:-INFO}">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

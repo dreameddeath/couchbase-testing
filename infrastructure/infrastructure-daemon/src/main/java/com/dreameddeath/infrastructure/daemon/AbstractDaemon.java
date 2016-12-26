@@ -23,6 +23,7 @@ import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
+import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonCuratorFrameworkLifeCycleListener;
 import com.dreameddeath.infrastructure.daemon.lifecycle.DaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.lifecycle.IDaemonLifeCycle;
 import com.dreameddeath.infrastructure.daemon.metrics.DaemonMetrics;
@@ -77,13 +78,13 @@ public class AbstractDaemon {
         this(new Builder());
     }
 
-    public AbstractDaemon(CuratorFramework curatorClient){
-        this(new Builder().withCuratorFramework(curatorClient));
+    public AbstractDaemon(CuratorFramework curatorClient,boolean manageClientClosure){
+        this(new Builder().withCuratorFramework(curatorClient,manageClientClosure));
     }
 
     public AbstractDaemon(Builder builder){
         if(builder.getCuratorFramework()==null){
-            builder.withCuratorFramework(setupDefaultCuratorClient());
+            builder.withCuratorFramework(setupDefaultCuratorClient(),false);
         }
         //TODO improve user management
         Preconditions.checkNotNull(builder.userFactory,"Please give a user factory");
@@ -110,6 +111,9 @@ public class AbstractDaemon {
 
         if(builder.getRegisterDaemon()){
             daemonLifeCycle.addLifeCycleListener(new DaemonRegisterLifeCycleListener(curatorClient));
+        }
+        if(builder.manageCuratorFrameworkClosure){
+            daemonLifeCycle.addLifeCycleListener(new DaemonCuratorFrameworkLifeCycleListener(curatorClient));
         }
 
         for(IDaemonPluginBuilder pluginBuilder:builder.pluginBuilderList){
@@ -232,6 +236,7 @@ public class AbstractDaemon {
         private String adminApplicationContextName="META-INF/spring/daemon.admin.applicationContext.xml";
         private String adminWebServerName="admin";
         private List<IDaemonPluginBuilder> pluginBuilderList=new ArrayList<>();
+        private boolean manageCuratorFrameworkClosure=false;
 
         public String getName() {
             return name;
@@ -255,8 +260,9 @@ public class AbstractDaemon {
             return curatorFramework;
         }
 
-        public Builder withCuratorFramework(CuratorFramework curatorFramework) {
+        public Builder withCuratorFramework(CuratorFramework curatorFramework,boolean manageClientClosure) {
             this.curatorFramework = curatorFramework;
+            this.manageCuratorFrameworkClosure=manageClientClosure;
             return this;
         }
 

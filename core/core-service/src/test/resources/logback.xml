@@ -32,7 +32,7 @@
         </encoder>
     </appender>-->
 
-    <root level="${TEST_LOG_LEVEL:-WARN">
+    <root level="${TEST_LOG_LEVEL:-WARN}">
         <appender-ref ref="STDOUT" />
         <!--<appender-ref ref="FILE" />-->
     </root>

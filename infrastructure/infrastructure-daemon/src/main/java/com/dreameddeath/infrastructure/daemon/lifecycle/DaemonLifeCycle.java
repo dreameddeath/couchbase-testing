@@ -49,12 +49,7 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
         LOG.error("Error during "+action,e);
         status=Status.FAILED;
         for(Listener listener:listeners){
-            try{
-                listener.lifeCycleFailure(this,e);
-            }
-            catch (Exception failureException){
-                LOG.error("Error during failure of "+action+" management",failureException);
-            }
+            listener.lifeCycleFailure(this,e);
         }
         this.notifyAll();
         throw e;
@@ -121,7 +116,12 @@ public class DaemonLifeCycle implements IDaemonLifeCycle {
             if (status == Status.STARTED) {
                 status = Status.STOPPING;
                 for (Listener listener : listeners) {
-                    listener.lifeCycleStopping(this);
+                    try {
+                        listener.lifeCycleStopping(this);
+                    }
+                    catch(Throwable e){
+                        LOG.error("The listener "+listener.toString()+ " raised an error during stopping",e);
+                    }
                 }
             }
             if (status == Status.HALTED ||

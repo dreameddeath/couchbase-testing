@@ -20,8 +20,11 @@ package com.dreameddeath.testing.curator;
 
 import com.dreameddeath.core.curator.CuratorFrameworkFactory;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingCluster;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -33,45 +36,67 @@ import java.util.concurrent.TimeUnit;
  * Created by Christophe Jeunesse on 21/03/2015.
  */
 public class CuratorTestUtils {
+    private static final Logger LOG= LoggerFactory.getLogger(CuratorTestUtils.class);
     private static int TIMEOUT_DURATION =5;
     private ExecutorService executor;
     private volatile TestingCluster testingCluster=null;
     private Future<TestingCluster> pendingCluster=null;
+    private volatile CuratorFramework client=null;
 
     public CuratorTestUtils prepare(final int nbServers) throws Exception{
         System.setProperty("zookeeper.jmx.log4j.disable","true");
         executor = Executors.newSingleThreadExecutor();
         pendingCluster = executor.submit(() -> {
             try {
-                testingCluster = new TestingCluster(nbServers);
-                testingCluster.start();
-                return testingCluster;
+                TestingCluster newCluster= new TestingCluster(nbServers);
+                newCluster.start();
+                LOG.info("Cluster <{}> started",newCluster.getConnectString());
+                testingCluster=newCluster;
+                return newCluster;
             }
             catch(Exception e){
+                LOG.error("Cluster startup failure",e);
                 return null;
             }
         });
-        executor.shutdown();
+        Thread.sleep(10);
         return this;
     }
 
-    synchronized public TestingCluster getCluster() throws Exception{
+    public TestingCluster getCluster() throws Exception{
         if(testingCluster==null){
-            return pendingCluster.get(1,TimeUnit.MINUTES);
+            TestingCluster buildCluster=pendingCluster.get(1,TimeUnit.MINUTES);
+            executor.shutdownNow();
+            return buildCluster;
         }
+        if(!executor.isShutdown()) executor.shutdownNow();
         return testingCluster;
     }
 
     public CuratorFramework getClient(String nameSpacePrefix) throws Exception{
-        String connectionString = getCluster().getConnectString();
-        CuratorFramework client = CuratorFrameworkFactory.newClient(nameSpacePrefix, connectionString, new ExponentialBackoffRetry(1000, 3));
-        client.start();
-        client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
+        if(client==null) {
+            synchronized (this){
+                if(client==null){
+                    String connectionString = getCluster().getConnectString();
+                    CuratorFramework client = CuratorFrameworkFactory.newClient(nameSpacePrefix, connectionString, new ExponentialBackoffRetry(1000, 3));
+                    client.start();
+                    client.blockUntilConnected(TIMEOUT_DURATION, TimeUnit.SECONDS);
+                    this.client=client;
+                }
+            }
+        }
         return client;
     }
 
     public CuratorTestUtils stop() throws IOException{
-        if(pendingCluster!=null){
+        if(client!=null && client.getState().equals(CuratorFrameworkState.STARTED)){
+            LOG.info("Closing client of test utils {}",client.getZookeeperClient().getCurrentConnectionString());
+            client.close();
+        }
+        if(!executor.isShutdown()){
+            executor.shutdownNow();
+        }
+        if(pendingCluster!=null && !pendingCluster.isDone()){
             pendingCluster.cancel(true);
         }
         if(testingCluster!=null){

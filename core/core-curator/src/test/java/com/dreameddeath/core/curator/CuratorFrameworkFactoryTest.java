@@ -430,6 +430,8 @@ public class CuratorFrameworkFactoryTest extends Assert{
     @After
     public void endTest() throws Exception{
         ExecutorService executor = Executors.newSingleThreadExecutor();
+        CuratorFrameworkFactory.cleanup();
+
 
         Future<Boolean> future = executor.submit(() -> {
             try {
