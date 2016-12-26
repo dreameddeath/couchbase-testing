@@ -20,6 +20,7 @@ package com.dreameddeath.testing.doclet;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.RootDoc;
+import com.sun.tools.javac.main.Option;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Options;
@@ -28,19 +29,25 @@ import com.sun.tools.javadoc.ModifierFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.Locale;
+
 /**
  * Created by Christophe Jeunesse on 27/07/2015.
  */
-public class DocletTestingWrapper {
+public class DocletTestingWrapper implements Closeable{
+    final static private Logger LOG = LoggerFactory.getLogger(DocletTestingWrapper.class);
 
-
-    final private Logger log = LoggerFactory.getLogger(DocletTestingWrapper.class);
-
-    final private File sourceDirectory;
-    final private String[] packageNames;
-    final private File[] fileNames;
-    final private RootDoc rootDoc;
+    private final File sourceDirectory;
+    private final String[] packageNames;
+    private final File[] fileNames;
+    private final RootDoc rootDoc;
+    private final Context context;
+    private final Options compOpts;
+    private final JavadocTool javadocTool;
 
     public DocletTestingWrapper(File sourceDirectory, String... packageNames) {
         this(sourceDirectory, packageNames, new File[0]);
@@ -55,49 +62,41 @@ public class DocletTestingWrapper {
         this.packageNames = packageNames;
         this.fileNames = fileNames;
 
-        Context context = new Context();
-        Options compOpts = Options.instance(context);
+        context = new Context();
+        compOpts = Options.instance(context);
 
         if (getSourceDirectory().exists()) {
-            log.trace("Using source path: " + getSourceDirectory().getAbsolutePath());
-            compOpts.put("-sourcepath", getSourceDirectory().getAbsolutePath());
+            LOG.trace("Using source path: " + getSourceDirectory().getAbsolutePath());
+            compOpts.put(Option.SOURCEPATH.getText(), getSourceDirectory().getAbsolutePath());
         } else {
-            log.info("Ignoring non-existant source path, check your source directory argument");
+            LOG.info("Ignoring non-existant source path, check your source directory argument");
         }
 
-        ListBuffer<String> javaNames = new ListBuffer<String>();
+        ListBuffer<String> javaNames = new ListBuffer<>();
         for (File fileName : fileNames) {
-            log.trace("Adding file to documentation path: " + fileName.getAbsolutePath());
+            LOG.trace("Adding file to documentation path: " + fileName.getAbsolutePath());
             javaNames.append(fileName.getPath());
         }
 
         ListBuffer<String> subPackages = new ListBuffer<String>();
         for (String packageName : packageNames) {
-            log.trace("Adding sub-packages to documentation path: " + packageName);
+            LOG.trace("Adding sub-packages to documentation path: " + packageName);
             subPackages.append(packageName);
         }
 
-        /*new PublicMessager(
-                context,
-                getApplicationName(),
-                new PrintWriter(new LogWriter(Level.SEVERE), true),
-                new PrintWriter(new LogWriter(Level.WARNING), true),
-                new PrintWriter(new LogWriter(Level.FINE), true)
-        );*/
-
-        JavadocTool javadocTool = JavadocTool.make0(context);
+        javadocTool = JavadocTool.make0(context);
         if(javadocTool==null){
             throw new IllegalStateException("Cannot build javadoc tool");
         }
         try {
 
             rootDoc = javadocTool.getRootDocImpl(
-                    "",
-                    null,
+                    Locale.getDefault().toString(),
+                    Charset.defaultCharset().toString(),
                     new ModifierFilter(ModifierFilter.ALL_ACCESS),
                     javaNames.toList(),
                     new ListBuffer<String[]>().toList(),
-                    null,//JavaFileObject
+                    Collections.emptyList(),//JavaFileObject
                     false,//Break
                     subPackages.toList(),
                     new ListBuffer<String>().toList(),
@@ -109,9 +108,9 @@ public class DocletTestingWrapper {
             throw new RuntimeException(ex);
         }
 
-        if (log.isTraceEnabled() && rootDoc!=null) {
+        if (LOG.isTraceEnabled() && rootDoc!=null) {
             for (ClassDoc classDoc : rootDoc.classes()) {
-                log.trace("Parsed Javadoc class source: " + classDoc.position() + " with inline tags: " + classDoc.inlineTags().length );
+                LOG.trace("Parsed Javadoc class source: " + classDoc.position() + " with inline tags: " + classDoc.inlineTags().length );
             }
         }
     }
@@ -132,9 +131,14 @@ public class DocletTestingWrapper {
         return rootDoc;
     }
 
-
     protected String getApplicationName() {
         return getClass().getSimpleName() + " Application";
     }
 
+
+    @Override
+    public void close(){
+        javadocTool.close();
+        context.clear();
+    }
 }

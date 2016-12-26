@@ -57,18 +57,19 @@ public class BucketDocumentCache {
     private <T extends CouchbaseDocument> T extractValue(CacheValue value, Class<T> clazz) throws DaoException{
         if(value!=null) {
             try {
-                IDocumentClassMappingInfo mappingInfo = parentSession.getDocumentFactory().getDocumentInfoMapper().getMappingFromClass(clazz);
-                CouchbaseDocumentDao<T> dao=parentSession.getDocumentFactory().getDaoForClass(clazz);
-                ITranscoder<T> transcoder = mappingInfo.getAttachedObject(ITranscoder.class);
+                final IDocumentClassMappingInfo mappingInfo = parentSession.getDocumentFactory().getDocumentInfoMapper().getMappingFromClass(clazz);
+                final CouchbaseDocumentDao<T> dao=parentSession.getDocumentFactory().getDaoForClass(clazz);
+                @SuppressWarnings("unchecked")
+                final ITranscoder<T> transcoder = mappingInfo.getAttachedObject(ITranscoder.class);
                 T doc=transcoder.decode(value.content);
                 doc.getBaseMeta().setKey(value.id());
                 doc.getBaseMeta().setCas(value.cas());
                 doc.getBaseMeta().setExpiry(value.expiry());
                 doc.getBaseMeta().setEncodedFlags(value.flags());
-                doc.getBaseMeta().setBucketName(value.mutationToken.bucket());
-                doc.getBaseMeta().setVbucketID(value.mutationToken.vbucketID());
-                doc.getBaseMeta().setVbucketUUID(value.mutationToken.vbucketUUID());
-                doc.getBaseMeta().setSequenceNumber(value.mutationToken.sequenceNumber());
+                doc.getBaseMeta().setBucketName(value.mutationToken().bucket());
+                doc.getBaseMeta().setVbucketID(value.mutationToken().vbucketID());
+                doc.getBaseMeta().setVbucketUUID(value.mutationToken().vbucketUUID());
+                doc.getBaseMeta().setSequenceNumber(value.mutationToken().sequenceNumber());
                 doc.getBaseMeta().setStateSync();
                 doc.getBaseMeta().setDbData(value.content);
                 return dao.managePostReading(doc);
@@ -100,7 +101,8 @@ public class BucketDocumentCache {
             }
         });
     }
-    private class CacheValue {
+
+    private static class CacheValue {
         private final Class<? extends CouchbaseDocument> clazz;
         private final String key;
         private final long cas;
@@ -109,7 +111,7 @@ public class BucketDocumentCache {
         private final MutationToken mutationToken;
         private final int flags;
 
-        public CacheValue(CouchbaseDocument doc){
+        CacheValue(CouchbaseDocument doc){
             clazz=doc.getClass();
             CouchbaseDocument.BaseMetaInfo metaInfo=doc.getBaseMeta();
             key=metaInfo.getKey();

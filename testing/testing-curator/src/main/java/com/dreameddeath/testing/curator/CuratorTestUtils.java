@@ -41,25 +41,23 @@ public class CuratorTestUtils {
     public CuratorTestUtils prepare(final int nbServers) throws Exception{
         System.setProperty("zookeeper.jmx.log4j.disable","true");
         executor = Executors.newSingleThreadExecutor();
-        //TODO manage real cluster connection (depending on env Variables or configuration parameters)
         pendingCluster = executor.submit(() -> {
             try {
-                TestingCluster cluster= new TestingCluster(nbServers);
-                cluster.start();
-                return cluster;
+                testingCluster = new TestingCluster(nbServers);
+                testingCluster.start();
+                return testingCluster;
             }
             catch(Exception e){
                 return null;
             }
         });
+        executor.shutdown();
         return this;
     }
 
     synchronized public TestingCluster getCluster() throws Exception{
-        if(testingCluster==null && pendingCluster!=null){
-            testingCluster = pendingCluster.get(1,TimeUnit.MINUTES);
-            executor.shutdownNow();
-            pendingCluster=null;
+        if(testingCluster==null){
+            return pendingCluster.get(1,TimeUnit.MINUTES);
         }
         return testingCluster;
     }
@@ -75,7 +73,6 @@ public class CuratorTestUtils {
     public CuratorTestUtils stop() throws IOException{
         if(pendingCluster!=null){
             pendingCluster.cancel(true);
-            executor.shutdownNow();
         }
         if(testingCluster!=null){
             testingCluster.stop();

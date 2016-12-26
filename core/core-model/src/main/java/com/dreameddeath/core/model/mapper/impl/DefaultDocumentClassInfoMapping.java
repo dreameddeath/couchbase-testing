@@ -39,7 +39,7 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
     private final Map<Class,Object> attachedInfo =new ConcurrentHashMap<>();
     private final Map<KeyClassTuple,Object> perKeyAttachedInfo =new ConcurrentHashMap<>();
 
-    private class KeyClassTuple{
+    private static class KeyClassTuple{
         private final String patternStr;
         private Pattern pattern;
         private final Class clazz;

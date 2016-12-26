@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -76,14 +77,18 @@ public class ConfigPropertyFactory {
             Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources(ConfigPropertyFactory.LISTING_CONFIG_FILE);
             while (urls.hasMoreElements()) {
                 URL url = urls.nextElement();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (!StringUtils.isEmpty(line)) {
-                        if (!initializedClasses.contains(line)) {
-                            preloadConfigClass(line, initializedClasses);
+                try(BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), Charset.forName("utf-8")))){
+                    String line;
+                    while((line =reader.readLine())!=null) {
+                        if (!StringUtils.isEmpty(line)) {
+                            if (!initializedClasses.contains(line)) {
+                                preloadConfigClass(line, initializedClasses);
+                            }
                         }
                     }
+                }
+                catch (IOException e){
+                    throw new RuntimeException(e);
                 }
             }
         }

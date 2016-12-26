@@ -23,6 +23,8 @@ import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingExceptio
 import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 
+import java.nio.charset.Charset;
+
 /**
  * Created by Christophe Jeunesse on 12/06/2015.
  */
@@ -42,7 +44,7 @@ public class CounterTranscoder implements ITranscoder<CouchbaseCounter> {
     @Override
     public CouchbaseCounter decode(byte[] buf) throws DocumentDecodingException {
         try{
-            Long result = Long.parseLong(new String(buf));
+            Long result = Long.parseLong(new String(buf, Charset.forName("utf-8")));
             return new CouchbaseCounter(result);
         }
         catch(NumberFormatException e){
@@ -52,6 +54,6 @@ public class CounterTranscoder implements ITranscoder<CouchbaseCounter> {
 
     @Override
     public byte[] encode(CouchbaseCounter doc) throws DocumentEncodingException {
-        return Long.toString(doc.getCurrent()).getBytes();
+        return Long.toString(doc.getCurrent()).getBytes(Charset.forName("utf-8"));
     }
 }

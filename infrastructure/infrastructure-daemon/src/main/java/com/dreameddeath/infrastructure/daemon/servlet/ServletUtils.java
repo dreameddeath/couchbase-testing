@@ -34,10 +34,7 @@ public abstract class ServletUtils {
     }
 
     public static String normalizePath(String[] paths, boolean withEndingSlash){
-        String fullPath = "";
-        for(String path:paths){
-            fullPath+="/"+path;
-        }
+        String fullPath = "/"+String.join("/",paths);
         return normalizePath(fullPath,withEndingSlash);
     }
 }

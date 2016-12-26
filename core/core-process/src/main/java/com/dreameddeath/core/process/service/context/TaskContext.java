@@ -275,7 +275,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
             return tempId.equals(that.tempId);
         }
         else{
-            return task.equals(that.task);
+            return task.isSameDocument(that.task);
         }
     }
 

@@ -528,7 +528,7 @@ public class InstalledBaseRevisionManagementServiceImpl implements IInstalledBas
                     && existingResult.getTargetId().equals(existingLink.getTargetId())
                     && (
                         (existingResult.isReverse()==null && (existingLink.isReverse()==null))
-                        || (existingResult.isReverse()==existingLink.isReverse())
+                        || (existingResult.isReverse()!=null && existingResult.isReverse().equals(existingLink.isReverse()))
                     )
                 )
                 {

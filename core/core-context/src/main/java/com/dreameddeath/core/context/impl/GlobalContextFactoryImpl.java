@@ -29,6 +29,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 /**
@@ -47,7 +48,7 @@ public class GlobalContextFactoryImpl implements IContextFactory {
     @Override
     public String encode(IGlobalContext ctxt) {
         try {
-            return new String(Base64.encodeBase64(mapper.writeValueAsBytes(ctxt)));
+            return new String(Base64.encodeBase64(mapper.writeValueAsBytes(ctxt)), Charset.forName("utf-8"));
         }
         catch(JsonProcessingException e){
             throw new RuntimeException(e);

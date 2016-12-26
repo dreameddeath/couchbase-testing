@@ -118,11 +118,9 @@ public class ClassUtils {
                 else if(type instanceof TypeVariable){
                     String typeName = ((TypeVariable)type).getName();
                     int currChildParamPos = 0;
-                    for(Type currTypeParam:currChild.getTypeParameters()){
-                        if(currTypeParam instanceof TypeVariable){
-                            if(((TypeVariable)currTypeParam).getName().equals(typeName)){
-                                break;
-                            }
+                    for(TypeVariable currTypeParam:currChild.getTypeParameters()){
+                        if(currTypeParam.getName().equals(typeName)){
+                            break;
                         }
                         currChildParamPos++;
                     }

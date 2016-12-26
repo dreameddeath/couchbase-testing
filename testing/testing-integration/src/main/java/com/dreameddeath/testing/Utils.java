@@ -148,7 +148,7 @@ public class Utils {
             else {
                 bucketFactory = new CouchbaseBucketFactorySimulator();
                 client = new CouchbaseBucketSimulator(prefix+"test");
-                couchbaseConnectionList = Arrays.asList("localhost:8091");
+                couchbaseConnectionList = Collections.singletonList("localhost:8091");
                 bucketName = client.getBucketName();
                 bucketPassword = "dummy";
             }

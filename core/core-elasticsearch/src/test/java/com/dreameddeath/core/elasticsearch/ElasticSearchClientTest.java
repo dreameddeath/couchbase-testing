@@ -214,7 +214,7 @@ public class ElasticSearchClientTest {
                 .build();
 
                 //new ElasticSearchDcpFlowHandler(client,new ElasticSearchMapper(),transcoderMap,true);
-        CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Arrays.asList("localhost:8091"),"test","",dcpFlowHandler,cbSimulator);
+        CouchbaseDCPConnectorSimulator connector = new CouchbaseDCPConnectorSimulator(env, Collections.singletonList("localhost:8091"),"test","",dcpFlowHandler,cbSimulator);
 
         connector.run();
 

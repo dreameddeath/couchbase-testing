@@ -34,7 +34,6 @@ public class ServiceExpositionParamInfo {
     private final static Pattern QUERY_PATTERN = Pattern.compile(MAIN_PATTERN_STR);
     private final boolean isQuery;
     private String name;
-    private boolean isSimpleMapping;
     private Direction mappingDirection;
     private String getterString;
     private String setterString;
@@ -49,14 +48,12 @@ public class ServiceExpositionParamInfo {
         this.name = name;
         //;
         if(attributePath.equals("") || !attributePath.contains(".")){
-            isSimpleMapping = true;
             getterString = attributePath;
             setterString = attributePath+"="+name;
             typeInfo = methodInfo.getMethodParamByName(attributePath);
         }
         else{
             String[] attributeElements =attributePath.split("\\.");
-            isSimpleMapping = false;
             getterString = "";
             setterString = "";
             AbstractClassInfo currentElement = null;

@@ -80,6 +80,7 @@ public abstract class BusinessDocumentLink<T extends CouchbaseDocument> extends 
     }
 
     public BusinessDocumentLink(){}
+
     public BusinessDocumentLink(T targetDoc){
         if(targetDoc.getBaseMeta().getKey()!=null){
             setKey(targetDoc.getBaseMeta().getKey());
@@ -116,13 +117,20 @@ public abstract class BusinessDocumentLink<T extends CouchbaseDocument> extends 
             if(currKey!=null && currKey.equals(targetKey)){
                 return true;
             }
-            else if(docTempObject!=null && docTempObject.equals(targetLnk.docTempObject)){
+            else if(docTempObject!=null && docTempObject.isSameDocument(targetLnk.docTempObject)){
                 return true;
             }
         }
         return false;
     }
-    
+
+    @Override
+    public int hashCode() {
+        int result = docTempObject != null ? docTempObject.hashCode() : 0;
+        result = 31 * result + (key != null ? key.hashCode() : 0);
+        return result;
+    }
+
     @Override
     public String toString(){
         return "key : "+getKey();

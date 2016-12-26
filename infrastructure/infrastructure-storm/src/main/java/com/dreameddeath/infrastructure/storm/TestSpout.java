@@ -26,13 +26,14 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Christophe Jeunesse on 29/11/2014.
  */
 public class TestSpout implements IRichSpout {
     private volatile SpoutOutputCollector collector;
-    private volatile int pos=1;
+    private final AtomicInteger pos=new AtomicInteger(1);
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
         outputFieldsDeclarer.declare(new Fields("test"));
@@ -57,7 +58,7 @@ public class TestSpout implements IRichSpout {
 
     @Override
     public void activate() {
-        pos = 0;
+        pos.set(0);
     }
 
     @Override
@@ -67,7 +68,7 @@ public class TestSpout implements IRichSpout {
 
     @Override
     public void nextTuple() {
-        collector.emit(new Values("Test value " +(++pos)));
+        collector.emit(new Values("Test value " +(pos.incrementAndGet())));
     }
 
     @Override

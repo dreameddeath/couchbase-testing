@@ -57,10 +57,14 @@ public class ConfigManagerFactory {
         catch(ConfigurationException e){
             File cfgFile = new File(LOCAL_OVERRIDE_PROPERTIES_FILENAME);
             if(cfgFile.exists()){
-                cfgFile.delete();
+                if(!cfgFile.delete()){
+                    LOG.warn("Cannot delete file {}",cfgFile);
+                }
             }
             try {
-                cfgFile.createNewFile();
+                if(!cfgFile.createNewFile()){
+                    LOG.warn("The file {} already exists",cfgFile);
+                }
                 newLocalOverride = new PropertiesConfiguration(LOCAL_OVERRIDE_PROPERTIES_FILENAME);
                 newLocalOverride.setAutoSave(true);
             }

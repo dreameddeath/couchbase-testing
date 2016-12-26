@@ -118,7 +118,9 @@ public enum AnnotationElementType {
     }
 
     private static AbstractClassInfo getParentTypeInfo(VariableElement element) throws AnnotationProcessorException{
-        return AbstractClassInfo.getClassInfo(getParentTypeElement(element));
+        TypeElement parentTypeElement = getParentTypeElement(element);
+        Preconditions.checkNotNull(parentTypeElement,"Cannot get the parent class of variable {}",element);
+        return AbstractClassInfo.getClassInfo(parentTypeElement);
     }
 
     public static PackageInfo getFirstParentTypeInfo(PackageInfo info){

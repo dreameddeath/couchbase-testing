@@ -25,7 +25,7 @@ import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 
 import javax.ws.rs.Path;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,7 +37,7 @@ public class NotificationTestConsumerRest extends AbstractRemoteConsumerRest<Not
 
     @Override
     public List<ListenedEvent> getListenedEvents(){
-        return Arrays.asList(new ListenedEvent(CouchbaseDocumentReflection.getReflectionFromClass(EventTest.class).getStructure().getEntityModelId()));
+        return Collections.singletonList(new ListenedEvent(CouchbaseDocumentReflection.getReflectionFromClass(EventTest.class).getStructure().getEntityModelId()));
     }
 
 }

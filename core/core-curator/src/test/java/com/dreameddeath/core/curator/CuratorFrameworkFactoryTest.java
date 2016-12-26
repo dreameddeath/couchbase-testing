@@ -42,10 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -291,7 +288,7 @@ public class CuratorFrameworkFactoryTest extends Assert{
         final Object lock=new Object();
         final ICuratorPathDiscoveryListener<TestPathRegistrarClass> listener = new ICuratorPathDiscoveryListener<TestPathRegistrarClass>() {
             private List<TestPathRegistrarClass> listchecksRegister =new ArrayList<>(Arrays.asList(firstObj,secondObj,thirdObj));
-            private List<TestPathRegistrarClass> listchecksUnRegister =new ArrayList<>(Arrays.asList(firstObj));
+            private List<TestPathRegistrarClass> listchecksUnRegister =new ArrayList<>(Collections.singletonList(firstObj));
             private List<TestPathRegistrarClass> listchecksUnRegisterAtClosure =new ArrayList<>(Arrays.asList(secondObj,thirdObj));
             @Override
             public void onRegister(String uid, TestPathRegistrarClass obj) {

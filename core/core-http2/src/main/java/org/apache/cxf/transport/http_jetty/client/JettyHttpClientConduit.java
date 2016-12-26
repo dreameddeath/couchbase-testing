@@ -220,8 +220,8 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
         private final InputStreamResponseListener responseListener;
         private final AtomicReference<Response> responseAtomicReference=new AtomicReference<>();
 
-        protected JettyHttp2OutputStreamWrapper(Message message, boolean possibleRetransmit,
-                                                boolean isChunking, int chunkThreshold, String conduitName, URI url) {
+        JettyHttp2OutputStreamWrapper(Message message, boolean possibleRetransmit,
+                                      boolean isChunking, int chunkThreshold, String conduitName, URI url) {
             super(message, possibleRetransmit, isChunking, chunkThreshold, conduitName, url);
             csPolicy = getClient(message);
             timeout=csPolicy.getReceiveTimeout()<=0?60_000:csPolicy.getReceiveTimeout();
@@ -231,7 +231,6 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
             this.message=message;
             this.responseListener = new InputStreamResponseListener();
         }
-
 
         private void connect(boolean withOutput){
             responseAtomicReference.set(null);
@@ -245,8 +244,6 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
                 outputStreamJettyContentProvider.close();
             }
         }
-
-
 
         private synchronized void markAsReady(Response res) {
             //Keep response in memory
@@ -450,54 +447,53 @@ public class JettyHttpClientConduit extends URLConnectionHTTPConduit {
         public void thresholdReached() throws IOException {
 
         }
+    }
 
-        private class JettyOutputStreamContentProvider extends OutputStreamContentProvider{
-            private final OutputStreamWrapper wrapper;
+    private static class OutputStreamWrapper extends OutputStream{
+        private final OutputStream wrapperOutputStream;
 
-            public JettyOutputStreamContentProvider(Message message) {
-                super();
-                this.wrapper = new OutputStreamWrapper(super.getOutputStream());
-            }
-
-            @Override
-            public OutputStream getOutputStream() {
-                return wrapper;
-            }
-
-            private class OutputStreamWrapper extends OutputStream{
-                private final OutputStream wrapperOutputStream;
-
-                public OutputStreamWrapper(OutputStream wrapperOutputStream) {
-                    this.wrapperOutputStream = wrapperOutputStream;
-                }
-
-                @Override
-                public void write(int b) throws IOException {
-                    wrapperOutputStream.write(b);
-                }
-
-                @Override
-                public void write(byte[] b) throws IOException {
-                    wrapperOutputStream.write(b);
-                }
-
-                @Override
-                public void write(byte[] b, int off, int len) throws IOException {
-                    wrapperOutputStream.write(b, off, len);
-                }
-
-                @Override
-                public void flush() throws IOException {
-                    wrapperOutputStream.flush();
-                }
-
-                @Override
-                public void close() throws IOException {
-                    wrapperOutputStream.close();
-                }
-            }
+        OutputStreamWrapper(OutputStream wrapperOutputStream) {
+            this.wrapperOutputStream = wrapperOutputStream;
         }
 
+        @Override
+        public void write(int b) throws IOException {
+            wrapperOutputStream.write(b);
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            wrapperOutputStream.write(b);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            wrapperOutputStream.write(b, off, len);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            wrapperOutputStream.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            wrapperOutputStream.close();
+        }
+    }
+
+    private static class JettyOutputStreamContentProvider extends OutputStreamContentProvider{
+        private final OutputStreamWrapper wrapper;
+
+        JettyOutputStreamContentProvider(Message message) {
+            super();
+            this.wrapper = new OutputStreamWrapper(super.getOutputStream());
+        }
+
+        @Override
+        public OutputStream getOutputStream() {
+            return wrapper;
+        }
     }
 
 

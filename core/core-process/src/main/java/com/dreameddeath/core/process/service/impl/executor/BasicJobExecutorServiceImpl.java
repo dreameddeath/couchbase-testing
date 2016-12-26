@@ -237,9 +237,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
     }
 
     private Observable<JobContext<T>> manageJobUpdatesRetry(final JobContext<T> inCtxt) {
-        final ICouchbaseSession readOnlySession=inCtxt.getSession().getTemporaryReadOnlySession();
         inCtxt.getInternalJob().getBaseMeta().unfreeze();
-
         final Set<String> taskIdsUpdatedForTask= new TreeSet<>(inCtxt.getInternalJob().getJobUpdatedForTasks());
         return inCtxt.getExecutedTasks()
                 .filter(task->!taskIdsUpdatedForTask.contains(task.getId()))

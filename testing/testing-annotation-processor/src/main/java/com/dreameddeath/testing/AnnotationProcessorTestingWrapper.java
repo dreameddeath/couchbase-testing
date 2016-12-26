@@ -23,14 +23,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.processing.Processor;
 import javax.tools.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -56,11 +54,11 @@ public class AnnotationProcessorTestingWrapper {
         result.setOutputDir(tmpDir);
 
         StandardJavaFileManager fileManager=compiler.getStandardFileManager(null,null,null);
-        fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Arrays.asList(tmpDir.toFile()));
-        fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Arrays.asList(tmpDir.toFile()));
+        fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(tmpDir.toFile()));
+        fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(tmpDir.toFile()));
         result.setOutputManager(fileManager);
 
-        JavaCompiler.CompilationTask task = compiler.getTask(new PrintWriter(System.out), fileManager, diagnostics, null, null, files);
+        JavaCompiler.CompilationTask task = compiler.getTask(new PrintWriter(new OutputStreamWriter(System.out,Charset.forName("utf-8"))), fileManager, diagnostics, null, null, files);
         task.setProcessors(annotationProcessors);
 
         result.setResult(task.call());
@@ -84,7 +82,7 @@ public class AnnotationProcessorTestingWrapper {
     private Iterable<JavaFileObject> getSourceFiles(String p_path) throws Exception {
         StandardJavaFileManager files = compiler.getStandardFileManager(null, null, null);
 
-        files.setLocation(StandardLocation.SOURCE_PATH, Arrays.asList(new File(p_path)));
+        files.setLocation(StandardLocation.SOURCE_PATH, Collections.singletonList(new File(p_path)));
 
         Set<JavaFileObject.Kind> fileKinds = Collections.singleton(JavaFileObject.Kind.SOURCE);
         return files.list(StandardLocation.SOURCE_PATH, "", fileKinds, true);
@@ -255,7 +253,7 @@ public class AnnotationProcessorTestingWrapper {
         }
     }
 
-    class JavaSourceFromString extends SimpleJavaFileObject {
+    static class JavaSourceFromString extends SimpleJavaFileObject {
         final String code;
 
         JavaSourceFromString(String name, String code) {

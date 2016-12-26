@@ -257,11 +257,11 @@ public class CouchbaseDocument implements HasParent {
         }
     }
 
-    @Override
-    public boolean equals(Object doc){
+    //@Override
+    public boolean isSameDocument(CouchbaseDocument doc){
         if     (doc == null){ return false;}
         else if(doc == this){ return true; }
-        else if(meta.getKey()!=null && doc instanceof CouchbaseDocument) { return meta.getKey().equals(((CouchbaseDocument)doc).meta.getKey()); }
+        else if(meta.getKey()!=null) { return meta.getKey().equals(doc.meta.getKey()); }
         else                { return false; }
     }
 

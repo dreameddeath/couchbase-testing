@@ -34,6 +34,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -46,12 +47,12 @@ import java.util.regex.Pattern;
  */
 public class RequireJsServlet extends HttpServlet {
     public static String APPS_WEBJARS_LIBS_FULL_PATH="webjar_path";
-    private boolean manualTesting=false;
-    private String libFullPath;
-    private String response;
-    private String eTag;
+    private volatile boolean manualTesting=false;
+    private volatile String libFullPath;
+    private volatile String response;
+    private volatile String eTag;
 
-    synchronized private void buildResponse(){
+    synchronized private String buildResponse(){
         if(manualTesting){
             try {
                 List<String> prefixes = new ArrayList<>();
@@ -79,19 +80,18 @@ public class RequireJsServlet extends HttpServlet {
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("MD5 cryptographic algorithm is not available.", e);
         }
-        byte[] messageDigest = md.digest(response.getBytes());
+        byte[] messageDigest = md.digest(response.getBytes(Charset.forName("utf-8")));
         BigInteger number = new BigInteger(1, messageDigest);
         StringBuffer sb = new StringBuffer("0");
         sb.append(number.toString(16));
         eTag=sb.toString();
+        return response;
     }
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         String forTesting = config.getServletContext().getInitParameter(WebJarsServletContextHandler.APPS_WEBJARS_LIBS_FOR_TESTING);
-        if ("true".equalsIgnoreCase(forTesting)){
-            manualTesting = true;
-        }
+        manualTesting = "true".equalsIgnoreCase(forTesting);
         libFullPath = config.getInitParameter(APPS_WEBJARS_LIBS_FULL_PATH);
         buildResponse();
     }
@@ -100,8 +100,12 @@ public class RequireJsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
+        String effectiveResponse;
         if(manualTesting){
-            buildResponse();
+            effectiveResponse=buildResponse();
+        }
+        else{
+            effectiveResponse=this.response;
         }
         response.setHeader(HttpHeader.ETAG.toString(), eTag);
         if(eTag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.toString()))){
@@ -109,7 +113,7 @@ public class RequireJsServlet extends HttpServlet {
         }
         else {
             response.setContentType("application/javascript");
-            response.getWriter().println(this.response);
+            response.getWriter().println(effectiveResponse);
         }
     }
 }

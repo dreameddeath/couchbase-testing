@@ -26,7 +26,6 @@ import java.util.List;
  * Created by Christophe Jeunesse on 14/04/2016.
  */
 public class DatasetObject {
-    private String path=null;
     private final List<DatasetObjectNode> nodes = new ArrayList<>();
 
     public void addNode(DatasetObjectNode node){
@@ -37,15 +36,11 @@ public class DatasetObject {
         return Collections.unmodifiableList(nodes);
     }
 
-    public void prepare(Dataset parent,DatasetElement parentElt){
+    public void prepare(final Dataset parent,final DatasetElement parentElt){
         this.prepare(parent,parentElt,"");
     }
 
     public void prepare(final Dataset parent,final DatasetElement parentElt,final String path){
         nodes.forEach(node->node.prepare(parent,parentElt,path));
-    }
-
-    public String getFullPath(){
-        return this.path;
     }
 }

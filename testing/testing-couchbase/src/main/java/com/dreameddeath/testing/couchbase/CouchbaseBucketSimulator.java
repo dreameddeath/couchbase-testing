@@ -59,6 +59,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -164,7 +165,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
                 foundDoc.setCas(1);
                 foundDoc.setExpiry(expiration);
                 foundDoc.setKey(key);
-                foundDoc.setData(Unpooled.wrappedBuffer(defaultValue.toString().getBytes()));
+                foundDoc.setData(Unpooled.wrappedBuffer(defaultValue.toString().getBytes(Charset.forName("utf-8"))));
                 notifyListenerBeforeUpdateCounter(ImpactMode.ADD,key,0L,defaultValue);
                 dbContent.put(foundDoc.getKey(), foundDoc);
                 notifyDcpUpdate(ImpactMode.ADD,foundDoc);

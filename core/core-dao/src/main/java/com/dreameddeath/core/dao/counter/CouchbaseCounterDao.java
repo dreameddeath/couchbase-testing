@@ -71,7 +71,7 @@ public class CouchbaseCounterDao{
         else{
             mode = CallingMode.WITH_DEFAULT_AND_EXPIRATION;
         }
-        this.blockingDao = new BlockingCouchbaseCounterDao();
+        this.blockingDao = new BlockingCouchbaseCounterDao(this);
     }
 
     public CouchbaseCounterDao(Builder builder){
@@ -84,7 +84,7 @@ public class CouchbaseCounterDao{
     }
 
 
-    public BlockingCouchbaseCounterDao toBlockingDao() {
+    public BlockingCouchbaseCounterDao toBlocking() {
         return blockingDao;
     }
 
@@ -271,9 +271,14 @@ public class CouchbaseCounterDao{
         }
     }
 
-    public class BlockingCouchbaseCounterDao {
+    public static class BlockingCouchbaseCounterDao {
+        private final CouchbaseCounterDao parentCouchbaseCounterDao;
 
-        public long blockingIncrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny, CouchbaseCounterDao parentCouchbaseCounterDao) throws DaoException,StorageException {
+        public BlockingCouchbaseCounterDao(CouchbaseCounterDao parentCouchbaseCounterDao) {
+            this.parentCouchbaseCounterDao = parentCouchbaseCounterDao;
+        }
+
+        public long blockingIncrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny) throws DaoException,StorageException {
             try {
                 return parentCouchbaseCounterDao.asyncIncrCounter(session, key, by, isCalcOny).toBlocking().single();
             }
@@ -285,7 +290,7 @@ public class CouchbaseCounterDao{
             }
         }
 
-        public long blockingDecrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny, CouchbaseCounterDao parentCouchbaseCounterDao) throws DaoException,StorageException {
+        public long blockingDecrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny) throws DaoException,StorageException {
             try {
                 return parentCouchbaseCounterDao.asyncDecrCounter(session, key, by, isCalcOny).toBlocking().single();
             }
@@ -297,7 +302,7 @@ public class CouchbaseCounterDao{
             }
         }
 
-        public Long blockingGetCounter(ICouchbaseSession session, String key, boolean isCalcOnly, CouchbaseCounterDao parentCouchbaseCounterDao) throws DaoException,StorageException {
+        public Long blockingGetCounter(ICouchbaseSession session, String key, boolean isCalcOnly) throws DaoException,StorageException {
             try {
                 return parentCouchbaseCounterDao.asyncGetCounter(session, key, isCalcOnly).toBlocking().single();
             }

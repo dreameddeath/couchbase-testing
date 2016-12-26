@@ -23,6 +23,7 @@ import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
 import com.couchbase.client.deps.io.netty.buffer.Unpooled;
 
 import javax.script.ScriptException;
+import java.nio.charset.Charset;
 import java.util.Base64;
 
 
@@ -78,7 +79,7 @@ public class DocumentSimulator {
 
     protected void toJavaScriptDoc(){
         try {
-            javascriptObject= parent.getJavaScriptEngine().eval("("+new String(data.array())+")");
+            javascriptObject= parent.getJavaScriptEngine().eval("("+new String(data.array(), Charset.forName("utf-8"))+")");
             type = "json";
         }
         catch(ScriptException e){

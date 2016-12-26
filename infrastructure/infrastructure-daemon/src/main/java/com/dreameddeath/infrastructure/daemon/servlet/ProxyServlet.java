@@ -315,7 +315,7 @@ public class ProxyServlet extends AsyncProxyServlet{
     }
 
 
-    private class ListenerRegistered{
+    private static class ListenerRegistered{
         private final AbstractServiceDiscoverer<?,CuratorDiscoveryServiceDescription<?>> discoverer;
         private final IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>> listener;
 
@@ -379,7 +379,7 @@ public class ProxyServlet extends AsyncProxyServlet{
                                 registrar.deregister(clientInfo);
                             }
                             catch(Throwable e){
-                                LOG.error("Error during unregistrer on domain <"+discoverer.getDomain()+"> for client <"+clientInfo.getUid()+":"+clientInfo.getUri()+">",e);
+                                LOG.error("Error during un-register on domain <"+discoverer.getDomain()+"> for client <"+clientInfo.getUid()+":"+clientInfo.getUri()+">",e);
                             }
                         }
                     }

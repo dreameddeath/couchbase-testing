@@ -27,7 +27,8 @@ addons:
       name: "dreameddeath/couchbase-testing"
       description: "Build submitted via Travis CI"
     notification_email: christophejeunesse@hotmail.com
-    build_command:   "mvn -q -B clean test"
+    build_command_prepend: "export TEST_LOG_LEVEL=ERROR"
+    build_command:   "mvn -q -B -Dsurefire.printSummary=false clean test"
     branch_pattern: master
 
 

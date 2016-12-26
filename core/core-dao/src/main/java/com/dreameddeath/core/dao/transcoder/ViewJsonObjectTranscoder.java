@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * Created by Christophe Jeunesse on 22/12/2014.
@@ -60,7 +61,7 @@ public abstract class ViewJsonObjectTranscoder<T> implements IViewTranscoder<T> 
             return res;
         }
         catch (IOException e){
-            throw new ViewDecodingException(value,"Error during decoding of data using Generic Transcoder for class<" + getBaseClass().getName() + "> :"+ new String(couchbaseEncodingResult), e);
+            throw new ViewDecodingException(value,"Error during decoding of data using Generic Transcoder for class<" + getBaseClass().getName() + "> :"+ new String(couchbaseEncodingResult, Charset.forName("utf-8")), e);
         }
     }
 
