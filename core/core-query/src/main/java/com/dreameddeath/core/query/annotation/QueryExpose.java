@@ -16,20 +16,24 @@
  *
  */
 
-package com.dreameddeath.core.query.service;
+package com.dreameddeath.core.query.annotation;
 
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.query.model.v1.QuerySearch;
-import com.dreameddeath.core.user.IUser;
-import rx.Observable;
+import com.dreameddeath.core.service.annotation.VersionStatus;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by Christophe Jeunesse on 19/12/2016.
+ * Created by Christophe Jeunesse on 27/12/2016.
  */
-public interface IQueryService<T> {
-    Observable<T> asyncGet(String key,ICouchbaseSession session);
-    Observable<T> asyncSearch(QuerySearch search, ICouchbaseSession session);
-    Observable<T> asyncGet(String key,IUser user);
-    Observable<T> asyncSearch(QuerySearch search, IUser user);
-
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface QueryExpose {
+    String rootPath();
+    String domain() default "";
+    String name() default  "";
+    String version() default "1.0.0";
+    VersionStatus status() default VersionStatus.STABLE;
 }

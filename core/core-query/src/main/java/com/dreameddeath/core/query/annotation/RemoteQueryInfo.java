@@ -13,24 +13,23 @@
  *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  *    See the License for the specific language governing permissions and
  *  *    limitations under the License.
- *
+ *  
  */
 
-package com.dreameddeath.core.query.service;
+package com.dreameddeath.core.query.annotation;
 
-import com.dreameddeath.core.model.entity.model.EntityModelId;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by Christophe Jeunesse on 20/12/2016.
+ * Created by Christophe Jeunesse on 26/02/2016.
  */
-public class QueryServiceFactory {
-
-    public <T> IQueryService<T> getQueryService(EntityModelId model){
-        return null;
-    }
-
-    public <T> IQueryService<T> getQueryService(Class<T> clazz){
-        return null;
-    }
-
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RemoteQueryInfo {
+    String domain();
+    String name();
+    String version();
 }

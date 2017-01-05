@@ -57,7 +57,7 @@ import java.lang.reflect.InvocationTargetException;
  * Created by Christophe Jeunesse on 15/01/2016.
  */
 public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ,TRESP> extends AbstractRestExposableService {
-    private final static Logger LOG = LoggerFactory.getLogger(AbstractRemoteJobRestService.class);
+    private final Logger LOG = LoggerFactory.getLogger(AbstractRemoteJobRestService.this.getClass());
     public static final String SERVICE_TYPE="process";
     public static final String REQUEST_UID_QUERY_PARAM = "requestUid";
     public static final String SUBMIT_ONLY_QUERY_PARAM = "submitOnly";
@@ -155,17 +155,18 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                                 }
                                 asyncResponse.resume(Response.status(Response.Status.CONFLICT).entity(result).build());
                             } else {
-                                LOG.error("An error occurs while executing job <"+(requestUid!=null?requestUid:"null")+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable);
+                                LOG.error("An error occurs while executing job <"+(requestUid!=null?requestUid:"null")+">",throwable);
                                 asyncResponse.resume(throwable);
                             }
                         }
                         catch(Throwable e){
-                            LOG.error("An error occurs while executing job <"+requestUid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable);
+                            LOG.error("An error occurs while executing job <"+(requestUid!=null?requestUid:"null")+">",throwable);
                             asyncResponse.resume(e);
                         }
                     }));
         }
         catch (Throwable e){
+            LOG.error("An error occurs while executing job <"+(requestUid!=null?requestUid:"null")+">",e);
             asyncResponse.resume(e);
         }
     }
@@ -178,11 +179,12 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
             ProcessUtils.asyncLoadJob(session, uid, jobClass)
                     .map(this::buildJaxrsResponse)
                     .onErrorResumeNext(this::manageStandardErrors)
-                    .doOnError(throwable -> LOG.error("An error occurs while executing job <"+uid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable))
+                    .doOnError(throwable -> LOG.error("An error occurs while reading job <"+uid+">",throwable))
                     .subscribe(asyncResponse::resume, asyncResponse::resume)
             ;
         }
         catch (Throwable e){
+            LOG.error("An error occurs while reading job <"+uid+">",e);
             asyncResponse.resume(e);
         }
     }
@@ -212,11 +214,11 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                     })
                     .map(ctxt->this.buildJaxrsResponse(ctxt.getInternalJob()))
                     .onErrorResumeNext(this::manageStandardErrors)
-                    .doOnError(throwable -> LOG.error("An error occurs while executing job <"+requestUid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",throwable))
+                    .doOnError(throwable -> LOG.error("An error occurs while doing action <"+actionRequest+"> job <"+requestUid+">",throwable))
                     .subscribe(asyncResponse::resume,asyncResponse::resume);
         }
         catch(Throwable e){
-            LOG.error("An error occurs while executing job <"+requestUid+"> of with service <"+AbstractRemoteJobRestService.this.getClass().getName()+">",e);
+            LOG.error("An error occurs while doing action <"+actionRequest+"> on job <"+requestUid+">",e);
             asyncResponse.resume(new InternalServerErrorException(e));
         }
     }

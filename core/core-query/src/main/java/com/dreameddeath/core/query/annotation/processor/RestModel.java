@@ -16,12 +16,11 @@
  *
  */
 
-package com.dreameddeath.couchbase.core.process.remote.annotation.processor.model;
+package com.dreameddeath.core.query.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -67,7 +66,7 @@ public class RestModel {
     public Set<String> getImports(){
         Set<String> result = new HashSet<>();
         if(hasRemoteInfo){
-            result.add(ClassInfo.getClassInfo(RemoteServiceInfo.class).getImportName());
+            result.add(ClassInfo.getClassInfo(com.dreameddeath.core.query.annotation.RemoteQueryInfo.class).getImportName());
         }
         if(hasChildClasses()){
             result.add(ClassInfo.getClassInfo(JsonSubTypes.class).getImportName());
@@ -203,7 +202,7 @@ public class RestModel {
         public RestModel complexTypeModel;
         public boolean isComplexType;
         public boolean isEnum;
-        public UnwrapMode unwrapMode =UnwrapMode.NONE;
+        public UnwrapMode unwrapMode = UnwrapMode.NONE;
         public RestModel unwrappedModel=null;
         public RestModel.Field unwrappedRootField =null;
 
@@ -236,10 +235,10 @@ public class RestModel {
         }
 
         public String getInitValue(){
-            if(typeStructure==Type.COLLECTION){
+            if(typeStructure== Type.COLLECTION){
                 return "= new ArrayList<>();";
             }
-            else if(typeStructure==Type.MAP){
+            else if(typeStructure== Type.MAP){
                 return "= new HashMap<>();";
             }
             return "";
@@ -266,10 +265,10 @@ public class RestModel {
         }
 
         public void setTypeStructure(Type typeStructure) {
-            if(typeStructure==Type.COLLECTION) {
+            if(typeStructure== Type.COLLECTION) {
                 typeImports.add("java.util.ArrayList");
             }
-            else if(typeStructure==Type.MAP){
+            else if(typeStructure== Type.MAP){
                 typeImports.add("java.util.HashMap");
             }
             this.typeStructure = typeStructure;

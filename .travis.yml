@@ -29,7 +29,7 @@ addons:
     notification_email: christophejeunesse@hotmail.com
     build_command_prepend: "export TEST_LOG_LEVEL=ERROR"
     build_command:   "mvn -q -B -Dsurefire.printSummary=false clean test"
-    branch_pattern: master
+    branch_pattern: coverity_scan
 
 
 script: mvn -B clean test jacoco:report coveralls:report

@@ -112,7 +112,7 @@ public class NotificationTestListener extends AbstractLocalListener {
         totalCounter.addAndGet(((EventTest) event).toAdd);
         try {
             //Thread.sleep(100);
-            LOG.error("Offering event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
+            LOG.info("Offering event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
 
             processedNotification.offer(notification, 20, TimeUnit.SECONDS);
             return ProcessingResultInfo.buildObservable(notification,false,ProcessingResult.PROCESSED);

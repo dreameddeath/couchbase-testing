@@ -16,20 +16,13 @@
  *
  */
 
-package com.dreameddeath.core.query.service;
-
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.query.model.v1.QuerySearch;
-import com.dreameddeath.core.user.IUser;
-import rx.Observable;
+package com.dreameddeath.core.query.annotation;
 
 /**
- * Created by Christophe Jeunesse on 19/12/2016.
+ * Created by Christophe Jeunesse on 13/05/2016.
  */
-public interface IQueryService<T> {
-    Observable<T> asyncGet(String key,ICouchbaseSession session);
-    Observable<T> asyncSearch(QuerySearch search, ICouchbaseSession session);
-    Observable<T> asyncGet(String key,IUser user);
-    Observable<T> asyncSearch(QuerySearch search, IUser user);
-
+public enum QueryFieldFilteringMode {
+    INHERIT,
+    STANDARD,
+    FULL
 }
