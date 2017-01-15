@@ -1,25 +1,23 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.core.process.service.impl.processor;
 
 import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
@@ -30,16 +28,16 @@ import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateOrUpdateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 16/11/2016.
  */
 public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends AbstractJob,TDOC extends CouchbaseDocument & IDocumentWithLinkedTasks,T extends DocumentCreateOrUpdateTask<TDOC>> extends DocumentUpdateTaskProcessingService<TJOB,TDOC,T> {
     @Override
-    public final Observable<TaskProcessingResult<TJOB,T>> process(TaskContext<TJOB,T> origCtxt) {
+    public final Single<TaskProcessingResult<TJOB,T>> process(TaskContext<TJOB,T> origCtxt) {
         try {
-            return Observable.just(origCtxt)
+            return Single.just(origCtxt)
                     .flatMap(this::manageRetry)//Reuse attached task if any
                     .flatMap(this::manageFindAndGetExistingDocument) //Lookup for existing obj if previous step empty
                     .flatMap(this::manageInitEmptyDocument) //init an empty doc if lookup failed
@@ -52,8 +50,8 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
         }
     }
 
-    private final Observable<ContextAndDocument> manageFromDocInitialize(ContextAndDocument contextAndDocument){
-        return  Observable.just(contextAndDocument)
+    private final Single<ContextAndDocument> manageFromDocInitialize(ContextAndDocument contextAndDocument){
+        return  Single.just(contextAndDocument)
                 .flatMap(this::buildAndOrSetDocKey)
                 .flatMap(this::manageCleanupBeforeRetry)
                 .flatMap(this::manageProcessDocument)
@@ -62,16 +60,16 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
                 .flatMap(this::saveDoc);
     }
 
-    protected abstract Observable<FindAndGetResult> findAndGetExistingDocument(TaskContext<TJOB, T> taskContext);
+    protected abstract Single<FindAndGetResult> findAndGetExistingDocument(TaskContext<TJOB, T> taskContext);
 
-    protected abstract Observable<ContextAndDocument> initEmptyDocument(TaskContext<TJOB, T> taskContext);
+    protected abstract Single<ContextAndDocument> initEmptyDocument(TaskContext<TJOB, T> taskContext);
 
-    protected abstract Observable<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e);
+    protected abstract Single<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e);
 
-    private Observable<ContextAndDocument> manageFindAndGetExistingDocument(final RetryResult retryResult){
+    private Single<ContextAndDocument> manageFindAndGetExistingDocument(final RetryResult retryResult){
         //Retry with attached doc, keep current task data
         if(retryResult.doc!=null){
-            return new ContextAndDocument(retryResult.ctxt,retryResult.doc).toObservable();
+            return new ContextAndDocument(retryResult.ctxt,retryResult.doc).toSingle();
         }
         else{
             return findAndGetExistingDocument(retryResult.ctxt)
@@ -82,40 +80,40 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
         }
     }
 
-    private Observable<ContextAndDocument> manageInitEmptyDocument(ContextAndDocument origContextAndDocument){
+    private Single<ContextAndDocument> manageInitEmptyDocument(ContextAndDocument origContextAndDocument){
         if(origContextAndDocument.getDoc()==null){
             return cleanupBeforeRetryInitDocument(origContextAndDocument.getCtxt().getTemporaryReadOnlySessionContext())
                     .flatMap(this::initEmptyDocument)
                     .map(contextAndDocument -> new ContextAndDocument(contextAndDocument.getCtxt().getStandardSessionContext(),contextAndDocument.getDoc()));
         }
         else{
-            return origContextAndDocument.toObservable();
+            return origContextAndDocument.toSingle();
 
         }
     }
 
 
-    private Observable<RetryResult> manageRetry(TaskContext<TJOB,T> origCtxt) {
+    private Single<RetryResult> manageRetry(TaskContext<TJOB,T> origCtxt) {
         if(origCtxt.getInternalTask().getDocKey()!=null){
             return origCtxt.getSession().<TDOC>asyncGet(origCtxt.getInternalTask().getDocKey())
                     .map(foundDoc->new RetryResult(origCtxt,foundDoc))
                     .onErrorResumeNext(throwable -> {
-                        if((throwable instanceof StorageObservableException) && (((StorageObservableException)throwable).getCause() instanceof DocumentNotFoundException)){
+                        if(throwable instanceof DocumentNotFoundException){
                             //Reset
                             origCtxt.getInternalTask().setDocKey(null);
                             origCtxt.getInternalTask().setIsCreation(null);
-                            return new RetryResult(origCtxt,null).toObservable();
+                            return new RetryResult(origCtxt,null).toSingle();
                         }
-                        return Observable.error(throwable);
+                        return Single.error(throwable);
                     });
         }
         else{
-            return new RetryResult(origCtxt,null).toObservable();
+            return new RetryResult(origCtxt,null).toSingle();
         }
 
     }
 
-    private Observable<ContextAndDocument> manageDuplicateKey(ContextAndDocument context, DuplicateUniqueKeyDaoException duplicateUniqueKeyDaoException) {
+    private Single<ContextAndDocument> manageDuplicateKey(ContextAndDocument context, DuplicateUniqueKeyDaoException duplicateUniqueKeyDaoException) {
         return onDuplicateUniqueKey(context,duplicateUniqueKeyDaoException)
                 .flatMap(checkRes->{
                     if(checkRes.useDuplicateKeyOwnerDoc()){
@@ -125,7 +123,7 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
                         return manageFromDocInitialize(new ContextAndDocument(checkRes.getTaskContext(),checkRes.getTargetDuplicateKeyDoc()));
                     }
                     else{
-                        return Observable.error(
+                        return Single.error(
                                 new DuplicateUniqueKeyCreateOrUpdateTaskException(
                                         checkRes.getTaskContext(),
                                         "A true duplicate error occurs",
@@ -137,18 +135,18 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
     }
 
     @Override
-    protected Observable<ContextAndDocument> saveDoc(final ContextAndDocument contextAndDocument) {
+    protected Single<ContextAndDocument> saveDoc(final ContextAndDocument contextAndDocument) {
         return super.saveDoc(contextAndDocument)
                 .onErrorResumeNext(throwable -> {
                         DuplicateUniqueKeyDaoException duplicateUniqueKeyDaoException = ValidationExceptionUtils.findUniqueKeyException(throwable);
                         if(duplicateUniqueKeyDaoException!=null){
                             return manageDuplicateKey(contextAndDocument,duplicateUniqueKeyDaoException);
                         }
-                        return Observable.error(throwable);
+                        return Single.error(throwable);
                     });
     }
 
-    private Observable<ContextAndDocument> buildAndOrSetDocKey(ContextAndDocument contextAndDocument) {
+    private Single<ContextAndDocument> buildAndOrSetDocKey(ContextAndDocument contextAndDocument) {
         if(contextAndDocument.getDoc().getBaseMeta().getState() == CouchbaseDocument.DocumentState.NEW){
             return contextAndDocument.getCtxt().getSession().asyncBuildKey(contextAndDocument.getDoc())
                     .map(docWithKey->{
@@ -158,18 +156,17 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
         }
         else{
             contextAndDocument.getCtxt().getInternalTask().setDocKey(contextAndDocument.getDoc().getBaseMeta().getKey());
-            return Observable.just(contextAndDocument);
+            return Single.just(contextAndDocument);
         }
-
     }
 
-    protected Observable<TaskContext<TJOB,T>> cleanupBeforeRetryInitDocument(TaskContext<TJOB, T> ctxt) {
-        return Observable.just(ctxt);
+    protected Single<TaskContext<TJOB,T>> cleanupBeforeRetryInitDocument(TaskContext<TJOB, T> ctxt) {
+        return Single.just(ctxt);
     }
 
 
-    protected final Observable<ContextAndDocument> buildContextAndDocumentObservable(TaskContext<TJOB, T> ctxt, TDOC doc){
-        return Observable.just(new ContextAndDocument(ctxt,doc));
+    protected final Single<ContextAndDocument> buildContextAndDocumentObservable(TaskContext<TJOB, T> ctxt, TDOC doc){
+        return Single.just(new ContextAndDocument(ctxt,doc));
     }
 
 
@@ -182,8 +179,8 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
             this.doc = doc;
         }
 
-        public Observable<RetryResult> toObservable(){
-            return Observable.just(this);
+        public Single<RetryResult> toSingle(){
+            return Single.just(this);
         }
     }
 
@@ -208,8 +205,8 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
             return doc;
         }
 
-        public Observable<FindAndGetResult> toObservable(){
-            return Observable.just(this);
+        public Single<FindAndGetResult> toSingle(){
+            return Single.just(this);
         }
     }
 

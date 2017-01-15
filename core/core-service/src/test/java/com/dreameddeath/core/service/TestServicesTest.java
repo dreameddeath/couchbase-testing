@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -48,6 +47,8 @@ import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.swagger.models.Model;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.http_jetty.client.JettyHttpClientTransportFactory;
@@ -58,7 +59,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
@@ -94,7 +94,7 @@ public class TestServicesTest extends Assert{
 
     @BeforeClass
     public static void initialise() throws Exception{
-        rx.plugins.RxJavaHooks.setOnScheduleAction(new MdcSchedulerHook());
+        io.reactivex.plugins.RxJavaPlugins.setScheduleHandler(new MdcSchedulerHook());
         compileTestServiceGen();
         curatorUtils = new CuratorTestUtils().prepare(1);
         server = new TestingRestServer("serverTesting", curatorUtils.getClient("TestServicesTest"));
@@ -187,22 +187,22 @@ public class TestServicesTest extends Assert{
         input.id = "10";
         input.rootId = "20";
         input.otherField = DateTime.now();
-        Observable<ITestService.Result> resultObservable= service.runWithRes(null, input);
-        ITestService.Result result = resultObservable.toBlocking().single();
+        Single<ITestService.Result> resultObservable= service.runWithRes(null, input);
+        ITestService.Result result = resultObservable.blockingGet();
 
         LOG.debug("Result {}", result.id);
         assertEquals(input.id, result.id);
         assertEquals(input.rootId, result.rootId);
 
-        Observable<ITestService.Result> resultGetObservable=service.getWithRes("30", "15");
-        ITestService.Result resultGet = resultGetObservable.toBlocking().single();
+        Single<ITestService.Result> resultGetObservable=service.getWithRes("30", "15");
+        ITestService.Result resultGet = resultGetObservable.blockingGet();
 
         LOG.debug("Result {}", resultGet.id);
         assertEquals("30",resultGet.rootId);
         assertEquals("15", resultGet.id);
 
-        Observable<ITestService.Result> resultPutObservable=service.putWithQuery("30", "15");
-        ITestService.Result resultPut = resultPutObservable.toBlocking().single();
+        Single<ITestService.Result> resultPutObservable=service.putWithQuery("30", "15");
+        ITestService.Result resultPut = resultPutObservable.blockingGet();
 
         LOG.debug("Result {}", resultPut.id);
         assertEquals("30 put",resultPut.rootId);
@@ -215,7 +215,7 @@ public class TestServicesTest extends Assert{
 
         Object resultGenObservable = serviceGen.getClass().getMethod("runWithRes", IGlobalContext.class,ITestService.Input.class).invoke(serviceGen,null,input);
         try {
-            ITestService.Result resultGen = (ITestService.Result) ((Observable) resultGenObservable).toBlocking().first();
+            ITestService.Result resultGen = (ITestService.Result) ((Single) resultGenObservable).blockingGet();
             LOG.debug("Result {}",resultGen);
             assertEquals(input.id+" gen",resultGen.id);
             assertEquals(input.rootId + " gen", resultGen.rootId);
@@ -226,7 +226,7 @@ public class TestServicesTest extends Assert{
 
         Object resultPostGenObservable = serviceGen.getClass().getMethod("getWithRes", String.class,String.class).invoke(serviceGen,"30","15");
         try {
-            ITestService.Result resultGen = (ITestService.Result) ((Observable) resultPostGenObservable).toBlocking().first();
+            ITestService.Result resultGen = (ITestService.Result) ((Single) resultPostGenObservable).blockingGet();
             LOG.debug("Result {}", resultGen);
             assertEquals("30 gen", resultGen.rootId);
             assertEquals("15 gen",resultGen.id);
@@ -237,7 +237,7 @@ public class TestServicesTest extends Assert{
 
         Object resultPutGenObservable = serviceGen.getClass().getMethod("putWithQuery", String.class,String.class).invoke(serviceGen,"30","15");
         try {
-            ITestService.Result resultGen = (ITestService.Result) ((Observable) resultPutGenObservable).toBlocking().first();
+            ITestService.Result resultGen = (ITestService.Result) ((Single) resultPutGenObservable).blockingGet();
             LOG.debug("Result {}", resultGen);
             assertEquals("30 putgen", resultGen.rootId);
             assertEquals("15 putgen",resultGen.id);
@@ -248,7 +248,7 @@ public class TestServicesTest extends Assert{
 
         Object resultTestingUserDoc = serviceGen.getClass().getMethod("initDocument", IUser.class).invoke(serviceGen, AuthorizeAllUser.INSTANCE);
         try {
-            TestingDocument resultGen = (TestingDocument) ((Observable) resultTestingUserDoc).toBlocking().first();
+            TestingDocument resultGen = (TestingDocument) ((Single) resultTestingUserDoc).blockingGet();
             LOG.debug("Result {}", resultGen);
             assertEquals(1,resultGen.getTestExternalEltList().size());
             assertEquals(1,resultGen.getTestCplxList().size());
@@ -296,9 +296,11 @@ public class TestServicesTest extends Assert{
                             client.getInstance().path("asyncTraceId")
                                     .request(MediaType.TEXT_PLAIN)
                                     .get(String.class)
-                                    .filter(StringUtils::isNotEmpty));
+                                    .filter(StringUtils::isNotEmpty)
+                                    .toObservable()
+                    );
                 }
-                assertEquals(50, Observable.merge(results).count().toBlocking().single().intValue());
+                assertEquals(50, Observable.merge(results).count().blockingGet().intValue());
                 double dur=(System.nanoTime() - startTime) * 1.0 / 1_000_000;
                 LOG.warn("Attempt #{} Duration async {} ms / avg {} ms",attempt, dur,dur/50);
             /*}

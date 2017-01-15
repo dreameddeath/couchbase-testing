@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -25,9 +24,7 @@ import com.dreameddeath.core.user.IUser;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -47,7 +44,6 @@ public class AbstractRestQueryService<T> extends AbstractRestExposableService {
     public void doGet(String key, IUser user, AsyncResponse response){
         try {
             queryService.asyncGet(key,user)
-                    .switchIfEmpty(Observable.error(new NotFoundException("The object with key <"+key+"> hasn't been found")))
                     .doOnError(throwable -> LOG.error("An error occurs while query <"+key+">",throwable))
                     .subscribe(response::resume,response::resume);
         }

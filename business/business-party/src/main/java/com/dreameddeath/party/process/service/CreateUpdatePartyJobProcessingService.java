@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -32,8 +31,8 @@ import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob;
 import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob.CreatePartyTask;
 import com.dreameddeath.party.process.model.v1.roles.tasks.PartyUpdateResult;
 import com.dreameddeath.party.service.IPartyManagementService;
+import io.reactivex.Single;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2014.
@@ -41,7 +40,7 @@ import rx.Observable;
 @JobProcessingForClass(CreateUpdatePartyJob.class)
 public class CreateUpdatePartyJobProcessingService extends StandardJobProcessingService<CreateUpdatePartyJob> {
     @Override
-    public Observable<JobProcessingResult<CreateUpdatePartyJob>> init(JobContext<CreateUpdatePartyJob> context) {
+    public Single<JobProcessingResult<CreateUpdatePartyJob>> init(JobContext<CreateUpdatePartyJob> context) {
         context.addTask(new CreateUpdatePartyJob.CreatePartyTask());
         return JobProcessingResult.build(context,false);
     }
@@ -57,13 +56,13 @@ public class CreateUpdatePartyJobProcessingService extends StandardJobProcessing
 
 
         @Override
-        protected Observable<ContextAndDocument> buildDocument(TaskContext<CreateUpdatePartyJob,CreatePartyTask> ctxt){
+        protected Single<ContextAndDocument> buildDocument(TaskContext<CreateUpdatePartyJob,CreatePartyTask> ctxt){
             Party result=partyManagementService.managePartyCreation(ctxt.getSession(),ctxt.getParentInternalJob().getRequest());
             return buildContextAndDocumentObservable(ctxt,result);
         }
 
         @Override
-        public Observable<UpdateJobTaskProcessingResult<CreateUpdatePartyJob, CreatePartyTask>> updatejob(CreateUpdatePartyJob job, CreatePartyTask task, ICouchbaseSession session) {
+        public Single<UpdateJobTaskProcessingResult<CreateUpdatePartyJob, CreatePartyTask>> updatejob(CreateUpdatePartyJob job, CreatePartyTask task, ICouchbaseSession session) {
             return task.getDocument(session)
                     .map(doc->{
                         PartyUpdateResult result=new PartyUpdateResult();

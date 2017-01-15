@@ -2,8 +2,8 @@
 
 define(['angular','angular-route','angular-animate','apps-admin-service-resource','ui-bootstrap-tpls'],function(angular){
     var appsServiceModule = angular.module('apps-admin-service',['apps-admin-service-resource','ngResource','ngRoute','ui.bootstrap.modal',
-        'template/modal/backdrop.html',
-        'template/modal/window.html'
+        //'uib/template/modal/backdrop.html',
+        'uib/template/modal/window.html'
         ]
     );
     appsServiceModule.config(['$stateProvider', function($stateProvider) {

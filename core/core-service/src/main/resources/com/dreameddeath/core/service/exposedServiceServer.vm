@@ -28,6 +28,8 @@ import io.swagger.annotations.ApiResponses;
 
 import javax.annotation.Generated;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -76,7 +78,7 @@ public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${servic
             @ApiResponse(code = 400, message = "Invalid ID"),
             @ApiResponse(code = 404, message = "object not found")
     })*/
-    public ${method.returnClassName} ${method.name} (#set($methodParamPrefix="")
+    public void /*${method.returnClassName}*/ ${method.name} (#set($methodParamPrefix="")
 #if($method.hasGlobalContextParam())
             @Context IGlobalContext $method.globalContextParamName #set($methodParamPrefix=",")
 #end
@@ -92,16 +94,23 @@ public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${servic
 #foreach($queryParam in $method.pathInfo.queryParamsList)
             ${methodParamPrefix} @QueryParam("${queryParam.name}") ${queryParam.className} ${queryParam.name} #set($methodParamPrefix=",")
 #end
+            ${methodParamPrefix} @Suspended final AsyncResponse asyncResponse
             )
     {
+        try{
 #if($method.hasBody())
         $method.bodyInfo.className ${method.bodyInfo.setterString};
 #end
-        return getServiceImpl().${method.name}(#set($methodParamPrefix="")
+        getServiceImpl().${method.name}(#set($methodParamPrefix="")
 #foreach($methodParam in $method.methodParamsDefinition)
                     ${methodParamPrefix} $methodParam.name #set($methodParamPrefix=",")
 #end
-              ).toBlocking().first();
+              )
+              .subscribe(asyncResponse::resume,asyncResponse::resume);
+        }
+        catch(Throwable e){
+            asyncResponse.resume(e);
+        }
     }
 #end
 

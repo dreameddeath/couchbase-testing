@@ -1,30 +1,30 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.core.process.service.impl.executor;
 
 import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
-import com.dreameddeath.core.dao.exception.DaoObservableException;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.model.v1.EventLink;
 import com.dreameddeath.core.process.exception.IExecutionExceptionNoLog;
-import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState.State;
@@ -34,10 +34,12 @@ import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.google.common.base.Preconditions;
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.functions.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.functions.Func1;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -48,43 +50,41 @@ import java.util.stream.Collectors;
  */
 public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends AbstractTask> implements ITaskExecutorService<TJOB,T> {
     private final static Logger LOG = LoggerFactory.getLogger(BasicTaskExecutorServiceImpl.class);
-    public Observable<TaskContext<TJOB,T>> onSave(TaskContext<TJOB,T> ctxt, State state){
-        return Observable.just(ctxt);
+    public Single<TaskContext<TJOB,T>> onSave(TaskContext<TJOB,T> ctxt, State state){
+        return Single.just(ctxt);
     }
-    public Observable<TaskContext<TJOB,T>> onEndProcessing(TaskContext<TJOB,T> ctxt, State state){
-        return Observable.just(ctxt);
+    public Single<TaskContext<TJOB,T>> onEndProcessing(TaskContext<TJOB,T> ctxt, State state){
+        return Single.just(ctxt);
     }
 
-    public Observable<TaskContext<TJOB,T>> manageStateProcessing(final TaskContext<TJOB,T> ctxt, Func1<? super TaskContext<TJOB,T>,? extends Observable<? extends TaskProcessingResult<TJOB,T>>> processingFunc, State state, Predicate<TaskContext<TJOB,T>> checkPredicate){
+    public Single<TaskContext<TJOB,T>> manageStateProcessing(final TaskContext<TJOB,T> ctxt, Function<? super TaskContext<TJOB,T>,? extends Single<? extends TaskProcessingResult<TJOB,T>>> processingFunc, State state, Predicate<TaskContext<TJOB,T>> checkPredicate){
         try{
             if(!checkPredicate.test(ctxt)){
-                return Observable.just(ctxt).flatMap(processingFunc)
+                return Single.just(ctxt).flatMap(processingFunc)
                         .flatMap(res->{
                             res.getContext().setState(state);
                             if(res.isNeedSave()){
-                                return onSave(res.getContext(),state).flatMap(TaskContext::asyncSave);
+                                return onSave(res.getContext(),state)
+                                        .flatMap(TaskContext::asyncSave);
                             }
-                            return Observable.just(res.getContext());
+                            return Single.just(res.getContext());
                         })
                         .flatMap(newCtxt -> onEndProcessing(newCtxt,state) );
             }
             else{
-                return Observable.just(ctxt);
+                return Single.just(ctxt);
             }
         }
-        catch (TaskObservableExecutionException e){
-            return Observable.error(e);
-        }
         catch (Throwable e){
-            return Observable.error(new TaskObservableExecutionException(ctxt,"Unexpected exception",e));
+            return Single.error(new TaskExecutionException(ctxt,"Unexpected exception",e));
         }
     }
 
 
     @Override
-    public Observable<TaskContext<TJOB,T>> execute(TaskContext<TJOB,T> origCtxt){
+    public Single<TaskContext<TJOB,T>> execute(TaskContext<TJOB,T> origCtxt){
         try {
-            return Observable.just(origCtxt)
+            return Single.just(origCtxt)
                     .flatMap(ctxt->
                             manageStateProcessing(ctxt,
                                     (inCtxt)->inCtxt.getProcessingService().init(inCtxt),
@@ -131,12 +131,8 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                     .doOnError(throwable -> this.logError(origCtxt,throwable));
 
         }
-        catch(TaskObservableExecutionException e){
-            this.logError(origCtxt,e);
-            throw e;
-        }
         catch (Throwable e){
-            throw new TaskObservableExecutionException(origCtxt,"Unexpected Error",e);
+            return Single.error(new TaskExecutionException(origCtxt,"Unexpected Error",e));
         }
     }
 
@@ -147,19 +143,13 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
             if(e instanceof IExecutionExceptionNoLog) {
                 return;
             }
-            else if (e instanceof TaskObservableExecutionException && eCause!=null) {
-                Throwable taskExecExceptionCause = eCause.getCause();
-                if (taskExecExceptionCause != null) {
-                    e = taskExecExceptionCause;
-                }
-                else{
-                    e=eCause;
-                }
+            else if (e instanceof TaskExecutionException && eCause!=null) {
+                e=eCause;
             }
-            else if(e instanceof DaoObservableException && eCause!=null){
+            else if(e instanceof DaoException && eCause!=null){
                 e = eCause;
             }
-            else if(e instanceof StorageObservableException && eCause!=null) {
+            else if(e instanceof StorageException && eCause!=null) {
                 e = eCause;
             }
             else {
@@ -170,9 +160,9 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
         LOG.error("An error occurs during task <"+origCtxt.toString()+">",orig);
     }
 
-    private Observable<TaskProcessingResult<TJOB,T>> runTask(final TaskContext<TJOB,T> ctxt){
+    private Single<TaskProcessingResult<TJOB,T>> runTask(final TaskContext<TJOB,T> ctxt){
         if(ctxt.isSubJobTask()) {
-            Observable<? extends AbstractJob> subJobObs = ctxt.getSubJob();
+            Single<? extends AbstractJob> subJobObs = ctxt.getSubJob();
             Preconditions.checkNotNull(subJobObs,"Cannot get sub job observable for task {}",ctxt.getId());
             return subJobObs
                     .flatMap(subJob -> ctxt.getJobContext().getClientFactory().buildJobClient((Class<AbstractJob>) subJob.getClass()).executeJob(subJob, ctxt.getUser()))
@@ -183,7 +173,7 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
         }
     }
 
-    private Observable<? extends TaskProcessingResult<TJOB,T>> manageNotifications(final TaskContext<TJOB,T> origContext) {
+    private Single<? extends TaskProcessingResult<TJOB,T>> manageNotifications(final TaskContext<TJOB,T> origContext) {
         final TaskContext<TJOB,T> readOnlyContext=origContext.getTemporaryReadOnlySessionContext();
         return readOnlyContext
                 .getProcessingService().buildNotifications(readOnlyContext)
@@ -194,11 +184,11 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                 .onErrorResumeNext(throwable->this.manageError(throwable,origContext));
     }
 
-    private Observable<TaskNotificationBuildResult<TJOB, T>> attachEvents(final TaskNotificationBuildResult<TJOB, T> origTaskNotificationBuildRes) {
-        return Observable.from(origTaskNotificationBuildRes.getEventMap().values())
-                .flatMap(event->{
+    private Single<TaskNotificationBuildResult<TJOB, T>> attachEvents(final TaskNotificationBuildResult<TJOB, T> origTaskNotificationBuildRes) {
+        return Observable.fromIterable(origTaskNotificationBuildRes.getEventMap().values())
+                .flatMapSingle(event->{
                     if(event.getBaseMeta().getKey()!=null){
-                        return Observable.just(event);
+                        return Single.just(event);
                     }
                     else{
                         return origTaskNotificationBuildRes.getContext().getSession().asyncBuildKey(event);
@@ -220,46 +210,39 @@ public class BasicTaskExecutorServiceImpl<TJOB extends AbstractJob,T extends Abs
                 });
     }
 
-    private Observable<TaskProcessingResult<TJOB,T>> submitNotifications(TaskNotificationBuildResult<TJOB,T> taskNotifBuildRes) {
-        return Observable.from(taskNotifBuildRes.getEventMap().values())
-                .flatMap(event->taskNotifBuildRes.getContext().getEventBus().asyncFireEvent(event,taskNotifBuildRes.getContext().getSession()))
+    private Single<TaskProcessingResult<TJOB,T>> submitNotifications(TaskNotificationBuildResult<TJOB,T> taskNotifBuildRes) {
+        return Observable.fromIterable(taskNotifBuildRes.getEventMap().values())
+                .flatMapSingle(event->taskNotifBuildRes.getContext().getEventBus().asyncFireEvent(event,taskNotifBuildRes.getContext().getSession()))
                 .toList()
                 .flatMap(eventFireResults->{
-                    if(eventFireResults.stream().filter(res->!res.isSuccess()).count()>0){
-                        return Observable.error(new TaskObservableExecutionException(taskNotifBuildRes.getContext(),"Errors duering notifications"));
+                    List<EventFireResult<?>> failedNotifs=eventFireResults.stream().filter(res->!res.isSuccess()).collect(Collectors.toList());
+                    if(failedNotifs.size()>0){
+                        return Single.error(new TaskExecutionException(taskNotifBuildRes.getContext(),"Errors during notifications",failedNotifs));
                     }
                     return TaskProcessingResult.build(taskNotifBuildRes.getContext(),true);
                 });
     }
 
-    private Observable<TaskNotificationBuildResult<TJOB,T>> manageNotificationsRetry(final TaskNotificationBuildResult<TJOB,T> origTaskNotificationBuildResult) {
-        return Observable.from(origTaskNotificationBuildResult.getContext().getInternalTask().getNotifications())
-                .flatMap(eventLink -> manageNotificationRead(eventLink,origTaskNotificationBuildResult.getContext().getSession()))
+    private Single<TaskNotificationBuildResult<TJOB,T>> manageNotificationsRetry(final TaskNotificationBuildResult<TJOB,T> origTaskNotificationBuildResult) {
+        return Observable.fromIterable(origTaskNotificationBuildResult.getContext().getInternalTask().getNotifications())
+                .flatMapMaybe(eventLink -> manageNotificationRead(eventLink,origTaskNotificationBuildResult.getContext().getSession()))
                 .toList()
                 .map(events->new TaskNotificationBuildResult<>(origTaskNotificationBuildResult,events, TaskNotificationBuildResult.DuplicateMode.REPLACE));
     }
 
-    private Observable<AbstractTaskEvent> manageNotificationRead(EventLink eventLink, ICouchbaseSession session) {
+    private Maybe<AbstractTaskEvent> manageNotificationRead(EventLink eventLink, ICouchbaseSession session) {
         return eventLink.<AbstractTaskEvent>getEvent(session)
-                .onErrorResumeNext(origThrowable-> {
-                    Throwable throwable = origThrowable;
-                    if(throwable instanceof StorageObservableException){
-                        throwable = throwable.getCause();
-                    }
+                .toMaybe()
+                .onErrorResumeNext(throwable-> {
                     if(throwable instanceof DocumentNotFoundException){
-                        return Observable.empty();
+                        return Maybe.empty();
                     }
-                    return Observable.error(origThrowable);
+                    return Maybe.error(throwable);
                 });
     }
 
-    private Observable<TaskProcessingResult<TJOB,T>> manageError(Throwable throwable, TaskContext<TJOB,T> inCtxt) {
+    private Single<TaskProcessingResult<TJOB,T>> manageError(Throwable throwable, TaskContext<TJOB,T> inCtxt) {
         inCtxt.getInternalTask().getBaseMeta().unfreeze();
-        if(throwable instanceof TaskObservableExecutionException){
-            return Observable.error(throwable);
-        }
-        else{
-            return Observable.error(new TaskObservableExecutionException(inCtxt,"Unexpected error",throwable));
-        }
+        return Single.error(throwable);
     }
 }

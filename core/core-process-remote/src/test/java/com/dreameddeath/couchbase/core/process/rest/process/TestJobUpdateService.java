@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -26,7 +25,7 @@ import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskPr
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDoc;
 import com.dreameddeath.couchbase.core.process.remote.model.TestDocJobUpdate;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 04/01/2016.
@@ -34,7 +33,7 @@ import rx.Observable;
 @JobProcessingForClass(TestDocJobUpdate.class)
 public class TestJobUpdateService extends StandardJobProcessingService<TestDocJobUpdate> {
     @Override
-    public Observable<JobProcessingResult<TestDocJobUpdate>> init(JobContext<TestDocJobUpdate> context){
+    public Single<JobProcessingResult<TestDocJobUpdate>> init(JobContext<TestDocJobUpdate> context){
         TestDocJobUpdate.TestJobUpdateTask task =new TestDocJobUpdate.TestJobUpdateTask();
         task.setDocKey(context.getInternalJob().docKey);
         context.addTask(task);
@@ -45,9 +44,9 @@ public class TestJobUpdateService extends StandardJobProcessingService<TestDocJo
     @TaskProcessingForClass(TestDocJobUpdate.TestJobUpdateTask.class)
     public static class TestJobUpdateTaskService extends DocumentUpdateTaskProcessingService<TestDocJobUpdate,TestDoc,TestDocJobUpdate.TestJobUpdateTask>{
         @Override
-        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
+        protected Single<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
             ctxtAndDoc.getDoc().intValue+=ctxtAndDoc.getCtxt().getParentInternalJob().incrIntValue;
-            return new ProcessingDocumentResult(ctxtAndDoc,false).toObservable();
+            return new ProcessingDocumentResult(ctxtAndDoc,false).toSingle();
         }
     }
 }

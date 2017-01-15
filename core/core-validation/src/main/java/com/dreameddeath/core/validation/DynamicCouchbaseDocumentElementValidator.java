@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -20,7 +19,7 @@ package com.dreameddeath.core.validation;
 
 import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
-import rx.Observable;
+import io.reactivex.Maybe;
 
 import java.lang.reflect.Field;
 
@@ -37,13 +36,13 @@ public class DynamicCouchbaseDocumentElementValidator implements Validator<Objec
     }
 
     @Override
-    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext context, Object elt) {
+    public Maybe<? extends ValidationFailure> asyncValidate(ValidatorContext context, Object elt) {
         if(elt instanceof CouchbaseDocumentElement){
             Validator<CouchbaseDocumentElement> validator = factory.getValidator((CouchbaseDocumentElement)elt);
             if(validator!=null) {
                 return validator.asyncValidate(context, (CouchbaseDocumentElement) elt);
             }
         }
-        return Observable.empty();
+        return Maybe.empty();
     }
 }

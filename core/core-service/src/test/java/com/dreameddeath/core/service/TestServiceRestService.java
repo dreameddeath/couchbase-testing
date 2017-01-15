@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -26,12 +25,12 @@ import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.http.HttpHeaderUtils;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.google.common.base.Preconditions;
+import io.reactivex.Single;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
@@ -67,14 +66,17 @@ public class TestServiceRestService extends AbstractRestExposableService {
             @ApiResponse(code = 400, message = "Invalid ID"),
             @ApiResponse(code = 404, message = "object not found")
     })
-    public ITestService.Result runWithRes(
+    public void runWithRes(
             @Context IGlobalContext context,
-            @PathParam("rootId") String rootId,@PathParam("id") String id, ITestService.Input input){
+            @PathParam("rootId") String rootId,@PathParam("id") String id, ITestService.Input input,
+            final @Suspended AsyncResponse response
+    ){
         //IGlobalContext context = transcoder.decode(contextParam);
         /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
         input.id = id;*/
-        return testService.runWithRes(context,input).toBlocking().first();
+        testService.runWithRes(context,input)
+                .subscribe(response::resume,response::resume);
     }
 
     @GET
@@ -89,12 +91,12 @@ public class TestServiceRestService extends AbstractRestExposableService {
             @ApiResponse(code = 400, message = "Invalid ID"),
             @ApiResponse(code = 404, message = "object not found")
     })
-    public ITestService.Result getWithRes(@PathParam("rootId") String rootId,@PathParam("id") String id){
+    public void getWithRes(@PathParam("rootId") String rootId,@PathParam("id") String id,final @Suspended  AsyncResponse asyncResponse){
 
         /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
         input.id = id;*/
-        return testService.getWithRes(rootId, id).toBlocking().first();
+        testService.getWithRes(rootId, id).subscribe(asyncResponse::resume,asyncResponse::resume);
     }
 
     @PUT
@@ -108,12 +110,13 @@ public class TestServiceRestService extends AbstractRestExposableService {
             @ApiResponse(code = 400, message = "Invalid ID"),
             @ApiResponse(code = 404, message = "object not found")
     })
-    public ITestService.Result putWithQuery(@PathParam("rootId") String rootId,@QueryParam("id") String id){
+    public void putWithQuery(@PathParam("rootId") String rootId,@QueryParam("id") String id
+            , final @Suspended AsyncResponse asyncResponse){
 
         /*ITestService.Input input = new ITestService.Input();
         input.rootId = rootId;
         input.id = id;*/
-        return testService.putWithQuery(rootId, id).toBlocking().first();
+        testService.putWithQuery(rootId, id).subscribe(asyncResponse::resume,asyncResponse::resume);
     }
 
 
@@ -129,8 +132,8 @@ public class TestServiceRestService extends AbstractRestExposableService {
             @ApiResponse(code = 404, message = "object not found")
     })
 
-    public TestingDocument initDocument(){
-        return testService.initDocument((IGlobalContext)null).toBlocking().first();
+    public void initDocument(final @Suspended AsyncResponse asyncResponse){
+        testService.initDocument((IGlobalContext)null).subscribe(asyncResponse::resume,asyncResponse::resume);
     }
 
     private volatile IRestServiceClient client = null;
@@ -179,13 +182,13 @@ public class TestServiceRestService extends AbstractRestExposableService {
     @Produces(MediaType.TEXT_PLAIN)
     public void traceId(@QueryParam("withId") final String traceId, @QueryParam("withGlobalId") final String globalId, @Context final IGlobalContext context, @Suspended final AsyncResponse asyncResponse){
         Preconditions.checkNotNull(context);
-        Observable<String> resultObservable=null;
+        Single<String> resultObservable=null;
         if(traceId!=null){
             Preconditions.checkNotNull(context.callerCtxt());
             Preconditions.checkNotNull(globalId);
             Preconditions.checkArgument(traceId.equals(context.callerCtxt().traceId()));
             Preconditions.checkArgument(globalId.equals(context.globalTraceId()));
-            resultObservable = Observable.just(context.currentTraceId());
+            resultObservable = Single.just(context.currentTraceId());
         }
         else{
             resultObservable = getClient().getInstance()
@@ -194,7 +197,7 @@ public class TestServiceRestService extends AbstractRestExposableService {
                     .queryParam("withGlobalId",context.globalTraceId())
                     .request(MediaType.TEXT_PLAIN)
                     .get()
-                    .doOnNext(result->{
+                    .doOnSuccess(result->{
                         String calleeTraceId = result.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
                         Preconditions.checkNotNull(calleeTraceId);
                         Preconditions.checkArgument(calleeTraceId.equals(result.readEntity(String.class)));
@@ -202,6 +205,6 @@ public class TestServiceRestService extends AbstractRestExposableService {
                     .map(result->result.readEntity(String.class));
 
         }
-        resultObservable.subscribe(resultCalledTraceId->asyncResponse.resume(context.currentTraceId()));
+        resultObservable.subscribe(resultCalledTraceId->asyncResponse.resume(context.currentTraceId()),asyncResponse::resume);
     }
 }

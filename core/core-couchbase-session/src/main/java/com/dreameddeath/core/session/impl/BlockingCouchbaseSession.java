@@ -1,35 +1,31 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.core.session.impl;
 
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
-import com.dreameddeath.core.dao.exception.validation.ValidationObservableException;
 import com.dreameddeath.core.dao.session.IBlockingCouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 20/06/2016.
@@ -43,17 +39,17 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
 
     @Override
     public long blockingGetCounter(String key) throws DaoException,StorageException {
-        return parentSession.asyncGetCounter(key).toBlocking().single();
+        return parentSession.asyncGetCounter(key).blockingGet();
     }
 
     @Override
     public long blockingIncrCounter(String key, long byVal) throws DaoException,StorageException {
-        return parentSession.asyncIncrCounter(key,byVal).toBlocking().single();
+        return parentSession.asyncIncrCounter(key,byVal).blockingGet();
     }
 
     @Override
     public long blockingDecrCounter(String key, long byVal) throws DaoException,StorageException {
-        return parentSession.asyncDecrCounter(key,byVal).toBlocking().single();
+        return parentSession.asyncDecrCounter(key,byVal).blockingGet();
     }
 
     @Override
@@ -64,13 +60,19 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
     @Override
     public <T extends CouchbaseDocument> T blockingBuildKey(T obj) throws DaoException,StorageException {
         try {
-            return parentSession.asyncBuildKey(obj).toBlocking().single();
+            return parentSession.asyncBuildKey(obj).blockingGet();
         }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
@@ -94,7 +96,6 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
         return manageAsyncReadResult(parentSession.asyncGetFromKeyParams(targetClass,params));
     }
 
-
     @Override
     public <T extends CouchbaseDocument> T blockingRefresh(T doc) throws DaoException, StorageException {
         return manageAsyncReadResult(parentSession.asyncRefresh(doc));
@@ -104,7 +105,6 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
     public <T extends CouchbaseDocument> T blockingUpdate(T obj)throws ValidationException,DaoException,StorageException {
         return manageAsyncWriteResult(obj,parentSession.asyncUpdate(obj));
     }
-
 
     @Override
     public <T extends CouchbaseDocument> T blockingDelete(T obj)throws ValidationException,DaoException,StorageException {
@@ -129,13 +129,19 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
     @Override
     public void blockingRemoveUniqueKey(String internalKey) throws DaoException,StorageException {
         try {
-            parentSession.asyncRemoveUniqueKey(internalKey).toBlocking().single();
+            parentSession.asyncRemoveUniqueKey(internalKey).blockingGet();
         }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
@@ -145,41 +151,58 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
         return manageAsyncValidationResult(doc,parentSession.asyncValidate(doc));
     }
 
-
-
-    public <T extends CouchbaseDocument> T manageAsyncValidationResult(final T obj, Observable<T> obs)throws ValidationException {
+    public <T extends CouchbaseDocument> T manageAsyncValidationResult(final T obj, Single<T> obs)throws ValidationException {
         try{
-            return obs.toBlocking().single();
+            return obs.blockingGet();
         }
-        catch(ValidationObservableException e){
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof ValidationException){
+                    throw (ValidationException) eCause;
+                }
+            }
+            throw e;
+        }
+
+    }
+
+    public <T extends CouchbaseDocument> T manageAsyncReadResult(Single<T> obs)throws DaoException,StorageException {
+        try{
+            return obs.blockingGet();
+        }
+        catch(RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
-    public <T extends CouchbaseDocument> T manageAsyncReadResult(Observable<T> obs)throws DaoException,StorageException {
+    public <T extends CouchbaseDocument> T manageAsyncWriteResult(final T obj, Single<T> obs)throws ValidationException,DaoException,StorageException {
         try{
-            return obs.toBlocking().single();
+            return obs.blockingGet();
         }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
-        }
-    }
-
-    public <T extends CouchbaseDocument> T manageAsyncWriteResult(final T obj, Observable<T> obs)throws ValidationException,DaoException,StorageException {
-        try{
-            return obs.toBlocking().single();
-        }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch(ValidationObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                else if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+                else if(eCause instanceof ValidationException){
+                    throw (ValidationException) eCause;
+                }
+            }
+            throw e;
         }
     }
 

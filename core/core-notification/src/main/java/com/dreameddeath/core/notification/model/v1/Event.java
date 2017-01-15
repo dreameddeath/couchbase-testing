@@ -1,3 +1,20 @@
+/*
+ * Copyright Christophe Jeunesse
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package com.dreameddeath.core.notification.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
@@ -6,12 +23,10 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
+import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.NumericProperty;
 import com.dreameddeath.core.model.property.Property;
-import com.dreameddeath.core.model.property.impl.ArrayListProperty;
-import com.dreameddeath.core.model.property.impl.ImmutableProperty;
-import com.dreameddeath.core.model.property.impl.StandardLongProperty;
-import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.model.property.impl.*;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -19,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -42,42 +58,46 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
         return fullEntityId;
     }
 
-    
     /**
      *  id : event unique Id
      */
     @DocumentProperty("id")
-    private Property<UUID> id = new ImmutableProperty<>(Event.this,UUID.randomUUID());
+    private final Property<UUID> id = new ImmutableProperty<>(Event.this,UUID.randomUUID());
     /**
      *  type : type of event
      */
     @DocumentProperty("type")
-    private Property<EventType> type = new ImmutableProperty<>(Event.this);
+    private final Property<EventType> type = new ImmutableProperty<>(Event.this);
     /**
      *  correlationId : correlation id of event to allow group by
      */
     @DocumentProperty("correlationId")
-    private Property<String> correlationId = new ImmutableProperty<>(Event.this);
+    private final Property<String> correlationId = new ImmutableProperty<>(Event.this);
     /**
      *  rank : Ordering rank for the given correlation id. Used to perform correlation checks
      */
     @DocumentProperty("rank")
-    private Property<String> rank = new ImmutableProperty<>(Event.this);
+    private final Property<String> rank = new ImmutableProperty<>(Event.this);
     /**
      *  listeners : List of listeners to post to
      */
     @DocumentProperty("listeners")
-    private ListProperty<String> listeners = new ArrayListProperty<>(Event.this);
+    private final ListProperty<String> listeners = new ArrayListProperty<>(Event.this);
     /**
      *  submissionAttempt : number of attempts of submission
      */
     @DocumentProperty("submissionAttempt")
-    private NumericProperty<Long> submissionAttempt = new StandardLongProperty(Event.this,0);
+    private final NumericProperty<Long> submissionAttempt = new StandardLongProperty(Event.this,0);
     /**
      *  status : The status of the event
      */
     @DocumentProperty("status")
-    private Property<Status> status = new StandardProperty<>(Event.this,Status.CREATED);
+    private final Property<Status> status = new StandardProperty<>(Event.this,Status.CREATED);
+    /**
+     * notifications : the notifications attached to the event
+     */
+    @DocumentProperty("notifications")
+    private final MapProperty<String,NotificationLink> notifications = new HashMapProperty<>(Event.this);
 
     /**
      * Getter of id
@@ -180,6 +200,31 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      * @param val the new value of status
      */
     public void setStatus(Status val) { status.set(val); }
+
+    /**
+     * put a new Notification link for given listener name
+     * @param listenerName the listener name corresponding to the link
+     * @param link the notification link to map to
+     */
+    public void putNotification(String listenerName,NotificationLink link){
+        notifications.put(listenerName,link);
+    }
+
+    /**
+     * set the whole notification links
+     * @param notifications the notifications to replace with
+     */
+    public void setNotifications(Map<String,NotificationLink> notifications){
+        this.notifications.set(notifications);
+    }
+
+    /**
+     * get the current notification list
+     * @return the notifications to replace with
+     */
+    public Map<String,NotificationLink> getNotifications(){
+        return notifications.get();
+    }
 
     public enum Status{
         CREATED,

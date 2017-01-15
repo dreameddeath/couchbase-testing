@@ -23,7 +23,7 @@ import com.dreameddeath.core.java.utils.DateUtils;
 import com.dreameddeath.core.helper.annotation.service.RestDao;
 #end
 
-import rx.Observable;
+import io.reactivex.Single;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simp
 
 
     @Override
-    public Observable<${entity.simpleName}> asyncBuildKey(ICouchbaseSession session,final ${entity.simpleName} obj) throws DaoException{
+    public Single<${entity.simpleName}> asyncBuildKey(ICouchbaseSession session,final ${entity.simpleName} obj) throws DaoException{
         return session.asyncIncrCounter(String.format(CNT_${keyCounter.name.toUpperCase()}#if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end),1)
                         .map(new BuildKeyFromCounterFunc(obj #if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end))
                         ;

@@ -1,31 +1,29 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.couchbase.core.process.remote.service;
 
 import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
-import com.dreameddeath.core.process.exception.JobObservableExecutionException;
+import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
@@ -38,16 +36,17 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExisting
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.StateInfo;
 import com.google.common.base.Preconditions;
+import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.Response;
 import java.lang.reflect.Constructor;
@@ -119,13 +118,13 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                                  Boolean submitOnly,
                                  String requestUid,
                                  TREQ request,
-                                 final AsyncResponse asyncResponse){
+                                 @Suspended final AsyncResponse asyncResponse){
         try {
             TJOB job = buildJobFromRequest(request);
             if(StringUtils.isNotEmpty(requestUid)){
                 job.setRequestUid(requestUid);
             }
-            Observable<JobContext<TJOB>> jobCtxtObs;
+            Single<JobContext<TJOB>> jobCtxtObs;
             if (submitOnly!=null && submitOnly) {
                 jobCtxtObs= jobExecutorClient.submitJob(job, user);
                 Preconditions.checkNotNull(jobCtxtObs,"The submit job returned a null value {}",request.toString());
@@ -209,7 +208,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                             case CANCEL:
                                 return jobExecutorClient.cancelJob(job, user);
                             default:
-                                return Observable.error(new NotSupportedException("Not managed action :"+actionRequest+" on job "+uid));
+                                return Single.error(new NotSupportedException("Not managed action :"+actionRequest+" on job "+uid));
                         }
                     })
                     .map(ctxt->this.buildJaxrsResponse(ctxt.getInternalJob()))
@@ -223,25 +222,24 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
         }
     }
 
-    private Observable<Response> manageStandardErrors(Throwable throwable) {
-        if(throwable instanceof StorageObservableException && ((StorageObservableException)throwable).isDocumentNotFoundException()){
-            DocumentNotFoundException e = (DocumentNotFoundException)((StorageObservableException)throwable).getCause();
-            return Observable.error(new NotFoundException("The job "+e.getKey()+ " isn't existing"));
+    private Single<Response> manageStandardErrors(Throwable throwable) {
+        if(throwable instanceof DocumentNotFoundException){
+            return Single.error(new NotFoundException("The job "+((DocumentNotFoundException) throwable).getKey()+ " isn't existing"));
         }
-        else if(throwable instanceof JobObservableExecutionException && throwable.getCause()!=null){
-            return Observable.error(throwable.getCause());
+        else if(throwable instanceof JobExecutionException){
+            return Single.error(throwable);
         }
         else{
-            return Observable.error(throwable);
+            return Single.error(throwable);
         }
     }
 
-    private Observable<TJOB> checkRequestId(final String requestUid, final TJOB job) {
+    private Single<TJOB> checkRequestId(final String requestUid, final TJOB job) {
         if(StringUtils.isNotEmpty(requestUid)){
             if(!requestUid.equals(job.getRequestUid())){
-                return Observable.error(new NotFoundException("The job "+job.getBaseMeta().getKey()+ " hasn't right request id <"+requestUid+"> but <"+job.getRequestUid()));
+                return Single.error(new NotFoundException("The job "+job.getBaseMeta().getKey()+ " hasn't right request id <"+requestUid+"> but <"+job.getRequestUid()));
             }
         }
-        return Observable.just(job);
+        return Single.just(job);
     }
 }

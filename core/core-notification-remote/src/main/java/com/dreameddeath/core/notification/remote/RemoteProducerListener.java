@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -26,8 +25,8 @@ import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 import com.dreameddeath.core.notification.remote.model.RemoteProcessingResult;
 import com.dreameddeath.core.service.client.rest.IRestServiceClient;
+import io.reactivex.Single;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.client.Entity;
@@ -55,22 +54,27 @@ public class RemoteProducerListener extends AbstractDiscoverableListener {
     }
 
     @Override
-    protected <T extends Event> Observable<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
+    protected void incrementAttemptsManagement(Notification sourceNotif) {
+        sourceNotif.incNbRemoteAttempts();
+    }
+
+    @Override
+    protected <T extends Event> Single<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
         return session.asyncSave(notification)
                 .flatMap(savedNotif->
-                remoteClient.getInstance()
-                .path("/{id}")
-                .resolveTemplate("id",notification.getBaseMeta().getKey())
-                .request()
-                .post(Entity.json(""), RemoteProcessingResult.class)
-                .flatMap(remoteProcessingResult -> mapResult(remoteProcessingResult,session))
-                .onErrorReturn(throwable -> ProcessingResultInfo.build(notification,false,ProcessingResult.DEFERRED))
+                    remoteClient.getInstance()
+                    .path("/{id}")
+                    .resolveTemplate("id",notification.getBaseMeta().getKey())
+                    .request()
+                    .post(Entity.json(""), RemoteProcessingResult.class)
+                    .flatMap(remoteProcessingResult -> mapResult(remoteProcessingResult,session))
+                    //.onErrorReturn(throwable -> ProcessingResultInfo.build(notification,false,ProcessingResult.DEFERRED))
                 )
                 .onErrorReturn(throwable -> ProcessingResultInfo.build(notification,false,ProcessingResult.DEFERRED))
                 ;
     }
 
-    public Observable<ProcessingResultInfo> mapResult(final RemoteProcessingResult result,ICouchbaseSession session){
+    public Single<ProcessingResultInfo> mapResult(final RemoteProcessingResult result, ICouchbaseSession session){
         return session.asyncGet(result.getNotificationKey(),Notification.class)
                 .map(notif->ProcessingResultInfo.build(notif,true,result.isSuccess()?ProcessingResult.PROCESSED:ProcessingResult.DEFERRED));
     }

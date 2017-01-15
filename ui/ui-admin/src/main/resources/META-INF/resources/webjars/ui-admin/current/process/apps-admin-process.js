@@ -2,8 +2,8 @@
 
 define(['angular','angular-route','angular-animate','apps-admin-process-resource','ui-bootstrap-tpls'],function(angular){
     var appsProcessorsModule = angular.module('apps-admin-process',['apps-admin-process-resource','ngResource','ngRoute','ui.bootstrap.modal',
-        'template/modal/backdrop.html',
-        'template/modal/window.html'
+        //'template/modal/backdrop.html',
+        'uib/template/modal/window.html'
         ]
     );
 

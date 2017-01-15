@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -35,7 +34,7 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResult
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdateRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobUpdateResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import rx.Observable;
+import io.reactivex.Single;
 
 
 /**
@@ -44,7 +43,7 @@ import rx.Observable;
 @JobProcessingForClass(RemoteUpdateJob.class)
 public class RemoteTestJobUpdateService extends StandardJobProcessingService<RemoteUpdateJob> {
     @Override
-    public Observable<JobProcessingResult<RemoteUpdateJob>> init(JobContext<RemoteUpdateJob> context){
+    public Single<JobProcessingResult<RemoteUpdateJob>> init(JobContext<RemoteUpdateJob> context){
         context.addTask(new RemoteUpdateJob.RemoteTestJobUpdateTask());
         return JobProcessingResult.build(context,false);
     }
@@ -59,11 +58,11 @@ public class RemoteTestJobUpdateService extends StandardJobProcessingService<Rem
     @TaskProcessingForClass(RemoteUpdateJob.RemoteTestJobUpdateTask.class)
     public static class TestJobUpdateTaskService extends RemoteJobTaskProcessing<TestDocJobUpdateRequest,TestDocJobUpdateResult,RemoteUpdateJob,RemoteUpdateJob.RemoteTestJobUpdateTask> {
         @Override
-        protected Observable<TestDocJobUpdateRequest> getRequest(TaskContext<RemoteUpdateJob, RemoteUpdateJob.RemoteTestJobUpdateTask> ctxt) {
+        protected Single<TestDocJobUpdateRequest> getRequest(TaskContext<RemoteUpdateJob, RemoteUpdateJob.RemoteTestJobUpdateTask> ctxt) {
             TestDocJobUpdateRequest request = new TestDocJobUpdateRequest();
             request.incrIntValue=ctxt.getParentInternalJob().incrIntValue;
             request.key = ctxt.getParentInternalJob().key;
-            return Observable.just(request);
+            return Single.just(request);
         }
 
         @Override

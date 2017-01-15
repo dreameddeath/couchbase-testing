@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -29,7 +28,8 @@ import com.dreameddeath.core.validation.annotation.Unique;
 import com.dreameddeath.core.validation.annotation.Validate;
 import com.dreameddeath.core.validation.annotation.ValidationConstraint;
 import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
-import rx.Observable;
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -250,7 +250,7 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
     }
 
     @Override
-    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, T element){
+    public Maybe<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, T element){
         List<Observable<? extends ValidationFailure>> fieldsErrors=new ArrayList<>();
         for(AccessibleObject elt:validationRules.keySet()){
             ValidatorContext subContext = new ValidatorContext(ctxt,element);
@@ -267,19 +267,18 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
 
                 List<Observable<? extends ValidationFailure>> validationResult = ((Stream<Validator<Object>>)validationRules
                         .get(elt).getValidators().stream())
-                        .map(
-                                validator->validator.asyncValidate(subContext,obj)
-                        )
+                        .map(validator->validator.asyncValidate(subContext,obj))
+                        .map(Maybe::toObservable)
                         .collect(Collectors.toList());
 
-                Observable<ValidationCompositeFailure>result= Observable
+                Maybe<ValidationCompositeFailure>result= Observable
                         .merge(validationResult)
                         .reduce(
                             new ValidationCompositeFailure(element,validationRules.get(elt).getField(),"Error of field"),
                             ValidationCompositeFailure::addChildElement
                         )
                         .filter(ValidationCompositeFailure::hasError);
-                fieldsErrors.add(result);
+                fieldsErrors.add(result.toObservable());
             }
             catch(IllegalAccessException e){
                 fieldsErrors.add(Observable.just(new ValidationCompositeFailure(element,validationRules.get(elt).getField(),"Cannot access to the value of the field",e)));
@@ -292,7 +291,6 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
                 .reduce(new ValidationCompositeFailure(element,"has errors"),
                         ValidationCompositeFailure::addChildElement)
                 .filter(ValidationCompositeFailure::hasError);
-        //return Observable.empty();
     }
 
 

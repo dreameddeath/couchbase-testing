@@ -1,25 +1,24 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.couchbase.core.process.remote;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
@@ -36,7 +35,7 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.AlreadyExisting
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.StateInfo;
 import com.dreameddeath.couchbase.core.process.remote.service.AbstractRemoteJobRestService;
-import rx.Observable;
+import io.reactivex.Single;
 
 import javax.inject.Inject;
 import javax.ws.rs.client.Entity;
@@ -72,22 +71,22 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
         return result;
     }
     @Override
-    public Observable<TaskProcessingResult<TJOB,TTASK>> init(TaskContext<TJOB, TTASK> ctxt) {
+    public Single<TaskProcessingResult<TJOB,TTASK>> init(TaskContext<TJOB, TTASK> ctxt) {
         return TaskProcessingResult.build(ctxt,false);
     }
 
     @Override
-    public Observable<TaskProcessingResult<TJOB,TTASK>> preprocess(TaskContext<TJOB, TTASK> ctxt){
+    public Single<TaskProcessingResult<TJOB,TTASK>> preprocess(TaskContext<TJOB, TTASK> ctxt){
         return TaskProcessingResult.build(ctxt,false);
     }
 
     protected abstract <T extends RemoteJobResultWrapper<TRESP>> Class<T> getResponseClass();
-    protected abstract Observable<TREQ> getRequest(TaskContext<TJOB,TTASK> ctxt);
+    protected abstract Single<TREQ> getRequest(TaskContext<TJOB,TTASK> ctxt);
     protected void updateTaskWithResponse(TTASK task, TRESP resp){}
     protected void onResponseReceived(TaskContext<TJOB,TTASK> ctxt, TRESP resp){}
 
     @Override
-    public final Observable<TaskProcessingResult<TJOB,TTASK>> process(TaskContext<TJOB, TTASK> ctxt){
+    public final Single<TaskProcessingResult<TJOB,TTASK>> process(TaskContext<TJOB, TTASK> ctxt){
         try{
             if(!ctxt.getInternalTask().getRemoteJobInfo().getIsDone()){
                 return this.manageInitialSave(ctxt)
@@ -100,24 +99,21 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
                 return TaskProcessingResult.build(ctxt,true);
             }
         }
-        catch (TaskObservableExecutionException e) {
-            return Observable.error(e);
-        }
         catch(Throwable e) {
-            return Observable.error(new TaskObservableExecutionException(ctxt, "Unexpected error", e));
+            return Single.error(new TaskExecutionException(ctxt, "Unexpected error", e));
         }
     }
 
-    private Observable<TaskProcessingResult<TJOB, TTASK>> manageError(Throwable throwable, TaskContext<TJOB, TTASK> ctxt) {
-        if(throwable instanceof TaskObservableExecutionException){
-            return Observable.error(throwable);
+    private Single<TaskProcessingResult<TJOB, TTASK>> manageError(Throwable throwable, TaskContext<TJOB, TTASK> ctxt) {
+        if(throwable instanceof TaskExecutionException){
+            return Single.error(throwable);
         }
         else{
-            return Observable.error(new TaskObservableExecutionException(ctxt,"Unknown error",throwable));
+            return Single.error(new TaskExecutionException(ctxt,"Unknown error",throwable));
         }
     }
 
-    private Observable<TaskProcessingResult<TJOB,TTASK>> manageResponse(TaskContextAndResponse taskContextAndResponse) {
+    private Single<TaskProcessingResult<TJOB,TTASK>> manageResponse(TaskContextAndResponse taskContextAndResponse) {
         final Response response = taskContextAndResponse.response;
 
         if(response.getStatus()== Response.Status.OK.getStatusCode()) {
@@ -137,17 +133,17 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
             return TaskProcessingResult.build(taskContextAndResponse.ctxt,true);
         }
         else{
-            return Observable.error(new TaskObservableExecutionException(taskContextAndResponse.ctxt,"Error from message "+response));
+            return Single.error(new TaskExecutionException(taskContextAndResponse.ctxt,"Error from message "+response));
         }
     }
 
-    private Observable<TaskContextAndResponse> manageDuplicateResponse(TaskContextAndResponse taskContextAndResponse) {
+    private Single<TaskContextAndResponse> manageDuplicateResponse(TaskContextAndResponse taskContextAndResponse) {
         final Response origResponse = taskContextAndResponse.response;
         //Cas of duplicate
         if(origResponse.getStatus()== Response.Status.CONFLICT.getStatusCode()){
             AlreadyExistingJob alreadyExistingJob=origResponse.readEntity(AlreadyExistingJob.class);
             if(!alreadyExistingJob.requestUid.equals(taskContextAndResponse.remoteRequestUid)){
-                return Observable.error(new TaskObservableExecutionException(taskContextAndResponse.ctxt,"Conflicting Duplicate remote job "+alreadyExistingJob.key));
+                return Single.error(new TaskExecutionException(taskContextAndResponse.ctxt,"Conflicting Duplicate remote job "+alreadyExistingJob.key));
             }
             return getRemoteJobProcessingClient()
                     .getInstance()
@@ -161,14 +157,13 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
                     .map(response -> new TaskContextAndResponse(taskContextAndResponse.ctxt,response,taskContextAndResponse.remoteRequestUid));
         }
         else{
-            return Observable.just(taskContextAndResponse);
+            return Single.just(taskContextAndResponse);
         }
     }
 
-    private Observable<TaskContextAndResponse> buildAndSendRequest(TaskContext<TJOB, TTASK> context) {
+    private Single<TaskContextAndResponse> buildAndSendRequest(TaskContext<TJOB, TTASK> context) {
         final String remoteRequestUid = context.getJobUid()+"/"+context.getInternalTask().getId();
         return getRequest(context)
-                .switchIfEmpty(Observable.error(new TaskObservableExecutionException(context,"Error",new IllegalStateException("The request build is empty"))))
                 .flatMap(request->
                 getRemoteJobProcessingClient()
                 .getInstance()
@@ -180,33 +175,33 @@ public abstract class RemoteJobTaskProcessing<TREQ,TRESP,TJOB extends AbstractJo
         );
     }
 
-    private Observable<TaskContext<TJOB, TTASK>> manageInitialSave(TaskContext<TJOB, TTASK> ctxt) {
+    private Single<TaskContext<TJOB, TTASK>> manageInitialSave(TaskContext<TJOB, TTASK> ctxt) {
         if(ctxt.isNew()) {
             return ctxt.asyncSave();
         }
         else {
-            return Observable.just(ctxt);
+            return Single.just(ctxt);
         }
     }
 
     @Override
-    public Observable<TaskProcessingResult<TJOB,TTASK>> postprocess(TaskContext<TJOB, TTASK> ctxt){
+    public Single<TaskProcessingResult<TJOB,TTASK>> postprocess(TaskContext<TJOB, TTASK> ctxt){
         return TaskProcessingResult.build(ctxt,false);
     }
 
     @Override
-    public Observable<UpdateJobTaskProcessingResult<TJOB, TTASK>> updatejob(TJOB job, TTASK task, ICouchbaseSession session) {
-        return new UpdateJobTaskProcessingResult<>(job,task,false).toObservable();
+    public Single<UpdateJobTaskProcessingResult<TJOB, TTASK>> updatejob(TJOB job, TTASK task, ICouchbaseSession session) {
+        return new UpdateJobTaskProcessingResult<>(job,task,false).toSingle();
     }
 
 
     @Override
-    public Observable<TaskNotificationBuildResult<TJOB, TTASK>> buildNotifications(TaskContext<TJOB, TTASK> ctxt) {
+    public Single<TaskNotificationBuildResult<TJOB, TTASK>> buildNotifications(TaskContext<TJOB, TTASK> ctxt) {
         return TaskNotificationBuildResult.build(ctxt);
     }
 
     @Override
-    public Observable<TaskProcessingResult<TJOB,TTASK>> cleanup(TaskContext<TJOB, TTASK> ctxt){
+    public Single<TaskProcessingResult<TJOB,TTASK>> cleanup(TaskContext<TJOB, TTASK> ctxt){
         return TaskProcessingResult.build(ctxt,false);
     }
 

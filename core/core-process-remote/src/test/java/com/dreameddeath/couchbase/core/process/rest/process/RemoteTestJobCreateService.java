@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -31,7 +30,7 @@ import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResult
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobCreateRequest;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.TestDocJobCreateResult;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 25/02/2016.
@@ -39,7 +38,7 @@ import rx.Observable;
 @JobProcessingForClass(RemoteCreateJob.class)
 public class RemoteTestJobCreateService extends StandardJobProcessingService<RemoteCreateJob> {
     @Override
-    public Observable<JobProcessingResult<RemoteCreateJob>> init(JobContext<RemoteCreateJob> context){
+    public Single<JobProcessingResult<RemoteCreateJob>> init(JobContext<RemoteCreateJob> context){
         context.addTask(new RemoteCreateJob.RemoteTestJobCreateTask());
         return JobProcessingResult.build(context,false);
     }
@@ -54,12 +53,12 @@ public class RemoteTestJobCreateService extends StandardJobProcessingService<Rem
     @TaskProcessingForClass(RemoteCreateJob.RemoteTestJobCreateTask.class) @RemoteServiceInfo(domain = "test",name = "testdocjobcreate", version = "1.0.0")
     public static class TestJobCreateTaskService extends RemoteJobTaskProcessing<TestDocJobCreateRequest,TestDocJobCreateResult,RemoteCreateJob,RemoteCreateJob.RemoteTestJobCreateTask> {
         @Override
-        protected Observable<TestDocJobCreateRequest> getRequest(TaskContext<RemoteCreateJob, RemoteCreateJob.RemoteTestJobCreateTask> ctxt) {
+        protected Single<TestDocJobCreateRequest> getRequest(TaskContext<RemoteCreateJob, RemoteCreateJob.RemoteTestJobCreateTask> ctxt) {
             TestDocJobCreateRequest request = new TestDocJobCreateRequest();
             request.tempUid = ctxt.getParentInternalJob().tempUid;
             request.initIntValue =ctxt.getParentInternalJob().initIntValue;
             request.name= ctxt.getParentInternalJob().name;
-            return Observable.just(request);
+            return Single.just(request);
         }
 
         @Override

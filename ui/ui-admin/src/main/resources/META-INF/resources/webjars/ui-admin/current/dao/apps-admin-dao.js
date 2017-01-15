@@ -2,8 +2,8 @@
 
 define(['angular','angular-route','angular-animate','apps-admin-dao-resource','ui-bootstrap-tpls'],function(angular){
     var appsDaosModule = angular.module('apps-admin-dao',['apps-admin-dao-resource','ngResource','ngRoute','ui.bootstrap.modal',
-        'template/modal/backdrop.html',
-        'template/modal/window.html'
+        //'template/modal/backdrop.html',
+        'uib/template/modal/window.html'
         ]
     );
 

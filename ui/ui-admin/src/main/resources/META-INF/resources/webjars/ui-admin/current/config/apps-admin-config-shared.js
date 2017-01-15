@@ -3,7 +3,7 @@
 define(['angular','angular-route','angular-animate','apps-admin-config-list','ui-bootstrap-tpls','ui-router-tabs','angular-ui-router'],function(angular){
     var appsConfigModule = angular.module('apps-admin-config-shared',
         ['apps-admin-config-list','ngResource','ngRoute','ui.router','ui.router.tabs'
-        ,'ui.bootstrap.tabs',"template/tabs/tabset.html","template/tabs/tab.html"
+        ,'ui.bootstrap.tabs',"uib/template/tabs/tabset.html","uib/template/tabs/tab.html"
     ]);
 
     appsConfigModule.config(['$stateProvider', function($stateProvider) {

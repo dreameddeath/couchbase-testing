@@ -30,7 +30,7 @@ import com.dreameddeath.core.user.IUser;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import rx.Observable;
+import io.reactivex.Single;
 
 
 import javax.annotation.Generated;
@@ -122,17 +122,17 @@ public class ${service.targetReadName} extends AbstractDaoRestService {
             query.withLimit(limit);
         }
 
-        Observable<IViewAsyncQueryResult<String,String,${service.classSimpleName}>> resultObservable = session.executeAsyncQuery(query);
+        Single<IViewAsyncQueryResult<String,String,${service.classSimpleName}>> resultSingle = session.executeAsyncQuery(query);
         ///TODO replace by chuncked result
-        IViewAsyncQueryResult<String,String,${service.classSimpleName}> result=resultObservable.toBlocking().single();
+        IViewAsyncQueryResult<String,String,${service.classSimpleName}> result=resultSingle.blockingGet();
         if(result.getSuccess()){
-            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,${service.classSimpleName}>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
+            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,${service.classSimpleName}>::new).toList().blockingGet(),MediaType.APPLICATION_JSON_TYPE)
                     //TODO build token for "continue" mode
                     .header(DaoHelperServiceUtils.HTTP_HEADER_QUERY_TOTAL_ROWS, result.getTotalRows())
                     .build();
         }
         else{
-            return Response.serverError().entity(result.getErrorInfo().toBlocking().single()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
+            return Response.serverError().entity(result.getErrorInfo().blockingSingle()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
         }
     }
 

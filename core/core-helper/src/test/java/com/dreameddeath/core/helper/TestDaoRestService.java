@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -27,8 +26,8 @@ import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.user.IUser;
+import io.reactivex.Single;
 import io.swagger.annotations.Api;
-import rx.Observable;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -90,18 +89,18 @@ public class TestDaoRestService extends AbstractDaoRestService {
             query.withLimit(limit);
         }
 
-        Observable<IViewAsyncQueryResult<String,String,TestDoc>> resultObservable = session.executeAsyncQuery(query);
+        Single<IViewAsyncQueryResult<String,String,TestDoc>> resultObservable = session.executeAsyncQuery(query);
         ///TODO replace by chuncked result
-        IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.toBlocking().first();
+        IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.blockingGet();
         if(result.getSuccess()){
 
-            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
+            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().blockingGet(),MediaType.APPLICATION_JSON_TYPE)
                     //TODO build token
                     .header(DaoHelperServiceUtils.HTTP_HEADER_QUERY_TOTAL_ROWS, result.getTotalRows())
                     .build();
         }
         else{
-            return Response.serverError().entity(result.getErrorInfo().toBlocking().first()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
+            return Response.serverError().entity(result.getErrorInfo().blockingFirst()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
         }
     }
 
@@ -219,17 +218,17 @@ public class TestDaoRestService extends AbstractDaoRestService {
             query.withLimit(limit);
         }
 
-        Observable<IViewAsyncQueryResult<String,String,TestDoc>> resultObservable = session.executeAsyncQuery(query);
+        Single<IViewAsyncQueryResult<String,String,TestDoc>> resultObservable = session.executeAsyncQuery(query);
         ///TODO replace by chuncked result
-        IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.toBlocking().first();
+        IViewAsyncQueryResult<String,String,TestDoc> result=resultObservable.blockingGet();
         if(result.getSuccess()){
-            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().toBlocking().first(),MediaType.APPLICATION_JSON_TYPE)
+            return Response.ok(result.getRows().map(SerializableViewQueryRow<String,String,TestDoc>::new).toList().blockingGet(),MediaType.APPLICATION_JSON_TYPE)
                     //TODO build token
                     .header(DaoHelperServiceUtils.HTTP_HEADER_QUERY_TOTAL_ROWS, result.getTotalRows())
                     .build();
         }
         else{
-            return Response.serverError().entity(result.getErrorInfo().toBlocking().first()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
+            return Response.serverError().entity(result.getErrorInfo().blockingFirst()).type(MediaType.APPLICATION_JSON_TYPE).build();///TODO retrieve error info
         }
     }
 

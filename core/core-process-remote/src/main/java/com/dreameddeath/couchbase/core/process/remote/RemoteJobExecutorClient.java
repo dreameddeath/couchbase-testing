@@ -1,25 +1,25 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.couchbase.core.process.remote;
 
-import com.dreameddeath.core.process.exception.JobObservableExecutionException;
+import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.service.IJobBlockingExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
@@ -27,7 +27,7 @@ import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.user.IUser;
-import rx.Observable;
+import io.reactivex.Single;
 
 import java.util.UUID;
 
@@ -48,7 +48,7 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
     }
 
     @Override
-    public Observable<JobContext<T>> executeJob(T job, IUser user){
+    public Single<JobContext<T>> executeJob(T job, IUser user){
         JobContext<T> context = JobContext.newContext(
                 new JobContext.Builder<>(job)
                 .withJobExecutorService(remoteJobExecutorService));
@@ -56,12 +56,12 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
     }
 
     @Override
-    public Observable<JobContext<T>> submitJob(T job, IUser user){
+    public Single<JobContext<T>> submitJob(T job, IUser user){
         return null;//TODO
     }
 
     @Override
-    public Observable<JobContext<T>> resumeJob(T job, IUser user){
+    public Single<JobContext<T>> resumeJob(T job, IUser user){
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
                 .withJobExecutorService(remoteJobExecutorService)
         );
@@ -70,12 +70,12 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
             return ctxt.execute();
         }
         else{
-            return Observable.error(new JobObservableExecutionException(ctxt,"Cannot resume from done state"));
+            return Single.error(new JobExecutionException(ctxt,"Cannot resume from done state"));
         }
     }
 
     @Override
-    public Observable<JobContext<T>> cancelJob(T job, IUser user) {
+    public Single<JobContext<T>> cancelJob(T job, IUser user) {
         return null;//TODO
     }
 
@@ -102,28 +102,68 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
 
     public static class DummyRemoteJobProcessingService<T extends AbstractJob> implements IJobProcessingService<T>{
         @Override
-        public Observable<JobProcessingResult<T>> init(JobContext<T> context){
+        public Single<JobProcessingResult<T>> init(JobContext<T> context){
             return JobProcessingResult.build(context,false);
         }
 
         @Override
-        public Observable<JobProcessingResult<T>> preprocess(JobContext<T> context){
+        public Single<JobProcessingResult<T>> preprocess(JobContext<T> context){
             return JobProcessingResult.build(context,false);
         }
 
         @Override
-        public Observable<JobProcessingResult<T>> postprocess(JobContext<T> context){
+        public Single<JobProcessingResult<T>> postprocess(JobContext<T> context){
             return JobProcessingResult.build(context,false);
         }
 
         @Override
-        public Observable<JobNotificationBuildResult<T>> buildNotifications(JobContext<T> context){
+        public Single<JobNotificationBuildResult<T>> buildNotifications(JobContext<T> context){
             return JobNotificationBuildResult.build(context);
         }
 
         @Override
-        public Observable<JobProcessingResult<T>> cleanup(JobContext<T> context){
+        public Single<JobProcessingResult<T>> cleanup(JobContext<T> context){
             return JobProcessingResult.build(context,false);
+        }
+    }
+
+    @Override
+    public IJobBlockingExecutorClient<T> toBlocking() {
+        return new IJobBlockingExecutorClient<T>() {
+            @Override
+            public JobContext<T> executeJob(T job, IUser user) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.executeJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> submitJob(T job, IUser user) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.submitJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> resumeJob(T job, IUser user) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.resumeJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.cancelJob(job,user));
+            }
+        };
+    }
+
+    private JobContext<T> mapError(Single<JobContext<T>> single) throws JobExecutionException{
+        try{
+            return single.blockingGet();
+        }
+        catch(RuntimeException e){
+            Throwable eCause = e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof JobExecutionException){
+                    throw (JobExecutionException)eCause;
+                }
+            }
+            throw e;
         }
     }
 }

@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -31,7 +30,7 @@ import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.impl.processor.ChildDocumentCreateTaskProcessingService;
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
@@ -39,7 +38,7 @@ import rx.Observable;
 @JobProcessingForClass(CreateBillingCycleJob.class)
 public class CreateBillingCycleJobProcessingService extends StandardJobProcessingService<CreateBillingCycleJob> {
     @Override
-    public Observable<JobProcessingResult<CreateBillingCycleJob>> init(JobContext<CreateBillingCycleJob> context){
+    public Single<JobProcessingResult<CreateBillingCycleJob>> init(JobContext<CreateBillingCycleJob> context){
         context.addTask(new CreateBillingCycleTask(context.getInternalJob().baLink.getKey()));
         return JobProcessingResult.build(context,false);
     }
@@ -47,7 +46,7 @@ public class CreateBillingCycleJobProcessingService extends StandardJobProcessin
     @TaskProcessingForClass(CreateBillingCycleTask.class)
     public static class CreateBillingCycleTaskProcessingService extends ChildDocumentCreateTaskProcessingService<CreateBillingCycleJob,BillingCycle,BillingAccount,CreateBillingCycleTask> {
         @Override
-        protected Observable<ContextAndDocument> buildDocument(TaskContext<CreateBillingCycleJob,CreateBillingCycleTask> ctxt){
+        protected Single<ContextAndDocument> buildDocument(TaskContext<CreateBillingCycleJob,CreateBillingCycleTask> ctxt){
             return ctxt.getParentInternalJob().baLink.getLinkedObject(ctxt.getSession())
                     .flatMap(billingAccount -> {
                         CreateBillingCycleJob job = ctxt.getParentInternalJob();

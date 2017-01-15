@@ -25,7 +25,7 @@ import com.dreameddeath.core.service.utils.ServiceObjectMapperConfigurator;
 import com.dreameddeath.core.service.HasServiceClientFactory;
 import com.dreameddeath.core.json.JsonProviderFactory;
 
-import rx.Observable;
+import io.reactivex.Single;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
@@ -79,7 +79,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
 
 #foreach($method in $service.methods)
     @Override
-    public Observable<${method.returnClassName}> ${method.name}(#foreach($param in $method.methodParamsDefinition)#if($foreach.index>0),#end $param.className $param.name #end){
+    public Single<${method.returnClassName}> ${method.name}(#foreach($param in $method.methodParamsDefinition)#if($foreach.index>0),#end $param.className $param.name #end){
         RxJavaWebTarget target = serviceClient
                 .getInstance()
                 .path(

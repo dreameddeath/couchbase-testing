@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -124,7 +123,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
             request.person.firstName = "christophe";
             request.person.lastName = "jeunesse";
 
-            JobContext<CreateUpdatePartyJob> createPartyJobContext = executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE).toBlocking().single();
+            JobContext<CreateUpdatePartyJob> createPartyJobContext = executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE).blockingGet();
             createdPartyId=createPartyJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).getInternalTask().blockingGetDocument(cbPluginParty.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE)).getUid();
         }
 
@@ -137,7 +136,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
             CreateBillingAccountJob baJobCreate = new CreateBillingAccountJob();
             baJobCreate.partyId=createdPartyId;
             baJobCreate.billDay=2;
-            JobContext<CreateBillingAccountJob> createBaJobContext = executorClient.executeJob(baJobCreate, AnonymousUser.INSTANCE).toBlocking().single();
+            JobContext<CreateBillingAccountJob> createBaJobContext = executorClient.executeJob(baJobCreate, AnonymousUser.INSTANCE).blockingGet();
 
             BillingAccount inDbBA = createBaJobContext.getTasks(CreateBillingAccountJob.CreateBillingAccountTask.class).get(0).getInternalTask().blockingGetDocument(cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE));
 

@@ -1,17 +1,18 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.couchbase;
@@ -26,7 +27,7 @@ import com.dreameddeath.core.couchbase.exception.*;
 import com.dreameddeath.core.couchbase.impl.ReadParams;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import rx.Observable;
+import io.reactivex.Single;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -37,39 +38,39 @@ import java.util.concurrent.TimeUnit;
 public interface ICouchbaseBucket {
     ICouchbaseBucket addTranscoder(ICouchbaseTranscoder transcoder);
     IBlockingCouchbaseBucket toBlocking();
-    <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,Class<T> entity);
-    <T extends CouchbaseDocument> Observable<T> asyncGet(final String id,Class<T> entity, ReadParams params);
+    <T extends CouchbaseDocument> Single<T> asyncGet(final String id, Class<T> entity);
+    <T extends CouchbaseDocument> Single<T> asyncGet(final String id,Class<T> entity, ReadParams params);
 
-    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc);
-    <T extends CouchbaseDocument> Observable<T> asyncAdd(final T doc, WriteParams params);
-
-
-    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc);
-    <T extends CouchbaseDocument> Observable<T> asyncSet(final T doc, WriteParams params);
-
-    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc);
-    <T extends CouchbaseDocument> Observable<T> asyncReplace(final T doc, WriteParams params);
-
-    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc);
-    <T extends CouchbaseDocument> Observable<T> asyncDelete(final T doc, WriteParams params);
-
-    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc);
-    <T extends CouchbaseDocument> Observable<T> asyncAppend(final T doc, WriteParams params);
-
-    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc);
-    <T extends CouchbaseDocument> Observable<T> asyncPrepend(final T doc, WriteParams params);
+    <T extends CouchbaseDocument> Single<T> asyncAdd(final T doc);
+    <T extends CouchbaseDocument> Single<T> asyncAdd(final T doc, WriteParams params);
 
 
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration);
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params);
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue);
-    Observable<Long> asyncCounter(String key, Long by, Long defaultValue, WriteParams params);
-    Observable<Long> asyncCounter(String key, Long by);
-    Observable<Long> asyncCounter(String key, Long by, WriteParams params);
+    <T extends CouchbaseDocument> Single<T> asyncSet(final T doc);
+    <T extends CouchbaseDocument> Single<T> asyncSet(final T doc, WriteParams params);
+
+    <T extends CouchbaseDocument> Single<T> asyncReplace(final T doc);
+    <T extends CouchbaseDocument> Single<T> asyncReplace(final T doc, WriteParams params);
+
+    <T extends CouchbaseDocument> Single<T> asyncDelete(final T doc);
+    <T extends CouchbaseDocument> Single<T> asyncDelete(final T doc, WriteParams params);
+
+    <T extends CouchbaseDocument> Single<T> asyncAppend(final T doc);
+    <T extends CouchbaseDocument> Single<T> asyncAppend(final T doc, WriteParams params);
+
+    <T extends CouchbaseDocument> Single<T> asyncPrepend(final T doc);
+    <T extends CouchbaseDocument> Single<T> asyncPrepend(final T doc, WriteParams params);
+
+
+    Single<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration);
+    Single<Long> asyncCounter(String key, Long by, Long defaultValue, Integer expiration, WriteParams params);
+    Single<Long> asyncCounter(String key, Long by, Long defaultValue);
+    Single<Long> asyncCounter(String key, Long by, Long defaultValue, WriteParams params);
+    Single<Long> asyncCounter(String key, Long by);
+    Single<Long> asyncCounter(String key, Long by, WriteParams params);
 
     void createOrUpdateView(String designDoc, Map<String, String> viewMap) throws StorageException;
 
-    Observable<AsyncViewResult> asyncQuery(ViewQuery query);
+    Single<AsyncViewResult> asyncQuery(ViewQuery query);
 
     void start(long timeout, TimeUnit unit);
     void start();
@@ -118,8 +119,8 @@ public interface ICouchbaseBucket {
         }
 
 
-        public static <T extends CouchbaseDocument> Observable<T> mapObservableStorageException(T doc,Throwable e){
-            throw new StorageObservableException(mapStorageException(doc,e));
+        public static <T extends CouchbaseDocument> Single<T> mapObservableStorageException(T doc,Throwable e){
+            return Single.error(mapStorageException(doc,e));
         }
 
 
@@ -127,10 +128,6 @@ public interface ICouchbaseBucket {
             if(e instanceof StorageException){
                 return (StorageException)e;
             }
-            else if(e instanceof StorageObservableException){
-                return (StorageException)e.getCause();
-            }
-
             Throwable rootException;
             if(e instanceof CouchbaseException){
                 rootException = e;
@@ -156,8 +153,8 @@ public interface ICouchbaseBucket {
             return new DocumentStorageException(doc,"Error during storage attempt execution",e);
         }
 
-        public static <T extends CouchbaseDocument> Observable<Long> mapObservableStorageException(String key,Throwable e){
-            throw new StorageObservableException(mapStorageException(key,e));
+        public static Single<Long> mapObservableStorageException(String key,Throwable e){
+            return Single.error(mapStorageException(key,e));
         }
 
 
@@ -165,9 +162,7 @@ public interface ICouchbaseBucket {
             if(e instanceof StorageException){
                 return (StorageException)e;
             }
-            else if(e instanceof StorageObservableException){
-                return (StorageException)e.getCause();
-            }
+
             Throwable rootException =e.getCause();
             if(rootException==null){
                 rootException=e;
@@ -185,8 +180,8 @@ public interface ICouchbaseBucket {
         }
 
 
-        public static <T extends CouchbaseDocument> Observable<T>  mapObservableAccessException(String key,Throwable e,Class<T> clazz){
-            throw new StorageObservableException(mapAccessException(key,e));
+        public static <T extends CouchbaseDocument> Single<T> mapObservableAccessException(String key, Throwable e, Class<T> clazz){
+            return Single.error(mapAccessException(key,e));
         }
 
         private static StorageException mapAccessException(String key,Throwable e){
@@ -196,9 +191,6 @@ public interface ICouchbaseBucket {
             }
             if(e instanceof StorageException){
                 return (StorageException)e;
-            }
-            else if(e instanceof StorageObservableException){
-                return (StorageException)e.getCause();
             }
             else if(rootException instanceof InterruptedException){
                 return new DocumentStorageTimeOutException(key,"Interruption occurs",rootException);

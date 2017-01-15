@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -29,7 +28,6 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.google.common.base.Preconditions;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +106,7 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
         try {
             byte[] serialized = client.getObjectMapper().writeValueAsBytes(doc);
             createIndexIfNeeded(DCP_FLOW_INDEX_NAME);
-            UpdateRequest upsertRequest = new UpdateRequest(DCP_FLOW_INDEX_NAME, DCP_FLOW_TYPE_NAME, snapshotIdBuilder(message.getBucketName(),message.getPartition())).source(serialized).upsert(serialized);
+            UpdateRequest upsertRequest = new UpdateRequest(DCP_FLOW_INDEX_NAME, DCP_FLOW_TYPE_NAME, snapshotIdBuilder(message.getBucketName(),message.getPartition())).doc(serialized).upsert(serialized);
             client.getInternalClient().update(upsertRequest).get();
         }
         catch(Exception e){
@@ -121,12 +119,12 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
         try {
             String indexName = documentIndexBuilder(message.bucket(), message.key());
             createIndexIfNeeded(indexName);
-            UpdateResponse responseUpdate = client.upsert(
+            client.upsert(
                     indexName,
                     documentTypeBuilder(message.bucket(), message.key()),
                     mappedObject
-            ).toBlocking().single();
-            responseUpdate.isCreated();
+            ).blockingGet();
+            //TODO see management of errors
         }
         catch(JsonEncodingException e){
             throw new RuntimeException(e);
@@ -139,7 +137,7 @@ public class ElasticSearchDcpFlowHandler extends AbstractDCPFlowHandler {
                 documentIndexBuilder(message.bucket(),message.key()),
                 documentTypeBuilder(message.bucket(), message.key()),
                 message.key()
-        ).toBlocking().single();
+        ).blockingGet();
     }
 
     @Override

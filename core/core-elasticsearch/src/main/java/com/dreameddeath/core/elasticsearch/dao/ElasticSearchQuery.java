@@ -1,26 +1,28 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.elasticsearch.dao;
 
 import com.dreameddeath.core.elasticsearch.search.ElasticSearchSearchQueryBuilder;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import io.reactivex.Single;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.QueryBuilder;
-import rx.Observable;
+import org.elasticsearch.index.query.QueryBuilders;
 
 /**
  * Created by Christophe Jeunesse on 19/07/2015.
@@ -47,14 +49,27 @@ public class ElasticSearchQuery<T extends CouchbaseDocument> {
     }
 
     public ElasticSearchQuery<T> setQuery(String queryStr) {
-        query.setQuery(queryStr);
+        query.setQuery(QueryBuilders.queryStringQuery(queryStr));
         return this;
     }
 
     public ElasticSearchQuery<T> addFields(String... fields) {
-        query.addFields(fields);
+        query.storedFields(fields);
         return this;
     }
+
+    public ElasticSearchQuery<T> storedFields(String... fields) {
+        query.storedFields(fields);
+        return this;
+    }
+
+    public ElasticSearchQuery<T> addDocValueField(String... fields) {
+        for(String field:fields) {
+            query.addDocValueField(field);
+        }
+        return this;
+    }
+
 
     public ElasticSearchQuery<T> setSize(int size) {
         query.setSize(size);
@@ -68,7 +83,7 @@ public class ElasticSearchQuery<T extends CouchbaseDocument> {
     }
 
     public ElasticSearchQuery<T> setPostFilter(String postFilterStr) {
-        query.setPostFilter(postFilterStr);
+        query.setPostFilter(QueryBuilders.queryStringQuery(postFilterStr));
         return this;
     }
 
@@ -78,12 +93,12 @@ public class ElasticSearchQuery<T extends CouchbaseDocument> {
     }
 
     public ElasticSearchResult<T> search() {
-        return this.asyncSearch().toBlocking().single();
+        return this.asyncSearch().blockingGet();
     }
 
 
-    public Observable<ElasticSearchResult<T>> asyncSearch() {
-        return this.query.executeAsObservable().map(result -> new ElasticSearchResult<>(elasticSearchDao, result));
+    public Single<ElasticSearchResult<T>> asyncSearch() {
+        return this.query.executeAsync().map(result -> new ElasticSearchResult<>(elasticSearchDao, result));
     }
 
 }

@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -21,17 +20,17 @@ package com.dreameddeath.core.process.service.impl.client;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
-import com.dreameddeath.core.dao.exception.validation.ValidationObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
-import com.dreameddeath.core.process.exception.JobObservableExecutionException;
+import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
+import com.dreameddeath.core.process.service.IJobBlockingExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
@@ -41,7 +40,7 @@ import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
-import rx.Observable;
+import io.reactivex.Single;
 
 import java.util.UUID;
 
@@ -78,7 +77,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     }
 
     @Override
-    public Observable<JobContext<T>> executeJob(T job, IUser user) {
+    public Single<JobContext<T>> executeJob(T job, IUser user) {
         final JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
                 .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, user))
                 .withClientFactory(parentClientFactory)
@@ -86,42 +85,32 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
                 .withJobProcessingService(processingService)
                 .withEventBus(eventBus)
         );
-        Observable<JobContext<T>> sourceCtxtObs;
+        Single<JobContext<T>> sourceCtxtObs;
         if (StringUtils.isNotEmpty(job.getRequestUid())) {
             ctxt.getStateInfo().setState(ProcessState.State.NEW);
             sourceCtxtObs = ctxt.asyncSave()
                     .onErrorResumeNext(throwable -> {
-                        if(throwable instanceof JobObservableExecutionException && throwable.getCause()!=null){
-                            throwable=((JobObservableExecutionException)throwable).getCause();
-                            if(throwable !=null && throwable.getCause()!=null){
-                                throwable = throwable.getCause();
-                            }
-                        }
-                        if(throwable instanceof ValidationObservableException && throwable.getCause()!=null){
-                            throwable = throwable.getCause();
-                        }
-
                         if (throwable instanceof ValidationException) {
                             DuplicateUniqueKeyDaoException duplicateException = ValidationExceptionUtils.findUniqueKeyException((ValidationException)throwable);
                             if (duplicateException != null) {
-                                return Observable.error(new JobObservableExecutionException(new DuplicateJobExecutionException(ctxt, "DuplicateJob creation", duplicateException.getCause())));
+                                return Single.error(new DuplicateJobExecutionException(ctxt, "DuplicateJob creation", duplicateException.getCause()));
                             }
-                            return Observable.error(new JobObservableExecutionException(ctxt, "Cannot perform initial save due to validation error", throwable));
+                            return Single.error(new JobExecutionException(ctxt, "Cannot perform initial save due to validation error", throwable));
                         }
                         else {
-                            return Observable.error(new JobObservableExecutionException(ctxt, "Cannot perform initial save (unexpected error)", throwable));
+                            return Single.error(new JobExecutionException(ctxt, "Cannot perform initial save (unexpected error)", throwable));
                         }
                     });
         }
         else{
-            sourceCtxtObs=Observable.just(ctxt);
+            sourceCtxtObs=Single.just(ctxt);
         }
 
         return sourceCtxtObs.flatMap(JobContext::execute);
     }
 
     @Override
-    public Observable<JobContext<T>> submitJob(T job, IUser user) {
+    public Single<JobContext<T>> submitJob(T job, IUser user) {
         job.getStateInfo().setState(ProcessState.State.ASYNC_NEW);
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
                 .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
@@ -134,7 +123,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     }
 
     @Override
-    public Observable<JobContext<T>> resumeJob(T job, IUser user){
+    public Single<JobContext<T>> resumeJob(T job, IUser user){
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
                 .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
                 .withClientFactory(parentClientFactory)
@@ -147,7 +136,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     }
 
     @Override
-    public Observable<JobContext<T>> cancelJob(T job, IUser user){
+    public Single<JobContext<T>> cancelJob(T job, IUser user){
         //TODO
         return null;
     }
@@ -167,9 +156,48 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
         return executorService;
     }
 
-
     @Override
     public IJobProcessingService<T> getProcessingService() {
         return processingService;
+    }
+
+    @Override
+    public IJobBlockingExecutorClient<T> toBlocking() {
+        return new IJobBlockingExecutorClient<T>() {
+            @Override
+            public JobContext<T> executeJob(T job, IUser user) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.executeJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> submitJob(T job, IUser user) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.submitJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> resumeJob(T job, IUser user) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.resumeJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.cancelJob(job,user));
+            }
+        };
+    }
+
+    private JobContext<T> mapError(Single<JobContext<T>> single) throws JobExecutionException{
+        try{
+            return single.blockingGet();
+        }
+        catch(RuntimeException e){
+            Throwable eCause = e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof JobExecutionException){
+                    throw (JobExecutionException)eCause;
+                }
+            }
+            throw e;
+        }
     }
 }

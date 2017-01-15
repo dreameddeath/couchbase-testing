@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -23,8 +22,9 @@ import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.query.model.v1.QuerySearch;
 import com.dreameddeath.core.user.IUser;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 29/12/2016.
@@ -39,7 +39,7 @@ public abstract class AbstractStandardQueryService<TDOC extends CouchbaseDocumen
     }
 
     @Override
-    public Observable<T> asyncGet(String key, ICouchbaseSession session) {
+    public Single<T> asyncGet(String key, ICouchbaseSession session) {
         return session.<TDOC>asyncGet(key).map(this::mapToPublic);
     }
 
@@ -49,7 +49,7 @@ public abstract class AbstractStandardQueryService<TDOC extends CouchbaseDocumen
     }
 
     @Override
-    public Observable<T> asyncGet(String key, IUser user) {
+    public Single<T> asyncGet(String key, IUser user) {
         return asyncGet(key,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY,user));
     }
 

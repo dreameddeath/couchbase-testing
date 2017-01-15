@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -28,7 +27,7 @@ import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.swagger.TestingExternalElement;
 import com.dreameddeath.core.user.IUser;
 import org.joda.time.DateTime;
-import rx.Observable;
+import io.reactivex.Single;
 import com.dreameddeath.core.service.*;
 
 import javax.ws.rs.HttpMethod;
@@ -45,13 +44,13 @@ public class TestServiceGenImpl implements ITestService {
             status = VersionStatus.STABLE
     )
     @BodyInfo(paramName = "input")
-    public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
+    public Single<Result> runWithRes(IGlobalContext ctxt, Input input) {
         Result res = new Result();
         res.result = "HTTP 200";
         res.id = input.id+" gen";
         res.rootId =  input.rootId+" gen";
         res.plusOneMonth = input.otherField.plusMonths(1);
-        return Observable.just(res);
+        return Single.just(res);
     }
 
 
@@ -61,13 +60,13 @@ public class TestServiceGenImpl implements ITestService {
             path="/toto/:rootId/tuto/:id=id",
             status = VersionStatus.STABLE
     )
-    public Observable<Result> getWithRes(String rootId, String id) {
+    public Single<Result> getWithRes(String rootId, String id) {
         Result res = new Result();
         res.result = "HTTP 200";
         res.id = id+" gen";
         res.rootId =  rootId+" gen";
         res.plusOneMonth = DateTime.now().plusMonths(1);
-        return Observable.just(res);
+        return Single.just(res);
     }
 
     @Override
@@ -76,13 +75,13 @@ public class TestServiceGenImpl implements ITestService {
             path="/toto/:rootId?id=id",
             status = VersionStatus.STABLE
     )
-    public Observable<Result> putWithQuery(String rootId, String id) {
+    public Single<Result> putWithQuery(String rootId, String id) {
         Result res = new Result();
         res.result = "HTTP 200";
         res.id = id+" putgen";
         res.rootId =  rootId+" putgen";
         res.plusOneMonth = DateTime.now().plusMonths(1);
-        return Observable.just(res);
+        return Single.just(res);
     }
 
     @Override
@@ -91,7 +90,7 @@ public class TestServiceGenImpl implements ITestService {
             path="/testingDocument",
             status = VersionStatus.STABLE
     )
-    public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
+    public Single<TestingDocument> initDocument(IGlobalContext ctxt) {
         TestingDocument doc = new TestingDocument();
         TestingExternalElement extElt = new TestingExternalElement();
         extElt.addDate(new DateTime());
@@ -99,7 +98,7 @@ public class TestServiceGenImpl implements ITestService {
         TestingDocument.TestingInnerElement innerElement = new TestingDocument.TestingInnerElement();
         innerElement.addDate(new DateTime());
         doc.addTestCplxList(innerElement);
-        return Observable.just(doc);
+        return Single.just(doc);
     }
 
 
@@ -109,7 +108,7 @@ public class TestServiceGenImpl implements ITestService {
             path="/testingDocumentUser",
             status = VersionStatus.STABLE
     )
-    public Observable<TestingDocument> initDocument(IUser user) {
+    public Single<TestingDocument> initDocument(IUser user) {
         TestingDocument doc = new TestingDocument();
         doc.getBaseMeta().setKey("testingdoc/1");
         doc.getBaseMeta().setCas(21);
@@ -122,7 +121,7 @@ public class TestServiceGenImpl implements ITestService {
         TestingDocument.TestingInnerElement innerElement = new TestingDocument.TestingInnerElement();
         innerElement.addDate(new DateTime());
         doc.addTestCplxList(innerElement);
-        return Observable.just(doc);
+        return Single.just(doc);
     }
 
 }

@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -20,7 +19,6 @@ package com.dreameddeath.core.process.service.context;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.notification.bus.IEventBus;
@@ -32,7 +30,8 @@ import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.IJobProcessingService;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
-import rx.Observable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -76,7 +75,7 @@ public class JobContext<TJOB extends AbstractJob> {
         return clientFactory;
     }
 
-    public Observable<TJOB> getJob() {
+    public Single<TJOB> getJob() {
         return session.asyncGet(job.getBaseMeta().getKey(),(Class<TJOB>)job.getClass())
                 .map(freshJob->{freshJob.getBaseMeta().freeze();return freshJob;});
     }
@@ -105,20 +104,20 @@ public class JobContext<TJOB extends AbstractJob> {
         return job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC);
     }
 
-    public Observable<JobContext<TJOB>> execute(){
+    public Single<JobContext<TJOB>> execute(){
         this.job.getStateInfo().setLastRunError(null);
         return executorService.execute(this);
     }
 
-    public Observable<JobContext<TJOB>> asyncSave(){
+    public Single<JobContext<TJOB>> asyncSave(){
         return getPendingTasks()
                 .filter(taskCtxt->taskCtxt.getId()==null)
                 .toList()//merge
-                .flatMap(this::assignTaskContextIds)
+                .flatMapObservable(this::assignTaskContextIds)
                 .toList()//Merge
-                .flatMap(fullList->getPendingTasks())
+                .flatMapObservable(fullList->getPendingTasks())
                 .filter(TaskContext::isNew)
-                .flatMap(TaskContext::asyncSave)
+                .flatMapSingle(TaskContext::asyncSave)
                 .toList()
                 .flatMap(listTasks->session.asyncSave(job))
                 .map(newJob->new Builder<>(newJob,this).build());
@@ -131,7 +130,7 @@ public class JobContext<TJOB extends AbstractJob> {
     public Observable<TaskContext<TJOB,? extends AbstractTask>> assignTaskContextIds(Collection<? extends TaskContext<TJOB,? extends AbstractTask>> taskContexts){
         try {
             //Get the right number of ids
-            Observable<Long> counterIncObs = session.asyncIncrCounter(
+            Single<Long> counterIncObs = session.asyncIncrCounter(
                         String.format(TaskDao.TASK_CNT_FMT, job.getUid()),
                         taskContexts.stream().filter(ctxt->ctxt.getId()==null).count()
                     );
@@ -151,10 +150,10 @@ public class JobContext<TJOB extends AbstractJob> {
                     }
                 }
                 return taskContexts;
-            }).flatMap(Observable::from);
+            }).flatMapObservable(Observable::fromIterable);
         }
         catch(DaoException e){
-            return Observable.error(new DaoObservableException(e));
+            return Observable.error(e);
         }
     }
 
@@ -182,9 +181,9 @@ public class JobContext<TJOB extends AbstractJob> {
         final String uid = job.getUid().toString();
         //Perform loading of missing ones
         for(String missingTaskId:missingTaskIds) {
-            Observable<TaskContext<TJOB,AbstractTask>> taskContextObservable= session.asyncGetFromKeyParams(AbstractTask.class,uid,missingTaskId)
+            Single<TaskContext<TJOB,AbstractTask>> taskContextSingle= session.asyncGetFromKeyParams(AbstractTask.class,uid,missingTaskId)
                     .map(task->TaskContext.newContext(JobContext.this,task));
-            missingAbstractJobsObservable.add(taskContextObservable);
+            missingAbstractJobsObservable.add(taskContextSingle.toObservable());
         }
         //Merge loading in one global list
         return Observable.merge(missingAbstractJobsObservable)
@@ -196,7 +195,7 @@ public class JobContext<TJOB extends AbstractJob> {
                     taskContextArrayList.forEach(TaskContext::updatePendingPreRequisistes);
                     return taskContextArrayList;
                 })*/
-                .flatMap(Observable::from);
+                .flatMapObservable(Observable::fromIterable);
     }
 
     public Observable<TaskContext<TJOB,AbstractTask>> getNextExecutableTasks(boolean resync){
@@ -204,7 +203,7 @@ public class JobContext<TJOB extends AbstractJob> {
         if(resync){
             pendingTaskContextsObservable=session.asyncGet(job.getBaseMeta().getKey(),(Class<TJOB>) job.getClass())
                     .map(newJob->new Builder<>(newJob,this).build())
-                    .flatMap(JobContext::getPendingTasks);
+                    .flatMapObservable(JobContext::getPendingTasks);
         }
         else{
             pendingTaskContextsObservable=getPendingTasks();
@@ -215,6 +214,7 @@ public class JobContext<TJOB extends AbstractJob> {
                         .count()
                         .filter(resCount->resCount==0)
                         .map(resCount->taskCtxt)
+                        .toObservable()
                 )
                 .map(taskCxt->taskCxt);
     }

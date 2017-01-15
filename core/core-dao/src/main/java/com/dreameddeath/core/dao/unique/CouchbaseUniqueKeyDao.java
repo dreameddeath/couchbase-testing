@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -21,23 +20,23 @@ package com.dreameddeath.core.dao.unique;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
-import com.dreameddeath.core.couchbase.exception.*;
+import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
+import com.dreameddeath.core.couchbase.exception.DuplicateDocumentKeyException;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.exception.StorageUnkownException;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.dao.exception.InconsistentStateException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
-import com.dreameddeath.core.dao.exception.validation.ValidationObservableException;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import io.reactivex.Single;
 import org.apache.commons.codec.digest.DigestUtils;
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * Created by Christophe Jeunesse on 06/08/2014.
@@ -118,7 +117,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     }
 
     @Override
-    public Observable<CouchbaseUniqueKey> asyncBuildKey(ICouchbaseSession session, CouchbaseUniqueKey newObject) throws DaoException {
+    public Single<CouchbaseUniqueKey> asyncBuildKey(ICouchbaseSession session, CouchbaseUniqueKey newObject) throws DaoException {
         throw new RuntimeException("Shouldn't append");
     }
 
@@ -126,7 +125,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         return super.toBlocking().blockingGet(session,buildKey(nameSpace, value));
     }
 
-    public Observable<CouchbaseUniqueKey> asyncGet(ICouchbaseSession session,String nameSpace,String value){
+    public Single<CouchbaseUniqueKey> asyncGet(ICouchbaseSession session, String nameSpace, String value){
         return super.asyncGet(session,buildKey(nameSpace, value));
     }
 
@@ -135,31 +134,35 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         return super.toBlocking().blockingGet(session,buildKey(internalKey));
     }
 
-    public Observable<CouchbaseUniqueKey> asyncGetFromInternalKey(ICouchbaseSession session, String internalKey){
+    public Single<CouchbaseUniqueKey> asyncGetFromInternalKey(ICouchbaseSession session, String internalKey){
         return super.asyncGet(session,buildKey(internalKey));
     }
 
     private CouchbaseUniqueKey create(ICouchbaseSession session,CouchbaseDocument doc,String internalKey,boolean isCalcOnly) throws DaoException,StorageException,ValidationException {
         try {
-            return asyncCreate(session, doc, internalKey, isCalcOnly).toBlocking().single();
+            return asyncCreate(session, doc, internalKey, isCalcOnly).blockingGet();
         }
-        catch (StorageObservableException e){
-            throw e.getCause();
-        }
-        catch (DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (ValidationObservableException e){
-            throw e.getCause();
+        catch (RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                else if(eCause instanceof ValidationException){
+                    throw (ValidationException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
-    private <T extends CouchbaseDocument> Observable<CouchbaseUniqueKey> asyncCreate(ICouchbaseSession session,final T doc,String internalKey,boolean isCalcOnly){
+
+    private <T extends CouchbaseDocument> Single<CouchbaseUniqueKey> asyncCreate(ICouchbaseSession session,final T doc,String internalKey,boolean isCalcOnly){
         if(doc.getBaseMeta().getKey()==null){
-            throw new DaoObservableException(new DaoException("The key object doesn't have a key before unique key setup. The doc was :"+doc));
+            return Single.error(new DaoException("The key object doesn't have a key before unique key setup. The doc was :"+doc));
         }
         if(refDocumentDao.isReadOnly()){
-            throw new DaoObservableException(new InconsistentStateException(doc,"Cannot update unique key <"+internalKey+"> in readonly mode"));
+            return Single.error(new InconsistentStateException(doc,"Cannot update unique key <"+internalKey+"> in readonly mode"));
         }
         CouchbaseUniqueKey keyDoc = new CouchbaseUniqueKey();
         keyDoc.getBaseMeta().setKey(buildKey(internalKey));
@@ -167,34 +170,33 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             keyDoc.addKey(internalKey, doc);
         }
         catch(DuplicateUniqueKeyException e){
-            throw new DaoObservableException(new DuplicateUniqueKeyDaoException(doc,e.getMessage(),e));
+            return Single.error(new DuplicateUniqueKeyDaoException(doc,e.getMessage(),e));
         }
-        Observable<CouchbaseUniqueKey> result ;
+        Single<CouchbaseUniqueKey> result ;
         if(!isCalcOnly) {
             result = super.asyncCreate(session, keyDoc, isCalcOnly);
         }
         else{
             result =
                 session.asyncGetUniqueKey(internalKey)
-                    .map(existingKeyDoc -> {
+                    .flatMap(existingKeyDoc -> {
                         DuplicateUniqueKeyException duplicateException =new DuplicateUniqueKeyException(internalKey,existingKeyDoc.getKeyRefDocKey(internalKey),doc,existingKeyDoc);
-                        throw new StorageObservableException(new DuplicateDocumentKeyException(existingKeyDoc,"The key <"+internalKey+"> is already pre-existing in calc only mode",duplicateException));
+                        return Single.<CouchbaseUniqueKey>error(new DuplicateDocumentKeyException(existingKeyDoc,"The key <"+internalKey+"> is already pre-existing in calc only mode",duplicateException));
                     });
             result = result
-                    .onErrorResumeNext((Func1<Throwable, Observable<CouchbaseUniqueKey>>) throwable -> {
-                        if (throwable instanceof StorageObservableException && (throwable.getCause() instanceof DocumentNotFoundException)) {
-                            return (Observable<CouchbaseUniqueKey>)CouchbaseUniqueKeyDao.super.asyncCreate(session, keyDoc, isCalcOnly);
-                        } else if (throwable instanceof StorageObservableException) {
-                            throw (StorageObservableException) throwable;
+                    .onErrorResumeNext(throwable -> {
+                        if (throwable instanceof DocumentNotFoundException) {
+                            return CouchbaseUniqueKeyDao.super.asyncCreate(session, keyDoc, isCalcOnly);
                         }
-                        else{
-                            throw new StorageObservableException(new StorageUnkownException(throwable));
+                        if(throwable instanceof StorageException){
+                            return Single.error(throwable);
                         }
+                        return Single.error(new StorageUnkownException(throwable));
                     });
 
         }
 
-        return result.doOnEach(notif->{
+        return result.doOnSuccess(elt->{
                 if(doc.getBaseMeta() instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc.getBaseMeta()).addDocUniqKeys(internalKey);}
         });
     }
@@ -210,7 +212,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     }
 
 
-    public Observable<CouchbaseUniqueKey> asyncRemoveUniqueKey(ICouchbaseSession session,CouchbaseUniqueKey doc,String internalKey,boolean isCalcOnly) {
+    public Single<CouchbaseUniqueKey> asyncRemoveUniqueKey(ICouchbaseSession session,CouchbaseUniqueKey doc,String internalKey,boolean isCalcOnly) {
         doc.removeKey(internalKey);
         if(doc.isEmpty()){
             return asyncDelete(session,doc,isCalcOnly);//TODO manage expiration for timed removed document
@@ -224,36 +226,42 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
 
     public CouchbaseUniqueKey addOrUpdateUniqueKey(ICouchbaseSession session,String nameSpace,String value,CouchbaseDocument doc,boolean isCalcOnly) throws StorageException,DaoException,DuplicateUniqueKeyException,ValidationException {
         try {
-            return asyncAddOrUpdateUniqueKey(session, nameSpace, value, doc, isCalcOnly).toBlocking().single();
+            return asyncAddOrUpdateUniqueKey(session, nameSpace, value, doc, isCalcOnly).blockingGet();
         }
-        catch (StorageObservableException e){
-            throw e.getCause();
-        }
-        catch (DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (ValidationObservableException e){
-            throw e.getCause();
+        catch (RuntimeException e){
+            Throwable eCause = e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+                else if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                else if(eCause instanceof ValidationException){
+                    throw (ValidationException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
-    public <T extends CouchbaseDocument> Observable<CouchbaseUniqueKey> asyncAddOrUpdateUniqueKey(ICouchbaseSession session,String nameSpace,String value,T doc,boolean isCalcOnly){
+    public <T extends CouchbaseDocument> Single<CouchbaseUniqueKey> asyncAddOrUpdateUniqueKey(ICouchbaseSession session,String nameSpace,String value,T doc,boolean isCalcOnly){
         String internalKey= buildInternalKey(nameSpace, value);
         if(refDocumentDao.isReadOnly()){
-            throw new DaoObservableException(new InconsistentStateException(doc,"Cannot update unique key <"+internalKey+"> in readonly mode"));
+            return Single.error(new InconsistentStateException(doc,"Cannot update unique key <"+internalKey+"> in readonly mode"));
         }
-        Observable<T> docObs;
+        Single<T> docObs;
         if(doc.getBaseMeta().getKey()==null){
             docObs=session.asyncBuildKey(doc);
         }
         else{
-            docObs=Observable.just(doc);
+            docObs=Single.just(doc);
         }
 
-        Observable<CouchbaseUniqueKey> result;
+        Single<CouchbaseUniqueKey> result;
         result=docObs.flatMap(effectiveDoc->asyncCreate(session,effectiveDoc,internalKey,isCalcOnly));
         result =result.onErrorResumeNext(throwable->{
-                if(throwable instanceof StorageObservableException && throwable.getCause() instanceof DuplicateDocumentKeyException){
+                if(throwable instanceof DuplicateDocumentKeyException){
                     return session.asyncGetUniqueKey(internalKey).map(
                             existingDoc-> {
                                 try {
@@ -261,18 +269,18 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
                                     return existingDoc;
                                 }
                                 catch(DuplicateUniqueKeyException e){
-                                    throw new DaoObservableException(new DuplicateUniqueKeyDaoException(doc,e.getMessage(),e));
+                                    throw new DuplicateUniqueKeyDaoException(doc,e.getMessage(),e);
                                 }
                             });
                 }
-                else if(throwable instanceof StorageObservableException) {
-                    throw (StorageObservableException) throwable;
+                else if(throwable instanceof StorageException) {
+                    throw (StorageException) throwable;
                 }
                 else {
-                    throw new StorageObservableException(new StorageUnkownException(throwable));
+                    throw new StorageUnkownException(throwable);
                 }
         });
-        return result.doOnEach(notif->{
+        return result.doOnSuccess(notif->{
             if(doc.getBaseMeta() instanceof IHasUniqueKeysRef){((IHasUniqueKeysRef)doc.getBaseMeta()).addDocUniqKeys(internalKey);}
         });
     }
@@ -311,9 +319,17 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             return this;
         }
 
-        public String getNameSpace(){return namespace;}
-        public ICouchbaseBucket getClient(){return client;}
-        public CouchbaseDocumentDao getBaseDao(){return baseDao;}
+        public String getNameSpace(){
+            return namespace;
+        }
+
+        public ICouchbaseBucket getClient(){
+            return client;
+        }
+
+        public CouchbaseDocumentDao getBaseDao(){
+            return baseDao;
+        }
 
         public CouchbaseUniqueKeyDao build(){
             return new CouchbaseUniqueKeyDao(this);

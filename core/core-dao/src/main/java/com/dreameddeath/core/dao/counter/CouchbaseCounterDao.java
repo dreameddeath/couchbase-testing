@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -21,15 +20,13 @@ package com.dreameddeath.core.dao.counter;
 
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.InconsistentStateException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.utils.KeyPattern;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 02/09/2014.
@@ -88,16 +85,16 @@ public class CouchbaseCounterDao{
         return blockingDao;
     }
 
-    public Observable<Long> asyncGetCounter(ICouchbaseSession session, String key, boolean isCalcOnly) {
+    public Single<Long> asyncGetCounter(ICouchbaseSession session, String key, boolean isCalcOnly) {
         return asyncIncrCounter(session,key,0,isCalcOnly);
     }
 
 
-    public Observable<Long> asyncIncrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly){
+    public Single<Long> asyncIncrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly){
         if(baseDao.isReadOnly() && by!=0){
-            throw new DaoObservableException(new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode"));
+            return Single.error(new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode"));
         }
-        Observable<Long> result;
+        Single<Long> result;
 
         if(isCalcOnly){
             if(session.getKeyPrefix()!=null){
@@ -145,11 +142,11 @@ public class CouchbaseCounterDao{
     }
 
 
-    public Observable<Long> asyncDecrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly){
+    public Single<Long> asyncDecrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly){
         if(baseDao.isReadOnly() && by!=0){
-            throw new DaoObservableException(new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode"));
+            return Single.error(new InconsistentStateException(null,"Cannot update counter <"+key+"> in readonly mode"));
         }
-        Observable<Long> result;
+        Single<Long> result;
 
         if(isCalcOnly){
             if(session.getKeyPrefix()!=null){
@@ -280,37 +277,55 @@ public class CouchbaseCounterDao{
 
         public long blockingIncrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny) throws DaoException,StorageException {
             try {
-                return parentCouchbaseCounterDao.asyncIncrCounter(session, key, by, isCalcOny).toBlocking().single();
+                return parentCouchbaseCounterDao.asyncIncrCounter(session, key, by, isCalcOny).blockingGet();
             }
-            catch(DaoObservableException e){
-                throw e.getCause();
-            }
-            catch(StorageObservableException e){
-                throw e.getCause();
+            catch (RuntimeException e){
+                Throwable eCause = e.getCause();
+                if(eCause!=null){
+                    if(eCause instanceof DaoException){
+                        throw (DaoException)eCause;
+                    }
+                    else if(eCause instanceof StorageException){
+                        throw (StorageException)eCause;
+                    }
+                }
+                throw e;
             }
         }
 
         public long blockingDecrCounter(ICouchbaseSession session, String key, long by, boolean isCalcOny) throws DaoException,StorageException {
             try {
-                return parentCouchbaseCounterDao.asyncDecrCounter(session, key, by, isCalcOny).toBlocking().single();
+                return parentCouchbaseCounterDao.asyncDecrCounter(session, key, by, isCalcOny).blockingGet();
             }
-            catch(DaoObservableException e){
-                throw e.getCause();
-            }
-            catch(StorageObservableException e){
-                throw e.getCause();
+            catch (RuntimeException e){
+                Throwable eCause = e.getCause();
+                if(eCause!=null){
+                    if(eCause instanceof DaoException){
+                        throw (DaoException)eCause;
+                    }
+                    else if(eCause instanceof StorageException){
+                        throw (StorageException)eCause;
+                    }
+                }
+                throw e;
             }
         }
 
         public Long blockingGetCounter(ICouchbaseSession session, String key, boolean isCalcOnly) throws DaoException,StorageException {
             try {
-                return parentCouchbaseCounterDao.asyncGetCounter(session, key, isCalcOnly).toBlocking().single();
+                return parentCouchbaseCounterDao.asyncGetCounter(session, key, isCalcOnly).blockingGet();
             }
-            catch(DaoObservableException e){
-                throw e.getCause();
-            }
-            catch(StorageObservableException e){
-                throw e.getCause();
+            catch (RuntimeException e){
+                Throwable eCause = e.getCause();
+                if(eCause!=null){
+                    if(eCause instanceof DaoException){
+                        throw (DaoException)eCause;
+                    }
+                    else if(eCause instanceof StorageException){
+                        throw (StorageException)eCause;
+                    }
+                }
+                throw e;
             }
         }
     }

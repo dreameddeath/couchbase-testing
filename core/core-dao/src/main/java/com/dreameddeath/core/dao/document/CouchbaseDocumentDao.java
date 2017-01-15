@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -21,24 +20,21 @@ package com.dreameddeath.core.dao.document;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.couchbase.impl.ReadParams;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.InconsistentStateException;
 import com.dreameddeath.core.dao.exception.validation.ValidationException;
-import com.dreameddeath.core.dao.exception.validation.ValidationObservableException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
-import rx.Observable;
-import rx.functions.Func1;
+import io.reactivex.Single;
+import io.reactivex.functions.Function;
 
 import java.util.Collections;
 import java.util.List;
@@ -57,17 +53,23 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private boolean isReadOnly=false;
 
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
-    public abstract Observable<T> asyncBuildKey(ICouchbaseSession session,T newObject) throws DaoException;
+    public abstract Single<T> asyncBuildKey(ICouchbaseSession session,T newObject) throws DaoException;
 
     public final T blockingBuildKey(ICouchbaseSession session, T newObject) throws DaoException,StorageException{
         try {
-            return asyncBuildKey(session, newObject).toBlocking().single();
+            return asyncBuildKey(session, newObject).blockingGet();
         }
-        catch(DaoObservableException e){
-            throw e.getCause();
-        }
-        catch (StorageObservableException e){
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
@@ -162,73 +164,50 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return obj;
     }
 
-    public class FuncUpdateStateSync implements Func1<T,T> {
+    public class FuncUpdateStateSync implements Function<T,T> {
         private final T origObj;
         public FuncUpdateStateSync(T origObj) {
             this.origObj=origObj;
         }
 
         @Override
-        public T call(T t) {
+        public T apply(T t) {
             t.getBaseMeta().setStateSync();
             origObj.getBaseMeta().setStateSync();
             return t;
         }
     }
 
-    public class FuncCheckCreatable implements Func1<T,T> {
+    public class FuncCheckCreatable implements Function<T,T> {
         @Override
-        public T call(T t) {
-            try{
-                checkCreatableState(t);
-                return t;
-            }
-            catch (InconsistentStateException e){
-                throw new DaoObservableException(e);
-            }
+        public T apply(T t) throws Exception {
+            checkCreatableState(t);
+            return t;
         }
     }
 
 
-    public class FuncCheckUpdatable implements Func1<T,T> {
+    public class FuncCheckUpdatable implements Function<T,T> {
         @Override
-        public T call(T t) {
-            try{
-                checkUpdatableState(t);
-                return t;
-            }
-            catch (InconsistentStateException e){
-                throw new DaoObservableException(e);
-            }
+        public T apply(T t) throws Exception {
+            checkUpdatableState(t);
+            return t;
         }
     }
 
-    public class FuncCheckDeletable implements Func1<T,T> {
+    public class FuncCheckDeletable implements Function<T,T> {
         @Override
-        public T call(T t) {
-            try{
-                checkDeletableState(t);
-                return t;
-            }
-            catch (InconsistentStateException e){
-                throw new DaoObservableException(e);
-            }
-
+        public T apply(T t) throws Exception{
+            checkDeletableState(t);
+            return t;
         }
     }
 
-    public Observable<T> asyncCreate(ICouchbaseSession session, T obj, boolean isCalcOnly){
-        Observable<T> result=Observable.just(obj);
+    public Single<T> asyncCreate(ICouchbaseSession session, T obj, boolean isCalcOnly){
+        Single<T> result=Single.just(obj);
         result = result.map(new FuncCheckCreatable());
         if(obj.getBaseMeta().getKey()==null) {
-            result = result.flatMap(val -> {
-                        try {
-                            return asyncBuildKey(session, val);
-                        } catch (DaoException e) {
-                            throw new DaoObservableException(e);
-                        }
-                    }
-            );
+            result = result.flatMap(val -> asyncBuildKey(session, val));
         }
         result = result.flatMap(session::asyncValidate);
         if(!isCalcOnly) {
@@ -241,22 +220,20 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             }
         }
         return result.map(new FuncUpdateStateSync(obj))
-                .map(this::managePostReading).onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
+                .map(this::managePostReading)
+                .onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
     }
 
-    public <T extends CouchbaseDocument> Observable<T> mapObservableException(T doc,Throwable e){
-        if(e instanceof ValidationObservableException){
-            throw (ValidationObservableException)e;
-        }
-        else if(e instanceof DaoObservableException){
-            throw (DaoObservableException)e;
+    public <T extends CouchbaseDocument> Single<T> mapObservableException(T doc,Throwable e){
+        if(e instanceof ValidationException || e instanceof DaoException){
+            return Single.error(e);
         }
         return ICouchbaseBucket.Utils.mapObservableStorageException(doc,e);
     }
 
-    public Observable<T> asyncGet(ICouchbaseSession session,String key){
+    public Single<T> asyncGet(ICouchbaseSession session,String key){
         try {
-            Observable<T> result;
+            Single<T> result;
             if (session.getKeyPrefix() != null) {
                 result = getClient().asyncGet(key, baseClass, ReadParams.create().with(session.getKeyPrefix()));
             }
@@ -267,13 +244,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             return result;
         }
         catch(Throwable e){
-            throw new DaoObservableException(new DaoException("Unexpected exception",e));
+            return Single.error(new DaoException("Unexpected exception",e));
         }
     }
 
-    public Observable<T> asyncUpdate(ICouchbaseSession session,T obj,boolean isCalcOnly){
+    public Single<T> asyncUpdate(ICouchbaseSession session,T obj,boolean isCalcOnly){
         try {
-            Observable<T> result = Observable.just(obj);
+            Single<T> result = Single.just(obj);
             result = result.map(new FuncCheckUpdatable());
             result = result.flatMap(session::asyncValidate);
             if (!isCalcOnly) {
@@ -290,13 +267,13 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
                     .onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
         }
         catch(Throwable e){
-            throw new DaoObservableException(new DaoException("Unexpected exception",e));
+            return Single.error(new DaoException("Unexpected exception",e));
         }
     }
 
-    public Observable<T> asyncDelete(ICouchbaseSession session,T obj,boolean isCalcOnly){
+    public Single<T> asyncDelete(ICouchbaseSession session,T obj,boolean isCalcOnly){
         try {
-            Observable<T> result = Observable.just(obj);
+            Single<T> result = Single.just(obj);
             result = result.map(new FuncCheckDeletable());
             result = result.map(val -> {
                 val.getBaseMeta().addFlag(DocumentFlag.Deleted);
@@ -309,7 +286,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             return result.onErrorResumeNext(throwable -> mapObservableException(obj,throwable));
         }
         catch(Throwable e){
-            throw new DaoObservableException(new DaoException("Unexpected exception",e));
+            return Single.error(new DaoException("Unexpected exception",e));
         }
     }
 
@@ -341,59 +318,84 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     public class BlockingDao{
         public T blockingGet(ICouchbaseSession session, String key) throws DaoException,StorageException{
             try{
-                return asyncGet(session,key).toBlocking().single();
+                return asyncGet(session,key).blockingGet();
             }
-            catch (StorageObservableException e) {
-                throw e.getCause();
-            }
-            catch(DaoObservableException e){
-                throw e.getCause();
+            catch(RuntimeException e){
+                Throwable eCause=e.getCause();
+                if(eCause!=null){
+                    if(eCause instanceof DaoException){
+                        throw (DaoException)eCause;
+                    }
+                    if(eCause instanceof StorageException){
+                        throw (StorageException)eCause;
+                    }
+                }
+                throw e;
             }
         }
 
         public T blockingCreate(ICouchbaseSession session, T obj, boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
             try {
-                return asyncCreate(session, obj, isCalcOnly).toBlocking().single();
+                return asyncCreate(session, obj, isCalcOnly).blockingGet();
             }
-            catch(DaoObservableException e){
-                throw e.getCause();
-            }
-            catch(ValidationObservableException e){
-                throw e.getCause();
-            }
-            catch(StorageObservableException e){
-                throw e.getCause();
+            catch(RuntimeException e){
+                Throwable eCause=e.getCause();
+                if(eCause!=null){
+                    if(eCause instanceof DaoException){
+                        throw (DaoException)eCause;
+                    }
+                    else if(eCause instanceof StorageException){
+                        throw (StorageException)eCause;
+                    }
+                    else if(eCause instanceof ValidationException){
+                        throw (ValidationException)eCause;
+                    }
+                }
+                throw e;
             }
         }
 
         public T blockingUpdate(ICouchbaseSession session, T obj, boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
             try {
-                return asyncUpdate(session, obj, isCalcOnly).toBlocking().single();
+                return asyncUpdate(session, obj, isCalcOnly).blockingGet();
             }
-            catch(DaoObservableException e){
-                throw e.getCause();
+            catch(RuntimeException e){
+                Throwable eCause=e.getCause();
+                if(eCause!=null){
+                    if(eCause instanceof DaoException){
+                        throw (DaoException)eCause;
+                    }
+                    else if(eCause instanceof StorageException){
+                        throw (StorageException)eCause;
+                    }
+                    else if(eCause instanceof ValidationException){
+                        throw (ValidationException)eCause;
+                    }
+                }
+                throw e;
             }
-            catch(ValidationObservableException e){
-                throw e.getCause();
-            }
-            catch (StorageObservableException e){
-                throw e.getCause();
-            }
+
         }
 
         //Should only be used through DeletionJob
         public T blockingDelete(ICouchbaseSession session, T obj, boolean isCalcOnly) throws ValidationException,DaoException,StorageException{
             try {
-                return asyncDelete(session, obj, isCalcOnly).toBlocking().single();
+                return asyncDelete(session, obj, isCalcOnly).blockingGet();
             }
-            catch(DaoObservableException e){
-                throw e.getCause();
-            }
-            catch(ValidationObservableException e){
-                throw e.getCause();
-            }
-            catch(StorageObservableException e){
-                throw e.getCause();
+            catch(RuntimeException e){
+                Throwable eCause=e.getCause();
+                if(eCause!=null){
+                    if(eCause instanceof DaoException){
+                        throw (DaoException)eCause;
+                    }
+                    else if(eCause instanceof StorageException){
+                        throw (StorageException)eCause;
+                    }
+                    else if(eCause instanceof ValidationException){
+                        throw (ValidationException)eCause;
+                    }
+                }
+                throw e;
             }
         }
     }

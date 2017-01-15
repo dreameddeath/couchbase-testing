@@ -1,17 +1,18 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.couchbase.metrics;
@@ -23,7 +24,8 @@ import com.codahale.metrics.Timer;
 import com.couchbase.client.java.document.JsonLongDocument;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import rx.Notification;
+import io.reactivex.Notification;
+import io.reactivex.functions.BiConsumer;
 
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
@@ -68,15 +70,19 @@ public class CouchbaseMetricsContext implements Closeable {
         }
     }
 
-    public MetricsContext start(){
-        return new MetricsContext();
+    public <T extends CouchbaseDocument> DocumentMetricContext<T> startDocument(){
+        return new DocumentMetricContext<>();
+    }
+
+    public CounterMetricContext startCounter(){
+        return new CounterMetricContext();
     }
 
 
-    public class MetricsContext {
+    public class AbstractMetricsContext{
         private final Timer.Context total;
 
-        public MetricsContext(){
+        public AbstractMetricsContext(){
             if(registry!=null) {
                 inRequests.inc();
                 total=totals.time();
@@ -98,17 +104,6 @@ public class CouchbaseMetricsContext implements Closeable {
             }
         }
 
-        public <T extends CouchbaseDocument> void stop(Notification<? super BucketDocument<T>> notif){
-            Long exchangedSize = null;
-            if((notif.getValue()!=null) && (notif.getValue() instanceof BucketDocument)){
-                Integer size =((BucketDocument)notif.getValue()).getDocument().getBaseMeta().getDbSize();
-                if(size!=null) {
-                    exchangedSize = size.longValue();
-                }
-            }
-            stopWithSize(true,exchangedSize);
-        }
-
         public void stopCounter(Notification<? super JsonLongDocument> notif){
             Long exchangedSize = null;
             if((notif.getValue()!=null) && (notif.getValue() instanceof JsonLongDocument)){
@@ -119,6 +114,37 @@ public class CouchbaseMetricsContext implements Closeable {
 
         public void stopWithError(Throwable e){
             stopWithSize(false,null);
+        }
+    }
+
+    public class DocumentMetricContext<T extends CouchbaseDocument> extends AbstractMetricsContext implements BiConsumer<BucketDocument<T>,Throwable>{
+        @Override
+        public void accept(BucketDocument<T> tBucketDocument, Throwable throwable) throws Exception {
+            if(tBucketDocument!=null){
+                Long exchangedSize = null;
+                Integer size =tBucketDocument.getDocument().getBaseMeta().getDbSize();
+                if(size!=null) {
+                    exchangedSize = size.longValue();
+                }
+                stopWithSize(true,exchangedSize);
+            }
+            else{
+                stopWithError(throwable);
+            }
+        }
+    }
+
+    public class CounterMetricContext extends AbstractMetricsContext implements BiConsumer<JsonLongDocument,Throwable>{
+        @Override
+        public void accept(JsonLongDocument jsonLongDocument, Throwable throwable) throws Exception {
+            if(jsonLongDocument!=null){
+                Long exchangedSize = null;
+                exchangedSize =(long)(jsonLongDocument.content().toString().length());
+                stopWithSize(true,exchangedSize);
+            }
+            else{
+                stopWithError(throwable);
+            }
         }
     }
 }

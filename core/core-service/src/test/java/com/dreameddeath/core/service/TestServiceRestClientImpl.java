@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -25,7 +24,7 @@ import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import com.dreameddeath.core.service.client.rest.rxjava.RxJavaWebTarget;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.user.IUser;
-import rx.Observable;
+import io.reactivex.Single;
 
 import javax.annotation.Generated;
 import javax.ws.rs.client.Entity;
@@ -48,7 +47,7 @@ public class TestServiceRestClientImpl implements ITestService {
     }
 
     @Override
-    public Observable<Result> runWithRes(IGlobalContext ctxt, Input input) {
+    public Single<Result> runWithRes(IGlobalContext ctxt, Input input) {
         RxJavaWebTarget target = serviceClient.getInstance();
         target = target.path(String.format("toto/%s/tuto/%s", input.rootId, input.id));
 
@@ -62,7 +61,7 @@ public class TestServiceRestClientImpl implements ITestService {
     }
 
     @Override
-    public Observable<Result> getWithRes(String rootId, String id) {
+    public Single<Result> getWithRes(String rootId, String id) {
         RxJavaWebTarget target = serviceClient
                 .getInstance()
                 .path(String.format("toto/%s/tuto/%s", rootId, id));
@@ -75,7 +74,7 @@ public class TestServiceRestClientImpl implements ITestService {
     }
 
     @Override
-    public Observable<Result> putWithQuery(String rootId, String id) {
+    public Single<Result> putWithQuery(String rootId, String id) {
         RxJavaWebTarget target = serviceClient.getInstance();
         target = target.path(String.format("toto/%s", rootId));
         target = target.queryParam("id",id);
@@ -88,7 +87,7 @@ public class TestServiceRestClientImpl implements ITestService {
     }
 
     @Override
-    public Observable<TestingDocument> initDocument(IGlobalContext ctxt) {
+    public Single<TestingDocument> initDocument(IGlobalContext ctxt) {
         RxJavaWebTarget target = serviceClient.getInstance();
         target = target.property("IGlobalContext",ctxt);
         target = target.path(String.format("testingDocument"));
@@ -101,7 +100,7 @@ public class TestServiceRestClientImpl implements ITestService {
     }
 
     @Override
-    public Observable<TestingDocument> initDocument(IUser user) {
+    public Single<TestingDocument> initDocument(IUser user) {
         RxJavaWebTarget target = serviceClient.getInstance();
         target = target.path(String.format("testingDocument"));
         return target.request(MediaType.APPLICATION_JSON_TYPE)

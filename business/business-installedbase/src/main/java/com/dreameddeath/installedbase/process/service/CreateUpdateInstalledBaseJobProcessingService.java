@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -23,7 +22,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
-import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.v1.tasks.NoOpTask;
 import com.dreameddeath.core.process.service.context.*;
 import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
@@ -38,8 +37,8 @@ import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBase
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseResponse;
 import com.dreameddeath.installedbase.process.model.v1.InstalledBaseUpdateResult;
 import com.dreameddeath.installedbase.service.ICreateUpdateInstalledBaseService;
+import io.reactivex.Single;
 import org.springframework.beans.factory.annotation.Autowired;
-import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
@@ -47,7 +46,7 @@ import rx.Observable;
 @JobProcessingForClass(CreateUpdateInstalledBaseJob.class)
 public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobProcessingService<CreateUpdateInstalledBaseJob> {
     @Override
-    public Observable<JobProcessingResult<CreateUpdateInstalledBaseJob>> init(JobContext<CreateUpdateInstalledBaseJob> context){
+    public Single<JobProcessingResult<CreateUpdateInstalledBaseJob>> init(JobContext<CreateUpdateInstalledBaseJob> context){
         CreateUpdateInstalledBaseJob job = context.getInternalJob();
         //Algorithm :
         // * create all contracts without contents :
@@ -89,13 +88,13 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
     @TaskProcessingForClass(InitEmptyInstalledBase.class)
     public static class InitEmptyInstalledBaseProcessingService extends DocumentCreateTaskProcessingService<CreateUpdateInstalledBaseJob,InstalledBase,InitEmptyInstalledBase> {
         @Override
-        protected Observable<ContextAndDocument> buildDocument(TaskContext<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase> ctxt) {
+        protected Single<ContextAndDocument> buildDocument(TaskContext<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase> ctxt) {
             InstalledBase result = ctxt.getSession().newEntity(InstalledBase.class);
             return buildContextAndDocumentObservable(ctxt,result);
         }
 
         @Override
-        public Observable<UpdateJobTaskProcessingResult<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase>> updatejob(CreateUpdateInstalledBaseJob job, InitEmptyInstalledBase task, ICouchbaseSession session) {
+        public Single<UpdateJobTaskProcessingResult<CreateUpdateInstalledBaseJob, InitEmptyInstalledBase>> updatejob(CreateUpdateInstalledBaseJob job, InitEmptyInstalledBase task, ICouchbaseSession session) {
             return task.getDocument(session)
                         .map(installedBase -> {
                             final CreateUpdateInstalledBaseResponse.Contract result = new CreateUpdateInstalledBaseResponse.Contract();
@@ -121,18 +120,18 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
         }
 
         @Override
-        public Observable<TaskProcessingResult<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask>> preprocess(final TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt ){
+        public Single<TaskProcessingResult<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask>> preprocess(final TaskContext<CreateUpdateInstalledBaseJob,UpdateInstalledBaseTask> ctxt ){
             if(ctxt.getInternalTask().getContractUid()!=null){
                 try {
                     ctxt.getInternalTask().setDocKey(ctxt.getSession().getKeyFromUID(ctxt.getInternalTask().getContractUid(), InstalledBase.class));
                     return TaskProcessingResult.build(ctxt,false);
                 }
                 catch(DaoException e){
-                    return Observable.error(new TaskObservableExecutionException(ctxt,"Cannot build key from uid <"+ctxt.getInternalTask().getContractUid()+">"));
+                    return Single.error(new TaskExecutionException(ctxt,"Cannot build key from uid <"+ctxt.getInternalTask().getContractUid()+">"));
                 }
             }
             else {
-                return ctxt.getDependentTask(InitEmptyInstalledBase.class)
+                return ctxt.getSingleDependentTask(InitEmptyInstalledBase.class)
                         .map(creationInstalledBase -> {
                             ctxt.getInternalTask().setDocKey(creationInstalledBase.getDocKey());
                             ctxt.getInternalTask().setTempContractId(creationInstalledBase.getContractTempId());
@@ -142,7 +141,7 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
         }
 
         @Override
-        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
+        protected Single<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
             CreateUpdateInstalledBaseRequest.Contract refContract=null;
             for(CreateUpdateInstalledBaseRequest.Contract currContract:ctxtAndDoc.getCtxt().getParentInternalJob().getRequest().contracts){
                 if (ctxtAndDoc.getCtxt().getInternalTask().getTempContractId() != null && ctxtAndDoc.getCtxt().getInternalTask().getTempContractId().equals(currContract.tempId)) {
@@ -155,15 +154,15 @@ public class CreateUpdateInstalledBaseJobProcessingService extends StandardJobPr
                 }
             }
             if(refContract==null){
-                return Observable.error(new TaskObservableExecutionException(ctxtAndDoc.getCtxt(),"Inconsistent State, cannot find Contract in installed base "+ctxtAndDoc.getCtxt().getInternalTask().getDocKey()));
+                return Single.error(new TaskExecutionException(ctxtAndDoc.getCtxt(),"Inconsistent State, cannot find Contract in installed base "+ctxtAndDoc.getCtxt().getInternalTask().getDocKey()));
             }
             InstalledBaseUpdateResult updateResult = service.manageCreateUpdate(ctxtAndDoc.getCtxt().getParentInternalJob().getRequest(),ctxtAndDoc.getDoc(),refContract);
             ctxtAndDoc.getCtxt().getInternalTask().setUpdateResult(updateResult);
-            return new ProcessingDocumentResult(ctxtAndDoc,true).toObservable();
+            return new ProcessingDocumentResult(ctxtAndDoc,true).toSingle();
         }
 
         @Override
-        public Observable<TaskNotificationBuildResult<CreateUpdateInstalledBaseJob, UpdateInstalledBaseTask>> buildNotifications(TaskContext<CreateUpdateInstalledBaseJob, UpdateInstalledBaseTask> ctxt) {
+        public Single<TaskNotificationBuildResult<CreateUpdateInstalledBaseJob, UpdateInstalledBaseTask>> buildNotifications(TaskContext<CreateUpdateInstalledBaseJob, UpdateInstalledBaseTask> ctxt) {
             CreateUpdateInstalledBaseEvent event = new CreateUpdateInstalledBaseEvent();
             event.setInstalledBaseKey(ctxt.getInternalTask().getDocKey());
             return super.buildNotifications(ctxt)

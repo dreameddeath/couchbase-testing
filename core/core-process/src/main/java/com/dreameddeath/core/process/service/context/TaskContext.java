@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -21,7 +20,7 @@ package com.dreameddeath.core.process.service.context;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.notification.bus.IEventBus;
-import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
+import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
@@ -30,10 +29,12 @@ import com.dreameddeath.core.process.service.ITaskExecutorService;
 import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.user.IUser;
 import com.google.common.base.Preconditions;
-import rx.Observable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
@@ -62,7 +63,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
     public JobContext<TJOB> getJobContext(){return jobContext;}
     public ICouchbaseSession getSession(){return session;}
     public IUser getUser() {return jobContext.getUser(); }
-    public Observable<T> getTask() {
+    public Single<T> getTask() {
         return getSession().asyncGet(task.getBaseMeta().getKey(),(Class<T>)task.getClass());
     }
 
@@ -82,7 +83,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
     public ProcessState getTaskState() {
         return task.getStateInfo();
     }
-    public Observable<TJOB> getParentJob(){ return jobContext.getJob();}
+    public Single<TJOB> getParentJob(){ return jobContext.getJob();}
     public TJOB getParentInternalJob(){ return jobContext.getInternalJob();}
     public boolean isNew(){ return task.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW);}
     public String getId(){ return task.getId();}
@@ -91,14 +92,14 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
         task.setId(id);
     }
 
-    public Observable<TaskContext<TJOB, T>> asyncSave() {
+    public Single<TaskContext<TJOB, T>> asyncSave() {
         Preconditions.checkNotNull(task.getId(),"The task should have an id before saving");
         return jobContext
                 .getTaskContexts()
                 .filter(ctxt->ctxt.tempId!=null && pendingPreRequisites.contains(ctxt.tempId))
                 .map(ctxt->{
                     if(ctxt.getId()==null){
-                        throw new TaskObservableExecutionException(this,"The pre-requisite task <"+ctxt.getTaskClass()+"/"+ctxt.tempId+"/"+ctxt.getInternalTask().toString()+"> doesn't have ids prior to save");
+                        return Single.error(new TaskExecutionException(this,"The pre-requisite task <"+ctxt.getTaskClass()+"/"+ctxt.tempId+"/"+ctxt.getInternalTask().toString()+"> doesn't have ids prior to save"));
                     }
                     synchronized (task) {
                         task.addDependency(ctxt.getId());
@@ -122,7 +123,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
         return taskProcessingService;
     }
 
-    public Observable<TaskContext<TJOB,T>> execute(){
+    public Single<TaskContext<TJOB,T>> execute(){
         this.task.getStateInfo().setLastRunError(null);
         return taskExecutorService.execute(this);
     }
@@ -161,6 +162,21 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
         return getDependentTaskContext(taskClass).map(taskCtxt->taskCtxt.task);
     }
 
+    public <TTASK extends AbstractTask> Single<TTASK> getSingleDependentTask(Class<TTASK> taskClass){
+        return getDependentTaskContext(taskClass)
+                .map(taskCtxt->taskCtxt.task)
+                .singleOrError()
+                .onErrorResumeNext(throwable -> {
+                    if(throwable instanceof NoSuchElementException) {
+                        return Single.error(new TaskExecutionException(this,"Cannot found dependant task <" + taskClass.getName() + "> of task " + this.getId()));
+                    }
+                    else{
+                        return Single.error(throwable);
+                    }
+                });
+    }
+
+
     //Package level to avoid
     static <TJOB extends AbstractJob,TTASK extends AbstractTask> TaskContext<TJOB,TTASK> newContext(JobContext<TJOB> ctxt,TTASK task){
         return ctxt.getClientFactory().buildTaskClient(ctxt.getJobClass(),(Class<TTASK>)task.getClass()).buildTaskContext(ctxt,task);
@@ -178,7 +194,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
         return task instanceof SubJobProcessTask;
     }
 
-    public Observable<? extends AbstractJob> getSubJob(){
+    public Single<? extends AbstractJob> getSubJob(){
         Preconditions.checkArgument(isSubJobTask());
         return ((SubJobProcessTask<? extends AbstractJob>)task).getJob(getSession());
     }

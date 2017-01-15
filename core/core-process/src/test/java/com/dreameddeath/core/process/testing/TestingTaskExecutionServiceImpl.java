@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *  
  */
 
@@ -20,11 +19,11 @@ package com.dreameddeath.core.process.testing;
 
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.notification.bus.EventFireResult;
+import com.dreameddeath.core.notification.bus.PublishedResult;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
-import com.dreameddeath.core.process.exception.TaskObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
@@ -34,46 +33,70 @@ import com.dreameddeath.core.process.testing.exception.FakeStorageException;
 import com.dreameddeath.core.session.impl.CouchbaseSession;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.ICouchbaseOnWriteListener;
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 24/11/2016.
  */
 public class TestingTaskExecutionServiceImpl<TJOB extends AbstractJob,T extends AbstractTask>  extends BasicTaskExecutorServiceImpl<TJOB,T> {
     @Override
-    public Observable<TaskContext<TJOB, T>> execute(TaskContext<TJOB, T> origCtxt) {
+    public Single<TaskContext<TJOB, T>> execute(TaskContext<TJOB, T> origCtxt) {
         final ICouchbaseOnWriteListener listener = new TestingFailureGeneratorWriteListener(origCtxt);
         ICouchbaseBucket bucket = ((CouchbaseSession)(origCtxt.getSession())).getClientForClass(origCtxt.getTaskClass());
         if(bucket instanceof CouchbaseBucketSimulator){
             ((CouchbaseBucketSimulator) bucket).addOnWriteListener(listener);
         }
         return manageExecute(origCtxt)
-                .doAfterTerminate(()->{if(bucket instanceof CouchbaseBucketSimulator){
+                .doFinally(()->{if(bucket instanceof CouchbaseBucketSimulator){
                     ((CouchbaseBucketSimulator) bucket).removeOnWriteListener(listener);
                 }});
     }
 
 
-    private Observable<TaskContext<TJOB,T>> manageExecute(TaskContext<TJOB,T> origCtxt) {
+    private Single<TaskContext<TJOB,T>> manageExecute(TaskContext<TJOB,T> origCtxt) {
         return super.execute(origCtxt).
                 onErrorResumeNext(throwable -> this.manageResume(throwable,origCtxt));
     }
 
-    private Observable<TaskContext<TJOB,T>> manageResume(final Throwable origThrowable, TaskContext<TJOB,T> origCtxt) {
+    private Single<TaskContext<TJOB,T>> manageResume(final Throwable origThrowable, TaskContext<TJOB,T> origCtxt) {
         Throwable throwable = origThrowable;
-        if(throwable instanceof TaskObservableExecutionException){
-            throwable = throwable.getCause();
-        }
-        if(throwable instanceof TaskExecutionException && throwable.getCause()!=null){
-            throwable = throwable.getCause();
-        }
+        boolean retry = false;
+        if(throwable instanceof TaskExecutionException){
+            Throwable eCause = throwable.getCause();
+            if(((TaskExecutionException) throwable).getFailedNotifications().size()>0){
+                List<EventFireResult> errorEventSavedFaked = ((TaskExecutionException) throwable).getFailedNotifications()
+                        .stream()
+                        .filter(eventFireResult -> eventFireResult.getSaveError()!=null && eventFireResult.getSaveError().getCause() instanceof FakeStorageException)
+                        .collect(Collectors.toList());
 
-        if(throwable instanceof StorageObservableException){
-            throwable = throwable.getCause();
-        }
+                List<PublishedResult> errorPublishedFaked = ((TaskExecutionException) throwable).getFailedNotifications()
+                        .stream()
+                        .flatMap(eventFireResult -> eventFireResult.getResults().stream())
+                        .filter(publishedResult->publishedResult.getThrowable() instanceof FakeStorageException)
+                        .collect(Collectors.toList());
 
-        if(throwable instanceof FakeStorageException){
+                if(errorEventSavedFaked.size()>0 || errorPublishedFaked.size()>0){
+                    retry=true;
+                    try {
+                        Thread.sleep(10);
+                    }
+                    catch (Exception e){
+                        //ignore
+                    }
+                }
+            }
+            else if(eCause!=null){
+                throwable=eCause;
+            }
+        }
+        if(throwable instanceof FakeStorageException) {
+            retry=true;
+        }
+        if(retry){
             T effectiveTask;
             try {
                 effectiveTask = origCtxt.getSession().toBlocking().blockingRefresh(origCtxt.getInternalTask());
@@ -82,12 +105,12 @@ public class TestingTaskExecutionServiceImpl<TJOB extends AbstractJob,T extends 
                 effectiveTask = origCtxt.getInternalTask();
             }
             TaskContext<TJOB,T> newContext=new TaskContext.Builder<>(origCtxt,effectiveTask).build();
-            return Observable.just(newContext)
+            return Single.just(newContext)
                     .subscribeOn(Schedulers.computation())
                     .flatMap(this::manageExecute);
         }
         else{
-            return Observable.error(origThrowable);
+            return Single.error(origThrowable);
         }
     }
 

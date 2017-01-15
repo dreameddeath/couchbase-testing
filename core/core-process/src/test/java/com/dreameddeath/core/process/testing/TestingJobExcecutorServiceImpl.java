@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -20,11 +19,11 @@ package com.dreameddeath.core.process.testing;
 
 import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.notification.bus.EventFireResult;
+import com.dreameddeath.core.notification.bus.PublishedResult;
 import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.exception.JobObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.service.context.JobContext;
@@ -33,44 +32,68 @@ import com.dreameddeath.core.process.testing.exception.FakeStorageException;
 import com.dreameddeath.core.session.impl.CouchbaseSession;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.ICouchbaseOnWriteListener;
-import rx.Observable;
+import io.reactivex.Single;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 23/11/2016.
  */
 public class TestingJobExcecutorServiceImpl<T extends AbstractJob> extends BasicJobExecutorServiceImpl<T> {
     @Override
-    public Observable<JobContext<T>> execute(JobContext<T> origCtxt) {
+    public Single<JobContext<T>> execute(JobContext<T> origCtxt) {
         final ICouchbaseOnWriteListener listener = new TestingFailureGeneratorWriteListener(origCtxt);
         ICouchbaseBucket bucket = ((CouchbaseSession)(origCtxt.getSession())).getClientForClass(origCtxt.getJobClass());
         if(bucket instanceof CouchbaseBucketSimulator){
             ((CouchbaseBucketSimulator) bucket).addOnWriteListener(listener);
         }
         return manageExecute(origCtxt)
-                .doAfterTerminate(()->{if(bucket instanceof CouchbaseBucketSimulator){
+                .doFinally(()->{if(bucket instanceof CouchbaseBucketSimulator){
                     ((CouchbaseBucketSimulator) bucket).removeOnWriteListener(listener);
                 }});
     }
 
-    private Observable<JobContext<T>> manageExecute(JobContext<T> origCtxt) {
+    private Single<JobContext<T>> manageExecute(JobContext<T> origCtxt) {
         return super.execute(origCtxt).
                 onErrorResumeNext(throwable -> this.manageResume(throwable,origCtxt));
     }
 
-    private Observable<JobContext<T>> manageResume(final Throwable origThrowable, JobContext<T> origCtxt) {
+    private Single<JobContext<T>> manageResume(final Throwable origThrowable, JobContext<T> origCtxt) {
         Throwable throwable = origThrowable;
-        if(throwable instanceof JobObservableExecutionException){
-            throwable = throwable.getCause();
-        }
-        if(throwable instanceof JobExecutionException && throwable.getCause()!=null){
-            throwable = throwable.getCause();
-        }
+        boolean retry=true;
+        if(throwable instanceof JobExecutionException){
+            Throwable eCause = throwable.getCause();
+            if(((JobExecutionException) throwable).getFailedNotifications().size()>0){
+                List<EventFireResult> errorEventSavedFaked = ((JobExecutionException) throwable).getFailedNotifications()
+                        .stream()
+                        .filter(eventFireResult -> eventFireResult.getSaveError()!=null && eventFireResult.getSaveError().getCause() instanceof FakeStorageException)
+                        .collect(Collectors.toList());
 
-        if(throwable instanceof StorageObservableException){
-            throwable = throwable.getCause();
-        }
+                List<PublishedResult> errorPublishedFaked = ((JobExecutionException) throwable).getFailedNotifications()
+                        .stream()
+                        .flatMap(eventFireResult -> eventFireResult.getResults().stream())
+                        .filter(publishedResult->publishedResult.getThrowable() instanceof FakeStorageException)
+                        .collect(Collectors.toList());
 
-        if(throwable instanceof FakeStorageException){
+                if(errorEventSavedFaked.size()>0 || errorPublishedFaked.size()>0){
+                    retry=true;
+                    try {
+                        Thread.sleep(10);
+                    }
+                    catch (Exception e){
+                        //ignore
+                    }
+                }
+            }
+            else if(eCause!=null){
+                throwable=eCause;
+            }
+        }
+        if(throwable instanceof FakeStorageException) {
+            retry=true;
+        }
+        if(retry){
             T effectiveJob;
             try {
                 effectiveJob = origCtxt.getSession().toBlocking().blockingRefresh(origCtxt.getInternalJob());
@@ -88,7 +111,7 @@ public class TestingJobExcecutorServiceImpl<T extends AbstractJob> extends Basic
             return manageExecute(newContext);
         }
         else{
-            return Observable.error(origThrowable);
+            return Single.error(origThrowable);
         }
     }
 

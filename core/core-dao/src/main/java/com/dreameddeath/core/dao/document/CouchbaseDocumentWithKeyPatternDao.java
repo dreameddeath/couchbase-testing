@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -23,8 +22,8 @@ import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.utils.KeyPattern;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import rx.Observable;
-import rx.functions.Func1;
+import io.reactivex.Single;
+import io.reactivex.functions.Function;
 
 import java.util.Arrays;
 
@@ -60,7 +59,7 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
     public  abstract String getKeyFromParams(Object ...params);
 
     @Override
-    public Observable<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params){
+    public Single<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params){
         return asyncGet(session,getKeyFromParams(params));
     }
 
@@ -69,7 +68,7 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
         return keyPattern;
     }
 
-    protected class BuildKeyFromCounterFunc implements Func1<Long,T>{
+    protected class BuildKeyFromCounterFunc implements Function<Long,T> {
         private final T obj;
         private final Object[] params;
 
@@ -79,7 +78,7 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
         }
 
         @Override
-        public T call(Long aLong) {
+        public T apply(Long aLong) {
             params[params.length-1]=aLong;
             obj.getBaseMeta().setKey(CouchbaseDocumentWithKeyPatternDao.this.getKeyFromParams(params));
             CouchbaseDocumentWithKeyPatternDao.this.updateTransientFromKeyPattern(obj,keyPattern.extractParamsArrayFromKey(obj.getBaseMeta().getKey()));

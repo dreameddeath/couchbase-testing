@@ -1,17 +1,18 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.couchbase.dcp;
@@ -31,9 +32,10 @@ import com.couchbase.client.deps.com.lmax.disruptor.dsl.Disruptor;
 import com.couchbase.client.deps.io.netty.util.concurrent.DefaultThreadFactory;
 import com.couchbase.client.java.ConnectionString;
 import com.dreameddeath.core.couchbase.dcp.impl.AbstractDCPFlowHandler;
+import com.dreameddeath.core.couchbase.rxjava.RxJavaWrapper;
+import io.reactivex.Observable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -130,11 +132,11 @@ public class CouchbaseDCPConnector implements Runnable {
      * Executes worker reading loop, which relays events from Couchbase to Any "client".
      */
     public void run() {
-        dcpConnection.getCurrentState()
+        RxJavaWrapper.toRxJava2Observable(dcpConnection.getCurrentState())
                 .flatMap(this::requestStreams)
                 .toList()
-                .flatMap(list->dcpConnection.subject())
-                .toBlocking()
+                .flatMapObservable(list->RxJavaWrapper.toRxJava2Observable(dcpConnection.subject()))
+                .blockingIterable()
                 .forEach(dcpRequest -> dcpRingBuffer.tryPublishEvent(CouchbaseDCPConnector.this.translator, dcpRequest));
 
     }
@@ -145,33 +147,18 @@ public class CouchbaseDCPConnector implements Runnable {
         if(lastSnapshotReceived!=null) {
             startSequenceNumber = lastSnapshotReceived.getSequenceNumber();
         }
-        return dcpConnection.addStream((short) token.vbucketID(), token.vbucketUUID(),
+        return RxJavaWrapper.toRxJava2Observable(dcpConnection.addStream(
+                    (short) token.vbucketID(),
+                    token.vbucketUUID(),
                     startSequenceNumber,MAX_DCP_SEQUENCE,
                     startSequenceNumber,MAX_DCP_SEQUENCE
-                );
+                ));
 
 
     }
 
-    /*private Observable<DCPRequest> requestStreams(final int numberOfPartitions) {
-        return Observable.merge((Observable<? extends Observable<? extends DCPRequest>>)
-                Observable.range(0, numberOfPartitions)
-                        .flatMap(partition -> core.<StreamRequestResponse>send(buildStreamRequest(partition)))
-                        .map(StreamRequestResponse::stream)
-        );
-    }*/
-
-    /*public StreamRequestRequest buildStreamRequest(Integer partition){
-        AbstractDCPFlowHandler.LastSnapshotReceived lastSnapshotReceived = flowHandler.getLastSnapshot(bucket, partition.shortValue());
-        if(lastSnapshotReceived!=null){
-            return new StreamRequestRequest(partition.shortValue(),0,0, MAX_DCP_SEQUENCE,lastSnapshotReceived.getStartSequenceNumber(),lastSnapshotReceived.getEndSequenceNumber(),bucket,password);
-        }
-        else {
-            return new StreamRequestRequest(partition.shortValue(), bucket);
-        }
-    }*/
-
     public Boolean stop(){
-        return core.send(new CloseBucketRequest(bucket)).map(reponse->reponse.status().isSuccess()).toBlocking().first();
+        return RxJavaWrapper.toRxJava2Single(core.send(new CloseBucketRequest(bucket)))
+                .map(reponse->reponse.status().isSuccess()).blockingGet();
     }
 }

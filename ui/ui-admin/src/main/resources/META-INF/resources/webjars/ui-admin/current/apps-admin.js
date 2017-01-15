@@ -6,10 +6,12 @@ define(['angular','ui-router-lazy-load','angular-js-css-file',
     var appsAdminModule = angular.module('apps-admin',[
         'ui-router-lazy-load','angular-js-css-file',
       'ui.router','ui.router.tabs'
-    ,'ui.bootstrap.tabs',"template/tabs/tabset.html","template/tabs/tab.html"]
+    ,'ui.bootstrap.tabs',"uib/template/tabs/tabset.html","uib/template/tabs/tab.html"]
     );
 
-
+    appsAdminModule.config(['$qProvider', function ($qProvider) {
+        $qProvider.errorOnUnhandledRejections(false);
+    }]);
 
     appsAdminModule.config(['$stateProvider','$urlRouterProvider', function($stateProvider,$urlRouterProvider) {
                              //$urlRouterProvider.otherwise("/");

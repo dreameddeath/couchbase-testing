@@ -1,32 +1,30 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.couchbase.core.process.remote;
 
 import com.dreameddeath.core.process.exception.JobExecutionException;
-import com.dreameddeath.core.process.exception.JobObservableExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.IHasServiceClient;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.service.client.IServiceClient;
 import com.dreameddeath.core.service.client.rest.IRestServiceClient;
-import rx.Observable;
+import io.reactivex.Single;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -44,42 +42,39 @@ public class RemoteJobExecutorService<T extends AbstractJob> implements IJobExec
     }
 
     @Override
-    public Observable<JobContext<T>> execute(JobContext<T> origCtxt)  {
+    public Single<JobContext<T>> execute(JobContext<T> origCtxt)  {
         try {
             return this.manageInitialSave(origCtxt)
                     .flatMap(this::callRemoteProcessing)
                     .flatMap(this::manageResult)
                     .onErrorResumeNext(throwable -> this.manageError(throwable, origCtxt));
         }
-        catch(JobObservableExecutionException e){
-            return Observable.error(e);
-        }
         catch(Throwable e){
-            return Observable.error(new JobObservableExecutionException(origCtxt,"Unexpected error",e));
+            return Single.error(new JobExecutionException(origCtxt,"Unexpected error",e));
         }
     }
 
-    private Observable<JobContext<T>> manageError(Throwable throwable, JobContext<T> origCtxt) {
-        if(throwable instanceof JobObservableExecutionException){
-            return Observable.error(throwable);
+    private Single<JobContext<T>> manageError(Throwable throwable, JobContext<T> origCtxt) {
+        if(throwable instanceof JobExecutionException){
+            return Single.error(throwable);
         }
         else{
-            return Observable.error(new JobObservableExecutionException(origCtxt,throwable));
+            return Single.error(new JobExecutionException(origCtxt,throwable));
         }
     }
 
-    private Observable<JobContext<T>> manageResult(CallResponseWithContext callResponseWithContext) {
+    private Single<JobContext<T>> manageResult(CallResponseWithContext callResponseWithContext) {
         if(callResponseWithContext.response.getStatus()== Response.Status.OK.getStatusCode()) {
             return callResponseWithContext.jobContext.getSession()
                     .asyncGet(callResponseWithContext.jobContext.getInternalJob().getBaseMeta().getKey(), callResponseWithContext.jobContext.getJobClass())
                     .map(newJob -> new JobContext.Builder<>(newJob, callResponseWithContext.jobContext).build());
         }
         else {
-            return Observable.error(new JobExecutionException(callResponseWithContext.jobContext,"An error occurs during distant call"));
+            return Single.error(new JobExecutionException(callResponseWithContext.jobContext,"An error occurs during distant call"));
         }
     }
 
-    private Observable<CallResponseWithContext> callRemoteProcessing(final JobContext<T> context) {
+    private Single<CallResponseWithContext> callRemoteProcessing(final JobContext<T> context) {
             return client.getInstance()
                 .path("/{uid}/resume")
                 .resolveTemplate("uid",context.getInternalJob().getUid().toString())
@@ -89,12 +84,12 @@ public class RemoteJobExecutorService<T extends AbstractJob> implements IJobExec
                 .map(response -> new CallResponseWithContext(context,response));
     }
 
-    private Observable<JobContext<T>> manageInitialSave(JobContext<T> context) {
+    private Single<JobContext<T>> manageInitialSave(JobContext<T> context) {
         if(context.isNew()){
             return context.asyncSave();
         }
         else {
-            return Observable.just(context);
+            return Single.just(context);
         }
     }
 

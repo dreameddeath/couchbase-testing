@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -31,7 +30,7 @@ import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskPr
 import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
 import com.dreameddeath.core.process.services.model.TestDocJobCreate;
 import com.google.common.base.Preconditions;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 04/01/2016.
@@ -39,7 +38,7 @@ import rx.Observable;
 @JobProcessingForClass(TestDocJobCreate.class)
 public class TestJobCreateService extends StandardJobProcessingService<TestDocJobCreate> {
     @Override
-    public Observable<JobProcessingResult<TestDocJobCreate>> init(JobContext<TestDocJobCreate> context){
+    public Single<JobProcessingResult<TestDocJobCreate>> init(JobContext<TestDocJobCreate> context){
         TaskContext<TestDocJobCreate,?> updateTask=context.addTask(new TestDocJobCreate.TestJobCreateTask())
                 .chainWith(new TestDocJobCreate.TestJobUpdateTask());
         updateTask.chainWith(new TestDocJobCreate.TestJobCreateUpdateTaskForNew());
@@ -51,7 +50,7 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
     @TaskProcessingForClass(TestDocJobCreate.TestJobCreateTask.class)
     public static class TestJobCreateTaskService extends DocumentCreateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobCreateTask>{
         @Override
-        protected Observable<ContextAndDocument> buildDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask> ctxt){
+        protected Single<ContextAndDocument> buildDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask> ctxt){
             TestDoc newDoc = new TestDoc();
             newDoc.name = ctxt.getParentInternalJob().name;
             newDoc.intValue = ctxt.getParentInternalJob().initIntValue;
@@ -60,13 +59,13 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
         }
 
         @Override
-        public Observable<UpdateJobTaskProcessingResult<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask>> updatejob(TestDocJobCreate job, TestDocJobCreate.TestJobCreateTask task, ICouchbaseSession session) {
+        public Single<UpdateJobTaskProcessingResult<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask>> updatejob(TestDocJobCreate job, TestDocJobCreate.TestJobCreateTask task, ICouchbaseSession session) {
             job.createdKey = task.getDocKey();
-            return new UpdateJobTaskProcessingResult<>(job,task,true).toObservable();
+            return new UpdateJobTaskProcessingResult<>(job,task,true).toSingle();
         }
 
         @Override
-        public Observable<TaskNotificationBuildResult<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask>> buildNotifications(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask> ctxt) {
+        public Single<TaskNotificationBuildResult<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask>> buildNotifications(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateTask> ctxt) {
             TestDocEvent event=new TestDocEvent();
             event.sourceTask="Create";
             return super.buildNotifications(ctxt)
@@ -77,8 +76,9 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
     @TaskProcessingForClass(TestDocJobCreate.TestJobUpdateTask.class)
     public static class TestJobUpdateTaskService extends DocumentUpdateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobUpdateTask> {
         @Override
-        public Observable<TaskProcessingResult<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask>> preprocess(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask> context) {
+        public Single<TaskProcessingResult<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask>> preprocess(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask> context) {
             return context.getDependentTask(TestDocJobCreate.TestJobCreateTask.class)
+                    .singleOrError()
                     .flatMap(createTask->{
                         context.getInternalTask().setDocKey(createTask.getDocKey());
                         return TaskProcessingResult.build(context,false);
@@ -86,13 +86,13 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
         }
 
         @Override
-        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
+        protected Single<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
             ctxtAndDoc.getDoc().intValue*=2;
-            return new ProcessingDocumentResult(ctxtAndDoc,true).toObservable();
+            return new ProcessingDocumentResult(ctxtAndDoc,true).toSingle();
         }
 
         @Override
-        public Observable<TaskNotificationBuildResult<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask>> buildNotifications(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask> ctxt) {
+        public Single<TaskNotificationBuildResult<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask>> buildNotifications(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobUpdateTask> ctxt) {
             TestDocEvent event=new TestDocEvent();
             event.sourceTask="Update";
             return super.buildNotifications(ctxt)
@@ -104,12 +104,12 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
     @TaskProcessingForClass(TestDocJobCreate.TestJobCreateUpdateTaskForNew.class)
     public static class TestJobCreateUpdateTaskForNewService extends DocumentCreateOrUpdateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobCreateUpdateTaskForNew>{
         @Override
-        protected Observable<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForNew> taskContext) {
-            return new FindAndGetResult(taskContext).toObservable();
+        protected Single<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForNew> taskContext) {
+            return new FindAndGetResult(taskContext).toSingle();
         }
 
         @Override
-        protected Observable<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForNew> taskContext) {
+        protected Single<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForNew> taskContext) {
             TestDoc newDoc = new TestDoc();
             newDoc.name = taskContext.getParentInternalJob().name+"ForNew";
             newDoc.intValue = 0;
@@ -117,13 +117,13 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
         }
 
         @Override
-        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxt) {
+        protected Single<ProcessingDocumentResult> processDocument(ContextAndDocument ctxt) {
             ctxt.getDoc().intValue += ctxt.getCtxt().getParentInternalJob().initIntValue;
-            return new ProcessingDocumentResult(false,ctxt).toObservable();
+            return new ProcessingDocumentResult(false,ctxt).toSingle();
         }
 
         @Override
-        protected Observable<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
+        protected Single<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
             return ctxt.getCtxt().getSession().asyncGet(e.getOwnerDocumentKey(), TestDoc.class)
                     .map(doc->new DuplicateUniqueKeyCheckResult(ctxt.getCtxt(),doc));
         }
@@ -133,19 +133,20 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
     @TaskProcessingForClass(TestDocJobCreate.TestJobCreateUpdateTaskForExisting.class)
     public static class TestJobCreateUpdateTaskForExistingService extends DocumentCreateOrUpdateTaskProcessingService<TestDocJobCreate,TestDoc,TestDocJobCreate.TestJobCreateUpdateTaskForExisting>{
         @Override
-        protected Observable<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForExisting> taskContext) {
+        protected Single<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForExisting> taskContext) {
             if(taskContext.getInternalTask().fromRead){
                 return taskContext.getDependentTask(TestDocJobCreate.TestJobCreateTask.class)
+                        .singleOrError()
                         .flatMap(testJobCreateTask -> testJobCreateTask.getDocument(taskContext.getSession()))
                         .map(testDoc->new FindAndGetResult(taskContext,testDoc));
             }
             else {
-                return new FindAndGetResult(taskContext).toObservable();
+                return new FindAndGetResult(taskContext).toSingle();
             }
         }
 
         @Override
-        protected Observable<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForExisting> taskContext) {
+        protected Single<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.TestJobCreateUpdateTaskForExisting> taskContext) {
             TestDoc newDoc = new TestDoc();
             newDoc.name = taskContext.getParentInternalJob().name;
             newDoc.intValue = 0;
@@ -153,19 +154,17 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
         }
 
         @Override
-        protected Observable<ProcessingDocumentResult> processDocument(ContextAndDocument ctxt) {
+        protected Single<ProcessingDocumentResult> processDocument(ContextAndDocument ctxt) {
             ctxt.getDoc().intValue += ctxt.getCtxt().getParentInternalJob().initIntValue;
-            return new ProcessingDocumentResult(false,ctxt).toObservable();
+            return new ProcessingDocumentResult(false,ctxt).toSingle();
         }
 
         @Override
-        protected Observable<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
-            TestDocJobCreate.TestJobCreateTask testJobCreateTask = ctxt.getCtxt().getDependentTask(TestDocJobCreate.TestJobCreateTask.class).toBlocking().first();
+        protected Single<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
+            TestDocJobCreate.TestJobCreateTask testJobCreateTask = ctxt.getCtxt().getDependentTask(TestDocJobCreate.TestJobCreateTask.class).blockingFirst();
             Preconditions.checkArgument(testJobCreateTask.getDocKey().equals(e.getOwnerDocumentKey()));
             return ctxt.getCtxt().getSession().asyncGet(e.getOwnerDocumentKey(), TestDoc.class)
                     .map(doc->new DuplicateUniqueKeyCheckResult(ctxt.getCtxt(),doc));
         }
     }
-
-
 }

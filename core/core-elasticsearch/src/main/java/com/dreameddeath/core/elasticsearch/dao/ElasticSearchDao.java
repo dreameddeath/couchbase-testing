@@ -1,17 +1,18 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.elasticsearch.dao;
@@ -23,8 +24,8 @@ import com.dreameddeath.core.elasticsearch.exception.ElasticSearchDaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
+import io.reactivex.Single;
 import org.elasticsearch.action.get.GetResponse;
-import rx.Observable;
 
 
 /**
@@ -74,11 +75,11 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
     }
 
     public T get(String key){
-        return asyncGet(key).toBlocking().single();
+        return asyncGet(key).blockingGet();
     }
 
-    public Observable<T> asyncGet(String key){
-        Observable<GetResponse> responseObservable = client.get(mapper.documentIndexBuilder(bucketName, key), mapper.documentTypeBuilder(bucketName, key), key);
+    public Single<T> asyncGet(String key){
+        Single<GetResponse> responseObservable = client.get(mapper.documentIndexBuilder(bucketName, key), mapper.documentTypeBuilder(bucketName, key), key);
         return responseObservable.map(this::decode);
     }
 
@@ -90,7 +91,7 @@ public class ElasticSearchDao<T extends CouchbaseDocument> {
         return query.search();
     }
 
-    public Observable<ElasticSearchResult<T>> asyncSearch(ElasticSearchQuery<T> query){
+    public Single<ElasticSearchResult<T>> asyncSearch(ElasticSearchQuery<T> query){
         return query.asyncSearch();
     }
 

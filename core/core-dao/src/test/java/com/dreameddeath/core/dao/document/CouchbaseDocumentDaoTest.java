@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -33,11 +32,11 @@ import com.dreameddeath.core.model.exception.transcoder.DocumentDecodingExceptio
 import com.dreameddeath.core.model.exception.transcoder.DocumentEncodingException;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
+import io.reactivex.Single;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
 
@@ -75,7 +74,7 @@ public class CouchbaseDocumentDaoTest{
         }
 
         @Override
-        public Observable<TestRootDaoDoc> asyncBuildKey(ICouchbaseSession session, final TestRootDaoDoc newObject) throws DaoException {
+        public Single<TestRootDaoDoc> asyncBuildKey(ICouchbaseSession session, final TestRootDaoDoc newObject) throws DaoException {
             return cntDao.asyncIncrCounter(session,"cnt",1,false)
                     .map(cntVal->{newObject.getBaseMeta().setKey("test/"+cntVal);return newObject;});
         }

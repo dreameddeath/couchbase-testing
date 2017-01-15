@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -38,13 +37,14 @@ import com.dreameddeath.core.transcoder.json.GenericJacksonTranscoder;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
 import com.dreameddeath.testing.elasticsearch.ElasticSearchServer;
+import io.reactivex.Single;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import rx.Observable;
 
 import java.util.*;
 
@@ -162,25 +162,25 @@ public class ElasticSearchClientTest {
         doc.getBaseMeta().setCas(1);
         doc.getBaseMeta().setKey("/test/1");
         {
-            Observable<IndexResponse> createResponseObs = client.create(INDEX_NAME, "testDoc", doc);
-            IndexResponse createResponse = createResponseObs.toBlocking().first();
-            assertEquals(true, createResponse.isCreated());
+            Single<IndexResponse> createResponseObs = client.create(INDEX_NAME, "testDoc", doc);
+            IndexResponse createResponse = createResponseObs.blockingGet();
+            assertEquals(DocWriteResponse.Result.CREATED, createResponse.getResult());
         }
         doc.firstName="firstName2";
         doc.getBaseMeta().setKey("/test/2");
         {
-            Observable<IndexResponse> createResponseObs = client.create(INDEX_NAME, "testDoc", doc);
-            IndexResponse createResponse = createResponseObs.toBlocking().first();
-            assertEquals(true, createResponse.isCreated());
+            Single<IndexResponse> createResponseObs = client.create(INDEX_NAME, "testDoc", doc);
+            IndexResponse createResponse = createResponseObs.blockingGet();
+            assertEquals(DocWriteResponse.Result.CREATED, createResponse.getResult());
         }
         doc.firstName="firstName3 firstName2";
         doc.lastName="lastName2";
         doc.addresses.remove(1);
         doc.getBaseMeta().setKey("/test/3");
         {
-            Observable<IndexResponse> createResponseObs = client.create(INDEX_NAME, "testDoc", doc);
-            IndexResponse createResponse = createResponseObs.toBlocking().first();
-            assertEquals(true, createResponse.isCreated());
+            Single<IndexResponse> createResponseObs = client.create(INDEX_NAME, "testDoc", doc);
+            IndexResponse createResponse = createResponseObs.blockingGet();
+            assertEquals(DocWriteResponse.Result.CREATED, createResponse.getResult());
         }
 
         //Wait for indexing
@@ -224,8 +224,8 @@ public class ElasticSearchClientTest {
         doc.addresses.add(TestAddress.newAddress("road 1", 12345, "City1"));
         doc.addresses.add(TestAddress.newAddress("road 2", 67890, "City2"));
         doc.getBaseMeta().setKey("/test/1");
-
         cbSimulator.toBlocking().add(doc);
+
         doc.addresses.add(TestAddress.newAddress("road 2", 12345, "City3"));
         cbSimulator.toBlocking().replace(doc);
         doc.firstName="firstName2";

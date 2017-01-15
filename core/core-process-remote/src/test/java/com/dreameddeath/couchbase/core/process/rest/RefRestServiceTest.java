@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -30,7 +29,7 @@ import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
-import com.dreameddeath.core.process.exception.JobObservableExecutionException;
+import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
@@ -158,7 +157,7 @@ public class RefRestServiceTest extends Assert {
         job.initIntValue = 10;
         job.name = "testValu1";
         job.tempUid = UUID.randomUUID().toString();
-        JobContext<RemoteCreateJob> context = jobClient.executeJob(job, AnonymousUser.INSTANCE).toBlocking().single();
+        JobContext<RemoteCreateJob> context = jobClient.executeJob(job, AnonymousUser.INSTANCE).blockingGet();
 
         assertTrue(context.getJobState().isDone());
         String createdKey = context.getTasks(RemoteCreateJob.RemoteTestJobCreateTask.class).get(0).getInternalTask().key;
@@ -171,7 +170,7 @@ public class RefRestServiceTest extends Assert {
             RemoteUpdateJob updateJob = new RemoteUpdateJob();
             updateJob.incrIntValue = 20;
             updateJob.key = createdKey;
-            JobContext<RemoteUpdateJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE).toBlocking().single();
+            JobContext<RemoteUpdateJob> updateContext = updateJobClient.executeJob(updateJob, AnonymousUser.INSTANCE).blockingGet();
             assertTrue(updateContext.getJobState().isDone());
             TestDoc updatedDoc = cbSimulator.toBlocking().get(createdKey, TestDoc.class);
             assertEquals(job.initIntValue + updateJob.incrIntValue, (long) updatedDoc.intValue);
@@ -181,14 +180,14 @@ public class RefRestServiceTest extends Assert {
             RemoteUpdateGenJob updateJob = new RemoteUpdateGenJob();
             updateJob.descrIntValue = 3;
             updateJob.key = createdKey;
-            JobContext<RemoteUpdateGenJob> updateContext = updateJobClient.submitJob(updateJob, AnonymousUser.INSTANCE).toBlocking().single();
+            JobContext<RemoteUpdateGenJob> updateContext = updateJobClient.submitJob(updateJob, AnonymousUser.INSTANCE).blockingGet();
             try{
-                updateContext = updateJobClient.resumeJob(updateContext.getInternalJob(), AnonymousUser.INSTANCE).toBlocking().single();
+                updateContext = updateJobClient.toBlocking().resumeJob(updateContext.getInternalJob(), AnonymousUser.INSTANCE);
                 fail();
-            }catch (JobObservableExecutionException e){
+            }catch (JobExecutionException e){
                 //Ignore
             }
-            updateContext = updateJobClient.resumeJob(updateContext.getInternalJob(), AnonymousUser.INSTANCE).toBlocking().single();
+            updateContext = updateJobClient.resumeJob(updateContext.getInternalJob(), AnonymousUser.INSTANCE).blockingGet();
 
             assertTrue(updateContext.getJobState().isDone());
             TestDoc updatedDoc = cbSimulator.toBlocking().get(createdKey, TestDoc.class);

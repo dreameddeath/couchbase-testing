@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -24,7 +23,7 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
-import rx.Observable;
+import io.reactivex.Single;
 
 import java.util.*;
 
@@ -82,32 +81,30 @@ public class JobNotificationBuildResult<TJOB extends AbstractJob> {
         return Collections.unmodifiableMap(eventMap);
     }
 
-    public static <TJOB extends AbstractJob> Observable<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context,Collection<Event> events){
-        return Observable.just(new JobNotificationBuildResult<>(context, events));
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context,Collection<Event> events){
+        return Single.just(new JobNotificationBuildResult<>(context, events));
     }
 
-    public static <TJOB extends AbstractJob> Observable<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<Event> events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<Event> events){
         return build(previousRes,events,DuplicateMode.ERROR);
     }
 
-    public static <TJOB extends AbstractJob> Observable<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context, Event ... events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context, Event ... events){
         return build(context, Arrays.asList(events));
     }
 
-    public static <TJOB extends AbstractJob> Observable<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Event ... events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Event ... events){
         return build(previousRes,DuplicateMode.ERROR,events);
     }
 
-    public static <TJOB extends AbstractJob> Observable<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,DuplicateMode mode,Event ... events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,DuplicateMode mode,Event ... events){
         return build(previousRes, Arrays.asList(events),mode);
     }
 
 
-    public static <TJOB extends AbstractJob> Observable<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<Event> events,DuplicateMode mode){
-        return Observable.just(new JobNotificationBuildResult<>(previousRes, events,mode));
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<Event> events,DuplicateMode mode){
+        return Single.just(new JobNotificationBuildResult<>(previousRes, events,mode));
     }
-
-
 
     public enum DuplicateMode{
         ERROR,

@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -24,9 +23,9 @@ import com.dreameddeath.core.notification.listener.impl.AbstractLocalListener;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.google.common.base.Preconditions;
+import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
 
 import java.util.Collections;
 import java.util.Map;
@@ -97,7 +96,7 @@ public class NotificationTestListener extends AbstractLocalListener {
     }
 
     @Override
-    protected <T extends Event> Observable<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
+    protected <T extends Event> Single<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
         //LOG.error("Received event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
         try {
             Thread.sleep(new Double(Math.random() * 100).longValue());
@@ -115,7 +114,7 @@ public class NotificationTestListener extends AbstractLocalListener {
             LOG.info("Offering event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
 
             processedNotification.offer(notification, 20, TimeUnit.SECONDS);
-            return ProcessingResultInfo.buildObservable(notification,false,ProcessingResult.PROCESSED);
+            return ProcessingResultInfo.buildSingle(notification,false,ProcessingResult.PROCESSED);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

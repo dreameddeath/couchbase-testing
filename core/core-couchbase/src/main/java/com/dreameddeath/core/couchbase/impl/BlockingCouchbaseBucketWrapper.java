@@ -1,3 +1,20 @@
+/*
+ * Copyright Christophe Jeunesse
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package com.dreameddeath.core.couchbase.impl;
 
 import com.couchbase.client.java.view.ViewQuery;
@@ -7,9 +24,8 @@ import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
 import com.dreameddeath.core.couchbase.exception.DocumentStorageException;
 import com.dreameddeath.core.couchbase.exception.StorageException;
-import com.dreameddeath.core.couchbase.exception.StorageObservableException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 17/06/2016.
@@ -24,20 +40,32 @@ public class BlockingCouchbaseBucketWrapper implements IBlockingCouchbaseBucket 
     @Override
     public <T extends CouchbaseDocument> T get(String key, Class<T> entity) throws StorageException {
         try{
-            return asyncWrapper.asyncGet(key,entity).toBlocking().single();
+            return asyncWrapper.asyncGet(key,entity).blockingGet();
         }
-        catch(StorageObservableException e){
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause = e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
     @Override
     public <T extends CouchbaseDocument> T get(String key, Class<T> entity,ReadParams params) throws StorageException {
         try{
-            return asyncWrapper.asyncGet(key,entity,params).toBlocking().single();
+            return asyncWrapper.asyncGet(key,entity,params).blockingGet();
         }
-        catch(StorageObservableException e){
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause = e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
@@ -153,21 +181,33 @@ public class BlockingCouchbaseBucketWrapper implements IBlockingCouchbaseBucket 
     }
 
 
-    protected <T extends CouchbaseDocument> T syncDocumentObserverManage(final T doc, Observable<T> obj) throws StorageException{
+    protected <T extends CouchbaseDocument> T syncDocumentObserverManage(final T doc, Single<T> obj) throws StorageException{
         try{
-            return obj.toBlocking().single();
+            return obj.blockingGet();
         }
-        catch(StorageObservableException e) {
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause = e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 
-    protected Long syncCounterObserverManage(final String key, Observable<Long> obj) throws StorageException{
+    protected Long syncCounterObserverManage(final String key, Single<Long> obj) throws StorageException{
         try{
-            return obj.toBlocking().single();
+            return obj.blockingGet();
         }
-        catch(StorageObservableException e) {
-            throw e.getCause();
+        catch(RuntimeException e){
+            Throwable eCause = e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
         }
     }
 

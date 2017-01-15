@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -28,11 +27,12 @@ import com.dreameddeath.core.dao.session.IBlockingCouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
+import com.dreameddeath.core.model.exception.IllegalMethodCall;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.IUser;
+import io.reactivex.Single;
 import org.joda.time.DateTime;
-import rx.Observable;
 
 /**
  * Created by Christophe Jeunesse on 28/12/2015.
@@ -40,14 +40,14 @@ import rx.Observable;
 public class DummySession implements ICouchbaseSession {
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGetFromUID(String uid, Class<T> targetClass)  {
-        return Observable.empty();
+    public <T extends CouchbaseDocument> Single<T> asyncGetFromUID(String uid, Class<T> targetClass)  {
+        return Single.error(new IllegalMethodCall());
     }
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params) {
-        return Observable.empty();
+    public <T extends CouchbaseDocument> Single<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params) {
+        return Single.error(new IllegalMethodCall());
     }
 
     @Override
@@ -57,35 +57,35 @@ public class DummySession implements ICouchbaseSession {
 
 
     @Override
-    public Observable<Long> asyncGetCounter(String key) {
-        return Observable.empty();
+    public Single<Long> asyncGetCounter(String key) {
+        return Single.error(new IllegalMethodCall());
     }
 
     @Override
-    public Observable<Long> asyncIncrCounter(String key, long byVal) {
-        return Observable.empty();
+    public Single<Long> asyncIncrCounter(String key, long byVal) {
+        return Single.error(new IllegalMethodCall());
     }
 
     @Override
-    public Observable<Long> asyncDecrCounter(String key, long byVal) {
-        return Observable.empty();
-    }
-
-
-    @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGet(String key)  {
-        return Observable.empty();
-    }
-
-    @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncGet(String key, Class<T> targetClass)  {
-        return Observable.empty();
+    public Single<Long> asyncDecrCounter(String key, long byVal) {
+        return Single.error(new IllegalMethodCall());
     }
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncRefresh(T doc)  {
-        return Observable.just(doc);
+    public <T extends CouchbaseDocument> Single<T> asyncGet(String key)  {
+        return Single.error(new IllegalMethodCall());
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Single<T> asyncGet(String key, Class<T> targetClass)  {
+        return Single.error(new IllegalMethodCall());
+    }
+
+
+    @Override
+    public <T extends CouchbaseDocument> Single<T> asyncRefresh(T doc)  {
+        return Single.just(doc);
     }
 
     @Override
@@ -104,53 +104,53 @@ public class DummySession implements ICouchbaseSession {
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncBuildKey(T obj)  {
-        return Observable.just(obj);
+    public <T extends CouchbaseDocument> Single<T> asyncBuildKey(T obj)  {
+        return Single.just(obj);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncCreate(T obj)  {
-        return Observable.just(obj);
+    public <T extends CouchbaseDocument> Single<T> asyncCreate(T obj)  {
+        return Single.just(obj);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncSave(T obj)  {
-        return Observable.just(obj);
+    public <T extends CouchbaseDocument> Single<T> asyncSave(T obj)  {
+        return Single.just(obj);
     }
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncUpdate(T obj)  {
-        return Observable.just(obj);
-    }
-
-
-    @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncDelete(T obj)  {
-        return Observable.just(obj);
-    }
-
-    @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncValidate(T doc) {
-        return Observable.just(doc);
-    }
-
-
-
-    @Override
-    public Observable<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
-        return Observable.empty();
+    public <T extends CouchbaseDocument> Single<T> asyncUpdate(T obj)  {
+        return Single.just(obj);
     }
 
 
     @Override
-    public <T extends CouchbaseDocument> Observable<T> asyncAddOrUpdateUniqueKey(T doc, String value, String nameSpace) {
-        return Observable.just(doc);
+    public <T extends CouchbaseDocument> Single<T> asyncDelete(T obj)  {
+        return Single.just(obj);
+    }
+
+    @Override
+    public <T extends CouchbaseDocument> Single<T> asyncValidate(T doc) {
+        return Single.just(doc);
+    }
+
+
+
+    @Override
+    public Single<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
+        return Single.error(new IllegalMethodCall());
     }
 
 
     @Override
-    public Observable<Boolean> asyncRemoveUniqueKey(String internalKey) {
-        return Observable.empty();
+    public <T extends CouchbaseDocument> Single<T> asyncAddOrUpdateUniqueKey(T doc, String value, String nameSpace) {
+        return Single.just(doc);
+    }
+
+
+    @Override
+    public Single<Boolean> asyncRemoveUniqueKey(String internalKey) {
+        return Single.error(new IllegalMethodCall());
     }
 
     @Override
@@ -174,7 +174,7 @@ public class DummySession implements ICouchbaseSession {
     }
 
     @Override
-    public <TKEY, TVALUE, T extends CouchbaseDocument> Observable<IViewAsyncQueryResult<TKEY, TVALUE, T>> executeAsyncQuery(IViewQuery<TKEY, TVALUE, T> query)  {
+    public <TKEY, TVALUE, T extends CouchbaseDocument> Single<IViewAsyncQueryResult<TKEY, TVALUE, T>> executeAsyncQuery(IViewQuery<TKEY, TVALUE, T> query)  {
         return null;
     }
 

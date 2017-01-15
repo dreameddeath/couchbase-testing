@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -20,7 +19,6 @@ package com.dreameddeath.core.validation;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.dao.exception.DaoException;
-import com.dreameddeath.core.dao.exception.DaoObservableException;
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.dao.exception.validation.ValidationFailure;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
@@ -31,7 +29,7 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.dreameddeath.core.validation.annotation.Unique;
 import com.dreameddeath.core.validation.exception.ValidationCompositeFailure;
 import com.google.common.base.Preconditions;
-import rx.Observable;
+import io.reactivex.Maybe;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -91,7 +89,7 @@ public class UniqueValidator<T> implements Validator<T> {
     }
 
     @Override
-    public Observable<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, T value){
+    public Maybe<? extends ValidationFailure> asyncValidate(ValidatorContext ctxt, T value){
         if(value!=null){
             try {
                 String valueStr = buildFullKey(ctxt, value);
@@ -100,26 +98,26 @@ public class UniqueValidator<T> implements Validator<T> {
                 String uniqueKey = ctxt.getSession().buildUniqueKey(root, valueStr,annotation.nameSpace());
                 if ((root.getBaseMeta() instanceof IHasUniqueKeysRef) && ((IHasUniqueKeysRef) root.getBaseMeta()).isInDbKey(uniqueKey)) {
                     ((IHasUniqueKeysRef) root.getBaseMeta()).addDocUniqKeys(uniqueKey);
-                    return Observable.empty();
+                    return Maybe.empty();
                 } else {
                     return ctxt.getSession().asyncAddOrUpdateUniqueKey(root, valueStr, annotation.nameSpace())
                             .filter(foundKey -> false)
                             .map(foundKey -> new ValidationCompositeFailure(root, "Shouldn't occur"))
                             .onErrorResumeNext(throwable -> {
-                                if (throwable instanceof DaoObservableException && throwable.getCause() instanceof DuplicateUniqueKeyDaoException) {
-                                    return Observable.just(new ValidationCompositeFailure(ctxt.head(), field, "Duplicate Exception for value", throwable.getCause()));
+                                if (throwable instanceof DuplicateUniqueKeyDaoException) {
+                                    return Maybe.just(new ValidationCompositeFailure(ctxt.head(), field, "Duplicate Exception for key <"+((DuplicateUniqueKeyDaoException) throwable).getKey()+">", throwable));
                                 }
-                                return Observable.just(new ValidationCompositeFailure(ctxt.head(), field, "Other Exception ["+throwable.getClass().getName()+"/"+throwable.getMessage()+"]", throwable));
+                                return Maybe.just(new ValidationCompositeFailure(ctxt.head(), field, "Other Exception ["+throwable.getClass().getName()+"/"+throwable.getMessage()+"]", throwable));
                             });
                 }
             }
             catch(DaoException e){
-                throw new DaoObservableException(e);
+                return Maybe.error(e);
             }
             catch(IllegalAccessException|InvocationTargetException e){
-                return Observable.just(new ValidationCompositeFailure(ctxt.head(),field,"Exception during access of secondary values",e));
+                return Maybe.just(new ValidationCompositeFailure(ctxt.head(),field,"Exception during access of secondary values",e));
             }
         }
-        return Observable.empty();
+        return Maybe.empty();
     }
 }

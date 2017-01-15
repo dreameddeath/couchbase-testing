@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -90,6 +89,11 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
      */
     @DocumentProperty("nbAttempts")
     private NumericProperty<Long> nbAttempts = new StandardLongProperty(Notification.this,0);
+    /**
+     *  nbRemoteAttempts : number of remote processing attempts
+     */
+    @DocumentProperty("nbRemoteAttempts")
+    private NumericProperty<Long> nbRemoteAttempts = new StandardLongProperty(Notification.this,0);
 
 
     /**
@@ -157,6 +161,25 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
      * @return the new value of nbAttempts
      */
     public Long incNbAttempts() { return nbAttempts.inc(1L).get(); }
+
+
+    /**
+     * Getter of nbRemoteAttempts
+     * @return the value of nbRemoteAttempts
+     */
+    public Long getNbRemoteAttempts() { return nbRemoteAttempts.get(); }
+    /**
+     * Setter of nbRemoteAttempts
+     * @param val the new value of nbRemoteAttempts
+     */
+    public void setNbRemoteAttempts(Long val) { nbRemoteAttempts.set(val); }
+    /**
+     * Increment of nbRemoteAttempts
+     * @return the new value of nbRemoteAttempts
+     */
+    public Long incNbRemoteAttempts() { return nbRemoteAttempts.inc(1L).get(); }
+
+
 
     public enum Status{
         INITIALIZED,

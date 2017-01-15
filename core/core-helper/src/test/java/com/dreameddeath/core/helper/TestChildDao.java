@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -30,7 +29,7 @@ import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
 import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
-import rx.Observable;
+import io.reactivex.Single;
 
 import java.util.Arrays;
 import java.util.List;
@@ -76,7 +75,7 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
     }
 
     @Override
-    public Observable<TestDocChild> asyncBuildKey(ICouchbaseSession session, TestDocChild newObject) throws DaoException {
+    public Single<TestDocChild> asyncBuildKey(ICouchbaseSession session, TestDocChild newObject) throws DaoException {
         return session.asyncIncrCounter(String.format(TEST_CHILD_CNT_KEY,newObject.parent.getKey()),1)
                 .map(new BuildKeyFromCounterFunc(newObject,newObject.parent.getKey()));
     }

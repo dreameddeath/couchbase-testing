@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -23,7 +22,7 @@ import com.dreameddeath.core.notification.listener.impl.AbstractLocalListener;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.process.model.TestDocEvent;
-import rx.Observable;
+import io.reactivex.Single;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,16 +33,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class TestDocNotificationListener extends AbstractLocalListener {
-    public static final Map<String,AtomicInteger> mapCounter=new ConcurrentHashMap<>();
+    public static final String NAME="testDocEvent";
+    public static final Map<EventNotifInfo,AtomicInteger> mapCounter=new ConcurrentHashMap<>();
 
     @Override
     public String getName() {
-        return "testDocEvent";
+        return NAME;
     }
 
     @Override
     public String getType() {
-        return "testDocEvent";
+        return NAME;
     }
 
     @Override
@@ -57,10 +57,44 @@ public class TestDocNotificationListener extends AbstractLocalListener {
     }
 
     @Override
-    protected <T extends Event> Observable<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session){
+    protected <T extends Event> Single<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session){
         if(event instanceof TestDocEvent) {
-            mapCounter.computeIfAbsent(((TestDocEvent) event).sourceTask,(key)->new AtomicInteger(0)).incrementAndGet();
+            synchronized (mapCounter) {
+                int nbCalls = mapCounter.
+                        computeIfAbsent(new EventNotifInfo(((TestDocEvent) event).sourceTask, event.getId().toString()),
+                                (key) -> new AtomicInteger(0)
+                        ).incrementAndGet();
+                return ProcessingResultInfo.buildSingle(notification,false,ProcessingResult.PROCESSED);
+            }
         }
-        return ProcessingResultInfo.buildObservable(notification,false,ProcessingResult.PROCESSED);
+        return ProcessingResultInfo.buildSingle(notification,false,ProcessingResult.PROCESSED);
+    }
+
+    public static class EventNotifInfo{
+        private final String source;
+        private final String id;
+
+        public EventNotifInfo(String source, String id) {
+            this.source = source;
+            this.id = id;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            EventNotifInfo that = (EventNotifInfo) o;
+
+            if (!source.equals(that.source)) return false;
+            return id.equals(that.id);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = source.hashCode();
+            result = 31 * result + id.hashCode();
+            return result;
+        }
     }
 }
