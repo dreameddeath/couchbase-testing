@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -192,11 +191,11 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         });
     }
 
-    public  IServiceProviderSupplier<T> getServiceProviderSupplier(String name) throws ServiceDiscoveryException{
-        return getServiceProviderSupplier(name,30,TimeUnit.SECONDS);
+    public  IServiceProviderSupplier<T> getServiceProviderSupplier(String fullName) throws ServiceDiscoveryException{
+        return getServiceProviderSupplier(fullName,30,TimeUnit.SECONDS);
     }
 
-    public  IServiceProviderSupplier<T> getServiceProviderSupplier(String name, long timeout, TimeUnit unit) throws ServiceDiscoveryException{
+    public  IServiceProviderSupplier<T> getServiceProviderSupplier(String fullName, long timeout, TimeUnit unit) throws ServiceDiscoveryException{
         try {
             waitStarted(timeout,unit);
         }
@@ -204,14 +203,14 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
             throw new ServiceDiscoveryException("Not yet started",e);
         }
 
-        ProviderInfo info=serviceProviderMap.get(name);
+        ProviderInfo info=serviceProviderMap.get(fullName);
         if(info==null){
-            LOG.warn("Cannot find provider for service name {}, use Deferred Supplier",name);
+            LOG.warn("Cannot find provider for service name {}, use Deferred Supplier",fullName);
             return new DeferredServiceProviderSupplier<>(()->{
-                ProviderInfo deferredInfo=serviceProviderMap.get(name);
+                ProviderInfo deferredInfo=serviceProviderMap.get(fullName);
                 if(deferredInfo==null){
-                    LOG.error("Cannot find even in deferred mode the service {}",name);
-                    throw new IllegalStateException("Cannot find service <"+name+">");
+                    LOG.error("Cannot find even in deferred mode the service {}",fullName);
+                    throw new IllegalStateException("Cannot find service <"+fullName+">");
                 }
                 return deferredInfo.providerSupplier.getServiceProvider();
             });
@@ -291,22 +290,34 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         Map<String,ServiceInfoDescription> mapServiceByName = new TreeMap<>();
         for(Map.Entry<String,ProviderInfo> entry:serviceProviderMap.entrySet()){
             String fullName = entry.getKey();
+            String type = ServiceNamingUtils.getTypeFromServiceFullName(fullName);
             String name = ServiceNamingUtils.getNameFromServiceFullName(fullName);
+            String version = ServiceNamingUtils.getVersionFromServiceFullName(fullName);
+
             if(StringUtils.isNotEmpty(filterName) && !filterName.equals(name)){
                 continue;
             }
             ServiceInfoDescription foundServiceInfoDescription  = mapServiceByName.get(name);
             if(foundServiceInfoDescription ==null){
                 foundServiceInfoDescription  = new ServiceInfoDescription();
+                foundServiceInfoDescription.setFuncType(type);
                 foundServiceInfoDescription.setName(name);
                 foundServiceInfoDescription.setTechType(serviceTechnicalType);
                 mapServiceByName.put(name,foundServiceInfoDescription);
             }
 
-            String version = ServiceNamingUtils.getVersionFromServiceFullName(fullName);
             ServiceInfoVersionDescription<TSPEC> foundServiceVersionInfoDescription = foundServiceInfoDescription.addIfNeededServiceVersionInfoDescriptionMap(version, new ServiceInfoVersionDescription());
             try {
                 for (ServiceInstance<T> instance : entry.getValue().providerSupplier.getServiceProvider().getAllInstances()) {
+
+                    if(foundServiceInfoDescription.getAccess()==null){
+                        foundServiceInfoDescription.setAccess(instance.getPayload().getAccessType().toString());
+                    }
+                    else{
+                        String newAccessType=instance.getPayload().getAccessType().toString();
+                        String currentAccess=foundServiceInfoDescription.getAccess();
+                        Preconditions.checkArgument(currentAccess.equalsIgnoreCase(newAccessType),"Cannot have multiple access mode for service %s (%s vs %s)",fullName,currentAccess,newAccessType);
+                    }
                     if(foundServiceInfoDescription.getFuncType()==null){
                         foundServiceInfoDescription.setFuncType(instance.getPayload().getType());
                     }

@@ -24,6 +24,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.helper.service.AbstractDaoRestService;
 import com.dreameddeath.core.helper.service.DaoHelperServiceUtils;
 import com.dreameddeath.core.helper.service.SerializableViewQueryRow;
+import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.user.IUser;
@@ -37,13 +38,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.DATA_SERVICE_TYPE;
+import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.SERVICE_TYPE_DATA;
 
 /**
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 @Path("testDomain/v1.0/test/{testDocId}/child") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
-@ServiceDef(domain="test",type=DATA_SERVICE_TYPE,name="dao$testDomain$testChild",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain="test",type= SERVICE_TYPE_DATA,name="testChild",version="1.0",status = VersionStatus.STABLE,access = DataAccessType.READ_WRITE)
 @Api(value = "testDomain/v1.0/test/{testDocId}/child", description = "Basic Sub resource")
 public class TestChildDaoRestService extends AbstractDaoRestService {
 

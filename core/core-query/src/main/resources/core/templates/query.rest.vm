@@ -20,6 +20,7 @@ import javax.annotation.Generated;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.query.service.rest.AbstractRestQueryService;
 
@@ -50,7 +51,7 @@ import javax.ws.rs.core.UriInfo;
     comments = "${generator.comment}"
 )
 
-@ServiceDef(domain = "${service.domain}",type=AbstractRestQueryService.SERVICE_TYPE,name="${service.name}",version = "${service.version}")
+@ServiceDef(domain = "${service.domain}",type=AbstractRestQueryService.SERVICE_TYPE,name="${service.name}",version = "${service.version}",access=DataAccessType.READ_ONLY)
 @Path("${service.path}")
 @Api(value = "${service.path}", description = "${service.descr}")
 public class ${service.restClassName} extends AbstractRestQueryService<${service.outputModel.shortName}> {

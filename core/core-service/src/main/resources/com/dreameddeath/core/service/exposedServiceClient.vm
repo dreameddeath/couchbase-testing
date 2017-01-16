@@ -69,7 +69,7 @@ public class ${service.clientSimpleClassName} implements HasServiceClientFactory
 #end
     @Override @Autowired
     public void setServiceClientFactory(RestServiceClientFactory serviceClientFactory){
-        this.serviceClient = serviceClientFactory.getClient("${service.name}", "${service.version}");
+        this.serviceClient = serviceClientFactory.getClient("${service.type}","${service.name}", "${service.version}");
     }
 
     @Override

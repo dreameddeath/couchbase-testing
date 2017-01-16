@@ -18,6 +18,7 @@ package ${service.package};
 
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.context.IContextFactory;
 import com.dreameddeath.core.service.GeneratedRestImpl;
@@ -47,7 +48,7 @@ import ${import};
     comments = "${generator.comment}"
 )
 @Path("$esc.java($service.path)")
-@ServiceDef(domain="${service.domain}",type="${service.type}",name="${service.name}",version="${service.version}",status = VersionStatus.${service.status.name()})
+@ServiceDef(domain="${service.domain}",type="${service.type}",name="${service.name}",version="${service.version}",status = VersionStatus.${service.status.name()},access=DataAccessType.${service.accessType.name()})
 @Api(value = "$esc.java($service.path)", description = "$esc.java($service.description)")
 public class ${service.serverSimpleClassName} extends GeneratedRestImpl<${service.className}> {
     private ${service.className} serviceImpl;

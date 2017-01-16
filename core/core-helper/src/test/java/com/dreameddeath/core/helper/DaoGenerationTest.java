@@ -50,6 +50,8 @@ import javax.ws.rs.core.Response;
 import java.lang.reflect.Constructor;
 import java.util.List;
 
+import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.SERVICE_TYPE_DATA;
+
 /**
  * Created by Christophe Jeunesse on 14/04/2015.
  */
@@ -125,17 +127,17 @@ public class DaoGenerationTest extends Assert {
 
         assertEquals(3, rows.size());
 
-        RxJavaWebTarget readTarget = server.getClientFactory().getClient("dao#test#daoProccessor$read", "1.0.0")
+        RxJavaWebTarget readTarget = server.getClientFactory().getClient(SERVICE_TYPE_DATA,"daoProccessor$read", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
-        RxJavaWebTarget writeTarget = server.getClientFactory().getClient("dao#test#daoProccessor$write", "1.0.0")
+        RxJavaWebTarget writeTarget = server.getClientFactory().getClient(SERVICE_TYPE_DATA,"daoProccessor$write", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 
-        RxJavaWebTarget childReadTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$read", "1.0.0")
+        RxJavaWebTarget childReadTarget = server.getClientFactory().getClient(SERVICE_TYPE_DATA,"daoProccessorChild$read", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
-        RxJavaWebTarget childWriteTarget = server.getClientFactory().getClient("dao#test#daoProccessorChild$write", "1.0.0")
+        RxJavaWebTarget childWriteTarget = server.getClientFactory().getClient(SERVICE_TYPE_DATA,"daoProccessorChild$write", "1.0.0")
                 .getInstance()
                 .register(JsonProviderFactory.getProvider(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_PUBLIC));
 

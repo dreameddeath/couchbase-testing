@@ -18,6 +18,7 @@
 package com.dreameddeath.core.service;
 
 import com.dreameddeath.core.context.IGlobalContext;
+import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.service.client.rest.IRestServiceClient;
@@ -43,7 +44,7 @@ import javax.ws.rs.core.Response;
  * Created by Christophe Jeunesse on 17/03/2015.
  */
 @Path("/TestService")
-@ServiceDef(domain = "test",type="other",name="testService",version="1.0",status = VersionStatus.STABLE)
+@ServiceDef(domain = "test",type="other",name="testService",version="1.0",status = VersionStatus.STABLE,access = DataAccessType.READ_WRITE)
 @Api(value = "/TestService", description = "Basic resource")
 public class TestServiceRestService extends AbstractRestExposableService {
     private RestServiceClientFactory clientFactory;
@@ -141,7 +142,7 @@ public class TestServiceRestService extends AbstractRestExposableService {
         if(client==null){
             synchronized (this){
                 if(client==null) {
-                    client=clientFactory.getClient("testService", "1.0");
+                    client=clientFactory.getClient("other","testService", "1.0");
                 }
             }
         }

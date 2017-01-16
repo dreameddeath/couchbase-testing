@@ -25,8 +25,12 @@ import com.dreameddeath.core.dao.model.view.IViewQuery;
 import com.dreameddeath.core.dao.model.view.IViewQueryRow;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.core.user.IUser;
+import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.SERVICE_TYPE_DATA;
+
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -51,7 +55,7 @@ import ${import};
     comments = "${generator.comment}"
 )
 @Path("${service.rootRestPath}")
-@ServiceDef(domain="${service.domain}",type="data",name="${service.registeringName}$read",version="${service.version}",status = VersionStatus.${service.status})
+@ServiceDef(domain="${service.domain}",type=SERVICE_TYPE_DATA,name="${service.registeringName}$read",version="${service.version}",status = VersionStatus.${service.status},access=DataAccessType.READ_ONLY)
 @Api(value = "${service.rootRestPath}", description = "${service.descr}")
 public class ${service.targetReadName} extends AbstractDaoRestService {
 

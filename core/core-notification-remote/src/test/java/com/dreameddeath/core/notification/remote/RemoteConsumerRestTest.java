@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.dreameddeath.core.notification.config.NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE;
+import static com.dreameddeath.core.notification.remote.AbstractRemoteConsumerRest.SERVICE_TYPE_LISTENER;
 
 
 /**
@@ -111,7 +112,7 @@ public class RemoteConsumerRestTest extends Assert{
                     ((AbstractNotificationProcessor)bean).setSessionFactory(sessionFactory);
                 }
                 if(bean instanceof RemoteProducerListener){
-                    ((RemoteProducerListener)bean).setClientFactory((domain, name, version) -> server.getClientFactory().getClient(name,version));
+                    ((RemoteProducerListener)bean).setClientFactory((domain, name, version) -> server.getClientFactory().getClient(SERVICE_TYPE_LISTENER,name,version));
                     ((RemoteProducerListener)bean).init();
                 }
                 return bean;

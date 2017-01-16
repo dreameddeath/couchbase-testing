@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -42,6 +41,7 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.SERVICE_TYPE_DATA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -113,10 +113,10 @@ public class ViewTest {
 
         assertEquals(3, rows.size());
 
-        RxJavaWebTarget target = server.getClientFactory().getClient("dao$testDomain$test", "1.0")
+        RxJavaWebTarget target = server.getClientFactory().getClient(SERVICE_TYPE_DATA,"test", "1.0")
                 .getInstance();
 
-        RxJavaWebTarget childTarget = server.getClientFactory().getClient("dao$testDomain$testChild", "1.0")
+        RxJavaWebTarget childTarget = server.getClientFactory().getClient(SERVICE_TYPE_DATA,"testChild", "1.0")
                 .getInstance();
 
         for(IViewQueryRow<String,String,TestDoc> row:rows){

@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -71,7 +70,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ProxyServlet extends AsyncProxyServlet{
     public static final String PROXY_ENDPOINT_DESC = "proxy-endpoint";
     public static final String SERVICE_DISCOVERER_DOMAINS_PARAM_NAME = "discoverer-base-pathes";
-    public static final String PROXY_SERVICE_TYPE = "proxy-service-type";
+    public static final String PROXY_SERVICE_TECH_TYPE = "proxy-service-tech-type";
     private static final Logger LOG = LoggerFactory.getLogger(ProxyServlet.class);
     public static final String SERVICE_DISCOVERER_MANAGER_PARAM_NAME = "discoverer-manager";
 
@@ -83,7 +82,7 @@ public class ProxyServlet extends AsyncProxyServlet{
 
     private final AtomicBoolean forHttp2=new AtomicBoolean(false);
     private String prefix;
-    private String serviceType;
+    private String serviceTechType;
     private IEndPointDescription endPointDescription;
     private CuratorFramework curatorClient;
     private AbstractWebServer parentWebServer;
@@ -103,9 +102,9 @@ public class ProxyServlet extends AsyncProxyServlet{
         curatorClient = (CuratorFramework) config.getServletContext().getAttribute(AbstractDaemon.GLOBAL_CURATOR_CLIENT_SERVLET_PARAM_NAME);
         endPointDescription = (IEndPointDescription)config.getServletContext().getAttribute(PROXY_ENDPOINT_DESC);
         prefix = ServletUtils.normalizePath(endPointDescription.path(),false);
-        serviceType = (String)config.getServletContext().getAttribute(PROXY_SERVICE_TYPE);
-        if(serviceType==null){
-            serviceType = RestServiceTypeHelper.SERVICE_TYPE;
+        serviceTechType = (String)config.getServletContext().getAttribute(PROXY_SERVICE_TECH_TYPE);
+        if(serviceTechType ==null){
+            serviceTechType = RestServiceTypeHelper.SERVICE_TECH_TYPE;
         }
         parentWebServer = (AbstractWebServer)config.getServletContext().getAttribute(AbstractServletContextHandler.GLOBAL_WEBSERVER_PARAM_NAME);
         lifeCycleListener = new ProxyServletLifeCycleListener();
@@ -329,13 +328,13 @@ public class ProxyServlet extends AsyncProxyServlet{
         @Override public void lifeCycleStarting(LifeCycle lifeCycle) {}
         @Override public void lifeCycleStarted(LifeCycle lifeCycle) {
             for(String domain:domainsList){
-                LOG.info("Registering domain {} and type {} for proxy of webserver {}",domain,serviceType,parentWebServer.getUuid().toString());
+                LOG.info("Registering domain {} and type {} for proxy of webserver {}",domain, serviceTechType,parentWebServer.getUuid().toString());
                 AbstractServiceDiscoverer<?,CuratorDiscoveryServiceDescription<?>> serviceDiscovered;
                 try{
-                    serviceDiscovered = parentWebServer.getServiceDiscoveryManager().getServiceDiscoverer(domain,serviceType);
+                    serviceDiscovered = parentWebServer.getServiceDiscoveryManager().getServiceDiscoverer(domain, serviceTechType);
                 }
                 catch (Exception e){
-                    throw new RuntimeException("Cannot get "+domain+" for service type "+serviceType,e);
+                    throw new RuntimeException("Cannot get "+domain+" for service type "+ serviceTechType,e);
                 }
                 IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>> listener=serviceDiscovered.addListener(new IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>>() {
                     @Override
@@ -344,12 +343,12 @@ public class ProxyServlet extends AsyncProxyServlet{
                         serviceMap.computeIfAbsent(suid,newSuid->{
                                     LOG.info("Registering service {} for proxy of webserver {}",descr.getFullName(),parentWebServer.getUuid().toString());
                                     try{
-                                        ProxyClientRegistrar registrar = proxyClientRegistrarMap.computeIfAbsent(discoverer.getDomain(), domain -> new ProxyClientRegistrar(curatorClient, domain,serviceType, parentWebServer.getParentDaemon().getUuid().toString(), parentWebServer.getUuid().toString()));
+                                        ProxyClientRegistrar registrar = proxyClientRegistrarMap.computeIfAbsent(discoverer.getDomain(), domain -> new ProxyClientRegistrar(curatorClient, domain, serviceTechType, parentWebServer.getParentDaemon().getUuid().toString(), parentWebServer.getUuid().toString()));
                                         ProxyClientInstanceInfo proxyClientInfo = new ProxyClientInstanceInfo();
                                         proxyClientInfo.setUid(UUID.randomUUID().toString());
-                                        proxyClientInfo.setServiceName(ServiceNamingUtils.buildServiceFullName(suid.getServiceId(), suid.getVersion()));
+                                        proxyClientInfo.setServiceName(ServiceNamingUtils.buildServiceFullName(serviceTechType,suid.getServiceId(), suid.getVersion()));
                                         proxyClientInfo.setCreationDate(DateTime.now());
-                                        proxyClientInfo.setServiceType(serviceType);
+                                        proxyClientInfo.setServiceType(serviceTechType);
                                         proxyClientInfo.setUri("http://"+endPointDescription.host()+":"+endPointDescription.port()+ServletUtils.normalizePath("/"+endPointDescription.path()+"/"+suid.getServiceId()+"/"+suid.getVersion(),false));
                                         registrar.enrich(proxyClientInfo);
                                         registrar.register(proxyClientInfo);

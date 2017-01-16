@@ -18,10 +18,7 @@
 package com.dreameddeath.core.service.gentest;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.service.annotation.BodyInfo;
-import com.dreameddeath.core.service.annotation.ExposeMethod;
-import com.dreameddeath.core.service.annotation.ExposeService;
-import com.dreameddeath.core.service.annotation.VersionStatus;
+import com.dreameddeath.core.service.annotation.*;
 import com.dreameddeath.core.context.IGlobalContext;
 import com.dreameddeath.core.service.swagger.TestingDocument;
 import com.dreameddeath.core.service.swagger.TestingExternalElement;
@@ -35,7 +32,7 @@ import javax.ws.rs.HttpMethod;
 /**
  * Created by Christophe Jeunesse on 05/03/2015.
  */
-@ExposeService(path="/TestServiceGen",type="test",domain = "test",name = "testServiceGen",version = "1.0",status = VersionStatus.STABLE)
+@ExposeService(path="/TestServiceGen",type="test",domain = "test",name = "testServiceGen",version = "1.0",status = VersionStatus.STABLE,accessType = DataAccessType.READ_WRITE)
 public class TestServiceGenImpl implements ITestService {
     @Override
     @ExposeMethod(

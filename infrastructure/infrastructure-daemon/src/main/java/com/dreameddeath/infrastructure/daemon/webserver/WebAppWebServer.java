@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -84,7 +83,7 @@ public class WebAppWebServer extends AbstractWebServer<WebAppWebServer.Builder>{
         private String applicationContextConfig;
 
         public Builder(){
-            perServiceTypePathForProxy.put(RestServiceTypeHelper.SERVICE_TYPE,"");
+            perServiceTypePathForProxy.put(RestServiceTypeHelper.SERVICE_TECH_TYPE,"");
         }
 
 
@@ -135,7 +134,7 @@ public class WebAppWebServer extends AbstractWebServer<WebAppWebServer.Builder>{
         *
         */
         public Builder withProxyDiscoverDomain(String domain){
-            return withProxyDiscoverDomain(RestServiceTypeHelper.SERVICE_TYPE,domain);
+            return withProxyDiscoverDomain(RestServiceTypeHelper.SERVICE_TECH_TYPE,domain);
         }
 
         public Builder withProxyDiscoverDomain(String serviceType, String domain){
@@ -145,7 +144,7 @@ public class WebAppWebServer extends AbstractWebServer<WebAppWebServer.Builder>{
         }
 
         public Builder withProxyDiscoverDomains( final Collection<String> domains){
-            return withProxyDiscoverDomains(RestServiceTypeHelper.SERVICE_TYPE,domains);
+            return withProxyDiscoverDomains(RestServiceTypeHelper.SERVICE_TECH_TYPE,domains);
         }
         public Builder withProxyDiscoverDomains(final String serviceType, final Collection<String> domains){
             domains.forEach(domain->withProxyDiscoverDomain(serviceType,domain));

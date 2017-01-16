@@ -17,22 +17,21 @@
 
 package com.dreameddeath.core.service.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Created by Christophe Jeunesse on 04/03/2015.
+ * Created by CEAJ8230 on 15/01/2017.
  */
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ExposeService {
-    String path();
-    String domain();
-    String name();
-    String type();
-    String version();
-    VersionStatus status();
-    DataAccessType accessType();
+public enum DataAccessType {
+    READ_WRITE("rw"),
+    READ_ONLY("ro");
+
+    private final String name;
+
+    DataAccessType(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString(){
+        return name;
+    }
 }

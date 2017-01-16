@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -20,6 +19,7 @@ package com.dreameddeath.infrastructure.daemon.services;
 
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.service.AbstractRestExposableService;
+import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
@@ -42,14 +42,19 @@ import javax.ws.rs.core.MediaType;
  * Created by Christophe Jeunesse on 14/08/2015.
  */
 @Path("/daemon")
-@ServiceDef(domain=RestLocalDaemonAdminService.DAEMON_SERVICE_DOMAIN,type=RestLocalDaemonAdminService.DAEMON_SERVICE_TYPE,name=RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,status = VersionStatus.STABLE)
+@ServiceDef(domain=RestLocalDaemonAdminService.DAEMON_SERVICE_DOMAIN,
+        type=RestLocalDaemonAdminService.SERVICE_TYPE_ADMIN,
+        name=RestLocalDaemonAdminService.DAEMON_SERVICE_NAME,
+        version= RestLocalDaemonAdminService.DAEMON_SERVICE_VERSION,
+        status = VersionStatus.STABLE,
+        access = DataAccessType.READ_WRITE)
 @Api(value = "/daemon", description = "Daemon Administration service")
 public class RestLocalDaemonAdminService extends AbstractRestExposableService {
     private static final Logger LOG = LoggerFactory.getLogger(RestLocalDaemonAdminService.class);
     public static final String DAEMON_SERVICE_DOMAIN ="admin";
-    public static final String DAEMON_SERVICE_NAME ="daemon#admin";
+    public static final String DAEMON_SERVICE_NAME ="daemon";
     public static final String DAEMON_SERVICE_VERSION ="1.0";
-    public static final String DAEMON_SERVICE_TYPE = "admin";
+    public static final String SERVICE_TYPE_ADMIN = "admin";
 
     private final RestLocalConfigAdminService configAdminService=new RestLocalConfigAdminService();
     private RestLocalWebServerAdminService webServerAdminResource;

@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -89,7 +88,7 @@ public class SoapServiceTest extends Assert {
 
     @Test
     public void testClient() throws Exception {
-        ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN, SoapServiceTypeHelper.SERVICE_TYPE,server.getDaemonUid().toString(),server.getServerUid().toString());
+        ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN, SoapServiceTypeHelper.SERVICE_TECH_TYPE,server.getDaemonUid().toString(),server.getServerUid().toString());
         SoapCxfClientFactory<TestWebService> clientFactory = new SoapCxfClientFactory(server.getServiceDiscoverer(),clientRegistrar);
         GlobalContextFactoryImpl globalContextFactory = new GlobalContextFactoryImpl();
         globalContextFactory.setUserFactory(new StandardMockUserFactory());
@@ -102,7 +101,7 @@ public class SoapServiceTest extends Assert {
         String connectionString = "http://localhost:" + server.getLocalPort();
 
 
-        ISoapClient<TestWebService> soapClient=clientFactory.getClient("TestWebserviceSoap","1.0");
+        ISoapClient<TestWebService> soapClient=clientFactory.getClient("test","TestWebserviceSoap","1.0");
         Thread.sleep(500);
         {
             TestRequest request = new TestRequest();
@@ -123,7 +122,7 @@ public class SoapServiceTest extends Assert {
         }
 
         {
-            assertEquals(1L, server.getClientDiscoverer().getNbInstances("TestWebserviceSoap", "1.0"));
+            assertEquals(1L, server.getClientDiscoverer().getNbInstances("test","TestWebserviceSoap", "1.0"));
             List<ClientInstanceInfo> response = ClientBuilder.newBuilder().build()
                     .target(connectionString)
                     .register(new JacksonJsonProvider(ObjectMapperFactory.BASE_INSTANCE.getMapper(ServiceObjectMapperConfigurator.SERVICE_MAPPER_CONFIGURATOR)))
@@ -140,7 +139,7 @@ public class SoapServiceTest extends Assert {
         }
         clientRegistrar.close();
         Thread.sleep(500);
-        assertEquals(0L,server.getClientDiscoverer().getNbInstances("TestWebserviceSoap","1.0"));
+        assertEquals(0L,server.getClientDiscoverer().getNbInstances("test","TestWebserviceSoap","1.0"));
         {
             List<ClientInstanceInfo> responseAfter = ClientBuilder.newBuilder().build()
                     .target(connectionString)

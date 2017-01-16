@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -88,8 +87,8 @@ public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceI
         super.preparePath();
     }
 
-    public long getNbInstances(String serviceName, String version) {
-        return getNbInstances(ServiceNamingUtils.buildServiceFullName(serviceName,version));
+    public long getNbInstances(String type,String serviceName, String version) {
+        return getNbInstances(ServiceNamingUtils.buildServiceFullName(type,serviceName,version));
     }
 
     public long getNbInstances(String serviceFullName){
@@ -102,8 +101,8 @@ public abstract class AbstractClientDiscoverer<T extends AbstractClientInstanceI
         }
     }
 
-    public List<T> getInstances(String serviceName,String version){
-        return getInstances(ServiceNamingUtils.buildServiceFullName(serviceName,version));
+    public List<T> getInstances(String type,String serviceName,String version){
+        return getInstances(ServiceNamingUtils.buildServiceFullName(type,serviceName,version));
     }
 
     public List<T> getInstances(String serviceFullName){

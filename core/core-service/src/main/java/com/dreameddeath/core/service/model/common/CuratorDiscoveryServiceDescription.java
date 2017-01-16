@@ -1,23 +1,23 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
 package com.dreameddeath.core.service.model.common;
 
+import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.service.registrar.IEndPointDescription;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -47,6 +47,8 @@ public abstract class CuratorDiscoveryServiceDescription<TSPEC> {
     private Set<IEndPointDescription.Protocol> protocols=new TreeSet<>();
     @JsonProperty("jsonProvider")
     private String jsonProvider;
+    @JsonProperty("access")
+    private DataAccessType accessType;
     @JsonProperty("spec")
     private TSPEC spec;
 
@@ -128,7 +130,16 @@ public abstract class CuratorDiscoveryServiceDescription<TSPEC> {
     }
 
     @JsonProperty
-    public abstract String getServiceType();
+    public abstract String getServiceTechType();
+
     @JsonProperty
-    public abstract void setServiceType(String serviceType);
+    public abstract void setServiceTechType(String serviceType);
+
+    public DataAccessType getAccessType() {
+        return accessType;
+    }
+
+    public void setAccessMode(DataAccessType accessType) {
+        this.accessType = accessType;
+    }
 }

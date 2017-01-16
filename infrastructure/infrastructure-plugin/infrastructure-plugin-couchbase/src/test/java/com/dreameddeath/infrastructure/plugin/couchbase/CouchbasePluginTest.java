@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -43,6 +42,8 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.SERVICE_TYPE_DATA;
 
 /**
  * Created by Christophe Jeunesse on 20/12/2015.
@@ -88,7 +89,7 @@ public class CouchbasePluginTest extends Assert {
                     RestServiceClientFactory daoReadClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_READ_SERVICES_DOMAIN.get());
                     RestServiceClientFactory daoWriteClientFactory = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaoHelperConfigProperties.DAO_WRITE_SERVICES_DOMAIN.get());
                     Thread.sleep(100);
-                    Response response = daoWriteClientFactory.getClient("dao#test#testdoc$write", "1.0.0")
+                    Response response = daoWriteClientFactory.getClient(SERVICE_TYPE_DATA,"testdoc$write", "1.0.0")
                             .getInstance()
                             .request()
                             .sync()
@@ -98,7 +99,7 @@ public class CouchbasePluginTest extends Assert {
                     assertEquals(newDoc.name, createdTestDoc.name);
 
                     String[] keyParts = createdTestDoc.getMeta().getKey().split("/");
-                    Response readDocResponse = daoReadClientFactory.getClient("dao#test#testdoc$read", "1.0.0")
+                    Response readDocResponse = daoReadClientFactory.getClient(SERVICE_TYPE_DATA,"testdoc$read", "1.0.0")
                             .getInstance()
                             .path(keyParts[keyParts.length - 1])
                             .request()

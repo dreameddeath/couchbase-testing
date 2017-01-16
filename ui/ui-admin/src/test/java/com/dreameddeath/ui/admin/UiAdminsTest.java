@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -103,10 +102,10 @@ public class UiAdminsTest {
                 .withApplicationContextConfig("test.secondarywebserver.applicationContext.xml").withPath("/apis"));
 
         daemon2.addWebServer(ProxyWebServer.builder().withName("testing-rest-proxy")
-                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get(),"REST")
-                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,"tests","REST")
-                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TYPE,"test","REST")
-                .withDiscoverDomainAndPath(SoapServiceTypeHelper.SERVICE_TYPE,"test","SOAP"));
+                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TECH_TYPE,DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get(),"REST")
+                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TECH_TYPE,"tests","REST")
+                .withDiscoverDomainAndPath(RestServiceTypeHelper.SERVICE_TECH_TYPE,"test","REST")
+                .withDiscoverDomainAndPath(SoapServiceTypeHelper.SERVICE_TECH_TYPE,"test","SOAP"));
         daemons.add(daemon2);
         daemon2.getDaemonLifeCycle().start();//Start halted
     }

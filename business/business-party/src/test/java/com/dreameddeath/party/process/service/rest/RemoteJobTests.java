@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -111,7 +110,7 @@ public class RemoteJobTests {
         CouchbaseWebServerPlugin cbPlugin=daemonWrapper.getDaemon().getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
         String partyId = null;
         {
-            IRestServiceClient client = factory.getClient("createupdatepartyjob", "1.0.0");
+            IRestServiceClient client = factory.getClient("process","createupdatepartyjob", "1.0.0");
             CreateUpdatePartyJobRequest request = new CreateUpdatePartyJobRequest();
             request.setType(TypePublished.person);
             request.setPerson(new PersonRequest());
@@ -130,7 +129,7 @@ public class RemoteJobTests {
         }
 
         {
-            IRestServiceClient clientRoles = factory.getClient("createupdatepartyrolesjob", "1.0.0");
+            IRestServiceClient clientRoles = factory.getClient("process","createupdatepartyrolesjob", "1.0.0");
             CreateUpdatePartyRolesJobRequest rolesJobRequest = new CreateUpdatePartyRolesJobRequest();
             BillingAccountCreateUpdateRoleRequestRequest newRequest = new BillingAccountCreateUpdateRoleRequestRequest();
             rolesJobRequest.setRoleRequests(new ArrayList<>());

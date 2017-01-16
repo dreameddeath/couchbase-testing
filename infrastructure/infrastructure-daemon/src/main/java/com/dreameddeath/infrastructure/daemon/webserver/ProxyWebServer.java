@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -42,10 +41,10 @@ public class ProxyWebServer extends AbstractWebServer<ProxyWebServer.Builder> {
     protected List<ServletContextHandler> buildContextHandlers(Builder builder){
         List<ServletContextHandler> handlersList = super.buildContextHandlers(builder);
 
-        for(String serviceType:builder.perServiceTypediscoverDomains.keySet()) {
-            Collection<String> domains = builder.perServiceTypediscoverDomains.get(serviceType);
-            Preconditions.checkNotNull(builder.perServiceTypePath.get(serviceType),"The service type %d should have a path defined",serviceType);
-            handlersList.add(new ProxyServletContextHandler(this, domains,serviceType,builder.perServiceTypePath.get(serviceType)));
+        for(String serviceTechType:builder.perServiceTypediscoverDomains.keySet()) {
+            Collection<String> domains = builder.perServiceTypediscoverDomains.get(serviceTechType);
+            Preconditions.checkNotNull(builder.perServiceTechTypePath.get(serviceTechType),"The service type %d should have a path defined",serviceTechType);
+            handlersList.add(new ProxyServletContextHandler(this, domains,serviceTechType,builder.perServiceTechTypePath.get(serviceTechType)));
         }
 
         return handlersList;
@@ -57,15 +56,15 @@ public class ProxyWebServer extends AbstractWebServer<ProxyWebServer.Builder> {
 
     public static class Builder extends AbstractWebServer.Builder<Builder>{
         private final SetMultimap<String,String> perServiceTypediscoverDomains = HashMultimap.create();
-        private final Map<String,String> perServiceTypePath = new HashMap<>();
+        private final Map<String,String> perServiceTechTypePath = new HashMap<>();
 
         public Builder(){
             super.withServiceDiscoveryManager(true);
-            perServiceTypePath.put(RestServiceTypeHelper.SERVICE_TYPE,"");
+            perServiceTechTypePath.put(RestServiceTypeHelper.SERVICE_TECH_TYPE,"");
         }
 
         public Builder withDiscoverDomain(String domain){
-            return withDiscoverDomain(RestServiceTypeHelper.SERVICE_TYPE,domain);
+            return withDiscoverDomain(RestServiceTypeHelper.SERVICE_TECH_TYPE,domain);
         }
 
         public Builder withDiscoverDomain(String serviceType,String domain){
@@ -79,8 +78,8 @@ public class ProxyWebServer extends AbstractWebServer<ProxyWebServer.Builder> {
         }
 
 
-        public Builder withPath(String serviceType,String path){
-            perServiceTypePath.put(serviceType,path);
+        public Builder withPath(String serviceTechType,String path){
+            perServiceTechTypePath.put(serviceTechType,path);
             return this;
         }
 

@@ -119,7 +119,7 @@ public class TestServicesTest extends Assert{
         LOG.debug("Response {}", response.getStatus());
         ServicesByNameInstanceDescription readDescription = response.readEntity(ServicesByNameInstanceDescription.class);
         assertEquals(2, readDescription.getServiceInstanceMap().keySet().size());
-        RestServiceInstanceDescription serviceDesc= (RestServiceInstanceDescription)readDescription.getServiceInstanceMap().get("testService#1.0").get(0);
+        RestServiceInstanceDescription serviceDesc= (RestServiceInstanceDescription)readDescription.getServiceInstanceMap().get("other#testService#1.0").get(0);
         Map<String,Model> listModels = serviceDesc.getSpec().getDefinitions();
         assertEquals(5,listModels.size());
         assertEquals(6,listModels.get("TestingDocument").getProperties().size());
@@ -128,12 +128,12 @@ public class TestServicesTest extends Assert{
 
     @Test
     public void testClientRegister() throws Exception {
-        ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN, RestServiceTypeHelper.SERVICE_TYPE,server.getDaemonUid().toString(),server.getServerUid().toString());
+        ClientRegistrar clientRegistrar = new ClientRegistrar(server.getCuratorClient(),TestingRestServer.DOMAIN, RestServiceTypeHelper.SERVICE_TECH_TYPE,server.getDaemonUid().toString(),server.getServerUid().toString());
         AbstractServiceClientFactory clientFactory = new RestServiceClientFactory(server.getServiceDiscoverer(),clientRegistrar);
 
-        IServiceClient client = clientFactory.getClient("testService","1.0");
+        IServiceClient client = clientFactory.getClient("other","testService","1.0");
         Thread.sleep(100);
-        assertEquals(1L,server.getClientDiscoverer().getNbInstances("testService","1.0"));
+        assertEquals(1L,server.getClientDiscoverer().getNbInstances("other","testService","1.0"));
         String connectionString = "http://localhost:"+server.getLocalPort();
         List<ClientInstanceInfo> response = ClientBuilder.newBuilder().build()
                 .target(connectionString)
@@ -148,11 +148,11 @@ public class TestServicesTest extends Assert{
         assertEquals(server.getDaemonUid().toString(),response.get(0).getDaemonUid());
         assertEquals(server.getServerUid().toString(),response.get(0).getWebServerUid());
         assertEquals(client.getFullName(),response.get(0).getServiceName());
-        assertEquals(RestServiceTypeHelper.SERVICE_TYPE,response.get(0).getServiceType());
+        assertEquals(RestServiceTypeHelper.SERVICE_TECH_TYPE,response.get(0).getServiceType());
         assertEquals(client.getUuid().toString(),response.get(0).getUid());
         clientRegistrar.close();
         Thread.sleep(500);
-        assertEquals(0L,server.getClientDiscoverer().getNbInstances("testService","1.0"));
+        assertEquals(0L,server.getClientDiscoverer().getNbInstances("other","testService","1.0"));
 
         List<ClientInstanceInfo> responseAfter = ClientBuilder.newBuilder().build()
                 .target(connectionString)
@@ -181,7 +181,7 @@ public class TestServicesTest extends Assert{
 
         TestServiceRestClientImpl service = new TestServiceRestClientImpl();
         //service.setContextTranscoder(transcoder);
-        service.setServiceClient(clientFactory.getClient("testService","1.0"));
+        service.setServiceClient(clientFactory.getClient("other","testService","1.0"));
 
         ITestService.Input input = new ITestService.Input();
         input.id = "10";
@@ -288,7 +288,7 @@ public class TestServicesTest extends Assert{
 
             {*/
 
-                final IRestServiceClient client = clientFactory.getClient("testService", "1.0");
+                final IRestServiceClient client = clientFactory.getClient("other","testService", "1.0");
                 List<Observable<String>> results = new ArrayList<>();
                 long startTime = System.nanoTime();
                 for (int i = 0; i < 50; ++i) {

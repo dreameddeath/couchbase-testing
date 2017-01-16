@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -51,13 +50,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.dreameddeath.infrastructure.daemon.services.RestLocalDaemonAdminService.SERVICE_TYPE_ADMIN;
+
 /**
  * Created by Christophe Jeunesse on 14/08/2015.
  */
 public class AbstractDaemonTest extends Assert {
     private static final Logger LOG =  LoggerFactory.getLogger(AbstractDaemonTest.class);
     private CuratorTestUtils testUtils;
-    private static final String REST_SERVICE_TYPE = RestServiceTypeHelper.SERVICE_TYPE;
+    private static final String REST_SERVICE_TYPE = RestServiceTypeHelper.SERVICE_TECH_TYPE;
     @Before
     public void setup() throws Exception{
         testUtils = new CuratorTestUtils();
@@ -125,7 +126,7 @@ public class AbstractDaemonTest extends Assert {
             try {
 
                 Integer response = daemon.getAdditionalWebServers().get(0).getServiceDiscoveryManager().getClientFactory("tests")
-                        .getClient("tests#tests#tests", "1.0")
+                        .getClient("tests","tests#tests#tests", "1.0")
                         .getInstance()
                         //.path("/status")
                         .request(MediaType.APPLICATION_JSON)
@@ -141,7 +142,7 @@ public class AbstractDaemonTest extends Assert {
 
             try {
                 WebServerInfo response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory("admin")
-                        .getClient("daemon#admin", "1.0")
+                        .getClient(SERVICE_TYPE_ADMIN,"daemon", "1.0")
                         .getInstance()
                         .path("/webservers/tests")
                         .request(MediaType.APPLICATION_JSON)
@@ -157,7 +158,7 @@ public class AbstractDaemonTest extends Assert {
 
             try {
                 StatusResponse response = daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                        .getClient("daemon#admin", "1.0")
+                        .getClient(SERVICE_TYPE_ADMIN,"daemon", "1.0")
                         .getInstance()
                         .path("/status")
                         .request(MediaType.APPLICATION_JSON)
@@ -175,7 +176,7 @@ public class AbstractDaemonTest extends Assert {
                 StatusUpdateRequest request = new StatusUpdateRequest();
                 request.setAction(StatusUpdateRequest.Action.HALT);
                 StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                        .getClient("daemon#admin", "1.0")
+                        .getClient(SERVICE_TYPE_ADMIN,"daemon", "1.0")
                         .getInstance()
                         .path("/status")
                         .request(MediaType.APPLICATION_JSON)
@@ -194,7 +195,7 @@ public class AbstractDaemonTest extends Assert {
                 StatusUpdateRequest request = new StatusUpdateRequest();
                 request.setAction(StatusUpdateRequest.Action.STOP);
                 StatusResponse response= daemon.getAdminWebServer().getServiceDiscoveryManager().getClientFactory(DaemonConfigProperties.DAEMON_ADMIN_SERVICES_DOMAIN.get())
-                        .getClient("daemon#admin", "1.0")
+                        .getClient(SERVICE_TYPE_ADMIN,"daemon", "1.0")
                         .getInstance()
                         .path("/status")
                         .request(MediaType.APPLICATION_JSON)
