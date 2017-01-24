@@ -213,7 +213,7 @@ public class UpgraderTest {
     @Test
     public void upgradeUnitTests() throws Exception{
         EntityVersionUpgradeManager upgradeManager = (EntityVersionUpgradeManager) ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE).getDeserializationConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
-        ICouchbaseSession session = sessionFactory.newReadWriteSession(null);
+        ICouchbaseSession session = sessionFactory.newReadWriteSession("test",null);
         TestModel v1 =session.newEntity(TestModel.class);
         String refValue = "A first Value";
         v1.value = refValue;

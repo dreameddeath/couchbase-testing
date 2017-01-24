@@ -63,12 +63,12 @@ public class RemoteProducerListener extends AbstractDiscoverableListener {
         return session.asyncSave(notification)
                 .flatMap(savedNotif->
                     remoteClient.getInstance()
-                    .path("/{id}")
+                    .path("{domain}/{id}")
+                    .resolveTemplate("domain",notification.getDomain())
                     .resolveTemplate("id",notification.getBaseMeta().getKey())
                     .request()
                     .post(Entity.json(""), RemoteProcessingResult.class)
                     .flatMap(remoteProcessingResult -> mapResult(remoteProcessingResult,session))
-                    //.onErrorReturn(throwable -> ProcessingResultInfo.build(notification,false,ProcessingResult.DEFERRED))
                 )
                 .onErrorReturn(throwable -> ProcessingResultInfo.build(notification,false,ProcessingResult.DEFERRED))
                 ;

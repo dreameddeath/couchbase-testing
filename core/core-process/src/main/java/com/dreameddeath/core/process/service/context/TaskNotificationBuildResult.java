@@ -66,6 +66,7 @@ public class TaskNotificationBuildResult<TJOB extends AbstractJob,TTASK extends 
         }
         event.setTaskKey(taskKey);
         eventMap.put(applicableModelId,event);
+        event.setDomain(context.getSession().getDomain());
         return this;
     }
 

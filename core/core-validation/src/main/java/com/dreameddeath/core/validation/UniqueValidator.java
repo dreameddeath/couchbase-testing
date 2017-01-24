@@ -93,13 +93,13 @@ public class UniqueValidator<T> implements Validator<T> {
         if(value!=null){
             try {
                 String valueStr = buildFullKey(ctxt, value);
-
                 CouchbaseDocument root = HasParent.Helper.getParentDocument(ctxt.head());
                 String uniqueKey = ctxt.getSession().buildUniqueKey(root, valueStr,annotation.nameSpace());
-                if ((root.getBaseMeta() instanceof IHasUniqueKeysRef) && ((IHasUniqueKeysRef) root.getBaseMeta()).isInDbKey(uniqueKey)) {
+                if((root.getBaseMeta() instanceof IHasUniqueKeysRef) && ((IHasUniqueKeysRef) root.getBaseMeta()).isInDbKey(uniqueKey)){
                     ((IHasUniqueKeysRef) root.getBaseMeta()).addDocUniqKeys(uniqueKey);
                     return Maybe.empty();
-                } else {
+                }
+                else{
                     return ctxt.getSession().asyncAddOrUpdateUniqueKey(root, valueStr, annotation.nameSpace())
                             .filter(foundKey -> false)
                             .map(foundKey -> new ValidationCompositeFailure(root, "Shouldn't occur"))

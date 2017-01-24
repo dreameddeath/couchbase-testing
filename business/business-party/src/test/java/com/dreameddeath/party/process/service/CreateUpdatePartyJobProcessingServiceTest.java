@@ -35,6 +35,7 @@ import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.notification.NotificationWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
+import com.dreameddeath.party.DomainConstants;
 import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.model.v1.Person;
 import com.dreameddeath.party.process.model.v1.CreateUpdatePartyJob;
@@ -107,7 +108,7 @@ public class CreateUpdatePartyJobProcessingServiceTest {
 
         JobContext<CreateUpdatePartyJob> createJobJobContext =executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE).blockingGet();
 
-        ICouchbaseSession controlSession = cbPlugin.getSessionFactory().newReadOnlySession(null);
+        ICouchbaseSession controlSession = cbPlugin.getSessionFactory().newReadOnlySession(DomainConstants.PARTY_DOMAIN,null);
         CreateUpdatePartyJob inDbJob = controlSession.toBlocking().blockingGet(createJobJobContext.getInternalJob().getBaseMeta().getKey(),CreateUpdatePartyJob.class);
         assertEquals(inDbJob.getStateInfo().getState(), ProcessState.State.DONE);
         CreateUpdatePartyJob.CreatePartyTask inDbTask = controlSession.toBlocking().blockingGet(createUpdatePartyJob.getBaseMeta().getKey()+"/task/1",CreateUpdatePartyJob.CreatePartyTask.class);

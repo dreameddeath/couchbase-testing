@@ -17,6 +17,7 @@
 
 package com.dreameddeath.couchbase.core.process.remote;
 
+import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.IJobBlockingExecutorClient;
@@ -37,14 +38,21 @@ import java.util.UUID;
 public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecutorClient<T>{
     private final UUID instanceUUID=UUID.randomUUID();
     private final Class<T> jobClass;
+    private final String domain;
     private final IJobProcessingService<T> dummyProcessing;
-
     private final RemoteJobExecutorService<T> remoteJobExecutorService;
 
     public RemoteJobExecutorClient(Class<T> jobClass, RemoteJobExecutorService<T> executorService) {
         this.jobClass = jobClass;
+        this.domain= EntityDef.build(jobClass).getModelId().getDomain();
+
         this.remoteJobExecutorService = executorService;
         this.dummyProcessing = new DummyRemoteJobProcessingService<>();
+    }
+
+    @Override
+    public String getDomain() {
+        return domain;
     }
 
     @Override

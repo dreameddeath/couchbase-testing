@@ -20,6 +20,7 @@ package com.dreameddeath.core.notification.dao;
 import com.dreameddeath.core.couchbase.BucketDocument;
 import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
 import com.dreameddeath.core.dao.annotation.DaoForClass;
+import com.dreameddeath.core.dao.annotation.ParentDao;
 import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoException;
@@ -36,7 +37,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 01/07/2016.
  */
-@DaoForClass(Notification.class)
+@DaoForClass(Notification.class) @ParentDao(EventDao.class)
 public class NotificationDao extends CouchbaseDocumentWithKeyPatternDao<Notification> {
     public static final String NOTIFICATION_UID_NAMESPACE="core/notification/id";
     public static final String FMT_KEY=EventDao.EVENT_FMT_KEY+"/notif/%s";
@@ -68,6 +69,11 @@ public class NotificationDao extends CouchbaseDocumentWithKeyPatternDao<Notifica
     }
 
     @Override
+    public final boolean isKeySharedAcrossDomains() {
+        return true;
+    }
+
+    @Override
     protected String getKeyRawPattern() {
         return PATTERN_KEY;
     }
@@ -94,8 +100,6 @@ public class NotificationDao extends CouchbaseDocumentWithKeyPatternDao<Notifica
                     newObject.getBaseMeta().setKey(getKeyFromParams(newObject.getEventId(),newId));
                     return newObject;
                 });
-        /*newObject.getBaseMeta().setKey(getKeyFromParams(newObject.getEventId(),newObject.getId()));
-        return Observable.just(newObject)*/
     }
 
     @Override

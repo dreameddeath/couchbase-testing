@@ -17,6 +17,7 @@
 
 package com.dreameddeath.couchbase.core.process.rest;
 
+import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
@@ -26,10 +27,13 @@ import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
 import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
 import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
 import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
 import com.dreameddeath.core.process.dao.JobDao;
 import com.dreameddeath.core.process.dao.TaskDao;
 import com.dreameddeath.core.process.exception.JobExecutionException;
+import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.service.IJobExecutorClient;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
@@ -101,10 +105,10 @@ public class RefRestServiceTest extends Assert {
         cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         CouchbaseSessionFactory sessionFactory = new CouchbaseSessionFactory.Builder().build();
-        sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new TaskDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),AbstractJob.class,JobDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),AbstractTask.class,TaskDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
 
         bus = new EventBusImpl();

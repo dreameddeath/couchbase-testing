@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -43,6 +42,7 @@ public class DaoDef {
     private boolean isUidPureField;
     private String uidSetterPattern;
     private String uidGetterPattern;
+    private boolean isSharedKeyAccrossDomain;
     private boolean generateRestLayer;
 
     public DaoDef(CouchbaseDocumentReflection docReflection) {
@@ -53,6 +53,7 @@ public class DaoDef {
         generateRestLayer = daoEntityAnnot.rest();
 
         if (baseDaoClassInfo.isInstanceOf(IDaoWithKeyPattern.class)) {
+            isSharedKeyAccrossDomain =daoEntityAnnot.sharedKeyAccrossDomain();
             if (baseDaoClassInfo.isInstanceOf(IDaoForDocumentWithUID.class)) {
                 type = Type.WITH_UID;
                 UidDef uidDef = docReflection.getClassInfo().getAnnotation(UidDef.class);
@@ -146,6 +147,9 @@ public class DaoDef {
         else return getUidSetterPattern() + "(" + data + ")";
     }
 
+    public boolean isSharedKeyAccrossDomain() {
+        return isSharedKeyAccrossDomain;
+    }
 
     public enum Type {
         BASE(false, false),

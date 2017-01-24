@@ -58,34 +58,41 @@ public class CouchbaseSession implements ICouchbaseSession {
     private final BucketDocumentCache sessionCache;
     private final Map<String,CouchbaseUniqueKey> keyCache;
     private final Map<String,Long> counters;
+    private final String domain;
 
-    public CouchbaseSession(CouchbaseSessionFactory factory, IUser user){
-        this(factory, SessionType.READ_ONLY,user);
+    public CouchbaseSession(CouchbaseSessionFactory factory, String domain,IUser user){
+        this(factory, SessionType.READ_ONLY,domain,user);
     }
 
-    public CouchbaseSession(CouchbaseSessionFactory factory, IUser user,String keyPrefix){
-        this(factory, SessionType.READ_ONLY,user,keyPrefix);
+    public CouchbaseSession(CouchbaseSessionFactory factory, String domain,IUser user,String keyPrefix){
+        this(factory, SessionType.READ_ONLY,domain,user,keyPrefix);
     }
 
-    public CouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user){
-        this(factory, type, user,null);
+    public CouchbaseSession(CouchbaseSessionFactory factory, SessionType type,String domain, IUser user){
+        this(factory, type, domain,user,null);
     }
 
-    public CouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user,String keyPrefix) {
-        this(factory, type, user,keyPrefix,new ConcurrentHashMap<>(),new ConcurrentHashMap<>(),null);
+    public CouchbaseSession(CouchbaseSessionFactory factory, SessionType type,String domain, IUser user,String keyPrefix) {
+        this(factory, type, domain,user,keyPrefix,new ConcurrentHashMap<>(),new ConcurrentHashMap<>(),null);
     }
 
-    private CouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user,String keyPrefix,
+    private CouchbaseSession(CouchbaseSessionFactory factory, SessionType type,String domain, IUser user,String keyPrefix,
                              Map<String,CouchbaseUniqueKey> keyCache,Map<String,Long> counters,BucketDocumentCache sessionCache) {
         this.sessionFactory = factory;
         this.dateTimeService = factory.getDateTimeServiceFactory().getService();
         this.sessionType = type;
+        this.domain = domain;
         this.user = user;
         this.keyPrefix = keyPrefix;
         this.blockingSession = new BlockingCouchbaseSession(this);
         this.sessionCache=(sessionCache!=null)?sessionCache:new BucketDocumentCache(this);
         this.keyCache=keyCache;
         this.counters=counters;
+    }
+
+    @Override
+    public String getDomain() {
+        return domain;
     }
 
     @Override
@@ -140,7 +147,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public Single<Long> asyncGetCounter(String key) throws DaoException {
-        CouchbaseCounterDao dao = sessionFactory.getCounterDaoFactory().getDaoForKey(key);
+        CouchbaseCounterDao dao = sessionFactory.getCounterDaoFactory().getDaoForKey(domain,key);
         if(isCalcOnly() && counters.containsKey(key)){
             return Single.just(counters.get(key));
         }
@@ -163,7 +170,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             return result;
         }
         else{
-            CouchbaseCounterDao dao = sessionFactory.getCounterDaoFactory().getDaoForKey(key);
+            CouchbaseCounterDao dao = sessionFactory.getCounterDaoFactory().getDaoForKey(domain,key);
             return dao.asyncIncrCounter(this,key, byVal, isCalcOnly());
         }
     }
@@ -178,7 +185,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             return result;
         }
         else{
-            CouchbaseCounterDao dao = sessionFactory.getCounterDaoFactory().getDaoForKey(key);
+            CouchbaseCounterDao dao = sessionFactory.getCounterDaoFactory().getDaoForKey(domain,key);
             return dao.asyncDecrCounter(this,key, byVal, isCalcOnly());
         }
     }
@@ -225,7 +232,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     public <T extends CouchbaseDocument> Single<T> asyncCreate(T obj){
         try {
             checkReadOnly(obj);
-            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,(Class<T>) obj.getClass());
             return dao.asyncCreate(this, obj, isCalcOnly()).map(this::updateCache);
         }
         catch (DaoException e){
@@ -238,7 +245,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     public <T extends CouchbaseDocument> Single<T> asyncBuildKey(T obj) {
         if(obj.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
             try {
-                return sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass()).asyncBuildKey(this, obj);
+                return sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,(Class<T>) obj.getClass()).asyncBuildKey(this, obj);
             }
             catch (DaoException e){
                 return Single.error(e);
@@ -257,7 +264,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             if (cachedObj != null) {
                 return Single.just(cachedObj);
             } else {
-                CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForKey(key);
+                CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForKey(domain,key);
                 Single<T> result = dao.asyncGet(this, key);
                 result.doOnSuccess(this::updateCache);
                 return result;
@@ -276,7 +283,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             if (cacheResult != null) {
                 return Single.just((T) cacheResult);
             } else {
-                CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+                CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,targetClass);
                 Single<T> result = dao.asyncGet(this, key);
                 result.doOnSuccess(this::updateCache);
                 return result;
@@ -292,7 +299,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public <T extends CouchbaseDocument> Single<T> asyncRefresh(T doc){
         try {
-            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) doc.getClass());
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,(Class<T>) doc.getClass());
             Single<T> result = dao.asyncGet(this, doc.getBaseMeta().getKey());
             result.doOnSuccess(this::updateCache);
             return result;
@@ -308,7 +315,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     public <T extends CouchbaseDocument> Single<T> asyncUpdate(T obj){
         try {
             checkReadOnly(obj);
-            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,(Class<T>) obj.getClass());
             return dao.asyncUpdate(this, obj, isCalcOnly())
                     .map(this::updateCache);
         }
@@ -322,7 +329,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     public <T extends CouchbaseDocument> Single<T> asyncDelete(T obj) {
         try {
             checkReadOnly(obj);
-            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass((Class<T>) obj.getClass());
+            CouchbaseDocumentDao<T> dao = sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,(Class<T>) obj.getClass());
             return dao.asyncDelete(this, obj, isCalcOnly())
                     .map(this::updateCache);
         }
@@ -346,7 +353,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     public <T extends CouchbaseDocument> Single<T> asyncGetFromUID(String uid, Class<T> targetClass){
         try {
             @SuppressWarnings("unchecked")
-            IDaoForDocumentWithUID<T> dao = (IDaoForDocumentWithUID<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+            IDaoForDocumentWithUID<T> dao = (IDaoForDocumentWithUID<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,targetClass);
             final String key = dao.getKeyFromUID(uid);
             CouchbaseDocument cacheResult = sessionCache.get(key);
             if (cacheResult != null) {
@@ -363,7 +370,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException{
-        IDaoForDocumentWithUID dao = (IDaoForDocumentWithUID) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+        IDaoForDocumentWithUID dao = (IDaoForDocumentWithUID) sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,targetClass);
         return dao.getKeyFromUID(uid);
     }
 
@@ -373,7 +380,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     public <T extends CouchbaseDocument> Single<T> asyncGetFromKeyParams(Class<T> targetClass, Object... params){
         try {
             @SuppressWarnings("unchecked")
-            IDaoWithKeyPattern<T> dao = (IDaoWithKeyPattern<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+            IDaoWithKeyPattern<T> dao = (IDaoWithKeyPattern<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,targetClass);
             final String key = dao.getKeyFromParams(params);
             CouchbaseDocument cacheResult = sessionCache.get(key);
             if (cacheResult != null) {
@@ -390,7 +397,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> String getKeyFromKeyParams(Class<T> targetClass, Object... params) throws DaoException {
-        IDaoWithKeyPattern dao = (IDaoWithKeyPattern) sessionFactory.getDocumentDaoFactory().getDaoForClass(targetClass);
+        IDaoWithKeyPattern dao = (IDaoWithKeyPattern) sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,targetClass);
         return dao.getKeyFromParams(params);
     }
 
@@ -416,10 +423,10 @@ public class CouchbaseSession implements ICouchbaseSession {
     public <T extends CouchbaseDocument> String buildUniqueKey(T doc,String value, String nameSpace) throws DaoException{
         CouchbaseUniqueKeyDao dao;
         try {
-            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace);
+            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(domain,nameSpace);
         }
         catch(DaoNotFoundException e){
-            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace, sessionFactory.getDocumentDaoFactory().getDaoForClass(doc.getClass()));
+            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace, sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,doc.getClass()));
         }
 
         return dao.buildInternalKey(nameSpace,value);
@@ -439,11 +446,11 @@ public class CouchbaseSession implements ICouchbaseSession {
         }
         CouchbaseUniqueKeyDao dao;
         try {
-            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace);
+            dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(domain,nameSpace);
         }
         catch(DaoNotFoundException e){
             try {
-                dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace, sessionFactory.getDocumentDaoFactory().getDaoForClass(doc.getClass()));
+                dao = sessionFactory.getUniqueKeyDaoFactory().getDaoFor(nameSpace, sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,doc.getClass()));
             }
             catch(DaoNotFoundException e1){
                 return Single.error(e);
@@ -461,9 +468,9 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public Single<CouchbaseUniqueKey> asyncGetUniqueKey(String internalKey) {
         try {
-            CouchbaseUniqueKey keyDoc = keyCache.get(sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey).buildKey(internalKey));
+            CouchbaseUniqueKey keyDoc = keyCache.get(sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(domain,internalKey).buildKey(internalKey));
             if (keyDoc == null) {
-                CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
+                CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(domain,internalKey);
                 return dao.asyncGetFromInternalKey(this, internalKey);
             }
             return Single.just(keyDoc);
@@ -476,7 +483,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public Single<Boolean> asyncRemoveUniqueKey(String internalKey) {
         try {
-            final CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(internalKey);
+            final CouchbaseUniqueKeyDao dao = sessionFactory.getUniqueKeyDaoFactory().getDaoForInternalKey(domain,internalKey);
             return asyncGetUniqueKey(internalKey).map(keyDoc -> {
                         checkReadOnly(keyDoc);
                         return keyDoc;
@@ -515,7 +522,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public ICouchbaseSession getTemporaryReadOnlySession() {
-        return new TemporaryCouchbaseSession(sessionFactory,sessionType,user,keyPrefix,keyCache,counters,sessionCache);
+        return new TemporaryCouchbaseSession(sessionFactory,sessionType,domain,user,keyPrefix,keyCache,counters,sessionCache);
     }
 
     @Override
@@ -525,7 +532,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     public <T extends CouchbaseDocument> ICouchbaseBucket getClientForClass(Class<T> clazz){
         try {
-            return sessionFactory.getDocumentDaoFactory().getDaoForClass(clazz).getClient();
+            return sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,clazz).getClient();
         }
         catch(DaoNotFoundException e){
             return null;
@@ -535,8 +542,8 @@ public class CouchbaseSession implements ICouchbaseSession {
     private class TemporaryCouchbaseSession extends CouchbaseSession implements ICouchbaseSession{
         private final IBlockingCouchbaseSession blockingCouchbaseSession;
 
-        private TemporaryCouchbaseSession(CouchbaseSessionFactory factory, SessionType type, IUser user, String keyPrefix, Map<String, CouchbaseUniqueKey> keyCache, Map<String, Long> counters, BucketDocumentCache sessionCache) {
-            super(factory, type, user, keyPrefix, keyCache, counters, sessionCache);
+        private TemporaryCouchbaseSession(CouchbaseSessionFactory factory, SessionType type,String domain, IUser user, String keyPrefix, Map<String, CouchbaseUniqueKey> keyCache, Map<String, Long> counters, BucketDocumentCache sessionCache) {
+            super(factory, type,domain, user, keyPrefix, keyCache, counters, sessionCache);
             this.blockingCouchbaseSession = new BlockingCouchbaseSession(this);
         }
 

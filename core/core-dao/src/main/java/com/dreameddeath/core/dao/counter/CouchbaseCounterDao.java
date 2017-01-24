@@ -22,6 +22,7 @@ import com.dreameddeath.core.couchbase.ICouchbaseBucket;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
+import com.dreameddeath.core.dao.document.IDaoWithKeyPattern;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.InconsistentStateException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
@@ -36,6 +37,7 @@ public class CouchbaseCounterDao{
     private CouchbaseDocumentDao baseDao;
     private BlockingCouchbaseCounterDao blockingDao;
     private final KeyPattern keyPattern;
+    private final Boolean isKeyShared;
     private Long baseValue;
     private Long modulus;
     private Integer expiration;
@@ -44,18 +46,19 @@ public class CouchbaseCounterDao{
     public void setBaseDao(CouchbaseDocumentDao dao){baseDao=dao;}
 
     public void setClient(ICouchbaseBucket client){this.client = client;}
+
     public ICouchbaseBucket getClient(){
         if(client!=null) return client;
         else return baseDao.getClient();
     }
 
-    public CouchbaseCounterDao(String key, Long baseValue, Long modulus, Integer expiration){
-        if(key!=null){
-            this.keyPattern=new KeyPattern(key);
-        }
-        else{
-            this.keyPattern = null;
-        }
+    public String getDomain(){
+        return baseDao.getDomain();
+    }
+
+    public CouchbaseCounterDao(String key, Boolean isKeyShared,Long baseValue, Long modulus, Integer expiration){
+        this.keyPattern=key!=null?new KeyPattern(key):null;
+        this.isKeyShared=isKeyShared;
         this.baseValue = baseValue;
         this.modulus = modulus;
         this.expiration = expiration;
@@ -72,7 +75,7 @@ public class CouchbaseCounterDao{
     }
 
     public CouchbaseCounterDao(Builder builder){
-        this(builder.getKeyPattern(), builder.getBaseValue(), builder.getModulus(), builder.getExpiration().intValue());
+        this(builder.getKeyPattern(),builder.isKeyShared, builder.getBaseValue(), builder.getModulus(), builder.getExpiration().intValue());
         baseDao = builder.getBaseDao();
     }
 
@@ -187,6 +190,10 @@ public class CouchbaseCounterDao{
         return result;
     }
 
+    public Boolean isSharedKey() {
+        return isKeyShared;
+    }
+
     public enum CallingMode {
         BASE,
         WITH_DEFAULT,
@@ -195,6 +202,7 @@ public class CouchbaseCounterDao{
 
     public static class Builder{
         private String keyPattern=null;
+        private Boolean isKeyShared = null;
         private Long baseValue=0L;
         private Long expiration=0L;
         private Long modulus=null;
@@ -253,6 +261,12 @@ public class CouchbaseCounterDao{
 
         public Builder withBaseDao(CouchbaseDocumentDao dao){
             baseDao = dao;
+            if(dao instanceof IDaoWithKeyPattern){
+                isKeyShared=((IDaoWithKeyPattern) dao).isKeySharedAcrossDomains();
+            }
+            else{
+                isKeyShared=null;
+            }
             return this;
         }
 

@@ -51,6 +51,10 @@ public class TestChildDocDao extends CouchbaseDocumentWithKeyPatternDao<TestChil
         return LocalBucketDocument.class;
     }
 
+    @Override
+    public boolean isKeySharedAcrossDomains() {
+        return false;
+    }
 
     @Override
     protected String getKeyRawPattern() {

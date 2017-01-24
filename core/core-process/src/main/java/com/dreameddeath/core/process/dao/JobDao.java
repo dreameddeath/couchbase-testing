@@ -68,4 +68,8 @@ public class JobDao extends CouchbaseDocumentDaoWithUID<AbstractJob> {
         return JOB_KEY_PATTERN;
     }
 
+    @Override
+    public final boolean isKeySharedAcrossDomains() {
+        return true;
+    }
 }

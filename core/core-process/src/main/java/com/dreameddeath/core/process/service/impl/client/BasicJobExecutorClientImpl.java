@@ -23,6 +23,7 @@ import com.dreameddeath.core.dao.exception.validation.ValidationException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.exception.DuplicateJobExecutionException;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
@@ -50,6 +51,7 @@ import java.util.UUID;
 public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobExecutorClient<T> {
     private final UUID instanceUUID=UUID.randomUUID();
     private final Class<T> jobClass;
+    private final String domain;
     private final ExecutorClientFactory parentClientFactory;
     private final ICouchbaseSessionFactory sessionFactory;
     private final IExecutorServiceFactory executorServiceFactory;
@@ -61,6 +63,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
 
     public BasicJobExecutorClientImpl(Class<T> jobClass, ExecutorClientFactory clientFactory, ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory,IEventBus bus, MetricRegistry registry){
         this.jobClass = jobClass;
+        this.domain=EntityDef.build(jobClass).getModelId().getDomain();
         this.parentClientFactory = clientFactory;
         this.sessionFactory =sessionFactory;
         this.executorServiceFactory =executorServiceFactory;
@@ -77,9 +80,14 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     }
 
     @Override
+    public String getDomain() {
+        return domain;
+    }
+
+    @Override
     public Single<JobContext<T>> executeJob(T job, IUser user) {
         final JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, user))
+                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain, user))
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
@@ -113,7 +121,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     public Single<JobContext<T>> submitJob(T job, IUser user) {
         job.getStateInfo().setState(ProcessState.State.ASYNC_NEW);
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
+                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user))
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
@@ -125,7 +133,7 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     @Override
     public Single<JobContext<T>> resumeJob(T job, IUser user){
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
+                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user))
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)

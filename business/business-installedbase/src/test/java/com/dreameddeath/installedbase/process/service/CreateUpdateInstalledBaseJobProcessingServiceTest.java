@@ -35,6 +35,7 @@ import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseDaemonPlugin;
 import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.notification.NotificationWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
+import com.dreameddeath.installedbase.model.EntityConstants;
 import com.dreameddeath.installedbase.model.v1.InstalledBase;
 import com.dreameddeath.installedbase.process.model.v1.CreateUpdateInstalledBaseJob;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
@@ -85,10 +86,9 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
 
         ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("installedbase").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("party").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("billing").getName(), "testBucketName");
+
 
         AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
@@ -126,7 +126,7 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
             JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE).blockingGet();
 
-            ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+            ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(EntityConstants.INSTALLED_BASE_DOMAIN,AnonymousUser.INSTANCE);
             CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask updateInstalledBaseTask =session.asyncGet(createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().getBaseMeta().getKey(),CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).blockingGet();
             InstalledBase installedBase = updateInstalledBaseTask.blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);
@@ -147,7 +147,7 @@ public class CreateUpdateInstalledBaseJobProcessingServiceTest {
             request = manager.build(CreateUpdateInstalledBaseJob.class, DATASET_NAME, DATASET_ELT_NOMINAL_CASE,params );
 
             JobContext<CreateUpdateInstalledBaseJob> createJobJobContext = executorClient.executeJob(request, AnonymousUser.INSTANCE).blockingGet();
-            ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+            ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(EntityConstants.INSTALLED_BASE_DOMAIN,AnonymousUser.INSTANCE);
             CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask updateInstalledBaseTask =session.asyncGet(createJobJobContext.getTasks(CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).get(0).getInternalTask().getBaseMeta().getKey(),CreateUpdateInstalledBaseJob.UpdateInstalledBaseTask.class).blockingGet();
             InstalledBase installedBase = updateInstalledBaseTask.blockingGetDocument(session);
             //assertEquals(processDoc.name, createJob.name);

@@ -88,11 +88,14 @@ public abstract class AbstractRemoteConsumerRest<T extends IEventListener> exten
         }
     }
 
-    @Path("{id}")
+    @Path("{domain}/{id}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public void doProcess(final @PathParam("id") String notificationKey,@Suspended final AsyncResponse asyncResponse){
-        listener.submit(notificationKey)
+    public void doProcess(final @PathParam("domain") String domain,
+                          final @PathParam("id") String notificationKey,
+                          @Suspended final AsyncResponse asyncResponse)
+    {
+        listener.submit(domain,notificationKey)
                 .map(this::mapResult)
                 .onErrorReturn(throwable -> mapResult(notificationKey,throwable))
                 .subscribe(asyncResponse::resume);

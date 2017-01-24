@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -21,6 +20,7 @@ package com.dreameddeath.core.notification;
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
@@ -37,6 +37,7 @@ import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProc
 import com.dreameddeath.core.notification.listener.impl.DefaultDiscoverableDeferringNotification;
 import com.dreameddeath.core.notification.listener.impl.DiscoverableDefaultBlockingListener;
 import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
@@ -84,8 +85,8 @@ public class ListenerDiscoveryTest extends Assert {
         cbSimulator = new CouchbaseBucketSimulator("testDiscovery");
         cbSimulator.start();
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
-        sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
         Thread.sleep(100);
     }
 
@@ -222,7 +223,7 @@ public class ListenerDiscoveryTest extends Assert {
         List<EventTest> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
-            ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
+            ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             for (int i = 1; i <= nbEvent; ++i) {
                 EventTest test = new EventTest();
                 test.toAdd = i;
@@ -253,7 +254,7 @@ public class ListenerDiscoveryTest extends Assert {
         assertEquals(((nbEvent+1)*nbEvent/2),testListener.getTotalCounter());
         Thread.sleep(50);//Wait for all updates
         {
-            ICouchbaseSession checkSession = sessionFactory.newReadOnlySession(AnonymousUser.INSTANCE);
+            ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
             for(EventTest submittedEvent:submittedEvents){
                 List<String> listeners = new ArrayList<>();
                 listeners.addAll(submittedEvent.getListeners());

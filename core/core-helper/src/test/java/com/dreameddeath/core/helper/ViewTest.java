@@ -83,7 +83,7 @@ public class ViewTest {
 
     @Test
     public void testView() throws Exception{
-        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession("testDao",null);
         for(int i=0;i<10;++i){
             TestDoc doc = session.newEntity(TestDoc.class);
             doc.strVal="test "+i;

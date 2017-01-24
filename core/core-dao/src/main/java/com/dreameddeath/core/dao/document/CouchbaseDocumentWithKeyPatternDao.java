@@ -39,6 +39,9 @@ public abstract class CouchbaseDocumentWithKeyPatternDao<T extends CouchbaseDocu
         return new BlockingDao();
     }
 
+
+    public abstract boolean isKeySharedAcrossDomains();
+
     protected abstract String getKeyRawPattern();
 
     public CouchbaseDocumentWithKeyPatternDao() {

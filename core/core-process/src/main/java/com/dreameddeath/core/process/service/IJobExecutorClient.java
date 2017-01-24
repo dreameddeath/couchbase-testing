@@ -29,6 +29,7 @@ import java.util.UUID;
  */
 public interface IJobExecutorClient<T extends AbstractJob> {
     Class<T> getJobClass();
+    String getDomain();
     UUID getInstanceUUID();
     IJobExecutorService<T> getExecutorService();
     IJobProcessingService<T> getProcessingService();

@@ -31,14 +31,23 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.java.utils.ClassUtils;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.annotation.HasEffectiveDomain;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
+import com.dreameddeath.core.model.entity.EntityDefinitionManager;
+import com.dreameddeath.core.model.entity.model.EntityDef;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import io.reactivex.Single;
 import io.reactivex.functions.Function;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 /**
@@ -48,12 +57,29 @@ import java.util.UUID;
 public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     private final Class<T> baseClass;
     private final UUID uuid = UUID.randomUUID();
+    private final EntityDef rootEntity;
+    private final List<EntityDef> childEntities=new ArrayList<>();
+    private String domain;
     private ICouchbaseBucket client;
     private List<CouchbaseViewDao> daoViews=null;
     private boolean isReadOnly=false;
+    private EntityDefinitionManager entityDefinitionManager=null;
 
     public abstract Class<? extends BucketDocument<T>> getBucketDocumentClass();
     public abstract Single<T> asyncBuildKey(ICouchbaseSession session,T newObject) throws DaoException;
+
+    public EntityDef getRootEntity() {
+        return rootEntity;
+    }
+
+    public void setEntityManager(EntityDefinitionManager manager) {
+        this.entityDefinitionManager=manager;
+        resyncChildren();
+    }
+
+    public List<EntityDef> getChildEntities() {
+        return Collections.unmodifiableList(childEntities);
+    }
 
     public final T blockingBuildKey(ICouchbaseSession session, T newObject) throws DaoException,StorageException{
         try {
@@ -75,6 +101,8 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     public CouchbaseDocumentDao() {
         baseClass=ClassUtils.getEffectiveGenericType(this.getClass(),CouchbaseDocumentDao.class,0);
+        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass((Class)this.getBaseClass());
+        this.rootEntity = EntityDef.build(structureReflection);
     }
 
 
@@ -114,6 +142,35 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         return this;
     }
 
+    public CouchbaseDocumentDao<T> setDomain(String domain){
+        this.domain = domain;
+        resyncChildren();
+        return this;
+    }
+
+    private final void resyncChildren(){
+        this.childEntities.clear();
+        if(entityDefinitionManager!=null){
+            List<EntityDef> children = entityDefinitionManager.getChildEntities(rootEntity);
+            if(domain!=null){
+                this.childEntities.addAll(
+                        children
+                                .stream()
+                                .filter(child->child.getModelId().getDomain().equals(domain))
+                                .collect(Collectors.toSet())
+                );
+            }
+            else {
+                this.childEntities.addAll(children);
+            }
+        }
+    }
+
+
+    public String getDomain() {
+        return domain;
+    }
+
     public ICouchbaseBucket getClient(){ return client; }
 
     public UUID getUuid() {
@@ -134,6 +191,30 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         if(isReadOnly){
             throw new InconsistentStateException(obj,"Cannot update document in readonly mode");
         }
+        return checkDomain(obj);
+    }
+
+    public T checkDomain(T obj) throws InconsistentStateException{
+        String domain =null;
+        if(obj instanceof HasEffectiveDomain){
+            domain = ((HasEffectiveDomain) obj).getEffectiveDomain();
+        }
+        else if(obj instanceof IVersionedEntity && (((IVersionedEntity) obj).getModelId()!=null)){
+            domain=((IVersionedEntity) obj).getModelId().getDomain();
+        }
+        else{
+            DocumentEntity annot=obj.getClass().getAnnotation(DocumentEntity.class);
+            if(annot!=null){
+                domain= EntityModelId.build(annot, obj.getClass()).getDomain();
+            }
+            else{
+                throw new InconsistentStateException(obj,"Need the DocumentEntity annotation on class "+ obj.getClass().getName());
+            }
+        }
+        
+        if(!getDomain().equals(domain)){
+            throw new InconsistentStateException(obj,"Document "+obj.getClass().getName()+" with key "+obj.getBaseMeta().getKey()+" and domain <"+domain+"> don't match the dao domain <"+getDomain()+">");
+        }
         return obj;
     }
 
@@ -144,7 +225,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         if(isReadOnly){
             throw new InconsistentStateException(obj,"Cannot update document in readonly mode");
         }
-        return obj;
+        return checkDomain(obj);
     }
 
     public T checkDeletableState(T obj) throws InconsistentStateException{
@@ -161,7 +242,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
         if(isReadOnly){
             throw new InconsistentStateException(obj,"Cannot update document in readonly mode");
         }
-        return obj;
+        return checkDomain(obj);
     }
 
     public class FuncUpdateStateSync implements Function<T,T> {

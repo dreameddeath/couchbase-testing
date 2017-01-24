@@ -20,6 +20,7 @@ package com.dreameddeath.core.process.service.impl.client;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
+import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.process.exception.ExecutorServiceNotFoundException;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.exception.ProcessingServiceNotFoundException;
@@ -35,6 +36,7 @@ import com.dreameddeath.core.process.service.factory.IExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
+import com.google.common.base.Preconditions;
 import io.reactivex.Single;
 
 import java.util.UUID;
@@ -46,6 +48,7 @@ public class BasicTaskExecutorClientImpl<TJOB extends AbstractJob,TTASK extends 
     private final UUID uuid=UUID.randomUUID();
     private final ExecutorClientFactory clientFactory;
     private final Class<TTASK> taskClass;
+    private final String domain;
     private final ICouchbaseSessionFactory sessionFactory;
     private final IExecutorServiceFactory executorServiceFactory;
     private final IProcessingServiceFactory processingServiceFactory;
@@ -57,7 +60,10 @@ public class BasicTaskExecutorClientImpl<TJOB extends AbstractJob,TTASK extends 
 
     public BasicTaskExecutorClientImpl(Class<TJOB> jobClass, Class<TTASK> taskClass, ExecutorClientFactory clientFactory, ICouchbaseSessionFactory sessionFactory, IExecutorServiceFactory executorServiceFactory, IProcessingServiceFactory processingServiceFactory, MetricRegistry registry){
         this.clientFactory = clientFactory;
+        this.domain= EntityDef.build(jobClass).getModelId().getDomain();
         this.taskClass = taskClass;
+        String taskDomain = EntityDef.build(taskClass).getModelId().getDomain();
+        Preconditions.checkArgument(taskDomain.equals(domain),"The task %s with domain %s must have the same domain (%s) than parent job %s",taskClass.getName(),taskDomain,jobClass,domain);
         this.sessionFactory =sessionFactory;
         this.executorServiceFactory =executorServiceFactory;
         this.processingServiceFactory = processingServiceFactory;
@@ -83,7 +89,7 @@ public class BasicTaskExecutorClientImpl<TJOB extends AbstractJob,TTASK extends 
     @Override
     public Single<TaskContext<TJOB,TTASK>> executeTask(TJOB job, TTASK task, IUser user) throws TaskExecutionException {
         JobContext<TJOB> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,user))
+                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user))
                 .withClientFactory(clientFactory)
                 .withJobExecutorService(jobExecutorService)
                 .withJobProcessingService(jobProcessingService)

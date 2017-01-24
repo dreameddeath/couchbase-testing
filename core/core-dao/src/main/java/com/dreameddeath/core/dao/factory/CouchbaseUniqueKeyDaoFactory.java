@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -22,16 +21,14 @@ import com.dreameddeath.core.couchbase.exception.TranscoderNotFoundException;
 import com.dreameddeath.core.couchbase.utils.CouchbaseUtils;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
-import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.mapper.DuplicateMappedEntryInfoException;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentInfoMapper;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -39,39 +36,40 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
     private IDocumentInfoMapper documentInfoMapper;
-    private Map<String, CouchbaseUniqueKeyDao> daosMap  = new ConcurrentHashMap<>();
+    private Map<NameSpaceEntry, CouchbaseUniqueKeyDao> daosMap  = new ConcurrentHashMap<>();
 
     public CouchbaseUniqueKeyDaoFactory(Builder builder){
         documentInfoMapper = builder.documentInfoMapper;
     }
 
     public void addDaoFor(String nameSpace,CouchbaseUniqueKeyDao dao){
-        daosMap.put(nameSpace,dao);
+        daosMap.put(new NameSpaceEntry(dao.getDomain(),nameSpace),dao);
     }
 
-    public CouchbaseUniqueKeyDao getDaoFor(String nameSpace) throws DaoNotFoundException{
-        CouchbaseUniqueKeyDao result =daosMap.get(nameSpace);
+    public CouchbaseUniqueKeyDao getDaoFor(String domain,String nameSpace) throws DaoNotFoundException{
+        NameSpaceEntry nameSpaceEntry = new NameSpaceEntry(domain,nameSpace);
+        CouchbaseUniqueKeyDao result = daosMap.get(nameSpaceEntry);
         if(result==null){
-            throw new DaoNotFoundException(nameSpace, DaoNotFoundException.Type.UNIQ_KEY);
+            throw new DaoNotFoundException(domain,nameSpace, DaoNotFoundException.Type.UNIQ_KEY);
         }
-        return daosMap.get(nameSpace);
+        return daosMap.get(nameSpaceEntry);
     }
 
     public CouchbaseUniqueKeyDao getDaoFor(final String nameSpace, final CouchbaseDocumentDao docDao){
         //CouchbaseUniqueKeyDao dao = new CouchbaseUniqueKeyDao.Builder().withBaseDao(docDao).build();
-        return daosMap.computeIfAbsent(nameSpace,ns->
-                CouchbaseUniqueKeyDao.builder().withBaseDao(docDao).withNameSpace(ns).withClient(docDao.getClient()).build()
+        return daosMap.computeIfAbsent(new NameSpaceEntry(docDao.getDomain(),nameSpace),ns->
+                CouchbaseUniqueKeyDao.builder().withBaseDao(docDao).withNameSpace(ns.namespace).withClient(docDao.getClient()).build()
         );
     }
 
-    public CouchbaseUniqueKeyDao getDaoForInternalKey(String key) throws DaoNotFoundException{
-        for(Map.Entry<String,CouchbaseUniqueKeyDao> entry:daosMap.entrySet()){
+    public CouchbaseUniqueKeyDao getDaoForInternalKey(String domain,String key) throws DaoNotFoundException{
+        for(Map.Entry<NameSpaceEntry,CouchbaseUniqueKeyDao> entry:daosMap.entrySet()){
             String nameSpace = entry.getValue().extractNameSpace(key);
-            if(entry.getKey().equals(nameSpace)){
+            if(entry.getKey().namespace.equals(nameSpace) && entry.getKey().domain.equals(domain)){
                 return entry.getValue();
             }
         }
-        throw new DaoNotFoundException(key, DaoNotFoundException.Type.UNIQ_KEY);
+        throw new DaoNotFoundException(domain,key, DaoNotFoundException.Type.UNIQ_KEY);
     }
 
     @Override
@@ -93,7 +91,7 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
         }
     }
 
-    public Map<CouchbaseUniqueKeyDao,List<String>> mapRemovedUniqueKeys(CouchbaseDocument doc) throws DaoNotFoundException{
+    /*public Map<CouchbaseUniqueKeyDao,List<String>> mapRemovedUniqueKeys(CouchbaseDocument doc) throws DaoNotFoundException{
         Map<CouchbaseUniqueKeyDao, List<String>> mapKeys = new HashMap<>();
 
         if(doc.getBaseMeta() instanceof IHasUniqueKeysRef) {
@@ -108,7 +106,7 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
 
         }
         return mapKeys;
-    }
+    }*/
 
 
     public static Builder builder(){
@@ -127,4 +125,13 @@ public class CouchbaseUniqueKeyDaoFactory implements IDaoFactory{
         }
     }
 
+    private static class NameSpaceEntry{
+        private final String domain;
+        private final String namespace;
+
+        public NameSpaceEntry(String domain, String namespace) {
+            this.domain = domain;
+            this.namespace = namespace;
+        }
+    }
 }

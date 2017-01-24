@@ -70,10 +70,6 @@ public class CreateBillingAccountJobProcessingServiceTest {
         ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("party").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("billing").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
 
         ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty("party").getName(),"test");
         AbstractDaemon daemon = AbstractDaemon.builder()
@@ -124,7 +120,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
             request.person.lastName = "jeunesse";
 
             JobContext<CreateUpdatePartyJob> createPartyJobContext = executorClient.executeJob(createUpdatePartyJob, AnonymousUser.INSTANCE).blockingGet();
-            createdPartyId=createPartyJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).getInternalTask().blockingGetDocument(cbPluginParty.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE)).getUid();
+            createdPartyId=createPartyJobContext.getTasks(CreateUpdatePartyJob.CreatePartyTask.class).get(0).getInternalTask().blockingGetDocument(cbPluginParty.getSessionFactory().newReadOnlySession("party",AnonymousUser.INSTANCE)).getUid();
         }
 
         {
@@ -138,7 +134,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
             baJobCreate.billDay=2;
             JobContext<CreateBillingAccountJob> createBaJobContext = executorClient.executeJob(baJobCreate, AnonymousUser.INSTANCE).blockingGet();
 
-            BillingAccount inDbBA = createBaJobContext.getTasks(CreateBillingAccountJob.CreateBillingAccountTask.class).get(0).getInternalTask().blockingGetDocument(cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE));
+            BillingAccount inDbBA = createBaJobContext.getTasks(CreateBillingAccountJob.CreateBillingAccountTask.class).get(0).getInternalTask().blockingGetDocument(cbPlugin.getSessionFactory().newReadOnlySession("billing",AnonymousUser.INSTANCE));
 
             assertEquals(inDbBA.getBillDay(),baJobCreate.billDay);
             assertEquals((long)inDbBA.getBillCycleLength(),1);
@@ -147,7 +143,7 @@ public class CreateBillingAccountJobProcessingServiceTest {
             assertEquals(createdPartyId,inDbBA.getPartyRoles().get(0).getPid());
             assertNotNull(inDbBA.getPartyRoles().get(0).getRoleUid());
 
-            Party inParty = cbPluginParty.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(createdPartyId,Party.class);
+            Party inParty = cbPluginParty.getSessionFactory().newReadOnlySession("party",AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(createdPartyId,Party.class);
             assertEquals(1,inParty.getPartyRoles().size());
             assertEquals(inParty.getPartyRoles().get(0).getUid(),inDbBA.getPartyRoles().get(0).getRoleUid());
         }

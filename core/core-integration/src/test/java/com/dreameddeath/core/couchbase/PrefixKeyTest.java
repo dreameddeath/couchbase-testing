@@ -99,7 +99,7 @@ public class PrefixKeyTest {
 
     @Test
     public void testPrefixKey()throws Exception{
-        ICouchbaseSession session = sessionFactory.newReadWriteSession(null,"user1");
+        ICouchbaseSession session = sessionFactory.newReadWriteSession("test",null,"user1");
         TestPrefixKey testClass = session.newEntity(TestPrefixKey.class);
         testClass.value = "simple Test";
 

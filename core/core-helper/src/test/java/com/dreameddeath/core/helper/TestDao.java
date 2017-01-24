@@ -45,6 +45,11 @@ public class TestDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
     public static final String TEST_KEY_PATTERN = "test/{uid:\\d{10}}";
 
     @Override
+    public boolean isKeySharedAcrossDomains() {
+        return false;
+    }
+
+    @Override
     public String getKeyRawPattern() {
         return TEST_KEY_PATTERN;
     }

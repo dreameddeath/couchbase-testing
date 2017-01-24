@@ -33,7 +33,7 @@ public abstract class AbstractLocalListener  extends AbstractNotificationProcess
     }
 
     @Override
-    public Single<SubmissionResult> submit(String notifKey) {
-        return process(notifKey);
+    public Single<SubmissionResult> submit(String domain,String notifKey) {
+        return process(domain,notifKey);
     }
 }

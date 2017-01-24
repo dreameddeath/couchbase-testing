@@ -67,4 +67,9 @@ public class EventDao extends CouchbaseDocumentDaoWithUID<Event> {
         return EVENT_KEY_PATTERN;
     }
 
+    @Override
+    public final boolean isKeySharedAcrossDomains(){
+        return true;
+    }
+
 }

@@ -31,7 +31,7 @@ public interface IEventListener {
 
     <T extends Event> Single<SubmissionResult> submit(Notification notif, T event);
 
-    Single<SubmissionResult> submit(String notifId);
+    Single<SubmissionResult> submit(String domain,String notifId);
 
     <T extends Event> boolean isApplicable(T event);
 }

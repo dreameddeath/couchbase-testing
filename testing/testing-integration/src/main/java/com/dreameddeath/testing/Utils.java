@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -70,6 +69,7 @@ public class Utils {
         private ICouchbaseBucket client;
 
         private ElasticSearchServer esServer=null;
+        private ICouchbaseDCPEnvironment dcpEnvironment =null;
         private ElasticSearchSessionFactory esSessionFactory=null;
         private IElasticSearchMapper esMapper=null;
         private ElasticSearchClient esClient=null;
@@ -95,7 +95,7 @@ public class Utils {
             @Override
             public String documentTypeBuilder(String bucketName, String key) {
                 try {
-                    return documentTypeBuilder(bucketName, documentInfoMapper.getMappingFromKey(key).classMappingInfo().classInfo());
+                    return documentTypeBuilder(bucketName, documentInfoMapper.getFirstMappingFromKey(key).classMappingInfo().classInfo());
                 }
                 catch(MappingNotFoundException e){
                     throw new RuntimeException(e);
@@ -161,7 +161,7 @@ public class Utils {
                 esSessionFactory = ElasticSearchSessionFactory.builder().withDocumentInfoMappper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper()).build();
                 esMapper = new TestElasticSearchMapper(sessionBuilder.getDocumentDaoFactory().getDocumentInfoMapper());
                 esClient = new ElasticSearchClient(esServer.getClient(), ObjectMapperFactory.BASE_INSTANCE.getMapper(CouchbaseDocumentObjectMapperConfigurator.BASE_COUCHBASE_STORAGE),false);
-                ICouchbaseDCPEnvironment env = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
+                dcpEnvironment = DefaultCouchbaseDCPEnvironment.builder().streamName(UUID.randomUUID().toString()).threadPoolSize(1).build();
                 ElasticSearchDcpFlowHandler dcpFlowHandler = ElasticSearchDcpFlowHandler.builder()
                         .withHandlerName(prefix+"TestEsFlowHander")
                         .withClient(esClient)
@@ -171,15 +171,15 @@ public class Utils {
                         .build();
 
                 if(client instanceof CouchbaseBucketSimulator) {
-                    connector = new CouchbaseDCPConnectorSimulator(env,couchbaseConnectionList ,bucketName, bucketPassword, dcpFlowHandler, (CouchbaseBucketSimulator)client);
+                    connector = new CouchbaseDCPConnectorSimulator(dcpEnvironment,couchbaseConnectionList ,bucketName, bucketPassword, dcpFlowHandler, (CouchbaseBucketSimulator)client);
                 }
                 else{
-                    connector = new CouchbaseDCPConnector(env,couchbaseConnectionList,bucketName,bucketPassword,dcpFlowHandler);
+                    connector = new CouchbaseDCPConnector(dcpEnvironment,couchbaseConnectionList,bucketName,bucketPassword,dcpFlowHandler);
                 }
             }
         }
 
-        public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao dao,Class<TOBJ> objClass) throws DuplicateMappedEntryInfoException{
+        public <TOBJ extends CouchbaseDocument> void addDocumentDao(CouchbaseDocumentDao<? extends CouchbaseDocument> dao,Class<TOBJ> objClass) throws DuplicateMappedEntryInfoException{
             sessionFactory.getDocumentDaoFactory().addDao(dao.setClient(client));
             if(esSessionFactory!=null){
                 ElasticSearchDao<TOBJ> elasticSearchDao = new ElasticSearchDao<>(client.getBucketName(),esClient ,esMapper,new GenericJacksonTranscoder<>(GenericJacksonTranscoder.Flavor.STORAGE,objClass));
@@ -263,6 +263,9 @@ public class Utils {
             if(esServer!=null){
                 connector.stop();
                 esServer.stop();
+            }
+            if(dcpEnvironment!=null){
+                dcpEnvironment.shutdown();
             }
         }
 

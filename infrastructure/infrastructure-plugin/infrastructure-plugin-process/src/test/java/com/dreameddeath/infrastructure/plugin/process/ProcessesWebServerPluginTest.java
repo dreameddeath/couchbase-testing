@@ -75,10 +75,10 @@ public class ProcessesWebServerPluginTest {
         ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         //ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdocprocess").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "abstractjob").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "abstracttask").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "notification").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "event").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty("test").getName(),"test");
         final AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
@@ -104,7 +104,7 @@ public class ProcessesWebServerPluginTest {
                     TestDocCreateJob createJob = new TestDocCreateJob();
                     createJob.name = "test";
                     JobContext<TestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE).blockingGet();
-                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession("test",AnonymousUser.INSTANCE);
                     TestDocProcess processDoc = session.toBlocking().blockingGet(createJobJobContext.getTasks(TestDocCreateJob.TestDocCreateTask.class).get(0).getInternalTask().getDocKey(), TestDocProcess.class);
                     assertEquals(processDoc.name, createJob.name);
                 }
@@ -114,7 +114,7 @@ public class ProcessesWebServerPluginTest {
                     RemoteTestDocCreateJob createJob = new RemoteTestDocCreateJob();
                     createJob.remoteName = "test2";
                     JobContext<RemoteTestDocCreateJob> createJobJobContext = executorClient.executeJob(createJob, AnonymousUser.INSTANCE).blockingGet();
-                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE);
+                    ICouchbaseSession session = cbPlugin.getSessionFactory().newReadOnlySession("test",AnonymousUser.INSTANCE);
                     TestDocProcess processDoc = session.toBlocking().blockingGet(createJobJobContext.getTasks(RemoteTestDocCreateJob.RemoteTestDocCreateTask.class).get(0).getInternalTask().key, TestDocProcess.class);
                     assertEquals(processDoc.name, createJob.remoteName);
                 }

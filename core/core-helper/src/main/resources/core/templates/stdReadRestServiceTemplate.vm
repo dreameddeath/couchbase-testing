@@ -58,10 +58,15 @@ import ${import};
 @ServiceDef(domain="${service.domain}",type=SERVICE_TYPE_DATA,name="${service.registeringName}$read",version="${service.version}",status = VersionStatus.${service.status},access=DataAccessType.READ_ONLY)
 @Api(value = "${service.rootRestPath}", description = "${service.descr}")
 public class ${service.targetReadName} extends AbstractDaoRestService {
+    private final String domain = "${service.domain}";
 
     public static class GetAllViewResult extends SerializableViewQueryRow<String,String,${service.classSimpleName}>{
         public GetAllViewResult(){super();}
         public GetAllViewResult(IViewQueryRow<String,String,${service.classSimpleName}> list){super(list);}
+    }
+
+    public String getDomain(){
+        return domain;
     }
 
     @GET
@@ -90,7 +95,7 @@ public class ${service.targetReadName} extends AbstractDaoRestService {
             @QueryParam("token") String token, @QueryParam("nb") Integer nbMore
     ) throws Exception
     {
-        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(domain,user);
         IViewQuery<String,String,${service.classSimpleName}> query  = session.initViewQuery(${service.classSimpleName}.class,"all_${service.dbName}");
 
         if(key!=null){ query.withKey(key);}
@@ -152,7 +157,7 @@ public class ${service.targetReadName} extends AbstractDaoRestService {
                         @ApiParam("${parentAttributeInfo.descr}") @PathParam("${parentAttributeInfo.name}") ${parentAttributeInfo.type} ${parentAttributeInfo.name},
                         #end
                         @ApiParam("The requested id") @PathParam("${service.defaultAttributeName}") String ${service.defaultAttributeName}) throws Exception{
-        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(domain,user);
         ${service.classSimpleName} doc = session.toBlocking().blockingGet(
                         String.format("$esc.java($service.fullDbKeyPattern)"
                         #foreach($paramInfo in $service.rootPathAttributeInfoList)

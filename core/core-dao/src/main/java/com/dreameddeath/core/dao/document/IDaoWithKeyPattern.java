@@ -31,6 +31,7 @@ public interface IDaoWithKeyPattern<T> {
     IBlockingDaoWithKeyPattern<T> toBlocking();
     String getKeyFromParams(Object ...params);
     Single<T> asyncGetFromKeyParams(ICouchbaseSession session, Object ...params);
+    boolean isKeySharedAcrossDomains();
 
     interface IBlockingDaoWithKeyPattern<T>{
         T blockingGetFromKeyParams(ICouchbaseSession session, Object ...params) throws DaoException,StorageException;

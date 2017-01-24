@@ -44,17 +44,23 @@ import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.SERVICE
  * Created by Christophe Jeunesse on 14/04/2015.
  */
 @Path("testDomain/v1.0/test/{testDocId}/child") //${service.domain}/v${service.version}/${service.name.toLowerCase()}
-@ServiceDef(domain="test",type= SERVICE_TYPE_DATA,name="testChild",version="1.0",status = VersionStatus.STABLE,access = DataAccessType.READ_WRITE)
+@ServiceDef(domain="testDao",type= SERVICE_TYPE_DATA,name="testChild",version="1.0",status = VersionStatus.STABLE,access = DataAccessType.READ_WRITE)
 @Api(value = "testDomain/v1.0/test/{testDocId}/child", description = "Basic Sub resource")
 public class TestChildDaoRestService extends AbstractDaoRestService {
-
+    private final String domain="testDao";
 
     public static class GetAllViewResult extends SerializableViewQueryRow<String,String,TestDocChild>{
         public GetAllViewResult(){super();}
         public GetAllViewResult(IViewQueryRow<String,String,TestDocChild> list){super(list);}
     }
+
+
+    public String getDomain() {
+        return domain;
+    }
+
     /*@ApiModel
-    public interface AllListResponse implements List<SerializableViewQueryRow<String,String,TestDocChild>> {}*/
+        public interface AllListResponse implements List<SerializableViewQueryRow<String,String,TestDocChild>> {}*/
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(
@@ -86,7 +92,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
     ) throws Exception
     {
         IUser user = getUserFactory().fromToken(userToken);
-        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(domain,user);
         IViewQuery<String,String,TestDocChild> query  = session.initViewQuery(TestDocChild.class,"all_testChild");
 
         if(key!=null){ query.withKey(key);}
@@ -142,7 +148,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                            @PathParam("testDocId") String testDocId,
                            TestDocChild documentToCreate) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
-        ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
+        ICouchbaseSession session = getSessionFactory().newReadWriteSession(domain,user);
         session.attachEntity(documentToCreate);
         documentToCreate.parent= new TestDocLink();
         documentToCreate.parent.setKey(String.format("test/%s",testDocId));
@@ -163,7 +169,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                          @PathParam("testDocId") String testDocId,
                          @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
-        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(domain,user);
         TestDocChild doc = session.toBlocking().blockingGet(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
                 .build();
@@ -177,7 +183,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                            @PathParam("testDocId") String testDocId,
                            @PathParam("id") String id) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
-        ICouchbaseSession session = getSessionFactory().newReadOnlySession(user);
+        ICouchbaseSession session = getSessionFactory().newReadOnlySession(domain,user);
         TestDocChild doc = session.toBlocking().blockingGet(String.format("test/%s/child/%s", testDocId,id),TestDocChild.class);
         session.toBlocking().blockingDelete(doc);
         return Response.ok(doc,MediaType.APPLICATION_JSON_TYPE)
@@ -196,7 +202,7 @@ public class TestChildDaoRestService extends AbstractDaoRestService {
                             @PathParam("id") String id,
                             TestDocChild updatedDocument) throws Exception{
         IUser user = getUserFactory().fromToken(userToken);
-        ICouchbaseSession session = getSessionFactory().newReadWriteSession(user);
+        ICouchbaseSession session = getSessionFactory().newReadWriteSession(domain,user);
         updatedDocument.getBaseMeta().setKey(String.format("test/%s/child/%s", testDocId,id));
         updatedDocument.getBaseMeta().setCas(casData);
         if(flags!=null) {

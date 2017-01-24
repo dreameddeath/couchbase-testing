@@ -19,6 +19,7 @@ package com.dreameddeath.core.notification.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.HasEffectiveDomain;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
@@ -43,7 +44,7 @@ import static com.dreameddeath.core.notification.dao.NotificationDao.NOTIFICATIO
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 @DocumentEntity
-public class Notification extends CouchbaseDocument implements IVersionedEntity{
+public final class  Notification extends CouchbaseDocument implements IVersionedEntity, HasEffectiveDomain{
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
@@ -58,6 +59,10 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
         return fullEntityId;
     }
 
+    @Override
+    public String getEffectiveDomain() {
+        return getDomain();
+    }
 
     /**
      *  id : the notification id within the event
@@ -69,6 +74,11 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
      */
     @DocumentProperty("eventId") @Unique(nameSpace = NOTIFICATION_UID_NAMESPACE,additionnalFields = {"listenerName"})
     transient private Property<UUID> eventId = new ImmutableProperty<>(Notification.this);
+    /**
+     * domain : the event parent domain
+     */
+    @DocumentProperty("domain")
+    private ImmutableProperty<String> domain = new ImmutableProperty<>(Notification.this);
     /**
      *  listenerName : name of the listener
      */
@@ -116,6 +126,21 @@ public class Notification extends CouchbaseDocument implements IVersionedEntity{
      * @param val the new value for eventId
      */
     public void setEventId(UUID val) { eventId.set(val); }
+    /**
+     * Getter for property domain
+     * @return The current value
+     */
+    public String getDomain(){
+        return domain.get();
+    }
+
+    /**
+     * Setter for property domain
+     * @param newValue  the new value for the property
+     */
+    public void setDomain(String newValue){
+        domain.set(newValue);
+    }
     /**
      * Getter of listenerName
      * @return the value of listenerName

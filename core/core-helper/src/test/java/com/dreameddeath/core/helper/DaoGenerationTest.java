@@ -105,7 +105,7 @@ public class DaoGenerationTest extends Assert {
 
     @Test
     public void runAnnotationProcessor() throws Exception {
-        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession("test",null);
         Class<CouchbaseDocument> testGeneratedDaoClass = compiledEnv.getClass("model.TestGeneratedDao");
         Class<CouchbaseDocument> testGeneratedDaoChildClass = compiledEnv.getClass("model.TestGeneratedDaoChild");
         for(int i=0;i<10;++i){

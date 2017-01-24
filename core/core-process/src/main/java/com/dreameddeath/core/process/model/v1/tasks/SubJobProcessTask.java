@@ -20,6 +20,7 @@ package com.dreameddeath.core.process.model.v1.tasks;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
@@ -32,6 +33,7 @@ import java.util.UUID;
 /**
  * Created by Christophe Jeunesse on 01/08/2014.
  */
+@DocumentEntity
 public abstract class SubJobProcessTask<T extends AbstractJob> extends AbstractTask {
     @DocumentProperty("subJobId")
     private Property<UUID> subJobId =new StandardProperty<>(SubJobProcessTask.this);

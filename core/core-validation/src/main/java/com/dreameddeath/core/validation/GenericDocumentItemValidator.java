@@ -108,7 +108,7 @@ public class GenericDocumentItemValidator<T extends HasParent> implements Valida
     }
 
     public AccessibleObject getAccessibleObj(Field member) throws NoSuchMethodException{
-        if((member.getModifiers() & Modifier.PUBLIC)==0){
+        if(!Modifier.isPublic(member.getModifiers())){
             return fieldGetterFinder(member);
         }
         else{

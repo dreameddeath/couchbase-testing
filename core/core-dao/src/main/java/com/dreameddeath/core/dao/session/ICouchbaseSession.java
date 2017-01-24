@@ -34,12 +34,16 @@ import org.joda.time.DateTime;
 public interface ICouchbaseSession {
     IBlockingCouchbaseSession toBlocking();
 
+    String getDomain();
+
     <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException;
     <T extends CouchbaseDocument> String getKeyFromKeyParams(Class<T> targetClass,Object ...params) throws DaoException;
 
     Single<Long> asyncGetCounter(String key) throws DaoException;
     Single<Long> asyncIncrCounter(String key, long byVal)throws DaoException;
     Single<Long> asyncDecrCounter(String key, long byVal)throws DaoException;
+
+
 
 
     <T extends CouchbaseDocument> Single<T> asyncGet(String key);

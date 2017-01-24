@@ -18,7 +18,10 @@
 package com.dreameddeath.core.dao.document;
 
 import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import io.reactivex.Single;
 import org.junit.Test;
@@ -32,12 +35,14 @@ import static org.junit.Assert.*;
  * Created by Christophe Jeunesse on 27/12/2015.
  */
 public class CouchbaseDocumentWithKeyPatternDaoTest {
+    @DocumentEntity(domain = "test",version = "1.0.0")
     public static class TestDoc extends CouchbaseDocument{
         public String toto;
         public String tutu;
         public String titi;
     }
 
+    @DaoForClass(TestDoc.class)
     public static class TestWithKeyPattern extends CouchbaseDocumentWithKeyPatternDao<TestDoc>{
         @Override
         protected String getKeyRawPattern() {
@@ -45,8 +50,20 @@ public class CouchbaseDocumentWithKeyPatternDaoTest {
         }
 
         @Override
+        public boolean isKeySharedAcrossDomains() {
+            return false;
+        }
+
+        @Override
         public Class<? extends BucketDocument<TestDoc>> getBucketDocumentClass() {
-            return null;
+            return LocalBucketDocument.class ;
+        }
+
+        @BucketDocumentForClass(TestDoc.class)
+        public static class LocalBucketDocument extends BucketDocument<TestDoc>{
+            public LocalBucketDocument(TestDoc doc) {
+                super(doc);
+            }
         }
 
         @Override

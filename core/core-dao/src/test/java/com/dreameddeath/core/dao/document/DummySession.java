@@ -55,7 +55,6 @@ public class DummySession implements ICouchbaseSession {
         return "";
     }
 
-
     @Override
     public Single<Long> asyncGetCounter(String key) {
         return Single.error(new IllegalMethodCall());
@@ -290,10 +289,19 @@ public class DummySession implements ICouchbaseSession {
                 return 0;
             }
 
+
+
             @Override
             public long blockingDecrCounter(String key, long byVal) throws DaoException, StorageException {
                 return 0;
             }
+
+
         };
+    }
+
+    @Override
+    public String getDomain() {
+        return null;
     }
 }

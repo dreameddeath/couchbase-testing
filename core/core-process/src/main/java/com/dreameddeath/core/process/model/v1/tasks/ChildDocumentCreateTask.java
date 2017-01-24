@@ -18,6 +18,7 @@
 package com.dreameddeath.core.process.model.v1.tasks;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
@@ -28,6 +29,7 @@ import io.reactivex.Single;
 /**
  * Created by Christophe Jeunesse on 23/02/2016.
  */
+@DocumentEntity
 public abstract class ChildDocumentCreateTask<TCHILD extends CouchbaseDocument,TPARENT extends CouchbaseDocument> extends DocumentCreateTask<TCHILD> {
     public ChildDocumentCreateTask(String parentKey){
         setParent(parentKey);

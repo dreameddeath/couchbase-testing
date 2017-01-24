@@ -35,6 +35,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestDocDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
     public static AtomicInteger cnt = new AtomicInteger();
 
+    @Override
+    public boolean isKeySharedAcrossDomains() {
+        return false;
+    }
+
     @BucketDocumentForClass(TestDoc.class)
     public static class LocalBucketDocument extends BucketDocument<TestDoc> {
         public LocalBucketDocument(TestDoc obj){super(obj);}

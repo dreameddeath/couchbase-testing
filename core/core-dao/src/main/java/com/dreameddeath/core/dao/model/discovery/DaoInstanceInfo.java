@@ -1,17 +1,18 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.dao.model.discovery;
@@ -19,9 +20,7 @@ package com.dreameddeath.core.dao.model.discovery;
 
 import com.dreameddeath.core.curator.model.IRegisterable;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
-import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityDef;
-import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -29,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 28/10/2015.
@@ -41,6 +39,8 @@ public class DaoInstanceInfo implements IRegisterable {
     private String className;
     @JsonProperty("mainEntity")
     private EntityDef mainEntity;
+    @JsonProperty("domain")
+    private String domain;
     @JsonProperty("childEntities")
     private List<EntityDef> childEntities= new ArrayList<>();
     @JsonProperty("bucketName")
@@ -60,19 +60,14 @@ public class DaoInstanceInfo implements IRegisterable {
 
     public DaoInstanceInfo(){}
 
-    public DaoInstanceInfo(CouchbaseDocumentDao dao){
+    public DaoInstanceInfo(CouchbaseDocumentDao<?> dao){
         this.uuid= dao.getUuid();
         this.className = dao.getClass().getName();
         this.bucketName=dao.getClient().getBucketName();
         this.readOnly=dao.isReadOnly();
-
-        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(dao.getBaseClass());
-
-        this.mainEntity = EntityDef.build(structureReflection);
-        this.childEntities.addAll(new EntityDefinitionManager().getEntities().stream().filter(
-                entity ->
-                        entity.getParentEntities().contains(this.mainEntity.getModelId())
-        ).collect(Collectors.toList()));
+        this.domain=dao.getDomain();
+        this.mainEntity = dao.getRootEntity();
+        this.childEntities.addAll(dao.getChildEntities());
     }
 
     public UUID getUuid() {
@@ -138,6 +133,14 @@ public class DaoInstanceInfo implements IRegisterable {
 
     public void setWebServerUid(String webServerUid) {
         this.webServerUid = webServerUid;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override @JsonIgnore

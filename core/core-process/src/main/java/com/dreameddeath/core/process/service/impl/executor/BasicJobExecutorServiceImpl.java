@@ -18,19 +18,23 @@
 package com.dreameddeath.core.process.service.impl.executor;
 
 
+import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.bus.EventFireResult;
+import com.dreameddeath.core.notification.model.v1.EventLink;
 import com.dreameddeath.core.process.exception.IExecutionExceptionNoLog;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.AbstractTask;
 import com.dreameddeath.core.process.model.v1.base.ProcessState;
 import com.dreameddeath.core.process.model.v1.base.ProcessState.State;
+import com.dreameddeath.core.process.model.v1.notification.AbstractJobEvent;
 import com.dreameddeath.core.process.service.IJobExecutorService;
 import com.dreameddeath.core.process.service.context.JobContext;
 import com.dreameddeath.core.process.service.context.JobNotificationBuildResult;
 import com.dreameddeath.core.process.service.context.JobProcessingResult;
 import com.dreameddeath.core.process.service.context.TaskContext;
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.functions.Function;
@@ -184,7 +188,7 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
 
     private Single<JobNotificationBuildResult<T>> manageNotificationsRetry(final JobNotificationBuildResult<T> origJobNotificationBuildResult) {
        return Observable.fromIterable(origJobNotificationBuildResult.getContext().getInternalJob().getNotifications())
-                .flatMap(eventLink -> eventLink.getEvent(origJobNotificationBuildResult.getContext().getSession()).toObservable())
+                .flatMapMaybe(eventLink -> manageNotificationRead(eventLink,origJobNotificationBuildResult.getContext().getSession()))
                 .toList()
                 .map(events->new JobNotificationBuildResult<>(origJobNotificationBuildResult,events, JobNotificationBuildResult.DuplicateMode.REPLACE));
     }
@@ -287,6 +291,18 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
         return manageJobUpdateFromFilteredTasks(inCtxt,listExecutedTasks)
                 .map(savedJobContext->new JobTasksResult(savedJobContext,listExecutedTasks));
     }
+
+    private Maybe<AbstractJobEvent> manageNotificationRead(EventLink eventLink, ICouchbaseSession session) {
+        return eventLink.<AbstractJobEvent>getEvent(session)
+                .toMaybe()
+                .onErrorResumeNext(throwable-> {
+                    if(throwable instanceof DocumentNotFoundException){
+                        return Maybe.empty();
+                    }
+                    return Maybe.error(throwable);
+                });
+    }
+
 
     public class JobTasksResult {
         private final JobContext<T> job;

@@ -1,17 +1,18 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.model.entity.model;
@@ -22,6 +23,7 @@ import com.dreameddeath.compile.tools.annotation.processor.reflection.PackageInf
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentPackageDefault;
+import com.dreameddeath.core.model.exception.EntityRequiredInfoNotFoundException;
 import com.fasterxml.jackson.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +106,6 @@ public class EntityModelId {
             info = getInfo(cls.getEnclosingClass().getAnnotation(DocumentEntity.class),cls.getEnclosingClass(),isVersion);
         }
         if (StringUtils.isEmpty(info)) {
-            //PackageInfo packageInfo=cls.getPackageInfo();
             info=getInfo(cls.getPackageInfo(),isVersion);
         }
         if (StringUtils.isEmpty(info)) {
@@ -117,7 +118,7 @@ public class EntityModelId {
                 parents.append(currPackageInfo.getName());
                 currPackageInfo = currPackageInfo.getParentPackage();
             }
-            throw new RuntimeException("Cannot get "+ (isVersion?"version":"domain")+ " of element "+cls.getImportName()+ " in parents <"+parents+">");
+            throw new EntityRequiredInfoNotFoundException("Cannot get "+ (isVersion?"version":"domain")+ " of element "+cls.getImportName()+ " in parents <"+parents+">");
         }
         else{
             return info;

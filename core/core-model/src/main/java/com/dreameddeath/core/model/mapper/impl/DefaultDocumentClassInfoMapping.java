@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -41,41 +40,50 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
 
     private static class KeyClassTuple{
         private final String patternStr;
-        private Pattern pattern;
+        private final String domain;
+        private final Pattern pattern;
         private final Class clazz;
 
         private KeyClassTuple(String patternStr,Class clazz){
+            this(patternStr,null,clazz);
+        }
+
+        private KeyClassTuple(String patternStr,String domain,Class clazz){
             this.patternStr = patternStr;
+            this.pattern=Pattern.compile(patternStr);
+            this.domain=domain;
             this.clazz = clazz;
         }
 
+
         public boolean matches(String key,Class clazz){
-            if(pattern==null){
-                pattern = Pattern.compile("^"+patternStr+"$");
-            }
-            return pattern.matcher(key).matches() && this.clazz.equals(clazz);
+            return domain==null && pattern.matcher(key).matches() && this.clazz.equals(clazz);
         }
 
+        public boolean matches(String key,String domain,Class clazz){
+            return this.domain!=null && this.domain.equals(domain) && pattern.matcher(key).matches() && this.clazz.equals(clazz);
+        }
+
+
         @Override
-        public boolean equals(Object obj){
-            if(this==obj){
-                return true;
-            }
-            else if(obj == null){
-                return false;
-            }
-            else if (! (obj instanceof KeyClassTuple)){
-                return false;
-            }
-            KeyClassTuple target = (KeyClassTuple)obj;
-            return clazz.equals(target.clazz) && pattern.equals(target.pattern);
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            KeyClassTuple that = (KeyClassTuple) o;
+
+            if (!patternStr.equals(that.patternStr)) return false;
+            if (domain != null ? !domain.equals(that.domain) : that.domain != null) return false;
+            if (!pattern.equals(that.pattern)) return false;
+            return clazz.equals(that.clazz);
         }
 
         @Override
         public int hashCode() {
-            int result = patternStr != null ? patternStr.hashCode() : 0;
-            result = 31 * result + (pattern != null ? pattern.hashCode() : 0);
-            result = 31 * result + (clazz != null ? clazz.hashCode() : 0);
+            int result = patternStr.hashCode();
+            result = 31 * result + (domain != null ? domain.hashCode() : 0);
+            result = 31 * result + pattern.hashCode();
+            result = 31 * result + clazz.hashCode();
             return result;
         }
     }
@@ -116,16 +124,22 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
 
     @Override
     public <T> T getAttachedObject(Class<T> clazz,String key) {
+        return getAttachedObject(clazz,null,key);
+    }
+
+    @Override
+    public <T> T getAttachedObject(Class<T> clazz,String domain,String key) {
         for(Map.Entry<KeyClassTuple,Object> element:perKeyAttachedInfo.entrySet()){
-            if(element.getKey().matches(key, clazz)){
+            if(element.getKey().matches(key,domain, clazz)){
                 return (T)element.getValue();
             }
         }
         if(parent!=null){
-            return parent.getAttachedObject(clazz,key);
+            return parent.getAttachedObject(clazz,domain,key);
         }
         return null;
     }
+
 
 
     @Override
@@ -137,6 +151,12 @@ public class DefaultDocumentClassInfoMapping implements IDocumentClassMappingInf
     public synchronized <T> void attachObject(Class<T> clazz,String pattern, Object obj) {
         perKeyAttachedInfo.put(new KeyClassTuple(pattern,clazz),obj);
     }
+
+    @Override
+    public synchronized <T> void attachObject(Class<T> clazz,String pattern,String domain, Object obj) {
+        perKeyAttachedInfo.put(new KeyClassTuple(pattern,domain,clazz),obj);
+    }
+
 
     @Override
     public Set<Class<? extends CouchbaseDocument>> getChildClasses(){

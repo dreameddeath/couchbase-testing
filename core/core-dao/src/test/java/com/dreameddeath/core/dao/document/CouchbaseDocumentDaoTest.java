@@ -59,6 +59,7 @@ public class CouchbaseDocumentDaoTest{
         public DaoRootTest(CouchbaseCounterDao cntDao){
             this.cntDao = cntDao;
             cntDao.setBaseDao(this);
+            setDomain("test");
         }
 
         @BucketDocumentForClass(TestRootDaoDoc.class)

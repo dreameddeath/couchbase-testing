@@ -39,17 +39,19 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
 
     @Override
     public long blockingGetCounter(String key) throws DaoException,StorageException {
-        return parentSession.asyncGetCounter(key).blockingGet();
+        return manageAsyncCounterResult(parentSession.asyncGetCounter(key));
     }
+
 
     @Override
     public long blockingIncrCounter(String key, long byVal) throws DaoException,StorageException {
-        return parentSession.asyncIncrCounter(key,byVal).blockingGet();
+        return manageAsyncCounterResult(parentSession.asyncIncrCounter(key,byVal));
     }
+
 
     @Override
     public long blockingDecrCounter(String key, long byVal) throws DaoException,StorageException {
-        return parentSession.asyncDecrCounter(key,byVal).blockingGet();
+        return manageAsyncCounterResult(parentSession.asyncDecrCounter(key,byVal));
     }
 
     @Override
@@ -184,6 +186,25 @@ public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
             throw e;
         }
     }
+
+    public long manageAsyncCounterResult(Single<Long> obs)throws DaoException,StorageException {
+        try{
+            return obs.blockingGet();
+        }
+        catch(RuntimeException e){
+            Throwable eCause=e.getCause();
+            if(eCause!=null){
+                if(eCause instanceof DaoException){
+                    throw (DaoException)eCause;
+                }
+                if(eCause instanceof StorageException){
+                    throw (StorageException)eCause;
+                }
+            }
+            throw e;
+        }
+    }
+
 
     public <T extends CouchbaseDocument> T manageAsyncWriteResult(final T obj, Single<T> obs)throws ValidationException,DaoException,StorageException {
         try{

@@ -18,6 +18,7 @@
 package com.dreameddeath.core.notification.remote;
 
 import com.codahale.metrics.MetricRegistry;
+import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.notification.EventTest;
@@ -31,6 +32,7 @@ import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
 import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
 import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
 import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.registrar.ListenerRegistrar;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
@@ -77,8 +79,8 @@ public class RemoteConsumerRestTest extends Assert{
         cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
-        sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
         NotificationTestConsumerRest consumerRest=new NotificationTestConsumerRest();
         testListener= new NotificationTestListener("testingNotification");
         testListener.setSessionFactory(sessionFactory);
@@ -131,7 +133,7 @@ public class RemoteConsumerRestTest extends Assert{
         List<EventTest> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
-            ICouchbaseSession session = sessionFactory.newReadWriteSession(AnonymousUser.INSTANCE);
+            ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             for (int i = 1; i <= nbEvent; ++i) {
                 EventTest test = new EventTest();
                 test.toAdd = i;
@@ -161,7 +163,7 @@ public class RemoteConsumerRestTest extends Assert{
         assertEquals((nbEvent+1)*nbEvent/2,testListener.getTotalCounter());
         Thread.sleep(50);//Wait for all updates
         {
-            ICouchbaseSession checkSession = sessionFactory.newReadOnlySession(AnonymousUser.INSTANCE);
+            ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
             for(EventTest submittedEvent:submittedEvents){
                 List<String> listeners = new ArrayList<>();
                 listeners.addAll(submittedEvent.getListeners());

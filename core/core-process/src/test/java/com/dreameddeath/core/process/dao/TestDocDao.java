@@ -53,6 +53,11 @@ public class TestDocDao extends CouchbaseDocumentWithKeyPatternDao<TestDoc> {
 
 
     @Override
+    public boolean isKeySharedAcrossDomains() {
+        return false;
+    }
+
+    @Override
     protected String getKeyRawPattern() {
         return "testdoc/{tid}";
     }

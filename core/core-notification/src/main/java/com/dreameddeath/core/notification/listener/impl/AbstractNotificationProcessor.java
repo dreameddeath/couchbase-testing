@@ -46,8 +46,8 @@ public abstract class AbstractNotificationProcessor {
     }
 
 
-    public Single<SubmissionResult> process(final String sourceNotifKey) {
-        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, defaultSessionUser);
+    public Single<SubmissionResult> process(final String domain,final String sourceNotifKey) {
+        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,defaultSessionUser);
         return process(sourceNotifKey,session);
     }
 
@@ -76,7 +76,7 @@ public abstract class AbstractNotificationProcessor {
         if(!needProcessing(sourceNotif)){
             return buildNotificationResult(sourceNotif);
         }
-        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE, defaultSessionUser);
+        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,sourceNotif.getDomain(), defaultSessionUser);
 
         return this.process(sourceNotif,event,session);
     }

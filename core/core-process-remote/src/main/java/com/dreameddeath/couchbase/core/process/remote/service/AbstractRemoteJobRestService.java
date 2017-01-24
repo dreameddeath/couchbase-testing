@@ -79,6 +79,10 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
     protected abstract TRESP buildResponse(TJOB response);
     protected abstract Class<? extends RemoteJobResultWrapper<TRESP>> getResponseClass();
 
+    private String getJobDomain(){
+        return jobExecutorClient.getDomain();
+    }
+
     @SuppressWarnings("unchecked")
     public AbstractRemoteJobRestService(){
         //
@@ -144,7 +148,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                                 AlreadyExistingJob result = new AlreadyExistingJob();
                                 result.key = e.getOwnerDocumentKey();
                                 try {
-                                    ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
+                                    ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, getJobDomain(),user);
                                     AbstractJob conflictingJob = session.toBlocking().blockingGet(e.getOwnerDocumentKey(), AbstractJob.class);
                                     result.requestUid = conflictingJob.getRequestUid();
                                     result.uid = conflictingJob.getUid().toString();
@@ -174,7 +178,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
                        String uid,
                        AsyncResponse asyncResponse) {
         try {
-            ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
+            ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, getJobDomain(),user);
             ProcessUtils.asyncLoadJob(session, uid, jobClass)
                     .map(this::buildJaxrsResponse)
                     .onErrorResumeNext(this::manageStandardErrors)
@@ -198,7 +202,7 @@ public abstract class AbstractRemoteJobRestService<TJOB extends AbstractJob,TREQ
             asyncResponse.resume(new BadRequestException("The action is inconsistent"));
         }
         try {
-            ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, user);
+            ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY,getJobDomain(), user);
             ProcessUtils.asyncLoadJob(session, uid, jobClass)
                     .flatMap(job->this.checkRequestId(requestUid,job))
                     .flatMap(job->{

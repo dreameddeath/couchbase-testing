@@ -18,6 +18,7 @@
 package com.dreameddeath.core.process;
 
 import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
+import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.notification.bus.IEventBus;
@@ -94,10 +95,10 @@ public class ProcessesBaseTest extends Assert {
         cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
-        sessionFactory.getDocumentDaoFactory().addDao(new JobDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new EventDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new NotificationDao().setClient(cbSimulator));
-        sessionFactory.getDocumentDaoFactory().addDao(new TaskDao().setClient(cbSimulator));
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),AbstractJob.class,JobDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),AbstractTask.class,TaskDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
         sessionFactory.getDocumentDaoFactory().addDao(new TestChildDocDao().setClient(cbSimulator));
 
@@ -155,7 +156,7 @@ public class ProcessesBaseTest extends Assert {
         assertEquals(job.name, createdDoc.name);
         assertEquals(2,createJobTask.getNotifications().size());
         Thread.sleep(50);
-        ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY, AnonymousUser.INSTANCE);
+        ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY,"test", AnonymousUser.INSTANCE);
         for(TaskContext taskContext:context.getTaskContexts().toList().blockingGet()) {
             AbstractTask currTask = taskContext.getInternalTask();
             for (EventLink link : new ArrayList<>(currTask.getNotifications())) {

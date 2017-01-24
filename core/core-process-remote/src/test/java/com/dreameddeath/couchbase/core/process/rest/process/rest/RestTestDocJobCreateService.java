@@ -39,6 +39,7 @@ import javax.ws.rs.core.MediaType;
 @ServiceDef(domain = "tests",type = AbstractRemoteJobRestService.SERVICE_TYPE,name="testdocjobcreate",version = "1.0.0",access = DataAccessType.READ_WRITE)
 @Path("testdocjobs/create")
 public class RestTestDocJobCreateService extends AbstractRemoteJobRestService<TestDocJobCreate,TestDocJobCreateRequest,TestDocJobCreateResult> {
+
     @Override
     protected TestDocJobCreate buildJobFromRequest(TestDocJobCreateRequest request) {
         return request.buildJob();

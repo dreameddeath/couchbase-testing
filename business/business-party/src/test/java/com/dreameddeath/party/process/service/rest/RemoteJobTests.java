@@ -34,6 +34,7 @@ import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin
 import com.dreameddeath.infrastructure.plugin.notification.NotificationWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.ProcessesWebServerPlugin;
 import com.dreameddeath.infrastructure.plugin.process.config.InfrastructureProcessPluginConfigProperties;
+import com.dreameddeath.party.DomainConstants;
 import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.model.v1.Person;
 import com.dreameddeath.party.process.model.v1.published.CreateUpdatePartyJobRequest;
@@ -78,12 +79,12 @@ public class RemoteJobTests {
         String connectionString = testUtils.getCluster().getConnectString();
 
         ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty("party").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_DOMAIN_BUCKET_NAME.getProperty(DomainConstants.PARTY_DOMAIN).getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty("party").getName(),"test");
+        ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty(DomainConstants.PARTY_DOMAIN).getName(),"test");
 
         AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
@@ -121,7 +122,7 @@ public class RemoteJobTests {
             CreateUpdatePartyJobResponse createResponse = response.readEntity(CreateUpdatePartyJobResponse.class);
             assertNotNull(createResponse.getUid());
 
-            Party party = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(createResponse.getUid(), Party.class);
+            Party party = cbPlugin.getSessionFactory().newReadOnlySession(DomainConstants.PARTY_DOMAIN,AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(createResponse.getUid(), Party.class);
             assertTrue(party instanceof Person);
             assertEquals(request.getPerson().getFirstName(), ((Person) party).getFirstName());
             assertEquals(request.getPerson().getLastName(), ((Person) party).getLastName());
@@ -140,7 +141,7 @@ public class RemoteJobTests {
 
             Response response = clientRoles.getInstance().request().sync().post(Entity.json(rolesJobRequest));
             assertEquals(200, response.getStatus());
-            Party party = cbPlugin.getSessionFactory().newReadOnlySession(AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(partyId, Party.class);
+            Party party = cbPlugin.getSessionFactory().newReadOnlySession(DomainConstants.PARTY_DOMAIN,AnonymousUser.INSTANCE).toBlocking().blockingGetFromUID(partyId, Party.class);
             assertTrue(party instanceof Person);
             assertEquals(1,party.getPartyRoles().size());
         }

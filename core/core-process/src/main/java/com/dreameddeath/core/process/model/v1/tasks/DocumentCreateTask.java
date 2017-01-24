@@ -20,6 +20,7 @@ package com.dreameddeath.core.process.model.v1.tasks;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
@@ -30,6 +31,7 @@ import io.reactivex.Single;
 /**
  * Created by Christophe Jeunesse on 21/05/2014.
  */
+@DocumentEntity
 public abstract class DocumentCreateTask<T extends CouchbaseDocument> extends AbstractTask {
     @DocumentProperty("docKey")
     private Property<String> docKey=new ImmutableProperty<>(DocumentCreateTask.this);

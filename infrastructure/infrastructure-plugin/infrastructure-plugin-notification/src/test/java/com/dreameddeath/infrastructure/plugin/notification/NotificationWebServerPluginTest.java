@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -77,8 +76,8 @@ public class NotificationWebServerPluginTest extends Assert{
         ConfigManagerFactory.addPersistentConfigurationEntry(CommonConfigProperties.ZOOKEEPER_CLUSTER_ADDREES.getName(), connectionString);
         //ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdocprocess").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
-        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "notification").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "event").getName(), "testBucketName");
         final AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
                 .withUserFactory(new StandardMockUserFactory())
@@ -113,7 +112,7 @@ public class NotificationWebServerPluginTest extends Assert{
                 Thread.sleep(100);
                 assertEquals(1L,((EventBusImpl)plugin.getEventBus()).getListeners().size());
                 //assertEquals(1L,plugin.getListenerDiscoverer().getListeners().size());
-                ICouchbaseSession session=cbPlugin.getSessionFactory().newReadWriteSession(AnonymousUser.INSTANCE);
+                ICouchbaseSession session=cbPlugin.getSessionFactory().newReadWriteSession("test",AnonymousUser.INSTANCE);
                 final int nbEvent = 20;
                 for (int i = 1; i <= nbEvent; ++i) {
                     EventTest test = new EventTest();
@@ -157,7 +156,7 @@ public class NotificationWebServerPluginTest extends Assert{
                 NotificationWebServerPlugin plugin=daemon.getAdditionalWebServers().get(0).getPlugin(NotificationWebServerPlugin.class);
                 CouchbaseWebServerPlugin cbPlugin=daemon.getAdditionalWebServers().get(0).getPlugin(CouchbaseWebServerPlugin.class);
                 assertEquals(1L,((EventBusImpl)plugin.getEventBus()).getListeners().size());
-                ICouchbaseSession session=cbPlugin.getSessionFactory().newReadWriteSession(AnonymousUser.INSTANCE);
+                ICouchbaseSession session=cbPlugin.getSessionFactory().newReadWriteSession("test",AnonymousUser.INSTANCE);
                 final int nbEvent = 20;
                 for (int i = 1; i <= nbEvent; ++i) {
                     EventTest test = new EventTest();

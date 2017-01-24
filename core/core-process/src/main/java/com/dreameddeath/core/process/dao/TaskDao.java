@@ -59,6 +59,11 @@ public class TaskDao extends CouchbaseDocumentWithKeyPatternDao<AbstractTask> {
 
 
     @Override
+    public boolean isKeySharedAcrossDomains() {
+        return true;
+    }
+
+    @Override
     protected String getKeyRawPattern() {
         return PATTERN_KEY;
     }

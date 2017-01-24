@@ -17,12 +17,13 @@
 
 package com.dreameddeath.core.process.service.context;
 
+import com.dreameddeath.core.model.annotation.HasEffectiveDomain;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.EntityVersion;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.notification.bus.IEventBus;
-import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.notification.AbstractJobEvent;
 import io.reactivex.Single;
 
 import java.util.*;
@@ -32,15 +33,15 @@ import java.util.*;
  */
 public class JobNotificationBuildResult<TJOB extends AbstractJob> {
     private final JobContext<TJOB> context;
-    private final Map<EntityModelId,Event> eventMap;
+    private final Map<EntityModelId,AbstractJobEvent> eventMap;
 
-    public JobNotificationBuildResult(JobContext<TJOB> context, Collection<Event> eventList) {
+    public JobNotificationBuildResult(JobContext<TJOB> context, Collection<? extends AbstractJobEvent> eventList) {
         this.context = context;
         this.eventMap = new HashMap<>(eventList.size());
         addElements(eventList,DuplicateMode.ERROR);
     }
 
-    public JobNotificationBuildResult(final JobNotificationBuildResult<TJOB> previousResult, Collection<Event> eventList,DuplicateMode duplicateMode) {
+    public JobNotificationBuildResult(final JobNotificationBuildResult<TJOB> previousResult, Collection<? extends AbstractJobEvent> eventList,DuplicateMode duplicateMode) {
         this.context = previousResult.context;
         this.eventMap = new HashMap<>(previousResult.eventMap.size()+eventList.size());
         addElements(previousResult.eventMap.values(),DuplicateMode.ERROR);
@@ -48,7 +49,7 @@ public class JobNotificationBuildResult<TJOB extends AbstractJob> {
     }
 
 
-    private JobNotificationBuildResult<TJOB> addElement(Event event,DuplicateMode duplicateMode){
+    private JobNotificationBuildResult<TJOB> addElement(AbstractJobEvent event,DuplicateMode duplicateMode){
         EntityModelId origModelId = CouchbaseDocumentReflection.getReflectionFromClass(event.getClass()).getStructure().getEntityModelId();
         EntityModelId applicableModelId = new EntityModelId(origModelId.getDomain(),origModelId.getName(), EntityVersion.EMPTY_VERSION);
         if(eventMap.containsKey(applicableModelId)){
@@ -59,12 +60,14 @@ public class JobNotificationBuildResult<TJOB extends AbstractJob> {
                 return this;
             }
         }
+        if(event instanceof HasEffectiveDomain){
 
+        }
         eventMap.put(applicableModelId,event);
         return this;
     }
 
-    private JobNotificationBuildResult<TJOB> addElements(Collection<Event> events,DuplicateMode duplicateMode){
+    private JobNotificationBuildResult<TJOB> addElements(Collection<? extends AbstractJobEvent> events,DuplicateMode duplicateMode){
         events.forEach(event->this.addElement(event,duplicateMode));
         return this;
     }
@@ -77,32 +80,32 @@ public class JobNotificationBuildResult<TJOB extends AbstractJob> {
         return context.getEventBus();
     }
 
-    public Map<EntityModelId, Event> getEventMap() {
+    public Map<EntityModelId, AbstractJobEvent> getEventMap() {
         return Collections.unmodifiableMap(eventMap);
     }
 
-    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context,Collection<Event> events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context,Collection<AbstractJobEvent> events){
         return Single.just(new JobNotificationBuildResult<>(context, events));
     }
 
-    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<Event> events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<AbstractJobEvent> events){
         return build(previousRes,events,DuplicateMode.ERROR);
     }
 
-    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context, Event ... events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobContext<TJOB> context, AbstractJobEvent ... events){
         return build(context, Arrays.asList(events));
     }
 
-    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Event ... events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,AbstractJobEvent ... events){
         return build(previousRes,DuplicateMode.ERROR,events);
     }
 
-    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,DuplicateMode mode,Event ... events){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,DuplicateMode mode,AbstractJobEvent ... events){
         return build(previousRes, Arrays.asList(events),mode);
     }
 
 
-    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<Event> events,DuplicateMode mode){
+    public static <TJOB extends AbstractJob> Single<JobNotificationBuildResult<TJOB>> build(JobNotificationBuildResult<TJOB> previousRes,Collection<AbstractJobEvent> events,DuplicateMode mode){
         return Single.just(new JobNotificationBuildResult<>(previousRes, events,mode));
     }
 

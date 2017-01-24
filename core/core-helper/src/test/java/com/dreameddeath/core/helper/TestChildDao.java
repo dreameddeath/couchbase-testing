@@ -45,6 +45,11 @@ public class TestChildDao extends CouchbaseDocumentWithKeyPatternDao<TestDocChil
     public static final String TEST_CHILD_KEY_PATTERN = TestDao.TEST_KEY_PATTERN+"/child/{cuid:\\d{5}}";
 
     @Override
+    public boolean isKeySharedAcrossDomains() {
+        return false;
+    }
+
+    @Override
     public String getKeyRawPattern() {
         return TEST_CHILD_KEY_PATTERN;
     }

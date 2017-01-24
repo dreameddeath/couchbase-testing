@@ -78,6 +78,11 @@ public class ViewTest {
         public static final String TEST_KEY_PATTERN="test/\\d{10}";
 
         @Override
+        public boolean isKeySharedAcrossDomains() {
+            return false;
+        }
+
+        @Override
         public String getKeyRawPattern() {
             return TEST_KEY_PATTERN;
         }
@@ -152,7 +157,7 @@ public class ViewTest {
 
     @Test
     public void testView() throws Exception{
-        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession(null);
+        ICouchbaseSession session = env.getSessionFactory().newReadWriteSession("testView",null);
         for(int i=0;i<10;++i){
             TestDoc doc = session.newEntity(TestDoc.class);
             doc.strVal="test "+i;

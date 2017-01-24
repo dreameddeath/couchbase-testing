@@ -1,17 +1,18 @@
 /*
  * Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.dao.factory;
@@ -51,8 +52,15 @@ public class CouchbaseCounterDaoFactory implements IDaoFactory{
                     documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(ITranscoder.class, new CounterTranscoder());
                 }
                 if(dao.getKeyPattern()!=null) {
-                    documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(CouchbaseCounterDao.class, dao.getKeyPattern(), dao);
-                    documentInfoMapper.addKeyPattern(CouchbaseCounter.class,dao.getKeyPattern());
+                    documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(CouchbaseCounterDao.class, dao.getKeyPattern(), dao.getDomain(),dao);
+                    documentInfoMapper.addKeyPattern(CouchbaseCounter.class, dao.getKeyPattern(),dao.getDomain());
+                    /*if(dao.isSharedKey()!=null && dao.isSharedKey()) {
+
+                    }
+                    if (dao.isSharedKey()==null || !dao.isSharedKey()){
+                        documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).attachObject(CouchbaseCounterDao.class, dao.getKeyPattern(), dao);
+                        documentInfoMapper.addKeyPattern(CouchbaseCounter.class, dao.getKeyPattern());
+                    }*/
                 }
             }
             catch(DuplicateMappedEntryInfoException|MappingNotFoundException e){
@@ -61,7 +69,22 @@ public class CouchbaseCounterDaoFactory implements IDaoFactory{
         }
     }
 
-    public CouchbaseCounterDao getDaoForKey(String key) throws DaoNotFoundException {
+    public CouchbaseCounterDao getDaoForKey(String domain,String key) throws DaoNotFoundException {
+        try {
+            CouchbaseCounterDao res = documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).getAttachedObject(CouchbaseCounterDao.class, domain,key);
+            if(res!=null){
+                return res;
+            }
+        }
+        catch(MappingNotFoundException e){
+            throw new DaoNotFoundException(domain,key,DaoNotFoundException.Type.COUNTER);
+        }
+
+        throw new DaoNotFoundException(domain,key, DaoNotFoundException.Type.COUNTER);
+    }
+
+
+    /*public CouchbaseCounterDao getDaoForKey(String key) throws DaoNotFoundException {
         try {
             CouchbaseCounterDao res = documentInfoMapper.getMappingFromClass(CouchbaseCounter.class).getAttachedObject(CouchbaseCounterDao.class, key);
             if(res!=null){
@@ -73,7 +96,7 @@ public class CouchbaseCounterDaoFactory implements IDaoFactory{
         }
 
         throw new DaoNotFoundException(key, DaoNotFoundException.Type.COUNTER);
-    }
+    }*/
 
     @Override
     public synchronized void init() {

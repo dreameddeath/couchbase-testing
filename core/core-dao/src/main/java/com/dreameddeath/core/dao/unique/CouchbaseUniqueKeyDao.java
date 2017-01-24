@@ -34,6 +34,7 @@ import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
+import com.dreameddeath.core.model.exception.IllegalMethodCall;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import io.reactivex.Single;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -43,8 +44,8 @@ import org.apache.commons.codec.digest.DigestUtils;
  */
 @DaoForClass(CouchbaseUniqueKey.class)
 public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueKey> {
-    public static final String UNIQ_FMT_KEY="uniq/%s";
-    public static final String UNIQ_KEY_PATTERN="uniq/.*";
+    public static final String UNIQ_FMT_KEY="uniq/%s/%s";
+    public static final String UNIQ_KEY_PATTERN="uniq/[^/]+/.*";
     private static final String INTERNAL_KEY_FMT="%s#%s";
     private static final String INTERNAL_KEY_SEPARATOR="#";
 
@@ -55,14 +56,17 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     public void setNameSpace(String nameSpace){namespace=nameSpace;}
 
 
+
     public CouchbaseUniqueKeyDao(Builder builder){
         super();
         setClient(builder.getClient());
         setBaseDocumentDao(builder.getBaseDao());
         setNameSpace(builder.getNameSpace());
+        setDomain(builder.getBaseDao().getDomain());
     }
 
     public void setBaseDocumentDao(CouchbaseDocumentDao dao){refDocumentDao = dao;}
+
     public CouchbaseDocumentDao getBaseDocumentDao(){return refDocumentDao;}
 
 
@@ -73,6 +77,13 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         else return refDocumentDao.getClient();
     }
 
+
+    @Override
+    public String getDomain() {
+        String domain = super.getDomain();
+        if(domain!=null) { return domain;}
+        else{return refDocumentDao.getDomain();}
+    }
 
     @BucketDocumentForClass(CouchbaseUniqueKey.class)
     public static class LocalBucketDocument extends BucketDocument<CouchbaseUniqueKey> {
@@ -109,16 +120,16 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
     }
 
     public String buildKey(String nameSpace, String value){
-        return String.format(UNIQ_FMT_KEY, getHashKey(nameSpace,value));
+        return String.format(UNIQ_FMT_KEY,getDomain(),getHashKey(nameSpace,value));
     }
 
     public String buildKey(String internalKey){
-        return String.format(UNIQ_FMT_KEY, getHashKey(internalKey));
+        return String.format(UNIQ_FMT_KEY,getDomain(),getHashKey(internalKey));
     }
 
     @Override
     public Single<CouchbaseUniqueKey> asyncBuildKey(ICouchbaseSession session, CouchbaseUniqueKey newObject) throws DaoException {
-        throw new RuntimeException("Shouldn't append");
+        throw new IllegalMethodCall();
     }
 
     public CouchbaseUniqueKey get(ICouchbaseSession session,String nameSpace,String value) throws DaoException,StorageException{
@@ -156,7 +167,11 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
         }
     }
 
+    public CouchbaseUniqueKey manageDaoLevelTransientFields(CouchbaseUniqueKey obj){
+        obj.setEffectiveDomain(getDomain());
+        return obj;
 
+    }
     private <T extends CouchbaseDocument> Single<CouchbaseUniqueKey> asyncCreate(ICouchbaseSession session,final T doc,String internalKey,boolean isCalcOnly){
         if(doc.getBaseMeta().getKey()==null){
             return Single.error(new DaoException("The key object doesn't have a key before unique key setup. The doc was :"+doc));
@@ -165,6 +180,7 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             return Single.error(new InconsistentStateException(doc,"Cannot update unique key <"+internalKey+"> in readonly mode"));
         }
         CouchbaseUniqueKey keyDoc = new CouchbaseUniqueKey();
+        keyDoc.setEffectiveDomain(getDomain());
         keyDoc.getBaseMeta().setKey(buildKey(internalKey));
         try {
             keyDoc.addKey(internalKey, doc);
@@ -307,7 +323,6 @@ public class CouchbaseUniqueKeyDao extends CouchbaseDocumentDao<CouchbaseUniqueK
             }
             return this;
         }
-
 
         public Builder withClient(ICouchbaseBucket client){
             this.client = client;

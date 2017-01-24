@@ -207,11 +207,14 @@ public class EventBusImpl implements IEventBus {
 
     protected <T extends Event> Single<EventFireResult<T>> submitEvent(final T event,ICouchbaseSession session,final EventBusMetrics.Context eventMetricContext){
         List<Observable<PublishedResult>> listPublishedResult = new ArrayList<>();
+        String domain = event.getModelId()!=null?event.getModelId().getDomain():null;
         for(String inputListnerName:event.getListeners()){
+            Preconditions.checkNotNull(domain,"The domain isn't defined for event %s of key %s",event.getClass().getName(),event.getBaseMeta().getKey());
             final NotificationMetrics.Context notificationMetricContext = eventMetricContext.notificationStart(inputListnerName);
             Single<PublishedResult> notificationObservable = Single.just(inputListnerName)
                     .map(listenerName->{
                         Notification result = new Notification();
+                        result.setDomain(domain);
                         result.setEventId(event.getId());
                         result.setListenerName(listenerName);
                         return result;
