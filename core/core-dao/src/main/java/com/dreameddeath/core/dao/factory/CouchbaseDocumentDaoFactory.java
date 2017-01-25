@@ -239,7 +239,7 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             try {
                 daos.add(addDaoForEntityAndFlavor(daoInfo, domain, rootEntity.getModelId().getName(), flavor));
             } catch (Throwable e) {
-                LOG.error("Error during adding domain %s from domains list %s of class %s",domain,domains,clazz);
+                LOG.error("Error during adding domain {} from domains list {} of class {}",domain,domains,clazz);
                 throw e;
             }
         }
