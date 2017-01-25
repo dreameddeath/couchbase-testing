@@ -34,6 +34,7 @@ import java.io.Writer;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -45,8 +46,9 @@ public class EntityDefinitionManager {
     public static final String ROOT_PATH="META-INF/core-model";
     public static final String DOCUMENT_DEF_PATH="DocumentDef";
 
-    private ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
-    private Map<String,Class> versionClassMap=new ConcurrentHashMap<>();
+    private final ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
+    private final Map<String,Class> versionClassMap=new ConcurrentHashMap<>();
+    private final AtomicReference<List<EntityDef>> cachedEntities=new AtomicReference<>();
 
     public EntityDefinitionManager(){}
 
@@ -62,8 +64,7 @@ public class EntityDefinitionManager {
     }
 
     public Class findClassFromVersionnedTypeId(EntityModelId modelId){
-        Class result =versionClassMap.get(modelId.getClassUnivoqueModelId());
-        if(result==null) {
+        return versionClassMap.computeIfAbsent(modelId.getClassUnivoqueModelId(),model->{
             //it will naturally exclude patch from typeId
             String filename = getDocumentEntityFilename(modelId);
             InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
@@ -72,13 +73,12 @@ public class EntityDefinitionManager {
             }
             try {
                 EntityDef def = mapper.readValue(is, EntityDef.class);
-                result = Thread.currentThread().getContextClassLoader().loadClass(def.getClassName());
-                versionClassMap.putIfAbsent(modelId.getClassUnivoqueModelId(), result);
+                return Thread.currentThread().getContextClassLoader().loadClass(def.getClassName());
             } catch (ClassNotFoundException | IOException e) {
                 throw new RuntimeException("Cannot find/read file <" + filename + "> for id <" + modelId.toString() + ">", e);
             }
-        }
-        return result;
+        });
+
     }
 
     public Class findClassFromVersionnedTypeId(String typeId){
@@ -107,8 +107,19 @@ public class EntityDefinitionManager {
         }
     }
 
+    public List<EntityDef> getCachedEntities(){
+        return cachedEntities.updateAndGet(list-> {
+            if (list == null) {
+                return getEntities();
+            }
+            else{
+                return list;
+            }
+        });
+    }
+
     public List<EntityDef> getChildEntities(final EntityDef parentEntity){
-        return new EntityDefinitionManager().getEntities()
+        return this.getCachedEntities()
                 .stream().filter(entity -> entity.getParentEntities().contains(parentEntity.getModelId()))
                 .collect(Collectors.toList());
     }
@@ -127,7 +138,8 @@ public class EntityDefinitionManager {
                 .filter(clazz -> clazz.getAnnotation(HasDomainsOfSubClass.class)!=null)
                 .map(clazz -> clazz.getAnnotation(HasDomainsOfSubClass.class).value())
                 .map(EntityDef::build)
-                .flatMap(entityDef -> this.getEffectiveDomains(entityDef).stream())
+                .flatMap(entityDef -> getChildEntities(entityDef).stream())
+                .flatMap(entityDef -> getEffectiveDomains(entityDef).stream())
                 .collect(Collectors.toSet());
 
         Set<String> result = new HashSet<>(childDomains);

@@ -219,14 +219,9 @@ public class EntityModelId {
         return new EntityModelId(fullIdString);
     }
 
-    public static EntityModelId build(DocumentEntity annot, ClassInfo classInfo){
-        if(classInfo.getCurrentClass()!=null){
-            return EntityModelId.build(annot,classInfo.getCurrentClass());
-        }
-        else{
-            return EntityModelId.build(annot,classInfo.getTypeElement());
-        }
-    }
+    /*public static EntityModelId build(DocumentEntity annot, ClassInfo classInfo){
+
+    }*/
 
 
 
@@ -237,6 +232,11 @@ public class EntityModelId {
     public static EntityModelId build(DocumentEntity annot, Element elt){
         return new EntityModelId(annot,elt);
     }
+
+    public static EntityModelId build(DocumentEntity annot, AbstractClassInfo classInfo){
+        return new EntityModelId(annot,classInfo);
+    }
+
 
     public static EntityModelId build(DocumentEntity annot, Class clazz){
         return new EntityModelId(annot,clazz);

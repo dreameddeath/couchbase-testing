@@ -74,12 +74,7 @@ public class EntityDef {
 
     public static EntityDef build(CouchbaseDocumentStructureReflection documentDef){
         EntityDef result = new EntityDef();
-        if(documentDef.getClassInfo().getTypeElement()!=null) {
-            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentEntity.class), documentDef.getClassInfo().getTypeElement()));
-        }
-        else{
-            result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentEntity.class), documentDef.getClassInfo().getCurrentClass()));
-        }
+        result.setModelId(EntityModelId.build(documentDef.getClassInfo().getAnnotation(DocumentEntity.class), documentDef.getClassInfo()));
         result.setClassName(documentDef.getClassInfo().getFullName());
         CouchbaseDocumentStructureReflection currDocReflection = documentDef;
         while(currDocReflection.getSuperclassReflexion()!=null){

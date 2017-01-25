@@ -71,7 +71,7 @@ public class DaoUtils {
             throw new RuntimeException("Cannot find DocumentDef for class <"+classInfo.getFullName()+">");
         }
 
-        EntityModelId modelId = EntityModelId.build(docDefAnnot, (ClassInfo) classInfo);
+        EntityModelId modelId = EntityModelId.build(docDefAnnot, classInfo);
         return getTargetDaoPerModelRegisteringFilename(modelId.getDomain(), modelId.getName());
     }
 
