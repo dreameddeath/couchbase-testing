@@ -24,6 +24,6 @@ import com.dreameddeath.core.process.model.v1.base.AbstractTask;
  * Created by Christophe Jeunesse on 23/09/2014.
  */
 @DocumentEntity
-public class NoOpTask extends AbstractTask {
+public abstract class NoOpTask extends AbstractTask {
 
 }

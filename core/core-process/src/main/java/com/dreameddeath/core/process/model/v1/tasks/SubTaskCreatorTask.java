@@ -30,7 +30,7 @@ import java.util.List;
  * Created by Christophe Jeunesse on 04/02/2016.
  */
 @DocumentEntity
-public class SubTaskCreatorTask extends AbstractTask {
+public abstract class SubTaskCreatorTask extends AbstractTask {
     /**
      *  subTasks : List of sub tasks created
      */
