@@ -1,29 +1,32 @@
 <!--
   ~ Copyright Christophe Jeunesse
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
   ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~  http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
   -->
-
-<div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="ok()"><span aria-hidden="true">&times;</span></button>
-    <h3 class="modal-title">Details of daemon</h3>
+<div class="panel panel-default">
+<div class="panel-heading">
+    <h3 class="panel-title">
+        <span class="label"><button class="btn btn-xs btn-primary" type="button" ng-click="close()" aria-label="previous"><span class="glyphicon glyphicon-chevron-left"></span></button></span>
+        <span>Details of dao {{currDao.uuid}} of type {{currDao.type}}</span>
+    </h3>
 </div>
-<div class="modal-body">
-    <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{dao.uuid}}</div></div>
-    <div class="row"><div class="col-md-3">Type</div><div class="col-md-9">{{dao.type}}</div></div>
-    <div class="row"><div class="col-md-3">class</div><div class="col-md-9">{{dao.className}}</div></div>
-    <div class="row"><div class="col-md-3">bucketName</div><div class="col-md-9">{{dao.bucketName}}</div></div>
-    <div class="row"><div class="col-md-3">readOnly</div><div class="col-md-9">{{dao.readOnly}}</div></div>
+<div class="panel-body">
+    <div class="row"><div class="col-md-3">UUID</div><div class="col-md-9">{{currDao.uuid}}</div></div>
+    <div class="row"><div class="col-md-3">Type</div><div class="col-md-9">{{currDao.type}}</div></div>
+    <div class="row"><div class="col-md-3">class</div><div class="col-md-9">{{currDao.className}}</div></div>
+    <div class="row"><div class="col-md-3">bucketName</div><div class="col-md-9">{{currDao.bucketName}}</div></div>
+    <div class="row"><div class="col-md-3">readOnly</div><div class="col-md-9">{{currDao.readOnly}}</div></div>
     <div class="row"><div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">Entities</div>
@@ -38,7 +41,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="entity in dao.entities | orderBy:['domain','name']">
+                <tr ng-repeat="entity in currDao.entities | orderBy:['domain','name']">
                     <td>{{entity.modelId.domain}}</td>
                     <td>{{entity.modelId.name}}</td>
                     <td>{{entity.className}}</td>
@@ -50,6 +53,4 @@
         </div>
     </div></div>
 </div>
-<div class="modal-footer">
-    <button class="btn btn-primary" type="button" ng-click="ok()">OK</button>
 </div>

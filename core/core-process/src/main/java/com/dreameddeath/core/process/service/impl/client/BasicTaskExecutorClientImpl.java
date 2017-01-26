@@ -80,6 +80,12 @@ public class BasicTaskExecutorClientImpl<TJOB extends AbstractJob,TTASK extends 
         this.metricRegistry = registry;
     }
 
+
+    @Override
+    public String getDomain() {
+        return domain;
+    }
+
     @Override
     public Single<TaskContext<TJOB,TTASK>> executeTask(JobContext<TJOB> parentContext, TTASK task) throws TaskExecutionException {
         TaskContext<TJOB,TTASK> taskContext = buildTaskContext(parentContext,task);

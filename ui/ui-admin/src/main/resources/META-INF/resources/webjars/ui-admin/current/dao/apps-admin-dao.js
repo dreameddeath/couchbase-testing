@@ -1,22 +1,28 @@
 'use strict';
 
 define(['angular','angular-route','angular-animate','apps-admin-dao-resource','ui-bootstrap-tpls'],function(angular){
-    var appsDaosModule = angular.module('apps-admin-dao',['apps-admin-dao-resource','ngResource','ngRoute','ui.bootstrap.modal',
-        //'template/modal/backdrop.html',
-        'uib/template/modal/window.html'
+    var appsDaosModule = angular.module('apps-admin-dao',[
+            'apps-admin-dao-resource','ngResource','ngRoute'
         ]
     );
 
     appsDaosModule.config(['$stateProvider', function($stateProvider) {
-                    $stateProvider.state('admin.dao', {
+                    $stateProvider
+                    .state('admin.dao', {
                        url:         '/daos',
-                       templateUrl: requirejs.toUrl('apps-admin-dao.html')
+                       templateUrl: requirejs.toUrl('apps-admin-dao.html')/*,
+                       controller:"apps-admin-dao-ctrl"*/
+                    })
+                    .state('admin.dao.details', {
+                       url:         '/{uid}',
+                       templateUrl: requirejs.toUrl('apps-admin-dao-details.html'),
+                       controller:"apps-admin-dao-details-ctrl"
                     })
     }]);
 
-    appsDaosModule.controller('apps-admin-dao-ctrl',['$scope','$uibModal',
+    appsDaosModule.controller('apps-admin-dao-ctrl',['$scope','$state',
             'DaoListService','DaoInfoService',
-            function($scope,$uibModal,DaoListService,DaoInfoService){
+            function($scope,$state,DaoListService,DaoInfoService){
                 var DaoInstanceInfo = function(daoInfo){
                     var self=this;
                     for(var attr in daoInfo){
@@ -30,39 +36,53 @@ define(['angular','angular-route','angular-animate','apps-admin-dao-resource','u
                         this.childEntities.forEach(function(v){self.entities.push(v)},this);
                     }
 
-                    this.viewDetails = function(){$uibModal.open({
-                                 animation: true,
-                                 templateUrl: requirejs.toUrl("apps-admin-dao-details.html"),
-                                 controller: 'apps-admin-dao-details-ctrl',
-                                 size: 'lg',
-                                 resolve: {
-                                   daoInfo: function () {
-                                     return self;
-                                   }
-                                 }
-                               })};
+                    this.viewDetails = function(){
+                        $state.go('admin.dao.details',{uid:self.uuid});
+                    };
 
                     return this;
                 }
+
+                $scope.setCurrUid=function(uid){
+                    $scope.currDaoId=uid;
+                    $scope.updateCurrVersion();
+                }
+
+                $scope.updateCurrVersion=function(){
+                    if($scope.currDaoId==null){
+                        $scope.currDao=null;
+                    }
+                    else{
+                        $scope.currDao=$scope.daosPerUid[$scope.currDaoId];
+                    }
+                }
+                $scope.$state = $state;
                 $scope.refresh=function(){
                     DaoListService.get(function(data){
                         $scope.daos = [];
+                        $scope.daosPerUid = {};
                         var daoPos=0;
                         for(var daoPos=0;daoPos<data.length;++daoPos){
-                            $scope.daos.push(new DaoInstanceInfo(data[daoPos].toJSON()));
+                            var daoInfo=new DaoInstanceInfo(data[daoPos].toJSON())
+                            $scope.daos.push(daoInfo);
+                            $scope.daosPerUid[daoInfo.uuid]=daoInfo;
                         }
+                        $scope.updateCurrVersion();
                     });
                 }
+                $scope.currDaoId=null;
                 $scope.refresh();
+
+                $scope.close=function(){
+                    $state.go("^");
+                }
             }]
         );
 
-    appsDaosModule.controller('apps-admin-dao-details-ctrl',['$scope','$uibModalInstance','daoInfo',
-                function($scope,$uibModalInstance,daoInfo){
-                    $scope.dao = daoInfo;
-                    $scope.ok=function(){
-                        $uibModalInstance.close();
-                    }
+
+    appsDaosModule.controller('apps-admin-dao-details-ctrl',['$scope','$state','$stateParams',
+                function($scope,$state,$stateParams){
+                    $scope.$parent.setCurrUid($stateParams.uid);
                 }]
             );
 

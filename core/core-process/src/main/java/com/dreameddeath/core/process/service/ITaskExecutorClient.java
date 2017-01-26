@@ -32,6 +32,7 @@ import java.util.UUID;
  */
 public interface ITaskExecutorClient<TJOB extends AbstractJob,TTASK extends AbstractTask> {
     UUID getInstanceUUID();
+    String getDomain();
     Class<TTASK> getTaskClass();
     ITaskExecutorService<TJOB,TTASK> getExecutorService();
     ITaskProcessingService<TJOB,TTASK> getProcessingService();

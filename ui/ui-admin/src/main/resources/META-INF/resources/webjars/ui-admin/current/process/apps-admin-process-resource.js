@@ -2,6 +2,11 @@
 
 define(['angular','angular-resource'],function(angular){
     var resourceModule = angular.module('apps-admin-process-resource', ['ngResource']);
+
+    resourceModule.factory('TasksDomainsService', ['$resource', function ($resource) {
+        return $resource("/apis/apps-admin/processors/domains", null, { 'get':  {method:'GET',isArray:true}});
+    }]);
+
     resourceModule.factory('TasksListService', ['$resource', function ($resource) {
         return $resource("/apis/apps-admin/processors/tasks", null, { 'get':  {method:'GET',isArray:true}});
     }]);

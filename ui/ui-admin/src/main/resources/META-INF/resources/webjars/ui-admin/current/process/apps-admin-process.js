@@ -1,9 +1,8 @@
 'use strict';
 
 define(['angular','angular-route','angular-animate','apps-admin-process-resource','ui-bootstrap-tpls'],function(angular){
-    var appsProcessorsModule = angular.module('apps-admin-process',['apps-admin-process-resource','ngResource','ngRoute','ui.bootstrap.modal',
-        //'template/modal/backdrop.html',
-        'uib/template/modal/window.html'
+    var appsProcessorsModule = angular.module('apps-admin-process',[
+            'apps-admin-process-resource','ngResource','ngRoute'
         ]
     );
 
@@ -16,7 +15,7 @@ define(['angular','angular-route','angular-animate','apps-admin-process-resource
                         url:         '/{type}/{name}/{version}',
                         templateUrl: requirejs.toUrl('apps-admin-process-detail.html'),
                         controller:"apps-admin-process-details-ctrl"
-                    })
+                    });
 
     }]);
 
@@ -111,9 +110,6 @@ define(['angular','angular-route','angular-animate','apps-admin-process-resource
     appsProcessorsModule.controller('apps-admin-process-details-ctrl',['$scope','$state','$stateParams',
                 function($scope,$state,$stateParams){
                     $scope.$parent.setCurrVersion($stateParams.type,$stateParams.name,$stateParams.version);
-                    $scope.ok=function(){
-                        $uibModalInstance.close();
-                    }
                 }]
             );
 
