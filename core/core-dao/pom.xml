@@ -90,6 +90,11 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>compiling-annotation-processor-tools</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>core-json</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -113,6 +118,11 @@
             <artifactId>swagger-annotations</artifactId>
             <version>${swagger.jaxrs.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-json-transcoder</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--
         testing
         -->
@@ -125,6 +135,12 @@
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-curator</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-annotation-processor</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

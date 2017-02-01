@@ -1,18 +1,17 @@
 /*
+ * Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
  */
 
@@ -110,12 +109,9 @@ public class AnnotationProcessorVelocityEngine {
         context.put("generator",generatorInfo);
         return context;
     }
-    public static VelocityContext newContext(Logger log,Messager messager){
-        return newContext(new VelocityLogger(log,messager));
-    }
 
     public static VelocityContext newContext(Logger log,Messager messager,AbstractProcessor generator,String comment){
-        return newContext(new VelocityLogger(log,messager),new GeneratorInfo(generator.getClass(),comment));
+        return newContext(new VelocityLogger(log,messager,generator),new GeneratorInfo(generator.getClass(),comment));
     }
 
 
@@ -152,20 +148,22 @@ public class AnnotationProcessorVelocityEngine {
     }
 
     public static class VelocityLogger{
-        private Logger logger;
-        private Messager messager;
+        private final Logger logger;
+        private final Messager messager;
+        private final AbstractProcessor processor;
 
-        public VelocityLogger(Logger logger, Messager messager){
+        public VelocityLogger(Logger logger, Messager messager, AbstractProcessor generator){
             this.logger=logger;
             this.messager = messager;
+            this.processor = generator;
         }
 
         public void note(String message){
-            messager.printMessage(Diagnostic.Kind.NOTE, message);
+            messager.printMessage(Diagnostic.Kind.NOTE, processor.getClass().getSimpleName()+": "+ message);
         }
 
         public void error(String message){
-            messager.printMessage(Diagnostic.Kind.ERROR, message);
+            messager.printMessage(Diagnostic.Kind.ERROR,processor.getClass().getSimpleName()+": "+ message);
         }
 
     }

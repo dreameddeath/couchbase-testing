@@ -147,7 +147,7 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             uniqueKeyDaoFactory.addDaoFor(daoUniqueKeyBuilder.getNameSpace(),daoUniqueKeyBuilder.build());
         }
         for(CouchbaseViewDao daoView:dao.getViewDaos()){
-            viewDaoFactory.addDaoFor(entityClass, daoView);
+            viewDaoFactory.addDaoFor(dao.getDomain(),entityClass, daoView);
         }
         if(daoRegistrar!=null){
             try {
@@ -287,12 +287,12 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             @SuppressWarnings("unchecked")
             final CouchbaseDocumentDao<T> result = info.getAttachedObject(CouchbaseDocumentDao.class);
             if(result==null){
-                throw new DaoNotFoundException(entityClass);
+                throw new DaoNotFoundException(domain,entityClass);
             }
             return result;
         }
         catch(MappingNotFoundException e){
-            throw new DaoNotFoundException(entityClass);
+            throw new DaoNotFoundException(domain,entityClass);
         }
     }
 

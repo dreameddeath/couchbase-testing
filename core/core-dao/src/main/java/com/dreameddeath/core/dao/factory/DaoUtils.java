@@ -56,6 +56,11 @@ public class DaoUtils {
 
     public static String getTargetDaoPerClassRegisteringFilename(Class<? extends CouchbaseDocument> clazz){
         AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo(clazz);
+        return getTargetDaoPerClassRegisteringFilename(classInfo);
+    }
+
+
+    public static String getTargetDaoPerClassRegisteringFilename(AbstractClassInfo classInfo){
         return String.format("%s/%s", ROOT_FILENAME_PER_CLASS , classInfo.getFullName());
     }
 
@@ -97,24 +102,41 @@ public class DaoUtils {
 
     public static DaoInfo getDaoInfo(String domain, String name) {
         String filename = getTargetDaoPerModelRegisteringFilename(domain, name);
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
-        if (is != null) {
-            try {
-                return mapper.readValue(is, DaoInfo.class);
-            }
-            catch(Throwable e){
-                throw new RuntimeException("Cannot read dao info file <"+filename+">",e);
+        try(InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)) {
+            if (is != null) {
+                return readDaoInfo(is, filename);
+            } else {
+                return null;
             }
         }
-        else{
-            return null;
+        catch (IOException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static DaoInfo readDaoInfo(InputStream is,String filename){
+        try {
+            return mapper.readValue(is, DaoInfo.class);
+        }
+        catch(Throwable e){
+            throw new RuntimeException("Cannot read entity file <"+filename+">",e);
         }
     }
 
     public static DaoInfo getDaoInfo(CouchbaseDocumentReflection docReflexion){
-        String filename = ROOT_FILENAME_PER_CLASS +docReflexion.getClassInfo().getFullName();
-        InputStream is =Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
-        if(is==null){
+        String filename = getTargetDaoPerClassRegisteringFilename(docReflexion.getClassInfo());
+        try(InputStream is =Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)){
+            if(is!=null){
+                return readDaoInfo(is,filename);
+            }
+            if(docReflexion.getClassInfo().getClass()!=null) {
+                try (InputStream otherClassLoader = docReflexion.getClassInfo().getClass().getClassLoader().getResourceAsStream(filename)) {
+                    if (otherClassLoader != null) {
+                        return readDaoInfo(otherClassLoader, filename);
+                    }
+                }
+            }
+
             if(docReflexion.getSuperclassReflection()!=null){
                 return getDaoInfo(docReflexion.getSuperclassReflection());
             }
@@ -122,13 +144,8 @@ public class DaoUtils {
                 return null;
             }
         }
-        else {
-            try {
-                return mapper.readValue(is, DaoInfo.class);
-            }
-            catch(Throwable e){
-                throw new RuntimeException("Cannot read entity file <"+filename+">",e);
-            }
+        catch (IOException e){
+            throw new RuntimeException(e);
         }
     }
 

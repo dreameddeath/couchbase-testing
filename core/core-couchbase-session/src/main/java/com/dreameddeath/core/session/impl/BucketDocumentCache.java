@@ -33,16 +33,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BucketDocumentCache {
     private final CouchbaseSession parentSession;
-    private final Map<String,CacheValue> cache = new ConcurrentHashMap<>();
+    private final Map<CacheEntryKey,CacheValue> cache = new ConcurrentHashMap<>();
 
     public BucketDocumentCache(CouchbaseSession parentSession) {
         this.parentSession = parentSession;
     }
 
-    public <T extends CouchbaseDocument> T get(String key) throws DaoException{
-        CacheValue value = cache.get(key);
+    public <T extends CouchbaseDocument> T get(String domain,String key) throws DaoException{
+        CacheValue value = cache.get(new CacheEntryKey(domain,key));
         if(value!=null) {
-            return extractValue(value,(Class<T>) value.clazz);
+            return extractValue(domain,value,(Class<T>) value.clazz);
         }
         else{
             return null;
@@ -53,11 +53,11 @@ public class BucketDocumentCache {
         cache.clear();
     }
 
-    private <T extends CouchbaseDocument> T extractValue(CacheValue value, Class<T> clazz) throws DaoException{
+    private <T extends CouchbaseDocument> T extractValue(String domain,CacheValue value, Class<T> clazz) throws DaoException{
         if(value!=null) {
             try {
-                final IDocumentClassMappingInfo mappingInfo = parentSession.getDocumentFactory().getDocumentInfoMapper().getMappingFromClass(parentSession.getDomain(),clazz);
-                final CouchbaseDocumentDao<T> dao=parentSession.getDocumentFactory().getDaoForClass(parentSession.getDomain(),clazz);
+                final IDocumentClassMappingInfo mappingInfo = parentSession.getDocumentFactory().getDocumentInfoMapper().getMappingFromClass(domain,clazz);
+                final CouchbaseDocumentDao<T> dao=parentSession.getDocumentFactory().getDaoForClass(domain,clazz);
                 @SuppressWarnings("unchecked")
                 final ITranscoder<T> transcoder = mappingInfo.getAttachedObject(ITranscoder.class);
                 T doc=transcoder.decode(value.content);
@@ -79,13 +79,13 @@ public class BucketDocumentCache {
         return null;
     }
 
-    public <T extends CouchbaseDocument> T get(String key, Class<T> clazz) throws DaoException{
-        return extractValue(cache.get(key),clazz);
+    public <T extends CouchbaseDocument> T get(String domain,String key, Class<T> clazz) throws DaoException{
+        return extractValue(domain,cache.get(new CacheEntryKey(domain,key)),clazz);
 
     }
 
-    public void put(final CouchbaseDocument newDoc){
-        cache.compute(newDoc.getBaseMeta().getKey(),(key,old)->{
+    public void put(String domain,final CouchbaseDocument newDoc){
+        cache.compute(new CacheEntryKey(domain,newDoc.getBaseMeta().getKey()),(key,old)->{
             //Empty cache create new entry
             if(old==null){
                 return new CacheValue(newDoc);
@@ -145,5 +145,32 @@ public class BucketDocumentCache {
             return flags;
         }
 
+    }
+
+    private static class CacheEntryKey{
+        private final String key;
+        private final String domain;
+
+        public CacheEntryKey(String key, String domain) {
+            this.key = key;
+            this.domain = domain;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            CacheEntryKey that = (CacheEntryKey) o;
+
+            return key.equals(that.key) && domain.equals(that.domain);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = key.hashCode();
+            result = 31 * result + domain.hashCode();
+            return result;
+        }
     }
 }

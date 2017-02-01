@@ -48,6 +48,7 @@ import com.dreameddeath.core.couchbase.impl.WriteParams;
 import com.dreameddeath.core.couchbase.metrics.CouchbaseMetricsContext;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.testing.couchbase.dcp.CouchbaseDCPConnectorSimulator;
+import com.google.common.base.Preconditions;
 import io.reactivex.Single;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.Logger;
@@ -266,7 +267,7 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     }
 
     public synchronized  <T extends CouchbaseDocument> Document<T> performImpact(BucketDocument<T> bucketDoc, Class docType, ImpactMode mode, int expiry) throws StorageException{
-        Transcoder transcoder = transcoderMap.get(docType);
+        Transcoder<BucketDocument<?>,?> transcoder = (Transcoder)transcoderMap.get(docType);
         DocumentSimulator foundDoc = dbContent.get(bucketDoc.id());
         if((foundDoc==null) && !mode.equals(ImpactMode.ADD) && !mode.equals(ImpactMode.UPDATE) ){
             throw new DocumentDoesNotExistException("Key <"+bucketDoc.id()+"> isn't found in couchbase simulator");
@@ -552,8 +553,10 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
     public InternalViewResult buildResult(ViewQuery query){
         String designDoc = query.getDesign();
         String viewName = query.getView();
-
-        ScriptObjectMirror viewScript = viewsMaps.get(designDoc).get(viewName);
+        Map<String, ScriptObjectMirror> scriptMapping = viewsMaps.get(designDoc);
+        Preconditions.checkNotNull(scriptMapping,"The design doc %s isn't existing",designDoc);
+        ScriptObjectMirror viewScript = scriptMapping.get(viewName);
+        Preconditions.checkNotNull(scriptMapping,"The view %s isn't existing in the design doc doc %s isn't existing",viewName,designDoc);
         EmitSimulator result = new EmitSimulator(this);
         for(Map.Entry<String,DocumentSimulator> docInstance:dbContent.entrySet()){
             try {

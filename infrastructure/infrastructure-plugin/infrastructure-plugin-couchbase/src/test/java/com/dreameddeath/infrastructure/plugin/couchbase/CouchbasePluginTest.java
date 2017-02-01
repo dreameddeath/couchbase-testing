@@ -21,7 +21,7 @@ import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.discovery.DaoDiscovery;
 import com.dreameddeath.core.dao.model.discovery.DaoInstanceInfo;
-import com.dreameddeath.core.helper.config.DaoHelperConfigProperties;
+import com.dreameddeath.core.dao.service.config.DaoHelperConfigProperties;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.infrastructure.common.CommonConfigProperties;
@@ -43,7 +43,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.dreameddeath.core.helper.service.DaoHelperServiceUtils.SERVICE_TYPE_DATA;
+import static com.dreameddeath.core.dao.service.service.DaoHelperServiceUtils.SERVICE_TYPE_DATA;
 
 /**
  * Created by Christophe Jeunesse on 20/12/2015.

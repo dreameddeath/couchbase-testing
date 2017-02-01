@@ -192,7 +192,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     public <T extends CouchbaseDocument> T updateCache(T doc){
         if(doc.getBaseMeta().getKey()!=null){
-            sessionCache.put(doc);
+            sessionCache.put(getDomain(),doc);
         }
         return doc;
     }
@@ -260,7 +260,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public <T extends CouchbaseDocument> Single<T> asyncGet(String key){
         try {
-            T cachedObj = sessionCache.get(key);
+            T cachedObj = sessionCache.get(getDomain(),key);
             if (cachedObj != null) {
                 return Single.just(cachedObj);
             } else {
@@ -279,7 +279,7 @@ public class CouchbaseSession implements ICouchbaseSession {
     @Override
     public <T extends CouchbaseDocument> Single<T> asyncGet(String key, Class<T> targetClass){
         try {
-            CouchbaseDocument cacheResult = sessionCache.get(key);
+            CouchbaseDocument cacheResult = sessionCache.get(getDomain(),key);
             if (cacheResult != null) {
                 return Single.just((T) cacheResult);
             } else {
@@ -355,7 +355,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             @SuppressWarnings("unchecked")
             IDaoForDocumentWithUID<T> dao = (IDaoForDocumentWithUID<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,targetClass);
             final String key = dao.getKeyFromUID(uid);
-            CouchbaseDocument cacheResult = sessionCache.get(key);
+            CouchbaseDocument cacheResult = sessionCache.get(getDomain(),key);
             if (cacheResult != null) {
                 return Single.just((T) cacheResult);
             } else {
@@ -382,7 +382,7 @@ public class CouchbaseSession implements ICouchbaseSession {
             @SuppressWarnings("unchecked")
             IDaoWithKeyPattern<T> dao = (IDaoWithKeyPattern<T>) sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,targetClass);
             final String key = dao.getKeyFromParams(params);
-            CouchbaseDocument cacheResult = sessionCache.get(key);
+            CouchbaseDocument cacheResult = sessionCache.get(getDomain(),key);
             if (cacheResult != null) {
                 return Single.just((T) cacheResult);
             } else {
@@ -505,7 +505,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <TKEY,TVALUE,T extends CouchbaseDocument> IViewQuery<TKEY,TVALUE,T> initViewQuery(Class<T> forClass,String viewName) throws DaoException{
-        CouchbaseViewDao<TKEY,TVALUE,T> viewDao = (CouchbaseViewDao<TKEY,TVALUE,T>)sessionFactory.getDocumentDaoFactory().getViewDaoFactory().getViewDaoFor(forClass,viewName);
+        CouchbaseViewDao<TKEY,TVALUE,T> viewDao = (CouchbaseViewDao<TKEY,TVALUE,T>)sessionFactory.getDocumentDaoFactory().getViewDaoFactory().getViewDaoFor(getDomain(),forClass,viewName);
         return viewDao.buildViewQuery(keyPrefix);
     }
 

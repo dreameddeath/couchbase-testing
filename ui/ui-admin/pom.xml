@@ -91,7 +91,7 @@
         </dependency>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-helper</artifactId>
+            <artifactId>core-dao-service</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

@@ -17,23 +17,19 @@
 
 package com.dreameddeath.core.dao.exception;
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
-
 /**
  * Created by Christophe Jeunesse on 02/09/2014.
  */
 public class DaoNotFoundException extends DaoException {
-    public DaoNotFoundException(Class docClass){
-        super("The dao for doc Class "+docClass.getName()+" hasn't been found");
+    public DaoNotFoundException(String domain,Class docClass){
+        super("The dao for doc Class "+docClass.getName()+" hasn't been found in domain "+domain);
     }
+
 
     public DaoNotFoundException(Class docClass,String viewName){
         super("The view <"+viewName+"> dao for doc Class "+docClass.getName()+" hasn't been found");
     }
 
-    public DaoNotFoundException(CouchbaseDocument doc){
-        this(doc.getClass());
-    }
 
     public DaoNotFoundException(String domain,String key, Type type){
         super("The dao for "+domain+"/"+type.toString()+ " of pf type <"+key+"> hasn't been found");

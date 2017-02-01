@@ -87,7 +87,7 @@ public class CouchbaseDocumentDaoTest{
     @Before
     public void init(){
         ICouchbaseBucket wrapper = new CouchbaseBucketSimulator("test");
-        GenericCouchbaseTranscoder<TestRootDaoDoc> transcoder = new GenericCouchbaseTranscoder<TestRootDaoDoc>(TestRootDaoDoc.class, DaoRootTest.LocalBucketDocument.class);
+        GenericCouchbaseTranscoder<TestRootDaoDoc> transcoder = new GenericCouchbaseTranscoder<>(TestRootDaoDoc.class, DaoRootTest.LocalBucketDocument.class);
         transcoder.setTranscoder(new ITranscoder<TestRootDaoDoc>() {
             @Override
             public Class<TestRootDaoDoc> getBaseClass() {

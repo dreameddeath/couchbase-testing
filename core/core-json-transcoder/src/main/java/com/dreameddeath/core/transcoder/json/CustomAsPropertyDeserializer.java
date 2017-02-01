@@ -42,8 +42,6 @@ public class CustomAsPropertyDeserializer extends AsPropertyTypeDeserializer {
     private final String defaultTypeId;
     private final String defaultDomainId;
     private final String defaultVersionId;
-    //private final String nameOnlyId;
-    //private final String partialId;
 
     public CustomAsPropertyDeserializer(JavaType bt, TypeIdResolver idRes, String typePropertyName, boolean typeIdVisible,JavaType defaultImpl, JsonTypeInfo.As inclusion) {
         super(bt, idRes, typePropertyName, typeIdVisible, defaultImpl, inclusion);
@@ -62,15 +60,11 @@ public class CustomAsPropertyDeserializer extends AsPropertyTypeDeserializer {
         if(modelId!=null){
             defaultDomainId=modelId.getDomain();
             defaultVersionId=modelId.getEntityVersion().toString();
-            //nameOnlyId=modelId.getName();
-            //partialId=modelId.getName();
             isCouchbaseDocument=true;
         }
         else{
             defaultDomainId=null;
             defaultVersionId=null;
-            //nameOnlyId=null;
-            //partialId=null;
             isCouchbaseDocument=false;
         }
     }

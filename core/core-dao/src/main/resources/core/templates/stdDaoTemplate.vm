@@ -1,0 +1,188 @@
+package ${daoDef.packageName};
+
+
+import org.apache.commons.io.IOUtils;
+
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.BucketDocument;
+import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.dreameddeath.core.couchbase.annotation.BucketDocumentForClass;
+import com.dreameddeath.core.dao.annotation.DaoForClass;
+import com.dreameddeath.core.dao.counter.CouchbaseCounterDao;
+import com.dreameddeath.core.dao.view.CouchbaseViewDao;
+import com.dreameddeath.core.dao.exception.DaoException;
+import com.dreameddeath.core.dao.model.view.IViewKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.IViewTranscoder;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.java.utils.NumberUtils;
+import com.dreameddeath.core.java.utils.DateUtils;
+
+
+#foreach($importName in $daoDef.getPluginsImportNames())
+import ${importName};
+#end
+
+import io.reactivex.Single;
+
+import java.util.List;
+import java.util.ArrayList;
+import javax.annotation.Generated;
+
+import ${entity.name};
+import ${daoDef.baseName};
+
+@Generated(
+    value = "${generator.name}",
+    date = "${generator.date}",
+    comments = "${generator.comment}"
+)
+
+#foreach($pluginAnnotStr in $daoDef.getPluginAnnotationStrings())${pluginAnnotStr}
+#end
+@DaoForClass(${entity.simpleName}.class)
+public class ${daoDef.simpleName} extends ${daoDef.baseSimpleName}<${entity.simpleName}> {
+    public static final String FMT_KEY="$esc.java($dbPath.fullFormat)";
+    public static final String PATTERN_KEY="$esc.java($dbPath.fullPattern)";
+#foreach($counter in $counters)
+    public static final String CNT_${counter.name.toUpperCase()}="$esc.java($counter.fullFormat)";
+    public static final String CNT_${counter.name.toUpperCase()}_PATTERN="$esc.java($counter.fullPattern)";
+#end
+
+    @BucketDocumentForClass(${entity.simpleName}.class)
+    public static class LocalBucketDocument extends BucketDocument<${entity.simpleName}> {
+        public LocalBucketDocument(${entity.simpleName} obj){super(obj);}
+    }
+
+    @Override
+    public Class<? extends BucketDocument<${entity.simpleName}>> getBucketDocumentClass() {
+        return LocalBucketDocument.class;
+    }
+
+
+    @Override
+    public Single<${entity.simpleName}> asyncBuildKey(ICouchbaseSession session,final ${entity.simpleName} obj) throws DaoException{
+        return session.asyncIncrCounter(String.format(CNT_${keyCounter.name.toUpperCase()}#if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end),1)
+                        .map(new BuildKeyFromCounterFunc(obj #if("$!{entity.parentKeyAccessor}"!=""),obj${entity.parentKeyAccessor}#end))
+                        ;
+    }
+
+#if(${daoDef.type.hasPattern()})
+    @Override
+    protected final String getKeyRawPattern(){
+        return PATTERN_KEY;
+    }
+
+    @Override
+    public final boolean isKeySharedAcrossDomains(){
+        return ${daoDef.isSharedKeyAccrossDomain()};
+    }
+
+    @Override
+    public final String getKeyFromParams(Object... params) {
+        return String.format(FMT_KEY
+        #foreach($formatType in $dbPath.formatTypes)
+            ,#if($formatType.needFormat())${formatType.formatter}(#end params[$foreach.index]#if($formatType.needFormat()) )#end
+        #end );
+    }
+
+    @Override
+    protected final ${entity.simpleName} updateTransientFromKeyPattern(${entity.simpleName} obj,String ... keyParams){
+#if($daoDef.type.hasUid())
+        #if($daoDef.isUidTypeLong())
+            #set($uidInput="Long.parseLong(keyParams[keyParams.length-1])")
+        #else
+            #set($uidInput="keyParams[keyParams.length-1]")
+        #end
+        obj${daoDef.buildUidSetter($uidInput)};
+#end
+        return obj;
+    }
+#end
+
+#if($counters.size() >0)
+    @Override
+    public final List<CouchbaseCounterDao.Builder> getCountersBuilder() {
+        List<CouchbaseCounterDao.Builder> result = new ArrayList<>();
+#foreach($counter in $counters)
+        result.add(
+                new CouchbaseCounterDao.Builder()
+                        .withKeyPattern(CNT_${counter.name.toUpperCase()}_PATTERN)
+                        .withBaseValue(${counter.defaultValue})#if($counter.modulus!=0)
+                        .withModulus(${counter.modulus})#end
+                        .withBaseDao(this)
+        );
+#end
+        return result;
+    }
+#end
+
+
+    @Override
+    protected final List<CouchbaseViewDao> generateViewDaos(){
+        List<CouchbaseViewDao> list=new ArrayList<>();
+        list.add(new AllElementsViewDao(this));
+#foreach($view in $views)
+        list.add(new ${view.className}ViewDao(this));
+#end
+        return list;
+    }
+
+
+    public static class AllElementsViewDao extends CouchbaseViewDao<String,String,${entity.simpleName}>{
+        private static final IViewKeyTranscoder<String> KEY_TRANSCODER = new ViewStringKeyTranscoder();
+        private static final IViewTranscoder<String> VALUE_TRANSCODER = new ViewStringTranscoder();
+
+        public AllElementsViewDao(${entity.simpleName}Dao parentDao){
+            super("${entity.domain}","all_${entity.dbName}",parentDao);
+        }
+
+        @Override
+        public String getContent() {
+            return "emit(${entity.parentKeyPath},null);";
+        }
+
+        @Override public IViewKeyTranscoder<String> getKeyTranscoder(){
+            return KEY_TRANSCODER;
+        }
+        @Override public IViewTranscoder<String> getValueTranscoder(){
+            return VALUE_TRANSCODER;
+        }
+    }
+
+
+#foreach($view in $views)
+    public static class ${view.className}ViewDao extends CouchbaseViewDao<${view.key.type},${view.value.type},${entity.simpleName}>{
+        private static final IViewKeyTranscoder<${view.key.type}> KEY_TRANSCODER = new ${view.key.transcoder}();
+        private static final IViewTranscoder<${view.value.type}> VALUE_TRANSCODER = new ${view.value.transcoder}();
+
+        public ${view.className}ViewDao(${entity.simpleName}Dao parentDao){
+            super("${entity.domain}","${view.name}",parentDao);
+        }
+
+        @Override
+        public String getContent() {
+#if($view.isContentSourceFile())
+            try{
+                return IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("$esc.java($view.contentFilename)"));
+            }
+            catch(Throwable e){
+                throw new RuntimeException("Unexpected content read for file <$esc.java($view.contentFilename)>",e);
+            }
+#else
+             return "$esc.java($view.content)";
+#end
+        }
+
+        @Override public IViewKeyTranscoder<${view.key.type}> getKeyTranscoder(){
+            return KEY_TRANSCODER;
+        }
+        @Override public IViewTranscoder<${view.value.type}> getValueTranscoder(){
+            return VALUE_TRANSCODER;
+        }
+    }
+
+#end
+
+}
