@@ -219,7 +219,9 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             }
             packageInfo = PackageInfo.getPackageInfo(typeElement);
             simpleName = typeElement.getSimpleName().toString();
-            className = ClassName.get(typeElement);
+            if(!typeElement.asType().getKind().isPrimitive()) {
+                className = ClassName.get(typeElement);
+            }
             //Manage $ for inner clazz
             compiledFileName = typeElement.getQualifiedName().toString();
             fullName = packageInfo.getName()+"."+typeElement.getQualifiedName().toString().substring(packageInfo.getName().length() + 1).replace(".","$");
@@ -234,7 +236,9 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             }
             simpleName = clazz.getSimpleName();
             fullName = clazz.getName();
-            className = ClassName.get(clazz);
+            if(!clazz.isPrimitive()) {
+                className = ClassName.get(clazz);
+            }
             compiledFileName = (enclosingClass!=null)?enclosingClass.compiledFileName+"$"+clazz.getSimpleName():clazz.getName();
             for(TypeVariable param:clazz.getTypeParameters()){
                 parameterizedTypeInfos.add(new ParameterizedTypeInfo(param));
