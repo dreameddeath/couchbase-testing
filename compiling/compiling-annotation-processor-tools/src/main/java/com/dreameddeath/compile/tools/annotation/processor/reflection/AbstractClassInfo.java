@@ -236,7 +236,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             }
             simpleName = clazz.getSimpleName();
             fullName = clazz.getName();
-            if(!clazz.isPrimitive()) {
+            if(!clazz.isPrimitive() && !clazz.isArray()) {
                 className = ClassName.get(clazz);
             }
             compiledFileName = (enclosingClass!=null)?enclosingClass.compiledFileName+"$"+clazz.getSimpleName():clazz.getName();
