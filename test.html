@@ -1,0 +1,113 @@
+<html lang="fr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="title" content="eSOFT proto" />
+    <meta name="description" content="maquette proto eSOFT"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+    <link rel='tylesheet' href='votre-fichier.css' type='text/css' />
+    <link href="vendor/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h1>eSOFT Maquette Proto</h1>
+    </div>
+    <div class="panel-body">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Parc et opération</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-12" >
+                        <div class="input-group">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">MSISDN<span class="caret"/>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="#">MSISDN</a>
+                                    </li>
+                                    <li role="separator" class="divider"/>
+                                    <li>
+                                        <a href="#">NDS</a>
+                                    </li>
+                                    <li>
+                                        <a href="#">AID</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <input type="text" class="form-control" placeholder="Numéro?..." />
+                        </div>
+                        <!-- /input-group -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+                <div class="panel-body">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Opération</div>
+                        <div class="panel-body">
+                            <div class="btn-group" role="group" aria-label="...">
+                                <button type="button" class="btn btn-danger">
+                                    <span class="glyphicon glyphicon-check" aria-hidden="true"/> Acquisition
+                                </button>
+                                <button type="button" class="btn btn-warning">
+                                    <span class="glyphicon glyphicon-share" aria-hidden="true"/> Migration
+                                </button>
+                                <button type="button" class="btn btn-success">
+                                    <span class="glyphicon glyphicon-edit" aria-hidden="true"/> Modification
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- fin panel parc et operation -->
+        <div class="panel panel-primary">
+            <div class="panel-heading">Options Eligibles</div>
+            <div class="panel-body" id="option_panel_body" >
+                <div class="row" id="template_ligne">
+                    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3" id="template_option">
+                        <div class="thumbnail">
+                            <img src="https://boutique.orange.fr/media-cms/mediatheque/126x180-pass-go-usa-internet-37188.png" alt="..." />
+                            <div class="caption">
+                                <div class="row">
+                                    <div class="col-xs-8">
+                                        <h5>Pass Data et internet</h5>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <span class="label label-warning">2,99€</span>
+                                    </div>
+                                </div>
+                                <p>description longue</p>
+                                <p>
+                                <div class="btn-group" role="group" aria-label="...">
+                                    <button type="button" class="btn btn-success btn-sm">
+                                        <span class="glyphicon glyphicon-check" aria-hidden="true"/> <span class="hidden-xs">Sousc.</span>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm">
+                                        <span class="glyphicon glyphicon-trash" aria-hidden="true"/> <span class="hidden-xs">Résil.</span>
+                                    </button>
+                                    <button type="button" class="btn btn-warning btn-sm">
+                                        <span class="glyphicon glyphicon-edit" aria-hidden="true"/> <span class="hidden-xs">Modif.</span>
+                                    </button>
+                                </div>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- fin panel options -->
+    </div>
+</div>
+<script src="vendor/jquery-3.2.0.js" />
+<script src="vendor/bootstrap-3.3.7/js/bootstrap.min.js"/>
+<script>
+			$( "#template_option" ).clone().appendTo( "template_ligne" )
+			$( "#template_option" ).clone().appendTo( "template_ligne" )
+			$( "#template_option" ).clone().appendTo( "template_ligne" )
+		</script>
+</body>
+
+</html>

@@ -243,6 +243,7 @@
         <velocity.version>1.7</velocity.version>
         <velocity.tootls.version>2.0</velocity.tootls.version>
         <mvel2.version>2.3.1.Final</mvel2.version>
+        <javapoet.version>1.8.0</javapoet.version>
 
         <!-- spring lib -->
         <spring.version>4.3.5.RELEASE</spring.version>

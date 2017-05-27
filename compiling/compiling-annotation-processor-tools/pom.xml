@@ -45,6 +45,11 @@
           <version>${apache.common.lang3}</version>
       </dependency>
       <dependency>
+          <groupId>com.squareup</groupId>
+          <artifactId>javapoet</artifactId>
+          <version>${javapoet.version}</version>
+      </dependency>
+      <dependency>
           <groupId>commons-io</groupId>
           <artifactId>commons-io</artifactId>
           <version>${apache.common.io.version}</version>

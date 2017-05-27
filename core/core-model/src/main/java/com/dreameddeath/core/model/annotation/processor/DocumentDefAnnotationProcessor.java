@@ -52,7 +52,7 @@ public class DocumentDefAnnotationProcessor extends AbstractAnnotationProcessor 
                 file.close();
             }
             catch(IOException e){
-                messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error"+e.getMessage());
+                messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error "+e.getMessage());
                 throw new RuntimeException(e);
             }
         }

@@ -19,6 +19,7 @@ package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 import com.dreameddeath.compile.tools.annotation.exception.AnnotationProcessorException;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
+import com.squareup.javapoet.ClassName;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,7 +196,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     private List<InterfaceInfo> parentInterfaces = null;
     private List<MethodInfo> declaredMethods = null;
     private List<ParameterizedTypeInfo> parameterizedTypeInfos=new ArrayList<>();
-
+    private ClassName className;
     public abstract boolean isInterface();
 
     private void init(){
@@ -218,6 +219,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             }
             packageInfo = PackageInfo.getPackageInfo(typeElement);
             simpleName = typeElement.getSimpleName().toString();
+            className = ClassName.get(typeElement);
             //Manage $ for inner clazz
             compiledFileName = typeElement.getQualifiedName().toString();
             fullName = packageInfo.getName()+"."+typeElement.getQualifiedName().toString().substring(packageInfo.getName().length() + 1).replace(".","$");
@@ -232,6 +234,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
             }
             simpleName = clazz.getSimpleName();
             fullName = clazz.getName();
+            className = ClassName.get(clazz);
             compiledFileName = (enclosingClass!=null)?enclosingClass.compiledFileName+"$"+clazz.getSimpleName():clazz.getName();
             for(TypeVariable param:clazz.getTypeParameters()){
                 parameterizedTypeInfos.add(new ParameterizedTypeInfo(param));
@@ -446,5 +449,9 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public boolean isBaseType() {
         return isBaseType;
+    }
+
+    public ClassName getClassName() {
+        return className;
     }
 }

@@ -17,15 +17,18 @@
 package com.dreameddeath.core.model.util;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AnnotGetter;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.google.common.base.Preconditions;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +72,18 @@ public class CouchbaseDocumentStructureReflection {
         return false;
     }
 
+    public static <T extends Annotation> CouchbaseDocumentStructureReflection getClassInfoFromAnnot(T annot, AnnotGetter<T> getter){
+        AbstractClassInfo classInfo = AbstractClassInfo.getClassInfoFromAnnot(annot, getter);
+        if((classInfo instanceof ClassInfo) && isReflexible((ClassInfo)classInfo)){
+            return getReflectionFromClassInfo((ClassInfo)classInfo);
+        }
+        else{
+            return null;
+        }
+    }
+
+
+
     public static CouchbaseDocumentStructureReflection getClassInfo(String name) throws ClassNotFoundException{
         AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo(name);
         if((classInfo instanceof ClassInfo) && isReflexible((ClassInfo)classInfo)){
@@ -79,7 +94,8 @@ public class CouchbaseDocumentStructureReflection {
         }
     }
 
-    public static CouchbaseDocumentStructureReflection getReflectionFromClass(Class<? extends CouchbaseDocumentElement> docEltclass) {
+    public static CouchbaseDocumentStructureReflection getReflectionFromClass(Class docEltclass) {
+        Preconditions.checkArgument(isReflexible(docEltclass),"The class %s isn't of the proper type", docEltclass.getName());
         ClassInfo classInfo = (ClassInfo)AbstractClassInfo.getClassInfo(docEltclass);
         return getReflectionFromClassInfo(classInfo);
     }
@@ -159,7 +175,7 @@ public class CouchbaseDocumentStructureReflection {
                         field.getAnnotation(DocumentProperty.class) != null
                 )
                 .forEach(field ->
-                                CouchbaseDocumentStructureReflection.this.addField(new CouchbaseDocumentFieldReflection(field))
+                        CouchbaseDocumentStructureReflection.this.addField(new CouchbaseDocumentFieldReflection(field))
                 );
     }
 

@@ -31,4 +31,8 @@ public class StringUtils {
     public static String capitalizeFirst(String variableName) {
         return variableName.substring(0,1).toUpperCase()+variableName.substring(1);
     }
+
+    public static String lowerCaseFirst(String variableName) {
+        return variableName.substring(0,1).toLowerCase()+variableName.substring(1);
+    }
 }
