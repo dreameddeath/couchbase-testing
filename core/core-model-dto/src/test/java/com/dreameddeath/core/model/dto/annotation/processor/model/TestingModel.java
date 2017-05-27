@@ -24,7 +24,7 @@ import com.dreameddeath.core.model.dto.annotation.DtoGenerate;
 /**
  * Created by ceaj8230 on 04/02/2017.
  */
-@DocumentEntity
+@DocumentEntity(domain = "test",version = "1.0")
 @DtoGenerate
 public class TestingModel extends CouchbaseDocument {
 
