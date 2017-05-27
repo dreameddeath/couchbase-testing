@@ -52,7 +52,6 @@ import java.util.Set;
 )
 public class DtoGeneratorProcessor extends AbstractAnnotationProcessor{
     private static final Logger LOG = LoggerFactory.getLogger(DtoGeneratorProcessor.class);
-    private static final String TEMPLATE_CONVERTER_DTO_FILENAME = "core/templates/dto.converter.vm";
     private static final String TEMPLATE_MODEL_DTO_FILENAME = "core/templates/dto.model.vm";
     private static final String TEMPLATE_ENUM_DTO_FILENAME = "core/templates/dto.enum.vm";
 

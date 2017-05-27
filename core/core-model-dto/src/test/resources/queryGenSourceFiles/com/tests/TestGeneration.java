@@ -123,9 +123,9 @@ public class TestGeneration extends CouchbaseDocument {
     public static class UnwrappedClass extends CouchbaseDocumentElement{
         @DocumentProperty("string wrapped test") @InputDtoField @OutputDtoField
         private Property<String> stringWrappedTest = new StandardProperty<>(UnwrappedClass.this);
-        @DocumentProperty("recursiveUnwrapped")  @InputDtoField(unwrap=true) @OutputDtoField
+        @DocumentProperty("recursiveUnwrapped")  @InputDtoField(unwrap=true) @OutputDtoField(unwrap = true)
         private Property<RecursiveUnwrapped> recursiveUnwrapped = new StandardProperty<>(UnwrappedClass.this);
-        @DocumentProperty("recursiveUnwrappedRead") @InputDtoField(unwrap = true) @OutputDtoField(unwrap = true)
+        @DocumentProperty("recursiveUnwrappedRead") @InputDtoField(unwrap = true) @OutputDtoField
         private Property<RecursiveUnwrapped> recursiveUnwrappedRead = new StandardProperty<>(UnwrappedClass.this);
 
         public String getStringWrappedTest() { return stringWrappedTest.get(); }
@@ -138,6 +138,7 @@ public class TestGeneration extends CouchbaseDocument {
         public void setRecursiveUnwrappedRead(RecursiveUnwrapped val) { recursiveUnwrappedRead.set(val); }
     }
 
+    @DocumentEntity @DtoGenerate(buildInput=false,buildOutput=true)
     public static class RecursiveUnwrapped extends CouchbaseDocumentElement{
         @DocumentProperty("subListString")  @InputDtoField @OutputDtoField
         private ListProperty<String> subListString = new ArrayListProperty<>(RecursiveUnwrapped.this);

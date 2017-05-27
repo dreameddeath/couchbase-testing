@@ -20,6 +20,7 @@ package com.dreameddeath.core.model.dto.annotation.processor.model;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.MethodInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.model.dto.annotation.DtoConverterForEntity;
 import com.dreameddeath.core.model.dto.annotation.DtoGenerate;
 import com.dreameddeath.core.model.dto.annotation.processor.ConverterGeneratorContext;
 import com.dreameddeath.core.model.dto.annotation.processor.FieldFilteringMode;
@@ -134,11 +135,16 @@ public class ConverterServiceInfo {
             DtoModel input = DtoModel.getOrBuildModel(context, reflectionInfo.getStructure(), dtoPackageName, new GenMode(FieldFilteringMode.STANDARD, true), serviceReferenceInfo);
             generateInputConverterFct(input);
         }
+
         if(dtoGenerateAnnot ==null || dtoGenerateAnnot.buildOutput()) {
             DtoModel output = DtoModel.getOrBuildModel(context, reflectionInfo.getStructure(), dtoPackageName, new GenMode(FieldFilteringMode.STANDARD, false), serviceReferenceInfo);
             generateOutputConverterFct(output);
         }
         codeTypeBuilder.addMethod(factoryAwareMethodBuilder.build());
+        codeTypeBuilder.addAnnotation(AnnotationSpec.builder(DtoConverterForEntity.class)
+                .addMember("entityClass","$T.class",info.getClassName())
+                .addMember("version","$S",version).build()
+        );
         javaFileBuilder = JavaFile.builder(serviceReferenceInfo.getPackageName(),codeTypeBuilder.build());
     }
 
