@@ -25,7 +25,6 @@ import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.dto.annotation.DtoGenerate;
 import com.dreameddeath.core.model.dto.annotation.processor.model.ConverterServiceInfo;
 import com.dreameddeath.core.model.dto.annotation.processor.model.DtoModel;
-import com.dreameddeath.core.model.dto.annotation.processor.model.DtoModelField;
 import com.dreameddeath.core.model.dto.annotation.processor.model.EnumModel;
 import com.dreameddeath.core.model.dto.converter.DtoConverterManager;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
@@ -44,7 +43,6 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
@@ -74,13 +72,15 @@ public class DtoGeneratorProcessor extends AbstractAnnotationProcessor{
         for(Element classElem : roundEnv.getElementsAnnotatedWith(DocumentEntity.class)) {
             try{
                 ClassInfo entityClassInfo = (ClassInfo)AbstractClassInfo.getClassInfo((TypeElement) classElem);
-                DtoGenerate[] dtoGenerateAnnotations = entityClassInfo.getAnnotationByType(DtoGenerate.class);
+                //DtoGenerate[] dtoGenerateAnnotations = entityClassInfo.getAnnotationByType(DtoGenerate.class);
+                DtoGenerate[] dtoGenerateAnnotations = getDtoGenerateAnnotation(entityClassInfo);
                 if(dtoGenerateAnnotations!=null && dtoGenerateAnnotations.length > 0) {
                     for(DtoGenerate dtoAnnot : dtoGenerateAnnotations) {
                         for(String version:dtoAnnot.buildForVersions()) {
                             ConverterServiceInfo serviceInfo = new ConverterServiceInfo(entityClassInfo, converterGeneratorContext, dtoAnnot,version);
                             JavaFile javaFile = serviceInfo.getJavaFile();
                             javaFile.writeTo(processingEnv.getFiler());
+                            messager.printMessage(Diagnostic.Kind.NOTE,"Generating converter from @dtogenerate "+javaFile.typeSpec.name);
                         }
                     }
                 }
@@ -88,6 +88,7 @@ public class DtoGeneratorProcessor extends AbstractAnnotationProcessor{
                     ConverterServiceInfo serviceInfo = new ConverterServiceInfo(entityClassInfo, converterGeneratorContext,null, "1.0");
                     JavaFile javaFile = serviceInfo.getJavaFile();
                     javaFile.writeTo(processingEnv.getFiler());
+                    messager.printMessage(Diagnostic.Kind.NOTE,"Generating converter "+javaFile.typeSpec.name);
                 }
             }
             catch(Throwable e){
@@ -107,11 +108,11 @@ public class DtoGeneratorProcessor extends AbstractAnnotationProcessor{
                 if (modelEntry.getValue().isUnwrapped) {
                     continue;
                 }
-                LOG.error("Generated for " + modelEntry.getKey() +
+                /*LOG.error("Generated for " + modelEntry.getKey() +
                         " with fields "+
                         modelEntry.getValue().getFieldsForClass().stream().map(DtoModelField::getJobFieldName).collect(Collectors.toList())
                         + " with getters "+
-                        modelEntry.getValue().getFieldsForClass().stream().map(DtoModelField::getGetterName).collect(Collectors.toList()));
+                        modelEntry.getValue().getFieldsForClass().stream().map(DtoModelField::getGetterName).collect(Collectors.toList()));*/
                 VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated for " + modelEntry.getKey());
                 context.put("model", modelEntry.getValue());
                 AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_MODEL_DTO_FILENAME, modelEntry.getValue().getImportName());
@@ -134,5 +135,20 @@ public class DtoGeneratorProcessor extends AbstractAnnotationProcessor{
             throw new RuntimeException("Error during annotation processor",e);
         }
         return false;
+    }
+
+    private DtoGenerate[] getDtoGenerateAnnotation(ClassInfo entityClassInfo) {
+        DtoGenerate[] annotations = entityClassInfo.getAnnotationByType(DtoGenerate.class);
+        if(annotations==null || annotations.length==0){
+            if(entityClassInfo.getSuperClass()!=null){
+                return getDtoGenerateAnnotation(entityClassInfo.getSuperClass());
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return annotations;
+        }
     }
 }
