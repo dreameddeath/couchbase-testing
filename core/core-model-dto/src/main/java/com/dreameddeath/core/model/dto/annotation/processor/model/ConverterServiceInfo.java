@@ -132,12 +132,12 @@ public class ConverterServiceInfo {
                 .addParameter(DtoConverterFactory.class,"factory");
 
         if(dtoGenerateAnnot !=null && dtoGenerateAnnot.buildInput()) {
-            DtoModel input = DtoModel.getOrBuildModel(context, reflectionInfo.getStructure(), dtoPackageName, new GenMode(FieldFilteringMode.STANDARD, true), serviceReferenceInfo);
+            DtoModel input = DtoModel.getOrBuildModel(context, reflectionInfo.getStructure(), dtoPackageName, new GenMode(dtoGenerateAnnot.inputFieldMode(), true), serviceReferenceInfo);
             generateInputConverterFct(input);
         }
 
         if(dtoGenerateAnnot ==null || dtoGenerateAnnot.buildOutput()) {
-            DtoModel output = DtoModel.getOrBuildModel(context, reflectionInfo.getStructure(), dtoPackageName, new GenMode(FieldFilteringMode.STANDARD, false), serviceReferenceInfo);
+            DtoModel output = DtoModel.getOrBuildModel(context, reflectionInfo.getStructure(), dtoPackageName, new GenMode(dtoGenerateAnnot!=null?dtoGenerateAnnot.outputFieldMode():FieldFilteringMode.STANDARD, false), serviceReferenceInfo);
             generateOutputConverterFct(output);
         }
         codeTypeBuilder.addMethod(factoryAwareMethodBuilder.build());

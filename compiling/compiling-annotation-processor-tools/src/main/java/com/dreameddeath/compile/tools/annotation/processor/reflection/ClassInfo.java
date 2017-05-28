@@ -19,6 +19,8 @@ package com.dreameddeath.compile.tools.annotation.processor.reflection;
 
 import com.dreameddeath.compile.tools.annotation.exception.AnnotationProcessorException;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationElementType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -38,10 +40,13 @@ import static javax.lang.model.element.ElementKind.ENUM;
  * Created by Christophe Jeunesse on 07/03/2015.
  */
 public class ClassInfo extends AbstractClassInfo {
+    private static final Logger LOG = LoggerFactory.getLogger(ClassInfo.class);
+
     private ClassInfo superClass=null;
     private boolean isEnum=false;
     private boolean isAbstract=false;
     private List<FieldInfo> declaredFields = null;
+    private ParameterizedTypeInfo parameterizedSuperClass=null;
 
     @Override
     public boolean isInterface() {
@@ -53,12 +58,19 @@ public class ClassInfo extends AbstractClassInfo {
             TypeMirror superClassTypeMirror = getTypeElement().getSuperclass();
             if(superClassTypeMirror.getKind()!= TypeKind.NONE){
                 superClass = (ClassInfo) getClassInfo((TypeElement) ((DeclaredType)superClassTypeMirror).asElement());
+                try {
+                    parameterizedSuperClass = ParameterizedTypeInfo.getParameterizedTypeInfo(superClassTypeMirror);
+                }
+                catch(Throwable e){
+                    LOG.warn("Cannot get parameterized type form super type <"+superClassTypeMirror+"> from <"+getTypeElement()+">");
+                }
             }
             isEnum=getTypeElement().getKind()==ENUM;
             isAbstract=getTypeElement().getModifiers().contains(javax.lang.model.element.Modifier.ABSTRACT);
         }
         else if(getCurrentClass().getSuperclass()!=null){
             superClass = (ClassInfo) getClassInfo(getCurrentClass().getSuperclass());
+            parameterizedSuperClass = ParameterizedTypeInfo.getParameterizedTypeInfo(getCurrentClass().getGenericSuperclass());
             isEnum = this.getClass().isEnum();
             isAbstract = Modifier.isAbstract(this.getClass().getModifiers());
         }
@@ -136,5 +148,9 @@ public class ClassInfo extends AbstractClassInfo {
 
     public boolean isAbstract(){
         return isAbstract;
+    }
+
+    public ParameterizedTypeInfo getParameterizedSuperClass() {
+        return parameterizedSuperClass;
     }
 }

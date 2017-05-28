@@ -419,15 +419,15 @@ public class ConfigPropertyFactoryTest {
 
         //Check default value
         assertEquals(firstValue,prop.getValue());
-        assertEquals(ConfigManagerFactory.buildFullName("prop.customclass"),prop.getName());
+        assertEquals(ConfigManagerFactory.buildFullName("prop.customclass"),prop.getMethodParamName());
         assertEquals(firstRawValue,rawProp.getValue());
-        assertEquals("prop.customclass", rawProp.getName());
+        assertEquals("prop.customclass", rawProp.getMethodParamName());
         //With callback
         assertEquals(firstValue, callBackProp.getValue());
-        assertEquals(ConfigManagerFactory.buildFullName("callback.prop.customclass"), callBackProp.getName());
+        assertEquals(ConfigManagerFactory.buildFullName("callback.prop.customclass"), callBackProp.getMethodParamName());
         assertFalse(callbackCalled.get());
         assertEquals(firstRawValue, callBackRawProp.getValue());
-        assertEquals("callback.prop.customclass", callBackRawProp.getName());
+        assertEquals("callback.prop.customclass", callBackRawProp.getMethodParamName());
         assertFalse(callbackRawCalled.get());
 
 

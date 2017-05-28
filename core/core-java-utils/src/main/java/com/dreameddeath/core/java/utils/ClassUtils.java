@@ -74,10 +74,10 @@ public class ClassUtils {
         }
     }
 
-    public static Class getEffectiveGenericType(Class clazz,Class parameterizedClass, int pos){
-        Deque<Class> stack = getAncestorsPath(clazz,parameterizedClass);
+    public static Class getEffectiveGenericType(Class clazz,Class parameterizedClassToLookup, int pos){
+        Deque<Class> stack = getAncestorsPath(clazz,parameterizedClassToLookup);
         if(stack.size()==0){
-            throw new RuntimeException("Cannot find path from class "+clazz.getName()+" to ancestor class "+parameterizedClass.getName());
+            throw new RuntimeException("Cannot find path from class "+clazz.getName()+" to ancestor class "+parameterizedClassToLookup.getName());
         }
         else if(stack.size()==1){
             throw new RuntimeException("Ancestor and ref class are both the same");

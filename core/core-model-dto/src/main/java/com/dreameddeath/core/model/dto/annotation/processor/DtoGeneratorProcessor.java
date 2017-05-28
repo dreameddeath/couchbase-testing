@@ -126,6 +126,6 @@ public class DtoGeneratorProcessor extends AbstractAnnotationProcessor{
             messager.printMessage(Diagnostic.Kind.ERROR,"Error during processing "+e.getMessage()+"\n"+buf.toString());
             throw new RuntimeException("Error during annotation processor",e);
         }
-        return true;
+        return false;
     }
 }

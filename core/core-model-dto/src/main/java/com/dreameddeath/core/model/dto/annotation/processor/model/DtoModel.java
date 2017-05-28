@@ -30,6 +30,8 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.squareup.javapoet.ClassName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
  * Created by Christophe Jeunesse on 04/03/2016.
  */
 public class DtoModel {
+    private static final Logger LOG = LoggerFactory.getLogger(DtoModel.class);
     private Map<String,DtoModelField> stringFieldForMapping = new HashMap<>();
     private Map<String,DtoModelField> stringFieldForClassMap = new HashMap<>();
 
@@ -184,7 +187,15 @@ public class DtoModel {
     public List<DtoModel> getFirstLevelChilds(){
         return listChildClasses.stream()
                 .filter(
-                        elt->elt.origStructInfo.getSuperclassReflexion().getClassInfo().equals(this.origStructInfo.getClassInfo())
+                        elt-> {
+                            if(elt.origStructInfo==null){
+                                LOG.error("empty orig struct for elt "+elt.getClassName());
+                            }
+                            if(elt.origStructInfo.getSuperclassReflexion()==null){
+                                LOG.error("empty superclass for orig struct for elt "+elt.getClassName()+" / "+elt.origStructInfo.getClassInfo().getClassName());
+                            }
+                            return elt.origStructInfo.getSuperclassReflexion().getClassInfo().equals(this.origStructInfo.getClassInfo());
+                        }
                 )
                 .collect(Collectors.toList());
     }

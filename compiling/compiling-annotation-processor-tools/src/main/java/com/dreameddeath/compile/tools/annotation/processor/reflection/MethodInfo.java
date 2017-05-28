@@ -47,9 +47,7 @@ public class MethodInfo extends MemberInfo {
             name = elementMethod.getSimpleName().toString();
             for(VariableElement parameter:elementMethod.getParameters()) {
                 ParameterizedTypeInfo paramInfo = ParameterizedTypeInfo.getParameterizedTypeInfo(parameter.asType());
-
                 methodParameters.add(new ParameterizedTypeInfo(paramInfo,parameter.getSimpleName().toString()));
-
             }
             TypeMirror methodReturnType = elementMethod.getReturnType();
             returnType=ParameterizedTypeInfo.getParameterizedTypeInfo(methodReturnType);
@@ -99,7 +97,7 @@ public class MethodInfo extends MemberInfo {
 
     public ParameterizedTypeInfo getMethodParamByName(String name){
         for(ParameterizedTypeInfo paramInfo:getMethodParameters()){
-            if(name.equals(paramInfo.getName())){
+            if(name.equals(paramInfo.getMethodParamName())){
                 return paramInfo;
             }
         }

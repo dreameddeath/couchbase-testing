@@ -38,8 +38,7 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Created by Christophe Jeunesse on 06/03/2015.
@@ -123,23 +122,43 @@ public class TestingAnnotationProcessor extends AbstractAnnotationProcessor {
             catch(IOException e){
                 throw new RuntimeException("Cannot generate element",e);
             }
+
         }
 
+        try{
+            //Tests around TestClass
+            assertEquals(AbstractClassInfo.getClassInfo(String.class), 
+                    AbstractClassInfo.getEffectiveGenericType(
+                            AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestClass"),
+                            AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),0));
+            assertEquals(AbstractClassInfo.getClassInfo(Integer.class),
+                    AbstractClassInfo.getEffectiveGenericType(
+                            AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestClass"),
+                            AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),1));
+            //Tests around TestClassSubInterface
+            assertEquals(AbstractClassInfo.getClassInfo(String.class),
+                    AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestClassSubInterface"),
+                            AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubRoot"),0));
+            assertEquals(AbstractClassInfo.getClassInfo(Double.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestClassSubInterface"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubRoot"),1));
+            assertEquals(AbstractClassInfo.getClassInfo(Double.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestClassSubInterface"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),0));
+            assertEquals(AbstractClassInfo.getClassInfo(String.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestClassSubInterface"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),1));
+            //Tests around TestRootClass
+            assertEquals(AbstractClassInfo.getClassInfo(Integer.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRootClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),0));
+            assertNull(AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRootClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),1));
+            assertNull(AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRootClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot2"),0));
+            assertNull(AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRootClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot2"),1));
+            //Tests around TestSubClass
+            assertEquals(AbstractClassInfo.getClassInfo(Double.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRootClass"),0));
+            assertEquals(AbstractClassInfo.getClassInfo(Integer.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),0));
+            assertEquals(AbstractClassInfo.getClassInfo(Double.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),1));
+            assertEquals(AbstractClassInfo.getClassInfo(Double.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot2"),0));
+            assertEquals(AbstractClassInfo.getClassInfo(Double.class),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubClass"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot2"),1));
+            assertEquals(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestExemple"),AbstractClassInfo.getEffectiveGenericType(AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestSubClassComplex"),AbstractClassInfo.getClassInfo("com.test.GenericsClassInfoTest$TestRoot"),0));
+        }
+        catch(Throwable e){
+            throw new RuntimeException(e);
+        }
         return false;
-    }
-
-    public static class LocalClassInfo {
-        //private final String _className;
-        private final String packageName;
-        private final String annotationValue;
-
-        public LocalClassInfo(Elements elementUtils, Element element){
-            TestingAnnotation annotation = element.getAnnotation(TestingAnnotation.class);
-            annotationValue = annotation.value();
-            packageName = elementUtils.getPackageOf(element).getQualifiedName().toString();
-            //element.
-            //element.getAnnotation(TestingAnnotation.class);
-        }
     }
 
 }

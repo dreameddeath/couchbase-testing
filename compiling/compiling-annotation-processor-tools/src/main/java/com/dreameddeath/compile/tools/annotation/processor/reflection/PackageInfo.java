@@ -89,7 +89,7 @@ public class PackageInfo extends AnnotatedInfo {
         packageRef = getPackage(packageElement);
         init();
         /*parentPackage=PackageInfo.getPackageInfo(packageElement);
-        if((parentPackage==this)||(parentPackage!=null && parentPackage.getName().equals(this.getName()))) {
+        if((parentPackage==this)||(parentPackage!=null && parentPackage.getMethodParamName().equals(this.getMethodParamName()))) {
             parentPackage=null;
         }*/
         if(parentPackage==null) {

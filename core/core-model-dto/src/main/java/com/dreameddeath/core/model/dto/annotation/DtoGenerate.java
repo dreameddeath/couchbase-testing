@@ -17,6 +17,8 @@
 
 package com.dreameddeath.core.model.dto.annotation;
 
+import com.dreameddeath.core.model.dto.annotation.processor.FieldFilteringMode;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -33,4 +35,6 @@ public @interface DtoGenerate {
     boolean buildInput() default false;
     boolean buildOutput() default true;
     String[] buildForVersions() default {"1.0"};
+    FieldFilteringMode inputFieldMode() default FieldFilteringMode.STANDARD;
+    FieldFilteringMode outputFieldMode() default FieldFilteringMode.STANDARD;
 }

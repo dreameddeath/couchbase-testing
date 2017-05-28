@@ -45,7 +45,7 @@ public class ServiceExpositionMethodParamDefinition {
     }
 
     public String getName(){
-        return paramInfo.getName();
+        return paramInfo.getMethodParamName();
     }
 
     public String getClassName(){

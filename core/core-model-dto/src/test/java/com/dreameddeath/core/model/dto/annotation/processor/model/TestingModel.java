@@ -18,14 +18,13 @@
 package com.dreameddeath.core.model.dto.annotation.processor.model;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.dto.annotation.DtoGenerate;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 
 /**
  * Created by ceaj8230 on 04/02/2017.
  */
 @DocumentEntity(domain = "test",version = "1.0")
-@DtoGenerate
-public class TestingModel extends CouchbaseDocument {
-
+public class TestingModel extends AbstractTestingModel {
+    @DocumentProperty
+    public Long longValue;
 }

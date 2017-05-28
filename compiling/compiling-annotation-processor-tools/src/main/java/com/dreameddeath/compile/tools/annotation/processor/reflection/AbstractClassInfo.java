@@ -31,6 +31,7 @@ import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
 
@@ -194,6 +195,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
     private DeclaredType declaredType = null;
     private TypeElement typeElement = null;
     private List<InterfaceInfo> parentInterfaces = null;
+    private List<ParameterizedTypeInfo> parameterizedInterfaceTypeInfos = null;
     private List<MethodInfo> declaredMethods = null;
     private List<ParameterizedTypeInfo> parameterizedTypeInfos=new ArrayList<>();
     private ClassName className;
@@ -215,7 +217,7 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
                 enclosingClass = AbstractClassInfo.getClassInfo((TypeElement)typeElement.getEnclosingElement());
             }
             else if(!(typeElement.getEnclosingElement() instanceof PackageElement)){
-                throw new RuntimeException("The type <"+typeElement.getQualifiedName().toString()+"> isn't a well declared class/interface");
+                throw new RuntimeException("The type <"+typeElement.getQualifiedName().toString()+"> isn't a well declared class/interface because the enclosing element <"+typeElement.getEnclosingElement()+"> isn't a package type nor a parent class");
             }
             packageInfo = PackageInfo.getPackageInfo(typeElement);
             simpleName = typeElement.getSimpleName().toString();
@@ -457,5 +459,127 @@ public abstract class AbstractClassInfo extends AnnotatedInfo {
 
     public ClassName getClassName() {
         return className;
+    }
+
+    public static AbstractClassInfo getEffectiveGenericType(Class clazz,Class parameterizedClass, int pos) {
+        return getEffectiveGenericType(AbstractClassInfo.getClassInfo(clazz),AbstractClassInfo.getClassInfo(parameterizedClass),0);
+    }
+
+    public static AbstractClassInfo getEffectiveGenericType(AbstractClassInfo clazz,AbstractClassInfo parameterizedClass, int pos) {
+        Deque<AbstractClassInfo> stack = getAncestorsPath(clazz,parameterizedClass);
+        if(stack.size()==0){
+            throw new RuntimeException("Cannot find path from class "+clazz.getName()+" to ancestor class "+parameterizedClass.getName());
+        }
+        else if(stack.size()==1){
+            throw new RuntimeException("Ancestor and ref class are both the same");
+        }
+        AbstractClassInfo currParent=stack.pollLast();
+        Iterator<AbstractClassInfo> iterator=stack.descendingIterator();
+        int currParentParameterPos=pos;
+        while(iterator.hasNext()){
+            AbstractClassInfo currChild = iterator.next();
+            ParameterizedTypeInfo parentGenericType = null;
+            //Everything is a class
+            if(currParent!=null && !currParent.isInterface()){
+                parentGenericType = ((ClassInfo)currChild).getParameterizedSuperClass();
+            }
+            else if(currChild.isInterface()){
+                parentGenericType = currChild.getParentParameterizedInterfaces().get(0);
+            }
+            //Parent is interface
+            else {
+                int interfacePos=0;
+                for(InterfaceInfo interfaceClass:currChild.getParentInterfaces()){
+                    if(interfaceClass.equals(currParent)){
+                        parentGenericType = currChild.getParentParameterizedInterfaces().get(interfacePos);
+                        break;
+                    }
+                    interfacePos++;
+                }
+            }
+
+            if(parentGenericType!=null){
+                ParameterizedTypeInfo type=parentGenericType.getMainTypeGeneric(currParentParameterPos);
+                if(type.getTypeParamName()==null){
+                    return type.getMainType();
+                }
+                else{
+                    String typeName =type.getTypeParamName();
+                    int currChildParamPos = 0;
+                    for(ParameterizedTypeInfo currTypeParam:currChild.getParameterizedTypeInfos()){
+                        if(currTypeParam.getTypeParamName().equals(typeName)){
+                            break;
+                        }
+                        currChildParamPos++;
+                    }
+                    currParentParameterPos = currChildParamPos;
+                }
+            }
+            currParent = currChild;
+        }
+        return null;
+    }
+
+
+    public static Deque<AbstractClassInfo> getAncestorsPath(AbstractClassInfo currentClass, AbstractClassInfo ancestorClass){
+        LinkedList<AbstractClassInfo> stack = new LinkedList<>();
+        boolean found=false;
+        while(!found){
+            stack.add(currentClass);
+            if(currentClass.equals(ancestorClass)){
+                found=true;
+                continue;
+            }
+            if(ancestorClass.isInterface()){
+                for(InterfaceInfo interfaceClass:currentClass.getParentInterfaces()){
+                    Deque<AbstractClassInfo> pathInterface=getAncestorsPath(interfaceClass,ancestorClass);
+                    if(pathInterface.size()!=0){
+                        stack.addAll(pathInterface);
+                        found=true;
+                        break;
+                    }
+                }
+                if(found){
+                    continue;
+                }
+            }
+            if(currentClass.isInterface()) {
+                break;
+            }
+            else {
+                currentClass = ((ClassInfo)currentClass).getSuperClass();
+                if ((currentClass == null) || (Object.class.equals(currentClass.getCurrentClass()))) {
+                    break;
+                }
+            }
+        }
+        if(found){
+            return stack;
+        }
+        else{
+            stack.clear();
+            return stack;
+        }
+    }
+
+    public List<ParameterizedTypeInfo> getParentParameterizedInterfaces() {
+        if(parameterizedInterfaceTypeInfos==null) {
+            parameterizedInterfaceTypeInfos = new ArrayList<>();
+            if (clazz != null) {
+                for (Type interfaceParameterizedType : clazz.getGenericInterfaces()) {
+                    parameterizedInterfaceTypeInfos.add(ParameterizedTypeInfo.getParameterizedTypeInfo(interfaceParameterizedType));
+                }
+            }
+            else {
+                for (TypeMirror interfaceType : typeElement.getInterfaces()) {
+                    parameterizedInterfaceTypeInfos.add(ParameterizedTypeInfo.getParameterizedTypeInfo(interfaceType));
+                }
+            }
+        }
+        return parameterizedInterfaceTypeInfos;
+    }
+
+    public List<ParameterizedTypeInfo> getParameterizedTypeInfos(){
+        return Collections.unmodifiableList(parameterizedTypeInfos);
     }
 }

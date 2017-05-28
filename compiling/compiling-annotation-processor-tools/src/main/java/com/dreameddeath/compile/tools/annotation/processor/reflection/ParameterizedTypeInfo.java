@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -49,17 +50,31 @@ public class ParameterizedTypeInfo{
         }
     }
 
-    private final String name;
+    public static ParameterizedTypeInfo getParameterizedTypeInfo(Type genericSuperclass) {
+        return new ParameterizedTypeInfo(genericSuperclass);
+    }
+
+    private final String methodParamName;
     private final Type type;
+    private final String typeParamName;
     private final List<AbstractClassInfo> parameterizedInfosList=new ArrayList<>();
+    private final List<ParameterizedTypeInfo> intersectionInfoList=new ArrayList<>();
     private final List<ParameterizedTypeInfo> parametersGenericsInfo = new ArrayList<>();
 
     private void addType(DeclaredType type){
-        if(type.asElement().getKind().isInterface()){
-            parameterizedInfosList.add(AbstractClassInfo.getClassInfo((TypeElement)type.asElement()));
+        if(type instanceof IntersectionType) {
+            for(TypeMirror mirror : ((IntersectionType)type).getBounds()){
+                intersectionInfoList.add(ParameterizedTypeInfo.getParameterizedTypeInfo(mirror));
+            }
         }
-        else if(type.asElement().getKind().isClass()){
-            parameterizedInfosList.add(AbstractClassInfo.getClassInfo((TypeElement) type.asElement()));
+        else{
+            if(type.asElement().getKind().isInterface()){
+                AbstractClassInfo classInfo = AbstractClassInfo.getClassInfo((TypeElement)type.asElement());
+                parameterizedInfosList.add(classInfo);
+            }
+            else if(type.asElement().getKind().isClass()){
+                parameterizedInfosList.add(AbstractClassInfo.getClassInfo((TypeElement) type.asElement()));
+            }
         }
 
         for(TypeMirror parameterElement:type.getTypeArguments()){
@@ -86,7 +101,8 @@ public class ParameterizedTypeInfo{
     }
 
     public ParameterizedTypeInfo(TypeParameterElement typeParameter) {
-        name = null;
+        methodParamName = null;
+        typeParamName=typeParameter.getSimpleName().toString();
         for(TypeMirror subType:typeParameter.getBounds()){
             addType(subType);
         }
@@ -99,8 +115,14 @@ public class ParameterizedTypeInfo{
     }
 
     private ParameterizedTypeInfo(TypeMirror typeMirror){
-        name = null;
+        methodParamName = null;
         typeMirrorCache.put(typeMirror,this);
+        if(typeMirror instanceof javax.lang.model.type.TypeVariable) {
+            typeParamName = ((javax.lang.model.type.TypeVariable) typeMirror).asElement().getSimpleName().toString();
+        }
+        else{
+            typeParamName=null;
+        }
         addType(typeMirror);
         if(parameterizedInfosList.size()>0) {
             type = getMainType().getCurrentClass();
@@ -110,8 +132,14 @@ public class ParameterizedTypeInfo{
         }
     }
 
-    public ParameterizedTypeInfo(ParameterizedTypeInfo source,String name){
-        this.name = name;
+    private ParameterizedTypeInfo(ParameterizedType parameterizedType){
+        this((Type)parameterizedType);
+    }
+
+
+    public ParameterizedTypeInfo(ParameterizedTypeInfo source,String methodParamName){
+        this.methodParamName = methodParamName;
+        this.typeParamName=null;
         this.type = source.type;
         this.parameterizedInfosList.addAll(source.parameterizedInfosList);
         this.parametersGenericsInfo.addAll(source.parametersGenericsInfo);
@@ -126,7 +154,8 @@ public class ParameterizedTypeInfo{
     }
 
     public ParameterizedTypeInfo(Type paramType){
-        name=null;
+        methodParamName =null;
+        typeParamName=null;
         type = paramType;
         if(paramType instanceof Class){
             addType((Class)paramType);
@@ -153,7 +182,6 @@ public class ParameterizedTypeInfo{
                 parametersGenericsInfo.add(new ParameterizedTypeInfo(genericParam));
             }
         }
-
     }
 
     public List<AbstractClassInfo> getParameterizedInfosList() {
@@ -175,11 +203,16 @@ public class ParameterizedTypeInfo{
         return AbstractClassInfo.getClassInfo(clazz).isAssignableFrom(getMainType());
     }
 
-    public String getName() {
-        return name;
+    public String getMethodParamName() {
+        return methodParamName;
+    }
+
+    public String getTypeParamName(){
+        return typeParamName;
     }
 
     public Type getType() {
         return type;
     }
+
 }

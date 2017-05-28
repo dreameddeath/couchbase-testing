@@ -17,6 +17,7 @@
 
 package com.dreameddeath.core.model.dto.converter;
 
+import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.dto.annotation.DtoConverterForEntity;
@@ -60,6 +61,16 @@ public class DtoConverterManager {
         converterDef.setConverterClass(converterClassInfo.getFullName());
         converterDef.setEntityModelId(converterTarget.getEntityModelId());
         converterDef.setConverterVersion(converterForEntityAnnot.version());
+        if(converterClassInfo.isInstanceOf(IDtoInputMapper.class)){
+            AbstractClassInfo effectiveInputClass = AbstractClassInfo.getEffectiveGenericType(converterClassInfo, AbstractClassInfo.getClassInfo(IDtoInputMapper.class), 1);
+            converterDef.setInputClass(effectiveInputClass.getFullName());
+            converterDef.setInputVersion(converterForEntityAnnot.version());
+        }
+        if(converterClassInfo.isInstanceOf(IDtoOutputMapper.class)){
+            AbstractClassInfo effectiveOutputClass = AbstractClassInfo.getEffectiveGenericType(converterClassInfo, AbstractClassInfo.getClassInfo(IDtoOutputMapper.class), 1);
+            converterDef.setOutputClass(effectiveOutputClass.getFullName());
+            converterDef.setOutputVersion(converterForEntityAnnot.version());
+        }
         return converterDef;
     }
 

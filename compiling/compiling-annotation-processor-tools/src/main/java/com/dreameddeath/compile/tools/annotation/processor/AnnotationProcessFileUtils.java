@@ -39,7 +39,7 @@ public class AnnotationProcessFileUtils {
                 originatingElements);
         Writer writer = new BufferedWriter(jfo.openWriter());
         return new ResourceFile(jfo,writer,env.getMessager());
-        //((VelocityLogger)context.get("message")).printNote("Generating resource file " + jfo.getName());
+        //((VelocityLogger)context.get("message")).printNote("Generating resource file " + jfo.getMethodParamName());
     }
 
     public static class ResourceFile{

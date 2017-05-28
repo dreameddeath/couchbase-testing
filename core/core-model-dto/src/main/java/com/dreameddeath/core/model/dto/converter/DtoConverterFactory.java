@@ -51,6 +51,10 @@ public class DtoConverterFactory {
                 if(StringUtils.isNotEmpty(converterDef.getInputClass())){
                     @SuppressWarnings("unchecked")
                     Class inputClass = Thread.currentThread().getContextClassLoader().loadClass(converterDef.getInputClass());
+                    Preconditions.checkArgument(converter instanceof IDtoInputMapper,"The class %s doesn't have a mapper",inputClass);
+                    inputMapperMap.put(new Entry(docClass,inputClass,converterDef.getInputVersion()),(IDtoInputMapper)converter);
+
+
                     IDtoInputConverter inputConverter;
                     if(Modifier.isAbstract(inputClass.getModifiers())){
                         inputConverter = new DtoGenericInputAbstractConverter(docClass,inputClass,converterDef.getInputVersion());
@@ -59,14 +63,15 @@ public class DtoConverterFactory {
                         Preconditions.checkArgument(converter instanceof IDtoInputConverter,"The class %s hasn't an input converter while not abstract",inputClass);
                         inputConverter = (IDtoInputConverter)converter;
                     }
-                    Preconditions.checkArgument(converter instanceof IDtoInputMapper,"The class %s doesn't have a mapper",inputClass);
-
                     inputConverterMap.put(new Entry(docClass,inputClass,converterDef.getInputVersion()),inputConverter);
-                    inputMapperMap.put(new Entry(docClass,inputClass,converterDef.getInputVersion()),(IDtoInputMapper)inputConverter);
                 }
                 if(StringUtils.isNotEmpty(converterDef.getOutputClass())){
                     @SuppressWarnings("unchecked")
                     Class outputClass = Thread.currentThread().getContextClassLoader().loadClass(converterDef.getOutputClass());
+
+                    Preconditions.checkArgument(converter instanceof IDtoOutputMapper,"The class %s doesn't have a mapper",outputClass);
+                    outputMapperMap.put(new Entry(docClass,outputClass,converterDef.getOutputVersion()),(IDtoOutputMapper)converter);
+
                     IDtoOutputConverter outputConverter;
                     if(Modifier.isAbstract(outputClass.getModifiers())){
                         outputConverter = new DtoGenericOutputAbstractConverter(docClass,outputClass,converterDef.getOutputVersion());
@@ -75,10 +80,7 @@ public class DtoConverterFactory {
                         Preconditions.checkArgument(converter instanceof IDtoOutputConverter,"The class %s hasn't an output converter while not abstract",outputClass);
                         outputConverter = (IDtoOutputConverter)converter;
                     }
-                    Preconditions.checkArgument(converter instanceof IDtoOutputMapper,"The class %s doesn't have a mapper",outputClass);
-
                     outputConverterMap.put(new Entry(docClass,outputClass,converterDef.getOutputVersion()),outputConverter);
-                    outputMapperMap.put(new Entry(docClass,outputClass,converterDef.getOutputVersion()),(IDtoOutputMapper)outputConverter);
                 }
             }
             catch(ClassNotFoundException|InstantiationException|IllegalAccessException e){
@@ -153,6 +155,8 @@ public class DtoConverterFactory {
 
     private <TMAPPED> TMAPPED getBestMatching(final Map<Entry,TMAPPED> entryMap,final Entry wishedEntry){
         Optional<Entry> foundEntry = entryMap.keySet().stream()
+                .filter(currEntry->currEntry.type.equals(wishedEntry.type))
+                .filter(currEntry->currEntry.doc.equals(wishedEntry.doc))
                 .filter(currEntry->currEntry.isValidVersion(wishedEntry))
                 .sorted(Entry::compareReversedVersion)
                 .findFirst();
@@ -163,7 +167,7 @@ public class DtoConverterFactory {
 
 
     private static class Entry{
-        private final static Pattern versionPattern = Pattern.compile("^(\\d+)(?:\\.(\\d+)(?:\\.(\\d+)))");
+        private final static Pattern versionPattern = Pattern.compile("^(\\d+)(?:\\.(\\d+)(?:\\.(\\d+))?)");
         private final Class doc;
         private final Class type;
         private final Integer majorVersion;
@@ -180,9 +184,9 @@ public class DtoConverterFactory {
             } else {
                 Matcher matcher = versionPattern.matcher(version);
                 Preconditions.checkArgument(matcher.matches(), "The version %s for doc %s and type %s isn't valid", version, doc, type);
-                majorVersion = Integer.parseInt(matcher.group(0));
-                minorVersion = (matcher.groupCount() < 1 && StringUtils.isEmpty(matcher.group(1))) ? null : Integer.parseInt(matcher.group(1));
-                patchVersion = (matcher.groupCount() < 2 && StringUtils.isEmpty(matcher.group(2))) ? null : Integer.parseInt(matcher.group(2));
+                majorVersion = Integer.parseInt(matcher.group(1));
+                minorVersion = (matcher.groupCount() < 1 && StringUtils.isEmpty(matcher.group(2))) ? null : Integer.parseInt(matcher.group(1));
+                patchVersion = (matcher.groupCount() < 2 && StringUtils.isEmpty(matcher.group(3))) ? null : Integer.parseInt(matcher.group(2));
             }
         }
 
@@ -265,7 +269,17 @@ public class DtoConverterFactory {
             else{
                 return -1;
             }
+        }
 
+        @Override
+        public String toString() {
+            return "Entry{" +
+                    "doc=" + doc +
+                    ", type=" + type +
+                    ", majorVersion=" + majorVersion +
+                    ", minorVersion=" + minorVersion +
+                    ", patchVersion=" + patchVersion +
+                    '}';
         }
     }
 }

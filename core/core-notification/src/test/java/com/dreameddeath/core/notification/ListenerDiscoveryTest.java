@@ -93,7 +93,7 @@ public class ListenerDiscoveryTest extends Assert {
 
     @Before
     public void setupBus() throws Exception{
-        //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getName(),4);
+        //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getMethodParamName(),4);
         metricRegistry=new MetricRegistry();
         client = curatorUtils.getClient(NAME_SPACE_PREFIX);
         discoverer = new ListenerDiscoverer(client, BASE_PATH);
