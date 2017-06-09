@@ -17,6 +17,7 @@
 
 package com.dreameddeath.core.model.dto.converter.model;
 
+import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,6 +25,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by ceaj8230 on 07/03/2017.
  */
 public class DtoConverterDef {
+    @JsonProperty("mode")
+    private DtoInOutMode mode;
+    @JsonProperty("type")
+    private String type;
+
     @JsonProperty("entity")
     private EntityModelId entityModelId;
     @JsonProperty("converter")
@@ -38,6 +44,22 @@ public class DtoConverterDef {
     private String outputClass;
     @JsonProperty("outputVersion")
     private String outputVersion;
+
+    public DtoInOutMode getMode() {
+        return mode;
+    }
+
+    public void setMode(DtoInOutMode mode) {
+        this.mode = mode;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public String getConverterClass() {
         return converterClass;

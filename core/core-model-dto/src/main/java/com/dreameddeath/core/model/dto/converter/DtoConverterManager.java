@@ -19,6 +19,7 @@ package com.dreameddeath.core.model.dto.converter;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
+import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.model.dto.annotation.DtoConverterForEntity;
 import com.dreameddeath.core.model.dto.converter.model.DtoConverterDef;
@@ -43,14 +44,18 @@ import java.util.stream.Collectors;
  */
 public class DtoConverterManager {
     public static final String ROOT_PATH="META-INF/core-model-dto";
-    public static final String CONVERTER_DEF_PATH="perModel";
+    public static final String CONVERTER_DEF_PATH="converter_defs";
     private static final Logger LOG = LoggerFactory.getLogger(DtoConverterManager.class);
 
     private final ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
     private final AtomicReference<List<DtoConverterDef>> cachedConverterDef=new AtomicReference<>();
 
-    public String getConverterDefPerModelPath(DtoConverterDef converterDef){
-        return String.format("%s/%s/%s.%s/v%s/v%s.json",ROOT_PATH,CONVERTER_DEF_PATH,converterDef.getEntityModelId().getDomain(),converterDef.getEntityModelId().getName(),converterDef.getEntityModelId().getEntityVersion().toString(),converterDef.getConverterVersion());
+    public String getConverterDefPath(DtoConverterDef converterDef){
+        return String.format("%s/%s/%s/%s.json",
+                ROOT_PATH,
+                CONVERTER_DEF_PATH,
+                StringUtils.isEmpty(converterDef.getType())?"__UNKNOWN__":converterDef.getType(),
+                converterDef.getConverterClass());
     }
 
     public DtoConverterDef buildConverterDefFromConverterClass(ClassInfo converterClassInfo){
@@ -61,6 +66,8 @@ public class DtoConverterManager {
         converterDef.setConverterClass(converterClassInfo.getFullName());
         converterDef.setEntityModelId(converterTarget.getEntityModelId());
         converterDef.setConverterVersion(converterForEntityAnnot.version());
+        converterDef.setMode(converterForEntityAnnot.mode());
+        converterDef.setType(converterForEntityAnnot.type());
         if(converterClassInfo.isInstanceOf(IDtoInputMapper.class)){
             AbstractClassInfo effectiveInputClass = AbstractClassInfo.getEffectiveGenericType(converterClassInfo, AbstractClassInfo.getClassInfo(IDtoInputMapper.class), 1);
             converterDef.setInputClass(effectiveInputClass.getFullName());
@@ -74,9 +81,9 @@ public class DtoConverterManager {
         return converterDef;
     }
 
-    public String getConverterDefPerModelPath(ClassInfo converterClass){
+    public String getConverterDefPath(ClassInfo converterClass){
         DtoConverterDef converterDef = buildConverterDefFromConverterClass(converterClass);
-        return getConverterDefPerModelPath(converterDef);
+        return getConverterDefPath(converterDef);
     }
 
 
@@ -93,7 +100,7 @@ public class DtoConverterManager {
     public synchronized List<DtoConverterDef> getConverterDefs(){
         try {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Resource[] resultResources= resolver.getResources("classpath*:" + ROOT_PATH + "/" + CONVERTER_DEF_PATH + "/*/*/*.json");
+            Resource[] resultResources= resolver.getResources("classpath*:" + ROOT_PATH + "/" + CONVERTER_DEF_PATH + "/*/*.json");
             List<DtoConverterDef> result = new ArrayList<>(resultResources.length);
             for(Resource entityResource:resultResources){
                 try {

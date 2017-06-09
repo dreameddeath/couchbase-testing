@@ -30,4 +30,6 @@ import java.lang.annotation.Target;
 public @interface DtoConverterForEntity {
     Class entityClass();
     String version();
+    DtoInOutMode mode();
+    String type();
 }

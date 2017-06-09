@@ -15,13 +15,23 @@
  *
  */
 
-package com.dreameddeath.core.model.dto.annotation.processor;
+package com.dreameddeath.core.model.dto.annotation.processor.model;
+
+import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
+
+import java.lang.annotation.*;
 
 /**
- * Created by Christophe Jeunesse on 13/05/2016.
+ * Created by ceaj8230 on 02/02/2017.
  */
-public enum FieldFilteringMode {
-    INHERIT,
-    STANDARD,
-    FULL
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Repeatable(DtoGenerates.class)
+public @interface DtoGenerate {
+    DtoInOutMode DEFAULT_MODE = DtoInOutMode.OUT;
+
+    String targetModelPackageName() default "";
+    String targetModelClassName() default "";
+    DtoInOutMode mode() default DtoInOutMode.OUT;
+    DtoGenerateType[] buildForTypes() default {};
 }

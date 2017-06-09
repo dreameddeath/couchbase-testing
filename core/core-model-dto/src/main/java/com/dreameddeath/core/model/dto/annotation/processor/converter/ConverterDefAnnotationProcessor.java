@@ -15,7 +15,7 @@
  *
  */
 
-package com.dreameddeath.core.model.dto.annotation.processor;
+package com.dreameddeath.core.model.dto.annotation.processor.converter;
 
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
 import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
@@ -41,8 +41,8 @@ import java.util.Set;
 @SupportedAnnotationTypes(
         {"com.dreameddeath.core.model.dto.annotation.DtoConverterForEntity"}
 )
-public class ConverterAnnotationProcessor extends AbstractAnnotationProcessor {
-    private static final Logger LOG = LoggerFactory.getLogger(ConverterAnnotationProcessor.class);
+public class ConverterDefAnnotationProcessor extends AbstractAnnotationProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(ConverterDefAnnotationProcessor.class);
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -51,15 +51,15 @@ public class ConverterAnnotationProcessor extends AbstractAnnotationProcessor {
 
         for (Element converterElement : roundEnv.getElementsAnnotatedWith(DtoConverterForEntity.class)) {
             ClassInfo converterClassInfo = (ClassInfo) AbstractClassInfo.getClassInfo((TypeElement) converterElement);
-            String fileName = manager.getConverterDefPerModelPath(converterClassInfo);
+            String fileName = manager.getConverterDefPath(converterClassInfo);
             try {
                 AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, converterElement);
                 manager.buildConverterDefFile(file.getWriter(), converterClassInfo);
                 file.close();
             }
             catch(IOException e) {
-                messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write with error "+e.getMessage());
-                throw new RuntimeException(e);
+                messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write marker file for" + converterClassInfo.getClassName() + " with error "+e.getMessage());
+                throw new RuntimeException("Marker file generation error for "+converterClassInfo.getClassName(),e);
             }
         }
         return true;

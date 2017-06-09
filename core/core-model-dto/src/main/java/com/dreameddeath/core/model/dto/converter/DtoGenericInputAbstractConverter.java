@@ -33,7 +33,7 @@ public class DtoGenericInputAbstractConverter<TDOC,TTYPE> extends DtoGenericAbst
 
     @Override
     protected IDtoInputConverter<TDOC, TTYPE> getEffectiveConverter(DtoConverterFactory factory, DtoConverterDef dtoConverterDef, String version,EntityDef currEntityDef) {
-        if (dtoConverterDef.getOutputClass() != null && (version == null || version.equals(dtoConverterDef.getConverterVersion()))) {
+        if (dtoConverterDef.getInputClass() != null && (version == null || version.equals(dtoConverterDef.getConverterVersion()))) {
             try {
                 @SuppressWarnings("unchecked")
                 Class<TDOC> childDocClass = AbstractClassInfo.getClassInfo(currEntityDef.getClassName()).getCurrentClass();

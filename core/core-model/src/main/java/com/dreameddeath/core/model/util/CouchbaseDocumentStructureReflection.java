@@ -157,14 +157,16 @@ public class CouchbaseDocumentStructureReflection {
         DocumentEntity docDefAnnot = classInfo.getAnnotation(DocumentEntity.class);
         modelId = (docDefAnnot!=null)?EntityModelId.build(docDefAnnot,classInfo):EntityModelId.EMPTY_MODEL_ID;
 
-        if(CouchbaseDocumentStructureReflection.isReflexible(classInfo.getSuperClass())){
+
+        if (classInfo.getSuperClass()!=null && CouchbaseDocumentStructureReflection.isReflexible(classInfo.getSuperClass())) {
             parentClassReflexion = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(classInfo.getSuperClass());
             allFields.addAll(parentClassReflexion.allFields);
             allPropertyNameMap.putAll(parentClassReflexion.allPropertyNameMap);
         }
-        else{
-            parentClassReflexion=null;
+        else {
+            parentClassReflexion = null;
         }
+
 
         allFields.addAll(fields);
         allPropertyNameMap.putAll(propertyNameMap);

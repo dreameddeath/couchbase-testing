@@ -15,5 +15,6 @@
 #
 #
 
-com.dreameddeath.core.model.dto.annotation.processor.DtoGeneratorProcessor
-com.dreameddeath.core.model.dto.annotation.processor.ConverterAnnotationProcessor
+com.dreameddeath.core.model.dto.annotation.processor.model.StandardCouchbaseDocumentDtoModelGeneratorProcessor
+com.dreameddeath.core.model.dto.annotation.processor.converter.ConverterGeneratorProcessor
+com.dreameddeath.core.model.dto.annotation.processor.converter.ConverterDefAnnotationProcessor

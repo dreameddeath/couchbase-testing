@@ -176,7 +176,7 @@ public class CouchbaseDocumentFieldReflection {
     }
 
     public String getSetterName(){
-        return setter.getName();
+        return setter!=null?setter.getName():null;
     }
 
     public boolean isCollection() {

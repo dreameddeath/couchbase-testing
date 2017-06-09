@@ -22,17 +22,16 @@ import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.AbstractDtoModelGenerator.*;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.HashMapProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.core.model.dto.annotation.DtoGenerate;
-import com.dreameddeath.core.model.dto.annotation.processor.InputDtoField;
-import com.dreameddeath.core.model.dto.annotation.processor.OutputDtoField;
-import com.dreameddeath.core.model.dto.annotation.processor.FieldFilteringMode;
-
+import com.dreameddeath.core.model.dto.annotation.processor.model.DtoFieldGenerateType;
+import com.dreameddeath.core.model.dto.annotation.processor.model.DtoGenerate;
 import org.joda.time.DateTime;
 
 import java.util.List;
@@ -42,16 +41,17 @@ import java.util.Collection;
 /**
  * Created by Christophe Jeunesse on 04/03/2016.
  */
-@DtoGenerate(buildInput=true,buildOutput=true)
+@DtoGenerate(mode = DtoInOutMode.IN)
+@DtoGenerate(mode = DtoInOutMode.OUT)
 @DocumentEntity(domain="test",version = "1.0")
 public class TestGeneration extends CouchbaseDocument {
     @DocumentProperty
     public Integer decrIntValue;
     @DocumentProperty
     private String docKey;
-    @DocumentProperty @InputDtoField @OutputDtoField
+    @DocumentProperty
     public Integer resultIncrValue;
-    @DocumentProperty @InputDtoField @OutputDtoField
+    @DocumentProperty
     private String outputString;
     @DocumentProperty("simpleWrappedSimple") 
     private Property<String> simpleWrappedSimple = new StandardProperty<>(TestGeneration.this);
@@ -59,13 +59,13 @@ public class TestGeneration extends CouchbaseDocument {
     private ListProperty<DateTime> simpleList = new ArrayListProperty<>(TestGeneration.this);
     @DocumentProperty("complexList") 
     private ListProperty<TestSubGenerator> complexList = new ArrayListProperty<>(TestGeneration.this);
-    @DocumentProperty("enumType")  @InputDtoField @OutputDtoField
+    @DocumentProperty("enumType")
     private Property<NewEnumType> enumType = new StandardProperty<>(TestGeneration.this);
-    @DocumentProperty("listEnum")  @InputDtoField @OutputDtoField
+    @DocumentProperty("listEnum")
     private ListProperty<NewEnumType> listEnum = new ArrayListProperty<>(TestGeneration.this);
-    @DocumentProperty("unwrapped")  @InputDtoField(unwrap = true,mode=FieldFilteringMode.STANDARD) @OutputDtoField(unwrap = true,mode=FieldFilteringMode.STANDARD)
+    @DocumentProperty("unwrapped")  @DtoFieldGenerateType(inputFieldMode=FieldGenMode.UNWRAP,outputFieldMode = FieldGenMode.UNWRAP)
     private Property<UnwrappedClass> unwrapped = new StandardProperty<>(TestGeneration.this);
-    @DocumentProperty("inheritedList") @InputDtoField(mode = FieldFilteringMode.FULL)  @OutputDtoField(mode = FieldFilteringMode.FULL)
+    @DocumentProperty("inheritedList")
     private ListProperty<InheritedClass> inheritedList = new ArrayListProperty<>(TestGeneration.this);
 
     public String getDocKey(){
@@ -121,11 +121,11 @@ public class TestGeneration extends CouchbaseDocument {
     }
 
     public static class UnwrappedClass extends CouchbaseDocumentElement{
-        @DocumentProperty("string wrapped test") @InputDtoField @OutputDtoField
+        @DocumentProperty("string wrapped test")
         private Property<String> stringWrappedTest = new StandardProperty<>(UnwrappedClass.this);
-        @DocumentProperty("recursiveUnwrapped")  @InputDtoField(unwrap=true) @OutputDtoField(unwrap = true)
+        @DocumentProperty("recursiveUnwrapped")  @DtoFieldGenerateType(inputFieldMode=FieldGenMode.UNWRAP,outputFieldMode = FieldGenMode.UNWRAP)
         private Property<RecursiveUnwrapped> recursiveUnwrapped = new StandardProperty<>(UnwrappedClass.this);
-        @DocumentProperty("recursiveUnwrappedRead") @InputDtoField(unwrap = true) @OutputDtoField
+        @DocumentProperty("recursiveUnwrappedRead") @DtoFieldGenerateType(inputFieldMode=FieldGenMode.UNWRAP)
         private Property<RecursiveUnwrapped> recursiveUnwrappedRead = new StandardProperty<>(UnwrappedClass.this);
 
         public String getStringWrappedTest() { return stringWrappedTest.get(); }
@@ -138,9 +138,9 @@ public class TestGeneration extends CouchbaseDocument {
         public void setRecursiveUnwrappedRead(RecursiveUnwrapped val) { recursiveUnwrappedRead.set(val); }
     }
 
-    @DocumentEntity @DtoGenerate(buildInput=false,buildOutput=true)
+    @DocumentEntity @DtoGenerate(mode = DtoInOutMode.OUT)
     public static class RecursiveUnwrapped extends CouchbaseDocumentElement{
-        @DocumentProperty("subListString")  @InputDtoField @OutputDtoField
+        @DocumentProperty("subListString")
         private ListProperty<String> subListString = new ArrayListProperty<>(RecursiveUnwrapped.this);
 
         public List<String> getSubListString() { return subListString.get(); }

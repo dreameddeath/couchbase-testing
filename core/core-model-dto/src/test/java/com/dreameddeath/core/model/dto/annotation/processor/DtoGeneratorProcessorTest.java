@@ -17,6 +17,8 @@
 
 package com.dreameddeath.core.model.dto.annotation.processor;
 
+import com.dreameddeath.core.model.dto.annotation.processor.converter.ConverterDefAnnotationProcessor;
+import com.dreameddeath.core.model.dto.annotation.processor.model.StandardCouchbaseDocumentDtoModelGeneratorProcessor;
 import com.dreameddeath.testing.AnnotationProcessorTestingWrapper;
 import org.junit.Test;
 
@@ -31,8 +33,9 @@ public class DtoGeneratorProcessorTest {
     public void testGenerator() throws Exception{
         AnnotationProcessorTestingWrapper annotTester = new AnnotationProcessorTestingWrapper();
         annotTester.
-                withAnnotationProcessor(new DtoGeneratorProcessor()).
-                withAnnotationProcessor(new ConverterAnnotationProcessor()).
+                withAnnotationProcessor(new StandardCouchbaseDocumentDtoModelGeneratorProcessor()).
+                withAnnotationProcessor(new com.dreameddeath.core.model.dto.annotation.processor.converter.ConverterGeneratorProcessor()).
+                withAnnotationProcessor(new ConverterDefAnnotationProcessor()).
                 withTempDirectoryPrefix("queryGenSourceFiles");
         AnnotationProcessorTestingWrapper.Result generatorResult = annotTester.run(DtoGeneratorProcessorTest.class.getClassLoader().getResource("queryGenSourceFiles").getPath());
         assertTrue(generatorResult.getResult());

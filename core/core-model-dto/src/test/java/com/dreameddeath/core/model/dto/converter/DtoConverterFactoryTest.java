@@ -1,8 +1,8 @@
 package com.dreameddeath.core.model.dto.converter;
 
-import com.dreameddeath.core.converter.dto.annotation.processor.model.TestingModelInheritedConverter;
 import com.dreameddeath.core.model.dto.annotation.processor.model.AbstractTestingModel;
 import com.dreameddeath.core.model.dto.annotation.processor.model.TestingModelInherited;
+import com.dreameddeath.core.model.dto.annotation.processor.model.converter.TestingModelInheritedOutputOutputV1_0Converter;
 import com.dreameddeath.core.model.dto.annotation.processor.model.published.AbstractTestingModelOutput;
 import com.dreameddeath.core.model.dto.annotation.processor.model.published.TestingModelInheritedOutput;
 import org.junit.Test;
@@ -18,7 +18,7 @@ public class DtoConverterFactoryTest {
     public void testFactory(){
         DtoConverterFactory factory = new DtoConverterFactory();
         IDtoOutputConverter<TestingModelInherited, TestingModelInheritedOutput> dtoOutputConverter = factory.getDtoOutputConverter(TestingModelInherited.class, TestingModelInheritedOutput.class);
-        assertEquals(dtoOutputConverter.getClass(), TestingModelInheritedConverter.class);
+        assertEquals(dtoOutputConverter.getClass(), TestingModelInheritedOutputOutputV1_0Converter.class);
         TestingModelInherited modelToConvert = new TestingModelInherited();
         modelToConvert.inheritedStrValue = "inheritedTest";
         modelToConvert.strValue = "test";
@@ -32,10 +32,8 @@ public class DtoConverterFactoryTest {
         IDtoOutputConverter<AbstractTestingModel, AbstractTestingModelOutput> abstractDtoOutputConverter = factory.getDtoOutputConverter(AbstractTestingModel.class, AbstractTestingModelOutput.class);
         AbstractTestingModelOutput abstractOutput = abstractDtoOutputConverter .convertToOutput(modelToConvert);
         assertTrue(abstractOutput instanceof TestingModelInheritedOutput);
+        assertEquals(modelToConvert.strValue, abstractOutput.getStrValue());
         assertEquals(modelToConvert.inheritedStrValue, ((TestingModelInheritedOutput)abstractOutput).getInheritedStrValue());
-        assertEquals(modelToConvert.strValue, ((TestingModelInheritedOutput)abstractOutput).getStrValue());
         assertEquals(modelToConvert.longValue, ((TestingModelInheritedOutput)abstractOutput).getLongValue());
-
-
     }
 }
