@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Created by CEAJ8230 on 05/06/2017.
  */
-@Target({ElementType.TYPE})
+@Target({ElementType.TYPE,ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DtoGenerates {
     DtoGenerate[] value();

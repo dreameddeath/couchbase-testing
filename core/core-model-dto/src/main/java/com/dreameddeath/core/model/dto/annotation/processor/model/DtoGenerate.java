@@ -24,11 +24,11 @@ import java.lang.annotation.*;
 /**
  * Created by ceaj8230 on 02/02/2017.
  */
-@Target({ElementType.TYPE})
+@Target({ElementType.TYPE,ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(DtoGenerates.class)
 public @interface DtoGenerate {
-    DtoInOutMode DEFAULT_MODE = DtoInOutMode.OUT;
+    DtoInOutMode DEFAULT_MODE = DtoInOutMode.NONE;
 
     String targetModelPackageName() default "";
     String targetModelClassName() default "";

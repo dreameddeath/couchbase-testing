@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Created by CEAJ8230 on 02/06/2017.
  */
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD,ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DtoFieldGenerate {
     DtoFieldGenerateType[] buildForTypes() default {};

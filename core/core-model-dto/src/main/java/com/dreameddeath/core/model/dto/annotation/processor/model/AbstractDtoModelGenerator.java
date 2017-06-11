@@ -124,7 +124,12 @@ public abstract class AbstractDtoModelGenerator {
 
 
     protected UnwrappingStackElement buildFieldUnwrappingStackElement(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
-        return new UnwrappingStackElement(field);
+        FieldGenMode unwrappedGenFieldMode = getUnwrappedFieldGenMode(field,dtoModelKey,unwrappingStackElements);
+        return new UnwrappingStackElement(field,unwrappedGenFieldMode);
+    }
+
+    protected FieldGenMode getUnwrappedFieldGenMode(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
+        return FieldGenMode.INHERIT;
     }
 
     protected UnwrappingStackElement buildSuperClassUnwrappingStackElement(ClassInfo clazz, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
@@ -275,13 +280,14 @@ public abstract class AbstractDtoModelGenerator {
     public enum FieldGenMode{
         SIMPLE,
         UNWRAP,
-        FILTER;
+        INHERIT,
+        FILTER
     }
 
     public enum SuperClassGenMode{
         AUTO,
         UNWRAP,
-        IGNORE;
+        IGNORE
     }
 
 
@@ -359,11 +365,12 @@ public abstract class AbstractDtoModelGenerator {
     protected class UnwrappingStackElement {
         private final boolean isForSuperclass;
         private final ClassInfo childClassInfo;
+        private final FieldGenMode unwrappedFieldMode;
         private final FieldInfo fieldInfo;
         private final Map<String,String> tags;
 
-        public UnwrappingStackElement(FieldInfo fieldInfo) {
-            this(fieldInfo,Collections.emptyMap());
+        public UnwrappingStackElement(FieldInfo fieldInfo,FieldGenMode mode) {
+            this(fieldInfo,Collections.emptyMap(),mode);
         }
 
         public UnwrappingStackElement(ClassInfo childOfSuperClass) {
@@ -371,10 +378,11 @@ public abstract class AbstractDtoModelGenerator {
         }
 
 
-        public UnwrappingStackElement(FieldInfo fieldInfo,Map<String,String> tags) {
+        public UnwrappingStackElement(FieldInfo fieldInfo,Map<String,String> tags,FieldGenMode mode) {
             this.isForSuperclass=false;
             this.fieldInfo = fieldInfo;
             this.childClassInfo=null;
+            this.unwrappedFieldMode=mode;
             this.tags = Collections.unmodifiableMap(Maps.newHashMap(tags));
         }
 
@@ -382,6 +390,7 @@ public abstract class AbstractDtoModelGenerator {
         public UnwrappingStackElement(ClassInfo childOfSuperClass,Map<String,String> tags) {
             this.isForSuperclass = true;
             this.fieldInfo = null;
+            this.unwrappedFieldMode=FieldGenMode.INHERIT;
             this.childClassInfo = childOfSuperClass;
             this.tags = Collections.unmodifiableMap(Maps.newHashMap(tags));
         }
@@ -400,6 +409,10 @@ public abstract class AbstractDtoModelGenerator {
 
         public ClassInfo getChildClass() {
             return childClassInfo;
+        }
+
+        public FieldGenMode getUnwrappedFieldMode() {
+            return unwrappedFieldMode;
         }
     }
 }

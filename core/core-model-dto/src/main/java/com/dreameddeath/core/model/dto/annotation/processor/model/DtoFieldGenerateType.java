@@ -14,5 +14,6 @@ public @interface DtoFieldGenerateType {
     String type() default DtoGenerateType.DEFAULT_TYPE_NAME;
     FieldGenMode inputFieldMode() default FieldGenMode.SIMPLE;
     FieldGenMode outputFieldMode() default FieldGenMode.SIMPLE;
+    FieldGenMode unwrapDefaultFieldMode() default FieldGenMode.INHERIT;
     String name() default "";
 }

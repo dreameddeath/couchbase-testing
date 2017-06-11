@@ -14,6 +14,7 @@ import com.dreameddeath.core.model.dto.model.manager.DtoModelManager;
 import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -40,16 +41,22 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
             for(DtoGenerate generate:generateList){
                 if(generate.buildForTypes().length>0){
                     for(DtoGenerateType type :generate.buildForTypes()){
-                        generate(entityClassInfo,generate.mode(),type.name(),type.version());
+                        if(generate.mode()!=DtoInOutMode.NONE) {
+                            generate(entityClassInfo, generate.mode(), type.name(), type.version());
+                        }
                     }
                 }
                 else{
-                    generate(entityClassInfo,generate.mode(),DtoGenerateType.DEFAULT_TYPE_NAME,DtoGenerateType.DEFAULT_VERSION);
+                    if(generate.mode()!=DtoInOutMode.NONE) {
+                        generate(entityClassInfo, generate.mode(), DtoGenerateType.DEFAULT_TYPE_NAME, DtoGenerateType.DEFAULT_VERSION);
+                    }
                 }
             }
         }
         else{
-            generate(entityClassInfo,DtoGenerate.DEFAULT_MODE,DtoGenerateType.DEFAULT_TYPE_NAME,DtoGenerateType.DEFAULT_VERSION);
+            if(DtoGenerate.DEFAULT_MODE!=DtoInOutMode.NONE) {
+                generate(entityClassInfo, DtoGenerate.DEFAULT_MODE, DtoGenerateType.DEFAULT_TYPE_NAME, DtoGenerateType.DEFAULT_VERSION);
+            }
         }
     }
 
@@ -146,7 +153,6 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
         else{
             return SuperClassGenMode.IGNORE;
         }
-
     }
 
     protected CouchbaseDocumentFieldReflection getFieldReflection(FieldInfo field){
@@ -180,12 +186,20 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
                 else if(dtoModelKey.getInOutMode()==DtoInOutMode.OUT){
                     return fieldGenerateType.get().outputFieldMode();
                 }
-                else{
-                    Preconditions.checkArgument(fieldGenerateType.get().inputFieldMode()==fieldGenerateType.get().outputFieldMode(),"The mode %s/%s are inconsistent for class %s",fieldGenerateType.get().inputFieldMode(),fieldGenerateType.get().outputFieldMode(),field.getFullName());
+                else if(dtoModelKey.getInOutMode()==DtoInOutMode.BOTH){
+                    Preconditions.checkArgument(
+                            fieldGenerateType.get().inputFieldMode()==fieldGenerateType.get().outputFieldMode(),
+                            "The mode %s/%s are inconsistent for class %s",
+                            fieldGenerateType.get().inputFieldMode(),fieldGenerateType.get().outputFieldMode(),field.getFullName());
                     return fieldGenerateType.get().inputFieldMode();
                 }
             }
             else{
+                for(UnwrappingStackElement unwrappingStackElement:Lists.reverse(unwrappingStackElements)){
+                    if(unwrappingStackElement.getUnwrappedFieldMode()!=FieldGenMode.INHERIT){
+                        return unwrappingStackElement.getUnwrappedFieldMode();
+                    }
+                }
                 ClassInfo rootClassInfo = getRootClassInfo(field,unwrappingStackElements);
                 Optional<DtoGenerateType> dtoGenerate =  getDtoType(rootClassInfo,dtoModelKey.getType(),dtoModelKey.getVersion());
                 if(dtoGenerate.isPresent()){
@@ -195,7 +209,7 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
                     else if(dtoModelKey.getInOutMode()==DtoInOutMode.OUT){
                         return dtoGenerate.get().defaultOutputFieldMode();
                     }
-                    else{
+                    else if(dtoModelKey.getInOutMode()==DtoInOutMode.BOTH){
                         Preconditions.checkArgument(dtoGenerate.get().defaultInputFieldMode()==dtoGenerate.get().defaultOutputFieldMode(),"The mode %s/%s are inconsistent for class %s",dtoGenerate.get().defaultInputFieldMode(),dtoGenerate.get().defaultOutputFieldMode(),field.getFullName());
                         return dtoGenerate.get().defaultOutputFieldMode();
                     }
@@ -222,6 +236,13 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
         CouchbaseDocumentFieldReflection fieldReflection = getFieldReflection(field);
         return fieldReflection.getEffectiveTypeInfo();
     }
+
+    @Override
+    protected FieldGenMode getUnwrappedFieldGenMode(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
+        Optional<DtoFieldGenerateType> dtoFieldGenerateAnnot = getDtoFieldGenerateAnnot(field, dtoModelKey.getType(), dtoModelKey.getVersion());
+        return dtoFieldGenerateAnnot.map(DtoFieldGenerateType::unwrapDefaultFieldMode).orElse(super.getUnwrappedFieldGenMode(field, dtoModelKey, unwrappingStackElements));
+    }
+
 
     @Override
     protected String getFieldEffectiveName(FieldInfo field, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
