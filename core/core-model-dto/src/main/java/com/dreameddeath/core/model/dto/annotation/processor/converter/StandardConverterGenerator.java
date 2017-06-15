@@ -1,3 +1,20 @@
+/*
+ * 	Copyright Christophe Jeunesse
+ *
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
+ */
+
 package com.dreameddeath.core.model.dto.annotation.processor.converter;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
@@ -255,11 +272,11 @@ public class StandardConverterGenerator {
 
 
 
-    private CodeBlock buildOrigStructSetter(ClassInfo orig,String fieldName,CodeBlock source,CodeBlock value){
+    private CodeBlock buildOrigStructSetter(FieldInfo dtoFieldInfo,ClassInfo orig,String fieldName,CodeBlock source,CodeBlock value){
         CodeBlock.Builder setterBuilder = CodeBlock.builder();
         setterBuilder.add(source);
         CouchbaseDocumentFieldReflection fieldByPropertyName = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(orig).getFieldByPropertyName(fieldName);
-        Preconditions.checkNotNull(fieldByPropertyName,"Cannot find field %s in class %s",fieldName,orig.getFullName());
+        Preconditions.checkNotNull(fieldByPropertyName,"Cannot find field %s in class %s from dto field %s",fieldName,orig.getFullName(),dtoFieldInfo.getFullName());
         if(fieldByPropertyName.getSetter() instanceof MethodInfo){
             setterBuilder.add(".$L(",fieldByPropertyName.getSetterName());
             setterBuilder.add(value);
@@ -383,7 +400,7 @@ public class StandardConverterGenerator {
         CodeBlock generatedCopyMap = generateCopyWithMap(context,origClassInfo,annot,dtoFieldInfo,isInput);
         if(isInput){
             copyBuilder.add(
-                    buildOrigStructSetter(origClassInfo,
+                    buildOrigStructSetter(dtoFieldInfo,origClassInfo,
                             getOrigStructFieldName(origClassInfo, annot, dtoFieldInfo),
                             CodeBlock.of("doc"),
                             generatedCopyMap)
@@ -414,7 +431,7 @@ public class StandardConverterGenerator {
             currKey+=currFieldName+".";
             if(!context.unwrappedVariableMap.containsKey(currKey)){
 
-                CouchbaseDocumentStructureReflection reflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(context.params.origClassInfo);
+                CouchbaseDocumentStructureReflection reflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(unwrappedContext.classInfo);
                 CouchbaseDocumentFieldReflection docField = reflection.getFieldByPropertyName(parts[partPos]);
                 Preconditions.checkArgument(!docField.isCollection(),"The field %s is a collection",docField.getField().getFullName());
                 Preconditions.checkArgument(!docField.isMap(),"The field %s is a map",docField.getField().getFullName());
@@ -426,25 +443,29 @@ public class StandardConverterGenerator {
                     String fctName = UNWRAP_CONVERT_TO_DOC_FCT_NAME + unwrappedDocClassInfo.getSimpleName();
 
                     unwrappedMappingMethod = MethodSpec.methodBuilder(fctName)
+                            .addModifiers(Modifier.PRIVATE)
                             .addParameter(context.params.dtoModel.getClassName(), "input")
                             .returns(unwrappedDocClassInfo.getClassName())
-                            .addStatement("if(input == null) return doc")
+                            .addStatement("if(input == null) return null")
                             .addStatement("$T doc = new $T()", unwrappedDocClassInfo.getClassName(), unwrappedDocClassInfo.getClassName());
 
-                    unwrappedContext.methodBuilder.addCode(buildOrigStructSetter(unwrappedDocClassInfo,parts[partPos],CodeBlock.of("doc"),CodeBlock.of("$L(input)",fctName)));
+                    unwrappedContext.methodBuilder.addCode(buildOrigStructSetter(field,unwrappedContext.classInfo,parts[partPos],CodeBlock.of("doc"),CodeBlock.of("$L(input)",fctName)));
                     unwrappedContext.methodBuilder.addCode(";\n");
                 }
                 else{
                     String fctName = UNWRAP_MAP_FROM_DOC_FCT_NAME + unwrappedDocClassInfo.getSimpleName();
                     unwrappedMappingMethod = MethodSpec.methodBuilder(fctName)
+                            .addModifiers(Modifier.PRIVATE)
                             .addParameter(unwrappedDocClassInfo.getClassName(), "doc")
                             .addParameter(context.params.dtoModel.getClassName(), "output")
-                            .returns(unwrappedDocClassInfo.getClassName())
+                            .returns(context.params.dtoModel.getClassName())
                             .addStatement("if(doc == null) return output");
-                    ;
-                    unwrappedContext.methodBuilder.addStatement("$L(doc,output))",fctName);
+
+                    unwrappedContext.methodBuilder.addStatement("$L($L,output)",fctName,buildOrigStructGetter(unwrappedContext.classInfo,parts[partPos],CodeBlock.of("doc")));
                 }
-                context.unwrappedVariableMap.put(currKey,new UnwrappedContext(currKey,isInput,unwrappedDocClassInfo,unwrappedMappingMethod));
+                UnwrappedContext newSubContext=new UnwrappedContext(currKey,isInput,unwrappedDocClassInfo,unwrappedMappingMethod);
+                context.unwrappedVariableMap.put(currKey,newSubContext);
+                unwrappedContext = newSubContext;
             }
             else{
                 unwrappedContext = context.unwrappedVariableMap.get(currKey);

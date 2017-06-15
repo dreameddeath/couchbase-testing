@@ -1,19 +1,18 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
- *  
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
  */
 
 package com.tests;
@@ -23,7 +22,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
-import com.dreameddeath.core.model.dto.annotation.processor.model.AbstractDtoModelGenerator.*;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -63,7 +62,7 @@ public class TestGeneration extends CouchbaseDocument {
     private Property<NewEnumType> enumType = new StandardProperty<>(TestGeneration.this);
     @DocumentProperty("listEnum")
     private ListProperty<NewEnumType> listEnum = new ArrayListProperty<>(TestGeneration.this);
-    @DocumentProperty("unwrapped")  @DtoFieldGenerateType(inputFieldMode=FieldGenMode.UNWRAP,outputFieldMode = FieldGenMode.UNWRAP)
+    @DocumentProperty("unwrapped")  @DtoFieldGenerateType(inputFieldMode= FieldGenMode.UNWRAP,outputFieldMode = FieldGenMode.UNWRAP)
     private Property<UnwrappedClass> unwrapped = new StandardProperty<>(TestGeneration.this);
     @DocumentProperty("inheritedList")
     private ListProperty<InheritedClass> inheritedList = new ArrayListProperty<>(TestGeneration.this);

@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -34,10 +34,10 @@ import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessin
 import com.dreameddeath.core.process.service.impl.processor.StandardSubJobProcessTaskProcessingService;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
+import com.dreameddeath.party.model.v1.roles.published.RoleTypeRequest;
 import com.dreameddeath.party.process.model.v1.roles.published.BillingAccountCreateUpdateRoleRequestRequest;
 import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobRequest;
 import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobResponse;
-import com.dreameddeath.party.process.model.v1.roles.published.RoleTypePublished;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Preconditions;
 import io.reactivex.Single;
@@ -108,9 +108,9 @@ public class CreateBillingAccountJobProcessingService extends StandardJobProcess
                         newPartyRole.setPartyId(ctxt.getParentInternalJob().partyId);
                         newPartyRole.setBaId(billingAccount.getUid());
                         newPartyRole.setTypes(new ArrayList<>());
-                        newPartyRole.getTypes().add(RoleTypePublished.BILL_RECEIVER);
-                        newPartyRole.getTypes().add(RoleTypePublished.HOLDER);
-                        newPartyRole.getTypes().add(RoleTypePublished.PAYER);
+                        newPartyRole.getTypes().add(RoleTypeRequest.BILL_RECEIVER);
+                        newPartyRole.getTypes().add(RoleTypeRequest.HOLDER);
+                        newPartyRole.getTypes().add(RoleTypeRequest.PAYER);
                         return request;
                     });
         }

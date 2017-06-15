@@ -1,18 +1,17 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -23,6 +22,7 @@ import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool;
 import com.dreameddeath.core.config.spring.ConfigMutablePropertySources;
 import com.dreameddeath.core.date.DateTimeServiceFactory;
+import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
 import com.dreameddeath.infrastructure.daemon.AbstractDaemon;
 import com.dreameddeath.infrastructure.daemon.config.DaemonConfigProperties;
 import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryLifeCycleManager;
@@ -64,6 +64,7 @@ public abstract class AbstractWebServer<TBUILDER extends AbstractWebServer.Build
     public static final String GLOBAL_USER_FACTORY_PARAM_NAME = "userFactory";
     public static final String GLOBAL_METRICS_REGISTRY_PARAM_NAME = "metricsRegistry";
     public static final String GLOBAL_DATETIME_FACTORY_PARAM_NAME = "dateTimeFactory";
+    public static final String GLOBAL_DTO_CONVERTER_FACTORY_PARAM_NAME = "dtoConverterFactory";
 
 
     private final AbstractDaemon parentDaemon;
@@ -307,6 +308,10 @@ public abstract class AbstractWebServer<TBUILDER extends AbstractWebServer.Build
 
     public ServerConnector getSecuredServerConnector() {
         return securedServerConnector;
+    }
+
+    public DtoConverterFactory getDtoConverterFactory() {
+        return parentDaemon.getDtoConverterFactory();
     }
 
     public enum Status{

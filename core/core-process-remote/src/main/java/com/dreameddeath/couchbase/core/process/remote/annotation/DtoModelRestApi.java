@@ -15,24 +15,25 @@
  *
  */
 
-package com.dreameddeath.core.model.dto.annotation;
+package com.dreameddeath.couchbase.core.process.remote.annotation;
 
-import java.lang.annotation.*;
+import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
+import com.dreameddeath.core.service.annotation.VersionStatus;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by CEAJ8230 on 30/05/2017.
+ * Created by CEAJ8230 on 12/06/2017.
  */
-@Target(ElementType.FIELD)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-@Repeatable(DtoFieldMappingInfos.class)
-public @interface DtoFieldMappingInfo {
-    enum MappingRuleType{
-        COPY,
-        SIMPLE_MAP,
-        MVEL,
-        STATIC_METHOD
-    }
-    MappingRuleType mappingType() default MappingRuleType.COPY;
-    String ruleValue() default "";
-    DtoInOutMode mode() default DtoInOutMode.BOTH;
+public @interface DtoModelRestApi {
+    String rootPath();
+    String baseClass();
+    DtoInOutMode mode();
+    String version();
+    VersionStatus status() default VersionStatus.STABLE;
 }

@@ -17,22 +17,16 @@
 
 package com.dreameddeath.core.model.dto.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by CEAJ8230 on 30/05/2017.
+ * Created by CEAJ8230 on 14/06/2017.
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.SOURCE)
-@Repeatable(DtoFieldMappingInfos.class)
-public @interface DtoFieldMappingInfo {
-    enum MappingRuleType{
-        COPY,
-        SIMPLE_MAP,
-        MVEL,
-        STATIC_METHOD
-    }
-    MappingRuleType mappingType() default MappingRuleType.COPY;
-    String ruleValue() default "";
-    DtoInOutMode mode() default DtoInOutMode.BOTH;
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface DtoModelJsonTypeId {
+    String value();
 }

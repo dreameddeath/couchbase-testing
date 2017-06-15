@@ -1,17 +1,18 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
  */
 
 package com.tests;
@@ -19,6 +20,9 @@ package com.tests;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.DtoFieldGenerateType;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -27,7 +31,6 @@ import com.dreameddeath.core.model.property.impl.HashMapProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.validation.annotation.NotNull;
-import com.dreameddeath.couchbase.core.process.remote.annotation.FieldFilteringMode;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Request;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
 import com.dreameddeath.couchbase.core.process.remote.annotation.Result;
@@ -55,15 +58,15 @@ public class TestGeneration extends AbstractJob {
     private Property<String> simpleWrappedSimple = new StandardProperty<>(TestGeneration.this);
     @DocumentProperty("simpleList") @Request
     private ListProperty<DateTime> simpleList = new ArrayListProperty<>(TestGeneration.this);
-    @DocumentProperty("complexList") @Request(mode=FieldFilteringMode.FULL)
+    @DocumentProperty("complexList") @Request
     private ListProperty<TestSubGenerator> complexList = new ArrayListProperty<>(TestGeneration.this);
     @DocumentProperty("enumType") @Request @Result
     private Property<NewEnumType> enumType = new StandardProperty<>(TestGeneration.this);
     @DocumentProperty("listEnum") @Request @Result
     private ListProperty<NewEnumType> listEnum = new ArrayListProperty<>(TestGeneration.this);
-    @DocumentProperty("unwrapped") @Request(unwrap = true,mode = FieldFilteringMode.FULL) @Result(unwrap = true,mode=FieldFilteringMode.STANDARD)
+    @DocumentProperty("unwrapped") @Request(mode = FieldGenMode.UNWRAP,unwrappedDefaultMode = FieldGenMode.SIMPLE) @Result(mode = FieldGenMode.UNWRAP,unwrappedDefaultMode = FieldGenMode.SIMPLE)
     private Property<UnwrappedClass> unwrapped = new StandardProperty<>(TestGeneration.this);
-    @DocumentProperty("inheritedList") @Result(mode = FieldFilteringMode.FULL) @Request(mode = FieldFilteringMode.FULL)
+    @DocumentProperty("inheritedList") @Result @Request
     private ListProperty<InheritedClass> inheritedList = new ArrayListProperty<>(TestGeneration.this);
 
     public String getDocKey(){
@@ -121,9 +124,9 @@ public class TestGeneration extends AbstractJob {
     public static class UnwrappedClass extends CouchbaseDocumentElement{
         @DocumentProperty("string wrapped test") @Result
         private Property<String> stringWrappedTest = new StandardProperty<>(UnwrappedClass.this);
-        @DocumentProperty("recursiveUnwrapped") @Request(unwrap = true) @Result
+        @DocumentProperty("recursiveUnwrapped") @Request(mode = FieldGenMode.UNWRAP) @Result
         private Property<RecursiveUnwrapped> recursiveUnwrapped = new StandardProperty<>(UnwrappedClass.this);
-        @DocumentProperty("recursiveUnwrappedRead") @Result(unwrap = true)
+        @DocumentProperty("recursiveUnwrappedRead") @Result(mode = FieldGenMode.UNWRAP)
         private Property<RecursiveUnwrapped> recursiveUnwrappedRead = new StandardProperty<>(UnwrappedClass.this);
 
         public String getStringWrappedTest() { return stringWrappedTest.get(); }
@@ -144,7 +147,7 @@ public class TestGeneration extends AbstractJob {
         public void setSubListString(Collection<String> newSubListString) { subListString.set(newSubListString); }
     }
     
-
+    @RestExpose(rootPath = "",pureSubClassMode = DtoInOutMode.BOTH,defaultOutputFieldMode = FieldGenMode.SIMPLE,defaultInputFieldMode = FieldGenMode.SIMPLE)
     public abstract static class InheritedClass extends CouchbaseDocumentElement{
         /**
          *  test : sublevel 1

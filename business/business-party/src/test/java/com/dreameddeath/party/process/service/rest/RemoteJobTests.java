@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -37,13 +37,13 @@ import com.dreameddeath.infrastructure.plugin.process.config.InfrastructureProce
 import com.dreameddeath.party.DomainConstants;
 import com.dreameddeath.party.model.v1.Party;
 import com.dreameddeath.party.model.v1.Person;
+import com.dreameddeath.party.model.v1.roles.published.RoleTypeRequest;
+import com.dreameddeath.party.process.model.v1.party.published.PersonRequest;
+import com.dreameddeath.party.process.model.v1.party.published.TypeRequest;
 import com.dreameddeath.party.process.model.v1.published.CreateUpdatePartyJobRequest;
 import com.dreameddeath.party.process.model.v1.published.CreateUpdatePartyJobResponse;
-import com.dreameddeath.party.process.model.v1.published.PersonRequest;
-import com.dreameddeath.party.process.model.v1.published.TypePublished;
 import com.dreameddeath.party.process.model.v1.roles.published.BillingAccountCreateUpdateRoleRequestRequest;
 import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobRequest;
-import com.dreameddeath.party.process.model.v1.roles.published.RoleTypePublished;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketFactorySimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.joda.time.DateTime;
@@ -113,7 +113,7 @@ public class RemoteJobTests {
         {
             IRestServiceClient client = factory.getClient("process","createupdatepartyjob", "1.0.0");
             CreateUpdatePartyJobRequest request = new CreateUpdatePartyJobRequest();
-            request.setType(TypePublished.person);
+            request.setType(TypeRequest.person);
             request.setPerson(new PersonRequest());
             request.getPerson().setFirstName("christophe");
             request.getPerson().setLastName("jeunesse");
@@ -137,7 +137,7 @@ public class RemoteJobTests {
             rolesJobRequest.getRoleRequests().add(newRequest);
             newRequest.setBaId("testBaid1");
             newRequest.setPartyId(partyId);
-            newRequest.setTypes(Arrays.asList(RoleTypePublished.HOLDER, RoleTypePublished.PAYER));
+            newRequest.setTypes(Arrays.asList(RoleTypeRequest.HOLDER, RoleTypeRequest.PAYER));
 
             Response response = clientRoles.getInstance().request().sync().post(Entity.json(rolesJobRequest));
             assertEquals(200, response.getStatus());

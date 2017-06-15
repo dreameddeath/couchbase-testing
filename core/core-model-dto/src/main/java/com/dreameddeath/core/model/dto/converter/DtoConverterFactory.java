@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -44,7 +44,7 @@ public class DtoConverterFactory {
     private void initConverters(){
         for(DtoConverterDef converterDef:dtoConverterManager.getCachedConvertersDef()){
             try {
-                Class docClass = entityDefinitionManager.findClassFromVersionnedTypeId(converterDef.getEntityModelId());
+                Class docClass = Thread.currentThread().getContextClassLoader().loadClass(converterDef.getEntityClassName());
                 @SuppressWarnings("unchecked")
                 Class<? extends IDtoFactoryAware> converterClass = (Class<? extends IDtoFactoryAware>)Thread.currentThread().getContextClassLoader().loadClass(converterDef.getConverterClass());
                 IDtoFactoryAware converter = converterClass.newInstance();
@@ -158,7 +158,7 @@ public class DtoConverterFactory {
                 .filter(currEntry->currEntry.type.equals(wishedEntry.type))
                 .filter(currEntry->currEntry.doc.equals(wishedEntry.doc))
                 .filter(currEntry->currEntry.isValidVersion(wishedEntry))
-                .sorted(Entry::compareReversedVersion)
+                .sorted(Entry::compareClassesAndReversedVersion)
                 .findFirst();
 
         Preconditions.checkArgument(foundEntry.isPresent(),"Cannot find entry %s",wishedEntry);
@@ -168,13 +168,13 @@ public class DtoConverterFactory {
 
     private static class Entry{
         private final static Pattern versionPattern = Pattern.compile("^(\\d+)(?:\\.(\\d+)(?:\\.(\\d+))?)");
-        private final Class doc;
-        private final Class type;
+        private final Class<?> doc;
+        private final Class<?> type;
         private final Integer majorVersion;
         private final Integer minorVersion;
         private final Integer patchVersion;
 
-        public Entry(Class doc, Class type, String version) {
+        public Entry(Class<?> doc, Class<?> type, String version) {
             this.doc = doc;
             this.type = type;
             if (StringUtils.isEmpty(version)) {
@@ -244,6 +244,20 @@ public class DtoConverterFactory {
             return null;
         }
 
+
+        //Put the deepest in hierarchy first
+        public int compareClassInheritance(Class<?> a,Class<?> b){
+            if(a==b){
+                return 0;
+            }
+            else if(a.isAssignableFrom(b)){
+                return -1;
+            }
+            else{
+                return 1;
+            }
+        }
+
         public int compareReversedVersion(Entry b) {
             int res;
             res=compareVersion(this.majorVersion,b.majorVersion);
@@ -280,6 +294,18 @@ public class DtoConverterFactory {
                     ", minorVersion=" + minorVersion +
                     ", patchVersion=" + patchVersion +
                     '}';
+        }
+
+        public int compareClassesAndReversedVersion(Entry b) {
+            int res=compareClassInheritance(this.doc,b.doc);
+            if(res!=0){
+                res=compareClassInheritance(this.type,b.type);
+            }
+            if(res!=0){
+                res = compareReversedVersion(b);
+            }
+
+            return res;
         }
     }
 }

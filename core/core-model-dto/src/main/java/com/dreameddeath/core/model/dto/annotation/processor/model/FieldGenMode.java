@@ -15,24 +15,14 @@
  *
  */
 
-package com.dreameddeath.core.model.dto.annotation;
-
-import java.lang.annotation.*;
+package com.dreameddeath.core.model.dto.annotation.processor.model;
 
 /**
- * Created by CEAJ8230 on 30/05/2017.
+ * Created by CEAJ8230 on 13/06/2017.
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.SOURCE)
-@Repeatable(DtoFieldMappingInfos.class)
-public @interface DtoFieldMappingInfo {
-    enum MappingRuleType{
-        COPY,
-        SIMPLE_MAP,
-        MVEL,
-        STATIC_METHOD
-    }
-    MappingRuleType mappingType() default MappingRuleType.COPY;
-    String ruleValue() default "";
-    DtoInOutMode mode() default DtoInOutMode.BOTH;
+public enum FieldGenMode {
+    SIMPLE,
+    UNWRAP,
+    INHERIT,
+    FILTER
 }

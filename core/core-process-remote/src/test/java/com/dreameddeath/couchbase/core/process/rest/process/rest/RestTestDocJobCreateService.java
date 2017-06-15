@@ -1,22 +1,25 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
 package com.dreameddeath.couchbase.core.process.rest.process.rest;
 
+import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
+import com.dreameddeath.core.model.dto.converter.IDtoInputConverter;
+import com.dreameddeath.core.model.dto.converter.IDtoOutputConverter;
 import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.service.annotation.ServiceDef;
 import com.dreameddeath.core.user.IUser;
@@ -41,13 +44,33 @@ import javax.ws.rs.core.MediaType;
 public class RestTestDocJobCreateService extends AbstractRemoteJobRestService<TestDocJobCreate,TestDocJobCreateRequest,TestDocJobCreateResult> {
 
     @Override
-    protected TestDocJobCreate buildJobFromRequest(TestDocJobCreateRequest request) {
-        return request.buildJob();
+    protected IDtoInputConverter<TestDocJobCreate, TestDocJobCreateRequest> getInputConverter() {
+        return new IDtoInputConverter<TestDocJobCreate, TestDocJobCreateRequest>() {
+            @Override
+            public TestDocJobCreate convertToDoc(TestDocJobCreateRequest input) {
+                return input.buildJob();
+            }
+
+            @Override
+            public void setDtoConverterFactory(DtoConverterFactory factory) {
+
+            }
+        };
     }
 
     @Override
-    protected TestDocJobCreateResult buildResponse(TestDocJobCreate response) {
-        return new TestDocJobCreateResult(response);
+    protected IDtoOutputConverter<TestDocJobCreate, TestDocJobCreateResult> getOutputConverter() {
+        return new IDtoOutputConverter<TestDocJobCreate, TestDocJobCreateResult>() {
+            @Override
+            public TestDocJobCreateResult convertToOutput(TestDocJobCreate doc) {
+                return new TestDocJobCreateResult(doc);
+            }
+
+            @Override
+            public void setDtoConverterFactory(DtoConverterFactory factory) {
+
+            }
+        };
     }
 
     public static class CartResponse extends RemoteJobResultWrapper<TestDocJobCreateResult> {
