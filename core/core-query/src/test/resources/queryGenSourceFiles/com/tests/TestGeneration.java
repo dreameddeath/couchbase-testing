@@ -1,19 +1,18 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
- *  
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
  */
 
 package com.tests;
@@ -22,6 +21,7 @@ import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.Property;
@@ -30,7 +30,6 @@ import com.dreameddeath.core.model.property.impl.HashMapProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.query.annotation.QueryExpose;
 import com.dreameddeath.core.query.annotation.QueryFieldInfo;
-import com.dreameddeath.core.query.annotation.QueryFieldFilteringMode;
 import org.joda.time.DateTime;
 
 import java.util.List;
@@ -61,9 +60,9 @@ public class TestGeneration extends CouchbaseDocument {
     private Property<NewEnumType> enumType = new StandardProperty<>(TestGeneration.this);
     @DocumentProperty("listEnum")  @QueryFieldInfo
     private ListProperty<NewEnumType> listEnum = new ArrayListProperty<>(TestGeneration.this);
-    @DocumentProperty("unwrapped")  @QueryFieldInfo(unwrap = true,mode=QueryFieldFilteringMode.STANDARD)
+    @DocumentProperty("unwrapped")  @QueryFieldInfo(mode = FieldGenMode.UNWRAP,unwrappedDefaultMode = FieldGenMode.FILTER)
     private Property<UnwrappedClass> unwrapped = new StandardProperty<>(TestGeneration.this);
-    @DocumentProperty("inheritedList") @QueryFieldInfo(mode = QueryFieldFilteringMode.FULL) 
+    @DocumentProperty("inheritedList") @QueryFieldInfo(mode = FieldGenMode.SIMPLE)
     private ListProperty<InheritedClass> inheritedList = new ArrayListProperty<>(TestGeneration.this);
 
     public String getDocKey(){
@@ -123,7 +122,7 @@ public class TestGeneration extends CouchbaseDocument {
         private Property<String> stringWrappedTest = new StandardProperty<>(UnwrappedClass.this);
         @DocumentProperty("recursiveUnwrapped")  @QueryFieldInfo
         private Property<RecursiveUnwrapped> recursiveUnwrapped = new StandardProperty<>(UnwrappedClass.this);
-        @DocumentProperty("recursiveUnwrappedRead") @QueryFieldInfo(unwrap = true)
+        @DocumentProperty("recursiveUnwrappedRead") @QueryFieldInfo(mode=FieldGenMode.UNWRAP)
         private Property<RecursiveUnwrapped> recursiveUnwrappedRead = new StandardProperty<>(UnwrappedClass.this);
 
         public String getStringWrappedTest() { return stringWrappedTest.get(); }

@@ -36,7 +36,7 @@ import com.squareup.javapoet.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,6 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -87,7 +86,7 @@ public class ProcessRestServiceProcessor extends AbstractAnnotationProcessor{
             }
             catch(Throwable e){
                 LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 for(StackTraceElement elt:e.getStackTrace()){
                     buf.append(elt.toString());
                     buf.append("\n");
@@ -100,26 +99,13 @@ public class ProcessRestServiceProcessor extends AbstractAnnotationProcessor{
         for(String origClassName:classNames){
             Preconditions.checkArgument(dtoInputModelMap.containsKey(origClassName),"No input model found for orig className %s",origClassName);
             Preconditions.checkArgument(dtoOutputModelMap.containsKey(origClassName),"No output model found for orig className %s",origClassName);
-            JavaFile javaFile = generateRemoteServiceInfo(dtoInputModelMap.get(origClassName),dtoOutputModelMap.get(origClassName));
-            try {
-                messager.printMessage(Diagnostic.Kind.NOTE,"Generating "+javaFile.packageName+"."+javaFile.typeSpec.name);
-                javaFile.writeTo(processingEnv.getFiler());
-            }
-            catch(IOException e){
-                LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
-                for(StackTraceElement elt:e.getStackTrace()){
-                    buf.append(elt.toString());
-                    buf.append("\n");
-                }
-                messager.printMessage(Diagnostic.Kind.ERROR,"Error during processing "+e.getMessage()+"\n"+buf.toString());
-                throw new RuntimeException("Error during annotation processor",e);
-            }
+            JavaFile javaFile = generateRemoteServiceRestClass(dtoInputModelMap.get(origClassName),dtoOutputModelMap.get(origClassName));
+            writeFile(javaFile,messager);
         }
         return true;
     }
 
-    public JavaFile generateRemoteServiceInfo(ClassInfo inDtoModelClassInfo, ClassInfo outDtoModelClassInfo){
+    public JavaFile generateRemoteServiceRestClass(ClassInfo inDtoModelClassInfo, ClassInfo outDtoModelClassInfo){
         DtoModelRestApi inRestApi = inDtoModelClassInfo.getAnnotation(DtoModelRestApi.class);
         DtoModelRestApi outRestApi = outDtoModelClassInfo.getAnnotation(DtoModelRestApi.class);
         checkValueConsistency(inRestApi.baseClass(),outRestApi.baseClass(),inDtoModelClassInfo,outDtoModelClassInfo,"DtoModelRestApi.baseClass");
@@ -155,7 +141,7 @@ public class ProcessRestServiceProcessor extends AbstractAnnotationProcessor{
                         .addAnnotation(
                             AnnotationSpec.builder(Generated.class)
                                 .addMember("value","$S",this.getClass().getName())
-                                .addMember("date","$S" ,LocalDate.now().toString())
+                                .addMember("date","$S" , LocalDateTime.now().toString())
                                 .build()
                     )
                     .addAnnotation(

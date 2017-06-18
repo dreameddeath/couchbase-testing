@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -20,6 +20,7 @@ package com.dreameddeath.core.dao.annotation.processor.model;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
+import com.dreameddeath.core.dao.annotation.dao.Counter;
 import com.dreameddeath.core.dao.annotation.dao.DaoEntity;
 import com.dreameddeath.core.dao.annotation.dao.UidDef;
 import com.dreameddeath.core.dao.document.IDaoForDocumentWithUID;
@@ -27,6 +28,7 @@ import com.dreameddeath.core.dao.document.IDaoWithKeyPattern;
 import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -94,6 +96,18 @@ public class DaoDef {
                 }
             } else {
                 type = Type.WITH_PATTERN;
+                Counter keyGenCounter = null;
+                Counter[] counters = docReflection.getClassInfo().getAnnotationByType(Counter.class);
+                if(counters!=null){
+                    for(Counter counter : counters){
+                        if(counter.isKeyGen()){
+                            keyGenCounter = counter;
+                            break;
+                        }
+                    }
+                }
+
+                Preconditions.checkArgument(keyGenCounter!=null,"The entity %s with pattern gen dao must have a key counter",docReflection.getClassInfo().getFullName());
             }
         } else {
             throw new IllegalStateException("Dao Type "+baseDaoClassInfo.getName()+" for dao "+simpleName+" not managed yet");

@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -31,19 +31,16 @@ import javax.ws.rs.core.MultivaluedMap;
 /**
  * Created by Christophe Jeunesse on 27/12/2016.
  */
-public class AbstractRestQueryService<T> extends AbstractRestExposableService {
+public abstract class AbstractRestQueryService<T> extends AbstractRestExposableService {
     private final Logger LOG = LoggerFactory.getLogger(AbstractRestQueryService.this.getClass());
     public static final String SERVICE_TYPE="query";
 
-    private IQueryService<T> queryService;
-
-    protected void setInternalQueryService(IQueryService<T> queryService) {
-        this.queryService = queryService;
-    }
+    protected abstract IQueryService<T> getQueryService();
 
     public void doGet(String key, IUser user, AsyncResponse response){
         try {
-            queryService.asyncGet(key,user)
+            getQueryService()
+                    .asyncGet(key,user)
                     .doOnError(throwable -> LOG.error("An error occurs while query <"+key+">",throwable))
                     .subscribe(response::resume,response::resume);
         }
@@ -58,9 +55,8 @@ public class AbstractRestQueryService<T> extends AbstractRestExposableService {
         final QuerySearch.SearchType searchType=QuerySearch.SearchType.valueOf(type.toUpperCase());
         Preconditions.checkArgument(params!=null,"The params should be provided");
         try{
-            queryService.asyncSearch(
-                    new QuerySearch(searchType,params),
-                    user)
+            getQueryService()
+                    .asyncSearch(new QuerySearch(searchType,params), user)
                     .toList()
                     .doOnError(throwable -> LOG.error("Error during quering <"+type+"> with params <"+params+">",throwable))
                     .subscribe(response::resume,response::resume);

@@ -33,7 +33,6 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -58,7 +57,7 @@ public class StandardCouchbaseDocumentDtoModelGeneratorProcessor extends Abstrac
             }
             catch(Throwable e){
                 LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 for(StackTraceElement elt:e.getStackTrace()){
                     buf.append(elt.toString());
                     buf.append("\n");
@@ -68,20 +67,7 @@ public class StandardCouchbaseDocumentDtoModelGeneratorProcessor extends Abstrac
             }
         }
         for(JavaFile javaFile:processor.getJavaFiles()){
-            try {
-                javaFile.writeTo(processingEnv.getFiler());
-                messager.printMessage(Diagnostic.Kind.NOTE, "Generating converter " + javaFile.typeSpec.name);
-            }
-            catch(IOException e){
-                LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
-                for(StackTraceElement elt:e.getStackTrace()){
-                    buf.append(elt.toString());
-                    buf.append("\n");
-                }
-                messager.printMessage(Diagnostic.Kind.ERROR,"Error during processing "+e.getMessage()+"\n"+buf.toString());
-                throw new RuntimeException("Error during annotation processor",e);
-            }
+            writeFile(javaFile,messager);
         }
 
         return false;

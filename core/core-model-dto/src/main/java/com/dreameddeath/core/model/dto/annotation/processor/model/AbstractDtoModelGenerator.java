@@ -35,7 +35,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.squareup.javapoet.*;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 
 import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
@@ -179,7 +179,7 @@ public abstract class AbstractDtoModelGenerator {
         typeBuilder.addAnnotation(
                 AnnotationSpec.builder(Generated.class)
                         .addMember("value", "$S",this.getClass().getName())
-                        .addMember("date", "$S",DateTime.now().toString())
+                        .addMember("date", "$S", LocalDateTime.now().toString())
                         .addMember("comments","$S",String.format("Generated from %s with key %s", clazz.getFullName(), key.toString()))
                         .build()
         );

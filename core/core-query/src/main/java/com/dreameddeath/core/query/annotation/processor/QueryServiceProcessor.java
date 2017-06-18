@@ -1,105 +1,78 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
- *  
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.query.annotation.processor;
 
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
-import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessorVelocityEngine;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
-import com.dreameddeath.core.model.annotation.DocumentEntity;
-import com.dreameddeath.core.model.entity.EntityDefinitionManager;
-import com.dreameddeath.core.model.entity.model.EntityDef;
-import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.core.query.annotation.QueryExpose;
-import org.apache.velocity.VelocityContext;
+import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
+import com.dreameddeath.core.model.dto.converter.IDtoOutputConverter;
+import com.dreameddeath.core.query.annotation.DtoModelQueryRestApi;
+import com.dreameddeath.core.query.annotation.RemoteQueryInfo;
+import com.dreameddeath.core.query.service.AbstractStandardQueryService;
+import com.dreameddeath.core.query.service.rest.AbstractRestQueryService;
+import com.dreameddeath.core.service.annotation.DataAccessType;
+import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.google.common.base.Preconditions;
+import com.squareup.javapoet.*;
+import io.swagger.annotations.Api;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Generated;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.util.HashSet;
-import java.util.Map;
+import javax.ws.rs.Path;
 import java.util.Set;
 
 /**
  * Created by Christophe Jeunesse on 03/01/2016.
  */
 @SupportedAnnotationTypes(
-    {"com.dreameddeath.core.query.annotation.QueryExpose"}
+    {"com.dreameddeath.core.query.annotation.DtoModelQueryRestApi"}
 )
 public class QueryServiceProcessor extends AbstractAnnotationProcessor{
     private static final Logger LOG = LoggerFactory.getLogger(QueryServiceProcessor.class);
-    private static final String TEMPLATE_SERVICE_REST_FILENAME = "core/templates/query.rest.vm";
-    private static final String TEMPLATE_MODEL_REST_FILENAME = "core/templates/query.model.vm";
-    private static final String TEMPLATE_ENUM_REST_FILENAME = "core/templates/query.enum.vm";
-    private static final String TEMPLATE_SERVICE_INTERNAL_FILENAME = "core/templates/query.service.vm";
-
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
-        EntityDefinitionManager entityManager = new EntityDefinitionManager();
-        Set<EntityDef> modelIds = new HashSet<>();
-        modelIds.addAll(entityManager.getEntities());
-        for(Element localEntityElement:roundEnv.getElementsAnnotatedWith(DocumentEntity.class)){
-            if(CouchbaseDocumentStructureReflection.isReflexible(localEntityElement)) {
-                CouchbaseDocumentStructureReflection documentStructureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)AbstractClassInfo.getClassInfo((TypeElement)localEntityElement));
-                modelIds.add(EntityDef.build(documentStructureReflection));
-            }
-        }
-
-
-        for(Element classElem : roundEnv.getElementsAnnotatedWith(QueryExpose.class)) {
+        for(Element localEntityElement:roundEnv.getElementsAnnotatedWith(DtoModelQueryRestApi.class)){
             try{
-                ClassInfo docClassInfo = (ClassInfo)AbstractClassInfo.getClassInfo((TypeElement) classElem);
-                RemoteQueryInfo queryInfo = new RemoteQueryInfo(docClassInfo,modelIds);
-                {
-                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + docClassInfo.getImportName());
-                    context.put("service", queryInfo);
-                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_SERVICE_REST_FILENAME, queryInfo.getRestFullName(), classElem);
-                }
-                {
-                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + docClassInfo.getImportName());
-                    context.put("service", queryInfo);
-                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_SERVICE_INTERNAL_FILENAME, queryInfo.getServiceFullName(), classElem);
-                }
-
-                for(Map.Entry<String,RestModel> modelEntry:queryInfo.getModels().entrySet()){
-                    if(modelEntry.getValue().isUnwrapped){continue;}
-                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + docClassInfo.getImportName() + " for "+modelEntry.getKey());
-                    context.put("model", modelEntry.getValue());
-                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_MODEL_REST_FILENAME, modelEntry.getValue().getImportName(), classElem);
-                }
-
-                for(Map.Entry<String,EnumModel> modelEntry:queryInfo.getEnums().entrySet()){
-                    VelocityContext context = AnnotationProcessorVelocityEngine.newContext(LOG, messager, this, "Generated from " + docClassInfo.getImportName() + " for "+modelEntry.getKey());
-                    context.put("model", modelEntry.getValue());
-                    AnnotationProcessorVelocityEngine.createSource(processingEnv, context, TEMPLATE_ENUM_REST_FILENAME, modelEntry.getValue().getImportName(), classElem);
-                }
+                AbstractClassInfo dtoModelClassInfo=AbstractClassInfo.getClassInfo((TypeElement)localEntityElement);
+                DtoModelQueryRestApi annot = dtoModelClassInfo.getAnnotation(DtoModelQueryRestApi.class);
+                AbstractClassInfo origClassInfo = ClassInfo.getClassInfo(annot.baseClass());
+                JavaFile internalServiceFile = generateInternalService(dtoModelClassInfo,origClassInfo);
+                writeFile(internalServiceFile,messager);
+                ClassName internServiceClassName = ClassName.get(internalServiceFile.packageName,internalServiceFile.typeSpec.name);
+                JavaFile restServiceFile = generateRestService(internServiceClassName,dtoModelClassInfo,origClassInfo);
+                writeFile(restServiceFile,messager);
             }
-            catch(Throwable e){
+            catch(ClassNotFoundException e){
                 LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 for(StackTraceElement elt:e.getStackTrace()){
                     buf.append(elt.toString());
                     buf.append("\n");
@@ -109,5 +82,115 @@ public class QueryServiceProcessor extends AbstractAnnotationProcessor{
             }
         }
         return true;
+    }
+
+    private JavaFile generateRestService(ClassName internServiceClassName, AbstractClassInfo dtoModelClassInfo, AbstractClassInfo origClassInfo) {
+        DtoModelQueryRestApi annot = dtoModelClassInfo.getAnnotation(DtoModelQueryRestApi.class);
+        String packageName = origClassInfo.getPackageInfo().getName().replaceAll("\\.model\\b",".service.rest");
+        String serviceClassName ="RestQuery"+origClassInfo.getSimpleName()+"Service";
+
+        RemoteQueryInfo restQueryInfo = dtoModelClassInfo.getAnnotation(RemoteQueryInfo.class);
+        Preconditions.checkArgument(restQueryInfo!=null, "The type %s must have a %s annot", dtoModelClassInfo.getFullName(),RemoteQueryInfo.class.getCanonicalName());
+        return JavaFile.builder(
+                packageName,
+                TypeSpec.classBuilder(serviceClassName)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addAnnotation(
+                                AnnotationSpec.builder(Generated.class)
+                                        .addMember("value","$S",this.getClass().getName())
+                                        .addMember("date","$S" , LocalDateTime.now().toString())
+                                        .build()
+                        )
+                        .addAnnotation(
+                                AnnotationSpec.builder(ServiceDef.class)
+                                        .addMember("type","$S",AbstractRestQueryService.SERVICE_TYPE)
+                                        .addMember("domain","$S",restQueryInfo.domain())
+                                        .addMember("name","$S" ,restQueryInfo.name())
+                                        .addMember("version","$S" ,restQueryInfo.version())
+                                        .addMember("access","$T.$L", DataAccessType.class,DataAccessType.READ_ONLY.name())
+                                        .addMember("status","$T.$L", com.dreameddeath.core.service.annotation.VersionStatus.class,annot.status().name())
+                                        .build()
+                        )
+                        .addAnnotation(
+                                AnnotationSpec.builder(Path.class)
+                                        .addMember("value","$S",annot.rootPath())
+                                        .build()
+                        )
+                        .addAnnotation(
+                                AnnotationSpec.builder(Api.class)
+                                        .addMember("value","$S",annot.rootPath())
+                                        .build()
+                        )
+                        .superclass(
+                                ParameterizedTypeName.get(
+                                        ClassName.get(AbstractRestQueryService.class),
+                                        dtoModelClassInfo.getClassName()
+                                )
+                        )
+                        .addField(FieldSpec.builder(internServiceClassName, "queryService",Modifier.PRIVATE).build())
+                        .addMethod(
+                                MethodSpec.methodBuilder("setQueryService")
+                                        .addAnnotation(Autowired.class)
+                                        .addParameter(internServiceClassName,"queryService")
+                                        .addStatement("this.queryService=queryService")
+                                        .build()
+                        )
+                        .addMethod(
+                                MethodSpec.methodBuilder("getQueryService")
+                                        .addModifiers(Modifier.PROTECTED)
+                                        .addAnnotation(Override.class)
+                                        .returns(internServiceClassName)
+                                        .addStatement("return queryService")
+                                        .build()
+                        )
+                        .build()
+        ).build();
+    }
+
+    private JavaFile generateInternalService(AbstractClassInfo dtoModelClassInfo, AbstractClassInfo origClassInfo) {
+        DtoModelQueryRestApi annot = dtoModelClassInfo.getAnnotation(DtoModelQueryRestApi.class);
+        String packageName = origClassInfo.getPackageInfo().getName().replaceAll("\\.model\\b",".service");
+        String serviceClassName ="Query"+origClassInfo.getSimpleName()+"Service";
+
+        TypeName outConverterType = ParameterizedTypeName.get(ClassName.get(IDtoOutputConverter.class),
+                origClassInfo.getClassName(),
+                dtoModelClassInfo.getClassName()
+        );
+
+        return JavaFile.builder(
+                packageName,
+                TypeSpec.classBuilder(serviceClassName)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addAnnotation(
+                                AnnotationSpec.builder(Generated.class)
+                                        .addMember("value","$S",this.getClass().getName())
+                                        .addMember("date","$S" , LocalDateTime.now().toString())
+                                        .build()
+                        )
+                        .superclass(
+                                ParameterizedTypeName.get(
+                                        ClassName.get(AbstractStandardQueryService.class),
+                                        origClassInfo.getClassName(),
+                                        dtoModelClassInfo.getClassName()
+                                )
+                        )
+                        .addField(FieldSpec.builder(outConverterType, "outputConverter",Modifier.PRIVATE).build())
+                        .addMethod(
+                                MethodSpec.methodBuilder("setDtoConverterFactory")
+                                        .addAnnotation(Autowired.class)
+                                        .addParameter(DtoConverterFactory.class,"factory")
+                                        .addStatement("outputConverter=factory.getDtoOutputConverter($T.class,$T.class)",origClassInfo.getClassName(),dtoModelClassInfo.getClassName())
+                                        .build()
+                        )
+                        .addMethod(
+                                MethodSpec.methodBuilder("getOutputConverter")
+                                        .addModifiers(Modifier.PROTECTED)
+                                        .addAnnotation(Override.class)
+                                        .returns(outConverterType)
+                                        .addStatement("return outputConverter")
+                                        .build()
+                        )
+                        .build()
+        ).build();
     }
 }

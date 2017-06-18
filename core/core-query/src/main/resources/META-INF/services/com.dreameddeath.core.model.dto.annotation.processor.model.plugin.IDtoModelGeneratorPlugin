@@ -16,4 +16,4 @@
 #
 
 
-com.dreameddeath.couchbase.core.process.remote.annotation.processor.model.ProcessRestDtoModelGeneratorPlugin
+com.dreameddeath.core.query.annotation.processor.QueryDtoModelGeneratorPlugin

@@ -17,8 +17,6 @@
 
 package com.dreameddeath.core.query.annotation;
 
-import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
-import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 
 import java.lang.annotation.ElementType;
@@ -27,22 +25,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by Christophe Jeunesse on 27/12/2016.
+ * Created by CEAJ8230 on 15/06/2017.
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface QueryExpose {
-    String REST_EXPOSE_DTO_MODEL_TYPE = "query";
-    FieldGenMode DEFAULT_OUTPUT_GEN_MODE = FieldGenMode.SIMPLE;
-    SuperClassGenMode DEFAULT_SUPERCLASS_GEN_MODE = SuperClassGenMode.AUTO;
-
+@Retention(RetentionPolicy.SOURCE)
+public @interface DtoModelQueryRestApi {
     String rootPath();
-    String domain() default "";
-    String name() default  "";
-    String version() default "1.0.0";
+    String baseClass();
+    String version();
     VersionStatus status() default VersionStatus.STABLE;
-    FieldGenMode defaultOutputFieldMode() default FieldGenMode.SIMPLE;
-    SuperClassGenMode superClassGenMode() default SuperClassGenMode.AUTO;
-    boolean isPureSubClassMode() default false;
-    String jsonTypeId() default "";
+
 }

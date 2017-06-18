@@ -1,3 +1,20 @@
+/*
+ * 	Copyright Christophe Jeunesse
+ *
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
+ */
+
 package com.dreameddeath.core.model.dto.annotation.processor.converter;
 
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
@@ -53,7 +70,7 @@ public class ConverterGeneratorProcessor extends AbstractAnnotationProcessor {
         }
         catch(Throwable e){
             LOG.error("Error during processing",e);
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             for(StackTraceElement elt:e.getStackTrace()){
                 buf.append(elt.toString());
                 buf.append("\n");
@@ -71,7 +88,7 @@ public class ConverterGeneratorProcessor extends AbstractAnnotationProcessor {
             }
             catch(Throwable e){
                 LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 for(StackTraceElement elt:e.getStackTrace()){
                     buf.append(elt.toString());
                     buf.append("\n");
@@ -82,20 +99,7 @@ public class ConverterGeneratorProcessor extends AbstractAnnotationProcessor {
         }
 
         for(JavaFile javaFile:converterGenerator.getFiles()){
-            try {
-                javaFile.writeTo(processingEnv.getFiler());
-                messager.printMessage(Diagnostic.Kind.NOTE, "Generating converter from @dtogenerate " + javaFile.typeSpec.name);
-            }
-            catch(Throwable e){
-                LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
-                for(StackTraceElement elt:e.getStackTrace()){
-                    buf.append(elt.toString());
-                    buf.append("\n");
-                }
-                messager.printMessage(Diagnostic.Kind.ERROR,"Error during processing "+e.getMessage()+"\n"+buf.toString());
-                throw new RuntimeException("Error during annotation processor",e);
-            }
+            writeFile(javaFile,messager);
         }
 
         return false;

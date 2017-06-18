@@ -58,7 +58,7 @@ public class DtoModelTypeIdProcessor extends AbstractAnnotationProcessor {
             }
             catch(IOException e){
                 LOG.error("Error during processing",e);
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 for(StackTraceElement elt:e.getStackTrace()){
                     buf.append(elt.toString());
                     buf.append("\n");

@@ -17,19 +17,16 @@
 
 package com.dreameddeath.core.query.annotation;
 
-import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
-
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by Christophe Jeunesse on 29/12/2016.
+ * Created by CEAJ8230 on 15/06/2017.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(QueryFieldInfos.class)
-public @interface QueryFieldInfo {
-    String value() default "";
-    FieldGenMode mode() default FieldGenMode.SIMPLE;
-    String version() default "";
-    FieldGenMode unwrappedDefaultMode() default FieldGenMode.INHERIT;
+public @interface QueryFieldInfos {
+    QueryFieldInfo[] value();
 }
