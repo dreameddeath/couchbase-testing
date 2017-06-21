@@ -1,18 +1,17 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -23,7 +22,7 @@ import com.dreameddeath.core.process.registrar.TaskExecutorClientRegistrar;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ProcessingServiceFactory;
-import com.dreameddeath.couchbase.core.process.remote.factory.IRemoteClientFactory;
+import com.dreameddeath.couchbase.core.process.remote.factory.IRemoteProcessClientFactory;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
@@ -46,7 +45,7 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
     private final ExecutorServiceFactory executorServiceFactory;
     private final ProcessingServiceFactory processingServiceFactory;
     private final ProcessorClientPreInit executorClientsPreInit;
-    private final IRemoteClientFactory remoteClientFactory;
+    private final IRemoteProcessClientFactory remoteClientFactory;
 
     public ProcessesWebServerPlugin(AbstractWebServer<?> server,Builder builder) {
         super(server);
@@ -58,7 +57,7 @@ public class ProcessesWebServerPlugin extends AbstractWebServerPlugin {
         executorServiceFactory = new ExecutorServiceFactory();
         ProcessingServiceFactory processingFactory = new ProcessingServiceFactory();
         if(this.getParentWebServer().getServiceDiscoveryManager()!=null){
-            remoteClientFactory=new RemoteServiceClientFactoryWithManager(getParentWebServer().getServiceDiscoveryManager());
+            remoteClientFactory=new RemoteProcessServiceProcessClientFactoryWithManager(getParentWebServer().getServiceDiscoveryManager());
         }
         else{
             remoteClientFactory=null;

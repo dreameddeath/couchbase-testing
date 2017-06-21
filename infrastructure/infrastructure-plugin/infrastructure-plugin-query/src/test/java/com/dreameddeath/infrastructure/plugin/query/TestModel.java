@@ -15,7 +15,7 @@
  *
  */
 
-package com.dreameddeath.core.query.model;
+package com.dreameddeath.infrastructure.plugin.query;
 
 import com.dreameddeath.core.dao.annotation.dao.Counter;
 import com.dreameddeath.core.dao.annotation.dao.DaoEntity;

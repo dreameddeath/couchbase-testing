@@ -1,18 +1,17 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -190,8 +189,8 @@ public class TestSpringConfig implements ServletContextAware {
                 ((AbstractRestExposableService)beanObjEntry.getValue()).setAddress(factory.getAddress());
                 ((AbstractRestExposableService)beanObjEntry.getValue()).setEndPoint(getEndPointDescr());
             }
-            ctxt.getBeanFactory().applyBeanPostProcessorsBeforeInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
-            ctxt.getBeanFactory().applyBeanPostProcessorsAfterInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
+            //ctxt.getBeanFactory().applyBeanPostProcessorsBeforeInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
+            //ctxt.getBeanFactory().applyBeanPostProcessorsAfterInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
         }
 
         List<ResourceProvider> resourceProviders = new LinkedList<>();
@@ -231,6 +230,13 @@ public class TestSpringConfig implements ServletContextAware {
                 resourceProviders.add(provider);
             }
         }
+
+        for(Map.Entry<String,Object> beanObjEntry:beanObjMap.entrySet()){
+            ctxt.getBeanFactory().applyBeanPostProcessorsBeforeInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
+            ctxt.getBeanFactory().applyBeanPostProcessorsAfterInitialization(beanObjEntry.getValue(),beanObjEntry.getKey());
+        }
+
+
 
         factory.setResourceProviders(resourceProviders);
         factory.setApplicationContext(ctxt);

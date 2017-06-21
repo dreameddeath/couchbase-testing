@@ -28,9 +28,12 @@ import com.dreameddeath.core.query.service.AbstractStandardQueryService;
 import com.dreameddeath.core.query.service.rest.AbstractRestQueryService;
 import com.dreameddeath.core.service.annotation.DataAccessType;
 import com.dreameddeath.core.service.annotation.ServiceDef;
+import com.dreameddeath.core.user.IUser;
 import com.google.common.base.Preconditions;
 import com.squareup.javapoet.*;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +47,13 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 import java.util.Set;
 
 /**
@@ -109,17 +118,17 @@ public class QueryServiceProcessor extends AbstractAnnotationProcessor{
                                         .addMember("version","$S" ,restQueryInfo.version())
                                         .addMember("access","$T.$L", DataAccessType.class,DataAccessType.READ_ONLY.name())
                                         .addMember("status","$T.$L", com.dreameddeath.core.service.annotation.VersionStatus.class,annot.status().name())
-                                        .build()
+                                .build()
                         )
                         .addAnnotation(
                                 AnnotationSpec.builder(Path.class)
                                         .addMember("value","$S",annot.rootPath())
-                                        .build()
+                                .build()
                         )
                         .addAnnotation(
                                 AnnotationSpec.builder(Api.class)
                                         .addMember("value","$S",annot.rootPath())
-                                        .build()
+                                .build()
                         )
                         .superclass(
                                 ParameterizedTypeName.get(
@@ -143,6 +152,85 @@ public class QueryServiceProcessor extends AbstractAnnotationProcessor{
                                         .addStatement("return queryService")
                                         .build()
                         )
+                        .addMethod(
+                                MethodSpec.methodBuilder("get")
+                                        .addModifiers(Modifier.PUBLIC)
+                                        .addAnnotation(GET.class)
+                                        .addAnnotation(AnnotationSpec.builder(Path.class).addMember("value","$S","/{key}").build())
+                                        .addAnnotation(
+                                                AnnotationSpec.builder(Produces.class)
+                                                        .addMember("value","{$T.$L}", ClassName.get(MediaType.class), "APPLICATION_JSON")
+                                                        .build()
+                                        )
+                                        .addAnnotation(
+                                                AnnotationSpec.builder(ApiResponses.class)
+                                                        .addMember("value","$L",
+                                                                AnnotationSpec.builder(ApiResponse.class)
+                                                                        .addMember("code","$L",200)
+                                                                        .addMember("message","$S","The processing result")
+                                                                        .addMember("response","$L.class",dtoModelClassInfo.getClassName())
+                                                                        .build()
+                                                        )
+                                                        .addMember("value","$L",
+                                                                AnnotationSpec.builder(ApiResponse.class)
+                                                                        .addMember("code","$L",404)
+                                                                        .addMember("message","$S","Entity not found")
+                                                                        .build()
+                                                        )
+                                                        .build()
+                                        )
+                                        .addParameter(ParameterSpec.builder(IUser.class,"user")
+                                                .addAnnotation(Context.class).build())
+                                        .addParameter(ParameterSpec.builder(String.class,"key")
+                                                .addAnnotation(AnnotationSpec.builder(PathParam.class)
+                                                        .addMember("value","$S","key")
+                                                        .build()).build())
+                                        .addParameter(ParameterSpec.builder(AsyncResponse.class,"asyncResponse")
+                                                .addModifiers(Modifier.FINAL)
+                                                .addAnnotation(Suspended.class).build()
+                                        )
+                                        .addStatement("super.doGet(key,user,asyncResponse)")
+                                .build()
+                        )//End of getJob / GET /{key}
+                        .addMethod(
+                                MethodSpec.methodBuilder("search")
+                                        .addModifiers(Modifier.PUBLIC)
+                                        .addAnnotation(GET.class)
+                                        .addAnnotation(AnnotationSpec.builder(Path.class).addMember("value","$S","/").build())
+                                        .addAnnotation(
+                                                AnnotationSpec.builder(Produces.class)
+                                                        .addMember("value","{$T.$L}", ClassName.get(MediaType.class), "APPLICATION_JSON")
+                                                        .build()
+                                        )
+                                        .addAnnotation(
+                                                AnnotationSpec.builder(ApiResponses.class)
+                                                        .addMember("value","$L",
+                                                                AnnotationSpec.builder(ApiResponse.class)
+                                                                        .addMember("code","$L",200)
+                                                                        .addMember("message","$S","The processing result")
+                                                                        .addMember("response","$L.class",dtoModelClassInfo.getClassName())
+                                                                        .addMember("responseContainer","$S","List")
+                                                                        .build()
+                                                        )
+                                                        .build()
+                                        )
+                                        .addParameter(ParameterSpec.builder(IUser.class,"user")
+                                                .addAnnotation(Context.class).build())
+                                        .addParameter(ParameterSpec.builder(UriInfo.class,"uriInfo")
+                                                .addAnnotation(Context.class).build())
+                                        .addParameter(ParameterSpec.builder(String.class,"queryType")
+                                                .addAnnotation(AnnotationSpec.builder(QueryParam.class)
+                                                        .addMember("value","$S","qType")
+                                                        .build()).build())
+                                        .addParameter(ParameterSpec.builder(AsyncResponse.class,"asyncResponse")
+                                                .addModifiers(Modifier.FINAL)
+                                                .addAnnotation(Suspended.class).build()
+                                        )
+                                        .addStatement("$T params=uriInfo.getQueryParameters()",ParameterizedTypeName.get(MultivaluedMap.class,String.class,String.class))
+                                        .addStatement("params.remove($S)","qType")
+                                        .addStatement("super.doSearch(queryType,params,user,asyncResponse)")
+                                .build()
+                        )//End of getJob / GET using search params
                         .build()
         ).build();
     }
@@ -190,6 +278,16 @@ public class QueryServiceProcessor extends AbstractAnnotationProcessor{
                                         .addStatement("return outputConverter")
                                         .build()
                         )
+                        .addMethod(
+                                MethodSpec.methodBuilder("getDomain")
+                                        .addModifiers(Modifier.PROTECTED)
+                                        .addAnnotation(Override.class)
+                                        .returns(String.class)
+                                        .addStatement("return $S",annot.domain())
+                                        .build()
+                        )
+
+
                         .build()
         ).build();
     }

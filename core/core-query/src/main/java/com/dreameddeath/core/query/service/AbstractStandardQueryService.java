@@ -34,40 +34,35 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbstractStandardQueryService<TDOC extends CouchbaseDocument,T> implements IQueryService<T>{
     private ICouchbaseSessionFactory sessionFactory;
-    private String domain;
 
     @Autowired
     public void setSessionFactory(ICouchbaseSessionFactory factory){
         this.sessionFactory = factory;
     }
 
-    @Autowired
-    public void setDomain(String domain){
-        this.domain = domain;
-    }
-
+    protected abstract String getDomain();
     protected abstract IDtoOutputConverter<TDOC,T> getOutputConverter();
 
     @Override
     public Single<T> asyncGet(String key, ICouchbaseSession session) {
-        Preconditions.checkArgument(session.getDomain().equals(domain),"The given session domain %s isn't compatible with actual domain %s",session.getDomain(),domain);
+        Preconditions.checkArgument(session.getDomain().equals(getDomain()),"The given session domain %s isn't compatible with actual domain %s",session.getDomain(),getDomain());
         return session.<TDOC>asyncGet(key).map(elt->getOutputConverter().convertToOutput(elt));
     }
 
 
     @Override
     public Observable<T> asyncSearch(QuerySearch search, ICouchbaseSession session) {
-        Preconditions.checkArgument(session.getDomain().equals(domain),"The given session domain %s isn't compatible with actual domain %s",session.getDomain(),domain);
+        Preconditions.checkArgument(session.getDomain().equals(getDomain()),"The given session domain %s isn't compatible with actual domain %s",session.getDomain(),getDomain());
         return Observable.error(new IllegalMethodCall());
     }
 
     @Override
     public Single<T> asyncGet(String key, IUser user) {
-        return asyncGet(key,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY,domain,user));
+        return asyncGet(key,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY,getDomain(),user));
     }
 
     @Override
     public Observable<T> asyncSearch(QuerySearch search, IUser user) {
-        return asyncSearch(search,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY,domain,user));
+        return asyncSearch(search,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_ONLY,getDomain(),user));
     }
 }

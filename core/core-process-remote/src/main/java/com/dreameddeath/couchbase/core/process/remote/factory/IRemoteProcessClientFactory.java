@@ -15,25 +15,14 @@
  *
  */
 
-package com.dreameddeath.core.query.annotation;
+package com.dreameddeath.couchbase.core.process.remote.factory;
 
-import com.dreameddeath.core.service.annotation.VersionStatus;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.dreameddeath.core.service.client.rest.IRestServiceClient;
+import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 
 /**
- * Created by CEAJ8230 on 15/06/2017.
+ * Created by Christophe Jeunesse on 26/02/2016.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
-public @interface DtoModelQueryRestApi {
-    String rootPath();
-    String baseClass();
-    String version();
-    String domain();
-    VersionStatus status() default VersionStatus.STABLE;
-
+public interface IRemoteProcessClientFactory {
+    IRestServiceClient getClient(RemoteJobTaskProcessing forProcessing);
 }

@@ -86,6 +86,12 @@
             <artifactId>core-model-dto</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-dep-injection</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--
         *
         * Unit / Integration Testing
@@ -169,6 +175,24 @@
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>
             <artifactId>testing-user</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-couchbase</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>testing-service</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dreameddeath.couchbase</groupId>
+            <artifactId>core-couchbase-session</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

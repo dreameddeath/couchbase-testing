@@ -130,6 +130,7 @@ public class QueryDtoModelGeneratorPlugin implements IDtoModelGeneratorPlugin {
                     AnnotationSpec.builder(DtoModelQueryRestApi.class)
                             .addMember("baseClass", "$S", clazz.getFullName())
                             .addMember("rootPath", "$S", annot.rootPath())
+                            .addMember("domain", "$S", annot.domain())
                             .addMember("status", "$T.$L", VersionStatus.class, annot.status().name())
                             .addMember("version", "$S", annot.version())
                             .build()

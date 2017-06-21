@@ -224,15 +224,7 @@ public class DtoConverterFactory {
 
 
         private boolean isValidVersion(Entry wishedEntry){
-            Boolean isValid=null;
-
-            isValid = isValidVersion(majorVersion,wishedEntry.majorVersion);
-            /*if(isValid==null){
-                isValid = isValidVersion(minorVersion,wishedEntry.minorVersion);
-            }
-            if(isValid==null){
-                isValid = isValidVersion(patchVersion,wishedEntry.patchVersion);
-            }*/
+            Boolean isValid = isValidVersion(majorVersion,wishedEntry.majorVersion);
             return isValid!=null && isValid;
         }
 

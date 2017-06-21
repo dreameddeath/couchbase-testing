@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -23,8 +23,8 @@ import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.utils.rest.RestServiceTypeHelper;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 import com.dreameddeath.couchbase.core.process.remote.annotation.RemoteServiceInfo;
-import com.dreameddeath.couchbase.core.process.remote.factory.BaseRemoteClientFactory;
-import com.dreameddeath.couchbase.core.process.remote.factory.IRemoteClientFactory;
+import com.dreameddeath.couchbase.core.process.remote.factory.BaseRemoteProcessClientFactory;
+import com.dreameddeath.couchbase.core.process.remote.factory.IRemoteProcessClientFactory;
 import com.dreameddeath.infrastructure.daemon.manager.ServiceDiscoveryManager;
 
 import java.util.Map;
@@ -35,17 +35,17 @@ import static com.dreameddeath.infrastructure.plugin.process.config.Infrastructu
 /**
  * Created by Christophe Jeunesse on 13/03/2016.
  */
-public class RemoteServiceClientFactoryWithManager implements IRemoteClientFactory {
+public class RemoteProcessServiceProcessClientFactoryWithManager implements IRemoteProcessClientFactory {
     private final ServiceDiscoveryManager manager;
-    private final Map<String,IRemoteClientFactory> clientFactoryMap = new ConcurrentHashMap<>();
+    private final Map<String,IRemoteProcessClientFactory> clientFactoryMap = new ConcurrentHashMap<>();
 
-    public RemoteServiceClientFactoryWithManager(ServiceDiscoveryManager manager){
+    public RemoteProcessServiceProcessClientFactoryWithManager(ServiceDiscoveryManager manager){
         this.manager = manager;
     }
 
-    private IRemoteClientFactory setupFactory(String domain){
+    private IRemoteProcessClientFactory setupFactory(String domain){
         try {
-            BaseRemoteClientFactory result = new BaseRemoteClientFactory();
+            BaseRemoteProcessClientFactory result = new BaseRemoteProcessClientFactory();
             result.setClientFactory(manager.getClientFactory(REMOTE_SERVICE_FOR_DOMAIN.getProperty(domain).getMandatoryValue("Cannot find the service domain"), RestServiceTypeHelper.SERVICE_TECH_TYPE, RestServiceClientFactory.class));
             return result;
         }
@@ -64,7 +64,7 @@ public class RemoteServiceClientFactoryWithManager implements IRemoteClientFacto
         if(annot==null){
             throw new RuntimeException("Cannot find annot RemoteServiceInfo for class "+forProcessing.getClass().getName());
         }
-        IRemoteClientFactory factory = clientFactoryMap.computeIfAbsent(annot.domain(),this::setupFactory);
+        IRemoteProcessClientFactory factory = clientFactoryMap.computeIfAbsent(annot.domain(),this::setupFactory);
         return factory.getClient(forProcessing);
     }
 }
