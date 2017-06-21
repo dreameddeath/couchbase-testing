@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -128,18 +128,18 @@ public class ServiceDiscoveryManager {
         return (RestServiceClientFactory) getClientFactory(domain,RestServiceTypeHelper.SERVICE_TECH_TYPE);
     }
 
-    synchronized public AbstractServiceClientFactory getClientFactory(String domain,String serviceType) throws Exception{
-        ServiceKey key=ServiceKey.buildKey(domain,serviceType);
+    synchronized public AbstractServiceClientFactory getClientFactory(String domain,String serviceTechType) throws Exception{
+        ServiceKey key=ServiceKey.buildKey(domain,serviceTechType);
         if(!serviceClientFactoryMap.containsKey(key)){
-            ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient,domain,serviceType,parentWebServer.getParentDaemon().getUuid().toString(),parentWebServer.getUuid().toString());
-            AbstractServiceClientFactory newServiceClientFactory = ServiceTypeUtils.getDefinition(serviceType).buildClientFactory(getServiceDiscoverer(domain,serviceType),clientRegistrar);
+            ClientRegistrar clientRegistrar = new ClientRegistrar(curatorClient,domain,serviceTechType,parentWebServer.getParentDaemon().getUuid().toString(),parentWebServer.getUuid().toString());
+            AbstractServiceClientFactory newServiceClientFactory = ServiceTypeUtils.getDefinition(serviceTechType).buildClientFactory(getServiceDiscoverer(domain,serviceTechType),clientRegistrar);
             serviceClientFactoryMap.put(key,newServiceClientFactory);
         }
         return serviceClientFactoryMap.get(key);
     }
 
-    synchronized public <T extends AbstractServiceClientFactory> T getClientFactory(String domain,String serviceType,Class<T> clazz) throws Exception{
-        return (T)getClientFactory(domain, serviceType);
+    synchronized public <T extends AbstractServiceClientFactory> T getClientFactory(String domain,String serviceTechType,Class<T> clazz) throws Exception{
+        return (T)getClientFactory(domain, serviceTechType);
     }
 
     synchronized public void setStatus(Status newStatus) throws Exception{

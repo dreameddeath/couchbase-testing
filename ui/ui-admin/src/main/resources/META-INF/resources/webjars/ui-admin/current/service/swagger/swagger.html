@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <!--
-  ~ /*
-  ~  * Copyright Christophe Jeunesse
-  ~  *
-  ~  *    Licensed under the Apache License, Version 2.0 (the "License");
-  ~  *    you may not use this file except in compliance with the License.
-  ~  *    You may obtain a copy of the License at
-  ~  *
-  ~  *      http://www.apache.org/licenses/LICENSE-2.0
-  ~  *
-  ~  *    Unless required by applicable law or agreed to in writing, software
-  ~  *    distributed under the License is distributed on an "AS IS" BASIS,
-  ~  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~  *    See the License for the specific language governing permissions and
-  ~  *    limitations under the License.
-  ~  */
+  ~ 	Copyright Christophe Jeunesse
+  ~
+  ~ 	Licensed under the Apache License, Version 2.0 (the "License");
+  ~ 	you may not use this file except in compliance with the License.
+  ~ 	You may obtain a copy of the License at
+  ~
+  ~ 	http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ 	Unless required by applicable law or agreed to in writing, software
+  ~ 	distributed under the License is distributed on an "AS IS" BASIS,
+  ~ 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ 	See the License for the specific language governing permissions and
+  ~ 	limitations under the License.
+  ~
   -->
 
 <html>
@@ -69,7 +68,7 @@
                 $.each(data.services,function(i,elt){
                     $('#instances_group').append(
                     '<option onclick="'+
-                        'window.setRoutingHeader('+"'"+elt.address+"','"+elt.port+"','"+elt.spec.basePath.slice(0,(-1)*pathEnding.length)+"')"+
+                        'window.setRoutingHeader('+"'"+elt.address+"','"+elt.port+"','"+elt.spec.basePath+"','"+pathEnding+"')"+
                     '">'
                     +elt.address+':'+elt.port+elt.spec.basePath
                     +'</option>');
@@ -82,13 +81,13 @@
             proxiesUrl = decodeURIComponent(proxiesUrl[1]);
             $.getJSON(proxiesUrl)
             .done(function(data){
-                $('#proxies_optgroup').children().remove();
-                $.each(data.services,function(i,elt){
-                    $('#proxies_optgroup').append(
+                $('#proxies_group').children().remove();
+                $.each(data,function(i,elt){
+                    $('#proxies_group').append(
                     '<option onclick="'+
-                        'window.setRoutingHeader('+"'"+elt.address+"','"+elt.port+"','"+elt.spec.basePath.slice(0,(-1)*pathEnding.length)+"')"+
+                        'window.setRoutingHeader('+"'"+elt.host+"','"+elt.port+"','"+elt.basePath+"','"+pathEnding+"')"+
                     '">'
-                    +elt.address+':'+elt.port+elt.spec.basePath
+                    +elt.host+':'+elt.port+elt.basePath
                     +'</option>');
                 });
             });
@@ -134,10 +133,14 @@
           console.log.apply(console, arguments);
         }
       }
-      window.setRoutingHeader = function (host,port,path){
+      window.setRoutingHeader = function (host,port,path,source_prefix){
         window.swaggerUi.api.clientAuthorizations.add("xHeaderHost",new SwaggerClient.ApiKeyAuthorization("X-TESTING-TARGET-HOST", host, "header"));
         window.swaggerUi.api.clientAuthorizations.add("xHeaderPort",new SwaggerClient.ApiKeyAuthorization("X-TESTING-TARGET-PORT", port, "header"));
         window.swaggerUi.api.clientAuthorizations.add("xHeaderPath",new SwaggerClient.ApiKeyAuthorization("X-TESTING-TARGET-PATH", path, "header"));
+        if(!source_prefix.startsWith("/")){
+            source_prefix = "/"+source_prefix;
+        }
+        window.swaggerUi.api.clientAuthorizations.add("xHeaderSourcePrefix",new SwaggerClient.ApiKeyAuthorization("X-TESTING-SOURCE-PATH-PREFIX", source_prefix, "header"));
       }
   });
   </script>

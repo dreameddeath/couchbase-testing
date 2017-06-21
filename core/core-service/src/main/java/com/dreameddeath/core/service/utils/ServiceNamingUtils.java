@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -40,12 +40,12 @@ public class ServiceNamingUtils {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceNamingUtils.class);
     private final static String FULLNAME_SEPARATOR_CHAR ="#";
 
-    public static String buildServiceFullName(String type,String name,String version){
-        return type+FULLNAME_SEPARATOR_CHAR+name+ FULLNAME_SEPARATOR_CHAR +version;
+    public static String buildServiceFullName(String functionnalType,String name,String version){
+        return functionnalType+FULLNAME_SEPARATOR_CHAR+name+ FULLNAME_SEPARATOR_CHAR +version;
     }
 
 
-    public static String getTypeFromServiceFullName(String fullName){
+    public static String getFunctionnalTypeFromServiceFullName(String fullName){
         String[] parts=fullName.split("#");
         Preconditions.checkArgument(parts.length==3,"The service fullname %s isn't valid",fullName);
         return parts[0];
@@ -173,11 +173,11 @@ public class ServiceNamingUtils {
 
     public static String buildServerServicePath(CuratorFramework client, String registrarDomain, CuratorDiscoveryServiceDescription service){
         String domainPathName = buildServiceDomainPathName(registrarDomain,service.getServiceTechType(),DomainPathType.SERVER);
-        String serviceFullName = ServiceNamingUtils.buildServiceFullName(service.getType(),service.getName(),service.getVersion());
+        String serviceFullName = ServiceNamingUtils.buildServiceFullName(service.getFuncType(),service.getName(),service.getVersion());
         String fullPath = (domainPathName+"/"+serviceFullName).replaceAll("/{2,}","/");
         ServiceDescription definition = new ServiceDescription();
         definition.setCreationDate(DateTime.now());
-        definition.setType(service.getType());
+        definition.setType(service.getFuncType());
         definition.setName(service.getName());
         definition.setVersion(service.getVersion());
         definition.setFullName(serviceFullName);

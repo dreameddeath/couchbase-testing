@@ -218,6 +218,8 @@ public class ProxyServlet extends AsyncProxyServlet{
 
         String effectivePath = clientRequest.getRequestURI();
         effectivePath = effectivePath.substring(prefix.length() + 1); //remove prefix
+        String funcType = effectivePath.substring(0, effectivePath.indexOf("/"));
+        effectivePath = effectivePath.substring(funcType.length()+1);
         String serviceId = effectivePath.substring(0, effectivePath.indexOf("/"));
         effectivePath = effectivePath.substring(serviceId.length()+1);
         String version;
@@ -230,17 +232,19 @@ public class ProxyServlet extends AsyncProxyServlet{
             effectivePath = "";
         }
 
+
         try {
             serviceId = URLDecoder.decode(serviceId, "UTF-8");
-            ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider = serviceMap.get(new ServiceUid(serviceId,version));
+            ServiceUid serviceUid = new ServiceUid(funcType,serviceId,version);
+            ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider = serviceMap.get(serviceUid);
             if(provider==null){
-                LOG.error("Cannot find the service of {}",serviceId,version);
-                throw new NotFoundException("Cannot Retrieve service instance of "+serviceId+"/"+version);
+                LOG.error("Cannot find the service of {}",serviceUid);
+                throw new NotFoundException("Cannot Retrieve service instance of "+serviceUid);
             }
             ServiceInstance<CuratorDiscoveryServiceDescription<?>> instance=provider.getInstance();
             if(instance==null){
-                LOG.error("Cannot find the service instance for {}/{}",serviceId,version);
-                throw new NotFoundException("Cannot Retrieve service instance of "+serviceId+"/"+version);
+                LOG.error("Cannot find the service instance for {}/{}",serviceUid);
+                throw new NotFoundException("Cannot Retrieve service instance of "+serviceUid);
             }
             String uriStr = UriUtils.buildUri(instance,false);
             if(!uriStr.endsWith("/")){
@@ -266,19 +270,23 @@ public class ProxyServlet extends AsyncProxyServlet{
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
     }
 
-
-
     private static class ServiceUid{
+        private final String funcType;
         private final String serviceId;
         private final String version;
 
-        public ServiceUid(String serviceId, String version) {
+        public ServiceUid(String funcType,String serviceId, String version) {
+            this.funcType = funcType;
             this.serviceId = serviceId;
             this.version = version;
         }
 
         public String getServiceId() {
             return serviceId;
+        }
+
+        public String getFuncType() {
+            return funcType;
         }
 
         public String getVersion() {
@@ -292,14 +300,15 @@ public class ProxyServlet extends AsyncProxyServlet{
 
             ServiceUid that = (ServiceUid) o;
 
+            if (!funcType.equals(that.funcType)) return false;
             if (!serviceId.equals(that.serviceId)) return false;
             return version.equals(that.version);
-
         }
 
         @Override
         public int hashCode() {
-            int result = serviceId.hashCode();
+            int result = funcType.hashCode();
+            result = 31 * result + serviceId.hashCode();
             result = 31 * result + version.hashCode();
             return result;
         }
@@ -307,7 +316,8 @@ public class ProxyServlet extends AsyncProxyServlet{
         @Override
         public String toString() {
             return "ServiceUid{" +
-                    "serviceId='" + serviceId + '\'' +
+                    "funcType='" + funcType + '\'' +
+                    ", serviceId='" + serviceId + '\'' +
                     ", version='" + version + '\'' +
                     '}';
         }
@@ -339,17 +349,22 @@ public class ProxyServlet extends AsyncProxyServlet{
                 IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>> listener=serviceDiscovered.addListener(new IServiceDiscovererListener<CuratorDiscoveryServiceDescription<?>>() {
                     @Override
                     public void onProviderRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider, ServiceDescription descr) {
-                        final ServiceUid suid= new ServiceUid(descr.getName(),descr.getVersion());
+                        final ServiceUid suid= new ServiceUid(descr.getType(),descr.getName(),descr.getVersion());
                         serviceMap.computeIfAbsent(suid,newSuid->{
                                     LOG.info("Registering service {} for proxy of webserver {}",descr.getFullName(),parentWebServer.getUuid().toString());
                                     try{
+                                        String basePath = ServletUtils.normalizePath("/"+endPointDescription.path()+"/"+suid.funcType+"/"+suid.getServiceId()+"/"+suid.getVersion(),false);
+
                                         ProxyClientRegistrar registrar = proxyClientRegistrarMap.computeIfAbsent(discoverer.getDomain(), domain -> new ProxyClientRegistrar(curatorClient, domain, serviceTechType, parentWebServer.getParentDaemon().getUuid().toString(), parentWebServer.getUuid().toString()));
                                         ProxyClientInstanceInfo proxyClientInfo = new ProxyClientInstanceInfo();
                                         proxyClientInfo.setUid(UUID.randomUUID().toString());
-                                        proxyClientInfo.setServiceName(ServiceNamingUtils.buildServiceFullName(serviceTechType,suid.getServiceId(), suid.getVersion()));
+                                        proxyClientInfo.setServiceName(ServiceNamingUtils.buildServiceFullName(suid.getFuncType(),suid.getServiceId(), suid.getVersion()));
                                         proxyClientInfo.setCreationDate(DateTime.now());
-                                        proxyClientInfo.setServiceType(serviceTechType);
-                                        proxyClientInfo.setUri("http://"+endPointDescription.host()+":"+endPointDescription.port()+ServletUtils.normalizePath("/"+endPointDescription.path()+"/"+suid.getServiceId()+"/"+suid.getVersion(),false));
+                                        proxyClientInfo.setServiceTechType(serviceTechType);
+                                        proxyClientInfo.setHost(endPointDescription.host());
+                                        proxyClientInfo.setPort(endPointDescription.port());
+                                        proxyClientInfo.setBasePath(basePath);
+                                        proxyClientInfo.setUri("http://"+endPointDescription.host()+":"+endPointDescription.port()+basePath);
                                         registrar.enrich(proxyClientInfo);
                                         registrar.register(proxyClientInfo);
                                         proxyClientMap.put(suid,proxyClientInfo);
@@ -369,7 +384,7 @@ public class ProxyServlet extends AsyncProxyServlet{
 
                     @Override
                     public void onProviderUnRegister(AbstractServiceDiscoverer discoverer, ServiceProvider<CuratorDiscoveryServiceDescription<?>> provider, ServiceDescription descr) {
-                        ServiceUid suid= new ServiceUid(descr.getName(),descr.getVersion());
+                        ServiceUid suid= new ServiceUid(descr.getType(),descr.getName(),descr.getVersion());
                         serviceMap.remove(suid);
                         ProxyClientRegistrar registrar = proxyClientRegistrarMap.get(discoverer.getDomain());
                         ProxyClientInstanceInfo clientInfo = proxyClientMap.remove(suid);

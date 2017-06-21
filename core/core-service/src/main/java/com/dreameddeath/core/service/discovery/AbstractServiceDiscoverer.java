@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -290,7 +290,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
         Map<String,ServiceInfoDescription> mapServiceByName = new TreeMap<>();
         for(Map.Entry<String,ProviderInfo> entry:serviceProviderMap.entrySet()){
             String fullName = entry.getKey();
-            String type = ServiceNamingUtils.getTypeFromServiceFullName(fullName);
+            String functionnalType = ServiceNamingUtils.getFunctionnalTypeFromServiceFullName(fullName);
             String name = ServiceNamingUtils.getNameFromServiceFullName(fullName);
             String version = ServiceNamingUtils.getVersionFromServiceFullName(fullName);
 
@@ -300,7 +300,7 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
             ServiceInfoDescription foundServiceInfoDescription  = mapServiceByName.get(name);
             if(foundServiceInfoDescription ==null){
                 foundServiceInfoDescription  = new ServiceInfoDescription();
-                foundServiceInfoDescription.setFuncType(type);
+                foundServiceInfoDescription.setFuncType(functionnalType);
                 foundServiceInfoDescription.setName(name);
                 foundServiceInfoDescription.setTechType(serviceTechnicalType);
                 mapServiceByName.put(name,foundServiceInfoDescription);
@@ -319,11 +319,11 @@ public abstract class AbstractServiceDiscoverer<TSPEC,T extends CuratorDiscovery
                         Preconditions.checkArgument(currentAccess.equalsIgnoreCase(newAccessType),"Cannot have multiple access mode for service %s (%s vs %s)",fullName,currentAccess,newAccessType);
                     }
                     if(foundServiceInfoDescription.getFuncType()==null){
-                        foundServiceInfoDescription.setFuncType(instance.getPayload().getType());
+                        foundServiceInfoDescription.setFuncType(instance.getPayload().getFuncType());
                     }
                     else{
                         String currentType=foundServiceInfoDescription.getFuncType();
-                        String instanceType = instance.getPayload().getType();
+                        String instanceType = instance.getPayload().getFuncType();
                         Preconditions.checkArgument(currentType.equalsIgnoreCase(instanceType),"Cannot have multiple functional Type for service %s (%s vs %s)",fullName,currentType,instanceType);
                     }
                     if(foundServiceVersionInfoDescription.getFullName()==null){
