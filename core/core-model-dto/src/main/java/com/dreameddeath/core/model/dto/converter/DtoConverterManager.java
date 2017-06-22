@@ -49,6 +49,7 @@ public class DtoConverterManager {
 
     private final ObjectMapper mapper = ObjectMapperFactory.BASE_INSTANCE.getMapper();
     private final AtomicReference<List<DtoConverterDef>> cachedConverterDef=new AtomicReference<>();
+    private ClassLoader classLoader=null;
 
     public String getConverterDefPath(DtoConverterDef converterDef){
         return String.format("%s/%s/%s/%s.json",
@@ -91,6 +92,9 @@ public class DtoConverterManager {
     public DtoConverterManager(){
     }
 
+    public DtoConverterManager(ClassLoader loader){
+        this.classLoader = loader;
+    }
 
     public void buildConverterDefFile(Writer writer, ClassInfo converterClassInfo) throws IOException {
         DtoConverterDef converterDef = buildConverterDefFromConverterClass(converterClassInfo);
@@ -100,7 +104,7 @@ public class DtoConverterManager {
 
     public synchronized List<DtoConverterDef> getConverterDefs(){
         try {
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            PathMatchingResourcePatternResolver resolver = classLoader!=null?new PathMatchingResourcePatternResolver(classLoader):new PathMatchingResourcePatternResolver();
             Resource[] resultResources= resolver.getResources("classpath*:" + ROOT_PATH + "/" + CONVERTER_DEF_PATH + "/*/*.json");
             List<DtoConverterDef> result = new ArrayList<>(resultResources.length);
             for(Resource entityResource:resultResources){

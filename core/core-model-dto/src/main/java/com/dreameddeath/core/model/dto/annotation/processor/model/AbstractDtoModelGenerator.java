@@ -27,7 +27,6 @@ import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.IDtoMod
 import com.dreameddeath.core.model.dto.model.manager.DtoModelDef;
 import com.dreameddeath.core.model.dto.model.manager.DtoModelManager;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
-import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -51,13 +50,13 @@ public abstract class AbstractDtoModelGenerator {
 
     private final Set<Key> generatedModels = new HashSet<>();
     private final List<JavaFile> generatedFiles = new ArrayList<>();
+    private final List<DtoModelDef> generatedModelDefs = new ArrayList<>();
 
     public AbstractDtoModelGenerator(DtoModelManager manager) {
         EntityDefinitionManager entityDefinitionManager = new EntityDefinitionManager();
 
         for(DtoModelDef modelDef:manager.getModelsDefs()){
-            Optional<EntityDef> first = entityDefinitionManager.getEntities().stream().filter(entityDef -> entityDef.getModelId().equals(modelDef.getEntityModelId())).findFirst();
-            ClassName className = ClassName.bestGuess(first.get().getClassName());
+            ClassName className = ClassName.bestGuess(modelDef.getClassName());
             generatedModels.add(new Key(className.packageName(),className.simpleName(),modelDef.getMode(),modelDef.getType(),modelDef.getVersion()));
         }
         dtoModelGeneratorPlugins.reload();
@@ -88,7 +87,9 @@ public abstract class AbstractDtoModelGenerator {
         }
         JavaFile file = JavaFile.builder(key.getPackageName(), dtoModelBuilder.build()).build();
         generatedFiles.add(file);
-        return ClassName.get(key.getPackageName(),key.getClassName());
+        ClassName generatedClassName = ClassName.get(key.getPackageName(),key.getClassName());
+        generatedModelDefs.add(new DtoModelDef(generatedClassName.reflectionName(),clazz.getFullName(),key.getInOutMode(),key.getType(),key.getVersion()));
+        return generatedClassName;
     }
 
     protected TypeSpec.Builder generateClass(ClassInfo clazz,Key key) {
@@ -338,6 +339,10 @@ public abstract class AbstractDtoModelGenerator {
 
     public List<JavaFile> getJavaFiles() {
         return generatedFiles;
+    }
+
+    public List<DtoModelDef> getGeneratedModelDefs(){
+        return generatedModelDefs;
     }
 
     public Collection<String> getSupportedAnnotationTypes() {

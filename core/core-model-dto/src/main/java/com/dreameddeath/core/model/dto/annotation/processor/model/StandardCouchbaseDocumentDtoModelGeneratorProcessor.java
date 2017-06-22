@@ -18,9 +18,11 @@
 package com.dreameddeath.core.model.dto.annotation.processor.model;
 
 import com.dreameddeath.compile.tools.annotation.processor.AbstractAnnotationProcessor;
+import com.dreameddeath.compile.tools.annotation.processor.AnnotationProcessFileUtils;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.dto.model.manager.DtoModelDef;
 import com.dreameddeath.core.model.dto.model.manager.DtoModelManager;
 import com.google.common.collect.Sets;
 import com.squareup.javapoet.JavaFile;
@@ -33,6 +35,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -47,7 +50,7 @@ public class StandardCouchbaseDocumentDtoModelGeneratorProcessor extends Abstrac
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
-        DtoModelManager manager = new DtoModelManager();
+        DtoModelManager manager = new DtoModelManager(DocumentEntity.class.getClassLoader());
         AbstractDtoModelGenerator processor = new StandardCouchbaseDocumentDtoModelGenerator(manager);
 
         for (Element classElem : roundEnv.getElementsAnnotatedWith(DocumentEntity.class)) {
@@ -68,6 +71,19 @@ public class StandardCouchbaseDocumentDtoModelGeneratorProcessor extends Abstrac
         }
         for(JavaFile javaFile:processor.getJavaFiles()){
             writeFile(javaFile,messager);
+        }
+
+        for(DtoModelDef modelDef:processor.getGeneratedModelDefs()){
+            String fileName = manager.getModelDefsPath(modelDef);
+            try {
+                AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName);
+                manager.buildModelDefFile(file.getWriter(), modelDef);
+                file.close();
+            }
+            catch(IOException e) {
+                messager.printMessage(Diagnostic.Kind.ERROR,"Cannot write marker file for" + modelDef.getClassName() + " with error "+e.getMessage());
+                throw new RuntimeException("Marker file generation error for "+modelDef.getClassName(),e);
+            }
         }
 
         return false;

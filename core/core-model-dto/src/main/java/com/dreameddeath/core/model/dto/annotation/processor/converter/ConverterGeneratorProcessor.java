@@ -24,6 +24,8 @@ import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.dto.annotation.DtoModelMappingInfo;
 import com.dreameddeath.core.model.dto.converter.DtoConverterManager;
 import com.dreameddeath.core.model.dto.converter.model.DtoConverterDef;
+import com.dreameddeath.core.model.dto.model.manager.DtoModelDef;
+import com.dreameddeath.core.model.dto.model.manager.DtoModelManager;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import org.slf4j.Logger;
@@ -51,7 +53,9 @@ public class ConverterGeneratorProcessor extends AbstractAnnotationProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Messager messager = processingEnv.getMessager();
-        DtoConverterManager converterManager = new DtoConverterManager();
+        DtoModelManager dtoModelManager = new DtoModelManager(DtoModelMappingInfo.class.getClassLoader());
+
+        DtoConverterManager converterManager = new DtoConverterManager(DtoModelMappingInfo.class.getClassLoader());
         StandardConverterGenerator converterGenerator = new StandardConverterGenerator();
 
         try {
@@ -66,6 +70,10 @@ public class ConverterGeneratorProcessor extends AbstractAnnotationProcessor {
                     ClassInfo outputClassInfo = (ClassInfo)ClassInfo.getClassInfo(def.getOutputClass());
                     converterGenerator.addExistingConverter(outputClassInfo, ClassName.bestGuess(def.getConverterClass()));
                 }
+            }
+
+            for(DtoModelDef def:dtoModelManager.getModelsDefs()){
+                converterGenerator.addDtoModelDef(def);
             }
         }
         catch(Throwable e){

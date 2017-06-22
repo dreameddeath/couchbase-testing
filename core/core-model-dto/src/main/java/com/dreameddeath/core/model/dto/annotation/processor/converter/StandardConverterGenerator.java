@@ -27,6 +27,7 @@ import com.dreameddeath.core.model.dto.annotation.DtoFieldMappingInfo;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.dto.annotation.DtoModelMappingInfo;
 import com.dreameddeath.core.model.dto.converter.*;
+import com.dreameddeath.core.model.dto.model.manager.DtoModelDef;
 import com.dreameddeath.core.model.util.CouchbaseDocumentFieldReflection;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.google.common.base.Preconditions;
@@ -43,17 +44,35 @@ import java.util.stream.Collectors;
  */
 public class StandardConverterGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(StandardConverterGenerator.class);
-    public static final String MAP_TO_DOC_FCT_NAME = "mapToDoc";
+    private static final String MAP_TO_DOC_FCT_NAME = "mapToDoc";
     private static final String MAP_TO_OUTPUT_FCT_NAME = "mapToOutput";
-    public static final String UNWRAP_CONVERT_TO_DOC_FCT_NAME = "unwrappedConvertToDoc";
+    private static final String UNWRAP_CONVERT_TO_DOC_FCT_NAME = "unwrappedConvertToDoc";
     private static final String UNWRAP_MAP_FROM_DOC_FCT_NAME = "unwrappedMapFromDoc";
     private static final String CONVERT_TO_OUTPUT_FCT_NAME = "convertToOutput";
     private static final String CONVERT_TO_DOC_FCT_NAME = "convertToDoc";
     private final Map<Key,ClassName> converterMap = new HashMap<>();
+    private final Map<Key,DtoModelDef> modelDefMap = new HashMap<>();
     private final List<JavaFile> files = new ArrayList<>();
 
     public void addExistingConverter(ClassInfo dtoClassName, ClassName converterClassName) {
         converterMap.put(new Key(dtoClassName),converterClassName);
+    }
+
+    public void addDtoModelDef(DtoModelDef modelDef){
+        modelDefMap.put(new Key(getClassNameFromImportName(modelDef.getClassName())),modelDef);
+    }
+
+    public ClassName getClassNameFromImportName(String fullName){
+        List<String> parts = Arrays.asList(fullName.split("\\."));
+        String nameParts[] = parts.get(parts.size()-1).split("\\$");
+        String additionnalNames[];
+        if(nameParts.length>1){
+            additionnalNames = Arrays.copyOfRange(nameParts,1,nameParts.length);
+        }
+        else{
+            additionnalNames = new String[0];
+        }
+        return ClassName.get(String.join(".",parts.subList(0,parts.size()-1)),nameParts[0],additionnalNames);
     }
 
     private ConversionMainParams buildConversionParams(ClassInfo dtoModelClassInfo){
@@ -140,7 +159,7 @@ public class StandardConverterGenerator {
 
     private void generateInputConverterFct(Context context) {
         context.codeTypeBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(IDtoInputMapper.class), context.params.origClassInfo.getClassName(), context.params.dtoModel.getClassName()));
-        context.converterFieldMap.put(new MapperFieldEntry(true, context.params), CodeBlock.of("this"));
+        context.converterFieldMap.put(new MapperFieldEntry(true, context.params).buildFieldKey(), CodeBlock.of("this"));
         if (!context.params.dtoModel.isAbstract()) {
             context.codeTypeBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(IDtoInputConverter.class), context.params.origClassInfo.getClassName(), context.params.dtoModel.getClassName()));
 
@@ -160,7 +179,7 @@ public class StandardConverterGenerator {
 
     private void generateOutputConverterFct(Context context) {
         context.codeTypeBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(IDtoOutputMapper.class), context.params.origClassInfo.getClassName(), context.params.dtoModel.getClassName()));
-        context.converterFieldMap.put(new MapperFieldEntry(false, context.params), CodeBlock.of("this"));
+        context.converterFieldMap.put(new MapperFieldEntry(false, context.params).buildFieldKey(), CodeBlock.of("this"));
 
         if (!context.params.dtoModel.isAbstract()) {
             context.codeTypeBuilder.addSuperinterface(ParameterizedTypeName.get(ClassName.get(IDtoOutputConverter.class), context.params.origClassInfo.getClassName(), context.params.dtoModel.getClassName()));
@@ -355,8 +374,16 @@ public class StandardConverterGenerator {
                 copyBuilder.add(getEnumConverterFunction(context,contentType,isInput));
             }
             else{
+                DtoModelDef modelDef = modelDefMap.get(new Key(contentType));
+                ConverterFieldKey converterFieldKey;
+                if(modelDef!=null) {
+                    converterFieldKey = new ConverterFieldKey(isInput, modelDef.getVersion(), getClassNameFromImportName(modelDef.getOrigClassName()),contentType.getClassName());
+                }
+                else{
+                    converterFieldKey = new MapperFieldEntry(isInput,buildConversionParams(contentType)).buildFieldKey();
+                }
                 copyBuilder.add("$L.$L",
-                        getComplexTypeConverterVarName(context,new MapperFieldEntry(isInput,buildConversionParams(contentType)),false),
+                        getComplexTypeConverterVarName(context,converterFieldKey,false),
                         isInput?CONVERT_TO_DOC_FCT_NAME:CONVERT_TO_OUTPUT_FCT_NAME);
             }
         }
@@ -380,13 +407,13 @@ public class StandardConverterGenerator {
                 .addParameter(inputClassName, "source")
                 .returns(outputClassName)
                 .beginControlFlow("if(source==null)")
-                .addStatement("return null")
+                    .addStatement("return null")
                 .endControlFlow()
                 .addStatement("$T sourceValue = source.toString()",String.class)
                 .beginControlFlow("for($T value:$T.values())",outputClassName,outputClassName)
-                .beginControlFlow("if(value.toString().equals(sourceValue))")
-                .addStatement("return value")
-                .endControlFlow()
+                    .beginControlFlow("if(value.toString().equals(sourceValue))")
+                        .addStatement("return value")
+                    .endControlFlow()
                 .endControlFlow()
                 .addStatement("return null")
                 .build());
@@ -471,27 +498,32 @@ public class StandardConverterGenerator {
                 unwrappedContext = context.unwrappedVariableMap.get(currKey);
             }
         }
-
         return unwrappedContext;
     }
 
 
     private CodeBlock getComplexTypeConverterVarName(Context context,MapperFieldEntry fieldToMap,boolean isMapper){
-        return context.converterFieldMap.computeIfAbsent(fieldToMap, entry->generateDynamicField(context,entry,isMapper));
+        return getComplexTypeConverterVarName(context, fieldToMap.buildFieldKey(), isMapper);
     }
 
-    private CodeBlock generateDynamicField(Context context,MapperFieldEntry entry,boolean isMapper){
+    private CodeBlock getComplexTypeConverterVarName(Context context,ConverterFieldKey converterFieldKey,boolean isMapper){
+        return context.converterFieldMap.computeIfAbsent(converterFieldKey, entry->generateDynamicField(context,entry,isMapper));
+    }
+
+
+    private CodeBlock generateDynamicField(Context context,/*MapperFieldEntry entry*/ConverterFieldKey converterFieldKey,boolean isMapper){
         String suffix = isMapper?"Mapper":"Converter";
-        String fieldName = StringUtils.lowerCaseFirst(entry.params.dtoModel.getSimpleName())+(entry.isInput?"Input":"Output")+suffix;
+        String versionStr = converterFieldKey.version.replace(".","_");
+        String fieldName = StringUtils.lowerCaseFirst(converterFieldKey.dtoModel.simpleName())+(converterFieldKey.isInput?"Input":"Output")+versionStr+suffix;
         context.codeTypeBuilder.addField(FieldSpec.builder(
                 ParameterizedTypeName.get(
-                        isMapper?ClassName.get(entry.isInput?IDtoInputMapper.class:IDtoOutputMapper.class):
-                                ClassName.get(entry.isInput?IDtoInputConverter.class:IDtoOutputConverter.class),
-                        entry.params.origClassInfo.getClassName(),entry.params.dtoModel.getClassName()),
+                        isMapper?ClassName.get(converterFieldKey.isInput?IDtoInputMapper.class:IDtoOutputMapper.class):
+                                ClassName.get(converterFieldKey.isInput?IDtoInputConverter.class:IDtoOutputConverter.class),
+                        converterFieldKey.origClassName,converterFieldKey.dtoModel),
                 fieldName,Modifier.PRIVATE).build());
         //TODO manage version
         context.factoryAwareMethodBuilder.addStatement(
-                "$L = factory."+(entry.isInput?"getDtoInput":"getDtoOutput")+suffix+"($T.class,$T.class)",fieldName,entry.params.origClassInfo.getClassName(),entry.params.dtoModel.getClassName());
+                "$L = factory."+(converterFieldKey.isInput?"getDtoInput":"getDtoOutput")+suffix+"($T.class,$T.class)",fieldName,converterFieldKey.origClassName,converterFieldKey.dtoModel);
         return CodeBlock.builder().add("$L",fieldName).build();
     }
 
@@ -550,7 +582,7 @@ public class StandardConverterGenerator {
         private final ConversionMainParams params;
         private final TypeSpec.Builder codeTypeBuilder;
         private final MethodSpec.Builder factoryAwareMethodBuilder;
-        private final Map<MapperFieldEntry,CodeBlock> converterFieldMap=new HashMap<>();
+        private final Map<ConverterFieldKey,CodeBlock> converterFieldMap=new HashMap<>();
         private final Map<String,UnwrappedContext> unwrappedVariableMap =new HashMap<>();
         private final Map<MapperEnumEntry,CodeBlock> converterEnumMap=new HashMap<>();
 
@@ -564,9 +596,13 @@ public class StandardConverterGenerator {
     }
 
     private static class Key {
-        private final ClassInfo dtoClassName;
+        private final ClassName dtoClassName;
 
         public Key(ClassInfo dtoClassName) {
+            this.dtoClassName = dtoClassName.getClassName();
+        }
+
+        public Key(ClassName dtoClassName) {
             this.dtoClassName = dtoClassName;
         }
 
@@ -623,6 +659,10 @@ public class StandardConverterGenerator {
             this.params = params;
         }
 
+        public ConverterFieldKey buildFieldKey(){
+            return new ConverterFieldKey(isInput,params.mappingInfoAnnot.version(),params.origClassInfo.getClassName(),params.dtoModel.getClassName());
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -642,4 +682,40 @@ public class StandardConverterGenerator {
         }
     }
 
+
+    private static class ConverterFieldKey{
+        private final boolean isInput;
+        private final String version;
+        private final ClassName origClassName;
+        private final ClassName dtoModel;
+
+        public ConverterFieldKey(boolean isInput, String version, ClassName origClassName, ClassName dtoModel) {
+            this.isInput = isInput;
+            this.version = version;
+            this.origClassName = origClassName;
+            this.dtoModel = dtoModel;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ConverterFieldKey that = (ConverterFieldKey) o;
+
+            if (isInput != that.isInput) return false;
+            if (!version.equals(that.version)) return false;
+            if (!origClassName.equals(that.origClassName)) return false;
+            return dtoModel.equals(that.dtoModel);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (isInput ? 1 : 0);
+            result = 31 * result + version.hashCode();
+            result = 31 * result + origClassName.hashCode();
+            result = 31 * result + dtoModel.hashCode();
+            return result;
+        }
+    }
 }

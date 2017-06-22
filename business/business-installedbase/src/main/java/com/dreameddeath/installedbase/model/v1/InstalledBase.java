@@ -1,23 +1,22 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
 package com.dreameddeath.installedbase.model.v1;
 
-import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentDaoWithUID;
 import com.dreameddeath.core.business.model.BusinessDocument;
 import com.dreameddeath.core.dao.annotation.dao.Counter;
@@ -34,7 +33,6 @@ import com.dreameddeath.installedbase.model.EntityConstants;
 import com.dreameddeath.installedbase.model.v1.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
 import com.dreameddeath.installedbase.model.v1.productservice.InstalledProductService;
-import com.dreameddeath.party.model.v1.PartyLink;
 
 import java.util.Collection;
 import java.util.List;
@@ -69,17 +67,6 @@ public class InstalledBase extends BusinessDocument {
     @DocumentProperty("ps")
     private ListProperty<InstalledProductService> psList = new ArrayListProperty<>(InstalledBase.this);
 
-    /**
-     *  partys : List of linked Partys
-     */
-    @DocumentProperty("partys")
-    private ListProperty<PartyLink> partys = new ArrayListProperty<>(InstalledBase.this);
-    /**
-     *  billingAccount : Default Billing Account linked to this installed Base
-     */
-    @DocumentProperty("billingAccount")
-    private Property<BillingAccountLink> billingAccount = new StandardProperty<>(InstalledBase.this);
-
     // uid accessors
     public String getUid() { return uid.get(); }
     public void setUid(String val) { uid.set(val); }
@@ -93,16 +80,6 @@ public class InstalledBase extends BusinessDocument {
     public void setOffers(Collection<InstalledOffer> vals) { offers.set(vals); }
     public boolean addOffers(InstalledOffer val){ return offers.add(val); }
     public boolean removeOffers(InstalledOffer val){ return offers.remove(val); }
-
-    // Partys Accessors
-    public List<PartyLink> getPartys() { return partys.get(); }
-    public void setPartys(Collection<PartyLink> vals) { partys.set(vals); }
-    public boolean addPartys(PartyLink val){ return partys.add(val); }
-    public boolean removePartys(PartyLink val){ return partys.remove(val); }
-
-    // billingAccount accessors
-    public BillingAccountLink getBillingAccount() { return billingAccount.get(); }
-    public void setBillingAccount(BillingAccountLink val) { billingAccount.set(val); }
 
     /**
      * Getter of ps
