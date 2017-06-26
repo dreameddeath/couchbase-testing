@@ -1,0 +1,64 @@
+/*
+ * 	Copyright Christophe Jeunesse
+ *
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
+ */
+
+package com.dreameddeath.billing.model.v1.order;
+
+
+import org.junit.Assert;
+
+public class BillingOrderTest extends Assert {
+
+    /*Utils.TestEnvironment env;
+    @Before
+    public void initTest() throws  Exception{
+        env = new Utils.TestEnvironment("billingOrder", Utils.TestEnvironment.TestEnvType.COUCHBASE_ELASTICSEARCH);
+        env.addDocumentDao(new PartyDao());
+        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.account.BillingAccountDao").newInstance());
+        env.addDocumentDao((CouchbaseDocumentDao) BillingOrderTest.class.getClassLoader().loadClass("com.dreameddeath.billing.dao.v1.order.BillingOrderDao").newInstance());
+        // _env.addDocumentDao(new TestDaoProcesorDao(),TestDaoProcessor.class);
+        env.start();
+    }
+
+
+    @Test
+    public void test()throws Throwable{
+        ICouchbaseSession session=env.getSessionFactory().newReadWriteSession(null);
+        Person person = session.newEntity(Person.class);
+        person.setFirstName("test");
+        person.setLastName("test");
+        session.save(person);
+        BillingAccount ba = new BillingAccount();
+        ba.setBillDay(1);
+        ba.setBillCycleLength(1);
+        session.save(ba);
+        BillingOrder bo = new BillingOrder();
+        bo.setBillingAccount(ba.newLink());
+        session.save(bo);
+
+        session.reset();
+        BillingOrder result = session.get(bo.getMeta().getKey(),BillingOrder.class);
+        assertEquals(result.getClass(),BillingOrder.class);
+        assertEquals("ba/0000000001/order/00001",result.getMeta().getKey());
+    }
+
+    @After
+    public void end() throws Exception{
+        if(env!=null){
+            env.shutdown(true);
+        }
+    }*/
+}

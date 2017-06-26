@@ -20,13 +20,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>business</artifactId>
+        <artifactId>business-billing</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>business-installedbase</artifactId>
+  <artifactId>business-billing-installedbase</artifactId>
   <packaging>jar</packaging>
 
-  <name>business-installedbase</name>
+  <name>business-billing-installedbase</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
 
   <properties>
@@ -54,6 +54,7 @@
             </plugin>
         </plugins>
     </build>
+  
   <dependencies>
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
@@ -63,6 +64,11 @@
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>business-billing-account</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.dreameddeath.couchbase</groupId>
+          <artifactId>business-installedbase</artifactId>
           <version>${project.version}</version>
           <classifier>published</classifier>
       </dependency>
@@ -107,45 +113,5 @@
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
     </dependency>
-      <!--
-       -
-       - Testing
-       -
-       -->
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>testing-integration</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>testing-curator</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>infrastructure-plugin-process</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>testing-daemon</artifactId>
-          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>business-party</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.dreameddeath.couchbase</groupId>
-          <artifactId>business-billing-account</artifactId>
-          <version>${project.version}</version>
-          <scope>test</scope>
-      </dependency>
   </dependencies>
 </project>

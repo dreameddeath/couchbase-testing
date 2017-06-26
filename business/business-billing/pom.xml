@@ -20,20 +20,17 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
         <groupId>com.dreameddeath.couchbase</groupId>
-        <artifactId>couchbase-testing</artifactId>
+        <artifactId>business</artifactId>
         <version>0.1</version>
     </parent>
-  <artifactId>business</artifactId>
+  <artifactId>business-billing</artifactId>
   <packaging>pom</packaging>
 
-  <name>business</name>
+  <name>business-billing</name>
   <url>https://github.com/dreameddeath/couchbase-testing</url>
     <modules>
-
-        <module>business-common-model</module>
-        <module>business-party</module>
-        <module>business-billing</module>
-        <module>business-installedbase</module>
+        <module>business-billing-account</module>
+        <module>business-billing-installedbase</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
