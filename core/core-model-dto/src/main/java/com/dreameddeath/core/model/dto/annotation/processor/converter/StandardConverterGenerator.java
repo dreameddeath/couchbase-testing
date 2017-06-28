@@ -40,7 +40,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by CEAJ8230 on 05/06/2017.
+ * Created by christophe jeunesse on 05/06/2017.
  */
 public class StandardConverterGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(StandardConverterGenerator.class);

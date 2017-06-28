@@ -15,11 +15,20 @@
  *
  */
 
-package com.dreameddeath.core.model.dto.converter;
+package com.dreameddeath.core.notification.common;
+
+import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.notification.model.v1.EventType;
+
+import java.util.UUID;
 
 /**
- * Created by christophe jeunesse on 22/03/2017.
+ * Created by Christophe Jeunesse on 26/06/2017.
  */
-public interface IDtoInputConverter<TDOC,TINPUT> extends IDtoFactoryAware{
-    TDOC convertToDoc(TINPUT input);
+public interface IEvent {
+    UUID getId();
+    EventType getType();
+    String getCorrelationId();
+    String getRank();
+    Event.Status getStatus();
 }

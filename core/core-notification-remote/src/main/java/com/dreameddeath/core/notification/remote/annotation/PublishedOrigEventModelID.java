@@ -15,11 +15,18 @@
  *
  */
 
-package com.dreameddeath.core.model.dto.converter;
+package com.dreameddeath.core.notification.remote.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Created by christophe jeunesse on 22/03/2017.
+ * Created by Christophe Jeunesse on 27/06/2017.
  */
-public interface IDtoInputConverter<TDOC,TINPUT> extends IDtoFactoryAware{
-    TDOC convertToDoc(TINPUT input);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface  PublishedOrigEventModelID {
+    String value();
 }

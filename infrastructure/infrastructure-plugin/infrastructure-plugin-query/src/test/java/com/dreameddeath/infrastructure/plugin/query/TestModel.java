@@ -26,7 +26,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.query.annotation.QueryExpose;
 
 /**
- * Created by CEAJ8230 on 18/06/2017.
+ * Created by christophe jeunesse on 18/06/2017.
  */
 @DocumentEntity(domain = "test",version = "1.0.0")
 @QueryExpose(domain = "test",rootPath = "/queries")

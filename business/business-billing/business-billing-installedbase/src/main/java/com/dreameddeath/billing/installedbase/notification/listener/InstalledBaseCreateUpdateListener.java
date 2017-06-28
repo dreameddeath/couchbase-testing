@@ -20,7 +20,7 @@ package com.dreameddeath.billing.installedbase.notification.listener;
 import com.dreameddeath.core.notification.annotation.Listener;
 
 /**
- * Created by CEAJ8230 on 23/06/2017.
+ * Created by christophe jeunesse on 23/06/2017.
  */
 @Listener(forTypes = {})
 public class InstalledBaseCreateUpdateListener {

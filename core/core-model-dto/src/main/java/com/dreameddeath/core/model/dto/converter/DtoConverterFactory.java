@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by ceaj8230 on 22/03/2017.
+ * Created by christophe jeunesse on 22/03/2017.
  */
 public class DtoConverterFactory {
     private final DtoConverterManager dtoConverterManager;

@@ -22,7 +22,7 @@ import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by ceaj8230 on 07/03/2017.
+ * Created by christophe jeunesse on 07/03/2017.
  */
 public class DtoConverterDef {
     @JsonProperty("mode")

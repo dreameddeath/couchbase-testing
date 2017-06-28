@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
- * Created by ceaj8230 on 07/03/2017.
+ * Created by christophe jeunesse on 07/03/2017.
  */
 public class DtoConverterManager {
     public static final String ROOT_PATH="META-INF/core-model-dto";

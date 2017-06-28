@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by CEAJ8230 on 12/06/2017.
+ * Created by christophe jeunesse on 12/06/2017.
  */
 public interface IDtoModelGeneratorPlugin {
     Collection<String> getSupportedAnnotations();

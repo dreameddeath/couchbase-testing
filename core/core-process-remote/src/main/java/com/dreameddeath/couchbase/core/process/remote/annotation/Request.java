@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Request {
+public @interface Request{
     String value() default "";
     FieldGenMode mode() default FieldGenMode.SIMPLE;
     String version() default "";

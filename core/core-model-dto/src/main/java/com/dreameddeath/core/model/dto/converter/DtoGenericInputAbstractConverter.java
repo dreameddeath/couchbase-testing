@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by CEAJ8230 on 18/04/2017.
+ * Created by christophe jeunesse on 18/04/2017.
  */
 public class DtoGenericInputAbstractConverter<TDOC,TTYPE> extends DtoGenericAbstractConverter<IDtoInputConverter<TDOC,TTYPE>,TDOC,TTYPE> implements IDtoInputConverter<TDOC,TTYPE> {
     private final Logger LOG = LoggerFactory.getLogger(this.getClass());

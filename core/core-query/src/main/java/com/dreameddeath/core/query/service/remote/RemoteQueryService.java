@@ -29,7 +29,7 @@ import io.reactivex.Single;
 import javax.ws.rs.core.MediaType;
 
 /**
- * Created by CEAJ8230 on 19/06/2017.
+ * Created by christophe jeunesse on 19/06/2017.
  */
 public class RemoteQueryService<T> implements IQueryService<T> {
     private IRestServiceClient serviceClient;

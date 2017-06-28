@@ -39,7 +39,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by CEAJ8230 on 19/06/2017.
+ * Created by christophe jeunesse on 19/06/2017.
  */
 public class StandardQueryServiceTest {
     private static final String BASE_PATH = "testRest";

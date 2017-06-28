@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Created by ceaj8230 on 07/03/2017.
+ * Created by christophe jeunesse on 07/03/2017.
  */
 public class DtoModelManager {
     public static final String ROOT_PATH= DtoConverterManager.ROOT_PATH;

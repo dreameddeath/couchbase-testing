@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by CEAJ8230 on 03/06/2017.
+ * Created by christophe jeunesse on 03/06/2017.
  */
 public class DtoModelDef {
     @JsonProperty("class")

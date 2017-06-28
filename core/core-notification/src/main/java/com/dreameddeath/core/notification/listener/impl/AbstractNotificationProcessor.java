@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -19,6 +19,7 @@ package com.dreameddeath.core.notification.listener.impl;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
+import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.SubmissionResult;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
@@ -72,7 +73,7 @@ public abstract class AbstractNotificationProcessor {
                 });
     }
 
-    public <T extends Event> Single<SubmissionResult> process(final Notification sourceNotif, final T event){
+    public <T extends IEvent> Single<SubmissionResult> process(final Notification sourceNotif, final T event){
         if(!needProcessing(sourceNotif)){
             return buildNotificationResult(sourceNotif);
         }
@@ -85,7 +86,7 @@ public abstract class AbstractNotificationProcessor {
         sourceNotif.incNbAttempts();
     }
 
-    protected  <T extends Event> Single<SubmissionResult> process(final Notification sourceNotif, final T event,final ICouchbaseSession session) {
+    protected  <T extends IEvent> Single<SubmissionResult> process(final Notification sourceNotif, final T event,final ICouchbaseSession session) {
         Preconditions.checkState(!sourceNotif.getStatus().equals(Notification.Status.PROCESSED) && !sourceNotif.getStatus().equals(Notification.Status.CANCELLED),
                 "Bad Status %s  for notif %s/%s. The listener name is[%s]",
                 sourceNotif.getStatus(),
@@ -112,7 +113,7 @@ public abstract class AbstractNotificationProcessor {
                 .onErrorResumeNext(throwable -> Single.just(new SubmissionResult(sourceNotif, throwable)));
     }
 
-    protected  abstract <T extends Event> Single<ProcessingResultInfo> doProcess(T event,Notification notification,ICouchbaseSession session);
+    protected  abstract <T extends IEvent> Single<ProcessingResultInfo> doProcess(T event,Notification notification,ICouchbaseSession session);
 
 
     public static class ProcessingResultInfo{

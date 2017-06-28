@@ -15,10 +15,9 @@
  *
  */
 
-package com.dreameddeath.couchbase.core.process.remote.annotation;
+package com.dreameddeath.core.notification.remote.annotation;
 
-import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
-import com.dreameddeath.core.service.annotation.VersionStatus;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,14 +25,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by christophe jeunesse on 12/06/2017.
+ * Created by Christophe Jeunesse on 27/06/2017.
  */
-@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-public @interface DtoModelRestApi {
-    String rootPath();
-    String baseClass();
-    DtoInOutMode mode();
-    String version();
-    VersionStatus status() default VersionStatus.STABLE;
+@Target(ElementType.FIELD)
+public @interface PublishEventField {
+    String value() default "";
+    FieldGenMode mode() default FieldGenMode.SIMPLE;
+    String version() default "";
+    FieldGenMode unwrappedDefaultMode() default FieldGenMode.INHERIT;
 }

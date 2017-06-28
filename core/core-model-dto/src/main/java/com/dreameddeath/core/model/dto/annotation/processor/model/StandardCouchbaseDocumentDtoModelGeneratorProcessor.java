@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * Created by CEAJ8230 on 03/06/2017.
+ * Created by christophe jeunesse on 03/06/2017.
  */
 @SupportedAnnotationTypes(
         {"com.dreameddeath.core.model.annotation.DocumentEntity"}

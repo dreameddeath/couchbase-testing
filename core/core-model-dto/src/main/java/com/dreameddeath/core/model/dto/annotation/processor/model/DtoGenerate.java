@@ -22,7 +22,7 @@ import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import java.lang.annotation.*;
 
 /**
- * Created by ceaj8230 on 02/02/2017.
+ * Created by christophe jeunesse on 02/02/2017.
  */
 @Target({ElementType.TYPE,ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)

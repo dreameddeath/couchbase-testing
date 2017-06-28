@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by CEAJ8230 on 21/06/2017.
+ * Created by christophe jeunesse on 21/06/2017.
  */
 public class QueryWebServerPluginTest {
     private final static Logger LOG = LoggerFactory.getLogger(QueryWebServerPluginTest.class);

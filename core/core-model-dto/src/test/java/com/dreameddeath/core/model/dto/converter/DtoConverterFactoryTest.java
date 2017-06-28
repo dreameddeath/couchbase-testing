@@ -33,7 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Created by CEAJ8230 on 28/05/2017.
+ * Created by christophe jeunesse on 28/05/2017.
  */
 public class DtoConverterFactoryTest {
     @Test

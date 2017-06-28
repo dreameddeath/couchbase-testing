@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Created by CEAJ8230 on 01/06/2017.
+ * Created by christophe jeunesse on 01/06/2017.
  */
 public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModelGenerator {
 
@@ -329,17 +329,17 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
     }
 
     @Override
-    protected void addHierarchyBasedTypeInfo(TypeSpec.Builder typeBuilder, ClassInfo clazz, Key key, ClassName superClassDtoName) {
+    protected void addHierarchyBasedTypeInfo(TypeSpec.Builder typeBuilder, ClassInfo origClass, Key key, ClassName superClassDtoName) {
         for(IDtoModelGeneratorPlugin plugin : getApplicablePlugins(key)){
-            plugin.addHierarchyBasedTypeInfo(typeBuilder,clazz,key,superClassDtoName);
+            plugin.addHierarchyBasedTypeInfo(typeBuilder, origClass,key,superClassDtoName);
         }
 
-        if(superClassDtoName!=null && !clazz.isAbstract()) {
-            Optional<DtoGenerate> dtoGenerateAnnot = getDtoGenerateAnnotation(clazz).stream()
+        if(superClassDtoName!=null && !origClass.isAbstract()) {
+            Optional<DtoGenerate> dtoGenerateAnnot = getDtoGenerateAnnotation(origClass).stream()
                     .filter(dtoGenerate -> hasType(dtoGenerate,key.getType(), key.getVersion()))
                     .filter(dtoGenerate -> (key.getInOutMode()==DtoInOutMode.BOTH) || (dtoGenerate.mode()==key.getInOutMode()))
                     .findFirst();
-            Optional<DtoGenerateType> dtoGenerateType = getDtoType(clazz, key.getType(), key.getVersion());
+            Optional<DtoGenerateType> dtoGenerateType = getDtoType(origClass, key.getType(), key.getVersion());
             if (dtoGenerateAnnot.isPresent()) {
                 //Optional<DtoGenerate> dtoGenerate = getDtoGenerate(clazz, key.getType(), key.getVersion());
                 String jsonTypeId=null;
@@ -361,7 +361,7 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
             }
         }
         //Manage root class
-        else if(clazz.isAbstract() && superClassDtoName==null){
+        else if(origClass.isAbstract() && superClassDtoName==null){
             typeBuilder.addAnnotation(
                     AnnotationSpec.builder(JsonTypeInfo.class)
                         .addMember("use","$T.$L",JsonTypeInfo.Id.class,JsonTypeInfo.Id.CUSTOM.name())
@@ -381,9 +381,9 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
     }
 
     @Override
-    protected void addCommonTypeInfo(TypeSpec.Builder typeBuilder, ClassInfo clazz, Key key,ClassName superClassDtoName) {
-        super.addCommonTypeInfo(typeBuilder, clazz, key, superClassDtoName);
-        CouchbaseDocumentStructureReflection reflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(clazz);
+    protected void addCommonTypeInfo(TypeSpec.Builder typeBuilder, ClassInfo origClass, Key key, ClassName superClassDtoName) {
+        super.addCommonTypeInfo(typeBuilder, origClass, key, superClassDtoName);
+        CouchbaseDocumentStructureReflection reflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(origClass);
         typeBuilder.addAnnotation(
                 AnnotationSpec.builder(DtoModelMappingInfo.class)
                 .addMember("entityModelId","$S",reflection.getEntityModelId().toString())

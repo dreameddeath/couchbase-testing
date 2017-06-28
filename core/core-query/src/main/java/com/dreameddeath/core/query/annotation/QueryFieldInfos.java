@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by CEAJ8230 on 15/06/2017.
+ * Created by christophe jeunesse on 15/06/2017.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

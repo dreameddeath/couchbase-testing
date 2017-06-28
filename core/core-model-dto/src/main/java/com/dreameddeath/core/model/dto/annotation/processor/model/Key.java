@@ -20,7 +20,7 @@ package com.dreameddeath.core.model.dto.annotation.processor.model;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 
 /**
- * Created by CEAJ8230 on 13/06/2017.
+ * Created by christophe jeunesse on 13/06/2017.
  */
 public class Key {
     private final String type;

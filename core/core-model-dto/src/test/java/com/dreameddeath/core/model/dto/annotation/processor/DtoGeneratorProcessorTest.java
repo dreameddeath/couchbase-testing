@@ -26,7 +26,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Created by ceaj8230 on 04/02/2017.
+ * Created by christophe jeunesse on 04/02/2017.
  */
 public class DtoGeneratorProcessorTest {
 

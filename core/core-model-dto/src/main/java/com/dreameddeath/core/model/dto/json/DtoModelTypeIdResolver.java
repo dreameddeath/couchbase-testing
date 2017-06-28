@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by CEAJ8230 on 14/06/2017.
+ * Created by christophe jeunesse on 14/06/2017.
  */
 public class DtoModelTypeIdResolver extends TypeIdResolverBase {
     private static final Logger LOG = LoggerFactory.getLogger(DtoModelTypeIdResolver.class);

@@ -20,7 +20,7 @@ package com.dreameddeath.core.model.dto.annotation;
 import java.lang.annotation.*;
 
 /**
- * Created by CEAJ8230 on 30/05/2017.
+ * Created by christophe jeunesse on 30/05/2017.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
