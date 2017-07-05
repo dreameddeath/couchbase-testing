@@ -46,7 +46,7 @@ public interface IDtoModelGeneratorPlugin {
 
     void generateIfNeeded(AbstractDtoModelGenerator abstractDtoModelGenerator, ClassInfo entityClassInfo);
 
-    void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key);
+    void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key,ClassName dtoSuperClassName);
 
     void addFieldInfo(String name, FieldSpec.Builder fieldBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements);
 

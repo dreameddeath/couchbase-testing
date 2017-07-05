@@ -31,10 +31,7 @@ import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.Abstrac
 import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.IDtoModelGeneratorPlugin;
 import com.dreameddeath.couchbase.core.process.remote.annotation.*;
 import com.google.common.collect.Maps;
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -170,7 +167,7 @@ public class ProcessRestDtoModelGeneratorPlugin extends AbstractStandardGenerato
 
 
     @Override
-    public void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key) {
+    public void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key,ClassName dtoSuperClassName) {
         RestExpose annot = getRootAnnotForKey(clazz, key, Collections.emptyList(),false);
         String name;
         if(annot!=null && StringUtils.isNotEmpty(annot.name())){

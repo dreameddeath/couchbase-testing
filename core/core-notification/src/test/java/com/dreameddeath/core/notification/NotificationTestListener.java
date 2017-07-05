@@ -64,18 +64,26 @@ public class NotificationTestListener extends AbstractLocalListener {
         this.version=version;
     }
 
-    public NotificationTestListener(String type,String name,Map<String,String> params){
+    public NotificationTestListener(String domain,String type,String name,Map<String,String> params){
         this(name);
         Preconditions.checkArgument(type.equals(getType()));
+        Preconditions.checkArgument(domain.equals(getDomain()));
     }
 
     public static Notification pollNotif() throws InterruptedException{
         return processedNotification.poll(2, TimeUnit.SECONDS);
     }
+
     @Override
     public String getType() {
         return "testListenerDiscovery";
     }
+
+    @Override
+    public String getDomain() {
+        return "test";
+    }
+
 
     public static AtomicInteger getNbEventProcessed() {
         return nbEventProcessed;
@@ -97,7 +105,7 @@ public class NotificationTestListener extends AbstractLocalListener {
 
     @Override
     protected <T extends IEvent> Single<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
-        //LOG.error("Received event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
+        //LOG.error("Received event {} on thread {}",((TestEvent)event).toAdd,Thread.currentThread());
         try {
             Thread.sleep(new Double(Math.random() * 100).longValue());
         } catch (InterruptedException e) {
@@ -108,10 +116,10 @@ public class NotificationTestListener extends AbstractLocalListener {
             threadCounter.put(Thread.currentThread().getName(), 0);
         }
         threadCounter.put(Thread.currentThread().getName(), threadCounter.get(Thread.currentThread().getName()) + 1);
-        totalCounter.addAndGet(((EventTest) event).toAdd);
+        totalCounter.addAndGet(((TestEvent) event).toAdd);
         try {
             //Thread.sleep(100);
-            LOG.info("Offering event {} on thread {}",((EventTest)event).toAdd,Thread.currentThread());
+            LOG.info("Offering event {} on thread {}",((TestEvent)event).toAdd,Thread.currentThread());
 
             processedNotification.offer(notification, 20, TimeUnit.SECONDS);
             return ProcessingResultInfo.buildSingle(notification,false,ProcessingResult.PROCESSED);
@@ -127,7 +135,7 @@ public class NotificationTestListener extends AbstractLocalListener {
 
     @Override
     public <T extends IEvent> boolean isApplicable(T event) {
-        return event instanceof EventTest;
+        return event instanceof TestEvent;
     }
 
     @Override

@@ -77,7 +77,8 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
         if(!getDtoModelType().equals(type)){
             return null;
         }
-        String packageName = clazz.getPackageInfo().getName()+".published";
+        String packageName = clazz.getPackageInfo().getName()+".published."+getDtoModelType().toLowerCase();
+
         String className=clazz.getSimpleName().replaceAll("\\$","");
         if(!classSuffixPerMode().containsKey(mode)){
             throw new IllegalStateException("The mode "+mode+" isn't allowed for type "+getDtoModelType());

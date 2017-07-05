@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -84,21 +84,21 @@ public class EventNotificationTest extends Assert{
         //test.setCorrelationId(test.toAdd.toString());
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
-            EventFireResult<NoListenerEventTest> result = bus.fireEvent(new NoListenerEventTest(), session);
+            EventFireResult<NoListenerTestEvent> result = bus.fireEvent(new NoListenerTestEvent(), session);
             assertTrue(result.isSuccess());
             assertTrue(result.getResults().size()==0);
             assertTrue(result.getEvent().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW));
         }
 
-        List<EventTest> submittedEvents = new ArrayList<>();
+        List<TestEvent> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             for (int i = 1; i <= nbEvent; ++i) {
-                EventTest test = new EventTest();
+                TestEvent test = new TestEvent();
                 test.toAdd = i;
                 //test.setCorrelationId(test.toAdd.toString());
-                EventFireResult<EventTest> result = bus.fireEvent(test, session);
+                EventFireResult<TestEvent> result = bus.fireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
             }
@@ -123,7 +123,7 @@ public class EventNotificationTest extends Assert{
         Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
-            for(EventTest submittedEvent:submittedEvents){
+            for(TestEvent submittedEvent:submittedEvents){
                 List<String> listeners = new ArrayList<>();
                 listeners.addAll(submittedEvent.getListeners());
                 int nbListeners = listeners.size();
@@ -139,7 +139,7 @@ public class EventNotificationTest extends Assert{
             for (Notification srcNotif : notificationList) {
                 Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
                 assertEquals(Notification.Status.PROCESSED,notif.getStatus());
-                EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
+                TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class,notif.getEventId().toString());
                 assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
             }
         }
@@ -149,7 +149,7 @@ public class EventNotificationTest extends Assert{
          */
         {
             ICouchbaseSession resubmitSession = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
-            for(EventFireResult<EventTest> resumitResult: submittedEvents.stream().map(eventTest -> bus.fireEvent(eventTest,resubmitSession)).collect(Collectors.toList())) {
+            for(EventFireResult<TestEvent> resumitResult: submittedEvents.stream().map(eventTest -> bus.fireEvent(eventTest,resubmitSession)).collect(Collectors.toList())) {
                 assertTrue(resumitResult.isSuccess());
                 assertEquals(2,(long)resumitResult.getEvent().getSubmissionAttempt());
             }
@@ -167,7 +167,7 @@ public class EventNotificationTest extends Assert{
                 Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
                 assertEquals(Notification.Status.PROCESSED,notif.getStatus());
                 assertEquals(1,(long)notif.getNbAttempts());//Simple re-submission, no new attempt
-                EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
+                TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class,notif.getEventId().toString());
                 assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
                 assertEquals(2,(long)eventTest.getSubmissionAttempt());
             }

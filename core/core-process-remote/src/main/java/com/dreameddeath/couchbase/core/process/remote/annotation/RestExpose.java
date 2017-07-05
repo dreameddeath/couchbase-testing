@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RestExpose {
-    String REST_EXPOSE_DTO_MODEL_TYPE = "processRest";
+    String REST_EXPOSE_DTO_MODEL_TYPE = "process";
     FieldGenMode DEFAULT_INPUT_GEN_MODE = FieldGenMode.FILTER;
     FieldGenMode DEFAULT_OUTPUT_GEN_MODE = FieldGenMode.FILTER;
     SuperClassGenMode DEFAULT_SUPERCLASS_GEN_MODE = SuperClassGenMode.IGNORE;

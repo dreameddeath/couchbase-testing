@@ -32,6 +32,48 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${mvn.compiler.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                            <!-- Disable annotation processing for ourselves. -->
+                            <compilerArgs>
+                                <arg>-processor</arg>
+                                <arg>com.dreameddeath.core.config.annotation.processor.ConfigAnnotationProcessor,com.dreameddeath.core.notification.annotation.processor.ListenerAnnotationProcessor</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
     <dependencies>
         <dependency>
             <groupId>com.dreameddeath.couchbase</groupId>

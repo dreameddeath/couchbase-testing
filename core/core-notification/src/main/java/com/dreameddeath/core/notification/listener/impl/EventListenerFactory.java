@@ -1,18 +1,17 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -80,8 +79,8 @@ public class EventListenerFactory implements IEventListenerFactory {
     }
 
     @Override
-    public IEventListener getListener(final String type, final String name, final Map<String, String> params) {
-        return getListener(new EventListenerKey(type,name,params));
+    public IEventListener getListener(final String domain,final String type, final String name, final Map<String, String> params) {
+        return getListener(new EventListenerKey(domain,type,name,params));
     }
 
     @Override
@@ -115,7 +114,7 @@ public class EventListenerFactory implements IEventListenerFactory {
                 newListener = constructor.build(key.description);
             }
             else{
-                newListener = constructor.build(key.type,key.name,key.params);
+                newListener = constructor.build(key.domain,key.type,key.name,key.params);
             }
 
             return newListener;
@@ -124,11 +123,13 @@ public class EventListenerFactory implements IEventListenerFactory {
 
     private static class EventListenerKey {
         private final String type;
+        private final String domain;
         private final String name;
         private final Map<String,String> params;
         private final ListenerDescription description;
 
-        public EventListenerKey(String type,String name, Map<String, String> params) {
+        public EventListenerKey(String domain,String type,String name, Map<String, String> params) {
+            this.domain=domain;
             this.type = type;
             this.name = name;
             this.params = params!=null?params: Collections.EMPTY_MAP;
@@ -136,6 +137,7 @@ public class EventListenerFactory implements IEventListenerFactory {
         }
 
         public EventListenerKey(ListenerDescription description) {
+            this.domain = description.getDomain();
             this.type = description.getType();
             this.name = description.getName();
             this.params = description.getParameters()!=null?description.getParameters(): Collections.EMPTY_MAP;
@@ -150,15 +152,16 @@ public class EventListenerFactory implements IEventListenerFactory {
 
             EventListenerKey that = (EventListenerKey) o;
 
+            if (!domain.equals(that.domain)) return false;
             if (!type.equals(that.type)) return false;
             if (!name.equals(that.name)) return false;
             return params.equals(that.params);
-
         }
 
         @Override
         public int hashCode() {
             int result = type.hashCode();
+            result = 31 * result + domain.hashCode();
             result = 31 * result + name.hashCode();
             result = 31 * result + params.hashCode();
             return result;

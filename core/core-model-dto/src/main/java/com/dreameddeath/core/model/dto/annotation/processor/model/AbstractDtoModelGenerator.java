@@ -116,15 +116,15 @@ public abstract class AbstractDtoModelGenerator {
             }
         }
         addCommonTypeInfo(dtoModelBuilder, origClass, key,dtoSuperClassName);
-        addPluginTypeInfo(dtoModelBuilder,origClass,key);
+        addPluginTypeInfo(dtoModelBuilder,origClass,key,dtoSuperClassName);
 
         generateFields(origClass, dtoModelBuilder, key, Collections.emptyList());
         return dtoModelBuilder;
     }
 
-    protected void addPluginTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key) {
+    protected void addPluginTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key,ClassName dtoSuperClassName) {
         for(IDtoModelGeneratorPlugin plugin:getApplicablePlugins(key)){
-            plugin.addTypeInfo(dtoModelBuilder,clazz,key);
+            plugin.addTypeInfo(dtoModelBuilder,clazz,key,dtoSuperClassName);
         }
     }
 

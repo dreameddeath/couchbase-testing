@@ -39,6 +39,9 @@ public class CreateUpdateInstalledBaseEventListener extends AbstractLocalListene
     }
 
     @Override
+    public String getDomain(){ return "test";}
+
+    @Override
     public String getName() {
         return CreateUpdateInstalledBaseEventListener.class.getSimpleName();
     }

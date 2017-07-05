@@ -1,17 +1,18 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.notification.utils;
@@ -162,7 +163,7 @@ public class ListenerInfoManager {
         }
 
         try {
-            paramsBasedContructor = listenerClass.getConstructor(String.class,String.class,Map.class);
+            paramsBasedContructor = listenerClass.getConstructor(String.class,String.class,String.class,Map.class);
         } catch (NoSuchMethodException e) {
             paramsBasedContructor=null;
         }
@@ -179,9 +180,9 @@ public class ListenerInfoManager {
         if(descriptionBasedContructor!=null && paramsBasedContructor!=null){
             return new IEventListenerBuilder() {
                 @Override
-                public IEventListener build(String type, String name, Map<String, String> params) {
+                public IEventListener build(String domain,String type, String name, Map<String, String> params) {
                     try {
-                        T listener = paramsBasedContructor.newInstance(type,name,params);
+                        T listener = paramsBasedContructor.newInstance(domain,type,name,params);
                         return dependencyInjector.autowireBean(listener,"listener"+name);
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
@@ -202,7 +203,7 @@ public class ListenerInfoManager {
         else if(descriptionBasedContructor!=null){
             return new IEventListenerBuilder() {
                 @Override
-                public IEventListener build(String type, String name, Map<String, String> params) {
+                public IEventListener build(String domain,String type, String name, Map<String, String> params) {
                     throw new RuntimeException("Cannot build using parameters for class "+descriptionBasedContructor.getDeclaringClass().getName());
                 }
 
@@ -220,9 +221,9 @@ public class ListenerInfoManager {
         else if(paramsBasedContructor!=null){
             return new IEventListenerBuilder() {
                 @Override
-                public IEventListener build(String type, String name, Map<String, String> params) {
+                public IEventListener build(String domain,String type, String name, Map<String, String> params) {
                     try {
-                        T listener = paramsBasedContructor.newInstance(type,name,params);
+                        T listener = paramsBasedContructor.newInstance(domain,type,name,params);
                         return dependencyInjector.autowireBean(listener,"listener"+name);
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
@@ -231,7 +232,7 @@ public class ListenerInfoManager {
 
                 @Override
                 public IEventListener build(ListenerDescription description) {
-                    return build(description.getType(),description.getName(),description.getParameters());
+                    return build(description.getDomain(),description.getType(),description.getName(),description.getParameters());
                 }
             };
         }

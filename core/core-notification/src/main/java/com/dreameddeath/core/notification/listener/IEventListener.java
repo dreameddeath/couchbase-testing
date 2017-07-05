@@ -25,11 +25,14 @@ import io.reactivex.Single;
  * Created by Christophe Jeunesse on 29/05/2016.
  */
 public interface IEventListener {
+    String getDomain();
     String getName();
     String getType();
     String getVersion();
 
     <T extends IEvent> Single<SubmissionResult> submit(Notification notif, T event);
+
+    <T extends IEvent> Single<SubmissionResult> submit(String domain,String notifId, T event);
 
     Single<SubmissionResult> submit(String domain,String notifId);
 

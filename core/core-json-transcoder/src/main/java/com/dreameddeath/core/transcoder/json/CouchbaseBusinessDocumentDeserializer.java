@@ -1,18 +1,17 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -23,6 +22,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.EntityVersionUpgradeManager;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
+import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -86,15 +86,22 @@ public class CouchbaseBusinessDocumentDeserializer extends BeanDeserializer {
             throws IOException {
         Object res = super.deserialize(jp, ctxt);
         if(res instanceof IVersionedEntity){
-            String versionTypeId = ((IVersionedEntity) res).getDocumentFullVersionId();
-            String key = ((res instanceof CouchbaseDocument)?((CouchbaseDocument) res).getBaseMeta().getKey():null);
-            Preconditions.checkArgument(StringUtils.isNotEmpty(versionTypeId),"The version id is not defined for element {} with key {}",res.getClass(),key);
             if(entityVersionUpgradeManager ==null){
                 entityVersionUpgradeManager =(EntityVersionUpgradeManager)ctxt.getConfig().getAttributes().getAttribute(EntityVersionUpgradeManager.class);
                 if(entityVersionUpgradeManager ==null){
                     entityVersionUpgradeManager =new EntityVersionUpgradeManager();
                 }
             }
+
+            String versionTypeId = ((IVersionedEntity) res).getDocumentFullVersionId();
+            if(versionTypeId==null){
+                versionTypeId = CouchbaseDocumentStructureReflection.getReflectionFromClass(res.getClass()).getEntityModelId().toString();
+                ((IVersionedEntity) res).setDocumentFullVersionId(versionTypeId);
+            }
+            String key = ((res instanceof CouchbaseDocument)?((CouchbaseDocument) res).getBaseMeta().getKey():null);
+
+            Preconditions.checkArgument(StringUtils.isNotEmpty(versionTypeId),"The version id is not defined for element %s with key %s",res.getClass(),key);
+
             res = entityVersionUpgradeManager.performUpgrade(res, EntityModelId.build(versionTypeId));
         }
         return res;

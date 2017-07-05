@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -127,19 +127,22 @@ public class ListenerDiscoveryTest extends Assert {
         NotificationTestListener.clear();
         assertEquals(0L,((EventBusImpl)bus).getListeners().size());
         ListenerRegistrar registrar = new ListenerRegistrar(client,BASE_PATH);
-        ListenedEvent listenedEvent = new ListenedEvent(CouchbaseDocumentReflection.getReflectionFromClass(EventTest.class).getStructure().getEntityModelId());
+        ListenedEvent listenedEvent = new ListenedEvent(CouchbaseDocumentReflection.getReflectionFromClass(TestEvent.class).getStructure().getEntityModelId());
         ListenerDescription descriptionBlocking = new ListenerDescription();
+        descriptionBlocking.setDomain("test");
         descriptionBlocking.setName("testBlocking");
         descriptionBlocking.addListenedEvent(listenedEvent);
         descriptionBlocking.setType("blockingGeneric");
 
         ListenerDescription descriptionNonBlocking = new ListenerDescription();
+        descriptionNonBlocking.setDomain("test");
         descriptionNonBlocking.setName("testNonBlocking");
         descriptionNonBlocking.setType("NonBlockingGeneric");
         descriptionNonBlocking.addListenedEvent(listenedEvent);
         descriptionNonBlocking.setAllowDeferred(true);
 
         ListenerDescription descriptionTestListener = new ListenerDescription();
+        descriptionTestListener.setDomain("test");
         descriptionTestListener.setName("test");
         descriptionTestListener.setType("testListenerDiscovery");
         //Test Registrar blocking
@@ -220,15 +223,15 @@ public class ListenerDiscoveryTest extends Assert {
         }
 
 
-        List<EventTest> submittedEvents = new ArrayList<>();
+        List<TestEvent> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             for (int i = 1; i <= nbEvent; ++i) {
-                EventTest test = new EventTest();
+                TestEvent test = new TestEvent();
                 test.toAdd = i;
                 //test.setCorrelationId(test.toAdd.toString());
-                EventFireResult<EventTest> result = bus.fireEvent(test, session);
+                EventFireResult<TestEvent> result = bus.fireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
             }
@@ -255,7 +258,7 @@ public class ListenerDiscoveryTest extends Assert {
         Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
-            for(EventTest submittedEvent:submittedEvents){
+            for(TestEvent submittedEvent:submittedEvents){
                 List<String> listeners = new ArrayList<>();
                 listeners.addAll(submittedEvent.getListeners());
                 int nbListeners = listeners.size();

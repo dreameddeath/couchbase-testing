@@ -29,11 +29,16 @@ import io.reactivex.Single;
 public abstract class AbstractLocalListener  extends AbstractNotificationProcessor implements IEventListener{
     @Override
     public <T extends IEvent> Single<SubmissionResult> submit(final Notification sourceNotif, final T event) {
-        return process(sourceNotif,event);
+        return processIfNeeded(sourceNotif,event);
+    }
+
+    @Override
+    public <T extends IEvent> Single<SubmissionResult> submit(String domain, String notifId, T event) {
+        return processIfNeeded(domain,notifId,event);
     }
 
     @Override
     public Single<SubmissionResult> submit(String domain,String notifKey) {
-        return process(domain,notifKey);
+        return processIfNeeded(domain,notifKey);
     }
 }

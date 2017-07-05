@@ -1,18 +1,17 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -31,6 +30,9 @@ import java.util.*;
 public class ListenerDescription implements IRegistrablePathData {
     private static final String DEFAULT_VERSION = "1.0.0";
 
+
+    @JsonProperty("domain")
+    private String domain;
     @JsonProperty("name")
     private String name;
     @JsonProperty("listenedEvents")
@@ -43,6 +45,14 @@ public class ListenerDescription implements IRegistrablePathData {
     private Map<String,String> parameters;
     @JsonProperty("version")
     private String version;
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
 
     public String getName() {
         return name;
@@ -92,7 +102,7 @@ public class ListenerDescription implements IRegistrablePathData {
     @JsonIgnore
     @Override
     public String uid(){
-        return name+"_"+version;
+        return getDomain()+"_"+getName()+"_"+getVersion();
     }
 
     @JsonIgnore
@@ -100,7 +110,6 @@ public class ListenerDescription implements IRegistrablePathData {
     public String version(){
         return StringUtils.isEmpty(version)?DEFAULT_VERSION:version;
     }
-
 
     public void setVersion(String version) {
         this.version = version;
@@ -110,11 +119,11 @@ public class ListenerDescription implements IRegistrablePathData {
         return version();
     }
 
-
     public void addParameter(String key, String value) {
         if(parameters==null){
             parameters = new TreeMap<>();
         }
         parameters.put(key,value);
     }
+
 }

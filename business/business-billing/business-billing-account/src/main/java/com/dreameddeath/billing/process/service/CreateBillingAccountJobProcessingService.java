@@ -34,10 +34,10 @@ import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessin
 import com.dreameddeath.core.process.service.impl.processor.StandardSubJobProcessTaskProcessingService;
 import com.dreameddeath.couchbase.core.process.remote.RemoteJobTaskProcessing;
 import com.dreameddeath.couchbase.core.process.remote.model.rest.RemoteJobResultWrapper;
-import com.dreameddeath.party.model.v1.roles.published.RoleTypeRequest;
-import com.dreameddeath.party.process.model.v1.roles.published.BillingAccountCreateUpdateRoleRequestRequest;
-import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobRequest;
-import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobResponse;
+import com.dreameddeath.party.model.v1.roles.published.process.RoleTypeRequest;
+import com.dreameddeath.party.process.model.v1.roles.published.process.BillingAccountCreateUpdateRoleRequestRequest;
+import com.dreameddeath.party.process.model.v1.roles.published.process.CreateUpdatePartyRolesJobRequest;
+import com.dreameddeath.party.process.model.v1.roles.published.process.CreateUpdatePartyRolesJobResponse;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Preconditions;
 import io.reactivex.Single;

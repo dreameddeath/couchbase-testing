@@ -33,8 +33,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class TestDocNotificationListener extends AbstractLocalListener {
+    public static final String DOMAIN="test";
     public static final String NAME="testDocEvent";
     public static final Map<EventNotifInfo,AtomicInteger> mapCounter=new ConcurrentHashMap<>();
+
+    @Override
+    public String getDomain() {
+        return DOMAIN;
+    }
+
 
     @Override
     public String getName() {

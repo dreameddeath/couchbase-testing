@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -21,8 +21,9 @@ import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.depinjection.IDependencyInjector;
-import com.dreameddeath.core.notification.EventTest;
+import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
 import com.dreameddeath.core.notification.NotificationTestListener;
+import com.dreameddeath.core.notification.TestEvent;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
@@ -98,6 +99,7 @@ public class RemoteConsumerRestTest extends Assert{
         //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getMethodParamName(),4);
         metricRegistry=new MetricRegistry();
         bus = new EventBusImpl(metricRegistry);
+        DtoConverterFactory factory=new DtoConverterFactory();
         //EventListenerFactory factory = new EventListenerFactory();
         //client = curatorUtils.getClient(NAME_SPACE_PREFIX);
         discoverer = new ListenerDiscoverer(client, BASE_PATH);
@@ -115,6 +117,7 @@ public class RemoteConsumerRestTest extends Assert{
                 }
                 if(bean instanceof RemoteProducerListener){
                     ((RemoteProducerListener)bean).setClientFactory((domain, name, version) -> server.getClientFactory().getClient(SERVICE_TYPE_LISTENER,name,version));
+                    ((RemoteProducerListener)bean).setDtoConverterFactory(factory);
                     ((RemoteProducerListener)bean).init();
                 }
                 return bean;
@@ -130,15 +133,15 @@ public class RemoteConsumerRestTest extends Assert{
     @Test
     public void testRemote() throws Exception{
         NotificationTestListener.clear();
-        List<EventTest> submittedEvents = new ArrayList<>();
+        List<TestEvent> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             for (int i = 1; i <= nbEvent; ++i) {
-                EventTest test = new EventTest();
+                TestEvent test = new TestEvent();
                 test.toAdd = i;
                 //test.setCorrelationId(test.toAdd.toString());
-                EventFireResult<EventTest> result = bus.fireEvent(test, session);
+                EventFireResult<TestEvent> result = bus.fireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
             }
@@ -164,7 +167,7 @@ public class RemoteConsumerRestTest extends Assert{
         Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
-            for(EventTest submittedEvent:submittedEvents){
+            for(TestEvent submittedEvent:submittedEvents){
                 List<String> listeners = new ArrayList<>();
                 listeners.addAll(submittedEvent.getListeners());
                 int nbListeners = listeners.size();
@@ -181,7 +184,7 @@ public class RemoteConsumerRestTest extends Assert{
             for (Notification srcNotif : notificationList) {
                 Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
                 assertEquals(Notification.Status.PROCESSED,notif.getStatus());
-                EventTest eventTest = checkSession.toBlocking().blockingGetFromKeyParams(EventTest.class,notif.getEventId().toString());
+                TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class,notif.getEventId().toString());
                 assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
             }
         }

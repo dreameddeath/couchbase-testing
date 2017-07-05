@@ -26,16 +26,16 @@ import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.Key;
 import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.AbstractStandardPureOutputGeneratorPluginImpl;
+import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.IDtoModelGeneratorPlugin;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.dreameddeath.core.notification.common.IEvent;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.remote.annotation.PublishEvent;
 import com.dreameddeath.core.notification.remote.annotation.PublishEventField;
 import com.dreameddeath.core.notification.remote.annotation.PublishedOrigEventModelID;
 import com.google.common.collect.Maps;
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  * Created by Christophe Jeunesse on 26/06/2017.
  */
-public class ProcessPublishEventDtoModelGeneratorPlugin extends AbstractStandardPureOutputGeneratorPluginImpl<PublishEvent,PublishEventField> {
+public class PublishEventDtoModelGeneratorPlugin extends AbstractStandardPureOutputGeneratorPluginImpl<PublishEvent,PublishEventField> implements IDtoModelGeneratorPlugin {
     private static final Map<DtoInOutMode,String> modesSuffix =Maps.newHashMap();
     static{
         modesSuffix.put(DtoInOutMode.OUT,"");
@@ -119,14 +119,30 @@ public class ProcessPublishEventDtoModelGeneratorPlugin extends AbstractStandard
     }
 
     @Override
+    public SuperClassGenMode getSuperClassGeneratorMode(ClassInfo childClass, ClassInfo parentClazz, Key dtoModelKey, List<AbstractDtoModelGenerator.UnwrappingStackElement> unwrappingStackElements){
+        if(parentClazz.isInstanceOf(Event.class)){
+            return SuperClassGenMode.UNWRAP;
+        }
+        else{
+            return super.getSuperClassGeneratorMode(childClass, parentClazz, dtoModelKey, unwrappingStackElements);
+        }
+    }
+
+
+    @Override
     protected void generateForAnnot(AbstractDtoModelGenerator abstractDtoModelGenerator, ClassInfo entityClassInfo, PublishEvent annot) {
         abstractDtoModelGenerator.generate(entityClassInfo, DtoInOutMode.OUT, PublishEvent.DTO_MODEL_TYPE, annot.version());
     }
 
     @Override
-    public void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo origClass, Key key) {
+    public void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo origClass, Key key,ClassName dtoSuperClassName) {
         CouchbaseDocumentStructureReflection reflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(origClass);
         EntityModelId modelId = reflection.getEntityModelId();
+
+        //Add the IEvent interface to the class if parent is a root class of an Event
+        if(origClass.isInstanceOf(Event.class) && dtoSuperClassName==null){
+            dtoModelBuilder.addSuperinterface(IEvent.class);
+        }
 
         dtoModelBuilder.addAnnotation(
                 AnnotationSpec.builder(PublishedOrigEventModelID.class)

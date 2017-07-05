@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractDiscoverableListener extends AbstractLocalListener {
     private volatile ListenerDescription description;
+    private final String domain;
     private final String name;
     private final String type;
     private final String version;
@@ -41,10 +42,16 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
     private final ConcurrentHashMap<EntityModelId,Boolean> modelIdEligibilityMap = new ConcurrentHashMap<>();
 
     public AbstractDiscoverableListener(ListenerDescription description){
+        this.domain = description.getDomain();
         this.name = description.getName();
         this.type = description.getType();
         this.version = description.getVersion();
         setDescription(description);
+    }
+
+    @Override
+    public String getDomain(){
+        return domain;
     }
 
     @Override

@@ -24,7 +24,7 @@ import com.dreameddeath.core.query.dao.TestModelDao;
 import com.dreameddeath.core.query.factory.BaseRemoteQueryClientFactory;
 import com.dreameddeath.core.query.factory.QueryServiceFactory;
 import com.dreameddeath.core.query.model.TestModel;
-import com.dreameddeath.core.query.model.published.TestModelResponse;
+import com.dreameddeath.core.query.model.published.query.TestModelResponse;
 import com.dreameddeath.core.query.service.rest.RestQueryTestModelService;
 import com.dreameddeath.core.service.client.rest.RestServiceClientFactory;
 import com.dreameddeath.core.service.testing.TestingRestServer;

@@ -21,7 +21,6 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.SubmissionResult;
-import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.IUser;
@@ -47,9 +46,9 @@ public abstract class AbstractNotificationProcessor {
     }
 
 
-    public Single<SubmissionResult> process(final String domain,final String sourceNotifKey) {
+    public Single<SubmissionResult> processIfNeeded(final String domain, final String sourceNotifKey) {
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,defaultSessionUser);
-        return process(sourceNotifKey,session);
+        return processIfNeeded(sourceNotifKey,session);
     }
 
     private boolean needProcessing(Notification notification){
@@ -60,27 +59,39 @@ public abstract class AbstractNotificationProcessor {
         return Single.just(new SubmissionResult(notification,notification.getStatus()== Notification.Status.PROCESSED));
     }
 
-    public Single<SubmissionResult> process(final String sourceNotifKey, final ICouchbaseSession session) {
-        return session.asyncGet(sourceNotifKey,Notification.class)
-                .flatMap(notification -> {
-                    if(!needProcessing(notification)){
-                        return buildNotificationResult(notification);
-                    }
-
-                    return session.asyncGetFromUID(notification.getEventId().toString(),Event.class)
-                                .flatMap(event-> process(notification,event,session));
-
-                });
+    public Single<SubmissionResult> processIfNeeded(final String sourceNotifKey, final ICouchbaseSession session) {
+        return processIfNeeded(sourceNotifKey,session);
     }
 
-    public <T extends IEvent> Single<SubmissionResult> process(final Notification sourceNotif, final T event){
+
+    public <T extends IEvent> Single<SubmissionResult> processIfNeeded(final String domain,final String sourceNotifKey,final T providedEvent) {
+        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain, defaultSessionUser);
+
+        return session.asyncGet(sourceNotifKey,Notification.class)
+                .flatMap(notification -> processIfNeeded(notification,providedEvent,session));
+    }
+
+    public <T extends IEvent> Single<SubmissionResult> processIfNeeded(final Notification sourceNotif, final T event){
+        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,sourceNotif.getDomain(), defaultSessionUser);
+
+        return this.processIfNeeded(sourceNotif,event,session);
+    }
+
+    protected  <T extends IEvent> Single<SubmissionResult> processIfNeeded(final Notification sourceNotif,final T providedEvent,final ICouchbaseSession session) {
         if(!needProcessing(sourceNotif)){
             return buildNotificationResult(sourceNotif);
         }
-        final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,sourceNotif.getDomain(), defaultSessionUser);
+        return process(sourceNotif,providedEvent,session);
+    }
+
+    public <T extends IEvent> Single<SubmissionResult> processIfNeeded(ICouchbaseSession session, final Notification sourceNotif, final T event){
+        if(!needProcessing(sourceNotif)){
+            return buildNotificationResult(sourceNotif);
+        }
 
         return this.process(sourceNotif,event,session);
     }
+
 
     protected void incrementAttemptsManagement(final Notification sourceNotif) {
         sourceNotif.incNbAttempts();

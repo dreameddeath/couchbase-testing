@@ -28,7 +28,7 @@ import com.dreameddeath.core.service.annotation.VersionStatus;
 public @interface PublishEvent {
     FieldGenMode DEFAULT_OUTPUT_GEN_MODE = FieldGenMode.SIMPLE;
     SuperClassGenMode DEFAULT_SUPERCLASS_GEN_MODE = SuperClassGenMode.IGNORE;
-    String DTO_MODEL_TYPE = "publishedEvent";
+    String DTO_MODEL_TYPE = "notification";
 
     String domain() default "";
     String name() default  "";

@@ -15,16 +15,19 @@
  *
  */
 
-package com.dreameddeath.core.notification.listener;
+package com.dreameddeath.core.notification;
 
-import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
-
-import java.util.Map;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.notification.model.v1.Event;
 
 /**
- * Created by Christophe Jeunesse on 29/05/2016.
+ * Created by Christophe Jeunesse on 17/08/2016.
  */
-public interface IEventListenerFactory {
-    IEventListener getListener(String domain,String type,String name,Map<String,String> params);
-    IEventListener getListener(ListenerDescription description);
+@DocumentEntity(domain = "test", version = "1.0")
+public class TestEvent extends Event {
+    @DocumentProperty
+    public String eventId;
+    @DocumentProperty
+    public Integer toAdd;
 }

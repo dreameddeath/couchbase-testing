@@ -26,8 +26,8 @@ import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
 import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
 import com.dreameddeath.core.process.model.v1.tasks.SubJobProcessTask;
 import com.dreameddeath.couchbase.core.process.remote.model.RemoteJobProcessTask;
-import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobRequest;
-import com.dreameddeath.party.process.model.v1.roles.published.CreateUpdatePartyRolesJobResponse;
+import com.dreameddeath.party.process.model.v1.roles.published.process.CreateUpdatePartyRolesJobRequest;
+import com.dreameddeath.party.process.model.v1.roles.published.process.CreateUpdatePartyRolesJobResponse;
 
 /**
  * Created by Christophe Jeunesse on 29/05/2014.

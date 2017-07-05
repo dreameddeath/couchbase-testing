@@ -35,10 +35,7 @@ import com.dreameddeath.core.query.annotation.QueryFieldInfo;
 import com.dreameddeath.core.query.annotation.RemoteQueryInfo;
 import com.dreameddeath.core.service.annotation.VersionStatus;
 import com.google.common.collect.Maps;
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -76,7 +73,7 @@ public class QueryDtoModelGeneratorPlugin extends AbstractStandardPureOutputGene
 
     @Override
     protected SuperClassGenMode getDefaultSuperClassMode() {
-        return SuperClassGenMode.AUTO;
+        return QueryExpose.DEFAULT_SUPERCLASS_GEN_MODE;
     }
 
     @Override
@@ -130,7 +127,7 @@ public class QueryDtoModelGeneratorPlugin extends AbstractStandardPureOutputGene
     }
 
     @Override
-    public void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key) {
+    public void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key,ClassName dtoSuperClassName) {
         QueryExpose annot = getRootAnnotForKey(clazz, key, Collections.emptyList(),false);
         String name;
         if(annot!=null && StringUtils.isNotEmpty(annot.name())){
