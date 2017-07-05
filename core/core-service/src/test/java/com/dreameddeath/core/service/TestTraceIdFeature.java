@@ -33,23 +33,26 @@ import java.io.InputStream;
 /**
  * Created by Christophe Jeunesse on 17/09/2016.
  */
-public class TestTraceIdFeature implements Feature,ClientResponseFilter {
+public class TestTraceIdFeature implements Feature {
     @Override
     public boolean configure(FeatureContext context) {
-        context.register(this);
+        context.register(new TraceIdResponseFilter());
         return true;
     }
 
-    @Override
-    public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException {
-        String httpTraceId= responseContext.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
-        Preconditions.checkNotNull(httpTraceId);
-        if(requestContext.getUri().getPath().contains("traceId")){
-            InputStream entityStream = responseContext.getEntityStream();
-            String resultTraceId = IOUtils.toString(entityStream,"UTF-8");
-            ByteArrayInputStream baos = new ByteArrayInputStream(resultTraceId.getBytes());
-            responseContext.setEntityStream(baos);
-            Preconditions.checkArgument(httpTraceId.equals(resultTraceId));
+
+    private static class TraceIdResponseFilter implements ClientResponseFilter {
+        @Override
+        public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException {
+            String httpTraceId = responseContext.getHeaderString(HttpHeaderUtils.HTTP_CALLEE_TRACE_ID);
+            Preconditions.checkNotNull(httpTraceId);
+            if (requestContext.getUri().getPath().contains("traceId")) {
+                InputStream entityStream = responseContext.getEntityStream();
+                String resultTraceId = IOUtils.toString(entityStream, "UTF-8");
+                ByteArrayInputStream baos = new ByteArrayInputStream(resultTraceId.getBytes());
+                responseContext.setEntityStream(baos);
+                Preconditions.checkArgument(httpTraceId.equals(resultTraceId));
+            }
         }
     }
 }
