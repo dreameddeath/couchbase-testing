@@ -124,7 +124,7 @@ public class ListenerDiscoveryTest extends Assert {
 
     @Test
     public void testRegistrar() throws Exception{
-        NotificationTestListener.clear();
+        TestNotificationQueue.INSTANCE().clear();
         assertEquals(0L,((EventBusImpl)bus).getListeners().size());
         ListenerRegistrar registrar = new ListenerRegistrar(client,BASE_PATH);
         ListenedEvent listenedEvent = new ListenedEvent(CouchbaseDocumentReflection.getReflectionFromClass(TestEvent.class).getStructure().getEntityModelId());
@@ -237,7 +237,6 @@ public class ListenerDiscoveryTest extends Assert {
             }
         }
 
-
         List<Notification> notificationList = new ArrayList<>();
         int nbReceived = 0;
         {
@@ -252,9 +251,8 @@ public class ListenerDiscoveryTest extends Assert {
             } while (resultNotif != null && (nbReceived< (nbEvent)));
         }
 
-        //assertEquals(EVENTBUS_THREAD_POOL_SIZE.get(),testListener.getThreadCounter().keySet().size());
         assertEquals(nbEvent,nbReceived);
-        assertEquals(((nbEvent+1)*nbEvent/2),testListener.getTotalCounter());
+        assertEquals(((nbEvent+1)*nbEvent/2),TestNotificationQueue.INSTANCE().getTotalCounter());
         Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);

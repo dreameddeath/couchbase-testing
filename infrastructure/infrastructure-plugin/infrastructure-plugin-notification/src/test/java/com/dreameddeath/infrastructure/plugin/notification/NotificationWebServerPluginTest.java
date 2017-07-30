@@ -21,8 +21,8 @@ import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.curator.discovery.path.ICuratorPathDiscoveryListener;
 import com.dreameddeath.core.dao.config.CouchbaseDaoConfigProperties;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.notification.NotificationTestListener;
 import com.dreameddeath.core.notification.TestEvent;
+import com.dreameddeath.core.notification.TestNotificationQueue;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
 import com.dreameddeath.core.notification.model.v1.Notification;
@@ -129,7 +129,7 @@ public class NotificationWebServerPluginTest extends Assert{
                     Notification resultNotif;
 
                     do {
-                        resultNotif = NotificationTestListener.pollNotif();
+                        resultNotif = TestNotificationQueue.INSTANCE().poll();
                         if (resultNotif != null) {
                             nbReceived++;
                             notificationList.add(resultNotif);
@@ -137,7 +137,7 @@ public class NotificationWebServerPluginTest extends Assert{
                     } while (resultNotif != null && (nbReceived< (nbEvent)));
                 }
                 assertEquals(nbEvent,nbReceived);
-                assertEquals(((nbEvent+1)*nbEvent/2), NotificationTestListener.totalCounter());
+                assertEquals(((nbEvent+1)*nbEvent/2), TestNotificationQueue.INSTANCE().getTotalCounter());
 
             } catch (Throwable e) {
                 nbErrors.incrementAndGet();
@@ -173,7 +173,7 @@ public class NotificationWebServerPluginTest extends Assert{
                     Notification resultNotif;
 
                     do {
-                        resultNotif = NotificationTestListener.pollNotif();
+                        resultNotif = TestNotificationQueue.INSTANCE().poll();
                         if (resultNotif != null) {
                             nbReceived++;
                             notificationList.add(resultNotif);

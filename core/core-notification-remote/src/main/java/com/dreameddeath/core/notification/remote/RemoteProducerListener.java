@@ -68,8 +68,6 @@ public class RemoteProducerListener extends AbstractDiscoverableListener {
         this.dtoConverterFactory = factory;
     }
 
-
-
     @PostConstruct
     public void init(){
         remoteClient = remoteNotificationClientServiceFactory.getClient(getDescription());

@@ -48,7 +48,8 @@ public class EventNotificationTest extends Assert{
     private static CouchbaseBucketSimulator cbSimulator;
     private static CouchbaseSessionFactory sessionFactory;
     private IEventBus bus;
-    private NotificationTestListener testListener;
+    //private NotificationTestListener testListener;
+
 
     @BeforeClass
     public static void initialise() throws Exception{
@@ -63,25 +64,36 @@ public class EventNotificationTest extends Assert{
 
     @Before
     public void setupBus(){
-        //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getName(),4);
         bus = new EventBusImpl();
-
-        testListener = new NotificationTestListener("singleThreaded");
-        testListener.setSessionFactory(sessionFactory);
-        bus.addListener(testListener);
-
-        testListener = new NotificationTestListener("multiThreaded");
-        testListener.setSessionFactory(sessionFactory);
-        bus.addListener(testListener);
-        //bus.addMultiThreaded(testListener);
+        {
+            NotificationTestListener testListener = new NotificationTestListener("singleThreaded");
+            testListener.setSessionFactory(sessionFactory);
+            bus.addListener(testListener);
+        }
+        {
+            NotificationTestListener testListener = new NotificationTestListener("multiThreaded");
+            testListener.setSessionFactory(sessionFactory);
+            bus.addListener(testListener);
+        }
+        {
+            AutoDiscoveryListener2Params autoDiscoveryListener2Params = new AutoDiscoveryListener2Params("2Params");
+            autoDiscoveryListener2Params.setSessionFactory(sessionFactory);
+            bus.addListener(autoDiscoveryListener2Params);
+        }
+        {
+            AutoDiscoveryListener3Params autoDiscoveryListener3Params = new AutoDiscoveryListener3Params("3Params");
+            autoDiscoveryListener3Params.setSessionFactory(sessionFactory);
+            bus.addListener(autoDiscoveryListener3Params);
+        }
         bus.start();
     }
 
     @Test
     public void eventBusTest() throws Exception{
-        NotificationTestListener.clear();
+        final int nbListener = 4;
 
-        //test.setCorrelationId(test.toAdd.toString());
+        TestNotificationQueue.INSTANCE().clear();
+
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             EventFireResult<NoListenerTestEvent> result = bus.fireEvent(new NoListenerTestEvent(), session);
@@ -97,7 +109,6 @@ public class EventNotificationTest extends Assert{
             for (int i = 1; i <= nbEvent; ++i) {
                 TestEvent test = new TestEvent();
                 test.toAdd = i;
-                //test.setCorrelationId(test.toAdd.toString());
                 EventFireResult<TestEvent> result = bus.fireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
@@ -108,18 +119,18 @@ public class EventNotificationTest extends Assert{
         int nbReceived = 0;
         {
             Notification resultNotif;
-
             do {
-                resultNotif = testListener.poll();
+                resultNotif = TestNotificationQueue.INSTANCE().poll();
                 if (resultNotif != null) {
                     nbReceived++;
                     notificationList.add(resultNotif);
                 }
-            } while (resultNotif != null && (nbReceived< (nbEvent*2)));
+            } while (resultNotif != null && (nbReceived< (nbEvent*nbListener)));
         }
-        assertTrue(new Double(EVENTBUS_THREAD_POOL_SIZE.get()*((EventBusImpl)bus).getListeners().size()*0.95).longValue()<testListener.getThreadCounter().keySet().size());
-        assertEquals(nbEvent*2,nbReceived);
-        assertEquals(((nbEvent+1)*nbEvent/2)*2,testListener.getTotalCounter());
+
+        assertTrue(new Double(EVENTBUS_THREAD_POOL_SIZE.get()*((EventBusImpl)bus).getListeners().size()*0.95).longValue()<TestNotificationQueue.INSTANCE().getThreadCounter().keySet().size());
+        assertEquals(nbEvent*nbListener,nbReceived);
+        assertEquals(((nbEvent+1)*nbEvent/2)*nbListener,TestNotificationQueue.INSTANCE().getTotalCounter());
         Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
@@ -137,10 +148,12 @@ public class EventNotificationTest extends Assert{
                 assertEquals(0,listeners.size());
             }
             for (Notification srcNotif : notificationList) {
-                Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
-                assertEquals(Notification.Status.PROCESSED,notif.getStatus());
-                TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class,notif.getEventId().toString());
-                assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
+                if(srcNotif.getId()==null || srcNotif.getId()!=-1L) {
+                    Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(), Notification.class);
+                    assertEquals(Notification.Status.PROCESSED, notif.getStatus());
+                    TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class, notif.getEventId().toString());
+                    assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
+                }
             }
         }
 
@@ -156,20 +169,22 @@ public class EventNotificationTest extends Assert{
             Thread.sleep(100);
 
             Notification resultNotif;
-            resultNotif = testListener.poll();
+            resultNotif = TestNotificationQueue.INSTANCE().poll();
             if(resultNotif!=null) {
                 fail();//should not occur
             }
-            assertEquals(nbReceived,NotificationTestListener.getNbEventProcessed().get());
+            assertEquals(nbReceived,TestNotificationQueue.INSTANCE().getNbEventProcessed().get());
 
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
             for (Notification srcNotif : notificationList) {
-                Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(),Notification.class);
-                assertEquals(Notification.Status.PROCESSED,notif.getStatus());
-                assertEquals(1,(long)notif.getNbAttempts());//Simple re-submission, no new attempt
-                TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class,notif.getEventId().toString());
-                assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
-                assertEquals(2,(long)eventTest.getSubmissionAttempt());
+                if(srcNotif.getId()==null || srcNotif.getId()!=-1) {
+                    Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(), Notification.class);
+                    assertEquals(Notification.Status.PROCESSED, notif.getStatus());
+                    assertEquals(1, (long) notif.getNbAttempts());//Simple re-submission, no new attempt
+                    TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class, notif.getEventId().toString());
+                    assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
+                    assertEquals(2, (long) eventTest.getSubmissionAttempt());
+                }
             }
         }
     }

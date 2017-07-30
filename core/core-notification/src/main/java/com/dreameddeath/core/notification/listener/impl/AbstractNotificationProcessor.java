@@ -21,6 +21,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.SubmissionResult;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.core.user.IUser;
@@ -45,10 +46,12 @@ public abstract class AbstractNotificationProcessor {
         defaultSessionUser = user;
     }
 
-
     public Single<SubmissionResult> processIfNeeded(final String domain, final String sourceNotifKey) {
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,defaultSessionUser);
-        return processIfNeeded(sourceNotifKey,session);
+        return session.asyncGet(sourceNotifKey,Notification.class)
+                .flatMap(notification -> session.asyncGetFromUID(notification.getEventId().toString(),Event.class)
+                        .map(event -> new NotificationAndEvent(event, notification)))
+                .flatMap(notificationAndEvent -> processIfNeeded(notificationAndEvent.notification,notificationAndEvent.event,session));
     }
 
     private boolean needProcessing(Notification notification){
@@ -59,11 +62,20 @@ public abstract class AbstractNotificationProcessor {
         return Single.just(new SubmissionResult(notification,notification.getStatus()== Notification.Status.PROCESSED));
     }
 
-    public Single<SubmissionResult> processIfNeeded(final String sourceNotifKey, final ICouchbaseSession session) {
-        return processIfNeeded(sourceNotifKey,session);
+    /*public Single<SubmissionResult> processIfNeeded(final String sourceNotifKey, final ICouchbaseSession session) {
+        return session.asyncGet(sourceNotifKey,Notification.class)
+                .map(notification -> {
+                    if(notification.getDomain().equals(session.getDomain())){
+
+                    }
+                    else {
+
+                    }
+                })
+                .map()
+                processIfNeeded(session.getDomain(),sourceNotifKey);
     }
-
-
+    */
     public <T extends IEvent> Single<SubmissionResult> processIfNeeded(final String domain,final String sourceNotifKey,final T providedEvent) {
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain, defaultSessionUser);
 
@@ -73,7 +85,6 @@ public abstract class AbstractNotificationProcessor {
 
     public <T extends IEvent> Single<SubmissionResult> processIfNeeded(final Notification sourceNotif, final T event){
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,sourceNotif.getDomain(), defaultSessionUser);
-
         return this.processIfNeeded(sourceNotif,event,session);
     }
 
@@ -158,10 +169,22 @@ public abstract class AbstractNotificationProcessor {
             return new ProcessingResultInfo(notification,isRemote,result);
         }
     }
+
     public enum ProcessingResult{
         PROCESSED,
         SUBMITTED,
         DEFERRED
     }
 
+
+    private final class NotificationAndEvent{
+        private final IEvent event;
+        private final Notification notification;
+
+
+        public NotificationAndEvent(IEvent event, Notification notification) {
+            this.event = event;
+            this.notification = notification;
+        }
+    }
 }

@@ -19,8 +19,8 @@ package com.dreameddeath.core.notification;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.annotation.Listener;
-import com.dreameddeath.core.notification.common.IEvent;
-import com.dreameddeath.core.notification.listener.impl.AbstractLocalListener;
+import com.dreameddeath.core.notification.annotation.ListenerProcessor;
+import com.dreameddeath.core.notification.listener.impl.AbstractLocalStandardListener;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.google.common.base.Preconditions;
 import io.reactivex.Single;
@@ -30,25 +30,25 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 /**
- * Created by Christophe Jeunesse on 17/08/2016.
+ * Created by Christophe Jeunesse on 30/07/2017.
  */
-@Listener(forTypes = {"testListenerDiscovery"})
-public class NotificationTestListener extends AbstractLocalListener {
-    private static final Logger LOG = LoggerFactory.getLogger(NotificationTestListener.class);
+@Listener(forTypes = "3Params")
+public class AutoDiscoveryListener3Params extends AbstractLocalStandardListener {
+    private final static Logger LOG = LoggerFactory.getLogger(AutoDiscoveryListener3Params.class);
+    private final TestNotificationQueue queue=TestNotificationQueue.INSTANCE();
     private final String name;
     private final String version;
-    private final TestNotificationQueue queue=TestNotificationQueue.INSTANCE();
 
-    public NotificationTestListener(String name) {
+    public AutoDiscoveryListener3Params(String name) {
         this(name,"1.0");
     }
 
-    public NotificationTestListener(String name,String version) {
+    public AutoDiscoveryListener3Params(String name, String version) {
         this.name = name;
         this.version=version;
     }
 
-    public NotificationTestListener(String domain,String type,String name,Map<String,String> params){
+    public AutoDiscoveryListener3Params(String domain,String type,String name,Map<String,String> params){
         this(name);
         Preconditions.checkArgument(type.equals(getType()));
         Preconditions.checkArgument(domain.equals(getDomain()));
@@ -65,34 +65,18 @@ public class NotificationTestListener extends AbstractLocalListener {
         return "test";
     }
 
-
-    public Notification poll() throws InterruptedException {
-        return queue.poll();
-    }
-
-    @Override
-    protected <T extends IEvent> Single<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
-        //LOG.error("Received event {} on thread {}",((TestEvent)event).toAdd,Thread.currentThread());
-        try {
-            Thread.sleep(new Double(Math.random() * 100).longValue());
-        } catch (InterruptedException e) {
-
-        }
-        return queue.manageEvent(LOG,event,notification);
-    }
-
     @Override
     public String getName() {
         return this.name;
     }
 
     @Override
-    public <T extends IEvent> boolean isApplicable(T event) {
-        return event instanceof TestEvent;
-    }
-
-    @Override
     public String getVersion() {
         return version;
+    }
+
+    @ListenerProcessor
+    public Single<ProcessingResultInfo> test(TestEvent event, Notification notification, ICouchbaseSession session) {
+        return queue.manageEvent(LOG,event,notification);
     }
 }

@@ -24,6 +24,7 @@ import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
 import com.dreameddeath.core.notification.NotificationTestListener;
 import com.dreameddeath.core.notification.TestEvent;
+import com.dreameddeath.core.notification.TestNotificationQueue;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
@@ -132,7 +133,7 @@ public class RemoteConsumerRestTest extends Assert{
 
     @Test
     public void testRemote() throws Exception{
-        NotificationTestListener.clear();
+        TestNotificationQueue.INSTANCE().clear();
         List<TestEvent> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
         {
@@ -163,7 +164,7 @@ public class RemoteConsumerRestTest extends Assert{
         }
         //assertTrue(new Double(EVENTBUS_THREAD_POOL_SIZE.get()*((EventBusImpl)bus).getListeners().size()*0.95).longValue()<testListener.getThreadCounter().keySet().size());
         assertEquals(nbEvent,nbReceived);
-        assertEquals((nbEvent+1)*nbEvent/2,testListener.getTotalCounter());
+        assertEquals((nbEvent+1)*nbEvent/2,TestNotificationQueue.INSTANCE().getTotalCounter());
         Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);

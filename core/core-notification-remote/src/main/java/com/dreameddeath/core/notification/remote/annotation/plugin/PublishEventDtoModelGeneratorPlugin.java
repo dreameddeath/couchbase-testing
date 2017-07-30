@@ -29,11 +29,11 @@ import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.Abstrac
 import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.IDtoModelGeneratorPlugin;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.dreameddeath.core.notification.annotation.EventOrigModelID;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.remote.annotation.PublishEvent;
 import com.dreameddeath.core.notification.remote.annotation.PublishEventField;
-import com.dreameddeath.core.notification.remote.annotation.PublishedOrigEventModelID;
 import com.google.common.collect.Maps;
 import com.squareup.javapoet.*;
 
@@ -145,7 +145,7 @@ public class PublishEventDtoModelGeneratorPlugin extends AbstractStandardPureOut
         }
 
         dtoModelBuilder.addAnnotation(
-                AnnotationSpec.builder(PublishedOrigEventModelID.class)
+                AnnotationSpec.builder(EventOrigModelID.class)
                 .addMember("value","$S",modelId.toString())
                 .build()
         );

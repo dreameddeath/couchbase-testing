@@ -30,7 +30,6 @@ import java.util.*;
 public class ListenerDescription implements IRegistrablePathData {
     private static final String DEFAULT_VERSION = "1.0.0";
 
-
     @JsonProperty("domain")
     private String domain;
     @JsonProperty("name")
