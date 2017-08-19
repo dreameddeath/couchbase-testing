@@ -18,8 +18,6 @@
 package com.dreameddeath.couchbase.core.process.remote.annotation.processor.model;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.AbstractDtoModelGenerator;
@@ -199,17 +197,17 @@ public class ProcessRestDtoModelGeneratorPlugin extends AbstractStandardGenerato
     }
 
     @Override
-    public void addFieldInfo(String name, FieldSpec.Builder fieldBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
+    public void addFieldInfo(AbstractDtoModelGenerator.SourceInfoForField fieldInfo, FieldSpec.Builder fieldBuilder, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
 
     }
 
     @Override
-    public void addSetterInfo(String name, MethodSpec.Builder setterBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
+    public void addSetterInfo(AbstractDtoModelGenerator.SourceInfoForField fieldInfo, MethodSpec.Builder setterBuilder, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
 
     }
 
     @Override
-    public void addGetterInfo(String name, MethodSpec.Builder setterBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
+    public void addGetterInfo(AbstractDtoModelGenerator.SourceInfoForField fieldInfo, MethodSpec.Builder setterBuilder, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
 
     }
 

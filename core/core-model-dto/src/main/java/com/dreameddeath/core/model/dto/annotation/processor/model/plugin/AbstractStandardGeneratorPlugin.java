@@ -19,6 +19,7 @@ package com.dreameddeath.core.model.dto.annotation.processor.model.plugin;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.MemberInfo;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.dto.annotation.DtoModelJsonTypeId;
@@ -166,13 +167,24 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
     }
 
 
-    private <T extends Annotation> T getFieldAnnotForKey(FieldInfo fieldInfo, Key key, Class<T> annotClass, Function<T,String> versionGetter) {
+    private <T extends Annotation> T getFieldAnnotForKey(MemberInfo fieldInfo, Key key, Class<T> annotClass, Function<T,String> versionGetter) {
         T[] annots = fieldInfo.getAnnotationByType(annotClass);
-        if (annots != null && annots.length > 0) {
+        if(annots!=null && annots.length>0) {
             for (T annot : annots) {
                 if (StringUtils.isEmpty(versionGetter.apply(annot)) || versionGetter.apply(annot).equals(key.getVersion())) {
                     return annot;
                 }
+            }
+        }
+        return null;
+    }
+
+
+    private <T extends Annotation> T getFieldAnnotForKey(AbstractDtoModelGenerator.SourceInfoForField fieldInfo, Key key, Class<T> annotClass, Function<T,String> versionGetter) {
+        List<T> annots = fieldInfo.getAnnotations(annotClass);
+        for (T annot : annots) {
+            if (StringUtils.isEmpty(versionGetter.apply(annot)) || versionGetter.apply(annot).equals(key.getVersion())) {
+                return annot;
             }
         }
         return null;
@@ -196,7 +208,7 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
 
 
     @Override
-    public FieldGenMode getUnwrappedFieldGenMode(FieldInfo field, Key dtoModelKey, List<AbstractDtoModelGenerator.UnwrappingStackElement> unwrappingStackElements) {
+    public FieldGenMode getUnwrappedFieldGenMode(AbstractDtoModelGenerator.SourceInfoForField field, Key dtoModelKey, List<AbstractDtoModelGenerator.UnwrappingStackElement> unwrappingStackElements) {
         boolean isInput = dtoModelKey.getInOutMode() == DtoInOutMode.IN;
         if(isInput){
             TINFIELD annot = getFieldAnnotForKey(field,dtoModelKey,getFieldInputAnnot(),this::getInFieldAnnotVersion);

@@ -19,7 +19,6 @@ package com.dreameddeath.core.model.dto.annotation.processor.model.plugin;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.AbstractDtoModelGenerator;
 import com.dreameddeath.core.model.dto.annotation.processor.model.AbstractDtoModelGenerator.UnwrappingStackElement;
@@ -48,17 +47,17 @@ public interface IDtoModelGeneratorPlugin {
 
     void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key,ClassName dtoSuperClassName);
 
-    void addFieldInfo(String name, FieldSpec.Builder fieldBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements);
+    void addFieldInfo(AbstractDtoModelGenerator.SourceInfoForField fieldInfo, FieldSpec.Builder fieldBuilder, Key key, List<UnwrappingStackElement> unwrappingStackElements);
 
-    void addSetterInfo(String name, MethodSpec.Builder setterBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements);
+    void addSetterInfo(AbstractDtoModelGenerator.SourceInfoForField fieldInfo, MethodSpec.Builder setterBuilder, Key key, List<UnwrappingStackElement> unwrappingStackElements);
 
-    void addGetterInfo(String name, MethodSpec.Builder setterBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements);
+    void addGetterInfo(AbstractDtoModelGenerator.SourceInfoForField fieldInfo, MethodSpec.Builder setterBuilder, Key key, List<UnwrappingStackElement> unwrappingStackElements);
 
     SuperClassGenMode getSuperClassGeneratorMode(ClassInfo childClass, ClassInfo parentClazz, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements);
 
     FieldGenMode getFieldGeneratorMode(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements);
 
-    FieldGenMode getUnwrappedFieldGenMode(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements);
+    FieldGenMode getUnwrappedFieldGenMode(AbstractDtoModelGenerator.SourceInfoForField field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements);
 
     String getFieldEffectiveName(FieldInfo field, Key key, List<UnwrappingStackElement> unwrappingStackElements);
 
