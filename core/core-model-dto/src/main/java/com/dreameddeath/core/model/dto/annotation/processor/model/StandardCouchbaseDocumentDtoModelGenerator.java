@@ -17,10 +17,7 @@
 
 package com.dreameddeath.core.model.dto.annotation.processor.model;
 
-import com.dreameddeath.compile.tools.annotation.processor.reflection.AbstractClassInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.FieldInfo;
-import com.dreameddeath.compile.tools.annotation.processor.reflection.ParameterizedTypeInfo;
+import com.dreameddeath.compile.tools.annotation.processor.reflection.*;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
@@ -205,17 +202,41 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
         return couchbaseDocumentStructureReflection.getDeclaredFieldByName(field.getName());
     }
 
-    private Optional<DtoFieldGenerateType> getDtoFieldGenerateAnnot(FieldInfo field,DtoInOutMode mode,String type,String version){
-        DtoFieldGenerate fieldAnnot = field.getAnnotation(DtoFieldGenerate.class);
-        if(fieldAnnot==null){
+
+    protected Optional<CouchbaseDocumentFieldReflection> getFieldReflection(MethodInfo methodInfo){
+        if(methodInfo.getDeclaringClassInfo() instanceof ClassInfo && CouchbaseDocumentStructureReflection.isReflexible((ClassInfo)methodInfo.getDeclaringClassInfo())) {
+            CouchbaseDocumentStructureReflection couchbaseDocumentStructureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo) methodInfo.getDeclaringClassInfo());
+            if(methodInfo.getMethodParameters().size()==0) {
+                return Optional.ofNullable(couchbaseDocumentStructureReflection.getDeclaredFieldByGetterName(methodInfo.getName()));
+            }
+            else {
+                return Optional.ofNullable(couchbaseDocumentStructureReflection.getDeclaredFieldBySetterName(methodInfo.getName()));
+            }
+        }
+        return Optional.empty();
+    }
+
+
+    private Optional<DtoFieldGenerateType> getDtoFieldGenerateAnnot(DtoFieldGenerate annot,DtoInOutMode mode,String type,String version){
+        if(annot==null){
             return Optional.empty();
         }
-        for(DtoFieldGenerateType dtoFieldGenerateType:fieldAnnot.buildForTypes()){
+        for(DtoFieldGenerateType dtoFieldGenerateType:annot.buildForTypes()){
             if(dtoFieldGenerateType.type().equals(type) && (StringUtils.isEmpty(dtoFieldGenerateType.version()) || dtoFieldGenerateType.version().equals(version))){
                 return Optional.of(dtoFieldGenerateType);
             }
         }
         return Optional.empty();
+    }
+
+
+    private Optional<DtoFieldGenerateType> getDtoFieldGenerateAnnot(FieldInfo fieldInfo,DtoInOutMode mode,String type,String version){
+        return getDtoFieldGenerateAnnot(fieldInfo.getAnnotation(DtoFieldGenerate.class),mode,type,version);
+    }
+
+
+    private Optional<DtoFieldGenerateType> getDtoFieldGenerateAnnot(SourceInfoForField fieldInfo,DtoInOutMode mode,String type,String version){
+        return getDtoFieldGenerateAnnot( fieldInfo.getFirstAnnotation(DtoFieldGenerate.class),mode,type,version);
     }
 
     @Override
@@ -282,32 +303,52 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
     }
 
     @Override
-    protected ClassInfo getEffectiveUnwrappedClassInfo(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
-        CouchbaseDocumentFieldReflection fieldReflection = getFieldReflection(field);
-        AbstractClassInfo classInfo = fieldReflection.getEffectiveTypeInfo().getMainType();
+    protected FieldGenMode getFieldGeneratorMode(MethodInfo methodInfo, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
+        Optional<CouchbaseDocumentFieldReflection> fieldReflection = getFieldReflection(methodInfo);
+        return fieldReflection.isPresent()?getFieldGeneratorMode(fieldReflection.get().getField(),dtoModelKey,unwrappingStackElements):FieldGenMode.FILTER;
+    }
+
+    @Override
+    protected ClassInfo getEffectiveUnwrappedClassInfo(SourceInfoForField field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
+        AbstractClassInfo classInfo = field.getEffectiveTypeInfo().getMainType();
         Preconditions.checkArgument(classInfo instanceof ClassInfo,"The effective type of field %s isn't a class",field.getFullName());
         Preconditions.checkArgument(CouchbaseDocumentStructureReflection.isReflexible((ClassInfo)classInfo),"The effective type of field %s isn't a couchbase item",field.getFullName());
         return (ClassInfo)classInfo;
     }
 
     @Override
-    protected ParameterizedTypeInfo getFieldEffectiveType(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
-        CouchbaseDocumentFieldReflection fieldReflection = getFieldReflection(field);
-        return fieldReflection.getEffectiveTypeInfo();
+    protected ParameterizedTypeInfo getFieldEffectiveType(SourceInfoForField fieldInfo, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
+        if(fieldInfo.hasSourceField()){
+            CouchbaseDocumentFieldReflection fieldReflection = getFieldReflection(fieldInfo.getField());
+            return fieldReflection.getEffectiveTypeInfo();
+        }
+        else{
+            return fieldInfo.getGetter().getReturnType();
+        }
     }
 
     @Override
-    protected FieldGenMode getUnwrappedFieldGenMode(FieldInfo field, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
+    protected FieldGenMode getUnwrappedFieldGenMode(SourceInfoForField fieldInfo, Key dtoModelKey, List<UnwrappingStackElement> unwrappingStackElements) {
         for(IDtoModelGeneratorPlugin plugin:getApplicablePlugins(dtoModelKey)){
-            FieldGenMode unwrappedFieldMode = plugin.getUnwrappedFieldGenMode(field, dtoModelKey,unwrappingStackElements);
+            FieldGenMode unwrappedFieldMode = plugin.getUnwrappedFieldGenMode(fieldInfo, dtoModelKey,unwrappingStackElements);
             if(unwrappedFieldMode!=null){
                 return unwrappedFieldMode;
             }
         }
-        Optional<DtoFieldGenerateType> dtoFieldGenerateAnnot = getDtoFieldGenerateAnnot(field, dtoModelKey.getInOutMode(),dtoModelKey.getType(), dtoModelKey.getVersion());
-        return dtoFieldGenerateAnnot.map(DtoFieldGenerateType::unwrapDefaultFieldMode).orElse(super.getUnwrappedFieldGenMode(field, dtoModelKey, unwrappingStackElements));
+        Optional<DtoFieldGenerateType> dtoFieldGenerateAnnot = getDtoFieldGenerateAnnot(fieldInfo, dtoModelKey.getInOutMode(),dtoModelKey.getType(), dtoModelKey.getVersion());
+        return dtoFieldGenerateAnnot.map(DtoFieldGenerateType::unwrapDefaultFieldMode).orElse(super.getUnwrappedFieldGenMode(fieldInfo, dtoModelKey, unwrappingStackElements));
     }
 
+    @Override
+    protected String getMethodEffectiveName(MethodInfo methodInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
+        Optional<CouchbaseDocumentFieldReflection> fieldReflection = getFieldReflection(methodInfo);
+        if(fieldReflection.isPresent()){
+            return getFieldEffectiveName(fieldReflection.get().getField(),key,unwrappingStackElements);
+        }
+        else{
+            return super.getMethodEffectiveName(methodInfo,key,unwrappingStackElements);
+        }
+    }
 
     @Override
     protected String getFieldEffectiveName(FieldInfo field, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
@@ -325,6 +366,7 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
                 return fieldGenerateType.get().name();
             }
         }
+        //don't un json name as it may have spaces
         return fieldReflection.getField().getName();
     }
 
@@ -364,11 +406,11 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
         else if(origClass.isAbstract() && superClassDtoName==null){
             typeBuilder.addAnnotation(
                     AnnotationSpec.builder(JsonTypeInfo.class)
-                        .addMember("use","$T.$L",JsonTypeInfo.Id.class,JsonTypeInfo.Id.CUSTOM.name())
-                        .addMember("include","$T.$L",JsonTypeInfo.As.class,JsonTypeInfo.As.PROPERTY.name())
-                        .addMember("property","$S","@t")
-                        //.addMember("visible","$L","true")
-                    .build()
+                            .addMember("use","$T.$L",JsonTypeInfo.Id.class,JsonTypeInfo.Id.CUSTOM.name())
+                            .addMember("include","$T.$L",JsonTypeInfo.As.class,JsonTypeInfo.As.PROPERTY.name())
+                            .addMember("property","$S","@t")
+                            //.addMember("visible","$L","true")
+                            .build()
             );
 
 
@@ -386,18 +428,18 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
         CouchbaseDocumentStructureReflection reflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo(origClass);
         typeBuilder.addAnnotation(
                 AnnotationSpec.builder(DtoModelMappingInfo.class)
-                .addMember("entityModelId","$S",reflection.getEntityModelId().toString())
-                .addMember("entityClassName","$S",reflection.getClassInfo().getFullName())
-                .addMember("mode","$T.$L", ClassName.get(DtoInOutMode.class),key.getInOutMode())
-                .addMember("type","$S",StringUtils.isNotEmpty(key.getType())?key.getType():"")
-                .addMember("version","$S",key.getVersion())
-                .build()
+                        .addMember("entityModelId","$S",reflection.getEntityModelId().toString())
+                        .addMember("entityClassName","$S",reflection.getClassInfo().getFullName())
+                        .addMember("mode","$T.$L", ClassName.get(DtoInOutMode.class),key.getInOutMode())
+                        .addMember("type","$S",StringUtils.isNotEmpty(key.getType())?key.getType():"")
+                        .addMember("version","$S",key.getVersion())
+                        .build()
         );
     }
 
     @Override
-    protected void addCommonFieldInfo(String name, FieldSpec.Builder fieldBuilder, ParameterizedTypeInfo effectiveTypeInfo, FieldInfo fieldInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
-        super.addCommonFieldInfo(name, fieldBuilder, effectiveTypeInfo, fieldInfo, key, unwrappingStackElements);
+    protected void addCommonFieldInfo(SourceInfoForField fieldInfo, FieldSpec.Builder fieldBuilder, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
+        super.addCommonFieldInfo(fieldInfo, fieldBuilder, key, unwrappingStackElements);
 
         StringBuilder sb = new StringBuilder();
         for(UnwrappingStackElement unwrappingStackElement:unwrappingStackElements){
@@ -415,5 +457,14 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
                         .addMember("ruleValue","$S",sb.toString())
                         .build()
         );
+    }
+
+    private CouchbaseDocumentFieldReflection getFieldReflection(SourceInfoForField fieldInfo) {
+        if(fieldInfo.hasSourceField()){
+            return getFieldReflection(fieldInfo.getField());
+        }
+        else{
+            return getFieldReflection(fieldInfo.getGetter()).orElseThrow(()->new IllegalStateException("Cannot get field of "+fieldInfo.getFullName()));
+        }
     }
 }

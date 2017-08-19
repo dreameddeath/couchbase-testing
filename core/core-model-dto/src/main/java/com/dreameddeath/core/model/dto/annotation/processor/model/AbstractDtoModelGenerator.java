@@ -235,24 +235,24 @@ public abstract class AbstractDtoModelGenerator {
                     fieldInfoBuilder.withGetter(methodInfo);
                 }
             }
-
-            for(SourceInfoForField.Builder sourceInfoBuilder:sourceInfoFieldBuilders.values()){
-                ParameterizedTypeInfo effectiveTypeInfo = getFieldEffectiveType(sourceInfoBuilder.create(), key, unwrappingStackElements);
-                sourceInfoBuilder.withEffectiveType(effectiveTypeInfo);
-
-                SourceInfoForField sourceInfoForField = sourceInfoBuilder.create();
-                switch (mode){
-                    case SIMPLE:
-                        generateSimpleField(sourceInfoForField,builder,key,unwrappingStackElements);
-                        break;
-                    case UNWRAP:
-                        generateUnwrappedFields(sourceInfoForField,builder,key,unwrappingStackElements);
-                        break;
-                }
-            }
+        }
+        List<SourceInfoForField> fieldsToGenerate= new ArrayList<>();
+        for(SourceInfoForField.Builder sourceInfoBuilder:sourceInfoFieldBuilders.values()) {
+            ParameterizedTypeInfo effectiveTypeInfo = getFieldEffectiveType(sourceInfoBuilder.create(), key, unwrappingStackElements);
+            sourceInfoBuilder.withEffectiveType(effectiveTypeInfo);
+            fieldsToGenerate.add(sourceInfoBuilder.create());
         }
 
-
+        for (SourceInfoForField fieldInfo: fieldsToGenerate) {
+            switch (fieldInfo.mode){
+                case SIMPLE:
+                    generateSimpleField(fieldInfo,builder,key,unwrappingStackElements);
+                    break;
+                case UNWRAP:
+                    generateUnwrappedFields(fieldInfo,builder,key,unwrappingStackElements);
+                    break;
+            }
+        }
     }
 
     private ClassName getMainFieldEffectiveClassName(SourceInfoForField fieldInfo, AbstractClassInfo classInfo, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
@@ -564,19 +564,19 @@ public abstract class AbstractDtoModelGenerator {
             }
 
             public Builder withField(FieldInfo field) {
-                Preconditions.checkState(this.field==null,"Cannot set twice the field twice for field %s (existing %s, new %s) ",name,this.field.getFullName(),field.getFullName());
+                Preconditions.checkState(this.field==null,"Cannot set twice the field twice for field %s (existing %s, new %s) ",name,this.field,field.getFullName());
                 this.field = field;
                 return this;
             }
 
             public Builder withSetter(MethodInfo setter) {
-                Preconditions.checkState(this.setter==null,"Cannot set twice the setter twice for field %s (existing %s, new %s) ",name,this.setter.getFullName(),setter.getFullName());
+                Preconditions.checkState(this.setter==null,"Cannot set twice the setter twice for field %s (existing %s, new %s) ",name,this.setter,setter.getFullName());
                 this.setter = setter;
                 return this;
             }
 
             public Builder withGetter(MethodInfo getter) {
-                Preconditions.checkState(this.getter==null,"Cannot set twice the getter twice for field %s (existing %s, new %s) ",name,this.getter.getFullName(),getter.getFullName());
+                Preconditions.checkState(this.getter==null,"Cannot set twice the getter twice for field %s (existing %s, new %s) ",name,this.getter,getter.getFullName());
                 this.getter = getter;
                 return this;
             }

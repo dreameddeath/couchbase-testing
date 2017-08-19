@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -43,6 +43,7 @@ import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
 import io.reactivex.Single;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -99,9 +100,9 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
             sourceCtxtObs = ctxt.asyncSave()
                     .onErrorResumeNext(throwable -> {
                         if (throwable instanceof ValidationException) {
-                            DuplicateUniqueKeyDaoException duplicateException = ValidationExceptionUtils.findUniqueKeyException((ValidationException)throwable);
-                            if (duplicateException != null) {
-                                return Single.error(new DuplicateJobExecutionException(ctxt, "DuplicateJob creation", duplicateException.getCause()));
+                            Optional<DuplicateUniqueKeyDaoException> duplicateException = ValidationExceptionUtils.findUniqueKeyException((ValidationException)throwable);
+                            if (duplicateException.isPresent()) {
+                                return Single.error(new DuplicateJobExecutionException(ctxt, "DuplicateJob creation", duplicateException.get().getCause()));
                             }
                             return Single.error(new JobExecutionException(ctxt, "Cannot perform initial save due to validation error", throwable));
                         }
