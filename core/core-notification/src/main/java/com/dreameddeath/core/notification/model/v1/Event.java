@@ -83,7 +83,7 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      *  listeners : List of listeners to post to
      */
     @DocumentProperty("listeners")
-    private final ListProperty<String> listeners = new ArrayListProperty<>(Event.this);
+    private final ListProperty<EventListenerLink> listeners = new ArrayListProperty<>(Event.this);
     /**
      *  submissionAttempt : number of attempts of submission
      */
@@ -144,37 +144,23 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      * Getter of listeners
      * @return the whole (immutable) list of listeners
      */
-    public List<String> getListeners() { return listeners.get(); }
+    public List<EventListenerLink> getListeners() { return listeners.get(); }
     /**
      * Setter of listeners
      * @param newListeners the new collection of listeners
      */
-    public void setListeners(Collection<String> newListeners) { listeners.set(newListeners); }
+    public void setListeners(Collection<EventListenerLink> newListeners) { listeners.set(newListeners); }
     /**
      * Add a new entry to the property listeners
-     * @param newListeners the new entry to be added
+     * @param newListener the new entry to be added
+     * @param domain the domain of the entry
      * @return true if the entry has been added
      */
-    public boolean addListeners(String newListeners){ return listeners.add(newListeners); }
-    /**
-     * Add a new entry to the property listeners at the specified position
-     * @param index the new entry to be added
-     * @param newListeners the new entry to be added
-     * @return true if the entry has been added
-     */
-    public boolean addListeners(int index,String newListeners){ return listeners.add(newListeners); }
-    /**
-     * Remove an entry to the property listeners
-     * @param oldListeners the entry to be remove
-     * @return true if the entry has been removed
-     */
-    public boolean removeListeners(String oldListeners){ return listeners.remove(oldListeners); }
-    /**
-     * Remove an entry to the property listeners at the specified position
-     * @param index the position of element to be removed
-     * @return the entry removed if any
-     */
-    public String removeListeners(int index){ return listeners.remove(index); }
+    public boolean addListener(String newListener, String domain){
+        EventListenerLink link = new EventListenerLink();
+        link.setName(newListener);
+        link.setDomain(domain);
+        return listeners.add(link); }
 
     /**
      * Getter of submissionAttempt
@@ -232,5 +218,6 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
         NOTIFICATIONS_LIST_NAME_GENERATED,
         NOTIFICATIONS_IN_DB
     }
+
 
 }

@@ -30,6 +30,7 @@ import com.dreameddeath.core.notification.listener.SubmissionResult;
 import com.dreameddeath.core.notification.metrics.EventBusMetrics;
 import com.dreameddeath.core.notification.metrics.NotificationMetrics;
 import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
 import com.google.common.base.Preconditions;
@@ -179,7 +180,7 @@ public class EventBusImpl implements IEventBus {
                     if(event.getSubmissionAttempt()==1) {
                         eventHandlersMap.values().stream()
                                 .filter(handler -> handler.listener.isApplicable(event))
-                                .forEach(handler-> event.addListeners(handler.listener.getName()));
+                                .forEach(handler-> event.addListener(handler.listener.getName(),handler.listener.getDomain()));
                         event.setStatus(Event.Status.NOTIFICATIONS_LIST_NAME_GENERATED);
                     }
                     return event;
@@ -209,15 +210,15 @@ public class EventBusImpl implements IEventBus {
     protected <T extends Event> Single<EventFireResult<T>> submitEvent(final T event,ICouchbaseSession session,final EventBusMetrics.Context eventMetricContext){
         List<Observable<PublishedResult>> listPublishedResult = new ArrayList<>();
         String domain = event.getModelId()!=null?event.getModelId().getDomain():null;
-        for(String inputListnerName:event.getListeners()){
+        for(EventListenerLink listenerLink:event.getListeners()){
             Preconditions.checkNotNull(domain,"The domain isn't defined for event %s of key %s",event.getClass().getName(),event.getBaseMeta().getKey());
-            final NotificationMetrics.Context notificationMetricContext = eventMetricContext.notificationStart(inputListnerName);
-            Single<PublishedResult> notificationObservable = Single.just(inputListnerName)
+            final NotificationMetrics.Context notificationMetricContext = eventMetricContext.notificationStart(listenerLink.getName());
+            Single<PublishedResult> notificationObservable = Single.just(listenerLink.getName())
                     .map(listenerName->{
                         Notification result = new Notification();
                         result.setDomain(domain);
                         result.setEventId(event.getId());
-                        result.setListenerName(listenerName);
+                        result.setListenerLink(EventListenerLink.build(listenerLink));
                         return result;
                     })
                     .flatMap(notification -> {
@@ -252,9 +253,9 @@ public class EventBusImpl implements IEventBus {
                                 || notification.getStatus()== Notification.Status.CANCELLED
                                 || notification.getStatus()== Notification.Status.PROCESSED)
                                 ){
-                            InternalEventHandler handler = eventHandlersMap.get(notification.getListenerName());
+                            InternalEventHandler handler = eventHandlersMap.get(notification.getListenerLink().getName());
                             if (handler == null) {
-                                throw new IllegalStateException("Cannot find handler for listener " + notification.getListenerName());
+                                throw new IllegalStateException("Cannot find handler for listener " + notification.getListenerLink().getName());
                             }
                             handler.publish(event, notification, notificationMetricContext);
                         }
@@ -263,7 +264,7 @@ public class EventBusImpl implements IEventBus {
                     .onErrorReturn(
                             throwable -> {
                                 notificationMetricContext.stop(throwable);
-                                return new PublishedResult(inputListnerName,throwable);
+                                return new PublishedResult(listenerLink.getName(),throwable);
                             }
                     );
                 listPublishedResult.add(notificationObservable.toObservable());
@@ -335,7 +336,7 @@ public class EventBusImpl implements IEventBus {
                 correlationId = event.getId().toString();
             }
 
-            int modulus = (correlationId+notification.getListenerName()).hashCode()%ringBuffers.length;
+            int modulus = (correlationId+notification.getListenerLink().getName()).hashCode()%ringBuffers.length;
             if(modulus<0){
                 modulus +=ringBuffers.length;
             }

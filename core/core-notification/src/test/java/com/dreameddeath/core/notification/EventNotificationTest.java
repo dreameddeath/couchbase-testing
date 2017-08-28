@@ -26,6 +26,7 @@ import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
 import com.dreameddeath.core.notification.dao.EventDao;
 import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.AnonymousUser;
@@ -135,12 +136,12 @@ public class EventNotificationTest extends Assert{
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
             for(TestEvent submittedEvent:submittedEvents){
-                List<String> listeners = new ArrayList<>();
+                List<EventListenerLink> listeners = new ArrayList<>();
                 listeners.addAll(submittedEvent.getListeners());
                 int nbListeners = listeners.size();
                 for(int listenerPos=0;listenerPos<nbListeners;listenerPos++){
                     Notification subNotification = checkSession.toBlocking().blockingGetFromKeyParams(Notification.class,submittedEvent.getId().toString(),listenerPos+1);
-                    listeners.remove(subNotification.getListenerName());
+                    listeners.removeIf(listener->listener.getName().equals(subNotification.getListenerLink().getName()));
                     assertEquals(1L,(long)subNotification.getNbAttempts());
                     assertEquals(Notification.Status.PROCESSED,subNotification.getStatus());
                 }
@@ -152,7 +153,7 @@ public class EventNotificationTest extends Assert{
                     Notification notif = checkSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(), Notification.class);
                     assertEquals(Notification.Status.PROCESSED, notif.getStatus());
                     TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class, notif.getEventId().toString());
-                    assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
+                    assertTrue(eventTest.getListeners().stream().anyMatch(listener->listener.getName().equals(notif.getListenerLink().getName())));
                 }
             }
         }
@@ -182,7 +183,7 @@ public class EventNotificationTest extends Assert{
                     assertEquals(Notification.Status.PROCESSED, notif.getStatus());
                     assertEquals(1, (long) notif.getNbAttempts());//Simple re-submission, no new attempt
                     TestEvent eventTest = checkSession.toBlocking().blockingGetFromKeyParams(TestEvent.class, notif.getEventId().toString());
-                    assertTrue(eventTest.getListeners().contains(notif.getListenerName()));
+                    assertTrue(eventTest.getListeners().stream().anyMatch(listener->listener.getName().equals(notif.getListenerLink().getName())));
                     assertEquals(2, (long) eventTest.getSubmissionAttempt());
                 }
             }

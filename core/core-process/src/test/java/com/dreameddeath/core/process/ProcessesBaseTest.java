@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -167,7 +167,7 @@ public class ProcessesBaseTest extends Assert {
                     assertEquals("test/testdocevent/1.0.0", link.getEventType());
                     assertEquals(event.getId(), link.getUid());
                     assertEquals(1, event.getListeners().size());
-                    assertEquals(TestDocNotificationListener.NAME, event.getListeners().get(0));
+                    assertEquals(TestDocNotificationListener.NAME, event.getListeners().get(0).getName());
                     assertEquals(1, event.getNotifications().keySet().size());
                     assertEquals(TestDocNotificationListener.NAME, event.getNotifications().keySet().iterator().next());
                     NotificationLink notificationLink = event.getNotifications().get(TestDocNotificationListener.NAME);
@@ -175,7 +175,7 @@ public class ProcessesBaseTest extends Assert {
                     final Notification notification = notificationLink.getBlockingNotification(session);
                     assertNotNull(notification);
                     assertEquals(Notification.Status.PROCESSED,notification.getStatus());
-                    assertEquals(TestDocNotificationListener.NAME, notification.getListenerName());
+                    assertEquals(TestDocNotificationListener.NAME, notification.getListenerLink().getName());
                     TestDocNotificationListener.EventNotifInfo eventNotifInfo = new TestDocNotificationListener.EventNotifInfo(((TestDocEvent) event).sourceTask, event.getId().toString());
                     assertTrue(TestDocNotificationListener.mapCounter.containsKey(eventNotifInfo));
                 } catch (AssertionError e) {

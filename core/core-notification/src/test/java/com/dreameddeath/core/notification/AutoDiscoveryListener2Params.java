@@ -21,6 +21,7 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.annotation.Listener;
 import com.dreameddeath.core.notification.annotation.ListenerProcessor;
 import com.dreameddeath.core.notification.listener.impl.AbstractLocalStandardListener;
+import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.google.common.base.Preconditions;
 import io.reactivex.Single;
@@ -81,7 +82,7 @@ public class AutoDiscoveryListener2Params extends AbstractLocalStandardListener 
         Notification notification = new Notification();
         notification.setEventId(event.getId());
         notification.setDomain(getDomain());
-        notification.setListenerName(getName());
+        notification.setListenerLink(EventListenerLink.build(getDomain(),getName()));
         notification.setId(-1L);
         return queue.manageEventWithFakeNotif(LOG,event,notification);
     }

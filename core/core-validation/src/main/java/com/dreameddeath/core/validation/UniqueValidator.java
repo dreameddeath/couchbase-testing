@@ -42,43 +42,38 @@ import java.lang.reflect.Method;
 public class UniqueValidator<T> implements Validator<T> {
     private final Unique annotation;
     private final Field field;
-    private final Member[] additionnalFields;
-
+    private final Accessor[] additionnalFieldsAccessors;
     public UniqueValidator(Field field,Unique ann){
         annotation = ann;
         this.field = field;
         if(ann.additionnalFields().length>0){
-            additionnalFields = new Member[annotation.additionnalFields().length];
+            additionnalFieldsAccessors = new Accessor[annotation.additionnalFields().length];
             if(!CouchbaseDocumentStructureReflection.isReflexible(field.getDeclaringClass())){
                 throw new RuntimeException("Cannot have multiple fields for class " + field.getDeclaringClass().getName());
             }
             int pos=0;
             CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)ClassInfo.getClassInfo(field.getDeclaringClass()));
             for(String additionnalField : ann.additionnalFields()){
-                CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getFieldByPropertyName(additionnalField);
+                additionnalFieldsAccessors[pos] = Accessor.build(structureReflection.getClassInfo().getCurrentClass(),additionnalField);
+                /*CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getFieldByPropertyName(additionnalField);
                 Preconditions.checkNotNull(fieldReflection,"Cannot find the field {} in class {}",additionnalField,structureReflection.getName());
-                additionnalFields[pos]=fieldReflection.getGetter().getMember();
+                additionnalFields[pos]=fieldReflection.getGetter().getMember();*/
             }
         }
         else{
-            additionnalFields = null;
+            additionnalFieldsAccessors = null;
         }
     }
 
     private String buildFullKey(ValidatorContext ctxt, T value)throws IllegalAccessException,InvocationTargetException{
-        if(additionnalFields==null || additionnalFields.length==0){
+        if(additionnalFieldsAccessors==null || additionnalFieldsAccessors.length==0){
             return value.toString();
         }
         else{
             StringBuilder sb=new StringBuilder();
             sb.append(value.toString());
-            for(Member additionalField:additionnalFields) {
-                Object additionnalValue;
-                if (additionalField instanceof Field) {
-                    additionnalValue = ((Field) additionalField).get(ctxt.head());
-                } else {
-                    additionnalValue = ((Method) additionalField).invoke(ctxt.head());
-                }
+            for(Accessor additionalField:additionnalFieldsAccessors) {
+                Object additionnalValue=additionalField.access(ctxt.head());
                 sb.append('|');
                 if(additionnalValue!=null){
                     sb.append(additionnalValue);
@@ -119,5 +114,42 @@ public class UniqueValidator<T> implements Validator<T> {
             }
         }
         return Maybe.empty();
+    }
+
+    private static interface Accessor{
+        Object access(HasParent orig)throws IllegalAccessException,InvocationTargetException;
+
+        static Accessor build(Class parentClass,String accessorStr){
+            CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClassInfo((ClassInfo)ClassInfo.getClassInfo(parentClass));
+            String currLevelFieldName = accessorStr.contains(".")?accessorStr.substring(0,accessorStr.indexOf(".")):accessorStr;
+            CouchbaseDocumentFieldReflection fieldReflection = structureReflection.getFieldByPropertyName(currLevelFieldName);
+            Preconditions.checkArgument(fieldReflection!=null,"Cannot find the field %s in class %s",currLevelFieldName,structureReflection.getName());
+            Member member = fieldReflection.getGetter().getMember();
+
+            final Accessor resultAccessor;
+            if(member instanceof Field){
+                final Field fieldAccessor = (Field) member;
+                resultAccessor = (obj)->fieldAccessor.get(obj);
+            }
+            else{
+                final Method methodAccessor = (Method) member;
+                resultAccessor = (obj)->methodAccessor.invoke(obj);
+            }
+            if(accessorStr.contains(".")){
+                final String subField = accessorStr.substring(accessorStr.indexOf(".")+1);
+                final Class subFieldClass = fieldReflection.getEffectiveTypeClass();
+                final Accessor subAccessor = build(subFieldClass,subField);
+                return (obj)->{
+                    Object subObject = resultAccessor.access(obj);
+                    if(subObject!=null) {
+                        return subAccessor.access((HasParent) subObject);
+                    }
+                    return null;
+                };
+            }
+            else{
+                return resultAccessor;
+            }
+        }
     }
 }

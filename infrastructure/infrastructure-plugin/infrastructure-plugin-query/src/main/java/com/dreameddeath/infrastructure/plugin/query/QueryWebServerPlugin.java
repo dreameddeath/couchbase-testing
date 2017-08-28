@@ -22,7 +22,6 @@ import com.dreameddeath.core.query.factory.QueryServiceFactory;
 import com.dreameddeath.infrastructure.daemon.plugin.AbstractWebServerPlugin;
 import com.dreameddeath.infrastructure.daemon.plugin.IWebServerPluginBuilder;
 import com.dreameddeath.infrastructure.daemon.webserver.AbstractWebServer;
-import com.dreameddeath.infrastructure.plugin.couchbase.CouchbaseWebServerPlugin;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 /**
@@ -37,7 +36,6 @@ public class QueryWebServerPlugin extends AbstractWebServerPlugin {
 
     public QueryWebServerPlugin(AbstractWebServer<?> server, Builder builder) {
         super(server);
-        CouchbaseWebServerPlugin couchbasePlugin = server.getPlugin(CouchbaseWebServerPlugin.class);
 
         queryServiceFactory = new QueryServiceFactory();
         if(this.getParentWebServer().getServiceDiscoveryManager()!=null){

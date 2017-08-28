@@ -38,6 +38,7 @@ import com.dreameddeath.core.notification.listener.impl.DefaultDiscoverableDefer
 import com.dreameddeath.core.notification.listener.impl.DiscoverableDefaultBlockingListener;
 import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
 import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
@@ -257,16 +258,16 @@ public class ListenerDiscoveryTest extends Assert {
         {
             ICouchbaseSession checkSession = sessionFactory.newReadOnlySession("test",AnonymousUser.INSTANCE);
             for(TestEvent submittedEvent:submittedEvents){
-                List<String> listeners = new ArrayList<>();
+                List<EventListenerLink> listeners = new ArrayList<>();
                 listeners.addAll(submittedEvent.getListeners());
                 int nbListeners = listeners.size();
                 assertEquals(3L,nbListeners);
                 for(int listenerPos=0;listenerPos<nbListeners;listenerPos++){
                     try {
                         Notification subNotification = checkSession.toBlocking().blockingGetFromKeyParams(Notification.class, submittedEvent.getId().toString(), listenerPos + 1);
-                        listeners.remove(subNotification.getListenerName());
+                        listeners.removeIf(listener->listener.getName().equals(subNotification.getListenerLink().getName()));
                         assertEquals(1L, (long) subNotification.getNbAttempts());
-                        switch (subNotification.getListenerName()) {
+                        switch (subNotification.getListenerLink().getName()) {
                             case "testNonBlocking":
                                 assertEquals(Notification.Status.DEFERRED, subNotification.getStatus());
                                 break;
@@ -274,7 +275,7 @@ public class ListenerDiscoveryTest extends Assert {
                                 assertEquals(Notification.Status.PROCESSED, subNotification.getStatus());
                                 break;
                             default:
-                                fail("Unexpected name "+subNotification.getListenerName());
+                                fail("Unexpected name "+subNotification.getListenerLink().getName());
                         }
                     }
                     catch(StorageException e){
@@ -283,7 +284,7 @@ public class ListenerDiscoveryTest extends Assert {
                 }
 
                 assertEquals(1,listeners.size());
-                assertEquals("testBlocking",listeners.get(0));
+                assertEquals("testBlocking",listeners.get(0).getName());
             }
         }
         //Test DeRegistrar

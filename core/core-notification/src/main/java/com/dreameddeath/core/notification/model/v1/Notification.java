@@ -72,7 +72,7 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
     /**
      *  eventId : the event id being notified
      */
-    @DocumentProperty("eventId") @Unique(nameSpace = NOTIFICATION_UID_NAMESPACE,additionnalFields = {"listenerName"})
+    @DocumentProperty("eventId") @Unique(nameSpace = NOTIFICATION_UID_NAMESPACE,additionnalFields = {"listenerLink.name"})
     transient private Property<UUID> eventId = new ImmutableProperty<>(Notification.this);
     /**
      * domain : the event parent domain
@@ -80,10 +80,10 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
     @DocumentProperty("domain")
     private ImmutableProperty<String> domain = new ImmutableProperty<>(Notification.this);
     /**
-     *  listenerName : name of the listener
+     * listenerLink : The info of the target listener
      */
-    @DocumentProperty("listenerName")
-    private Property<String> listenerName = new ImmutableProperty<>(Notification.this);
+    @DocumentProperty("listenerLink")
+    private Property<EventListenerLink> listenerLink = new ImmutableProperty<>(Notification.this);
     /**
      *  status : status of the notification
      */
@@ -142,15 +142,21 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
         domain.set(newValue);
     }
     /**
-     * Getter of listenerName
-     * @return the value of listenerName
+     * Getter of the attribute listenerLink
+     * return the currentValue of listenerLink
      */
-    public String getListenerName() { return listenerName.get(); }
+    public EventListenerLink getListenerLink(){
+        return this.listenerLink.get();
+    }
+
     /**
-     * Setter of listenerName
-     * @param val the new value for listenerName
+     * Setter of the attribute listenerLink
+     * @param newValue the newValue of listenerLink
      */
-    public void setListenerName(String val) { listenerName.set(val); }
+    public void setListenerLink(EventListenerLink newValue){
+        this.listenerLink.set(newValue);
+    }
+
     /**
      * Getter of status
      * @return the value of status

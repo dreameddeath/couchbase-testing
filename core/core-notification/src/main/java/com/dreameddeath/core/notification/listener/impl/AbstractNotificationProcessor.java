@@ -114,7 +114,7 @@ public abstract class AbstractNotificationProcessor {
                 sourceNotif.getStatus(),
                 sourceNotif.getEventId(),
                 sourceNotif.getId(),
-                sourceNotif.getListenerName()
+                sourceNotif.getListenerLink().getName()
         );
         incrementAttemptsManagement(sourceNotif);
         return doProcess(event,sourceNotif,session)
