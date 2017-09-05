@@ -28,6 +28,7 @@ import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.IEventBusLifeCycleListener;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
+import com.dreameddeath.core.notification.dao.CrossDomainBridgeDao;
 import com.dreameddeath.core.notification.dao.EventDao;
 import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
@@ -88,6 +89,7 @@ public class ListenerDiscoveryTest extends Assert {
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,CrossDomainBridgeDao.class,cbSimulator);
         Thread.sleep(100);
     }
 
@@ -232,7 +234,7 @@ public class ListenerDiscoveryTest extends Assert {
                 TestEvent test = new TestEvent();
                 test.toAdd = i;
                 //test.setCorrelationId(test.toAdd.toString());
-                EventFireResult<TestEvent> result = bus.fireEvent(test, session);
+                EventFireResult<TestEvent,?> result = bus.blockingFireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
             }

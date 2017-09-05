@@ -22,6 +22,7 @@ import com.dreameddeath.core.depinjection.IDependencyInjector;
 import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
+import com.dreameddeath.core.notification.dao.CrossDomainBridgeDao;
 import com.dreameddeath.core.notification.dao.EventDao;
 import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
@@ -110,6 +111,7 @@ public class RefRestServiceTest extends Assert {
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),AbstractTask.class,TaskDao.class,cbSimulator);
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,CrossDomainBridgeDao.class,cbSimulator);
         sessionFactory.getDocumentDaoFactory().addDao(new TestDocDao().setClient(cbSimulator));
 
         bus = new EventBusImpl();

@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -174,10 +174,10 @@ public class BasicJobExecutorServiceImpl<T extends AbstractJob> implements IJobE
 
     private Single<JobProcessingResult<T>> submitNotifications(JobNotificationBuildResult<T> jobNotifBuildRes) {
         return Observable.fromIterable(jobNotifBuildRes.getEventMap().values())
-                .flatMap(event->jobNotifBuildRes.getContext().getEventBus().asyncFireEvent(event,jobNotifBuildRes.getContext().getSession()).toObservable())
+                .flatMap(event->jobNotifBuildRes.getContext().getEventBus().fireEvent(event,jobNotifBuildRes.getContext().getSession()).toObservable())
                 .toList()
                 .flatMap(eventFireResults ->{
-                    List<EventFireResult<?>> failedNotifs=eventFireResults.stream().filter(res->!res.isSuccess()).collect(Collectors.toList());
+                    List<EventFireResult<?,?>> failedNotifs=eventFireResults.stream().filter(res->!res.isSuccess()).collect(Collectors.toList());
 
                     if(failedNotifs.size()>0){
                         return Single.error(new JobExecutionException(jobNotifBuildRes.getContext(),"Errors during notifications",failedNotifs));

@@ -1,17 +1,18 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
  */
 
 package com.dreameddeath.core.notification.metrics;
@@ -20,8 +21,10 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.HasBaseMeta;
 import com.dreameddeath.core.notification.bus.EventFireResult;
-import com.dreameddeath.core.notification.model.v1.Event;
+import com.dreameddeath.core.notification.common.IEvent;
+import com.dreameddeath.core.notification.model.v1.INotificationsHolder;
 
 import java.io.Closeable;
 import java.util.Map;
@@ -102,26 +105,26 @@ public class EventBusMetrics implements Closeable {
             total =totals!=null?totals.time():null;
         }
 
-        public <T extends Event> T beforeInitialSave(T event){
-            if(event.getBaseMeta().getState()!= CouchbaseDocument.DocumentState.SYNC){
+        public <T extends HasBaseMeta> T beforeInitialSave(T notificationHolder){
+            if(notificationHolder.getBaseMeta().getState()!= CouchbaseDocument.DocumentState.SYNC){
                 saveInitial =initialSaves!=null?initialSaves.time():null;
             }
-            return event;
+            return notificationHolder;
         }
 
-        public <T extends Event> T afterInitialSave(T event){
+        public <T extends HasBaseMeta> T afterInitialSave(T notificationHolder){
             if(saveInitial!=null) {
                 saveInitial.stop();
                 saveInitial = null;
             }
-            return event;
+            return notificationHolder;
         }
 
         public void beforeFinalSave() {
             saveFinal =(finalSaves!=null)?finalSaves.time():null;
         }
 
-        public <T extends Event> EventFireResult<T> afterFinalSave(EventFireResult<T> eventFireResult) {
+        public <T extends IEvent,THOLDER extends CouchbaseDocument & INotificationsHolder> EventFireResult<T,THOLDER> afterFinalSave(EventFireResult<T,THOLDER> eventFireResult) {
             if(saveFinal!=null){
                 saveFinal.stop();
                 saveFinal=null;
@@ -136,7 +139,7 @@ public class EventBusMetrics implements Closeable {
             }
         }
 
-        public <T extends Event> EventFireResult<T>  stop(EventFireResult<T> eventResult) {
+        public <T extends IEvent,THOLDER extends CouchbaseDocument & INotificationsHolder> EventFireResult<T,THOLDER>   stop(EventFireResult<T,THOLDER> eventResult) {
             stop(eventResult.getSaveError());
             return eventResult;
         }

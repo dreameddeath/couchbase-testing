@@ -33,7 +33,7 @@ import java.util.List;
 public class TaskExecutionException extends Exception {
     private final State state;
     private final AbstractTask task;
-    private final List<EventFireResult<?>> failedNotifications=new ArrayList<>();
+    private final List<EventFireResult<?,?>> failedNotifications=new ArrayList<>();
 
     public TaskExecutionException(TaskContext ctxt, String message) {
         super(message);
@@ -47,7 +47,7 @@ public class TaskExecutionException extends Exception {
         this.state = ctxt.getTaskState().getState();
     }
 
-    public TaskExecutionException(TaskContext ctxt, String message,List<EventFireResult<?>> listFailedNotifications) {
+    public TaskExecutionException(TaskContext ctxt, String message,List<EventFireResult<?,?>> listFailedNotifications) {
         super(message);
         this.task = ctxt.getInternalTask();
         this.state = ctxt.getTaskState().getState();
@@ -75,7 +75,7 @@ public class TaskExecutionException extends Exception {
     public AbstractTask getTask(){ return task;}
     public State getState(){ return state;}
 
-    public List<EventFireResult<?>> getFailedNotifications() {
+    public List<EventFireResult<?,?>> getFailedNotifications() {
         return Collections.unmodifiableList(failedNotifications);
     }
 

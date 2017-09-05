@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -31,13 +31,11 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.dao.unique.CouchbaseUniqueKeyDao;
 import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.java.utils.ClassUtils;
-import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.HasEffectiveDomain;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityDef;
-import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import io.reactivex.Single;
@@ -203,13 +201,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
             domain=((IVersionedEntity) obj).getModelId().getDomain();
         }
         else{
-            DocumentEntity annot=obj.getClass().getAnnotation(DocumentEntity.class);
-            if(annot!=null){
-                domain= EntityModelId.build(annot, obj.getClass()).getDomain();
-            }
-            else{
-                throw new InconsistentStateException(obj,"Need the DocumentEntity annotation on class "+ obj.getClass().getName());
-            }
+            domain= EntityDef.build(obj.getClass()).getModelId().getDomain();
         }
         
         if(!getDomain().equals(domain)){

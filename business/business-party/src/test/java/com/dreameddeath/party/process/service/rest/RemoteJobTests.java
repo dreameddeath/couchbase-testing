@@ -83,6 +83,7 @@ public class RemoteJobTests {
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstractjob").getName(), "testCoreBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "abstracttask").getName(), "testCoreBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "notification").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "crossdomainbridge").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("core", "event").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(InfrastructureProcessPluginConfigProperties.REMOTE_SERVICE_FOR_DOMAIN.getProperty(DomainConstants.PARTY_DOMAIN).getName(),"test");
 

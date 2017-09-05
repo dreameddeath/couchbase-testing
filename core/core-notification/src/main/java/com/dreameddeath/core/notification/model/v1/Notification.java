@@ -58,10 +58,14 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
     public final EntityModelId getModelId(){
         return fullEntityId;
     }
-
     @Override
     public String getEffectiveDomain() {
-        return getDomain();
+        if(listenerLink.get()!=null && listenerLink.get().getDomain()!=null){
+            return listenerLink.get().getDomain();
+        }
+        else{
+            return getDomain();
+        }
     }
 
     /**
@@ -77,7 +81,7 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
     /**
      * domain : the event parent domain
      */
-    @DocumentProperty("domain")
+    @DocumentProperty("event-domain")
     private ImmutableProperty<String> domain = new ImmutableProperty<>(Notification.this);
     /**
      * listenerLink : The info of the target listener
@@ -105,7 +109,6 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
     @DocumentProperty("nbRemoteAttempts")
     private NumericProperty<Long> nbRemoteAttempts = new StandardLongProperty(Notification.this,0);
 
-
     /**
      * Getter of id
      * @return the value of id
@@ -127,15 +130,14 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
      */
     public void setEventId(UUID val) { eventId.set(val); }
     /**
-     * Getter for property domain
+     * Getter for property {@link #domain}
      * @return The current value
      */
     public String getDomain(){
         return domain.get();
     }
-
     /**
-     * Setter for property domain
+     * Setter for property {@link #domain}
      * @param newValue  the new value for the property
      */
     public void setDomain(String newValue){
@@ -148,7 +150,6 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
     public EventListenerLink getListenerLink(){
         return this.listenerLink.get();
     }
-
     /**
      * Setter of the attribute listenerLink
      * @param newValue the newValue of listenerLink
@@ -192,8 +193,6 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
      * @return the new value of nbAttempts
      */
     public Long incNbAttempts() { return nbAttempts.inc(1L).get(); }
-
-
     /**
      * Getter of nbRemoteAttempts
      * @return the value of nbRemoteAttempts
@@ -209,8 +208,6 @@ public final class Notification extends CouchbaseDocument implements IVersionedE
      * @return the new value of nbRemoteAttempts
      */
     public Long incNbRemoteAttempts() { return nbRemoteAttempts.inc(1L).get(); }
-
-
 
     public enum Status{
         INITIALIZED,

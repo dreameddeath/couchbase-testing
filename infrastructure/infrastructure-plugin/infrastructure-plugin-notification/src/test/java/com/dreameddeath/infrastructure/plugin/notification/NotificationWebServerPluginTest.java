@@ -77,6 +77,7 @@ public class NotificationWebServerPluginTest extends Assert{
         //ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdoc").getMethodParamName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "testdocprocess").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "notification").getName(), "testBucketName");
+        ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "crossdomainbridge").getName(), "testBucketName");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseDaoConfigProperties.COUCHBASE_DAO_BUCKET_NAME.getProperty("test", "event").getName(), "testBucketName");
         final AbstractDaemon daemon = AbstractDaemon.builder()
                 .withName("testing Daemon")
@@ -119,7 +120,7 @@ public class NotificationWebServerPluginTest extends Assert{
                     TestEvent test = new TestEvent();
                     test.toAdd = i;
                     //test.setCorrelationId(test.toAdd.toString());
-                    EventFireResult<TestEvent> result = plugin.getEventBus().fireEvent(test, session);
+                    EventFireResult<TestEvent,?> result = plugin.getEventBus().blockingFireEvent(test, session);
                     assertTrue(result.isSuccess());
                 }
 
@@ -163,7 +164,7 @@ public class NotificationWebServerPluginTest extends Assert{
                     TestEvent test = new TestEvent();
                     test.toAdd = i;
                     //test.setCorrelationId(test.toAdd.toString());
-                    EventFireResult<TestEvent> result = plugin.getEventBus().fireEvent(test, session);
+                    EventFireResult<TestEvent,?> result = plugin.getEventBus().blockingFireEvent(test, session);
                     assertTrue(result.isSuccess());
                 }
 

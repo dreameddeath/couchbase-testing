@@ -23,6 +23,7 @@ import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
+import com.dreameddeath.core.notification.dao.CrossDomainBridgeDao;
 import com.dreameddeath.core.notification.dao.EventDao;
 import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.notification.model.v1.Event;
@@ -59,6 +60,7 @@ public class EventNotificationTest extends Assert{
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,CrossDomainBridgeDao.class,cbSimulator);
         Thread.sleep(100);
     }
 
@@ -97,7 +99,7 @@ public class EventNotificationTest extends Assert{
 
         {
             ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
-            EventFireResult<NoListenerTestEvent> result = bus.fireEvent(new NoListenerTestEvent(), session);
+            EventFireResult<NoListenerTestEvent,?> result = bus.blockingFireEvent(new NoListenerTestEvent(), session);
             assertTrue(result.isSuccess());
             assertTrue(result.getResults().size()==0);
             assertTrue(result.getEvent().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW));
@@ -110,7 +112,7 @@ public class EventNotificationTest extends Assert{
             for (int i = 1; i <= nbEvent; ++i) {
                 TestEvent test = new TestEvent();
                 test.toAdd = i;
-                EventFireResult<TestEvent> result = bus.fireEvent(test, session);
+                EventFireResult<TestEvent,?> result = bus.blockingFireEvent(test, session);
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
             }
@@ -163,7 +165,7 @@ public class EventNotificationTest extends Assert{
          */
         {
             ICouchbaseSession resubmitSession = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
-            for(EventFireResult<TestEvent> resumitResult: submittedEvents.stream().map(eventTest -> bus.fireEvent(eventTest,resubmitSession)).collect(Collectors.toList())) {
+            for(EventFireResult<TestEvent,?> resumitResult: submittedEvents.stream().map(eventTest -> bus.blockingFireEvent(eventTest,resubmitSession)).collect(Collectors.toList())) {
                 assertTrue(resumitResult.isSuccess());
                 assertEquals(2,(long)resumitResult.getEvent().getSubmissionAttempt());
             }

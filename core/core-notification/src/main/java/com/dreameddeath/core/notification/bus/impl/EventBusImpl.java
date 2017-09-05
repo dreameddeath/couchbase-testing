@@ -20,18 +20,18 @@ package com.dreameddeath.core.notification.bus.impl;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.IEventBusLifeCycleListener;
 import com.dreameddeath.core.notification.bus.PublishedResult;
+import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.config.NotificationConfigProperties;
 import com.dreameddeath.core.notification.listener.IEventListener;
 import com.dreameddeath.core.notification.listener.SubmissionResult;
 import com.dreameddeath.core.notification.metrics.EventBusMetrics;
 import com.dreameddeath.core.notification.metrics.NotificationMetrics;
-import com.dreameddeath.core.notification.model.v1.Event;
-import com.dreameddeath.core.notification.model.v1.EventListenerLink;
-import com.dreameddeath.core.notification.model.v1.Notification;
+import com.dreameddeath.core.notification.model.v1.*;
 import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
 import com.google.common.base.Preconditions;
 import com.lmax.disruptor.*;
@@ -62,7 +62,7 @@ public class EventBusImpl implements IEventBus {
     private final ThreadFactory threadFactory;
     private final List<IEventBusLifeCycleListener> lifeCycleListeners = new CopyOnWriteArrayList<>();
     private final Map<String,InternalEventHandler> eventHandlersMap = new ConcurrentHashMap<>();
-    private final EventTranslatorThreeArg<InternalEvent,Event, Notification,NotificationMetrics.Context> translator;
+    private final EventTranslatorThreeArg<InternalEvent,IEvent, Notification,NotificationMetrics.Context> translator;
     private final EventBusMetrics eventBusMetrics;
     private volatile boolean isStarted=false;
 
@@ -167,63 +167,77 @@ public class EventBusImpl implements IEventBus {
     }
 
     @Override
-    public <T extends Event> Single<EventFireResult<T>> asyncFireEvent(T event, final ICouchbaseSession session) {
-        return this.asyncFireEvent(Single.just(event),session);
+    public <T extends Event> Single<EventFireResult<T,T>> fireEvent(final T sourceEvent, final ICouchbaseSession session) {
+        final EventBusMetrics.Context eventMetricContext = eventBusMetrics.start();
+        return fireEvent(sourceEvent,sourceEvent,session,eventMetricContext);
     }
 
     @Override
-    public <T extends Event> Single<EventFireResult<T>> asyncFireEvent(final Single<T> eventObservable,final ICouchbaseSession session) {
+    public <T extends Event> EventFireResult<T,T> blockingFireEvent(T event, ICouchbaseSession session) {
+        return fireEvent(event,session).blockingGet();
+    }
+
+    @Override
+    public <T extends IEvent> Single<EventFireResult<T,CrossDomainBridge>> fireCrossDomainEvent(T sourceEvent, ICouchbaseSession session) {
         final EventBusMetrics.Context eventMetricContext = eventBusMetrics.start();
-        return eventObservable.map(
-                event-> {
-                    event.incrSubmissionAttempt();
-                    if(event.getSubmissionAttempt()==1) {
+        CrossDomainBridge bridge = new CrossDomainBridge();
+        bridge.setEventId(sourceEvent.getId());
+        bridge.setDomain(session.getDomain());
+        bridge.setSubmissionAttempt(0L);
+        return fireEvent(sourceEvent,bridge,session,eventMetricContext);
+    }
+
+    @Override
+    public <T extends IEvent> EventFireResult<T,CrossDomainBridge> blockingFireCrossDomainEvent(T event, ICouchbaseSession session) {
+        return fireCrossDomainEvent(event,session).blockingGet();
+    }
+
+    private <T extends IEvent,THOLDER extends CouchbaseDocument & INotificationsHolder > Single<EventFireResult<T,THOLDER>> fireEvent(T sourceEvent,THOLDER sourceNotifHolder, final ICouchbaseSession session,final EventBusMetrics.Context eventMetricContext) {
+        return Single.just(sourceNotifHolder).map(
+                notifHolder-> {
+                    notifHolder.incrSubmissionAttempt();
+                    if(notifHolder.getSubmissionAttempt()==1) {
                         eventHandlersMap.values().stream()
-                                .filter(handler -> handler.listener.isApplicable(event))
-                                .forEach(handler-> event.addListener(handler.listener.getName(),handler.listener.getDomain()));
-                        event.setStatus(Event.Status.NOTIFICATIONS_LIST_NAME_GENERATED);
+                                .filter(handler -> handler.listener.isApplicable(sourceEvent))
+                                .forEach(handler-> notifHolder.addListener(handler.listener.getName(),handler.listener.getDomain()));
+                        notifHolder.setStatus(Event.Status.NOTIFICATIONS_LIST_NAME_GENERATED);
                     }
-                    return event;
+                    return notifHolder;
                 }
         )
-        .map(eventMetricContext::beforeInitialSave)
-        .flatMap(event->saveIfNeeded(event,session))
-        .map(eventMetricContext::afterInitialSave)
-        .flatMap(event->this.submitEvent(event,session,eventMetricContext))
-        .doOnError(eventMetricContext::stop);
+                .map(eventMetricContext::beforeInitialSave)
+                .flatMap(notifHolder->saveIfNeeded(notifHolder,session))
+                .map(eventMetricContext::afterInitialSave)
+                .flatMap(notifHolder->this.submitEvent(sourceEvent,notifHolder,session,eventMetricContext))
+                .doOnError(eventMetricContext::stop);
     }
 
-    private <T extends Event> Single<T> saveIfNeeded(T event, ICouchbaseSession session) {
-        if(event.getListeners().size()>0){
-            return session.asyncSave(event);
+    private <T extends CouchbaseDocument & INotificationsHolder> Single<T> saveIfNeeded(T notificationsHolder, ICouchbaseSession session) {
+        if(notificationsHolder.getListeners().size()>0){
+            return session.asyncSave(notificationsHolder);
         }
         else{
-            return Single.just(event);
+            return Single.just(notificationsHolder);
         }
     }
 
-    @Override
-    public <T extends Event> EventFireResult<T> fireEvent(T event,ICouchbaseSession session) {
-        return asyncFireEvent(event,session).blockingGet();
-    }
-
-    protected <T extends Event> Single<EventFireResult<T>> submitEvent(final T event,ICouchbaseSession session,final EventBusMetrics.Context eventMetricContext){
+    private <T extends IEvent,THOLDER extends CouchbaseDocument & INotificationsHolder> Single<EventFireResult<T,THOLDER>> submitEvent(final T sourceEvent, final THOLDER notificationsHolder,ICouchbaseSession session, final EventBusMetrics.Context eventMetricContext){
         List<Observable<PublishedResult>> listPublishedResult = new ArrayList<>();
-        String domain = event.getModelId()!=null?event.getModelId().getDomain():null;
-        for(EventListenerLink listenerLink:event.getListeners()){
-            Preconditions.checkNotNull(domain,"The domain isn't defined for event %s of key %s",event.getClass().getName(),event.getBaseMeta().getKey());
+        String eventOrigDomain = notificationsHolder.getDomain();
+        for(EventListenerLink listenerLink:notificationsHolder.getListeners()){
+            Preconditions.checkNotNull(eventOrigDomain,"The domain isn't defined for event %s of id %s",sourceEvent.getClass().getName(),sourceEvent.getId());
             final NotificationMetrics.Context notificationMetricContext = eventMetricContext.notificationStart(listenerLink.getName());
             Single<PublishedResult> notificationObservable = Single.just(listenerLink.getName())
                     .map(listenerName->{
                         Notification result = new Notification();
-                        result.setDomain(domain);
-                        result.setEventId(event.getId());
+                        result.setDomain(eventOrigDomain);
+                        result.setEventId(sourceEvent.getId());
                         result.setListenerLink(EventListenerLink.build(listenerLink));
                         return result;
                     })
                     .flatMap(notification -> {
                         Single<Notification> notifObsRes = Single.just(notification);
-                        if(event.getSubmissionAttempt()>1L){
+                        if(notificationsHolder.getSubmissionAttempt()>1L){
                             notifObsRes = notifObsRes
                                     .map(notificationMetricContext::beforeSave)
                                     .flatMap(session::asyncSave)
@@ -239,8 +253,8 @@ public class EventBusImpl implements IEventBus {
                                     .flatMap(notifId->session.asyncGet(notifId,Notification.class))
                                     .map(notificationMetricContext::afterReadDuplicate)
                                     .map(notif->{
-                                        if(!notif.getEventId().equals(event.getId())){
-                                            throw new IllegalStateException("The notification "+notif.getBaseMeta().getKey()+" hasn't the right event id <"+notif.getEventId()+"/"+event.getId()+">");
+                                        if(!notif.getEventId().equals(sourceEvent.getId())){
+                                            throw new IllegalStateException("The notification "+notif.getBaseMeta().getKey()+" hasn't the right event id <"+notif.getEventId()+"/"+sourceEvent.getId()+">");
                                         }
                                         return notif;
                                     });
@@ -257,7 +271,7 @@ public class EventBusImpl implements IEventBus {
                             if (handler == null) {
                                 throw new IllegalStateException("Cannot find handler for listener " + notification.getListenerLink().getName());
                             }
-                            handler.publish(event, notification, notificationMetricContext);
+                            handler.publish(sourceEvent, notification, notificationMetricContext);
                         }
                         return new PublishedResult(notification);
                     })
@@ -271,7 +285,7 @@ public class EventBusImpl implements IEventBus {
         }
 
         return Observable.merge(listPublishedResult)
-                .reduce(EventFireResult.builder(event),
+                .reduce(EventFireResult.builder(sourceEvent,notificationsHolder),
                         EventFireResult.Builder::withDispatchResult
                         )
                 .map(EventFireResult.Builder::build)
@@ -281,13 +295,13 @@ public class EventBusImpl implements IEventBus {
                     }
                     else{
                         if(eventResult.areAllNotificationsInDb()){
-                            eventResult.getEvent().setStatus(Event.Status.NOTIFICATIONS_IN_DB);
-                            eventResult.getEvent().setNotifications(eventResult.getNoficationsLinksMap());
+                            eventResult.getNotificationHolder().setStatus(Event.Status.NOTIFICATIONS_IN_DB);
+                            eventResult.getNotificationHolder().setNotifications(eventResult.getNoficationsLinksMap());
                         }
                         eventMetricContext.beforeFinalSave();
 
                         return session
-                                .asyncSave(eventResult.getEvent())
+                                .asyncSave(eventResult.getNotificationHolder())
                                 .map(savedEvent->EventFireResult.builder(eventResult,savedEvent).build())
                                 .map(eventMetricContext::afterFinalSave)
                                 .onErrorResumeNext(eventResult::withSaveError)
@@ -297,13 +311,16 @@ public class EventBusImpl implements IEventBus {
                 });
     }
 
+
+
     private class InternalEventHandler implements EventHandler<InternalEvent>{
         private final Logger LOG = LoggerFactory.getLogger(InternalEventHandler.class);
-        private final Disruptor[] disruptors;
-        private final RingBuffer[] ringBuffers;
+        private final Disruptor<InternalEvent>[] disruptors;
+        private final RingBuffer<InternalEvent>[] ringBuffers;
         private final IEventListener listener;
         private final InternalExceptionHandler exceptionHandler=new InternalExceptionHandler();
 
+        @SuppressWarnings("unchecked")
         InternalEventHandler(IEventListener listener){
             int size = NotificationConfigProperties.EVENTBUS_THREAD_POOL_SIZE.getValue(1);
             disruptors = new Disruptor[size];
@@ -330,7 +347,7 @@ public class EventBusImpl implements IEventBus {
             }    
         }
         
-        public <T extends Event> void publish(final T event,Notification notification,NotificationMetrics.Context notificationMetricContext){
+        <T extends IEvent> void publish(final T event,Notification notification,NotificationMetrics.Context notificationMetricContext){
             String correlationId  = event.getCorrelationId();
             if(correlationId==null){
                 correlationId = event.getId().toString();
@@ -346,13 +363,12 @@ public class EventBusImpl implements IEventBus {
         }
 
         public void stop(){
-            for(int index=0;index<disruptors.length;index++) {
-                if(disruptors[index]!=null) {
+            for (Disruptor<InternalEvent> disruptor : disruptors) {
+                if (disruptor != null) {
                     try {
-                        disruptors[index].shutdown(1, TimeUnit.MINUTES);
-                    }
-                    catch(TimeoutException e){
-                        LOG.error("Cannot stop disruptor {}",disruptors[index]);
+                        disruptor.shutdown(1, TimeUnit.MINUTES);
+                    } catch (TimeoutException e) {
+                        LOG.error("Cannot stop disruptor {}", disruptor);
                     }
                 }
             }

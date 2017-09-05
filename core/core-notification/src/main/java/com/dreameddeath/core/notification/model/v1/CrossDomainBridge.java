@@ -19,8 +19,8 @@ package com.dreameddeath.core.notification.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.HasEffectiveDomain;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -28,7 +28,6 @@ import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.NumericProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.*;
-import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -40,12 +39,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Created by Christophe Jeunesse on 24/05/2016.
+ * Created by Christophe Jeunesse on 30/08/2017.
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 @DocumentEntity
-public abstract class Event extends CouchbaseDocument implements IVersionedEntity,IEvent,INotificationsHolder {
+public class CrossDomainBridge extends CouchbaseDocument  implements IVersionedEntity, HasEffectiveDomain,INotificationsHolder {
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
     public final void setDocumentFullVersionId(String typeId){
@@ -59,96 +58,96 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
     public final EntityModelId getModelId(){
         return fullEntityId;
     }
+    @Override
+    public String getEffectiveDomain() {
+        return getTargetDomain();
+    }
 
     /**
-     *  id : event unique Id
+     *  eventId : the event id being notified
      */
-    @DocumentProperty("id")
-    private final Property<UUID> id = new ImmutableProperty<>(Event.this,UUID.randomUUID());
+    @DocumentProperty("eventId")
+    transient private Property<UUID> eventId = new ImmutableProperty<>(CrossDomainBridge.this);
     /**
-     *  type : type of event
+     * domain : the event parent domain
      */
-    @DocumentProperty("type")
-    private final Property<EventType> type = new ImmutableProperty<>(Event.this);
+    @DocumentProperty("event-domain")
+    private ImmutableProperty<String> domain = new ImmutableProperty<>(CrossDomainBridge.this);
     /**
-     *  correlationId : correlation id of event to allow group by
+     * targetDomain : the target domain of the bridge
      */
-    @DocumentProperty("correlationId")
-    private final Property<String> correlationId = new ImmutableProperty<>(Event.this);
-    /**
-     *  rank : Ordering rank for the given correlation id. Used to perform correlation checks
-     */
-    @DocumentProperty("rank")
-    private final Property<String> rank = new ImmutableProperty<>(Event.this);
+    @DocumentProperty("target-domain")
+    private Property<String> targetDomain = new ImmutableProperty<>(CrossDomainBridge.this);
     /**
      *  listeners : List of listeners to post to
      */
     @DocumentProperty("listeners")
-    private final ListProperty<EventListenerLink> listeners = new ArrayListProperty<>(Event.this);
+    private final ListProperty<EventListenerLink> listeners = new ArrayListProperty<>(CrossDomainBridge.this);
     /**
      *  submissionAttempt : number of attempts of submission
      */
     @DocumentProperty("submissionAttempt")
-    private final NumericProperty<Long> submissionAttempt = new StandardLongProperty(Event.this,0);
+    private final NumericProperty<Long> submissionAttempt = new StandardLongProperty(CrossDomainBridge.this,0);
     /**
      *  status : The status of the event
      */
     @DocumentProperty("status")
-    private final Property<Status> status = new StandardProperty<>(Event.this,Status.CREATED);
+    private final Property<Event.Status> status = new StandardProperty<>(CrossDomainBridge.this, Event.Status.CREATED);
     /**
      * notifications : the notifications attached to the event
      */
     @DocumentProperty("notifications")
-    private final MapProperty<String,NotificationLink> notifications = new HashMapProperty<>(Event.this);
+    private final MapProperty<String,NotificationLink> notifications = new HashMapProperty<>(CrossDomainBridge.this);
+
 
     /**
-     * Getter of id
-     * @return the value of id
+     * Getter of {@link #eventId}
+     * @return the value of eventId
      */
-    public UUID getId() { return id.get(); }
+    public UUID getEventId() { return eventId.get(); }
     /**
-     * Setter of id
-     * @param val the new value for id
+     * Setter of {@link #eventId}
+     * @param val the new value for eventId
      */
-    public void setId(UUID val) { id.set(val); }
+    public void setEventId(UUID val) { eventId.set(val); }
     /**
-     * Getter of type
-     * @return the value of type
+     * Getter for property {@link #domain}
+     * @return The current value
      */
-    public EventType getType() { return type.get(); }
+    public String getDomain(){
+        return domain.get();
+    }
     /**
-     * Setter of type
-     * @param val the new value for type
+     * Setter for property {@link #domain}
+     * @param newValue  the new value for the property
      */
-    public void setType(EventType val) { type.set(val); }
+    public void setDomain(String newValue){
+        domain.set(newValue);
+    }
     /**
-     * Getter of correlationId
-     * @return the value of correlationId
+     * Getter of the attribute {@link #targetDomain}
+     * return the currentValue of {@link #targetDomain}
      */
-    public String getCorrelationId() { return correlationId.get(); }
+    public String getTargetDomain(){
+        return this.targetDomain.get();
+    }
+
     /**
-     * Setter of correlationId
-     * @param val the new value for correlationId
+     * Setter of the attribute {@link #targetDomain}
+     * @param newValue the newValue of {@link #targetDomain}
      */
-    public void setCorrelationId(String val) { correlationId.set(val); }
+    public void setTargetDomain(String newValue){
+        this.targetDomain.set(newValue);
+    }
+
     /**
-     * Getter of rank
-     * @return the value of rank
-     */
-    public String getRank() { return rank.get(); }
-    /**
-     * Setter of rank
-     * @param val the new value for rank
-     */
-    public void setRank(String val) { rank.set(val); }
-    /**
-     * Getter of listeners
-     * @return the whole (immutable) list of listeners
+     * Getter of {@link #listeners}
+     * @return the whole (immutable) list of {@link #listeners}
      */
     public List<EventListenerLink> getListeners() { return listeners.get(); }
     /**
-     * Setter of listeners
-     * @param newListeners the new collection of listeners
+     * Setter of {@link #listeners}
+     * @param newListeners the new collection of {@link #listeners}
      */
     public void setListeners(Collection<EventListenerLink> newListeners) { listeners.set(newListeners); }
     /**
@@ -163,7 +162,6 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
         link.setDomain(domain);
         return listeners.add(link);
     }
-
     /**
      * Getter of submissionAttempt
      * @return the value of submissionAttempt
@@ -183,12 +181,12 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      * Getter of status
      * @return the value of status
      */
-    public Status getStatus() { return status.get(); }
+    public Event.Status getStatus() { return status.get(); }
     /**
      * Setter of status
      * @param val the new value of status
      */
-    public void setStatus(Status val) { status.set(val); }
+    public void setStatus(Event.Status val) { status.set(val); }
 
     /**
      * put a new Notification link for given listener name
@@ -213,18 +211,6 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
      */
     public Map<String,NotificationLink> getNotifications(){
         return notifications.get();
-    }
-
-
-    @Override
-    public String getDomain() {
-        return fullEntityId!=null?fullEntityId.getDomain(): EntityDef.build(this.getClass()).getModelId().getDomain();
-    }
-
-    public enum Status{
-        CREATED,
-        NOTIFICATIONS_LIST_NAME_GENERATED,
-        NOTIFICATIONS_IN_DB
     }
 
 
