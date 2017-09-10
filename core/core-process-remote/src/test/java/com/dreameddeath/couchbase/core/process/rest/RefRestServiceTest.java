@@ -28,7 +28,7 @@ import com.dreameddeath.core.notification.dao.NotificationDao;
 import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
 import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
 import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
-import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.listener.impl.factory.EventListenerFactory;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
 import com.dreameddeath.core.process.dao.JobDao;

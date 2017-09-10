@@ -35,9 +35,9 @@ import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
 import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
 import com.dreameddeath.core.notification.listener.IEventListener;
 import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
-import com.dreameddeath.core.notification.listener.impl.DefaultDiscoverableDeferringNotification;
+import com.dreameddeath.core.notification.listener.impl.DefaultDiscoverableDeferringListener;
 import com.dreameddeath.core.notification.listener.impl.DiscoverableDefaultBlockingListener;
-import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.listener.impl.factory.EventListenerFactory;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.Notification;
@@ -184,7 +184,7 @@ public class ListenerDiscoveryTest extends Assert {
                 @Override public void onStop() {}
                 @Override public void onAddListener(IEventListener listener) {
                     if(counter.getCount()>0) {
-                        assertTrue(listener instanceof DefaultDiscoverableDeferringNotification);
+                        assertTrue(listener instanceof DefaultDiscoverableDeferringListener);
                         assertEquals(expectedType,listener.getType());
                         assertEquals(expectedName,listener.getName());
                         counter.countDown();

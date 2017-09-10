@@ -15,88 +15,103 @@
  *
  */
 
-package com.dreameddeath.core.notification.remote;
+package com.dreameddeath.core.notification.listener.impl.crossdomain;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
 import com.dreameddeath.core.model.dto.converter.IDtoOutputConverter;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
-import com.dreameddeath.core.notification.annotation.Listener;
+import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.common.IEvent;
-import com.dreameddeath.core.notification.listener.impl.AbstractDiscoverableListener;
+import com.dreameddeath.core.notification.listener.HasListenerDescription;
+import com.dreameddeath.core.notification.listener.IEventListener;
+import com.dreameddeath.core.notification.listener.SubmissionResult;
+import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
+import com.dreameddeath.core.notification.model.v1.CrossDomainBridge;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
-import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
-import com.dreameddeath.core.notification.remote.model.RemoteProcessingRequest;
-import com.dreameddeath.core.notification.remote.model.RemoteProcessingResult;
-import com.dreameddeath.core.service.client.rest.IRestServiceClient;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
-import javax.ws.rs.client.Entity;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by Christophe Jeunesse on 05/10/2016.
+ * Created by Christophe Jeunesse on 05/09/2017.
  */
-@Listener(forTypes = {AbstractRemoteConsumerRest.REMOTE_NOTIFICATION_LISTENER_TYPE},matcherRank = 10)
-public class RemoteProducerListener extends AbstractDiscoverableListener {
-    private static final Logger LOG = LoggerFactory.getLogger(RemoteProducerListener.class);
+public abstract class AbstractCrossDomainListener<T extends IEventListener & HasListenerDescription> extends AbstractNotificationProcessor implements IEventListener {
+    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
-    private IRemoteNotificationClientServiceFactory remoteNotificationClientServiceFactory;
-    private IRestServiceClient remoteClient;
+    private String sourceDomain;
+    private T parentListener;
     private Map<Class<? extends IEvent>,Converter<? extends IEvent,? extends IEvent>> converterMap = new ConcurrentHashMap<>();
     private DtoConverterFactory dtoConverterFactory;
-
-    public RemoteProducerListener(ListenerDescription description) {
-        super(description);
-    }
-
-    @Autowired
-    public void setClientFactory(IRemoteNotificationClientServiceFactory factory){
-        this.remoteNotificationClientServiceFactory = factory;
-    }
 
     @Autowired
     public void setDtoConverterFactory(DtoConverterFactory factory){
         this.dtoConverterFactory = factory;
     }
 
-    @PostConstruct
-    public void init(){
-        remoteClient = remoteNotificationClientServiceFactory.getClient(getDescription());
+    public AbstractCrossDomainListener(String sourceDomain, T parentListener) {
+        this.sourceDomain = sourceDomain;
+        this.parentListener = parentListener;
     }
 
     @Override
-    protected void incrementAttemptsManagement(Notification sourceNotif) {
-        sourceNotif.incNbRemoteAttempts();
+    public String getDomain() {
+        return sourceDomain;
     }
 
     @Override
-    protected <T extends IEvent> Single<ProcessingResultInfo> doProcess(final T event, final Notification notification, final ICouchbaseSession session) {
+    public String getName() {
+        return parentListener.getName();
+    }
+
+    @Override
+    public String getType() {
+        return parentListener.getType();
+    }
+
+    @Override
+    public String getVersion() {
+        return parentListener.getVersion();
+    }
+
+    @Override
+    public <T extends IEvent> Single<SubmissionResult> submit(final Notification sourceNotif, final T event) {
+        return processIfNeeded(sourceNotif,event);
+    }
+
+    @Override
+    public <T extends IEvent> Single<SubmissionResult> submit(String domain, String notifId, T event) {
+        return processIfNeeded(domain,notifId,event);
+    }
+
+    @Override
+    public Single<SubmissionResult> submit(String domain,String notifKey) {
+        return processIfNeeded(domain,notifKey);
+    }
+
+    @Override
+    protected <T extends IEvent> Single<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
         final Converter<T,? extends IEvent> converter = getOutputConverter(event);
-        return session.asyncSave(notification)
-                .flatMap(savedNotif->
-                    remoteClient.getInstance()
-                    .path("{domain}")
-                    .resolveTemplate("domain",notification.getDomain())
-                    .request()
-                    .post(Entity.json(new RemoteProcessingRequest<>(converter.convert(event),notification.getBaseMeta().getKey())), RemoteProcessingResult.class)
-                    .flatMap(remoteProcessingResult -> mapResult(remoteProcessingResult,session))
-                )
-                .onErrorReturn(throwable -> ProcessingResultInfo.build(notification,false,ProcessingResult.DEFERRED))
-                ;
+        return doProcessCrossDomainEvent(converter.convert(event), session)
+                .map(res->buildResult(notification,res));
     }
 
-    public Single<ProcessingResultInfo> mapResult(final RemoteProcessingResult result, ICouchbaseSession session){
-        return session.asyncGet(result.getNotificationKey(),Notification.class)
-                .map(notif->ProcessingResultInfo.build(notif,true,result.isSuccess()?ProcessingResult.PROCESSED:ProcessingResult.DEFERRED));
+    protected abstract <T extends IEvent> Single<EventFireResult<T, CrossDomainBridge>> doProcessCrossDomainEvent(T event, ICouchbaseSession session);
+
+    private <T extends IEvent> ProcessingResultInfo buildResult(Notification notification, EventFireResult<T,CrossDomainBridge> eventFireResult){
+        ProcessingResult result=ProcessingResult.SUBMITTED;
+        switch (eventFireResult.getNotificationHolder().getStatus()){
+            case NOTIFICATIONS_LIST_NAME_GENERATED: result=ProcessingResult.DEFERRED;break;
+            case NOTIFICATIONS_IN_DB:result=ProcessingResult.PROCESSED;break;
+        }
+        return ProcessingResultInfo.build(notification,false,result);
     }
 
     private  <T extends IEvent> Converter<T,? extends IEvent> getOutputConverter(T event){
@@ -108,7 +123,7 @@ public class RemoteProducerListener extends AbstractDiscoverableListener {
         if(Event.class.isAssignableFrom(eventClass)){
             modelId = CouchbaseDocumentReflection.getReflectionFromClass((Class<Event>)eventClass).getStructure().getEntityModelId();
         }
-        for(ListenedEvent listenedEvent: getDescription().getListenedEvents()){
+        for(ListenedEvent listenedEvent: parentListener.getDescription().getListenedEvents()){
             try {
                 Class<? extends IEvent> targetClass=null;
                 if(listenedEvent.getPublishedClassName()!=null){
@@ -137,10 +152,15 @@ public class RemoteProducerListener extends AbstractDiscoverableListener {
                 LOG.error("Cannot find class {}",listenedEvent.getPublishedClassName());
             }
         }
-        throw new RuntimeException("Cannot build converter for class "+eventClass+ " for listened elements "+getDescription().getListenedEvents());
+        throw new RuntimeException("Cannot build converter for class "+eventClass+ " for listened elements "+parentListener.getDescription().getListenedEvents());
     }
 
     public interface Converter<T extends IEvent,TOUT extends IEvent>{
         TOUT convert(T in);
+    }
+
+    @Override
+    public <T extends IEvent> boolean isApplicable(String effectiveDomain, T event) {
+        return effectiveDomain.equals(getDomain()) && parentListener.isApplicable(effectiveDomain, event);
     }
 }

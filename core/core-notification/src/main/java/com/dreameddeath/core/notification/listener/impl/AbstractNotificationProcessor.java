@@ -62,20 +62,6 @@ public abstract class AbstractNotificationProcessor {
         return Single.just(new SubmissionResult(notification,notification.getStatus()== Notification.Status.PROCESSED));
     }
 
-    /*public Single<SubmissionResult> processIfNeeded(final String sourceNotifKey, final ICouchbaseSession session) {
-        return session.asyncGet(sourceNotifKey,Notification.class)
-                .map(notification -> {
-                    if(notification.getDomain().equals(session.getDomain())){
-
-                    }
-                    else {
-
-                    }
-                })
-                .map()
-                processIfNeeded(session.getDomain(),sourceNotifKey);
-    }
-    */
     public <T extends IEvent> Single<SubmissionResult> processIfNeeded(final String domain,final String sourceNotifKey,final T providedEvent) {
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain, defaultSessionUser);
 

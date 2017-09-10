@@ -26,8 +26,8 @@ import io.reactivex.Single;
 /**
  * Created by Christophe Jeunesse on 10/08/2016.
  */
-public class DefaultDiscoverableDeferringNotification extends AbstractDiscoverableListener {
-    public DefaultDiscoverableDeferringNotification(ListenerDescription description) {
+public class DefaultDiscoverableDeferringListener extends AbstractDiscoverableListener {
+    public DefaultDiscoverableDeferringListener(ListenerDescription description) {
         super(description);
     }
 

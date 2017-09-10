@@ -20,6 +20,7 @@ package com.dreameddeath.core.notification.listener.impl;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.HasListenedEventList;
+import com.dreameddeath.core.notification.listener.impl.dispatcher.StandardAnnotNotificationProcessorDispatcher;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import io.reactivex.Single;
@@ -41,9 +42,10 @@ public abstract class AbstractLocalStandardListener extends AbstractLocalListene
         return dispatcher.getListenedEvents();
     }
 
+
     @Override
-    public <T extends IEvent> boolean isApplicable(T event) {
-        return dispatcher.isApplicable(event.getClass());
+    public <T extends IEvent> boolean isApplicable(String effectiveDomain, T event) {
+        return getDomain().equals(effectiveDomain) && dispatcher.isApplicable(event.getClass());
     }
 
     @Override

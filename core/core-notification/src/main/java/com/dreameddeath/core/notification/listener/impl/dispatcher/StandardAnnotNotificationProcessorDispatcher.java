@@ -15,7 +15,7 @@
  *
  */
 
-package com.dreameddeath.core.notification.listener.impl;
+package com.dreameddeath.core.notification.listener.impl.dispatcher;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
@@ -23,6 +23,7 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.dreameddeath.core.notification.annotation.EventOrigModelID;
 import com.dreameddeath.core.notification.annotation.ListenerProcessor;
 import com.dreameddeath.core.notification.common.IEvent;
+import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;

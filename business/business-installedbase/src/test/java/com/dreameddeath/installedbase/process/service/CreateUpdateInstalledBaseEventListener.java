@@ -23,6 +23,7 @@ import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.impl.AbstractLocalListener;
 import com.dreameddeath.core.notification.model.v1.Notification;
+import com.dreameddeath.installedbase.model.EntityConstants;
 import com.dreameddeath.installedbase.model.notifications.v1.CreateUpdateInstalledBaseEvent;
 import io.reactivex.Single;
 
@@ -39,7 +40,7 @@ public class CreateUpdateInstalledBaseEventListener extends AbstractLocalListene
     }
 
     @Override
-    public String getDomain(){ return "test";}
+    public String getDomain(){ return EntityConstants.INSTALLED_BASE_DOMAIN;}
 
     @Override
     public String getName() {
@@ -57,8 +58,8 @@ public class CreateUpdateInstalledBaseEventListener extends AbstractLocalListene
     }
 
     @Override
-    public <T extends IEvent> boolean isApplicable(T event) {
-        return event instanceof CreateUpdateInstalledBaseEvent;
+    public <T extends IEvent> boolean isApplicable(String domain,T event) {
+        return domain.equals(getDomain()) && event instanceof CreateUpdateInstalledBaseEvent;
     }
 
     @Override

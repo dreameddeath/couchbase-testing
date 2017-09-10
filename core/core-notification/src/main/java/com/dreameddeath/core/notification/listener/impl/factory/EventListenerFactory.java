@@ -15,15 +15,14 @@
  *
  */
 
-package com.dreameddeath.core.notification.listener.impl;
+package com.dreameddeath.core.notification.listener.impl.factory;
 
 import com.dreameddeath.core.depinjection.IDependencyInjector;
-import com.dreameddeath.core.notification.listener.IEventListener;
-import com.dreameddeath.core.notification.listener.IEventListenerBuilder;
-import com.dreameddeath.core.notification.listener.IEventListenerFactory;
-import com.dreameddeath.core.notification.listener.IEventListenerTypeMatcher;
+import com.dreameddeath.core.notification.listener.*;
+import com.dreameddeath.core.notification.listener.impl.crossdomain.LocalCrossDomainListener;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
+import com.google.common.base.Preconditions;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -38,7 +37,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class EventListenerFactory implements IEventListenerFactory {
     private final List<MatcherPair> listenerBuilderMatcher =new CopyOnWriteArrayList<>();
-    private final Map<EventListenerKey,IEventListener> listenerMap = new ConcurrentHashMap<>();
+    private final Map<EventListenerKey<? extends IEventListener>,IEventListener> listenerMap = new ConcurrentHashMap<>();
     private IDependencyInjector dependencyInjector;
     private ListenerInfoManager listenerInfoManager;
 
@@ -56,6 +55,18 @@ public class EventListenerFactory implements IEventListenerFactory {
         for(ListenerInfoManager.ListenerClassInfo classInfo:listenerInfoManager.getListenersClassInfo()){
             registerListener(listenerInfoManager.getTypeMatcher(classInfo),listenerInfoManager.getListenerBuilder(classInfo,dependencyInjector));
         }
+
+        registerCrossDomainListener(new IEventListenerTypeMatcher() {
+            @Override
+            public boolean isMatching(boolean isCrossDomain, String type, Map<String, String> params) {
+                return isCrossDomain;
+            }
+
+            @Override
+            public int getMatchingRank(boolean isCrossDomain, String type, Map<String, String> params) {
+                return 0;
+            }
+        }, (domain,listener)->new LocalCrossDomainListener<>(domain,(IEventListener & HasListenerDescription)listener));
     }
 
     public void registerListener(IEventListenerTypeMatcher matcher, IEventListener listener){
@@ -63,15 +74,23 @@ public class EventListenerFactory implements IEventListenerFactory {
     }
 
 
+    public void registerCrossDomainListener(IEventListenerTypeMatcher matcher, CrossDomainListenerBuilder crossDomainBuilder){
+        listenerBuilderMatcher.add(new MatcherPair(matcher,(domain,parentListener)->{
+            IEventListener newListener = crossDomainBuilder.build(domain,parentListener);
+            dependencyInjector.autowireBean(newListener,"listener"+newListener+"!CrossDomain!"+domain);
+            return newListener;
+        }));
+    }
+
     public void registerListener(IEventListenerTypeMatcher matcher,IEventListenerBuilder listenerBuilder){
         listenerBuilderMatcher.add(new MatcherPair(matcher,listenerBuilder));
     }
 
-    private IEventListener getListener(EventListenerKey keyRequested){
+    private <T extends IEventListener & HasListenerDescription> IEventListener getListener(EventListenerKey<T> keyRequested){
         return listenerMap.computeIfAbsent(keyRequested,key->
                 listenerBuilderMatcher.stream()
-                        .filter(pair->pair.matcher.isMatching(key.type,key.params))
-                        .sorted((pair1,pair2)->pair2.matcher.getMatchingRank(key.type,key.params)-pair1.matcher.getMatchingRank(key.type,key.params))
+                        .filter(pair->pair.matcher.isMatching(key.isCrossDomain(),key.type,key.params))
+                        .sorted((pair1,pair2)->pair2.matcher.getMatchingRank(key.isCrossDomain(),key.type,key.params)-pair1.matcher.getMatchingRank(key.isCrossDomain(),key.type,key.params))
                         .findFirst()
                         .map(pair -> pair.getListener(key))
                         .orElse(null)
@@ -79,36 +98,51 @@ public class EventListenerFactory implements IEventListenerFactory {
     }
 
     @Override
-    public IEventListener getListener(final String domain,final String type, final String name, final Map<String, String> params) {
-        return getListener(new EventListenerKey(domain,type,name,params));
+    public <T extends IEventListener & HasListenerDescription> IEventListener getCrossDomainListener(final String domain, final T parentListener) {
+        return getListener(new EventListenerKey<>(domain,parentListener));
     }
 
     @Override
     public IEventListener getListener(final ListenerDescription description) {
-        return getListener(new EventListenerKey(description));
+        return getListener(new EventListenerKey<>(description));
     }
 
     private static class MatcherPair{
         private final IEventListenerTypeMatcher matcher;
+        private final CrossDomainListenerBuilder crossDomainListenerBuilder;
         private final IEventListener listener;
         private final IEventListenerBuilder constructor;
 
+        public MatcherPair(IEventListenerTypeMatcher matcher, CrossDomainListenerBuilder crossDomainListenerBuilder) {
+            this.matcher = matcher;
+            this.crossDomainListenerBuilder = crossDomainListenerBuilder;
+            this.listener = null;
+            this.constructor=null;
+        }
+
+
         public MatcherPair(IEventListenerTypeMatcher matcher, IEventListener targetListener) {
             this.matcher = matcher;
+            this.crossDomainListenerBuilder =null;
             this.listener = targetListener;
             this.constructor=null;
         }
 
         public MatcherPair(IEventListenerTypeMatcher matcher, IEventListenerBuilder constructor) {
             this.matcher = matcher;
+            this.crossDomainListenerBuilder = null;
             this.listener = null;
             this.constructor=constructor;
         }
 
-        public IEventListener getListener(EventListenerKey key){
+        public IEventListener getListener(EventListenerKey<?> key){
             IEventListener newListener;
             if(listener!=null){
                 return listener;
+            }
+            else if(crossDomainListenerBuilder !=null){
+                Preconditions.checkState(key.isCrossDomain(),"Error {}",key);
+                newListener = crossDomainListenerBuilder.build(key.domain,key.parentListener);
             }
             else if(key.description!=null){
                 newListener = constructor.build(key.description);
@@ -121,22 +155,25 @@ public class EventListenerFactory implements IEventListenerFactory {
         }
     }
 
-    private static class EventListenerKey {
+    private static class EventListenerKey<T extends IEventListener & HasListenerDescription> {
+        private final T parentListener;
         private final String type;
         private final String domain;
         private final String name;
         private final Map<String,String> params;
         private final ListenerDescription description;
 
-        public EventListenerKey(String domain,String type,String name, Map<String, String> params) {
+        public  EventListenerKey(String domain,T parentListener) {
+            this.parentListener=parentListener;
             this.domain=domain;
-            this.type = type;
-            this.name = name;
-            this.params = params!=null?params: Collections.EMPTY_MAP;
-            this.description = null;
+            this.type = parentListener.getType();
+            this.name = parentListener.getName();
+            this.params = parentListener.getDescription().getParameters()!=null?parentListener.getDescription().getParameters(): Collections.EMPTY_MAP;
+            this.description = parentListener.getDescription();
         }
 
         public EventListenerKey(ListenerDescription description) {
+            this.parentListener = null;
             this.domain = description.getDomain();
             this.type = description.getType();
             this.name = description.getName();
@@ -166,5 +203,13 @@ public class EventListenerFactory implements IEventListenerFactory {
             result = 31 * result + params.hashCode();
             return result;
         }
+
+        public boolean isCrossDomain() {
+            return parentListener != null;
+        }
+    }
+
+    public interface CrossDomainListenerBuilder<T extends HasListenerDescription & IEventListener> {
+        IEventListener build(String domain, T parentListener);
     }
 }

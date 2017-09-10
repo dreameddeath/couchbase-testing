@@ -34,11 +34,14 @@ import com.dreameddeath.core.notification.metrics.NotificationMetrics;
 import com.dreameddeath.core.notification.model.v1.*;
 import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,7 +201,7 @@ public class EventBusImpl implements IEventBus {
                     notifHolder.incrSubmissionAttempt();
                     if(notifHolder.getSubmissionAttempt()==1) {
                         eventHandlersMap.values().stream()
-                                .filter(handler -> handler.listener.isApplicable(sourceEvent))
+                                .filter(handler -> handler.listener.isApplicable(notifHolder.getDomain(),sourceEvent))
                                 .forEach(handler-> notifHolder.addListener(handler.listener.getName(),handler.listener.getDomain()));
                         notifHolder.setStatus(Event.Status.NOTIFICATIONS_LIST_NAME_GENERATED);
                     }
@@ -313,7 +316,7 @@ public class EventBusImpl implements IEventBus {
 
 
 
-    private class InternalEventHandler implements EventHandler<InternalEvent>{
+    class InternalEventHandler implements EventHandler<InternalEvent>{
         private final Logger LOG = LoggerFactory.getLogger(InternalEventHandler.class);
         private final Disruptor<InternalEvent>[] disruptors;
         private final RingBuffer<InternalEvent>[] ringBuffers;
@@ -385,6 +388,10 @@ public class EventBusImpl implements IEventBus {
             event.cleanup();
         }
 
+        public IEventListener getListener() {
+            return listener;
+        }
+
         private class InternalExceptionHandler implements ExceptionHandler<InternalEvent>{
             private Logger LOG = LoggerFactory.getLogger(InternalExceptionHandler.class);
             @Override
@@ -434,6 +441,34 @@ public class EventBusImpl implements IEventBus {
             if (t.getPriority() != Thread.NORM_PRIORITY)
                 t.setPriority(Thread.NORM_PRIORITY);
             return t;
+        }
+    }
+
+    private class EventHandlerHolder{
+        private final ListMultimap<String,InternalEventHandler> eventHandlersMap = ArrayListMultimap.create();
+
+        private synchronized void addListener(IEventListener listener){
+            List<InternalEventHandler> listExistingListenerForDomain = eventHandlersMap.get(listener.getDomain());
+
+            Preconditions.checkArgument(
+                    CollectionUtils.isNotEmpty(listExistingListenerForDomain)
+                            && listExistingListenerForDomain.stream().anyMatch(elt->elt.listener.getName().equals(listener.getName()))
+                    ,"The listener %s is already existing",listener.getName()
+            );
+
+            InternalEventHandler handler=new InternalEventHandler(listener);
+            if(isStarted){
+                handler.start();
+            }
+            eventHandlersMap.put(listener.getDomain(),handler);
+            for(IEventBusLifeCycleListener lifeCycleListener:lifeCycleListeners){
+                try {
+                    lifeCycleListener.onAddListener(listener);
+                }
+                catch(Throwable e){
+                    LOG.error("Listener <"+lifeCycleListener+"> error ",e);
+                }
+            }
         }
     }
 }

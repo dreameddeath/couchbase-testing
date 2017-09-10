@@ -85,12 +85,6 @@
             <artifactId>core-service</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.dreameddeath.couchbase</groupId>
-            <artifactId>core-model-dto</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!--
         -
         -   Test dependancies

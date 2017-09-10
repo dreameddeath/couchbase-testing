@@ -15,7 +15,7 @@
  *
  */
 
-package com.dreameddeath.core.notification.remote.annotation;
+package com.dreameddeath.core.notification.annotation;
 
 import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 

@@ -17,24 +17,13 @@
 
 package com.dreameddeath.core.notification.listener;
 
-import com.dreameddeath.core.notification.common.IEvent;
-import com.dreameddeath.core.notification.model.v1.Notification;
-import io.reactivex.Single;
+import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 
 /**
- * Created by Christophe Jeunesse on 29/05/2016.
+ * Created by Christophe Jeunesse on 10/09/2017.
  */
-public interface IEventListener {
-    String getDomain();
-    String getName();
-    String getType();
-    String getVersion();
+public interface HasListenerDescription {
+    ListenerDescription getDescription();
 
-    <T extends IEvent> Single<SubmissionResult> submit(Notification notif, T event);
-
-    <T extends IEvent> Single<SubmissionResult> submit(String domain,String notifId, T event);
-
-    Single<SubmissionResult> submit(String domain,String notifId);
-
-    <T extends IEvent> boolean isApplicable(String effectiveDomain,T event);
+    void setDescription(ListenerDescription description);
 }

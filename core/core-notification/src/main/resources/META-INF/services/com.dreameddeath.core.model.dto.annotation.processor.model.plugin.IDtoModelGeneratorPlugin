@@ -16,4 +16,4 @@
 #
 
 
-com.dreameddeath.core.notification.remote.annotation.plugin.PublishEventDtoModelGeneratorPlugin
+com.dreameddeath.core.notification.annotation.plugin.PublishEventDtoModelGeneratorPlugin

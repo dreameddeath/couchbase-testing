@@ -21,7 +21,7 @@ import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
 import com.dreameddeath.core.notification.discoverer.ListenerAutoSubscribe;
 import com.dreameddeath.core.notification.discoverer.ListenerDiscoverer;
-import com.dreameddeath.core.notification.listener.impl.EventListenerFactory;
+import com.dreameddeath.core.notification.listener.impl.factory.EventListenerFactory;
 import com.dreameddeath.core.notification.registrar.ListenerRegistrar;
 import com.dreameddeath.core.notification.utils.ListenerInfoManager;
 import com.dreameddeath.core.user.AnonymousUser;

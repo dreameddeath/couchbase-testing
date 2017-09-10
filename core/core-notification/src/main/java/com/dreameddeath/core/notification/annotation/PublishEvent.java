@@ -15,12 +15,11 @@
  *
  */
 
-package com.dreameddeath.core.notification.remote.annotation;
+package com.dreameddeath.core.notification.annotation;
 
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
-import com.dreameddeath.core.service.annotation.VersionStatus;
 
 /**
  * Created by christophe jeunesse on 26/06/2017.
@@ -33,7 +32,6 @@ public @interface PublishEvent {
     String domain() default "";
     String name() default  "";
     String version() default "1.0.0";
-    VersionStatus status() default VersionStatus.STABLE;
     FieldGenMode defaultOutputFieldMode() default FieldGenMode.FILTER;
     SuperClassGenMode superClassGenMode() default SuperClassGenMode.IGNORE;
     DtoInOutMode pureSubClassMode() default DtoInOutMode.NONE;

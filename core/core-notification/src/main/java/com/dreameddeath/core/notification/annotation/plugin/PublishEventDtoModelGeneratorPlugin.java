@@ -15,7 +15,7 @@
  *
  */
 
-package com.dreameddeath.core.notification.remote.annotation.plugin;
+package com.dreameddeath.core.notification.annotation.plugin;
 
 import com.dreameddeath.compile.tools.annotation.processor.reflection.ClassInfo;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
@@ -28,10 +28,10 @@ import com.dreameddeath.core.model.dto.annotation.processor.model.plugin.IDtoMod
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
 import com.dreameddeath.core.notification.annotation.EventOrigModelID;
+import com.dreameddeath.core.notification.annotation.PublishEvent;
+import com.dreameddeath.core.notification.annotation.PublishEventField;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.model.v1.Event;
-import com.dreameddeath.core.notification.remote.annotation.PublishEvent;
-import com.dreameddeath.core.notification.remote.annotation.PublishEventField;
 import com.google.common.collect.Maps;
 import com.squareup.javapoet.*;
 
