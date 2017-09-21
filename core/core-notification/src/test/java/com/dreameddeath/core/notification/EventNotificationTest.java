@@ -201,7 +201,6 @@ public class EventNotificationTest extends Assert{
 
     @Test
     public void crossDomainListener() throws Exception{
-        final int nbListener = 1;
         TestNotificationQueue.INSTANCE().clear();
         IEventBus bus = new EventBusImpl();
         DtoConverterFactory dtoConverterFactory = new DtoConverterFactory();
@@ -228,6 +227,7 @@ public class EventNotificationTest extends Assert{
 
         List<AbstractTestEvent> submittedEvents = new ArrayList<>();
         int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
+        int nbCrossDomainEvents=0;
         {
             ICouchbaseSession testSession = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             ICouchbaseSession test2Session = sessionFactory.newReadWriteSession("test2",AnonymousUser.INSTANCE);
@@ -240,6 +240,7 @@ public class EventNotificationTest extends Assert{
                 }
                 test.toAdd= i;
                 EventFireResult<AbstractTestEvent,?> result = bus.blockingFireEvent(test, test instanceof TestEventCrossDomain?test2Session:testSession);
+                nbCrossDomainEvents+=result.getEvent().getDomain().equals(crossDomainListener.getDomain())?0:1;
                 assertTrue(result.isSuccess());
                 submittedEvents.add(result.getEvent());
             }
@@ -255,12 +256,12 @@ public class EventNotificationTest extends Assert{
                     nbReceived++;
                     notificationList.add(resultNotif);
                 }
-            } while (resultNotif != null && (nbReceived< (nbEvent*nbListener)));
+            } while (resultNotif != null && (nbReceived<nbEvent));
         }
 
-        assertEquals(nbEvent*nbListener,nbReceived);
-        assertEquals(((nbEvent+1)*nbEvent/2)*nbListener,TestNotificationQueue.INSTANCE().getTotalCounter());
-
+        assertEquals(nbEvent,nbReceived);
+        assertEquals(((nbEvent+1)*nbEvent/2),TestNotificationQueue.INSTANCE().getTotalCounter());
+        Thread.sleep(50);//Wait for all updates
         {
             ICouchbaseSession checkTestSession = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
             ICouchbaseSession checkTest2Session = sessionFactory.newReadWriteSession("test2",AnonymousUser.INSTANCE);
