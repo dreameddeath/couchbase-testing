@@ -18,9 +18,6 @@
 package com.dreameddeath.core.notification.listener.impl.dispatcher;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.entity.model.EntityModelId;
-import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
-import com.dreameddeath.core.notification.annotation.EventOrigModelID;
 import com.dreameddeath.core.notification.annotation.ListenerProcessor;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
@@ -28,7 +25,6 @@ import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.esotericsoftware.reflectasm.MethodAccess;
-import com.google.common.base.Preconditions;
 import io.reactivex.Single;
 
 import java.lang.reflect.Method;
@@ -55,15 +51,10 @@ public class StandardAnnotNotificationProcessorDispatcher {
                 //Preconditions.checkArgument();
                 ListenedEvent listenedEvent;
                 if(Event.class.isAssignableFrom(eventClass)){
-                    CouchbaseDocumentStructureReflection documentStructureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass(eventClass);
-                    EntityModelId modelId = documentStructureReflection.getEntityModelId();
-                    listenedEvent = new ListenedEvent(modelId);
+                    listenedEvent = ListenedEvent.buildFromInternal((Class<? extends Event>)eventClass);
                 }
                 else{
-                    EventOrigModelID eventOrigModelID = eventClass.getAnnotation(EventOrigModelID.class);
-                    Preconditions.checkArgument(eventOrigModelID!=null,"The method %s.%s() doesn't have an entity model id annot for type %s",method.getDeclaringClass().getCanonicalName(),method.getName(),eventClass.getCanonicalName());
-                    EntityModelId modelId = EntityModelId.build(eventOrigModelID.value());
-                    listenedEvent = new ListenedEvent(modelId,eventClass.getCanonicalName());
+                    listenedEvent = ListenedEvent.buildFromPublic(eventClass);
                 }
                 listenedEvents.add(listenedEvent);
                 processorForEvents.add(new ProcessorMethodWrapper(eventListenerInstance,method,eventClass));

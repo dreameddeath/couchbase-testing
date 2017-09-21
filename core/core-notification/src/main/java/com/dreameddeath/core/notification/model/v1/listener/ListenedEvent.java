@@ -19,7 +19,7 @@ package com.dreameddeath.core.notification.model.v1.listener;
 
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
-import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
+import com.dreameddeath.core.notification.annotation.EventOrigModelID;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -40,7 +40,7 @@ public class ListenedEvent {
         this.publishedClassName = className;
     }
 
-    public ListenedEvent(EntityModelId modelId){
+    private ListenedEvent(EntityModelId modelId){
         this(modelId,null);
     }
 
@@ -54,14 +54,24 @@ public class ListenedEvent {
         return publishedClassName;
     }
 
-    public static <T extends Event> ListenedEvent build(Class<T> eventClazz){
-        return new ListenedEvent(EntityDef.build(CouchbaseDocumentReflection.getReflectionFromClass(eventClazz).getStructure()).getModelId());
+    public static <T extends Event> ListenedEvent buildFromInternal(Class<T> eventClazz){
+        return new ListenedEvent(EntityDef.build(eventClazz).getModelId());
     }
 
-    public static <T extends IEvent> ListenedEvent build(Class<T> eventClazz,EntityModelId modelId){
-        Preconditions.checkArgument(!Event.class.isAssignableFrom(eventClazz),"The class musn't be an event id");
+    public static <T extends IEvent> ListenedEvent buildFromInternal(Class<T> eventClazz, EntityModelId modelId){
+        Preconditions.checkArgument(!Event.class.isAssignableFrom(eventClazz),"The class %s musn't be an event",eventClazz.getName());
         return new ListenedEvent(modelId,eventClazz.getCanonicalName());
     }
+
+    public static <T extends IEvent> ListenedEvent buildFromPublic(Class<T> eventClass){
+        Preconditions.checkArgument(!Event.class.isAssignableFrom(eventClass),"The class %s musn't be an event",eventClass.getName());
+        EventOrigModelID eventOrigModelID = eventClass.getAnnotation(EventOrigModelID.class);
+        Preconditions.checkArgument(eventOrigModelID!=null,"The class %s musn't have an EventOrigModelID annotation",eventClass.getName());
+        EntityModelId modelId = EntityModelId.build(eventOrigModelID.value());
+        return new ListenedEvent(modelId,eventClass.getCanonicalName());
+    }
+
+
 
     @Override
     public String toString() {

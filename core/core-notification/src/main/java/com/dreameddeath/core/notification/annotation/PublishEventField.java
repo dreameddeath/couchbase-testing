@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 /**
  * Created by Christophe Jeunesse on 27/06/2017.
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface PublishEventField {
     String value() default "";

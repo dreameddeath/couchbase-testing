@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Christophe Jeunesse on 09/08/2015.
@@ -178,7 +179,15 @@ public class DaoUtils {
 
     public static <T extends CouchbaseDocument> List<CouchbaseDocumentDao<T>> buildAndAddDaosForDomains(CouchbaseDocumentDaoFactory factory, Class<? extends CouchbaseDocument> clazz,Class<? extends CouchbaseDocumentDao<T>> daoClazz,ICouchbaseBucket client) throws InstantiationException,IllegalAccessException,DuplicateMappedEntryInfoException{
         List<CouchbaseDocumentDao<T>> daos= new ArrayList<>();
-        for(String domain:factory.getEffectiveDomainsForClass(clazz)){
+        DaoInfo daoInfo = getDaoInfo(CouchbaseDocumentReflection.getReflectionFromClass(clazz));
+        Set<String> domains;
+        if(daoInfo!=null && daoInfo.getParentDaoClassName()!=null){
+            domains = factory.getExistingDomainsForDaoClassName(daoInfo.getParentDaoClassName());
+        }
+        else{
+            domains = factory.getEffectiveDomainsForClass(clazz);
+        }
+        for(String domain:domains){
             CouchbaseDocumentDao<T> dao = daoClazz.newInstance().setClient(client).setDomain(domain);
             daos.add(dao);
             factory.addDao(dao);

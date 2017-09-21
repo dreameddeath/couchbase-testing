@@ -28,7 +28,7 @@ import com.dreameddeath.core.query.annotation.QueryExpose;
 /**
  * Created by Christophe Jeunesse on 11/08/2014.
  */
-@QueryExpose(rootPath = "",isPureSubClassMode = true,superClassGenMode = SuperClassGenMode.UNWRAP)
+@QueryExpose(rootPath = "", notDirecltyExposed = true,superClassGenMode = SuperClassGenMode.UNWRAP)
 @DocumentEntity
 public class ExternalId extends CouchbaseDocumentElement {
     /**

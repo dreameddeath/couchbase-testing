@@ -26,7 +26,7 @@ import com.dreameddeath.core.query.annotation.QueryExpose;
 /**
  * Created by Christophe Jeunesse on 19/05/2016.
  */
-@QueryExpose(rootPath = "",isPureSubClassMode = true)
+@QueryExpose(rootPath = "", notDirecltyExposed = true)
 public class PartyRoleLink extends CouchbaseDocumentElement{
     /**
      *  pid : the party id

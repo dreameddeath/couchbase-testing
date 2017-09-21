@@ -119,7 +119,8 @@ public class ListenerAutoSubscribe implements ICuratorPathDiscoveryListener<List
         Map<String,IEventListener> crossDomainListenersPerDomain = new TreeMap<>();
         for(ListenedEvent listenedEvent:obj.getListenedEvents()){
             if(!obj.getDomain().equals(listenedEvent.getType().getDomain())){
-                Preconditions.checkArgument(parentListener instanceof HasListenerDescription,"Cannot have cross domain for listener %s",parentListener.getClass());
+                Preconditions.checkArgument(parentListener instanceof HasListenerDescription,"Cannot have cross domain for listener %s of class %s",parentListener.getName(),parentListener.getClass());
+                Preconditions.checkArgument(listenedEvent.getPublishedClassName()!=null,"The listened event %s in listener %s must have a publishedClassName for cross domain", listenedEvent,parentListener.getName());
                 crossDomainListenersPerDomain.computeIfAbsent(listenedEvent.getType().getDomain(),(domain)->
                         listenerFactory.getCrossDomainListener(domain,(IEventListener & HasListenerDescription)parentListener)
                 );

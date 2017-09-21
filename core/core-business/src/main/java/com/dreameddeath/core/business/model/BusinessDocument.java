@@ -1,18 +1,17 @@
 /*
+ * 	Copyright Christophe Jeunesse
  *
- *  * Copyright Christophe Jeunesse
- *  *
- *  *    Licensed under the Apache License, Version 2.0 (the "License");
- *  *    you may not use this file except in compliance with the License.
- *  *    You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  *    Unless required by applicable law or agreed to in writing, software
- *  *    distributed under the License is distributed on an "AS IS" BASIS,
- *  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  *    See the License for the specific language governing permissions and
- *  *    limitations under the License.
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -21,11 +20,15 @@ package com.dreameddeath.core.business.model;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.SetProperty;
 import com.dreameddeath.core.model.property.impl.HashSetProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractProcessCouchbaseDocument;
+import com.dreameddeath.core.query.annotation.QueryExpose;
+import com.dreameddeath.core.query.annotation.QueryFieldInfo;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -37,6 +40,7 @@ import java.util.Set;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
+@QueryExpose(rootPath = "dummy",defaultOutputFieldMode = FieldGenMode.FILTER,superClassGenMode = SuperClassGenMode.UNWRAP, notDirecltyExposed = true)
 public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument implements IVersionedEntity{
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
@@ -52,9 +56,9 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
         return fullEntityId;
     }
 
-    @DocumentProperty("docRevision")
+    @DocumentProperty("docRevision") @QueryFieldInfo
     private Long revision = 0L;
-    @DocumentProperty("docLastModDate")
+    @DocumentProperty("docLastModDate") @QueryFieldInfo
     private DateTime lastModificationDate;
     /**
      *  docUniqKeys : List of uniqueness Keys attached to this document

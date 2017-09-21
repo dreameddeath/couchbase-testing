@@ -37,7 +37,11 @@ public class DtoGenericOutputAbstractConverter<TDOC,TTYPE> extends DtoGenericAbs
 
     @Override
     public TTYPE convertToOutput(TDOC doc) {
-        Class<? extends TDOC> docClass = (Class)doc.getClass();
+        if(doc==null){
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Class<? extends TDOC> docClass = (Class<? extends TDOC>)doc.getClass();
 
         for(EntityConverterForClass<IDtoOutputConverter<TDOC,TTYPE>,TDOC, TTYPE> converter:getListConverters()){
             if(converter.getDocClass().isAssignableFrom(docClass)) {

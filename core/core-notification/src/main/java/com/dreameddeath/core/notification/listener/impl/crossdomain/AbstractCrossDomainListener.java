@@ -45,10 +45,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractCrossDomainListener<T extends IEventListener & HasListenerDescription> extends AbstractNotificationProcessor implements IEventListener {
     private final Logger LOG = LoggerFactory.getLogger(this.getClass());
-
-    private String sourceDomain;
-    private T parentListener;
-    private Map<Class<? extends IEvent>,Converter<? extends IEvent,? extends IEvent>> converterMap = new ConcurrentHashMap<>();
+    private final static String PREFIX_CROSS_DOMAIN="XDOMAIN-";
+    private final String sourceDomain;
+    private final String name;
+    private final T parentListener;
+    private final Map<Class<? extends IEvent>,Converter<? extends IEvent,? extends IEvent>> converterMap = new ConcurrentHashMap<>();
     private DtoConverterFactory dtoConverterFactory;
 
     @Autowired
@@ -59,6 +60,11 @@ public abstract class AbstractCrossDomainListener<T extends IEventListener & Has
     public AbstractCrossDomainListener(String sourceDomain, T parentListener) {
         this.sourceDomain = sourceDomain;
         this.parentListener = parentListener;
+        this.name= buildCrossDomainListenerName(sourceDomain, parentListener.getDomain());
+    }
+
+    public static String buildCrossDomainListenerName(String sourceDomain, String targetDomain) {
+        return PREFIX_CROSS_DOMAIN+sourceDomain+"-"+targetDomain;
     }
 
     @Override
@@ -68,7 +74,7 @@ public abstract class AbstractCrossDomainListener<T extends IEventListener & Has
 
     @Override
     public String getName() {
-        return parentListener.getName();
+        return name;
     }
 
     @Override
@@ -99,7 +105,7 @@ public abstract class AbstractCrossDomainListener<T extends IEventListener & Has
     @Override
     protected <T extends IEvent> Single<ProcessingResultInfo> doProcess(T event, Notification notification, ICouchbaseSession session) {
         final Converter<T,? extends IEvent> converter = getOutputConverter(event);
-        return doProcessCrossDomainEvent(converter.convert(event), session)
+        return doProcessCrossDomainEvent(converter.convert(event), getSessionFactory().newSession(session.getSessionType(),parentListener.getDomain(),session.getUser(),session.getKeyPrefix()))
                 .map(res->buildResult(notification,res));
     }
 
@@ -138,9 +144,6 @@ public abstract class AbstractCrossDomainListener<T extends IEventListener & Has
                                 return converter::convertToOutput;
                             }
                         }
-                        else{
-                            return (in)->in;
-                        }
                     }
                 }
                 else if(targetClass!=null && eventClass.isAssignableFrom(targetClass)){
@@ -152,7 +155,7 @@ public abstract class AbstractCrossDomainListener<T extends IEventListener & Has
                 LOG.error("Cannot find class {}",listenedEvent.getPublishedClassName());
             }
         }
-        throw new RuntimeException("Cannot build converter for class "+eventClass+ " for listened elements "+parentListener.getDescription().getListenedEvents());
+        throw new RuntimeException("Cannot buildFromInternal for listener "+parentListener.getName()+" a converter to domain "+parentListener.getDomain()+" for class "+eventClass+ " for listened elements "+parentListener.getDescription().getListenedEvents());
     }
 
     public interface Converter<T extends IEvent,TOUT extends IEvent>{
@@ -160,7 +163,7 @@ public abstract class AbstractCrossDomainListener<T extends IEventListener & Has
     }
 
     @Override
-    public <T extends IEvent> boolean isApplicable(String effectiveDomain, T event) {
-        return effectiveDomain.equals(getDomain()) && parentListener.isApplicable(effectiveDomain, event);
+    public boolean isApplicable(String effectiveDomain, Class<? extends IEvent> eventClazz) {
+        return effectiveDomain.equals(getDomain()) && parentListener.isApplicable(parentListener.getDomain(), eventClazz);
     }
 }

@@ -22,7 +22,7 @@ import com.dreameddeath.core.business.model.BusinessDocumentLink;
 import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.query.annotation.QueryExpose;
 
-@QueryExpose(rootPath = "",isPureSubClassMode = true,superClassGenMode = SuperClassGenMode.UNWRAP)
+@QueryExpose(rootPath = "", notDirecltyExposed = true,superClassGenMode = SuperClassGenMode.UNWRAP)
 public class BillingAccountLink extends BusinessDocumentLink<BillingAccount> {
     
     public BillingAccountLink(){}

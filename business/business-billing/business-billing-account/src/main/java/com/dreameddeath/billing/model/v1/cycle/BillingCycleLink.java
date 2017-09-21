@@ -26,7 +26,7 @@ import com.dreameddeath.core.model.property.impl.StandardProperty;
 import com.dreameddeath.core.query.annotation.QueryExpose;
 import org.joda.time.DateTime;
 
-@QueryExpose(rootPath = "",isPureSubClassMode = true,name="billingCycle",superClassGenMode = SuperClassGenMode.UNWRAP)
+@QueryExpose(rootPath = "", notDirecltyExposed = true,name="billingCycle",superClassGenMode = SuperClassGenMode.UNWRAP)
 public class BillingCycleLink extends BusinessDocumentLink<BillingCycle> {
     @DocumentProperty("startDate")
     private Property<DateTime> startDate=new StandardProperty<DateTime>(BillingCycleLink.this);

@@ -58,8 +58,8 @@ public class CreateUpdateInstalledBaseEventListener extends AbstractLocalListene
     }
 
     @Override
-    public <T extends IEvent> boolean isApplicable(String domain,T event) {
-        return domain.equals(getDomain()) && event instanceof CreateUpdateInstalledBaseEvent;
+    public boolean isApplicable(Class<? extends IEvent> event) {
+        return CreateUpdateInstalledBaseEvent.class.isAssignableFrom(event);
     }
 
     @Override

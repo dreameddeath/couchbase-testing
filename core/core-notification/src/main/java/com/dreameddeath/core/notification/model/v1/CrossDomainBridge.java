@@ -60,7 +60,7 @@ public class CrossDomainBridge extends CouchbaseDocument  implements IVersionedE
     }
     @Override
     public String getEffectiveDomain() {
-        return getTargetDomain();
+        return getDomain();
     }
 
     /**
@@ -72,7 +72,7 @@ public class CrossDomainBridge extends CouchbaseDocument  implements IVersionedE
      * domain : the event parent domain
      */
     @DocumentProperty("event-domain")
-    private ImmutableProperty<String> domain = new ImmutableProperty<>(CrossDomainBridge.this);
+    private ImmutableProperty<String> eventDomain = new ImmutableProperty<>(CrossDomainBridge.this);
     /**
      * targetDomain : the target domain of the bridge
      */
@@ -111,33 +111,33 @@ public class CrossDomainBridge extends CouchbaseDocument  implements IVersionedE
      */
     public void setEventId(UUID val) { eventId.set(val); }
     /**
-     * Getter for property {@link #domain}
+     * Getter for property {@link #targetDomain}
      * @return The current value
      */
-    public String getDomain(){
-        return domain.get();
+    public String getTargetDomain(){
+        return targetDomain.get();
     }
     /**
-     * Setter for property {@link #domain}
+     * Setter for property {@link #targetDomain}
      * @param newValue  the new value for the property
      */
-    public void setDomain(String newValue){
-        domain.set(newValue);
+    public void setTargetDomain(String newValue){
+        targetDomain.set(newValue);
     }
     /**
-     * Getter of the attribute {@link #targetDomain}
-     * return the currentValue of {@link #targetDomain}
+     * Getter of the attribute {@link #eventDomain}
+     * return the currentValue of {@link #eventDomain}
      */
-    public String getTargetDomain(){
-        return this.targetDomain.get();
+    public String getEventDomain(){
+        return this.eventDomain.get();
     }
 
     /**
-     * Setter of the attribute {@link #targetDomain}
-     * @param newValue the newValue of {@link #targetDomain}
+     * Setter of the attribute {@link #eventDomain}
+     * @param newValue the newValue of {@link #eventDomain}
      */
-    public void setTargetDomain(String newValue){
-        this.targetDomain.set(newValue);
+    public void setEventDomain(String newValue){
+        this.eventDomain.set(newValue);
     }
 
     /**
@@ -211,6 +211,12 @@ public class CrossDomainBridge extends CouchbaseDocument  implements IVersionedE
      */
     public Map<String,NotificationLink> getNotifications(){
         return notifications.get();
+    }
+
+
+    @Override
+    public String getDomain() {
+        return getTargetDomain();
     }
 
 

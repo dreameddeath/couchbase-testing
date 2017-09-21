@@ -34,7 +34,6 @@ import java.util.UUID;
  */
 @DaoForClass(CrossDomainBridge.class) @ParentDao(EventDao.class)
 public class CrossDomainBridgeDao extends CouchbaseDocumentWithKeyPatternDao<CrossDomainBridge> {
-    public static final String NOTIFICATION_UID_NAMESPACE="core/crossdomainbridge/id";
     public static final String FMT_KEY=EventDao.EVENT_FMT_KEY+"/xdomain/%s";
     public static final String PATTERN_KEY=EventDao.EVENT_KEY_PATTERN+"/xdomain/{dom:[^/]+}";
 

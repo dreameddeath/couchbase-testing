@@ -82,8 +82,15 @@ public class TestNotificationQueue {
             threadCounter.put(Thread.currentThread().getName(), 0);
         }
         threadCounter.put(Thread.currentThread().getName(), threadCounter.get(Thread.currentThread().getName()) + 1);
-        totalCounter.addAndGet(((TestEvent) event).toAdd);
-        LOG.info("Offering event {} on thread {}",((TestEvent)event).toAdd,Thread.currentThread());
+        Integer toAdd;
+        if(event instanceof AbstractTestEvent){
+            toAdd=((AbstractTestEvent) event).toAdd;
+        }
+        else{
+            toAdd=((com.dreameddeath.core.notification.published.notification.AbstractTestEvent)event).getToAdd();
+        }
+        totalCounter.addAndGet(toAdd);
+        LOG.info("Offering event {} on thread {}",toAdd,Thread.currentThread());
         try {
             processedNotification.offer(notification, 20, TimeUnit.SECONDS);
         }

@@ -19,6 +19,8 @@ package com.dreameddeath.core.notification.model.v1.listener;
 
 import com.dreameddeath.core.curator.model.IRegistrablePathData;
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.notification.common.IEvent;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -124,5 +126,24 @@ public class ListenerDescription implements IRegistrablePathData {
         }
         parameters.put(key,value);
     }
+
+
+    public <T extends IEvent> boolean isApplicableEvent(Class<T> eventClazz){
+        ListenedEvent listenedEvent;
+        if(Event.class.isAssignableFrom(eventClazz)){
+            listenedEvent = ListenedEvent.buildFromInternal((Class<? extends Event>)eventClazz);
+        }
+        else{
+            listenedEvent = ListenedEvent.buildFromPublic(eventClazz);
+        }
+
+        for(ListenedEvent currListenedEvent:listenedEvents){
+            if(currListenedEvent.getType().equals(listenedEvent.getType())){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 }

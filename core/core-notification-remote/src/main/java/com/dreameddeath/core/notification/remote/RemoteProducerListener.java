@@ -137,7 +137,7 @@ public class RemoteProducerListener extends AbstractDiscoverableListener {
                 LOG.error("Cannot find class {}",listenedEvent.getPublishedClassName());
             }
         }
-        throw new RuntimeException("Cannot build converter for class "+eventClass+ " for listened elements "+getDescription().getListenedEvents());
+        throw new RuntimeException("Cannot buildFromInternal converter for class "+eventClass+ " for listened elements "+getDescription().getListenedEvents());
     }
 
     public interface Converter<T extends IEvent,TOUT extends IEvent>{

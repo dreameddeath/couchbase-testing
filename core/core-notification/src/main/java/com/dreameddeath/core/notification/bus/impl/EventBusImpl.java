@@ -181,38 +181,40 @@ public class EventBusImpl implements IEventBus {
     }
 
     @Override
-    public <T extends IEvent> Single<EventFireResult<T,CrossDomainBridge>> fireCrossDomainEvent(T sourceEvent, ICouchbaseSession session) {
+    public <T extends IEvent> Single<EventFireResult<T,CrossDomainBridge>> fireCrossDomainEvent(String sourceDomain,T sourceEvent, ICouchbaseSession session) {
         final EventBusMetrics.Context eventMetricContext = eventBusMetrics.start();
         CrossDomainBridge bridge = new CrossDomainBridge();
         bridge.setEventId(sourceEvent.getId());
-        bridge.setDomain(session.getDomain());
+        bridge.setEventDomain(sourceDomain);
+        bridge.setTargetDomain(session.getDomain());
         bridge.setSubmissionAttempt(0L);
         return fireEvent(sourceEvent,bridge,session,eventMetricContext);
     }
 
     @Override
-    public <T extends IEvent> EventFireResult<T,CrossDomainBridge> blockingFireCrossDomainEvent(T event, ICouchbaseSession session) {
-        return fireCrossDomainEvent(event,session).blockingGet();
+    public <T extends IEvent> EventFireResult<T,CrossDomainBridge> blockingFireCrossDomainEvent(String sourceDomain,T event, ICouchbaseSession session) {
+        return fireCrossDomainEvent(sourceDomain,event,session).blockingGet();
     }
 
     private <T extends IEvent,THOLDER extends CouchbaseDocument & INotificationsHolder > Single<EventFireResult<T,THOLDER>> fireEvent(T sourceEvent,THOLDER sourceNotifHolder, final ICouchbaseSession session,final EventBusMetrics.Context eventMetricContext) {
-        return Single.just(sourceNotifHolder).map(
-                notifHolder-> {
-                    notifHolder.incrSubmissionAttempt();
-                    if(notifHolder.getSubmissionAttempt()==1) {
-                        eventHandlersMap.values().stream()
-                                .filter(handler -> handler.listener.isApplicable(notifHolder.getDomain(),sourceEvent))
-                                .forEach(handler-> notifHolder.addListener(handler.listener.getName(),handler.listener.getDomain()));
-                        notifHolder.setStatus(Event.Status.NOTIFICATIONS_LIST_NAME_GENERATED);
-                    }
-                    return notifHolder;
-                }
-        )
+        return Single.just(sourceNotifHolder)
+                .map(notifHolder-> getAddListenerToHolderIfNeeded(sourceEvent, notifHolder))
                 .map(eventMetricContext::beforeInitialSave)
                 .flatMap(notifHolder->saveIfNeeded(notifHolder,session))
                 .map(eventMetricContext::afterInitialSave)
                 .flatMap(notifHolder->this.submitEvent(sourceEvent,notifHolder,session,eventMetricContext))
                 .doOnError(eventMetricContext::stop);
+    }
+
+    private <T extends IEvent, THOLDER extends CouchbaseDocument & INotificationsHolder> THOLDER getAddListenerToHolderIfNeeded(T sourceEvent, THOLDER notifHolder) {
+        notifHolder.incrSubmissionAttempt();
+        if(notifHolder.getSubmissionAttempt()==1) {
+            eventHandlersMap.values().stream()
+                    .filter(handler -> handler.listener.isApplicable(notifHolder.getDomain(),sourceEvent.getClass()))
+                    .forEach(handler-> notifHolder.addListener(handler.listener.getName(),handler.listener.getDomain()));
+            notifHolder.setStatus(Event.Status.NOTIFICATIONS_LIST_NAME_GENERATED);
+        }
+        return notifHolder;
     }
 
     private <T extends CouchbaseDocument & INotificationsHolder> Single<T> saveIfNeeded(T notificationsHolder, ICouchbaseSession session) {
@@ -238,16 +240,11 @@ public class EventBusImpl implements IEventBus {
                         result.setListenerLink(EventListenerLink.build(listenerLink));
                         return result;
                     })
-                    .flatMap(notification -> {
-                        Single<Notification> notifObsRes = Single.just(notification);
-                        if(notificationsHolder.getSubmissionAttempt()>1L){
-                            notifObsRes = notifObsRes
-                                    .map(notificationMetricContext::beforeSave)
-                                    .flatMap(session::asyncSave)
-                                    .map(notificationMetricContext::afterSave);
-                        }
-                        return notifObsRes;
-                    })
+                    .flatMap(notification -> Single.just(notification)
+                        .map(notificationMetricContext::beforeSave)
+                        .flatMap(session::asyncSave)
+                        .map(notificationMetricContext::afterSave)
+                    )
                     .onErrorResumeNext(throwable -> {
                         Optional<DuplicateUniqueKeyDaoException> duplicateUniqueKeyDaoException = ValidationExceptionUtils.findUniqueKeyException(throwable);
                         if(duplicateUniqueKeyDaoException.isPresent()) {

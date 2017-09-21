@@ -15,26 +15,23 @@
  *
  */
 
-package com.dreameddeath.core.model.dto.annotation.processor.model;
+package com.dreameddeath.core.model.dto.annotation.processor.model.unwrap;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.DtoGenerate;
+import com.dreameddeath.core.model.dto.annotation.processor.model.DtoGenerateType;
+import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 
 /**
- * Created by christophe jeunesse on 28/05/2017.
+ * Created by Christophe Jeunesse on 12/09/2017.
  */
 @DocumentEntity(domain = "test",version = "1.0")
-@DtoGenerate(mode = DtoInOutMode.IN,buildForTypes = {
-        @DtoGenerateType(superClassGenMode = SuperClassGenMode.AUTO)
+@DtoGenerate(mode = DtoInOutMode.BOTH,buildForTypes = {
+        @DtoGenerateType(superClassGenMode = SuperClassGenMode.UNWRAP)
 })
-@DtoGenerate(mode = DtoInOutMode.OUT,buildForTypes = {
-        @DtoGenerateType(superClassGenMode = SuperClassGenMode.AUTO)
-}
-)
-public abstract class AbstractTestingModel extends CouchbaseDocument {
+public class LeafLevel extends IntermediateUnwrapLevel2 {
     @DocumentProperty
-    public String strValue;
-
+    public String leaf;
 }

@@ -97,6 +97,15 @@ public abstract class AbstractDtoModelGenerator {
         if (origClass.isAbstract()) {
             dtoModelBuilder.addModifiers(Modifier.ABSTRACT);
         }
+        ClassName dtoSuperClassName = manageSuperClass(origClass, key, dtoModelBuilder,Collections.emptyList());
+        addCommonTypeInfo(dtoModelBuilder, origClass, key, dtoSuperClassName);
+        addPluginTypeInfo(dtoModelBuilder, origClass, key, dtoSuperClassName);
+
+        generateFields(origClass, dtoModelBuilder, key, Collections.emptyList());
+        return dtoModelBuilder;
+    }
+
+    private ClassName manageSuperClass(ClassInfo origClass, Key key, TypeSpec.Builder dtoModelBuilder,List<UnwrappingStackElement> unwrappingStackElements) {
         ClassName dtoSuperClassName = null;
         if (origClass.getSuperClass() != null) {
             SuperClassGenMode superClassGeneratorMode = getSuperClassGeneratorMode(origClass, origClass.getSuperClass(), key, Collections.emptyList());
@@ -108,16 +117,12 @@ public abstract class AbstractDtoModelGenerator {
             }
             //Embed parent fields
             else if (superClassGeneratorMode == SuperClassGenMode.UNWRAP) {
-                generateUnwrappedSuperClassFields(origClass, dtoModelBuilder, key, Collections.emptyList());
+                dtoSuperClassName = generateUnwrappedSuperClass(origClass, dtoModelBuilder, key, unwrappingStackElements);
             } else if (superClassGeneratorMode == SuperClassGenMode.IGNORE) {
                 //Nothing to do
             }
         }
-        addCommonTypeInfo(dtoModelBuilder, origClass, key, dtoSuperClassName);
-        addPluginTypeInfo(dtoModelBuilder, origClass, key, dtoSuperClassName);
-
-        generateFields(origClass, dtoModelBuilder, key, Collections.emptyList());
-        return dtoModelBuilder;
+        return dtoSuperClassName;
     }
 
     protected void addPluginTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key, ClassName dtoSuperClassName) {
@@ -201,10 +206,11 @@ public abstract class AbstractDtoModelGenerator {
     protected abstract void addHierarchyBasedTypeInfo(TypeSpec.Builder typeBuilder, ClassInfo origClass, Key key, ClassName superClassDtoName);
 
 
-    private void generateUnwrappedSuperClassFields(ClassInfo clazz, TypeSpec.Builder builder, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
+    private ClassName generateUnwrappedSuperClass(ClassInfo clazz, TypeSpec.Builder builder, Key key, List<UnwrappingStackElement> unwrappingStackElements) {
         List<UnwrappingStackElement> newUnwrappingStackElement = new ArrayList<>(unwrappingStackElements);
         newUnwrappingStackElement.add(buildSuperClassUnwrappingStackElement(clazz, key, unwrappingStackElements));
         generateFields(clazz.getSuperClass(), builder, key, unwrappingStackElements);
+        return manageSuperClass(clazz.getSuperClass(),key,builder,newUnwrappingStackElement);
     }
 
 

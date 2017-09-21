@@ -27,6 +27,7 @@ import com.dreameddeath.core.model.dto.annotation.processor.model.published.Abst
 import com.dreameddeath.core.model.dto.annotation.processor.model.published.TestingModelInheritedInput;
 import com.dreameddeath.core.model.dto.annotation.processor.model.published.TestingModelInheritedOutput;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -36,6 +37,10 @@ import static org.junit.Assert.assertTrue;
  * Created by christophe jeunesse on 28/05/2017.
  */
 public class DtoConverterFactoryTest {
+    @BeforeClass
+    public static void testGeneration(){
+
+    }
     @Test
     public void testFactory() throws Exception{
         DtoConverterFactory factory = new DtoConverterFactory();
@@ -100,4 +105,6 @@ public class DtoConverterFactoryTest {
             assertEquals(modelToConvert.longValue, ((TestingModelInheritedOutput) abstractOutput).getLongValue());
         }
     }
+
+
 }

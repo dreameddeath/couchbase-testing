@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -224,12 +224,7 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         DaoInfo daoInfo =DaoUtils.getDaoInfo(rootEntity.getModelId().getDomain(),rootEntity.getModelId().getName());
         Set<String> domains;
         if(daoInfo!=null && daoInfo.getParentDaoClassName()!=null){
-            domains=new TreeSet<>();
-            for(CouchbaseDocumentDao dao:attachedDaoList){
-                if(dao.getClass().getName().equals(daoInfo.getParentDaoClassName())){
-                    domains.add(dao.getDomain());
-                }
-            }
+            domains=getExistingDomainsForDaoClassName(daoInfo.getParentDaoClassName());
         }
         else {
             domains = getEffectiveDomainsForClass(clazz);
@@ -244,6 +239,16 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
             }
         }
         return daos;
+    }
+
+    public Set<String> getExistingDomainsForDaoClassName(String daoClassName) {
+        Set<String> domains = new TreeSet<>();
+        for(CouchbaseDocumentDao dao:attachedDaoList){
+            if(dao.getClass().getName().equals(daoClassName)){
+                domains.add(dao.getDomain());
+            }
+        }
+        return domains;
     }
 
     public CouchbaseDocumentDao addDaoForEntityAndFlavor(DaoInfo daoInfo,String domain,String name, String flavor) throws DuplicateMappedEntryInfoException,ConfigPropertyValueNotFoundException{

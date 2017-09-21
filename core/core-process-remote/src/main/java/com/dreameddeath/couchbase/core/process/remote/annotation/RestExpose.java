@@ -48,6 +48,8 @@ public @interface RestExpose {
     FieldGenMode defaultOutputFieldMode() default FieldGenMode.FILTER;
     SuperClassGenMode superClassGenMode() default SuperClassGenMode.IGNORE;
     DtoInOutMode pureSubClassMode() default DtoInOutMode.NONE;
-
+    boolean forceGenerateMode() default false;
     String jsonTypeId() default "";
+
+    boolean isClassHierarchyRoot() default false;
 }

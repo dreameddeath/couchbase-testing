@@ -28,7 +28,7 @@ import com.dreameddeath.core.query.annotation.QueryExpose;
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
  */
-@QueryExpose(rootPath = "",isPureSubClassMode = true,superClassGenMode = SuperClassGenMode.UNWRAP)
+@QueryExpose(rootPath = "", notDirecltyExposed = true,superClassGenMode = SuperClassGenMode.UNWRAP)
 public class BillingAccountContributorLink extends BusinessDocumentLink<BillingAccountContributor> {
     /**
      *  type : Type of contributor

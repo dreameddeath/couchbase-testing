@@ -55,6 +55,7 @@ public class DtoModelTypeIdProcessor extends AbstractAnnotationProcessor {
                 String fileName = DtoModelTypeIdResolver.buildFileName(dtoModelClassInfo, annot);
                 AnnotationProcessFileUtils.ResourceFile file = AnnotationProcessFileUtils.createResourceFile(processingEnv, fileName, classElem);
                 DtoModelTypeIdResolver.buildTypeInfoFile(file.getWriter(),dtoModelClassInfo,annot);
+                file.close();
             }
             catch(IOException e){
                 LOG.error("Error during processing",e);
@@ -67,6 +68,6 @@ public class DtoModelTypeIdProcessor extends AbstractAnnotationProcessor {
                 throw new RuntimeException("Error during annotation processor",e);
             }
         }
-        return true;
+        return false;
     }
 }

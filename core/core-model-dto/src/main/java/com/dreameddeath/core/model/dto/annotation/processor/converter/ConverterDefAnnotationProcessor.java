@@ -62,6 +62,6 @@ public class ConverterDefAnnotationProcessor extends AbstractAnnotationProcessor
                 throw new RuntimeException("Marker file generation error for "+converterClassInfo.getClassName(),e);
             }
         }
-        return true;
+        return false;
     }
 }

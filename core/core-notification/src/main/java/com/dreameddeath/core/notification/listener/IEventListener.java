@@ -36,5 +36,5 @@ public interface IEventListener {
 
     Single<SubmissionResult> submit(String domain,String notifId);
 
-    <T extends IEvent> boolean isApplicable(String effectiveDomain,T event);
+    boolean isApplicable(String effectiveDomain,Class<? extends IEvent> event);
 }

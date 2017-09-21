@@ -30,8 +30,8 @@ import io.reactivex.Single;
 public interface IEventBus {
     <T extends Event> Single<EventFireResult<T,T>> fireEvent(T event, ICouchbaseSession session);
     <T extends Event> EventFireResult<T,T> blockingFireEvent(T event, ICouchbaseSession session);
-    <T extends IEvent> Single<EventFireResult<T,CrossDomainBridge>> fireCrossDomainEvent(T event, ICouchbaseSession session);
-    <T extends IEvent> EventFireResult<T,CrossDomainBridge> blockingFireCrossDomainEvent(T event, ICouchbaseSession session);
+    <T extends IEvent> Single<EventFireResult<T,CrossDomainBridge>> fireCrossDomainEvent(String sourceDomain,T event, ICouchbaseSession session);
+    <T extends IEvent> EventFireResult<T,CrossDomainBridge> blockingFireCrossDomainEvent(String sourceDomain,T event, ICouchbaseSession session);
 
     void start();
     void stop();

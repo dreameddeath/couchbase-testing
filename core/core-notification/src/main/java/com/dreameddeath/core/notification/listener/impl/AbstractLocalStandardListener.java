@@ -44,8 +44,8 @@ public abstract class AbstractLocalStandardListener extends AbstractLocalListene
 
 
     @Override
-    public <T extends IEvent> boolean isApplicable(String effectiveDomain, T event) {
-        return getDomain().equals(effectiveDomain) && dispatcher.isApplicable(event.getClass());
+    public boolean isApplicable(Class<? extends IEvent> eventClazz) {
+        return dispatcher.isApplicable(eventClazz);
     }
 
     @Override

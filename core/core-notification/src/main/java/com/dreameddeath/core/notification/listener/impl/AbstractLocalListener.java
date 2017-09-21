@@ -23,10 +23,15 @@ import com.dreameddeath.core.notification.listener.SubmissionResult;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import io.reactivex.Single;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Created by Christophe Jeunesse on 30/05/2016.
  */
 public abstract class AbstractLocalListener  extends AbstractNotificationProcessor implements IEventListener{
+    private Map<EventKey,Boolean> applicableEvents = new ConcurrentHashMap<>();
+
     @Override
     public <T extends IEvent> Single<SubmissionResult> submit(final Notification sourceNotif, final T event) {
         return processIfNeeded(sourceNotif,event);
@@ -40,5 +45,43 @@ public abstract class AbstractLocalListener  extends AbstractNotificationProcess
     @Override
     public Single<SubmissionResult> submit(String domain,String notifKey) {
         return processIfNeeded(domain,notifKey);
+    }
+
+    @Override
+    public final boolean isApplicable(String effectiveDomain, Class<? extends IEvent> eventClazz) {
+        return applicableEvents.computeIfAbsent(new EventKey(effectiveDomain,eventClazz),
+                key->getDomain().equals(effectiveDomain) && isApplicable(key.eventClazz)
+                );
+    }
+
+
+    protected abstract boolean isApplicable(Class<? extends IEvent> clazz);
+
+    private static class EventKey {
+        private final String domain;
+        private final Class<? extends IEvent> eventClazz;
+
+        public EventKey(String domain, Class<? extends IEvent> eventClazz) {
+            this.domain = domain;
+            this.eventClazz = eventClazz;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            EventKey eventKey = (EventKey) o;
+
+            if (!domain.equals(eventKey.domain)) return false;
+            return eventClazz.equals(eventKey.eventClazz);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = domain.hashCode();
+            result = 31 * result + eventClazz.hashCode();
+            return result;
+        }
     }
 }

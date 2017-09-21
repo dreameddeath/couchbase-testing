@@ -23,13 +23,13 @@ import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.notification.annotation.EventOrigModelID;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.HasListenerDescription;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
 import com.dreameddeath.core.notification.model.v1.listener.ListenerDescription;
 import com.google.common.base.Preconditions;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +42,6 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
     private final String type;
     private final String version;
     private volatile List<EntityModelId> listenedEvents = null;
-    private final ConcurrentHashMap<DomainEventClassKey,Boolean> modelIdEligibilityMap = new ConcurrentHashMap<>();
 
     public AbstractDiscoverableListener(ListenerDescription description){
         this.domain = description.getDomain();
@@ -81,34 +80,29 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
     public void setDescription(ListenerDescription description){
         this.description = description;
         this.listenedEvents = Collections.unmodifiableList(description.getListenedEvents().stream().map(ListenedEvent::getType).collect(Collectors.toList()));
-        modelIdEligibilityMap.clear();
     }
 
 
     @Override
-    public <T extends IEvent> boolean isApplicable(String effectiveDomain, T event) {
-        return modelIdEligibilityMap.computeIfAbsent(new DomainEventClassKey(effectiveDomain,event.getClass()),this::calcEligibility);
+    protected boolean isApplicable(Class<? extends IEvent> clazz) {
+        return calcEligibility(clazz);
     }
 
-    public Boolean calcEligibility(DomainEventClassKey domainEventClassKey){
+    public <T extends IEvent> boolean calcEligibility(Class<? extends IEvent> clazz){
         EntityModelId modelId=null;
-        if(CouchbaseDocumentReflection.isReflexible(domainEventClassKey.clazz)) {
-            modelId = CouchbaseDocumentReflection.getReflectionFromClass((Class)domainEventClassKey.clazz).getStructure().getEntityModelId();
+        if(Event.class.isAssignableFrom(clazz)) {
+            modelId = CouchbaseDocumentReflection.getReflectionFromClass((Class<? extends Event>)clazz).getStructure().getEntityModelId();
         }
         if(modelId==null){
-            EventOrigModelID modelIDAnnot = domainEventClassKey.clazz.getAnnotation(EventOrigModelID.class);
+            EventOrigModelID modelIDAnnot = clazz.getAnnotation(EventOrigModelID.class);
             if(modelIDAnnot!=null && StringUtils.isNotEmpty(modelIDAnnot.value())){
                 modelId = EntityModelId.build(modelIDAnnot.value());
             }
         }
 
-        Preconditions.checkState(modelId!=null,"Not managed event %s because no model id found ",domainEventClassKey.clazz.getCanonicalName());
+        Preconditions.checkState(modelId!=null,"Not managed event %s because no model id found ",clazz.getCanonicalName());
 
         boolean result=false;
-        //Ignore cross domain lookup
-        if(!domainEventClassKey.domain.equals(modelId.getDomain())){
-            return false;
-        }
         List<EntityModelId> modelIdList = listenedEvents;
         if(modelIdList!=null) {
             for (EntityModelId acceptedModelId : modelIdList) {
@@ -124,33 +118,5 @@ public abstract class AbstractDiscoverableListener extends AbstractLocalListener
             }
         }
         return result;
-    }
-
-    private static class DomainEventClassKey {
-        private final String domain;
-        private final Class<?> clazz;
-
-        public DomainEventClassKey(String domain, Class<?> clazz) {
-            this.domain = domain;
-            this.clazz = clazz;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            DomainEventClassKey that = (DomainEventClassKey) o;
-
-            if (!domain.equals(that.domain)) return false;
-            return clazz.equals(that.clazz);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = domain.hashCode();
-            result = 31 * result + clazz.hashCode();
-            return result;
-        }
     }
 }

@@ -23,7 +23,6 @@ import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.depinjection.IDependencyInjector;
-import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.IEventBusLifeCycleListener;
@@ -38,6 +37,7 @@ import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProc
 import com.dreameddeath.core.notification.listener.impl.DefaultDiscoverableDeferringListener;
 import com.dreameddeath.core.notification.listener.impl.DiscoverableDefaultBlockingListener;
 import com.dreameddeath.core.notification.listener.impl.factory.EventListenerFactory;
+import com.dreameddeath.core.notification.model.v1.CrossDomainBridge;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.Notification;
@@ -51,7 +51,10 @@ import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
 import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +73,8 @@ public class ListenerDiscoveryTest extends Assert {
     private final static Logger LOG = LoggerFactory.getLogger(EventNotificationTest.class);
     public static final String NAME_SPACE_PREFIX = "test";
     public static final String BASE_PATH = "testEvents";
-    private static CuratorTestUtils curatorUtils;
-    private static CouchbaseBucketSimulator cbSimulator;
+    private CuratorTestUtils curatorUtils;
+    private CouchbaseBucketSimulator cbSimulator;
 
     private static CouchbaseSessionFactory sessionFactory;
     private IEventBus bus;
@@ -80,27 +83,21 @@ public class ListenerDiscoveryTest extends Assert {
     private ListenerDiscoverer discoverer;
     private volatile NotificationTestListener testListener;
 
-    @BeforeClass
-    public static void initialise() throws Exception{
+
+    @Before
+    public void setupBus() throws Exception{
         curatorUtils = new CuratorTestUtils().prepare(1);
 
         cbSimulator = new CouchbaseBucketSimulator("testDiscovery");
         cbSimulator.start();
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
-        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
-        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,CrossDomainBridgeDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Notification.class,NotificationDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),CrossDomainBridge.class,CrossDomainBridgeDao.class,cbSimulator);
         Thread.sleep(100);
-    }
-
-
-    @Before
-    public void setupBus() throws Exception{
-        //ConfigManagerFactory.getConfig(ConfigManagerFactory.PriorityDomain.LOCAL_OVERRIDE).setProperty(EVENTBUS_THREAD_POOL_SIZE.getMethodParamName(),4);
         metricRegistry=new MetricRegistry();
         client = curatorUtils.getClient(NAME_SPACE_PREFIX);
         discoverer = new ListenerDiscoverer(client, BASE_PATH);
-        //EventListenerFactory factory = new EventListenerFactory();
         bus = new EventBusImpl(metricRegistry);
         ListenerInfoManager manager = new ListenerInfoManager();
         EventListenerFactory listenerFactory = new EventListenerFactory();
@@ -118,7 +115,6 @@ public class ListenerDiscoveryTest extends Assert {
             }
         });
         listenerFactory.registerFromManager();
-        //.setSessionFactory(sessionFactory)).setSessionFactory(sessionFactory)
         discoverer.addListener(new ListenerAutoSubscribe(bus,listenerFactory).setSessionFactory(sessionFactory));
         discoverer.start();
 
@@ -130,7 +126,7 @@ public class ListenerDiscoveryTest extends Assert {
         TestNotificationQueue.INSTANCE().clear();
         assertEquals(0L,((EventBusImpl)bus).getListeners().size());
         ListenerRegistrar registrar = new ListenerRegistrar(client,BASE_PATH);
-        ListenedEvent listenedEvent = new ListenedEvent(CouchbaseDocumentReflection.getReflectionFromClass(TestEvent.class).getStructure().getEntityModelId());
+        ListenedEvent listenedEvent = ListenedEvent.buildFromInternal(TestEvent.class);
         ListenerDescription descriptionBlocking = new ListenerDescription();
         descriptionBlocking.setDomain("test");
         descriptionBlocking.setName("testBlocking");
@@ -196,7 +192,6 @@ public class ListenerDiscoveryTest extends Assert {
 
             assertTrue(counter.await(10, TimeUnit.SECONDS));
             assertEquals(2L,((EventBusImpl)bus).getListeners().size());
-            //assertTrue(((EventBusImpl)bus).getListeners().iterator().next().next() instanceof DiscoverableDefaultBlockingListener);
         }
 
 
@@ -268,13 +263,18 @@ public class ListenerDiscoveryTest extends Assert {
                     try {
                         Notification subNotification = checkSession.toBlocking().blockingGetFromKeyParams(Notification.class, submittedEvent.getId().toString(), listenerPos + 1);
                         listeners.removeIf(listener->listener.getName().equals(subNotification.getListenerLink().getName()));
-                        assertEquals(1L, (long) subNotification.getNbAttempts());
                         switch (subNotification.getListenerLink().getName()) {
                             case "testNonBlocking":
                                 assertEquals(Notification.Status.DEFERRED, subNotification.getStatus());
+                                assertEquals(1L, (long) subNotification.getNbAttempts());
                                 break;
                             case "test":
                                 assertEquals(Notification.Status.PROCESSED, subNotification.getStatus());
+                                assertEquals(1L, (long) subNotification.getNbAttempts());
+                                break;
+                            case "testBlocking":
+                                assertEquals(Notification.Status.INITIALIZED, subNotification.getStatus());
+                                assertEquals(0L, (long) subNotification.getNbAttempts());
                                 break;
                             default:
                                 fail("Unexpected name "+subNotification.getListenerLink().getName());
@@ -285,8 +285,7 @@ public class ListenerDiscoveryTest extends Assert {
                     }
                 }
 
-                assertEquals(1,listeners.size());
-                assertEquals("testBlocking",listeners.get(0).getName());
+                assertEquals(0,listeners.size());
             }
         }
         //Test DeRegistrar
@@ -319,6 +318,45 @@ public class ListenerDiscoveryTest extends Assert {
         ConsoleReporter.forRegistry(metricRegistry).build().report();
     }
 
+    @Test
+    public void testCrossDomainRegistrar() throws Exception {
+        TestNotificationQueue.INSTANCE().clear();
+        assertEquals(0L, ((EventBusImpl) bus).getListeners().size());
+        ListenerRegistrar registrar = new ListenerRegistrar(client, BASE_PATH);
+        ListenerDescription descriptionBlocking = new ListenerDescription();
+        descriptionBlocking.setDomain("test");
+        descriptionBlocking.setName("testBlocking");
+        ListenedEvent listenedEvent = ListenedEvent.buildFromInternal(TestEventCrossDomain.class);
+        descriptionBlocking.addListenedEvent(listenedEvent);
+        descriptionBlocking.setType("blockingGeneric");
+
+        //Test Registrar blocking
+        {
+            final CountDownLatch counter = new CountDownLatch(1);
+            final String expectedName = descriptionBlocking.getName();
+            final String expectedType = descriptionBlocking.getType();
+            bus.addLifeCycleListener(new IEventBusLifeCycleListener() {
+                @Override public void onStart() {}
+                @Override public void onStop() {}
+                @Override public void onAddListener(IEventListener listener) {
+                    if(counter.getCount()>0) {
+                        assertTrue(listener instanceof DiscoverableDefaultBlockingListener);
+                        assertEquals(expectedType,listener.getType());
+                        assertEquals(expectedName,listener.getName());
+                        counter.countDown();
+                    }
+                }
+                @Override public void onRemoveListener(IEventListener listener) {}
+            });
+            registrar.register(descriptionBlocking);
+
+            assertTrue(counter.await(10, TimeUnit.SECONDS));
+            assertEquals(1L,((EventBusImpl)bus).getListeners().size());
+            assertTrue(((EventBusImpl)bus).getListeners().get(0) instanceof DiscoverableDefaultBlockingListener);
+        }
+
+    }
+
 
     @After
     public void closeBus() throws Exception{
@@ -329,10 +367,6 @@ public class ListenerDiscoveryTest extends Assert {
         if(client!=null && client.getState()== CuratorFrameworkState.STARTED){
             client.close();
         }
-    }
-
-    @AfterClass
-    public static void clear() throws Exception{
         if(cbSimulator!=null)cbSimulator.shutdown();
         if(curatorUtils!=null)curatorUtils.stop();
     }

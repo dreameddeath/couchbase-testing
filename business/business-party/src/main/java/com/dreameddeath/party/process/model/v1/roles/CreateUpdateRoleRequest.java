@@ -22,6 +22,7 @@ import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.validation.annotation.NotNull;
@@ -30,7 +31,7 @@ import com.dreameddeath.couchbase.core.process.remote.annotation.RestExpose;
 /**
  * Created by Christophe Jeunesse on 09/05/2016.
  */
-@RestExpose(rootPath = "",pureSubClassMode = DtoInOutMode.IN,defaultInputFieldMode = FieldGenMode.SIMPLE)
+@RestExpose(rootPath = "",pureSubClassMode = DtoInOutMode.IN,defaultInputFieldMode = FieldGenMode.SIMPLE,superClassGenMode = SuperClassGenMode.AUTO,forceGenerateMode = true,isClassHierarchyRoot = true)
 @DocumentEntity
 public abstract class CreateUpdateRoleRequest extends VersionedDocumentElement{
     /**

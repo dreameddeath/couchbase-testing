@@ -144,7 +144,9 @@ public class DtoModelTypeIdResolver extends TypeIdResolverBase {
 
     @Override
     public String idFromValue(Object value) {
-        DtoModelJsonTypeId model = value.getClass().getAnnotation(DtoModelJsonTypeId.class);
+        Class<?> aClass = value.getClass();
+        DtoModelJsonTypeId model = aClass.getAnnotation(DtoModelJsonTypeId.class);
+        Preconditions.checkNotNull(model,"Cannot get DtoModelJsonTypeId from class %s", aClass);
         return model.value();
     }
 

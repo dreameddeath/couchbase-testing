@@ -43,7 +43,7 @@ public class LocalCrossDomainListener<T extends IEventListener & HasListenerDesc
     }
 
     protected <T extends IEvent> Single<EventFireResult<T, CrossDomainBridge>> doProcessCrossDomainEvent(T event, ICouchbaseSession session) {
-        return eventBus.fireCrossDomainEvent(event, session);
+        return eventBus.fireCrossDomainEvent(getDomain(),event, session);
     }
 
 }

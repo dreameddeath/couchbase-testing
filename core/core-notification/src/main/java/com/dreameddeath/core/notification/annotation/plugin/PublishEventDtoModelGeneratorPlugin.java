@@ -87,6 +87,11 @@ public class PublishEventDtoModelGeneratorPlugin extends AbstractStandardPureOut
     }
 
     @Override
+    protected boolean getRootAnnotIsClassHierarchyRoot(PublishEvent rootAnnot) {
+        return rootAnnot.isClassRootHierarchy();
+    }
+
+    @Override
     protected String getRootAnnotJsonTypeId(PublishEvent annot) {
         return annot.jsonTypeId();
     }
@@ -118,12 +123,16 @@ public class PublishEventDtoModelGeneratorPlugin extends AbstractStandardPureOut
 
     @Override
     public SuperClassGenMode getSuperClassGeneratorMode(ClassInfo childClass, ClassInfo parentClazz, Key dtoModelKey, List<AbstractDtoModelGenerator.UnwrappingStackElement> unwrappingStackElements){
-        if(parentClazz.isInstanceOf(Event.class)){
-            return SuperClassGenMode.UNWRAP;
+        SuperClassGenMode mode = super.getSuperClassGeneratorMode(childClass, parentClazz, dtoModelKey, unwrappingStackElements);
+        if(mode.equals(SuperClassGenMode.IGNORE) && parentClazz.isInstanceOf(Event.class)){
+            if(parentClazz.equals(ClassInfo.getClassInfo(Event.class))){
+                return SuperClassGenMode.UNWRAP;
+            }
+            else{
+                return SuperClassGenMode.AUTO;
+            }
         }
-        else{
-            return super.getSuperClassGeneratorMode(childClass, parentClazz, dtoModelKey, unwrappingStackElements);
-        }
+        return mode;
     }
 
 

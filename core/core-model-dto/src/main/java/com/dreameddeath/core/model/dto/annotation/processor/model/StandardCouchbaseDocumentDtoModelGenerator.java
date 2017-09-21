@@ -188,7 +188,11 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
                     return mode;
                 }
             }
-            return getDtoType(parentClazz, dtoModelKey.getType(),dtoModelKey.getVersion()).map(DtoGenerateType::superClassGenMode).orElse(DtoGenerateType.DEFAULT_SUPERCLASS_GENMODE);
+            SuperClassGenMode defaultSuperClassGenMode = DtoGenerateType.DEFAULT_SUPERCLASS_GENMODE;
+            if(defaultSuperClassGenMode == SuperClassGenMode.AUTO && parentClazz.isAbstract()){
+                defaultSuperClassGenMode = SuperClassGenMode.UNWRAP;
+            }
+            return getDtoType(childClass, dtoModelKey.getType(),dtoModelKey.getVersion()).map(DtoGenerateType::superClassGenMode).orElse(defaultSuperClassGenMode);
         }
         else{
             return SuperClassGenMode.IGNORE;
@@ -376,14 +380,14 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
             plugin.addHierarchyBasedTypeInfo(typeBuilder, origClass,key,superClassDtoName);
         }
 
-        if(superClassDtoName!=null && !origClass.isAbstract()) {
-            Optional<DtoGenerate> dtoGenerateAnnot = getDtoGenerateAnnotation(origClass).stream()
-                    .filter(dtoGenerate -> hasType(dtoGenerate,key.getType(), key.getVersion()))
-                    .filter(dtoGenerate -> (key.getInOutMode()==DtoInOutMode.BOTH) || (dtoGenerate.mode()==key.getInOutMode()))
-                    .findFirst();
-            Optional<DtoGenerateType> dtoGenerateType = getDtoType(origClass, key.getType(), key.getVersion());
-            if (dtoGenerateAnnot.isPresent()) {
-                //Optional<DtoGenerate> dtoGenerate = getDtoGenerate(clazz, key.getType(), key.getVersion());
+        Optional<DtoGenerate> dtoGenerateAnnot = getDtoGenerateAnnotation(origClass).stream()
+                .filter(dtoGenerate -> hasType(dtoGenerate,key.getType(), key.getVersion()))
+                .filter(dtoGenerate -> (key.getInOutMode()==DtoInOutMode.BOTH) || (dtoGenerate.mode()==key.getInOutMode()))
+                .findFirst();
+        Optional<DtoGenerateType> dtoGenerateType = getDtoType(origClass, key.getType(), key.getVersion());
+        boolean isRootHierarchy = dtoGenerateType.isPresent() && dtoGenerateType.get().isRootHierarchy();
+        if (dtoGenerateAnnot.isPresent()) {
+            if((superClassDtoName!=null||isRootHierarchy) && !origClass.isAbstract()) {
                 String jsonTypeId=null;
                 if(dtoGenerateType.isPresent()) {
                     jsonTypeId =dtoGenerateType.get().jsonTypeId();
@@ -401,25 +405,26 @@ public class StandardCouchbaseDocumentDtoModelGenerator extends AbstractDtoModel
                                 .build()
                 );
             }
-        }
-        //Manage root class
-        else if(origClass.isAbstract() && superClassDtoName==null){
-            typeBuilder.addAnnotation(
-                    AnnotationSpec.builder(JsonTypeInfo.class)
-                            .addMember("use","$T.$L",JsonTypeInfo.Id.class,JsonTypeInfo.Id.CUSTOM.name())
-                            .addMember("include","$T.$L",JsonTypeInfo.As.class,JsonTypeInfo.As.PROPERTY.name())
-                            .addMember("property","$S","@t")
-                            //.addMember("visible","$L","true")
-                            .build()
-            );
 
+            //Manage root class
+            if(isRootHierarchy ||(origClass.isAbstract() && superClassDtoName==null)){
+                typeBuilder.addAnnotation(
+                        AnnotationSpec.builder(JsonTypeInfo.class)
+                                .addMember("use","$T.$L",JsonTypeInfo.Id.class,JsonTypeInfo.Id.CUSTOM.name())
+                                .addMember("include","$T.$L",JsonTypeInfo.As.class,JsonTypeInfo.As.PROPERTY.name())
+                                .addMember("property","$S","@t")
+                                //.addMember("visible","$L","true")
+                                .build()
+                );
 
-            typeBuilder.addAnnotation(
-                    AnnotationSpec.builder(JsonTypeIdResolver.class)
-                            .addMember("value", "$T.class", DtoModelTypeIdResolver.class)
-                            .build()
-            );
+                typeBuilder.addAnnotation(
+                        AnnotationSpec.builder(JsonTypeIdResolver.class)
+                                .addMember("value", "$T.class", DtoModelTypeIdResolver.class)
+                                .build()
+                );
+            }
         }
+
     }
 
     @Override

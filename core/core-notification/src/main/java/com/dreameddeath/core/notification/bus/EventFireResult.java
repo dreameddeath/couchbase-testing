@@ -19,6 +19,7 @@ package com.dreameddeath.core.notification.bus;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.notification.common.IEvent;
+import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.INotificationsHolder;
 import com.dreameddeath.core.notification.model.v1.NotificationLink;
@@ -113,7 +114,12 @@ public class EventFireResult<T extends IEvent,THOLDER extends CouchbaseDocument 
         }
 
         private Builder(EventFireResult<T,THOLDER> res,THOLDER notificationHolder){
-            this.event=res.event;
+            if(notificationHolder instanceof Event) {
+                this.event = (T)notificationHolder;
+            }
+            else{
+                this.event = res.event;
+            }
             this.notificationHolder = notificationHolder;
             this.dispatchResults.addAll(res.results);
         }

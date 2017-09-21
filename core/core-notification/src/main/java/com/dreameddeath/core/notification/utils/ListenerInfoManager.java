@@ -204,7 +204,7 @@ public class ListenerInfoManager {
             return new IEventListenerBuilder() {
                 @Override
                 public IEventListener build(String domain,String type, String name, Map<String, String> params) {
-                    throw new RuntimeException("Cannot build using parameters for class "+descriptionBasedContructor.getDeclaringClass().getName());
+                    throw new RuntimeException("Cannot buildFromInternal using parameters for class "+descriptionBasedContructor.getDeclaringClass().getName());
                 }
 
                 @Override

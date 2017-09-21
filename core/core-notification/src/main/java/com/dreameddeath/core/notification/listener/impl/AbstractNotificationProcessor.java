@@ -46,6 +46,14 @@ public abstract class AbstractNotificationProcessor {
         defaultSessionUser = user;
     }
 
+    protected ICouchbaseSessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    protected IUser getDefaultSessionUser() {
+        return defaultSessionUser;
+    }
+
     public Single<SubmissionResult> processIfNeeded(final String domain, final String sourceNotifKey) {
         final ICouchbaseSession session = sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,defaultSessionUser);
         return session.asyncGet(sourceNotifKey,Notification.class)

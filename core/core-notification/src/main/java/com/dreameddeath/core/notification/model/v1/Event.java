@@ -20,6 +20,7 @@ package com.dreameddeath.core.notification.model.v1;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
@@ -28,6 +29,8 @@ import com.dreameddeath.core.model.property.MapProperty;
 import com.dreameddeath.core.model.property.NumericProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.*;
+import com.dreameddeath.core.notification.annotation.PublishEvent;
+import com.dreameddeath.core.notification.annotation.PublishEventField;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -45,6 +48,7 @@ import java.util.UUID;
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 @DocumentEntity
+@PublishEvent(defaultOutputFieldMode = FieldGenMode.FILTER)
 public abstract class Event extends CouchbaseDocument implements IVersionedEntity,IEvent,INotificationsHolder {
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override
@@ -63,7 +67,7 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
     /**
      *  id : event unique Id
      */
-    @DocumentProperty("id")
+    @DocumentProperty("id") @PublishEventField
     private final Property<UUID> id = new ImmutableProperty<>(Event.this,UUID.randomUUID());
     /**
      *  type : type of event
@@ -73,12 +77,12 @@ public abstract class Event extends CouchbaseDocument implements IVersionedEntit
     /**
      *  correlationId : correlation id of event to allow group by
      */
-    @DocumentProperty("correlationId")
+    @DocumentProperty("correlationId") @PublishEventField
     private final Property<String> correlationId = new ImmutableProperty<>(Event.this);
     /**
      *  rank : Ordering rank for the given correlation id. Used to perform correlation checks
      */
-    @DocumentProperty("rank")
+    @DocumentProperty("rank") @PublishEventField
     private final Property<String> rank = new ImmutableProperty<>(Event.this);
     /**
      *  listeners : List of listeners to post to

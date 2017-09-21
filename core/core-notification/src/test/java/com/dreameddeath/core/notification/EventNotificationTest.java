@@ -20,19 +20,25 @@ package com.dreameddeath.core.notification;
 import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
 import com.dreameddeath.core.notification.dao.CrossDomainBridgeDao;
 import com.dreameddeath.core.notification.dao.EventDao;
 import com.dreameddeath.core.notification.dao.NotificationDao;
+import com.dreameddeath.core.notification.listener.impl.crossdomain.LocalCrossDomainListener;
+import com.dreameddeath.core.notification.model.v1.CrossDomainBridge;
 import com.dreameddeath.core.notification.model.v1.Event;
 import com.dreameddeath.core.notification.model.v1.EventListenerLink;
 import com.dreameddeath.core.notification.model.v1.Notification;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.AnonymousUser;
 import com.dreameddeath.testing.couchbase.CouchbaseBucketSimulator;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,27 +53,28 @@ import static com.dreameddeath.core.notification.config.NotificationConfigProper
  */
 public class EventNotificationTest extends Assert{
     private final static Logger LOG = LoggerFactory.getLogger(EventNotificationTest.class);
-    private static CouchbaseBucketSimulator cbSimulator;
-    private static CouchbaseSessionFactory sessionFactory;
-    private IEventBus bus;
+    private CouchbaseBucketSimulator cbSimulator;
+    private CouchbaseSessionFactory sessionFactory;
+    //private IEventBus bus;
     //private NotificationTestListener testListener;
 
 
-    @BeforeClass
-    public static void initialise() throws Exception{
+    @Before
+    public void initialise() throws Exception{
         cbSimulator = new CouchbaseBucketSimulator("test");
         cbSimulator.start();
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
         DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,EventDao.class,cbSimulator);
-        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,NotificationDao.class,cbSimulator);
-        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Event.class,CrossDomainBridgeDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),Notification.class,NotificationDao.class,cbSimulator);
+        DaoUtils.buildAndAddDaosForDomains(sessionFactory.getDocumentDaoFactory(),CrossDomainBridge.class,CrossDomainBridgeDao.class,cbSimulator);
         Thread.sleep(100);
     }
 
+    @Test
+    public void eventBusTest() throws Exception{
+        final int nbListener = 4;
 
-    @Before
-    public void setupBus(){
-        bus = new EventBusImpl();
+        IEventBus bus = new EventBusImpl();
         {
             NotificationTestListener testListener = new NotificationTestListener("singleThreaded");
             testListener.setSessionFactory(sessionFactory);
@@ -88,13 +95,8 @@ public class EventNotificationTest extends Assert{
             autoDiscoveryListener3Params.setSessionFactory(sessionFactory);
             bus.addListener(autoDiscoveryListener3Params);
         }
+
         bus.start();
-    }
-
-    @Test
-    public void eventBusTest() throws Exception{
-        final int nbListener = 4;
-
         TestNotificationQueue.INSTANCE().clear();
 
         {
@@ -190,18 +192,142 @@ public class EventNotificationTest extends Assert{
                 }
             }
         }
+
+
+
+        bus.stop();
+    }
+
+
+    @Test
+    public void crossDomainListener() throws Exception{
+        final int nbListener = 1;
+        TestNotificationQueue.INSTANCE().clear();
+        IEventBus bus = new EventBusImpl();
+        DtoConverterFactory dtoConverterFactory = new DtoConverterFactory();
+        NotificationCrossDomainListener crossDomainListener;
+
+        {
+            crossDomainListener = new NotificationCrossDomainListener("crossDomain");
+            crossDomainListener.setSessionFactory(sessionFactory);
+            bus.addListener(crossDomainListener);
+            LocalCrossDomainListener<NotificationCrossDomainListener> localCrossDomainListenerBridge = new LocalCrossDomainListener<>("test",crossDomainListener);
+            localCrossDomainListenerBridge.setEventBus(bus);
+            localCrossDomainListenerBridge.setSessionFactory(sessionFactory);
+            localCrossDomainListenerBridge.setDtoConverterFactory(dtoConverterFactory);
+            bus.addListener(localCrossDomainListenerBridge);
+        }
+        bus.start();
+        {
+            ICouchbaseSession session = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
+            EventFireResult<NoListenerTestEvent,?> result = bus.blockingFireEvent(new NoListenerTestEvent(), session);
+            assertTrue(result.isSuccess());
+            assertTrue(result.getResults().size()==0);
+            assertTrue(result.getEvent().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW));
+        }
+
+        List<AbstractTestEvent> submittedEvents = new ArrayList<>();
+        int nbEvent = EVENTBUS_THREAD_POOL_SIZE.get() * 5;
+        {
+            ICouchbaseSession testSession = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
+            ICouchbaseSession test2Session = sessionFactory.newReadWriteSession("test2",AnonymousUser.INSTANCE);
+            for (int i = 1; i <= nbEvent; ++i) {
+                AbstractTestEvent test;
+                switch (i%3){
+                    case 2 : test = new TestEventSecondary();break;
+                    case 0 : test = new TestEventCrossDomain();break;
+                    default: test = new TestEvent();
+                }
+                test.toAdd= i;
+                EventFireResult<AbstractTestEvent,?> result = bus.blockingFireEvent(test, test instanceof TestEventCrossDomain?test2Session:testSession);
+                assertTrue(result.isSuccess());
+                submittedEvents.add(result.getEvent());
+            }
+        }
+
+        List<Notification> notificationList = new ArrayList<>();
+        int nbReceived = 0;
+        {
+            Notification resultNotif;
+            do {
+                resultNotif = TestNotificationQueue.INSTANCE().poll();
+                if (resultNotif != null) {
+                    nbReceived++;
+                    notificationList.add(resultNotif);
+                }
+            } while (resultNotif != null && (nbReceived< (nbEvent*nbListener)));
+        }
+
+        assertEquals(nbEvent*nbListener,nbReceived);
+        assertEquals(((nbEvent+1)*nbEvent/2)*nbListener,TestNotificationQueue.INSTANCE().getTotalCounter());
+
+        {
+            ICouchbaseSession checkTestSession = sessionFactory.newReadWriteSession("test",AnonymousUser.INSTANCE);
+            ICouchbaseSession checkTest2Session = sessionFactory.newReadWriteSession("test2",AnonymousUser.INSTANCE);
+
+            for(AbstractTestEvent submittedEvent:submittedEvents){
+                ICouchbaseSession checkSession = submittedEvent.getDomain().equals("test")?checkTestSession:checkTest2Session;
+                assertEquals(submittedEvent.getListeners().size(),submittedEvent.getNotifications().keySet().size());
+                List<EventListenerLink> listeners = new ArrayList<>();
+                listeners.addAll(submittedEvent.getListeners());
+                int nbListeners = listeners.size();
+
+                for(int listenerPos=0;listenerPos<nbListeners;listenerPos++){
+                    EventListenerLink listenerLink = submittedEvent.getListeners().get(listenerPos);
+                    Notification subNotification;
+                    //Cross domain notif
+                    if(!listenerLink.getDomain().equals(crossDomainListener.getDomain())){
+                        ICouchbaseSession targetCheckSession = crossDomainListener.getDomain().equals("test")?checkTestSession:checkTest2Session;
+                        CrossDomainBridge crossDomainBridge = targetCheckSession.toBlocking().blockingGetFromKeyParams(CrossDomainBridge.class, submittedEvent.getId().toString(), crossDomainListener.getDomain());
+                        assertEquals(crossDomainListener.getDomain(),crossDomainBridge.getEffectiveDomain());//The crossDomainBridge object must belong to the target domain
+                        listeners.removeIf(listener->listener.getDomain().equals(crossDomainBridge.getEventDomain()));
+                        assertEquals(crossDomainBridge.getListeners().size(),crossDomainBridge.getNotifications().keySet().size());
+                        assertEquals(Event.Status.NOTIFICATIONS_IN_DB,crossDomainBridge.getStatus());
+                        assertEquals(1L,(long)crossDomainBridge.getSubmissionAttempt());
+                        for(EventListenerLink targetListenerLink:crossDomainBridge.getListeners()) {
+                            subNotification = crossDomainBridge.getNotifications().get(targetListenerLink.getName()).getBlockingNotification(targetCheckSession);
+                            assertEquals(1L,(long)subNotification.getNbAttempts());
+                            assertEquals(Notification.Status.PROCESSED,subNotification.getStatus());
+                        }
+                    }
+                    else {
+                        subNotification = checkSession.toBlocking().blockingGetFromKeyParams(Notification.class, submittedEvent.getId().toString(), listenerPos + 1);
+                        assertEquals(1L,(long)subNotification.getNbAttempts());
+                        assertEquals(Notification.Status.PROCESSED,subNotification.getStatus());
+                        listeners.removeIf(listener->listener.getName().equals(listenerLink.getName()));
+                    }
+                }
+
+                assertEquals(0,listeners.size());
+            }
+            for (Notification srcNotif : notificationList) {
+                if(srcNotif.getId()==null || srcNotif.getId()!=-1L) {
+                    ICouchbaseSession eventCheckSession = srcNotif.getDomain().equals("test")?checkTestSession:checkTest2Session;
+                    ICouchbaseSession notifCheckSession = srcNotif.getListenerLink().getDomain().equals("test")?checkTestSession:checkTest2Session;
+                    Notification notif = notifCheckSession.toBlocking().blockingGet(srcNotif.getBaseMeta().getKey(), Notification.class);
+                    assertEquals(Notification.Status.PROCESSED, notif.getStatus());
+                    AbstractTestEvent eventTest = eventCheckSession.toBlocking().blockingGetFromKeyParams(AbstractTestEvent.class, notif.getEventId().toString());
+
+                    if(eventTest.getDomain().equals(crossDomainListener.getDomain())) {
+                        assertTrue(eventTest.getListeners().stream().anyMatch(listener -> listener.getName().equals(notif.getListenerLink().getName())));
+                    }
+                    else{
+                        CrossDomainBridge crossDomainBridge = eventCheckSession.toBlocking().blockingGetFromKeyParams(CrossDomainBridge.class, notif.getEventId().toString(),srcNotif.getDomain());
+                        assertEquals(crossDomainListener.getDomain(),crossDomainBridge.getEffectiveDomain());//The cross domain bridge belongs to the target domain
+                        assertTrue(crossDomainBridge.getListeners().stream().anyMatch(listener -> listener.getName().equals(notif.getListenerLink().getName())));
+                        assertTrue(eventTest.getListeners().stream().anyMatch(listener -> listener.getName().equals(LocalCrossDomainListener.buildCrossDomainListenerName(eventTest.getDomain(),notif.getListenerLink().getDomain()))));
+                    }
+                }
+            }
+        }
+
+
+        bus.stop();
     }
 
 
     @After
-    public void after(){
-        if(bus!=null){
-            bus.stop();
-        }
-    }
-
-    @AfterClass
-    public static void afterClass() throws Exception{
+    public void afterClass() throws Exception{
         if(cbSimulator!=null){
             cbSimulator.shutdown();
         }

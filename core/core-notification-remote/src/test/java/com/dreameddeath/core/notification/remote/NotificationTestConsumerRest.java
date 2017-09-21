@@ -17,7 +17,6 @@
 
 package com.dreameddeath.core.notification.remote;
 
-import com.dreameddeath.core.model.util.CouchbaseDocumentReflection;
 import com.dreameddeath.core.notification.NotificationTestListener;
 import com.dreameddeath.core.notification.TestEvent;
 import com.dreameddeath.core.notification.model.v1.listener.ListenedEvent;
@@ -37,7 +36,7 @@ public class NotificationTestConsumerRest extends AbstractRemoteConsumerRest<Not
 
     @Override
     public List<ListenedEvent> getListenedEvents(){
-        return Collections.singletonList(new ListenedEvent(CouchbaseDocumentReflection.getReflectionFromClass(TestEvent.class).getStructure().getEntityModelId()));
+        return Collections.singletonList(ListenedEvent.buildFromInternal(TestEvent.class));
     }
 
 }

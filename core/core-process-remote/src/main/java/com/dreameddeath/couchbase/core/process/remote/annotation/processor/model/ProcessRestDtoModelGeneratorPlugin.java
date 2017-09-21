@@ -56,6 +56,12 @@ public class ProcessRestDtoModelGeneratorPlugin extends AbstractStandardGenerato
         return RestExpose.class;
     }
 
+
+    @Override
+    protected boolean forceGenerateAbstractClass(ClassInfo entityClassInfo, RestExpose annot) {
+        return annot!=null && annot.forceGenerateMode();
+    }
+
     @Override
     protected Class<Request> getFieldInputAnnot() {
         return Request.class;
@@ -99,6 +105,11 @@ public class ProcessRestDtoModelGeneratorPlugin extends AbstractStandardGenerato
     @Override
     protected String getRootAnnotJsonTypeId(RestExpose rootAnnot) {
         return rootAnnot.jsonTypeId();
+    }
+
+    @Override
+    protected boolean getRootAnnotIsClassHierarchyRoot(RestExpose rootAnnot) {
+        return rootAnnot.isClassHierarchyRoot();
     }
 
     @Override

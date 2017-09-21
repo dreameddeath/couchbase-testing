@@ -35,6 +35,6 @@ public @interface DtoGenerateType {
     FieldGenMode defaultInputFieldMode() default FieldGenMode.SIMPLE;
     FieldGenMode defaultOutputFieldMode() default FieldGenMode.SIMPLE;
     SuperClassGenMode superClassGenMode() default SuperClassGenMode.AUTO;
-
     String jsonTypeId() default "";
+    boolean isRootHierarchy() default false;
 }

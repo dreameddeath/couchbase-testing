@@ -21,9 +21,14 @@ import com.dreameddeath.core.model.dto.annotation.DtoInOutMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * Created by christophe jeunesse on 26/06/2017.
  */
+@Retention(RetentionPolicy.RUNTIME)
+
 public @interface PublishEvent {
     FieldGenMode DEFAULT_OUTPUT_GEN_MODE = FieldGenMode.SIMPLE;
     SuperClassGenMode DEFAULT_SUPERCLASS_GEN_MODE = SuperClassGenMode.IGNORE;
@@ -32,9 +37,11 @@ public @interface PublishEvent {
     String domain() default "";
     String name() default  "";
     String version() default "1.0.0";
-    FieldGenMode defaultOutputFieldMode() default FieldGenMode.FILTER;
+    FieldGenMode defaultOutputFieldMode() default FieldGenMode.SIMPLE;
     SuperClassGenMode superClassGenMode() default SuperClassGenMode.IGNORE;
     DtoInOutMode pureSubClassMode() default DtoInOutMode.NONE;
 
     String jsonTypeId() default "";
+
+    boolean isClassRootHierarchy() default false;
 }

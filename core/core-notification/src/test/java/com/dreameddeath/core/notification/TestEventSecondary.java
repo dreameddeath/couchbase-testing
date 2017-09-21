@@ -21,10 +21,10 @@ import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.notification.annotation.PublishEvent;
 
 /**
- * Created by Christophe Jeunesse on 17/08/2016.
+ * Created by Christophe Jeunesse on 11/09/2017.
  */
 @PublishEvent
 @DocumentEntity(domain = "test", version = "1.0")
-public class TestEvent extends AbstractTestEvent {
+public class TestEventSecondary extends AbstractTestEvent {
 
 }

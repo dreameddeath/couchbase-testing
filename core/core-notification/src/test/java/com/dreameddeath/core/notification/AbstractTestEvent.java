@@ -18,13 +18,26 @@
 package com.dreameddeath.core.notification;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.notification.annotation.PublishEvent;
+import com.dreameddeath.core.notification.model.v1.Event;
 
 /**
- * Created by Christophe Jeunesse on 17/08/2016.
+ * Created by Christophe Jeunesse on 11/09/2017.
  */
 @PublishEvent
-@DocumentEntity(domain = "test", version = "1.0")
-public class TestEvent extends AbstractTestEvent {
+@DocumentEntity(domain = "test",version = "1.0")
+public abstract class AbstractTestEvent extends Event {
+    @DocumentProperty
+    public String eventId;
+    @DocumentProperty
+    public Integer toAdd;
 
+    public String getEventId(){
+        return eventId;
+    }
+
+    public Integer getToAdd() {
+        return toAdd;
+    }
 }

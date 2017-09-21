@@ -43,6 +43,8 @@ public @interface QueryExpose {
     VersionStatus status() default VersionStatus.STABLE;
     FieldGenMode defaultOutputFieldMode() default FieldGenMode.SIMPLE;
     SuperClassGenMode superClassGenMode() default SuperClassGenMode.AUTO;
-    boolean isPureSubClassMode() default false;
+    boolean notDirecltyExposed() default false;
     String jsonTypeId() default "";
+
+    boolean isClassRootHierarchy() default false;
 }

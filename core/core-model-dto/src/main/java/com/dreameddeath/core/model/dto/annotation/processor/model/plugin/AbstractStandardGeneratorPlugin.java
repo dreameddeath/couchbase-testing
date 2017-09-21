@@ -27,6 +27,9 @@ import com.dreameddeath.core.model.dto.annotation.processor.model.AbstractDtoMod
 import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.Key;
 import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
+import com.dreameddeath.core.model.dto.json.DtoModelTypeIdResolver;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.google.common.collect.Lists;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
@@ -58,6 +61,7 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
     protected abstract String getRootAnnotVersion(TROOT rootAnnot);
     protected abstract SuperClassGenMode getRootAnnotSuperClassGenMode(TROOT rootAnnot);
     protected abstract String getRootAnnotJsonTypeId(TROOT rootAnnot);
+    protected abstract boolean getRootAnnotIsClassHierarchyRoot(TROOT rootAnnot);
     protected abstract FieldGenMode getRootAnnotDefaultOutputFieldMode(TROOT rootAnnot);
     protected abstract FieldGenMode getRootAnnotDefaultInputFieldMode(TROOT rootAnnot);
 
@@ -141,9 +145,15 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
         }
         if(annots!=null && annots.length>0){
             for(TROOT annot : annots){
-                generateForAnnot(abstractDtoModelGenerator,entityClassInfo,annot);
+                if(! entityClassInfo.isAbstract() || forceGenerateAbstractClass(entityClassInfo,annot)) {
+                    generateForAnnot(abstractDtoModelGenerator, entityClassInfo, annot);
+                }
             }
         }
+    }
+
+    protected boolean forceGenerateAbstractClass(ClassInfo entityClassInfo, TROOT annot){
+        return false;
     }
 
 
@@ -154,9 +164,13 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
             return getRootAnnotSuperClassGenMode(annot);
         }
         else{
-            //If parent has rest expose, force generate in auto mode
+            //If parent has the plugin dto model annot, force generate in auto mode
             TROOT parentAnnot = getRootAnnotForKey(parentClazz,dtoModelKey,unwrappingStackElements,false);
             if(parentAnnot!=null){
+                //SuperClassGenMode defaultSuperClassGenMode = getDefaultSuperClassMode();
+                if(parentClazz.isAbstract()){
+                    return forceGenerateAbstractClass(parentClazz,parentAnnot)?SuperClassGenMode.AUTO:SuperClassGenMode.UNWRAP;
+                }
                 return SuperClassGenMode.AUTO;
             }
             else if(parentClazz.getSuperClass()!=null){
@@ -239,8 +253,8 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
     @Override
     public void addHierarchyBasedTypeInfo(TypeSpec.Builder typeBuilder, ClassInfo clazz, Key key, ClassName superClassDtoName) {
         TROOT annot = getRootAnnotForKey(clazz,key,null,false);
-
-        if(superClassDtoName!=null && !clazz.isAbstract()) {
+        boolean isRootHierachy = annot != null && getRootAnnotIsClassHierarchyRoot(annot);
+        if(((superClassDtoName!=null || isRootHierachy) && !clazz.isAbstract())) {
             String jsonTypeId = null;
             if(annot!=null){
                 jsonTypeId = getRootAnnotJsonTypeId(annot);
@@ -251,6 +265,23 @@ public abstract class AbstractStandardGeneratorPlugin<TROOT extends Annotation,T
             typeBuilder.addAnnotation(
                     AnnotationSpec.builder(DtoModelJsonTypeId.class)
                             .addMember("value", "$S", jsonTypeId)
+                            .build()
+            );
+        }
+        //Manage root class
+        if(isRootHierachy ||(clazz.isAbstract() && superClassDtoName==null)){
+            typeBuilder.addAnnotation(
+                    AnnotationSpec.builder(JsonTypeInfo.class)
+                            .addMember("use","$T.$L",JsonTypeInfo.Id.class,JsonTypeInfo.Id.CUSTOM.name())
+                            .addMember("include","$T.$L",JsonTypeInfo.As.class,JsonTypeInfo.As.PROPERTY.name())
+                            .addMember("property","$S","@t")
+                            //.addMember("visible","$L","true")
+                            .build()
+            );
+
+            typeBuilder.addAnnotation(
+                    AnnotationSpec.builder(JsonTypeIdResolver.class)
+                            .addMember("value", "$T.class", DtoModelTypeIdResolver.class)
                             .build()
             );
         }

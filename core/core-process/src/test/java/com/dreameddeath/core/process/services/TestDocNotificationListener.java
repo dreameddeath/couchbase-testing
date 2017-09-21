@@ -59,8 +59,8 @@ public class TestDocNotificationListener extends AbstractLocalListener {
     }
 
     @Override
-    public <T extends IEvent> boolean isApplicable(String domain,T event) {
-        return domain.equals(getDomain()) && event instanceof TestDocEvent;
+    public boolean isApplicable(Class<? extends IEvent> event) {
+        return TestDocEvent.class.isAssignableFrom(event);
     }
 
     @Override

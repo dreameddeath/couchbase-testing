@@ -95,6 +95,11 @@ public class QueryDtoModelGeneratorPlugin extends AbstractStandardPureOutputGene
     }
 
     @Override
+    protected boolean getRootAnnotIsClassHierarchyRoot(QueryExpose rootAnnot) {
+        return rootAnnot.isClassRootHierarchy();
+    }
+
+    @Override
     protected FieldGenMode getRootAnnotDefaultOutputFieldMode(QueryExpose rootAnnot) {
         return rootAnnot.defaultOutputFieldMode();
     }
@@ -135,7 +140,7 @@ public class QueryDtoModelGeneratorPlugin extends AbstractStandardPureOutputGene
             name=clazz.getSimpleName();
         }
 
-        if (annot!=null && !annot.isPureSubClassMode()) {
+        if (annot!=null && !annot.notDirecltyExposed()) {
             dtoModelBuilder.addAnnotation(
                     AnnotationSpec.builder(RemoteQueryInfo.class)
                             .addMember("domain", "$S", annot.domain())
