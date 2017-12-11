@@ -41,6 +41,7 @@ import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import com.dreameddeath.core.process.service.factory.impl.ExecutorClientFactory;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.utils.ValidationExceptionUtils;
+import com.google.common.base.Preconditions;
 import io.reactivex.Single;
 
 import java.util.Optional;
@@ -87,8 +88,14 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
 
     @Override
     public Single<JobContext<T>> executeJob(T job, IUser user) {
+        return executeJob(job,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain, user));
+    }
+
+    @Override
+    public Single<JobContext<T>> executeJob(T job, ICouchbaseSession session) {
+        Preconditions.checkArgument(session.getDomain().equals(domain),"The domain of session %s mismatch with the domain of the client %s",session.getDomain(),domain);
         final JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain, user))
+                .withSession(session)
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
@@ -120,9 +127,15 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
 
     @Override
     public Single<JobContext<T>> submitJob(T job, IUser user) {
+        return submitJob(job,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user));
+    }
+
+    @Override
+    public Single<JobContext<T>> submitJob(T job, ICouchbaseSession session) {
+        Preconditions.checkArgument(session.getDomain().equals(domain),"The domain of session %s mismatch with the domain of the client %s",session.getDomain(),domain);
         job.getStateInfo().setState(ProcessState.State.ASYNC_NEW);
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user))
+                .withSession(session)
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
@@ -132,9 +145,15 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
     }
 
     @Override
-    public Single<JobContext<T>> resumeJob(T job, IUser user){
+    public Single<JobContext<T>> resumeJob(T job, IUser user) {
+        return resumeJob(job,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user));
+    }
+
+    @Override
+    public Single<JobContext<T>> resumeJob(T job, ICouchbaseSession session){
+        Preconditions.checkArgument(session.getDomain().equals(domain),"The domain of session %s mismatch with the domain of the client %s",session.getDomain(),domain);
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
-                .withSession(sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user))
+                .withSession(session)
                 .withClientFactory(parentClientFactory)
                 .withJobExecutorService(executorService)
                 .withJobProcessingService(processingService)
@@ -146,9 +165,16 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
 
     @Override
     public Single<JobContext<T>> cancelJob(T job, IUser user){
+        return cancelJob(job,sessionFactory.newSession(ICouchbaseSession.SessionType.READ_WRITE,domain,user));
+    }
+
+    @Override
+    public Single<JobContext<T>> cancelJob(T job, ICouchbaseSession session){
+        Preconditions.checkArgument(session.getDomain().equals(domain),"The domain of session %s mismatch with the domain of the client %s",session.getDomain(),domain);
         //TODO
         return null;
     }
+
 
     @Override
     public UUID getInstanceUUID() {
@@ -179,9 +205,20 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
             }
 
             @Override
+            public JobContext<T> executeJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.executeJob(job,session));
+            }
+
+            @Override
             public JobContext<T> submitJob(T job, IUser user) throws JobExecutionException {
                 return mapError(BasicJobExecutorClientImpl.this.submitJob(job,user));
             }
+
+            @Override
+            public JobContext<T> submitJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.submitJob(job,session));
+            }
+
 
             @Override
             public JobContext<T> resumeJob(T job, IUser user) throws JobExecutionException {
@@ -189,9 +226,20 @@ public class BasicJobExecutorClientImpl<T extends AbstractJob> implements IJobEx
             }
 
             @Override
+            public JobContext<T> resumeJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.resumeJob(job,session));
+            }
+
+            @Override
             public JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException {
                 return mapError(BasicJobExecutorClientImpl.this.cancelJob(job,user));
             }
+
+            @Override
+            public JobContext<T> cancelJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(BasicJobExecutorClientImpl.this.resumeJob(job,session));
+            }
+
         };
     }
 

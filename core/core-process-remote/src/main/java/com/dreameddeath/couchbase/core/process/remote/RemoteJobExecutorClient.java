@@ -1,22 +1,23 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
 package com.dreameddeath.couchbase.core.process.remote;
 
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -56,20 +57,50 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
     }
 
     @Override
+    public Single<JobContext<T>> executeJob(T job, ICouchbaseSession session) {
+        return executeJob(job);
+    }
+
+    @Override
     public Single<JobContext<T>> executeJob(T job, IUser user){
+        return executeJob(job);
+    }
+
+    private Single<JobContext<T>> executeJob(T job){
         JobContext<T> context = JobContext.newContext(
                 new JobContext.Builder<>(job)
-                .withJobExecutorService(remoteJobExecutorService));
+                        .withJobExecutorService(remoteJobExecutorService));
         return context.execute();
     }
 
     @Override
     public Single<JobContext<T>> submitJob(T job, IUser user){
+        return submitJob(job);
+    }
+
+
+    @Override
+    public Single<JobContext<T>> submitJob(T job, ICouchbaseSession session){
+        return submitJob(job);
+    }
+
+
+    private Single<JobContext<T>> submitJob(T job){
         return null;//TODO
     }
 
+
     @Override
     public Single<JobContext<T>> resumeJob(T job, IUser user){
+        return resumeJob(job);
+    }
+
+    @Override
+    public Single<JobContext<T>> resumeJob(T job, ICouchbaseSession session){
+        return resumeJob(job);
+    }
+
+    private Single<JobContext<T>> resumeJob(T job){
         JobContext<T> ctxt = JobContext.newContext(new JobContext.Builder<>(job)
                 .withJobExecutorService(remoteJobExecutorService)
         );
@@ -84,8 +115,19 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
 
     @Override
     public Single<JobContext<T>> cancelJob(T job, IUser user) {
+        return cancelJob(job);
+    }
+
+    @Override
+    public Single<JobContext<T>> cancelJob(T job, ICouchbaseSession session) {
+        return cancelJob(job);
+    }
+
+    private Single<JobContext<T>> cancelJob(T job) {
         return null;//TODO
     }
+
+
 
     @Override
     public UUID getInstanceUUID() {
@@ -144,8 +186,19 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
             }
 
             @Override
+            public JobContext<T> executeJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.executeJob(job,session));
+            }
+
+
+            @Override
             public JobContext<T> submitJob(T job, IUser user) throws JobExecutionException {
                 return mapError(RemoteJobExecutorClient.this.submitJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> submitJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.submitJob(job,session));
             }
 
             @Override
@@ -154,8 +207,18 @@ public class RemoteJobExecutorClient<T extends AbstractJob> implements IJobExecu
             }
 
             @Override
+            public JobContext<T> resumeJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.resumeJob(job,session));
+            }
+
+            @Override
             public JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException {
                 return mapError(RemoteJobExecutorClient.this.cancelJob(job,user));
+            }
+
+            @Override
+            public JobContext<T> cancelJob(T job, ICouchbaseSession session) throws JobExecutionException {
+                return mapError(RemoteJobExecutorClient.this.cancelJob(job,session));
             }
         };
     }

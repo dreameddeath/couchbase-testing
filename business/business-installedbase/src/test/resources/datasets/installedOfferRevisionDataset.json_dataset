@@ -136,7 +136,7 @@
               links:[{
                   targetId:"tid1",
                   type:"RELIES",
-                  action:"CHANGE",
+                  action:"MODIFY",
                   status:"ACTIVE"
               },{
                   targetId:"tid1",

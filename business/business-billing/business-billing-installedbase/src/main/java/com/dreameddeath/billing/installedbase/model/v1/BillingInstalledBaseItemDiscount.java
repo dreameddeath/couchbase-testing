@@ -19,6 +19,7 @@ package com.dreameddeath.billing.installedbase.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
 
 /**
@@ -30,9 +31,29 @@ public class BillingInstalledBaseItemDiscount extends BillingInstalledBaseItem {
      */
     @DocumentProperty("discountId")
     private Property<String> discountId = new StandardProperty<String>(BillingInstalledBaseItemDiscount.this);
+    /**
+     * code : the discount catalogue code
+     */
+    @DocumentProperty("code")
+    private Property<String> code = new ImmutableProperty<>(BillingInstalledBaseItemDiscount.this);
 
     // discountId accessors
     public String getDiscountId() { return discountId.get(); }
     public void setDiscountId(String val) { discountId.set(val); }
+    /**
+     * Getter of the attribute {@link #code}
+     * return the currentValue of {@link #code}
+     */
+    public String getCode(){
+        return this.code.get();
+    }
+
+    /**
+     * Setter of the attribute {@link #code}
+     * @param newValue the newValue of {@link #code}
+     */
+    public void setCode(String newValue){
+        this.code.set(newValue);
+    }
 
 }

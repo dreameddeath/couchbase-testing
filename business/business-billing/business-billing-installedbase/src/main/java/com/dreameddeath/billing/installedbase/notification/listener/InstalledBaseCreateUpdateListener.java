@@ -17,11 +17,49 @@
 
 package com.dreameddeath.billing.installedbase.notification.listener;
 
+import com.dreameddeath.billing.installedbase.process.model.v1.CreateUpdateBillingInstalledBaseJob;
+import com.dreameddeath.billing.model.EntityConstants;
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.notification.annotation.Listener;
+import com.dreameddeath.core.notification.annotation.ListenerProcessor;
+import com.dreameddeath.core.notification.listener.impl.AbstractLocalStandardListener;
+import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
+import com.dreameddeath.core.process.service.IJobExecutorClient;
+import com.dreameddeath.core.process.service.factory.IJobExecutorClientFactory;
+import com.dreameddeath.core.process.utils.ProcessUtils;
+import com.dreameddeath.installedbase.model.notifications.v1.published.notification.CreateUpdateInstalledBaseEvent;
+import io.reactivex.Single;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by christophe jeunesse on 23/06/2017.
  */
-@Listener(forTypes = {})
-public class InstalledBaseCreateUpdateListener {
+@Listener
+public class InstalledBaseCreateUpdateListener extends AbstractLocalStandardListener {
+    private IJobExecutorClient<CreateUpdateBillingInstalledBaseJob> processingService;
+
+    @Autowired
+    public void setExecutorClientFactory(IJobExecutorClientFactory factory){
+        processingService = factory.buildJobClient(CreateUpdateBillingInstalledBaseJob.class);
+    }
+
+    @Override
+    public String getDomain() {
+        return EntityConstants.BILLING_DOMAIN;
+    }
+
+    @Override
+    public String getVersion() {
+        return "1.0";
+    }
+
+    @ListenerProcessor
+    public Single<AbstractNotificationProcessor.ProcessingResult> processInstalledBaseEvent(CreateUpdateInstalledBaseEvent event, ICouchbaseSession session){
+        CreateUpdateBillingInstalledBaseJob job = new CreateUpdateBillingInstalledBaseJob();
+        job.setInstalledBaseKey(event.getInstalledBaseKey());
+        ProcessUtils.setJobRequestId(job,event,getName());
+        return processingService.executeJob(job, session)
+                .flatMap(ProcessUtils::mapJobResultToNotificationProcessingResult);
+    }
+
 }

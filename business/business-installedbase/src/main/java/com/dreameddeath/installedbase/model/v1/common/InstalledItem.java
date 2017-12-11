@@ -1,28 +1,32 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
  */
 
 package com.dreameddeath.installedbase.model.v1.common;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.query.annotation.QueryExpose;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.joda.time.DateTime;
@@ -37,6 +41,7 @@ import static com.dreameddeath.installedbase.utils.InstalledBaseTools.Statuses.g
 /**
  * Created by Christophe Jeunesse on 10/08/2014.
  */
+@QueryExpose(rootPath = "dummy",isClassRootHierarchy = true,notDirecltyExposed = true,defaultOutputFieldMode = FieldGenMode.SIMPLE,superClassGenMode = SuperClassGenMode.UNWRAP)
 public abstract class InstalledItem<T extends InstalledItemRevision> extends CouchbaseDocumentElement implements IHasStatus {
     @DocumentProperty("id") @NotNull
     private Property<String> id = new ImmutableProperty<>(InstalledItem.this, UUID.randomUUID().toString());

@@ -24,11 +24,14 @@ import com.dreameddeath.core.dao.annotation.dao.DaoEntity;
 import com.dreameddeath.core.dao.annotation.dao.UidDef;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.query.annotation.QueryExpose;
 import com.dreameddeath.installedbase.model.EntityConstants;
 import com.dreameddeath.installedbase.model.v1.contract.InstalledContract;
 import com.dreameddeath.installedbase.model.v1.offer.InstalledOffer;
@@ -44,6 +47,7 @@ import java.util.List;
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @UidDef(fieldName = "uid")
 @DocumentEntity(domain = EntityConstants.INSTALLED_BASE_DOMAIN)
+@QueryExpose(rootPath = "installedBase",superClassGenMode = SuperClassGenMode.UNWRAP,defaultOutputFieldMode = FieldGenMode.SIMPLE)
 public class InstalledBase extends BusinessDocument {
     /**
      *  uid : The unique id of the installed base

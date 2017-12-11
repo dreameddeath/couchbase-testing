@@ -42,6 +42,15 @@ public abstract class AbstractLocalStandardListener extends AbstractLocalListene
         return dispatcher.getListenedEvents();
     }
 
+    @Override
+    public String getName(){
+        return this.getClass().getSimpleName();
+    }
+
+    @Override
+    public String getType() {
+        return "LocalStandardListener";
+    }
 
     @Override
     public boolean isApplicable(Class<? extends IEvent> eventClazz) {

@@ -120,6 +120,8 @@ public abstract class AbstractNotificationProcessor {
                             processingResultInfo.getNotification().setStatus(Notification.Status.DEFERRED);
                         } else if (processingResultInfo.getResult() == ProcessingResult.PROCESSED) {
                             processingResultInfo.getNotification().setStatus(Notification.Status.PROCESSED);
+                        } else if(processingResultInfo.getResult() == ProcessingResult.ABORTED){
+                            processingResultInfo.getNotification().setStatus(Notification.Status.CANCELLED);
                         }
                     }
                     return processingResultInfo.getNotification();
@@ -167,7 +169,8 @@ public abstract class AbstractNotificationProcessor {
     public enum ProcessingResult{
         PROCESSED,
         SUBMITTED,
-        DEFERRED
+        DEFERRED,
+        ABORTED
     }
 
 

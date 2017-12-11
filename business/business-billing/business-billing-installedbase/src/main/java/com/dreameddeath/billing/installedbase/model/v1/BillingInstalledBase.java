@@ -55,7 +55,7 @@ public class BillingInstalledBase extends BillingAccountContributor {
     /**
      *  installedBaseRevision : The last processed installed base revision
      */
-    private Property<Integer> installedBaseRevision = new StandardProperty<>(BillingInstalledBase.this);
+    private Property<Long> installedBaseRevision = new StandardProperty<>(BillingInstalledBase.this);
     /**
      *  ba : Link toward the parent billing account
      */
@@ -101,11 +101,11 @@ public class BillingInstalledBase extends BillingAccountContributor {
      */
     public void setInstalledBaseKey(String val) { installedBaseKey.set(val); }
 
-    public Integer getInstalledBaseRevision() {
+    public Long getInstalledBaseRevision() {
         return installedBaseRevision.get();
     }
 
-    public void setInstalledBaseRevision(Integer installedBaseRevision) {
+    public void setInstalledBaseRevision(Long installedBaseRevision) {
         this.installedBaseRevision.set(installedBaseRevision);
     }
 

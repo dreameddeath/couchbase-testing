@@ -17,6 +17,7 @@
 
 package com.dreameddeath.core.process.service;
 
+import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.exception.JobExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.service.context.JobContext;
@@ -27,7 +28,11 @@ import com.dreameddeath.core.user.IUser;
  */
 public interface IJobBlockingExecutorClient<T extends AbstractJob> {
     JobContext<T> executeJob(T job, IUser user) throws JobExecutionException;
+    JobContext<T> executeJob(T job, ICouchbaseSession session) throws JobExecutionException;
     JobContext<T> submitJob(T job, IUser user) throws JobExecutionException;
+    JobContext<T> submitJob(T job, ICouchbaseSession session) throws JobExecutionException;
     JobContext<T> resumeJob(T job, IUser user) throws JobExecutionException;
+    JobContext<T> resumeJob(T job, ICouchbaseSession session) throws JobExecutionException;
     JobContext<T> cancelJob(T job, IUser user) throws JobExecutionException;
+    JobContext<T> cancelJob(T job, ICouchbaseSession session) throws JobExecutionException;
 }

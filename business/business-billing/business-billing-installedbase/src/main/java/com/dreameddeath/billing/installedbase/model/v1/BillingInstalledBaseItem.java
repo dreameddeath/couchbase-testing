@@ -53,6 +53,4 @@ public class BillingInstalledBaseItem extends CouchbaseDocumentElement {
     public boolean addStatuses(BillingInstalledBaseItemStatus val){ return statuses.add(val); }
     public boolean removeStatuses(BillingInstalledBaseItemStatus val){ return statuses.remove(val); }
 
-    public BillingInstalledBaseItem getItemById(Long id){ return Helper.getFirstParentOfClass(this,BillingInstalledBase.class).getItemById(id);}
-    public <T extends BillingInstalledBaseItem> T getItemById(Long id,Class<T> clazz){ return (T)getItemById(id);}
 }

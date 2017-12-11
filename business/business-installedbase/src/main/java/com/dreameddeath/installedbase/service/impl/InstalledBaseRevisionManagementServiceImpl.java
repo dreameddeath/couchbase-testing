@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -238,10 +238,10 @@ public class InstalledBaseRevisionManagementServiceImpl implements IInstalledBas
         }
 
         if(isNew){
-            Preconditions.checkArgument(rev.getAction()==null || rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action %s is not corresponding for NOT existing attribute %s",rev.getAction(),rev.getCode());
+            Preconditions.checkArgument(rev.getAction()==null || rev.getAction().equals(InstalledBaseRevisionAction.ADD),"The action %s is not corresponding for NOT existing attribute %s",rev.getAction(),rev.getCode());
         }
         else{
-            Preconditions.checkArgument(rev.getAction()==null || !rev.getAction().equals(InstalledAttributeRevision.Action.ADD),"The action %s is not corresponding for ALREADY existing attribute %s",rev.getAction(),rev.getCode());
+            Preconditions.checkArgument(rev.getAction()==null || !rev.getAction().equals(InstalledBaseRevisionAction.ADD),"The action %s is not corresponding for ALREADY existing attribute %s",rev.getAction(),rev.getCode());
         }
 
         int valueRevPos=0;
@@ -283,7 +283,7 @@ public class InstalledBaseRevisionManagementServiceImpl implements IInstalledBas
 
         List<InstalledValue> matchingInstalledValues = InstalledBaseTools.Values.findMatchingInstalledValues(attribute.getValues(),startDate,valueRev.getValue());
         ValueUpdateResult valueUpdateResult=null;
-        if(valueRev.getAction()== InstalledValueRevision.Action.ADD){
+        if(valueRev.getAction()== InstalledBaseRevisionAction.ADD){
             Preconditions.checkArgument(matchingInstalledValues.size()==0,"The existing attribute value creation request %s/#%s on item %s has already matching attribute list <%s>",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),matchingInstalledValues.toString());
             InstalledValue newInstalledValue= new InstalledValue();
             newInstalledValue.setValue(valueRev.getValue());
@@ -297,7 +297,7 @@ public class InstalledBaseRevisionManagementServiceImpl implements IInstalledBas
             Preconditions.checkArgument(matchingInstalledValues.size()==1,"The existing attribute value update request %s/#%s on item %s has wrong matching attribute list <%s> for action %s",attribute.getCode(),valueRevPos,itemWithRevs.getItemUid(),matchingInstalledValues.toString(),valueRev.getAction());
             InstalledValue valueToUpdate=matchingInstalledValues.get(0);
             ValueUpdateResult.Action effectiveAction;
-            if(valueRev.getAction()== InstalledValueRevision.Action.MODIFY){
+            if(valueRev.getAction()== InstalledBaseRevisionAction.MODIFY){
                 effectiveAction= ValueUpdateResult.Action.MODIFY_DATES;
                 if(endDate.equals(valueToUpdate.getEndDate())) {
                     return Collections.emptyList();
@@ -481,7 +481,7 @@ public class InstalledBaseRevisionManagementServiceImpl implements IInstalledBas
         }
         if(existingLink==null){
             //check the fact that it is added
-            Preconditions.checkArgument(linkRev.getAction()==null || linkRev.getAction().equals(InstalledItemLinkRevision.Action.ADD),"The new link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
+            Preconditions.checkArgument(linkRev.getAction()==null || linkRev.getAction().equals(InstalledBaseRevisionAction.ADD),"The new link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
             switch(itemWithRevs.getItemType()){
                 case OFFER: existingLink = (TLINK)new InstalledOfferLink(); break;
                 case PS: existingLink = (TLINK)new InstalledProductServiceLink();break;
@@ -496,12 +496,12 @@ public class InstalledBaseRevisionManagementServiceImpl implements IInstalledBas
         }
         else{
             //check the fact that it is not added
-            Preconditions.checkArgument(!InstalledItemLinkRevision.Action.ADD.equals(linkRev.getAction()),"The existing link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
+            Preconditions.checkArgument(!InstalledBaseRevisionAction.ADD.equals(linkRev.getAction()),"The existing link %s on item %s has bad action %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
         }
         InstalledStatus.Code statusCode=linkRev.getStatus();
         if(statusCode==null){
             Preconditions.checkNotNull(linkRev.getAction(),"The existing link %s on item %s must have an action as status not given",linkRev,itemWithRevs.getItemUid());
-            Preconditions.checkNotNull(linkRev.getAction()== InstalledItemLinkRevision.Action.ADD||linkRev.getAction()== InstalledItemLinkRevision.Action.REMOVE,"The existing link %s on item %s without status must have a valid action and not %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
+            Preconditions.checkArgument(linkRev.getAction()== InstalledBaseRevisionAction.ADD||linkRev.getAction()== InstalledBaseRevisionAction.REMOVE,"The existing link %s on item %s without status must have a valid action and not %s",linkRev,itemWithRevs.getItemUid(),linkRev.getAction());
             switch (linkRev.getAction()){
                 case ADD: statusCode=InstalledStatus.Code.ACTIVE;break;
                 case REMOVE:statusCode= InstalledStatus.Code.CLOSED;break;

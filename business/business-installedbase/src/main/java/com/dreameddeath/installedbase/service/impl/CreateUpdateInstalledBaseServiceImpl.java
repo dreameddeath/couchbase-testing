@@ -207,9 +207,9 @@ public class CreateUpdateInstalledBaseServiceImpl implements ICreateUpdateInstal
         if(linkRequest.comOp!=null){
             switch (linkRequest.comOp){
                 case UNCHANGE: return null;
-                case ADD: link.setAction(InstalledItemLinkRevision.Action.ADD);break;
-                case REMOVE: link.setAction(InstalledItemLinkRevision.Action.REMOVE);break;
-                case MODIFY: link.setAction(InstalledItemLinkRevision.Action.CHANGE);break;
+                case ADD: link.setAction(InstalledBaseRevisionAction.ADD);break;
+                case REMOVE: link.setAction(InstalledBaseRevisionAction.REMOVE);break;
+                case MODIFY: link.setAction(InstalledBaseRevisionAction.MODIFY);break;
             }
         }
 
@@ -253,10 +253,10 @@ public class CreateUpdateInstalledBaseServiceImpl implements ICreateUpdateInstal
         if(linkRequest.status!=null &&linkRequest.status.code!=null){
             link.setStatus(linkRequest.status.code.getMappedCode());
         }
-        else if(InstalledItemLinkRevision.Action.ADD.equals(link.getAction())) {
+        else if(InstalledBaseRevisionAction.ADD.equals(link.getAction())) {
             link.setStatus(InstalledStatus.Code.ACTIVE);
         }
-        else if(InstalledItemLinkRevision.Action.REMOVE.equals(link.getAction())) {
+        else if(InstalledBaseRevisionAction.REMOVE.equals(link.getAction())) {
             link.setStatus(InstalledStatus.Code.REMOVED);
         }
         else{
@@ -423,8 +423,8 @@ public class CreateUpdateInstalledBaseServiceImpl implements ICreateUpdateInstal
         //Set action if applicable
         if(attribute.comOp!=null){
             switch (attribute.comOp){
-                case ADD: revision.setAction(InstalledAttributeRevision.Action.ADD);break;
-                case REMOVE: revision.setAction(InstalledAttributeRevision.Action.REMOVE);break;
+                case ADD: revision.setAction(InstalledBaseRevisionAction.ADD);break;
+                case REMOVE: revision.setAction(InstalledBaseRevisionAction.REMOVE);break;
                 case UNCHANGE:return null;
             }
         }
@@ -436,8 +436,8 @@ public class CreateUpdateInstalledBaseServiceImpl implements ICreateUpdateInstal
             if(value.comOp!=null){
                 switch (value.comOp){
                     case UNCHANGE:continue;
-                    case ADD:valueRevision.setAction(InstalledValueRevision.Action.ADD);break;
-                    case REMOVE:valueRevision.setAction(InstalledValueRevision.Action.REMOVE);break;
+                    case ADD:valueRevision.setAction(InstalledBaseRevisionAction.ADD);break;
+                    case REMOVE:valueRevision.setAction(InstalledBaseRevisionAction.REMOVE);break;
                 }
             }
             //TODO : set the keyType from the catalogue

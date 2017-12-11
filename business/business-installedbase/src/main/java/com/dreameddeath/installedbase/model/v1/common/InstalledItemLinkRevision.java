@@ -1,10 +1,30 @@
+/*
+ * 	Copyright Christophe Jeunesse
+ *
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
+ *
+ */
+
 package com.dreameddeath.installedbase.model.v1.common;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.query.annotation.QueryExpose;
 import org.joda.time.DateTime;
 
 import java.util.List;
@@ -12,6 +32,7 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 25/03/2016.
  */
+@QueryExpose(rootPath = "dummy",isClassRootHierarchy = true,notDirecltyExposed = true,defaultOutputFieldMode = FieldGenMode.SIMPLE,superClassGenMode = SuperClassGenMode.UNWRAP)
 public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
     /**
      *  targetId : The target item id
@@ -42,7 +63,7 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
      *  action : The action on the link if any
      */
     @DocumentProperty("action")
-    private Property<Action> action = new StandardProperty<>(InstalledItemLinkRevision.this);
+    private Property<InstalledBaseRevisionAction> action = new StandardProperty<>(InstalledItemLinkRevision.this);
 
     /**
      * Getter of targetId
@@ -99,12 +120,12 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
      * Getter of action
      * @return the content
      */
-    public Action getAction() { return action.get(); }
+    public InstalledBaseRevisionAction getAction() { return action.get(); }
     /**
      * Setter of action
      * @param val the new content
      */
-    public void setAction(Action val) { action.set(val); }
+    public void setAction(InstalledBaseRevisionAction val) { action.set(val); }
 
 
     @Override
@@ -149,11 +170,5 @@ public class InstalledItemLinkRevision extends CouchbaseDocumentElement {
         }
 
         return nbTargetLinksMatched!=targetList.size();
-    }
-
-    public enum Action{
-        ADD,
-        REMOVE,
-        CHANGE
     }
 }

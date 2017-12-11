@@ -41,6 +41,7 @@ public class StandardAnnotNotificationProcessorDispatcher {
     private final List<ProcessorMethodWrapper> processorForEvents=new ArrayList<>();
     private final Map<Class<? extends IEvent>,ProcessorMethodWrapper> eventMapper=new ConcurrentHashMap<>();
     private final Map<Class<?>,Boolean> eventApplicable=new ConcurrentHashMap<>();
+    //private final String domain;
 
 
     private void extractMethods(Object eventListenerInstance){

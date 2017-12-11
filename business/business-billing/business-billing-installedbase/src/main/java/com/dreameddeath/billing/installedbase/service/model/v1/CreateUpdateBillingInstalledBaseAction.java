@@ -15,10 +15,15 @@
  *
  */
 
-package com.dreameddeath.billing.installedbase.process.model.v1;
+package com.dreameddeath.billing.installedbase.service.model.v1;
 
 /**
- * Created by Christophe Jeunesse on 16/11/2016.
+ * Created by Christophe Jeunesse on 25/09/2017.
  */
-public class CreateUpdateBillingInstalledBaseResult {
+public enum CreateUpdateBillingInstalledBaseAction {
+    CREATED,
+    REMOVED,
+    UPDATED,
+    UNCHANGED,
+    IGNORED
 }
