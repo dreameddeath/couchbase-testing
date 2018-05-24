@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -27,14 +27,20 @@ import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
 import io.reactivex.Single;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Christophe Jeunesse on 20/06/2016.
  */
 public class BlockingCouchbaseSession implements IBlockingCouchbaseSession {
-    private ICouchbaseSession parentSession;
+    private final ICouchbaseSession parentSession;
+    private final int timeout;
+    private final TimeUnit timeoutUnit;
 
-    public BlockingCouchbaseSession(ICouchbaseSession parentSession){
+    public BlockingCouchbaseSession(ICouchbaseSession parentSession,int timeout,TimeUnit unit){
         this.parentSession = parentSession;
+        this.timeout = timeout;
+        this.timeoutUnit = unit;
     }
 
     @Override

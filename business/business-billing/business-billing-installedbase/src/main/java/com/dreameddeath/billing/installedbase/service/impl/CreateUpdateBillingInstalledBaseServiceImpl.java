@@ -17,28 +17,33 @@
 
 package com.dreameddeath.billing.installedbase.service.impl;
 
-import com.dreameddeath.billing.installedbase.model.v1.*;
+import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBase;
+import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBaseItem;
+import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBaseItemDiscount;
+import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBaseItemFee;
+import com.dreameddeath.billing.installedbase.service.ICreateUpdateBillingInstalledBaseItemStatusService;
 import com.dreameddeath.billing.installedbase.service.ICreateUpdateBillingInstalledBaseService;
-import com.dreameddeath.billing.installedbase.service.model.v1.*;
-import com.dreameddeath.installedbase.model.v1.common.published.query.CodeResponse;
-import com.dreameddeath.installedbase.model.v1.common.published.query.InstalledStatusResponse;
+import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseAction;
+import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseDiscountItemResult;
+import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseItemResult;
+import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseResult;
+import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseTariffItemResult;
 import com.dreameddeath.installedbase.model.v1.offer.published.query.InstalledOfferResponse;
 import com.dreameddeath.installedbase.model.v1.productservice.published.query.InstalledProductServiceResponse;
 import com.dreameddeath.installedbase.model.v1.published.query.InstalledBaseResponse;
 import com.dreameddeath.installedbase.model.v1.tariff.published.query.InstalledDiscountResponse;
 import com.dreameddeath.installedbase.model.v1.tariff.published.query.InstalledTariffResponse;
-import com.google.common.base.Preconditions;
-import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import javax.inject.Inject;
 
 /**
  * Created by Christophe Jeunesse on 22/09/2017.
  */
 public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdateBillingInstalledBaseService {
+
+    @Inject
+    private ICreateUpdateBillingInstalledBaseItemStatusService updateStatusService;
+
     public CreateUpdateBillingInstalledBaseResult createUpdateBillingInstalledBase(InstalledBaseResponse installedBase, BillingInstalledBase origBillingInstalledBase){
         CreateUpdateBillingInstalledBaseResult result = new CreateUpdateBillingInstalledBaseResult();
         if(origBillingInstalledBase.getInstalledBaseRevision()!=null && installedBase.getRevision()>= origBillingInstalledBase.getInstalledBaseRevision()){
@@ -63,7 +68,10 @@ public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdat
                     //TODO check unmodifiable values
                 }
 
-                CreateUpdateBillingInstalledBaseAction statusUpdateAction = manageUpdateOfStatuses(billingInstalledBaseFee,tariff.getStatuses(),tariffUpdateResult);
+                CreateUpdateBillingInstalledBaseAction statusUpdateAction = updateStatusService.manageUpdateOfStatuses(billingInstalledBaseFee,tariff.getStatuses(),tariffUpdateResult);
+                if(!tariffUpdateResult.getAction().equals(CreateUpdateBillingInstalledBaseAction.CREATED)){
+                    result.setAction(statusUpdateAction);
+                }
 
 
                 for(InstalledDiscountResponse discount:tariff.getDiscounts()){
@@ -79,9 +87,14 @@ public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdat
 
                             );
 
-                    //Update statuses
-                    for(InstalledStatusResponse discountStatus :discount.getStatuses()){
-                        //billingInstalledBaseDiscount.getStatuses();
+
+                    if(!discountUpdateResult.getAction().equals(CreateUpdateBillingInstalledBaseAction.CREATED)){
+                        //TODO check unmodifiable values
+                    }
+
+                    CreateUpdateBillingInstalledBaseAction discountStatusUpdateAction = updateStatusService.manageUpdateOfStatuses(billingInstalledBaseDiscount,discount.getStatuses(),discountUpdateResult);
+                    if(!discountUpdateResult.getAction().equals(CreateUpdateBillingInstalledBaseAction.CREATED)){
+                        result.setAction(discountStatusUpdateAction);
                     }
                 }
             }
@@ -92,122 +105,6 @@ public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdat
         }
 
         return result;
-    }
-
-    private CreateUpdateBillingInstalledBaseAction manageUpdateOfStatuses(BillingInstalledBaseItem billingInstalledBaseItem, List<InstalledStatusResponse> statuses, CreateUpdateBillingInstalledBaseItemResult itemUpdateResult) {
-        CreateUpdateBillingInstalledBaseAction resultAction = CreateUpdateBillingInstalledBaseAction.UNCHANGED;
-        List<InstalledStatusResponse> sortedStatusResponses = new ArrayList<>(statuses);
-        sortedStatusResponses.sort(Comparator.comparing(InstalledStatusResponse::getStartDate));
-        Iterator<InstalledStatusResponse> iteratorExpected = sortedStatusResponses.iterator();
-        CodeResponse lastResponseCode=null;
-        DateTime lastEndDate=null;
-        while(iteratorExpected.hasNext()){
-            InstalledStatusResponse currResponse = iteratorExpected.next();
-            Preconditions.checkArgument(lastResponseCode==null || !lastResponseCode.equals(currResponse.getCode()),"Couldn't have two times the same status consecutively");
-            Preconditions.checkArgument(lastEndDate==null || lastEndDate.isEqual(currResponse.getStartDate().minusSeconds(1)),"No time hole between start time and end times");
-            lastResponseCode =currResponse.getCode();
-            lastEndDate=currResponse.getEndDate();
-        }
-
-
-        List<BillingInstalledBaseItemStatus> existingStatuses= new ArrayList<>(billingInstalledBaseItem.getStatuses());
-        existingStatuses.sort(Comparator.comparing(BillingInstalledBaseItemStatus::getStartDate));
-
-        int currPosExpected = 0;
-        int currPosExisting = 0;
-        while(currPosExpected<sortedStatusResponses.size() && currPosExisting<existingStatuses.size()){
-            InstalledStatusResponse currExpected = sortedStatusResponses.get(currPosExpected);
-            BillingInstalledBaseItemStatus currExistingStatus = existingStatuses.get(currPosExisting);
-
-            if(currExpected.getStartDate().isEqual(currExpected.getEndDate())){
-                currPosExpected++;
-                continue;
-            }
-            BillingInstalledBaseItemStatus.Status expectedStatus = mapStatus(currExpected.getCode());
-            Preconditions.checkNotNull(expectedStatus,"The status %s isn't managed",currExpected.getCode());
-
-            //Changing of status
-            if(expectedStatus!=currExistingStatus.getStatus()){
-                CompareDateRangeResult compareDateRangeResult = compareDateRange(currExpected, currExistingStatus);
-                if(compareDateRangeResult.needCreateNewItemWhenStatusDiffers){
-                    buildNewStatus(currExpected,billingInstalledBaseItem,existingStatuses,currPosExisting);
-                }
-                switch (compareDateRangeResult){
-                    //nothing to do
-                    case BEFORE:
-                        break;
-                    //need to "restart" from the expected item end date(+1)
-                    case OVERLAPPING_START:
-                    case EARLIER_END_DATE:
-                        currExistingStatus.setStartDate(currExpected.getEndDate().plusSeconds(1));
-                        break;
-                    //need to clean curr existing item
-                    case OLDER_END_DATE:
-                    case OVERLAPPING_BOTH:
-                    case EARLIER_START_DATE:
-                    case EXACT:
-                    case AFTER:
-                        currExistingStatus.setStatus(BillingInstalledBaseItemStatus.Status.CANCELLED);
-                        ++currPosExisting;
-                        break;
-                    //need to close the current item
-                    case OVERLAPPING_END:
-                    case OLDER_START_DATE:
-                    case CONTAINED_INTO:
-                        currExistingStatus.setEndDate(currExpected.getStartDate());
-                        ++currPosExisting;
-                        break;
-                }
-                if(compareDateRangeResult.moveForwardOnExpected){
-                    ++currPosExpected;
-                }
-            }
-            //Change of dates
-            else{
-                switch (compareDateRange(currExpected,currExistingStatus)){
-                    case EXACT:
-                        ++currPosExpected;
-                        ++currPosExisting;
-                        break;
-                    case AFTER:
-                        currExistingStatus.setStatus(BillingInstalledBaseItemStatus.Status.CANCELLED);
-                        ++currPosExisting;
-                        break;
-                    case BEFORE:
-                        buildNewStatus(currExpected,billingInstalledBaseItem,existingStatuses,currPosExisting);
-                        ++currPosExpected;
-                        break;
-                    case OVERLAPPING_START:
-                    case EARLIER_END_DATE:
-                    case EARLIER_START_DATE:
-                    case OLDER_START_DATE:
-                    case CONTAINED_INTO:
-                        currExistingStatus.setStartDate(currExpected.getStartDate());
-                        currExistingStatus.setEndDate(currExpected.getEndDate());
-                        ++currPosExpected;
-                        ++currPosExisting;
-                        break;
-                    case OLDER_END_DATE:
-                    case OVERLAPPING_BOTH:
-                    case OVERLAPPING_END:
-                        currExistingStatus.setStartDate(currExpected.getStartDate());
-                        currExistingStatus.setEndDate(currExpected.getEndDate());
-                        ++currPosExisting;
-                        break;
-                }
-            }
-        }
-        return resultAction;
-    }
-
-    private void buildNewStatus(InstalledStatusResponse currExpected, BillingInstalledBaseItem billingInstalledBaseItem, List<BillingInstalledBaseItemStatus> existingStatuses, int currPosExisting) {
-        BillingInstalledBaseItemStatus newStatus = new BillingInstalledBaseItemStatus();
-        newStatus.setStatus(mapStatus(currExpected.getCode()));
-        newStatus.setStartDate(currExpected.getStartDate());
-        newStatus.setEndDate(currExpected.getEndDate());
-
-        billingInstalledBaseItem.addStatuses(newStatus);
-        existingStatuses.add(currPosExisting,newStatus);
     }
 
     private BillingInstalledBaseItemDiscount buildNewDiscount(Long newDiscountId, BillingInstalledBaseItemFee parentTariff, InstalledDiscountResponse discount) {
@@ -255,93 +152,4 @@ public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdat
         T initialize(Long newKey);
     }
 
-    private BillingInstalledBaseItemStatus.Status mapStatus(CodeResponse origStatus){
-        if(origStatus==null){
-            return null;
-        }
-
-        switch (origStatus){
-            case ACTIVE:return BillingInstalledBaseItemStatus.Status.ACTIVE;
-            case ABORTED:return BillingInstalledBaseItemStatus.Status.CANCELLED;
-            case SUSPENDED:return BillingInstalledBaseItemStatus.Status.SUSPENDED;
-            case CLOSED:return BillingInstalledBaseItemStatus.Status.CLOSED;
-            case REMOVED:return BillingInstalledBaseItemStatus.Status.CANCELLED;
-            case INEXISTING:return BillingInstalledBaseItemStatus.Status.CANCELLED;
-        }
-        return null;
-    }
-
-    private enum CompareDateRangeResult{
-        BEFORE(true,true),//new_end before or equal curr_start
-        OVERLAPPING_START(true,true),//new_start before (strict), new_end before curr_end
-        OVERLAPPING_BOTH(false,false),//new_start before (strict), new_end after(strictly) curr_end
-        EARLIER_END_DATE(true,true),//new start equals curr_start, new_end before(strictly) curr_end
-        EARLIER_START_DATE(true,true),//new start before(strict)curr_start, new_end equals curr_end
-        EXACT(true,true),
-        OLDER_START_DATE(true,true),//new start after(strict)curr_start, new_end equals curr_end
-        CONTAINED_INTO(false,false),//new start after(strict) curr_start, new_end before(strictly) curr_end
-        OVERLAPPING_END(false,false),//new start after(strict) curr_start, new_end after(strictly) curr_end
-        OLDER_END_DATE(false,false),//new start equals curr_start, new_end after(strictly) curr_end
-        AFTER(false,false);//new start after or equals curr_end
-
-        private boolean needCreateNewItemWhenStatusDiffers;
-        private boolean moveForwardOnExpected;
-
-        CompareDateRangeResult(boolean needCreateNewItemWhenStatusDiffers, boolean moveForwardOnExpected){
-            this.needCreateNewItemWhenStatusDiffers = needCreateNewItemWhenStatusDiffers;
-            this.moveForwardOnExpected=moveForwardOnExpected;
-        }
-
-        public boolean isNeedCreateNewItemWhenStatusDiffers() {
-            return needCreateNewItemWhenStatusDiffers;
-        }
-
-        public boolean isMoveForwardOnExpected() {
-            return moveForwardOnExpected;
-        }
-    }
-    public CompareDateRangeResult compareDateRange(InstalledStatusResponse expected,BillingInstalledBaseItemStatus currStatus){
-        if(
-                expected.getEndDate().isBefore(currStatus.getStartDate())
-                        || expected.getEndDate().isEqual(currStatus.getStartDate())
-                ){
-            return CompareDateRangeResult.BEFORE;
-        }
-        else if(expected.getEndDate().isBefore(currStatus.getEndDate())){
-            if(expected.getStartDate().isBefore(currStatus.getStartDate())) {
-                return CompareDateRangeResult.OVERLAPPING_START;
-            }
-            else if(expected.getStartDate().isEqual(currStatus.getStartDate())) {
-                return CompareDateRangeResult.EARLIER_END_DATE;
-            }
-            else {
-                return CompareDateRangeResult.CONTAINED_INTO;
-            }
-        }
-        else if(expected.getEndDate().isEqual(currStatus.getEndDate())){
-            if(expected.getStartDate().isBefore(currStatus.getStartDate())) {
-                return CompareDateRangeResult.EARLIER_START_DATE;
-            }
-            else if(expected.getStartDate().isEqual(currStatus.getStartDate())) {
-                return CompareDateRangeResult.EXACT;
-            }
-            else {
-                return CompareDateRangeResult.OLDER_START_DATE;
-            }
-        }
-        else{
-            if(expected.getStartDate().isBefore(currStatus.getStartDate())) {
-                return CompareDateRangeResult.OVERLAPPING_BOTH;
-            }
-            else if(expected.getStartDate().isEqual(currStatus.getStartDate())) {
-                return CompareDateRangeResult.OLDER_END_DATE;
-            }
-            else if(expected.getStartDate().isBefore(currStatus.getEndDate())){
-                return CompareDateRangeResult.OVERLAPPING_END;
-            }
-            else{
-                return CompareDateRangeResult.AFTER;
-            }
-        }
-    }
 }

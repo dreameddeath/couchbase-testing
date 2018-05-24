@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -46,6 +46,7 @@ import org.joda.time.DateTime;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class CouchbaseSession implements ICouchbaseSession {
     private final CouchbaseSessionFactory sessionFactory;
@@ -53,7 +54,6 @@ public class CouchbaseSession implements ICouchbaseSession {
     private final SessionType sessionType;
     private final IDateTimeService dateTimeService;
     private final IUser user;
-    private final IBlockingCouchbaseSession blockingSession;
 
     private final BucketDocumentCache sessionCache;
     private final Map<String,CouchbaseUniqueKey> keyCache;
@@ -84,7 +84,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         this.domain = domain;
         this.user = user;
         this.keyPrefix = keyPrefix;
-        this.blockingSession = new BlockingCouchbaseSession(this);
         this.sessionCache=(sessionCache!=null)?sessionCache:new BucketDocumentCache(this);
         this.keyCache=keyCache;
         this.counters=counters;
@@ -95,10 +94,12 @@ public class CouchbaseSession implements ICouchbaseSession {
         return domain;
     }
 
+
     @Override
-    public IBlockingCouchbaseSession toBlocking() {
-        return blockingSession;
+    public IBlockingCouchbaseSession toBlocking(int timeout, TimeUnit unit) {
+        return new BlockingCouchbaseSession(this,timeout,unit);
     }
+
 
     protected CouchbaseDocumentDaoFactory getDocumentFactory(){
         return sessionFactory.getDocumentDaoFactory();
@@ -498,10 +499,8 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public DateTime getCurrentDate() {
-        return null;
+        return dateTimeService.getCurrentDate();
     }
-
-    public IDateTimeService getDateTimeService(){ return dateTimeService; }
 
     @Override
     public <TKEY,TVALUE,T extends CouchbaseDocument> IViewQuery<TKEY,TVALUE,T> initViewQuery(Class<T> forClass,String viewName) throws DaoException{
@@ -540,11 +539,9 @@ public class CouchbaseSession implements ICouchbaseSession {
     }
 
     private class TemporaryCouchbaseSession extends CouchbaseSession implements ICouchbaseSession{
-        private final IBlockingCouchbaseSession blockingCouchbaseSession;
 
         private TemporaryCouchbaseSession(CouchbaseSessionFactory factory, SessionType type,String domain, IUser user, String keyPrefix, Map<String, CouchbaseUniqueKey> keyCache, Map<String, Long> counters, BucketDocumentCache sessionCache) {
             super(factory, type,domain, user, keyPrefix, keyCache, counters, sessionCache);
-            this.blockingCouchbaseSession = new BlockingCouchbaseSession(this);
         }
 
         @Override
@@ -555,11 +552,6 @@ public class CouchbaseSession implements ICouchbaseSession {
         @Override
         public <T extends CouchbaseDocument> T updateCache(T doc){
             return CouchbaseSession.this.updateCache(doc);
-        }
-
-        @Override
-        public IBlockingCouchbaseSession toBlocking() {
-            return blockingCouchbaseSession;
         }
 
         @Override

@@ -15,15 +15,17 @@
  *
  */
 
-package com.dreameddeath.billing.installedbase.service.model.v1;
+package com.dreameddeath.couchbase.core.catalog.service.v1;
+
+import com.dreameddeath.core.dao.transcoder.ViewJsonObjectTranscoder;
+import com.dreameddeath.couchbase.core.catalog.model.v1.view.CatalogViewResultValue;
 
 /**
- * Created by Christophe Jeunesse on 25/09/2017.
+ * Created by Christophe Jeunesse on 03/01/2018.
  */
-public enum CreateUpdateBillingInstalledBaseAction {
-    CREATED,
-    CANCELLED,
-    UPDATED,
-    UNCHANGED,
-    IGNORED
+public class CatalogViewResultValueTranscoder extends ViewJsonObjectTranscoder<CatalogViewResultValue> {
+    @Override
+    protected Class<CatalogViewResultValue> getBaseClass() {
+        return CatalogViewResultValue.class;
+    }
 }

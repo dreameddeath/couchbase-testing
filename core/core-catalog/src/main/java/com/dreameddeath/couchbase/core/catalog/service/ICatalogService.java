@@ -15,15 +15,14 @@
  *
  */
 
-package com.dreameddeath.billing.installedbase.service.model.v1;
+package com.dreameddeath.couchbase.core.catalog.service;
+
+import org.joda.time.DateTime;
 
 /**
- * Created by Christophe Jeunesse on 25/09/2017.
+ * Created by Christophe Jeunesse on 15/12/2017.
  */
-public enum CreateUpdateBillingInstalledBaseAction {
-    CREATED,
-    CANCELLED,
-    UPDATED,
-    UNCHANGED,
-    IGNORED
+public interface ICatalogService {
+    ICatalogRef getCatalog(DateTime date);
+    ICatalogRef getCatalog();
 }

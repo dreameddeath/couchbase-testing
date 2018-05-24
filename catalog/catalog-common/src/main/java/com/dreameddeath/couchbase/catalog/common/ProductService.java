@@ -15,15 +15,13 @@
  *
  */
 
-package com.dreameddeath.billing.installedbase.service.model.v1;
+package com.dreameddeath.couchbase.catalog.common;
+
+import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
 
 /**
- * Created by Christophe Jeunesse on 25/09/2017.
+ * Created by Christophe Jeunesse on 15/12/2017.
  */
-public enum CreateUpdateBillingInstalledBaseAction {
-    CREATED,
-    CANCELLED,
-    UPDATED,
-    UNCHANGED,
-    IGNORED
+public class ProductService extends CatalogElement {
+
 }

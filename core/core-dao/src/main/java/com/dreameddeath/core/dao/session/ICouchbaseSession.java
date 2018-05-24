@@ -1,17 +1,17 @@
 /*
- * Copyright Christophe Jeunesse
+ * 	Copyright Christophe Jeunesse
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * 	Licensed under the Apache License, Version 2.0 (the "License");
+ * 	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * 	Unless required by applicable law or agreed to in writing, software
+ * 	distributed under the License is distributed on an "AS IS" BASIS,
+ * 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * 	See the License for the specific language governing permissions and
+ * 	limitations under the License.
  *
  */
 
@@ -28,12 +28,17 @@ import com.dreameddeath.core.user.IUser;
 import io.reactivex.Single;
 import org.joda.time.DateTime;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Christophe Jeunesse on 20/11/2014.
  */
 public interface ICouchbaseSession {
-    IBlockingCouchbaseSession toBlocking();
+    default IBlockingCouchbaseSession toBlocking(){
+        return toBlocking(1,TimeUnit.SECONDS);
+    }
 
+    IBlockingCouchbaseSession toBlocking(int timeout, TimeUnit unit);
     String getDomain();
 
     <T extends CouchbaseDocument> String getKeyFromUID(String uid, Class<T> targetClass) throws DaoException;
@@ -42,9 +47,6 @@ public interface ICouchbaseSession {
     Single<Long> asyncGetCounter(String key) throws DaoException;
     Single<Long> asyncIncrCounter(String key, long byVal)throws DaoException;
     Single<Long> asyncDecrCounter(String key, long byVal)throws DaoException;
-
-
-
 
     <T extends CouchbaseDocument> Single<T> asyncGet(String key);
     <T extends CouchbaseDocument> Single<T> asyncRefresh(T doc);
