@@ -17,10 +17,7 @@
 
 package com.dreameddeath.couchbase.core.catalog.model.v1;
 
-import com.dreameddeath.core.dao.annotation.dao.DaoEntity;
-import com.dreameddeath.core.dao.annotation.dao.View;
-import com.dreameddeath.core.dao.annotation.dao.ViewKeyDef;
-import com.dreameddeath.core.dao.annotation.dao.ViewValueDef;
+import com.dreameddeath.core.dao.annotation.dao.*;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.model.view.impl.ViewDateTimeKeyTranscoder;
 import com.dreameddeath.core.json.model.Version;
@@ -49,6 +46,7 @@ import java.util.List;
         keyDef = @ViewKeyDef(type = DateTime.class,transcoder = ViewDateTimeKeyTranscoder.class),
         valueDef = @ViewValueDef(type = CatalogViewResultValue.class, transcoder = CatalogViewResultValueTranscoder.class)
 )
+@Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 @DocumentEntity
 public class Catalog extends CouchbaseDocument {
     public static final String ALL_CATALOG_VIEW_NAME ="all_catalogs";

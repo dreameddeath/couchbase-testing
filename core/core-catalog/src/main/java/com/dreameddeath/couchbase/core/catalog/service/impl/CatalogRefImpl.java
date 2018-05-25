@@ -23,9 +23,9 @@ import com.dreameddeath.couchbase.core.catalog.model.v1.Catalog;
 import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
 import com.dreameddeath.couchbase.core.catalog.model.v1.changeset.CatalogChangeSet;
 import com.dreameddeath.couchbase.core.catalog.service.ICatalogRef;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -93,7 +93,7 @@ public class CatalogRefImpl implements ICatalogRef {
     }
 
     @Override
-    public <T extends CatalogElement> Optional<T> getCatalogElement(String uid, Class<T> type) {
-        return getCatalog().map(cat->this.);
+    public <T extends CatalogElement> Maybe<T> getCatalogElement(String uid, Class<T> type) {
+        return Maybe.empty();//getCatalog().map(cat->cat.getCh);
     }
 }

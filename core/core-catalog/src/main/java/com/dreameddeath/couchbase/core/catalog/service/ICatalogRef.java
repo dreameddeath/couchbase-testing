@@ -20,8 +20,7 @@ package com.dreameddeath.couchbase.core.catalog.service;
 import com.dreameddeath.core.json.model.Version;
 import com.dreameddeath.couchbase.core.catalog.model.v1.Catalog;
 import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
-
-import java.util.Optional;
+import io.reactivex.Maybe;
 
 /**
  * Created by Christophe Jeunesse on 15/12/2017.
@@ -31,5 +30,5 @@ public interface ICatalogRef {
     Version getCatalogVersion();
     Catalog.State getCatalogState();
 
-    <T extends CatalogElement> Optional<T> getCatalogElement(String uid, Class<T> type);
+    <T extends CatalogElement> Maybe<T> getCatalogElement(String uid, Class<T> type);
 }

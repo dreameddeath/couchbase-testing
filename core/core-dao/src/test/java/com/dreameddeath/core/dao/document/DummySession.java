@@ -34,6 +34,8 @@ import com.dreameddeath.core.user.IUser;
 import io.reactivex.Single;
 import org.joda.time.DateTime;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Christophe Jeunesse on 28/12/2015.
  */
@@ -207,7 +209,8 @@ public class DummySession implements ICouchbaseSession {
         return this;
     }
 
-    public IBlockingCouchbaseSession toBlocking(){
+    @Override
+    public IBlockingCouchbaseSession toBlocking(int timeout, TimeUnit unit){
         return new IBlockingCouchbaseSession() {
             @Override
             public <T extends CouchbaseDocument> T blockingGet(String key) throws DaoException, StorageException {
@@ -288,8 +291,6 @@ public class DummySession implements ICouchbaseSession {
             public long blockingIncrCounter(String key, long byVal) throws DaoException, StorageException {
                 return 0;
             }
-
-
 
             @Override
             public long blockingDecrCounter(String key, long byVal) throws DaoException, StorageException {
