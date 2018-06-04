@@ -28,7 +28,7 @@ import com.dreameddeath.core.model.property.impl.ImmutableProperty;
  */
 public abstract class CatalogElement extends CouchbaseDocument {
     /**
-     *  uid : unique element id (regarding to the object type)
+     *  id : unique element id (regarding to the object type)
      */
     @DocumentProperty("id")
     private Property<String> id = new ImmutableProperty<>(CatalogElement.this);
@@ -43,7 +43,7 @@ public abstract class CatalogElement extends CouchbaseDocument {
     @DocumentProperty("previousVersion")
     private Property<Version> previousVersion = new ImmutableProperty<>(CatalogElement.this);
 
-    // uid accessors
+    // id accessors
     public String getId() { return id.get(); }
     public void setId(String val) { id.set(val); }
     // version accessors

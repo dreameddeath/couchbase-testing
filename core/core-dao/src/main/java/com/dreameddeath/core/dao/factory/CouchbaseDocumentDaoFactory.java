@@ -131,7 +131,6 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         }
 
         try {
-
             IDocumentClassMappingInfo info = documentInfoMapper.getMappingFromClass(dao.getDomain(),entityClass);
             info.attachObject(CouchbaseDocumentDao.class, dao);
             info.attachObject(ITranscoder.class, CouchbaseUtils.resolveTranscoderForClass(entityClass));
@@ -216,6 +215,22 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
     public Set<String> getEffectiveDomainsForClass(Class<? extends CouchbaseDocument> clazz){
         CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass((Class)clazz);
         return entityDefinitionManager.getEffectiveDomains(EntityDef.build(structureReflection));
+    }
+
+    public CouchbaseDocumentDao addDaoForGivenDomainEntity(Class<? extends CouchbaseDocument> clazz, String domain) throws DuplicateMappedEntryInfoException,ConfigPropertyValueNotFoundException{
+        return addDaoForGivenDomainEntityAndFlavor(clazz,domain,null);
+    }
+
+    public CouchbaseDocumentDao addDaoForGivenDomainEntityAndFlavor(Class<? extends CouchbaseDocument> clazz,String domain,String flavor) throws DuplicateMappedEntryInfoException,ConfigPropertyValueNotFoundException{
+        CouchbaseDocumentStructureReflection structureReflection = CouchbaseDocumentStructureReflection.getReflectionFromClass((Class)clazz);
+        EntityDef rootEntity = EntityDef.build(structureReflection);
+        DaoInfo daoInfo =DaoUtils.getDaoInfo(rootEntity.getModelId().getDomain(),rootEntity.getModelId().getName());
+        try {
+            return addDaoForEntityAndFlavor(daoInfo, domain, rootEntity.getModelId().getName(), flavor);
+        } catch (Throwable e) {
+            LOG.error("Error during adding domain {} of class {}",domain,clazz);
+            throw e;
+        }
     }
 
     public List<CouchbaseDocumentDao> addDaosForEffectiveDomainsEntityAndFlavor(Class<? extends CouchbaseDocument> clazz,String flavor) throws DuplicateMappedEntryInfoException,ConfigPropertyValueNotFoundException{

@@ -16,6 +16,7 @@
 
 package com.dreameddeath.core.model.property;
 
+
 public interface Property<T>  {
     T get();
     boolean set(T value);

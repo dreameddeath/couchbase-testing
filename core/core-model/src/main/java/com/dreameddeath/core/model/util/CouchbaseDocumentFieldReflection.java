@@ -133,7 +133,7 @@ public class CouchbaseDocumentFieldReflection {
                 setter = fieldInfo;
             }
             else {
-                throw new RuntimeException("Cannot find setter of field " + name + " for entity" + fieldInfo.getDeclaringClassInfo().getFullName());
+                throw new RuntimeException("Cannot find setter of field " + name + " for entity " + fieldInfo.getDeclaringClassInfo().getFullName());
             }
         }
     }

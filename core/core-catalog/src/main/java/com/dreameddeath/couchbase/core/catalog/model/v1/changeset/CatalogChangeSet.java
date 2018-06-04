@@ -18,20 +18,18 @@
 package com.dreameddeath.couchbase.core.catalog.model.v1.changeset;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
-import com.dreameddeath.core.model.property.MapProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
+import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
-import com.dreameddeath.core.model.property.impl.HashMapCollectionProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
-import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Christophe Jeunesse on 05/09/2014.
  */
-public class CatalogChangeSet extends CatalogElement {
+public class CatalogChangeSet extends CouchbaseDocumentElement {
     /**
      *  name : name of the change set
      */
@@ -46,7 +44,7 @@ public class CatalogChangeSet extends CatalogElement {
      *  domainChanges : List of changes per domain
      */
     @DocumentProperty("domainChanges")
-    private MapProperty<String,List<ChangeSetItem>> domainChanges = new HashMapCollectionProperty<>(CatalogChangeSet.this,new ArrayListProperty.MapValueBuilder<ChangeSetItem>());
+    private ListProperty<ChangeSetItem> changes = new ArrayListProperty<>(CatalogChangeSet.this);
 
 
     // name accessors
@@ -56,7 +54,7 @@ public class CatalogChangeSet extends CatalogElement {
     public String getDescr() { return descr.get(); }
     public void setDescr(String val) { descr.set(val); }
     // DomainChanges Accessors
-    public Map<String,List<ChangeSetItem>> getDomainChanges() { return domainChanges.get(); }
-    public void setDomainChanges(Map<String,List<ChangeSetItem>> vals) { domainChanges.set(vals); }
-
+    public List<ChangeSetItem> getChanges() { return changes.get(); }
+    public void setChanges(List<ChangeSetItem> vals) { changes.set(vals); }
+    public void addChange(ChangeSetItem item) { changes.add(item); }
 }

@@ -54,7 +54,6 @@ import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.script.Compilable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -120,6 +119,17 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
     @Override
     public void start(long timeout,TimeUnit unit){
+        try {
+            engine.eval("dateToArray = function(date){\n" +
+                    "   return (date != null && date != undefined && date instanceof Date)?\n" +
+                    "              [date.getYear(), date.getMonth(), date.getDay(),date.getHours(),date.getMinutes(), date.getSeconds()]\n" +
+                    "              :[];\n" +
+                    "}\n"
+            );
+        }
+        catch(ScriptException e){
+            LOG.error("Cannot compile script ",e);
+        }
         initTranscoders();
         for(Transcoder transcoder:getTranscoders()){
             if(transcoder instanceof  ICouchbaseTranscoder) {
@@ -524,9 +534,13 @@ public class CouchbaseBucketSimulator extends CouchbaseBucketWrapper {
 
         Map<String,ScriptObjectMirror> newDesignDocMap = new HashMap<>();
         for(Map.Entry<String,String> viewDef:viewList.entrySet()){
-            Compilable compilator = (Compilable)engine;
             String scriptContent = viewDef.getValue();
-
+            /*scriptContent ="dateToArray = function(date){\n" +
+                    "   return (date != null && date != undefined && date instanceof Date)?\n" +
+                    "              [date.getYear(), date.getMonth(), date.getDay(),date.getHours(),date.getMinutes(), date.getSeconds()]\n" +
+                    "              :[];\n" +
+                    "}\n"+*
+                    scriptContent ;*/
             scriptContent = scriptContent.replaceAll("^(\\s*function\\s*\\(\\s*doc\\s*,\\s*meta\\s*)", "$1,globalResultEmitter");
             scriptContent = scriptContent.replaceAll("\\bemit\\(", "globalResultEmitter.emit(meta.id,");
 

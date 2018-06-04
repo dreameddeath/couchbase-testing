@@ -21,14 +21,25 @@ import com.dreameddeath.core.json.model.Version;
 import com.dreameddeath.couchbase.core.catalog.model.v1.Catalog;
 import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
 import io.reactivex.Maybe;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * Created by Christophe Jeunesse on 15/12/2017.
  */
 public interface ICatalogRef {
-    String getCatalogName();
-    Version getCatalogVersion();
-    Catalog.State getCatalogState();
+    Single<String> getCatalogName();
+    Single<Version> getCatalogVersion();
+    Single<Catalog.State> getCatalogState();
+
+    Observable<ICatalogItemRef> getItems();
 
     <T extends CatalogElement> Maybe<T> getCatalogElement(String uid, Class<T> type);
+
+    interface ICatalogItemRef{
+        String id();
+        Version version();
+        String key();
+        Class<? extends CatalogElement> clazz();
+    }
 }

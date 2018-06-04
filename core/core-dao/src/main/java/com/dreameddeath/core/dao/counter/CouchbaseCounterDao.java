@@ -43,9 +43,13 @@ public class CouchbaseCounterDao{
     private Integer expiration;
     private CallingMode mode;
 
-    public void setBaseDao(CouchbaseDocumentDao dao){baseDao=dao;}
+    public void setBaseDao(CouchbaseDocumentDao dao){
+        baseDao=dao;
+    }
 
-    public void setClient(ICouchbaseBucket client){this.client = client;}
+    public void setClient(ICouchbaseBucket client){
+        this.client = client;
+    }
 
     public ICouchbaseBucket getClient(){
         if(client!=null) return client;
@@ -57,15 +61,15 @@ public class CouchbaseCounterDao{
     }
 
     public CouchbaseCounterDao(String key, Boolean isKeyShared,Long baseValue, Long modulus, Integer expiration){
-        this.keyPattern=key!=null?new KeyPattern(key):null;
-        this.isKeyShared=isKeyShared;
+        this.keyPattern = (key != null) ? new KeyPattern(key) : null;
+        this.isKeyShared = isKeyShared;
         this.baseValue = baseValue;
         this.modulus = modulus;
         this.expiration = expiration;
-        if((expiration==null) &&(baseValue ==null)){
+        if((expiration == null) && (baseValue == null)){
             mode = CallingMode.BASE;
         }
-        else if(expiration==null){
+        else if(expiration == null){
             mode = CallingMode.WITH_DEFAULT;
         }
         else{
@@ -91,7 +95,6 @@ public class CouchbaseCounterDao{
     public Single<Long> asyncGetCounter(ICouchbaseSession session, String key, boolean isCalcOnly) {
         return asyncIncrCounter(session,key,0,isCalcOnly);
     }
-
 
     public Single<Long> asyncIncrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly){
         if(baseDao.isReadOnly() && by!=0){
@@ -143,7 +146,6 @@ public class CouchbaseCounterDao{
         }
 
     }
-
 
     public Single<Long> asyncDecrCounter(ICouchbaseSession session,String key,long by,boolean isCalcOnly){
         if(baseDao.isReadOnly() && by!=0){

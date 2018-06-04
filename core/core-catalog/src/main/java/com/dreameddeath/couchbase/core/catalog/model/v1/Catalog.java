@@ -23,15 +23,22 @@ import com.dreameddeath.core.dao.model.view.impl.ViewDateTimeKeyTranscoder;
 import com.dreameddeath.core.json.model.Version;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.annotation.HasEffectiveDomain;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.entity.model.EntityModelId;
+import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.dreameddeath.couchbase.core.catalog.model.v1.changeset.CatalogChangeSet;
 import com.dreameddeath.couchbase.core.catalog.model.v1.view.CatalogViewResultValue;
 import com.dreameddeath.couchbase.core.catalog.service.v1.CatalogViewResultValueTranscoder;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
@@ -40,16 +47,42 @@ import java.util.List;
 /**
  * Created by Christophe Jeunesse on 14/12/2017.
  */
-@DaoEntity(baseDao = CouchbaseDocumentWithKeyPatternDao.class,dbPath = "catalog",idFormat = "%10d",idPattern = "\\d{10}")
+@DaoEntity(baseDao = CouchbaseDocumentWithKeyPatternDao.class,dbPath = "catalog/",idFormat = "%010d",idPattern = "\\d{10}")
 @View(name = Catalog.ALL_CATALOG_VIEW_NAME,
-        content = "emit(dateToArray(doc.startTime),{state:doc.state,version:doc.version})",
+        content = "emit(dateToArray(doc.startTime),{domain:doc.domain,state:doc.state,version:doc.version})",
         keyDef = @ViewKeyDef(type = DateTime.class,transcoder = ViewDateTimeKeyTranscoder.class),
         valueDef = @ViewValueDef(type = CatalogViewResultValue.class, transcoder = CatalogViewResultValueTranscoder.class)
 )
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
+@JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, property="@t",visible = true)
+@JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
 @DocumentEntity
-public class Catalog extends CouchbaseDocument {
+public class Catalog extends CouchbaseDocument implements IVersionedEntity, HasEffectiveDomain {
     public static final String ALL_CATALOG_VIEW_NAME ="all_catalogs";
+    private EntityModelId fullEntityId;
+    @JsonSetter("@t") @Override
+    public final void setDocumentFullVersionId(String typeId){
+        fullEntityId = EntityModelId.build(typeId);
+    }
+    @Override
+    public final String getDocumentFullVersionId(){
+        return fullEntityId!=null?fullEntityId.toString():null;
+    }
+    @Override
+    public final EntityModelId getModelId(){
+        return fullEntityId;
+    }
+    @Override
+    public String getEffectiveDomain() {
+        return getDomain();
+    }
+
+    /**
+     * domain : Catalog domain
+     */
+    @DocumentProperty("domain")
+    private Property<String> domain = new ImmutableProperty<>(Catalog.this);
+
     /**
      * name : Catalog version
      */
@@ -80,10 +113,27 @@ public class Catalog extends CouchbaseDocument {
     @DocumentProperty("changeSets")
     private ListProperty<CatalogChangeSet> changeSets = new ArrayListProperty<>(Catalog.this);
     /**
-     * patchedVersions : List of patched version (if any)
+     * patchedVersion : name of previous (if any)
      */
-    @DocumentProperty("patchedVersions")
-    private ListProperty<Version> patchedVersions = new ArrayListProperty<>(Catalog.this);
+    @DocumentProperty("patchedVersion")
+    private Property<Version> patchedVersion = new ImmutableProperty<>(Catalog.this);
+
+
+    /**
+     * Getter of the attribute {@link #domain}
+     * @return the currentValue of {@link #domain}
+     */
+    public String getDomain(){
+        return this.domain.get();
+    }
+
+    /**
+     * Setter of the attribute {@link #domain}
+     * @param newValue the newValue of {@link #domain}
+     */
+    public void setDomain(String newValue){
+        this.domain.set(newValue);
+    }
 
     /**
      * Getter of the attribute {@link #name}
@@ -176,27 +226,19 @@ public class Catalog extends CouchbaseDocument {
     }
 
     /**
-     * Getter of the attribute {@link #patchedVersions}
-     * return the current list contained in {@link #patchedVersions}
+     * Getter of the attribute {@link #patchedVersion}
+     * return the current list contained in {@link #patchedVersion}
      */
-    public List<Version> getPatchedVersions(){
-        return this.patchedVersions;
+    public Version getPatchedVersion(){
+        return this.patchedVersion.get();
     }
 
     /**
-     * Replace the content of the attribute {@link #patchedVersions}
-     * @param newContent the new content of {@link #patchedVersions}
+     * Replace the content of the attribute {@link #patchedVersion}
+     * @param newContent the new content of {@link #patchedVersion}
      */
-    public void setPatchedVersions(Collection<Version> newContent){
-        this.patchedVersions.set(newContent);
-    }
-
-    /**
-     * Adds an item to the attribute {@link #patchedVersions}
-     * @param newItem the new item to be added to {@link #patchedVersions}
-     */
-    public void addPatchedVersion(Version newItem){
-        this.patchedVersions.add(newItem);
+    public void setPatchedVersion(Version newContent){
+        this.patchedVersion.set(newContent);
     }
 
 

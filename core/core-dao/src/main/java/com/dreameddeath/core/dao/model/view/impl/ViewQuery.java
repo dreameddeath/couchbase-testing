@@ -79,8 +79,12 @@ public class ViewQuery<TKEY,TVALUE,TDOC extends CouchbaseDocument> implements IV
             dao.getKeyTranscoder().keys(result,keys);
         }
         else{
-            dao.getKeyTranscoder().startKey(result, startKey);
-            dao.getKeyTranscoder().endKey(result,endKey);
+            if(startKey!=null) {
+                dao.getKeyTranscoder().startKey(result, startKey);
+            }
+            if(endKey!=null) {
+                dao.getKeyTranscoder().endKey(result, endKey);
+            }
         }
 
         result.descending(isDescending).

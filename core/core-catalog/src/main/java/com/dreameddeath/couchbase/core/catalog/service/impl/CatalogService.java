@@ -30,11 +30,14 @@ import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
 import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.json.model.Version;
+import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.couchbase.core.catalog.config.CatalogConfigProperties;
 import com.dreameddeath.couchbase.core.catalog.model.v1.Catalog;
 import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
+import com.dreameddeath.couchbase.core.catalog.model.v1.changeset.ChangeSetItem;
 import com.dreameddeath.couchbase.core.catalog.model.v1.view.CatalogViewResultValue;
 import com.dreameddeath.couchbase.core.catalog.service.ICatalogRef;
 import com.dreameddeath.couchbase.core.catalog.service.ICatalogService;
@@ -48,11 +51,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
@@ -77,6 +76,7 @@ public class CatalogService implements ICatalogService {
     private IUserFactory userFactory;
     private CouchbaseDocumentDaoFactory factory;
     private IDateTimeService dateTimeService;
+    private EntityDefinitionManager entityDefinitionManager;
 
     protected static long getCacheSize(){
         String cache_size_str = CatalogConfigProperties.CATALOG_CACHE_SIZE.get();
@@ -98,11 +98,19 @@ public class CatalogService implements ICatalogService {
         return raw_size;
     }
 
-    public CatalogService() {
-        this.domain = CatalogConfigProperties.CATALOG_DOMAIN.get();
+    public CatalogService(String domain) {
+        this.domain = domain;
         this.state = Catalog.State.valueOf(CatalogConfigProperties.CATALOG_STATE.get().toUpperCase());
         this.cache = Caffeine.newBuilder()
                 .maximumWeight(getCacheSize())
+                .weigher((key,val)->{
+                    if(val instanceof CouchbaseDocument){
+                        return ((CouchbaseDocument) val).getBaseMeta().getDbSize();
+                    }
+                    else{
+                        return val.toString().length();
+                    }
+                })
                 .recordStats()
                 .buildAsync(this::asyncLoad);
     }
@@ -114,6 +122,16 @@ public class CatalogService implements ICatalogService {
         reloadCatalogs();
     }
 
+    public static void registerDaoForDomain(CouchbaseDocumentDaoFactory factory,String domain){
+        try {
+            factory.addDaoForGivenDomainEntity(Catalog.class, domain);
+        }
+        catch(Throwable e){
+            throw new RuntimeException("Cannot add catalog dao for domain "+domain,e);
+        }
+
+    }
+
     synchronized public void reloadCatalogs() throws DaoException, StorageException {
         IViewQuery<DateTime, CatalogViewResultValue, Catalog> allCatalogView = session.initViewQuery(Catalog.class, Catalog.ALL_CATALOG_VIEW_NAME);
         IViewQueryResult<DateTime, CatalogViewResultValue, Catalog> allCatalogViewResult = session.executeQuery(allCatalogView);
@@ -121,6 +139,9 @@ public class CatalogService implements ICatalogService {
         List<PreloadedCatalogInfo> toAddList = Lists.newArrayList();
 
         for (IViewQueryRow<DateTime, CatalogViewResultValue, Catalog> resultRow : allCatalogViewResult.getAllRows()) {
+            if(!this.domain.equals(resultRow.getValue().domain)){
+                continue;
+            }
             boolean needAdd=true;
             for(PreloadedCatalogInfo catalogInfo: preloadedCatalogsSorted){
                 if(catalogInfo.state.equals(resultRow.getValue().state) && catalogInfo.dateTime.equals(resultRow.getKey())){
@@ -138,7 +159,7 @@ public class CatalogService implements ICatalogService {
         }
         preloadedCatalogsSorted.removeAll(toRemoveList);
         preloadedCatalogsSorted.addAll(toAddList);
-        preloadedCatalogsSorted.sort(Comparator.<PreloadedCatalogInfo,DateTime>comparing(a -> a.dateTime).thenComparing(a->a.version));
+        preloadedCatalogsSorted.sort(Comparator.<PreloadedCatalogInfo,Version>comparing(a -> a.version).thenComparing(a->a.dateTime).reversed());
         getCatalog();
     }
 
@@ -162,6 +183,11 @@ public class CatalogService implements ICatalogService {
         this.dateTimeService = dateTimeService;
     }
 
+    @Autowired
+    public void setEntityDefinitionManager(EntityDefinitionManager entityDefinitionManager){
+        this.entityDefinitionManager = entityDefinitionManager;
+    }
+
     private CompletableFuture<? extends CatalogElement> asyncLoad(Key key, Executor executor){
         return toCompletableFuture(
                 daoMap.computeIfAbsent(key.elemClass, clazz->{
@@ -172,7 +198,7 @@ public class CatalogService implements ICatalogService {
                         throw new RuntimeException(e);
                     }
                 })
-                .asyncGet(this.session, key.item_uid)
+                .asyncGet(this.session, key.item_key)
         .subscribeOn(Schedulers.from(executor)));
     }
 
@@ -184,31 +210,38 @@ public class CatalogService implements ICatalogService {
                 bestMatch=preloadedCatalog;
             }
             else {
-                if(bestMatch.state.equals(this.state)){
-                    if(isBetterMatchingDateAndState(date, bestMatch, preloadedCatalog)){
-                        bestMatch = preloadedCatalog;
-                    }
-                }
-                else if(isBetterMatchingDate(date,bestMatch,preloadedCatalog)){
+                if(isBetterState(bestMatch, preloadedCatalog)){
                     bestMatch = preloadedCatalog;
                 }
-
+                else if(isValidState(preloadedCatalog) && isBetterDate(date,bestMatch,preloadedCatalog)){
+                    bestMatch=preloadedCatalog;
+                }
             }
         }
         if(bestMatch!=null){
-            return catalogRefFromKey.computeIfAbsent(bestMatch.catalogDocKey,key->new CatalogRefImpl(this,key,session));
+            String foundKey = bestMatch.catalogDocKey;
+            return getCatalogRefFromKey(foundKey);
         }
         return null;
     }
 
-    public boolean isBetterMatchingDateAndState(DateTime requestedDateTime, PreloadedCatalogInfo bestMatch, PreloadedCatalogInfo preloadedCatalog) {
-        return preloadedCatalog.state.equals(this.state) &&
-                isBetterMatchingDate(requestedDateTime,bestMatch, preloadedCatalog);
+    private boolean isBetterState(PreloadedCatalogInfo bestMatch, PreloadedCatalogInfo preloadedCatalog) {
+        return bestMatch==null ||
+                (!Objects.equals(this.state,bestMatch.state) && Objects.equals(this.state,preloadedCatalog.state));
     }
 
-    private boolean isBetterMatchingDate(DateTime requestedDateTime, PreloadedCatalogInfo bestMatch, PreloadedCatalogInfo preloadedCatalog) {
-        return bestMatch.dateTime.compareTo(preloadedCatalog.dateTime) <= 0
-                && preloadedCatalog.dateTime.compareTo(requestedDateTime) <= 0;
+    private boolean isValidState(PreloadedCatalogInfo preloadedCatalog) {
+        return this.state==null || Objects.equals(this.state,preloadedCatalog.state);
+    }
+
+
+    private boolean isBetterDate(DateTime date,PreloadedCatalogInfo bestMatch, PreloadedCatalogInfo preloadedCatalog) {
+        return (bestMatch.dateTime==null || date.isAfter(bestMatch.dateTime)) && preloadedCatalog.dateTime!=null && !date.isAfter(preloadedCatalog.dateTime);
+    }
+
+
+    private ICatalogRef getCatalogRefFromKey(String foundKey) {
+        return catalogRefFromKey.computeIfAbsent(foundKey,key->new CatalogRefImpl(this,key,session));
     }
 
     @Override
@@ -216,20 +249,42 @@ public class CatalogService implements ICatalogService {
         return getCatalog(dateTimeService.getCurrentDate());
     }
 
-    public void handleCatalogLoadingError(CatalogRefImpl catalogRef) {
+    @Override
+    public ICatalogRef getCatalog(Version version) {
+        for (PreloadedCatalogInfo preloadedCatalog : preloadedCatalogsSorted) {
+            if(preloadedCatalog.version.equals(version)){
+                return getCatalogRefFromKey(preloadedCatalog.catalogDocKey);
+            }
+        }
+        return null;
+    }
+
+
+    public void handleCatalogLoadingError(Throwable e,CatalogRefImpl catalogRef) {
 
     }
 
-    private final class Key{
+    public EntityDefinitionManager getEntityDefinitionManager() {
+        return this.entityDefinitionManager;
+    }
+
+    public  AsyncLoadingCache<Key,? extends CatalogElement> getCache() {
+        return this.cache;
+    }
+
+    private final static class Key{
         final String item_uid;
         final Version item_version;
+        final String item_key;
         final Class<? extends CatalogElement> elemClass;
 
-        public Key(String item_uid, Version item_version, Class<? extends CatalogElement> elemClass) {
+        public Key(String item_uid, Version item_version,String key, Class<? extends CatalogElement> elemClass) {
             this.item_uid = item_uid;
             this.item_version = item_version;
+            this.item_key = key;
             this.elemClass = elemClass;
         }
+
 
         @Override
         public boolean equals(Object o) {
@@ -245,6 +300,11 @@ public class CatalogService implements ICatalogService {
         public int hashCode() {
             return Objects.hash(item_uid, item_version, elemClass);
         }
+    }
+
+    public Key getKeyFromChangeSetItem( ChangeSetItem item){
+        Class<? extends CatalogElement> classFromVersionnedTypeId =entityDefinitionManager.findClassFromVersionnedTypeId(item.getTarget());
+        return new Key(item.getId(),item.getVersion(),item.getKey(),classFromVersionnedTypeId);
     }
 
     private final class PreloadedCatalogInfo {

@@ -17,6 +17,7 @@
 
 package com.dreameddeath.couchbase.core.catalog.service;
 
+import com.dreameddeath.core.json.model.Version;
 import org.joda.time.DateTime;
 
 /**
@@ -25,4 +26,5 @@ import org.joda.time.DateTime;
 public interface ICatalogService {
     ICatalogRef getCatalog(DateTime date);
     ICatalogRef getCatalog();
+    ICatalogRef getCatalog(Version version);
 }

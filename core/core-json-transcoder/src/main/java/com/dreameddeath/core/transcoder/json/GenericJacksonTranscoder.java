@@ -59,29 +59,27 @@ public class GenericJacksonTranscoder<T extends CouchbaseDocument> implements IT
 
 
     public static Class findRootClass(Class clazz) {
-        Class currentClass = clazz;
-        //For versionned document, find the root class
-        if (IVersionedEntity.class.isAssignableFrom(currentClass)) {
-            JsonTypeIdResolver foundAnnot = null;
-            while (!currentClass.isPrimitive()) {
+        //For versioned document, find the root class
+        if(!IVersionedEntity.class.isAssignableFrom(clazz)){
+            return clazz;
+        }
+        else{
+            Class currentClass = clazz;
+            while(currentClass!=null && !currentClass.isPrimitive()){
                 Annotation[] annot = currentClass.getDeclaredAnnotations();
-
-                for (int pos = 0; pos < annot.length; ++pos) {
-                    if (JsonTypeIdResolver.class.isAssignableFrom(annot[pos].getClass())) {
-                        if (CouchbaseDocumentTypeIdResolver.class.isAssignableFrom(((JsonTypeIdResolver) annot[pos]).value())) {
-                            foundAnnot = (JsonTypeIdResolver) annot[pos];
-                            break;
-                        }
+                for (Annotation anAnnot : annot) {
+                    if (isRightJsonTypeIdResolver(anAnnot)) {
+                        return currentClass;
                     }
-                }
-
-                if (foundAnnot != null) {
-                    break;
                 }
                 currentClass = currentClass.getSuperclass();
             }
+            throw new RuntimeException("Cannot find root class for class <"+clazz+">  with annot @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver)");
         }
-        return currentClass;
+    }
+
+    private static boolean isRightJsonTypeIdResolver(Annotation currAnnot) {
+        return JsonTypeIdResolver.class.isAssignableFrom(currAnnot.getClass()) && CouchbaseDocumentTypeIdResolver.class.isAssignableFrom(((JsonTypeIdResolver)currAnnot ).value());
     }
 
     public GenericJacksonTranscoder(Flavor flavor,Class<T> clazz){

@@ -27,12 +27,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class CatalogViewResultValue {
     @JsonProperty
+    public final String domain;
+    @JsonProperty
     public final Catalog.State state;
     @JsonProperty
     public final Version version;
 
     @JsonCreator
-    public CatalogViewResultValue(@JsonProperty Catalog.State state, @JsonProperty Version version) {
+    public CatalogViewResultValue(@JsonProperty("domain") String domain,@JsonProperty("state") Catalog.State state, @JsonProperty("version") Version version) {
+        this.domain = domain;
         this.state = state;
         this.version = version;
     }
