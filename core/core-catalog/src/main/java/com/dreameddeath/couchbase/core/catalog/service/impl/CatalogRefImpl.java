@@ -17,7 +17,6 @@
 
 package com.dreameddeath.couchbase.core.catalog.service.impl;
 
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.json.model.Version;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
@@ -50,10 +49,9 @@ public class CatalogRefImpl implements ICatalogRef {
     private final Map<ChangeSetItemKey,ChangeSetItem> catalogItemRefs = new HashMap<>();
     private final Disposable disposable;
 
-    public CatalogRefImpl(CatalogService parent, String catalogDocKey, ICouchbaseSession session) {
+    public CatalogRefImpl(CatalogService parent, Single<Catalog> catalog) {
         this.parent = parent;
-        Single<Catalog> temporaryCatalogRead = session.asyncGet(catalogDocKey, Catalog.class);
-        this.disposable = temporaryCatalogRead.subscribe(this::setCatalog, this::manageError);
+        this.disposable = catalog.subscribe(this::setCatalog, this::manageError);
     }
 
     private void manageError(Throwable exception){

@@ -17,7 +17,8 @@
 
 package com.dreameddeath.couchbase.core.catalog.service.impl;
 
-import com.dreameddeath.core.couchbase.exception.StorageException;
+import com.codahale.metrics.MetricRegistry;
+import com.dreameddeath.core.couchbase.impl.ReadParams;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.exception.DaoNotFoundException;
@@ -25,15 +26,12 @@ import com.dreameddeath.core.dao.factory.CouchbaseDocumentDaoFactory;
 import com.dreameddeath.core.dao.model.view.IViewQuery;
 import com.dreameddeath.core.dao.model.view.IViewQueryResult;
 import com.dreameddeath.core.dao.model.view.IViewQueryRow;
-import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.dao.session.ICouchbaseSessionFactory;
+import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.json.model.Version;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
-import com.dreameddeath.core.user.IUser;
-import com.dreameddeath.core.user.IUserFactory;
 import com.dreameddeath.couchbase.core.catalog.config.CatalogConfigProperties;
 import com.dreameddeath.couchbase.core.catalog.model.v1.Catalog;
 import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
@@ -46,10 +44,11 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -70,13 +69,11 @@ public class CatalogService implements ICatalogService {
     private final Map<Class<? extends CatalogElement>,CouchbaseDocumentDao<? extends CatalogElement>> daoMap = Maps.newConcurrentMap();
     private final Map<String,ICatalogRef> catalogRefFromKey=Maps.newConcurrentMap();
     private final List<PreloadedCatalogInfo> preloadedCatalogsSorted =new ArrayList<>();
-
-    private ICouchbaseSession session;
-    private ICouchbaseSessionFactory sessionFactory;
-    private IUserFactory userFactory;
-    private CouchbaseDocumentDaoFactory factory;
-    private IDateTimeService dateTimeService;
-    private EntityDefinitionManager entityDefinitionManager;
+    private final ReadParams readParams;
+    private final CouchbaseDocumentDaoFactory factory;
+    private final CouchbaseDocumentDao<Catalog> daoCatalog;
+    private final IDateTimeService dateTimeService;
+    private final MetricRegistry metricRegistry;
 
     protected static long getCacheSize(){
         String cache_size_str = CatalogConfigProperties.CATALOG_CACHE_SIZE.get();
@@ -98,43 +95,58 @@ public class CatalogService implements ICatalogService {
         return raw_size;
     }
 
-    public CatalogService(String domain) {
+    public CatalogService(String domain, CouchbaseDocumentDaoFactory daoFactory, IDateTimeService dateTimeService) {
+        this(domain,null,daoFactory,dateTimeService,null);
+    }
+
+    public CatalogService(String domain, CouchbaseDocumentDaoFactory daoFactory, IDateTimeService dateTimeService, MetricRegistry registry) {
+        this(domain,null,daoFactory,dateTimeService,registry);
+    }
+
+    public CatalogService(String domain,String keyPrefix, CouchbaseDocumentDaoFactory daoFactory, IDateTimeService dateTimeService){
+        this(domain, keyPrefix,daoFactory, dateTimeService,null);
+    }
+    public CatalogService(String domain,String keyPrefix,CouchbaseDocumentDaoFactory daoFactory,IDateTimeService dateTimeService,MetricRegistry metricRegistry) {
+        this.factory = daoFactory;
+        this.dateTimeService = dateTimeService;
+        this.metricRegistry = metricRegistry;
+        this.readParams = ReadParams.builder().with(keyPrefix).create();
         this.domain = domain;
         this.state = Catalog.State.valueOf(CatalogConfigProperties.CATALOG_STATE.get().toUpperCase());
-        this.cache = Caffeine.newBuilder()
+        final String cachePrefix= "catalog.cache."+domain;
+        Caffeine<Object,Object> caffeineCacheDef = Caffeine.newBuilder()
                 .maximumWeight(getCacheSize())
-                .weigher((key,val)->{
-                    if(val instanceof CouchbaseDocument){
+                .weigher((key, val) -> {
+                    if (val instanceof CouchbaseDocument) {
                         return ((CouchbaseDocument) val).getBaseMeta().getDbSize();
-                    }
-                    else{
+                    } else {
                         return val.toString().length();
                     }
-                })
-                .recordStats()
-                .buildAsync(this::asyncLoad);
+                });
+
+        if(metricRegistry!=null){
+            caffeineCacheDef = caffeineCacheDef.recordStats(() -> new MetricStatsCounter(metricRegistry, cachePrefix));
+        }
+
+        this.cache = caffeineCacheDef.buildAsync(this::asyncLoad);
+        try {
+            this.daoCatalog = factory.getDaoForClass(this.domain, Catalog.class);
+        }
+        catch (DaoNotFoundException e){
+            throw new RuntimeException(e);
+        }
     }
 
     @PostConstruct
-    public void init() throws DaoException,StorageException{
-        IUser user = userFactory.fromId(CatalogConfigProperties.CATALOG_USER_ID.get());
-        session = sessionFactory.newReadOnlySession(this.domain,user);
+    public void init() throws DaoException{
         reloadCatalogs();
     }
 
-    public static void registerDaoForDomain(CouchbaseDocumentDaoFactory factory,String domain){
-        try {
-            factory.addDaoForGivenDomainEntity(Catalog.class, domain);
-        }
-        catch(Throwable e){
-            throw new RuntimeException("Cannot add catalog dao for domain "+domain,e);
-        }
 
-    }
-
-    synchronized public void reloadCatalogs() throws DaoException, StorageException {
-        IViewQuery<DateTime, CatalogViewResultValue, Catalog> allCatalogView = session.initViewQuery(Catalog.class, Catalog.ALL_CATALOG_VIEW_NAME);
-        IViewQueryResult<DateTime, CatalogViewResultValue, Catalog> allCatalogViewResult = session.executeQuery(allCatalogView);
+    synchronized public void reloadCatalogs() throws DaoException {
+        CouchbaseViewDao<DateTime, CatalogViewResultValue, Catalog> viewDao = (CouchbaseViewDao<DateTime, CatalogViewResultValue, Catalog>) this.factory.getViewDaoFactory().getViewDaoFor(this.domain, Catalog.class, Catalog.ALL_CATALOG_VIEW_NAME);
+        IViewQuery<DateTime, CatalogViewResultValue, Catalog> catalogIViewQuery = viewDao.buildViewQuery(this.readParams.getKeyPrefix());
+        IViewQueryResult<DateTime, CatalogViewResultValue, Catalog> allCatalogViewResult = viewDao.query(null, true, catalogIViewQuery);
         List<PreloadedCatalogInfo> toRemoveList = Lists.newArrayList();
         List<PreloadedCatalogInfo> toAddList = Lists.newArrayList();
 
@@ -163,44 +175,30 @@ public class CatalogService implements ICatalogService {
         getCatalog();
     }
 
-    @Autowired
-    public void setSessionFactory(ICouchbaseSessionFactory factory){
-        this.sessionFactory = factory;
+
+
+    private <T extends CatalogElement> CompletableFuture<T> asyncLoad(@Nonnull Key key, Executor executor){
+        CouchbaseDocumentDao<T> couchbaseDocumentDao = (CouchbaseDocumentDao<T>)daoMap.computeIfAbsent(key.elemClass, clazz -> {
+            try {
+                return factory.getDaoForClass(domain, clazz);
+            } catch (DaoNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return toCompletableFuture(asyncRead(couchbaseDocumentDao,key.item_key).subscribeOn(Schedulers.from(executor)));
     }
 
-    @Autowired
-    public void setUserFactory(IUserFactory factory){
-        this.userFactory = factory;
+    private Single<Catalog> asyncReadCatalogue(String key){
+        return asyncRead(this.daoCatalog,key);
     }
 
-    @Autowired
-    public void setFactory(CouchbaseDocumentDaoFactory factory) {
-        this.factory = factory;
+    private <T extends CouchbaseDocument> Single<T> asyncRead(CouchbaseDocumentDao<T> dao,String key){
+        return dao.getClient()
+                .asyncGet(key,dao.getBaseClass(),this.readParams)
+                .map(dao::managePostReading);
     }
 
-    @Autowired
-    public void setDateTimeService(IDateTimeService dateTimeService) {
-        this.dateTimeService = dateTimeService;
-    }
-
-    @Autowired
-    public void setEntityDefinitionManager(EntityDefinitionManager entityDefinitionManager){
-        this.entityDefinitionManager = entityDefinitionManager;
-    }
-
-    private CompletableFuture<? extends CatalogElement> asyncLoad(Key key, Executor executor){
-        return toCompletableFuture(
-                daoMap.computeIfAbsent(key.elemClass, clazz->{
-                    try {
-                        return factory.getDaoForClass(domain, clazz);
-                    }
-                    catch (DaoNotFoundException e){
-                        throw new RuntimeException(e);
-                    }
-                })
-                .asyncGet(this.session, key.item_key)
-        .subscribeOn(Schedulers.from(executor)));
-    }
 
     @Override
     public ICatalogRef getCatalog(DateTime date) {
@@ -241,7 +239,7 @@ public class CatalogService implements ICatalogService {
 
 
     private ICatalogRef getCatalogRefFromKey(String foundKey) {
-        return catalogRefFromKey.computeIfAbsent(foundKey,key->new CatalogRefImpl(this,key,session));
+        return catalogRefFromKey.computeIfAbsent(foundKey,key->new CatalogRefImpl(this,this.asyncReadCatalogue(key)));
     }
 
     @Override
@@ -265,7 +263,7 @@ public class CatalogService implements ICatalogService {
     }
 
     public EntityDefinitionManager getEntityDefinitionManager() {
-        return this.entityDefinitionManager;
+        return this.factory.getEntityDefinitionManager();
     }
 
     public  AsyncLoadingCache<Key,? extends CatalogElement> getCache() {
@@ -303,7 +301,7 @@ public class CatalogService implements ICatalogService {
     }
 
     public Key getKeyFromChangeSetItem( ChangeSetItem item){
-        Class<? extends CatalogElement> classFromVersionnedTypeId =entityDefinitionManager.findClassFromVersionnedTypeId(item.getTarget());
+        Class<? extends CatalogElement> classFromVersionnedTypeId =this.factory.getEntityDefinitionManager().findClassFromVersionnedTypeId(item.getTarget());
         return new Key(item.getId(),item.getVersion(),item.getKey(),classFromVersionnedTypeId);
     }
 

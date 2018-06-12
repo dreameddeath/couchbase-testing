@@ -8,11 +8,11 @@ import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.json.model.Version;
 import com.dreameddeath.core.session.impl.CouchbaseSessionFactory;
 import com.dreameddeath.core.user.AnonymousUser;
-import com.dreameddeath.core.user.StandardMockUserFactory;
 import com.dreameddeath.couchbase.core.catalog.dao.v1.CatalogDao;
 import com.dreameddeath.couchbase.core.catalog.model.v1.Catalog;
 import com.dreameddeath.couchbase.core.catalog.model.v1.changeset.CatalogChangeSet;
 import com.dreameddeath.couchbase.core.catalog.model.v1.changeset.ChangeSetItem;
+import com.dreameddeath.couchbase.core.catalog.service.CatalogServiceFactory;
 import com.dreameddeath.couchbase.core.catalog.service.impl.dao.domain1.TestCatItemDomain1Dao;
 import com.dreameddeath.couchbase.core.catalog.service.impl.dao.domain2.TestCatItemDomain2Dao;
 import com.dreameddeath.couchbase.core.catalog.service.impl.model.domain1.TestCatItemDomain1;
@@ -28,7 +28,6 @@ public class CatalogServiceTest {
     private CuratorTestUtils curatorUtils;
     private CouchbaseBucketSimulator cbSimulator;
     private CouchbaseBucketSimulator cbSimulator2;
-
 
     private CouchbaseSessionFactory sessionFactory;
     private MetricRegistry metricRegistry;
@@ -63,6 +62,12 @@ public class CatalogServiceTest {
 
     @Test
     public void testCatalogLoadingCrossDomain() throws Exception{
+        final CatalogServiceFactory factory = new CatalogServiceFactory(false);
+        factory.setDateTimeService(sessionFactory.getDateTimeServiceFactory().getService());
+        factory.setMetricRegistry(metricRegistry);
+        factory.setFactory(sessionFactory.getDocumentDaoFactory());
+        factory.init();
+
         ICouchbaseSession domain1Session = sessionFactory.newReadWriteSession("domain1", AnonymousUser.INSTANCE);
         ICouchbaseSession domainSharedWith1Session = sessionFactory.newReadWriteSession("domainSharedWith1", AnonymousUser.INSTANCE);
         ICouchbaseSession domain2Session = sessionFactory.newReadWriteSession("domain2", AnonymousUser.INSTANCE);
@@ -141,29 +146,11 @@ public class CatalogServiceTest {
             domain2Session.toBlocking().blockingCreate(catalogDomain2_2);
         }
 
-        CatalogService catalogService = new CatalogService("domain1");
-        catalogService.setDateTimeService(sessionFactory.getDateTimeServiceFactory().getService());
-        catalogService.setEntityDefinitionManager(sessionFactory.getDocumentDaoFactory().getEntityDefinitionManager());
-        catalogService.setFactory(sessionFactory.getDocumentDaoFactory());
-        catalogService.setSessionFactory(sessionFactory);
-        catalogService.setUserFactory(new StandardMockUserFactory());
-        catalogService.init();
+        CatalogService catalogService = factory.getCatalogService("domain1");
 
-        CatalogService catalogService2 = new CatalogService("domain2");
-        catalogService2.setDateTimeService(sessionFactory.getDateTimeServiceFactory().getService());
-        catalogService2.setEntityDefinitionManager(sessionFactory.getDocumentDaoFactory().getEntityDefinitionManager());
-        catalogService2.setFactory(sessionFactory.getDocumentDaoFactory());
-        catalogService2.setSessionFactory(sessionFactory);
-        catalogService2.setUserFactory(new StandardMockUserFactory());
-        catalogService2.init();
+        CatalogService catalogService2 = factory.getCatalogService("domain2");
 
-        CatalogService catalogServiceSharedWith1 = new CatalogService("domainSharedWith1");
-        catalogServiceSharedWith1.setDateTimeService(sessionFactory.getDateTimeServiceFactory().getService());
-        catalogServiceSharedWith1.setEntityDefinitionManager(sessionFactory.getDocumentDaoFactory().getEntityDefinitionManager());
-        catalogServiceSharedWith1.setFactory(sessionFactory.getDocumentDaoFactory());
-        catalogServiceSharedWith1.setSessionFactory(sessionFactory);
-        catalogServiceSharedWith1.setUserFactory(new StandardMockUserFactory());
-        catalogServiceSharedWith1.init();
+        CatalogService catalogServiceSharedWith1 = factory.getCatalogService("domainSharedWith1");
 
         assertEquals("cat_domain1_2",catalogService.getCatalog().getCatalogName().blockingGet());
         assertEquals("domain1_item1",catalogService.getCatalog().getCatalogElement("item1",TestCatItemDomain1.class).blockingGet().value1);

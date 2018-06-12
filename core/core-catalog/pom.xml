@@ -74,7 +74,11 @@
             <artifactId>future-converter-rxjava2-java8</artifactId>
             <version>${future.converters.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.1</version>
+        </dependency>
         <!--
 
             Testing Deps

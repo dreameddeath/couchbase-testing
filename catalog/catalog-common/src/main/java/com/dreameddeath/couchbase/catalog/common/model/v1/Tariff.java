@@ -15,7 +15,7 @@
  *
  */
 
-package com.dreameddeath.couchbase.catalog.common;
+package com.dreameddeath.couchbase.catalog.common.model.v1;
 
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
