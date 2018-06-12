@@ -120,6 +120,8 @@ public class CatalogRefImpl implements ICatalogRef {
                         .map(this::buildCatalogItemRef)
                         .collect(Collectors.toSet())
         );
+        result.addAll(previousList);
+
         return Observable.fromIterable(result);
     }
 
@@ -233,13 +235,12 @@ public class CatalogRefImpl implements ICatalogRef {
             if (o == null || getClass() != o.getClass()) return false;
             CatalogItemRefImpl that = (CatalogItemRefImpl) o;
             return Objects.equals(id, that.id) &&
-                    Objects.equals(version, that.version) &&
                     Objects.equals(clazz, that.clazz);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, version,clazz);
+            return Objects.hash(id,clazz);
         }
     }
 }

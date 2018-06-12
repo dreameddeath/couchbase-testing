@@ -14,6 +14,7 @@ import com.dreameddeath.couchbase.core.catalog.model.v1.Catalog;
 import com.dreameddeath.couchbase.core.catalog.model.v1.changeset.CatalogChangeSet;
 import com.dreameddeath.couchbase.core.catalog.model.v1.changeset.ChangeSetItem;
 import com.dreameddeath.couchbase.core.catalog.service.CatalogServiceFactory;
+import com.dreameddeath.couchbase.core.catalog.service.ICatalogRef;
 import com.dreameddeath.couchbase.core.catalog.service.impl.dao.domain1.TestCatItemDomain1Dao;
 import com.dreameddeath.couchbase.core.catalog.service.impl.dao.domain2.TestCatItemDomain2Dao;
 import com.dreameddeath.couchbase.core.catalog.service.impl.model.domain1.TestCatItemDomain1;
@@ -22,6 +23,10 @@ import com.dreameddeath.testing.curator.CuratorTestUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -155,6 +160,20 @@ public class CatalogServiceTest {
         CatalogService catalogServiceSharedWith1 = factory.getCatalogService("domainSharedWith1");
 
         assertEquals("cat_domain1_2",catalogService.getCatalog().getCatalogName().blockingGet());
+        List<ICatalogRef.ICatalogItemRef> iCatalogItemRefs = catalogService.getCatalog().getItems().toList().blockingGet();
+        assertEquals(2,iCatalogItemRefs.size());
+        for(ICatalogRef.ICatalogItemRef ref:iCatalogItemRefs){
+            if(ref.id().equals("item1")){
+                assertEquals(TestCatItemDomain1.class,ref.clazz());
+                assertEquals(Version.version("1.0.0"),ref.version());
+            }
+            else{
+                assertEquals(TestCatItemDomain1.class,ref.clazz());
+                assertEquals(Version.version("2.0.0"),ref.version());
+            }
+        }
+        assertEquals(Arrays.asList("item1","item2"),iCatalogItemRefs.stream().map(ICatalogRef.ICatalogItemRef::id).sorted().collect(Collectors.toList()));
+        //assertEquals(Arrays.asList("item1","item2"),iCatalogItemRefs.stream().map(ICatalogRef.ICatalogItemRef::id).sorted().collect(Collectors.toList()));
         assertEquals("domain1_item1",catalogService.getCatalog().getCatalogElement("item1",TestCatItemDomain1.class).blockingGet().value1);
         assertEquals("domain1_item2_v2",catalogService.getCatalog().getCatalogElement("item2",TestCatItemDomain1.class).blockingGet().value1);
         assertEquals("domain1_item2_v1",catalogService.getCatalog(Version.version("1.0.0")).getCatalogElement("item2",TestCatItemDomain1.class).blockingGet().value1);
