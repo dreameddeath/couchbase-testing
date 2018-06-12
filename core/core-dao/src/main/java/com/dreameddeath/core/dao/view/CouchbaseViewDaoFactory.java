@@ -25,10 +25,7 @@ import com.dreameddeath.core.dao.exception.DuplicateDaoException;
 import com.dreameddeath.core.dao.factory.IDaoFactory;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,10 +35,11 @@ public class CouchbaseViewDaoFactory implements IDaoFactory {
     private Map<ViewKeyClass, List<CouchbaseViewDao<?,?,? extends CouchbaseDocument>>> daosMap
             = new ConcurrentHashMap<>();
     private Map<ViewKey,CouchbaseViewDao> perClassNameAndNameCacheMap=new ConcurrentHashMap<>();
-
+    private final boolean autoInitView;
+    private boolean initialized=false;
 
     public CouchbaseViewDaoFactory(Builder builder){
-
+        this.autoInitView = builder.withAutoInit;
     }
 
 
@@ -62,6 +60,14 @@ public class CouchbaseViewDaoFactory implements IDaoFactory {
         for(CouchbaseViewDao<?,?,? extends CouchbaseDocument> existingDao:daosMap.get(key)){
             if(existingDao.getViewName().equals(dao.getViewName())){
                 throw new DuplicateDaoException("The dao view <"+dao.getViewName()+"> is already existing for class "+entityClazz.getName());
+            }
+        }
+        if(initialized && autoInitView){
+            try {
+                this.initViews(Collections.singletonList(dao));
+            }
+            catch(StorageException e){
+                throw new RuntimeException(e);
             }
         }
         daosMap.get(key).add(dao);
@@ -105,23 +111,26 @@ public class CouchbaseViewDaoFactory implements IDaoFactory {
     }
 
     public void initAllViews() throws StorageException{
+        List<CouchbaseViewDao<?,?,?>> allViews = new ArrayList<>(daosMap.size());
+        daosMap.values().forEach(allViews::addAll);
+        initViews(allViews);
+    }
+
+    public void initViews(List<CouchbaseViewDao<?,?,?>> views) throws StorageException{
         Map<ICouchbaseBucket,Map<String,Map<String,String>>> bucketDesignDocMap=new HashMap<>();
 
-        for(List list:daosMap.values()){
-            List<CouchbaseViewDao> views=list;
-
-            for(CouchbaseViewDao view:views){
-                if(!bucketDesignDocMap.containsKey(view.getClient())){
-                    bucketDesignDocMap.put(view.getClient(), new HashMap<>());
-                }
-                Map<String,Map<String,String>> designDocMap = bucketDesignDocMap.get(view.getClient());
-                if(!designDocMap.containsKey(view.getDesignDoc())){
-                    designDocMap.put(view.getDesignDoc(), new HashMap<>());
-                }
-                Map<String,String> daoNamedMap=designDocMap.get(view.getDesignDoc());
-                daoNamedMap.put(view.getViewName(),view.buildMapString());
+        for(CouchbaseViewDao view:views){
+            if(!bucketDesignDocMap.containsKey(view.getClient())){
+                bucketDesignDocMap.put(view.getClient(), new HashMap<>());
             }
+            Map<String,Map<String,String>> designDocMap = bucketDesignDocMap.get(view.getClient());
+            if(!designDocMap.containsKey(view.getDesignDoc())){
+                designDocMap.put(view.getDesignDoc(), new HashMap<>());
+            }
+            Map<String,String> daoNamedMap=designDocMap.get(view.getDesignDoc());
+            daoNamedMap.put(view.getViewName(),view.buildMapString());
         }
+
 
         for(Map.Entry<ICouchbaseBucket,Map<String,Map<String,String>>> bucketDesignDocEntry:bucketDesignDocMap.entrySet()) {
             for(Map.Entry<String,Map<String,String>> designDoc:bucketDesignDocEntry.getValue().entrySet()){
@@ -133,13 +142,22 @@ public class CouchbaseViewDaoFactory implements IDaoFactory {
 
     @Override
     public void init() {
-
+        if(autoInitView) {
+            try {
+                this.initAllViews();
+            }
+            catch (StorageException e){
+                throw new RuntimeException(e);
+            }
+        }
+        this.initialized = true;
     }
 
     @Override
     public synchronized void cleanup() {
         daosMap.clear();
         perClassNameAndNameCacheMap.clear();
+        this.initialized = false;
     }
 
 
@@ -149,8 +167,14 @@ public class CouchbaseViewDaoFactory implements IDaoFactory {
 
 
     public static class Builder{
+        private boolean withAutoInit = false;
         public CouchbaseViewDaoFactory build(){
             return new CouchbaseViewDaoFactory(this);
+        }
+
+        public Builder withAutoInit(boolean b) {
+            this.withAutoInit = b;
+            return this;
         }
     }
 

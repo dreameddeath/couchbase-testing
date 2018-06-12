@@ -47,6 +47,7 @@ public class CouchbaseWebServerPlugin extends AbstractWebServerPlugin {
                 .withWebServerUid(getParentWebServer().getUuid().toString())
                 .withBucketFactory(parentDaemonPlugin.getBucketFactory())
                 .withCuratorFramework(getParentDaemon().getCuratorClient())
+                .withAutoInitView(builder.autoInitView)
                 .build();
 
         sessionFactory=CouchbaseSessionFactory.builder()
@@ -79,6 +80,12 @@ public class CouchbaseWebServerPlugin extends AbstractWebServerPlugin {
     }
 
     public static class Builder implements IWebServerPluginBuilder<CouchbaseWebServerPlugin>{
+        private boolean autoInitView = false;
+
+        public Builder withAutoInitView(boolean b){
+            this.autoInitView = b;
+            return this;
+        }
         @Override
         public CouchbaseWebServerPlugin build(AbstractWebServer parent) {
             return new CouchbaseWebServerPlugin(parent,this);

@@ -37,6 +37,7 @@
         <module>infrastructure-plugin-process</module>
         <module>infrastructure-plugin-query</module>
         <module>infrastructure-plugin-soap</module>
+        <module>infrastructure-plugin-catalog</module>
     </modules>
     <dependencies>
         <dependency>

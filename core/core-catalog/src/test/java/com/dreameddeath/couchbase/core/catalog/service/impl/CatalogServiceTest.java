@@ -1,5 +1,6 @@
 package com.dreameddeath.couchbase.core.catalog.service.impl;
 
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.config.ConfigManagerFactory;
 import com.dreameddeath.core.couchbase.config.CouchbaseConfigProperties;
@@ -42,6 +43,7 @@ public class CatalogServiceTest {
         cbSimulator2 = new CouchbaseBucketSimulator("testBucketName2");
         cbSimulator2.start();
         sessionFactory = new CouchbaseSessionFactory.Builder().build();
+        metricRegistry = new MetricRegistry();
 
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseConfigProperties.COUCHBASE_BUCKET_CLUSTER_NAME.getProperty("domain1").getName(), "cluster");
         ConfigManagerFactory.addPersistentConfigurationEntry(CouchbaseConfigProperties.COUCHBASE_BUCKET_CLUSTER_NAME.getProperty("domain2").getName(), "cluster");
@@ -157,6 +159,8 @@ public class CatalogServiceTest {
         assertEquals("domain1_item2_v2",catalogService.getCatalog().getCatalogElement("item2",TestCatItemDomain1.class).blockingGet().value1);
         assertEquals("domain1_item2_v1",catalogService.getCatalog(Version.version("1.0.0")).getCatalogElement("item2",TestCatItemDomain1.class).blockingGet().value1);
         assertEquals("domain1_item1",catalogService.getCatalog(Version.version("1.0.0")).getCatalogElement("item1",TestCatItemDomain1.class).blockingGet().value1);
+
+        assertEquals(3,metricRegistry.getCounters(MetricFilter.ALL).get("catalog.cache.domain1.loads-success").getCount());
     }
 
 

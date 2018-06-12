@@ -270,6 +270,10 @@ public class CatalogService implements ICatalogService {
         return this.cache;
     }
 
+    public void cleanup() {
+        //Nothing special
+    }
+
     private final static class Key{
         final String item_uid;
         final Version item_version;

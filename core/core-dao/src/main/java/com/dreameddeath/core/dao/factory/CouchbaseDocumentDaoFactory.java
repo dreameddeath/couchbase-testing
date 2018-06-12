@@ -333,7 +333,8 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
 
     @Override
     public synchronized void init() {
-        //nothing to do
+        counterDaoFactory.init();
+        viewDaoFactory.init();
     }
 
     @Override
@@ -365,6 +366,7 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
         private CuratorFramework curatorFramework;
         private String daemonUid=null;
         private String webServerUid=null;
+        private boolean autoInitView=false;
 
         public Builder(){
             couchbaseBucketFactory= null;
@@ -419,6 +421,11 @@ public class CouchbaseDocumentDaoFactory implements IDaoFactory {
 
         public CouchbaseDocumentDaoFactory build(){
             return new CouchbaseDocumentDaoFactory(this);
+        }
+
+        public Builder withAutoInitView(boolean b) {
+            this.viewDaoFactoryBuilder.withAutoInit(b);
+            return this;
         }
     }
 

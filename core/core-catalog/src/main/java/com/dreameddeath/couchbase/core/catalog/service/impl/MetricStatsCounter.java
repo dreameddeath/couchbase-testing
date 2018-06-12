@@ -8,6 +8,7 @@ import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.TimeUnit;
 
 public class MetricStatsCounter implements StatsCounter {
     private final Counter hitCount;
@@ -48,18 +49,20 @@ public class MetricStatsCounter implements StatsCounter {
     }
 
     @Override
-    public void recordLoadSuccess(long l) {
-        loadSuccessCount.inc(l);
-    }
-
-    @Override
-    public void recordLoadFailure(long l) {
-        loadFailureCount.inc(l);
-    }
-
-    @Override
     public void recordEviction() {
         this.recordEviction(1);
+    }
+
+    @Override
+    public void recordLoadSuccess(long loadTime) {
+        loadSuccessCount.inc();
+        totalLoadTime.update(loadTime, TimeUnit.NANOSECONDS);
+    }
+
+    @Override
+    public void recordLoadFailure(long loadTime) {
+        loadFailureCount.inc();
+        totalLoadTime.update(loadTime, TimeUnit.NANOSECONDS);
     }
 
     @Nonnull

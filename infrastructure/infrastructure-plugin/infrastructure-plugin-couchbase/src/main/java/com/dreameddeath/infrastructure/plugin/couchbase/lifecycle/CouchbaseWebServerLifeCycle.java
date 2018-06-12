@@ -31,7 +31,7 @@ public class CouchbaseWebServerLifeCycle implements LifeCycle.Listener {
 
     @Override
     public void lifeCycleStarting(LifeCycle event) {
-
+        this.plugin.getDocumentDaoFactory().init();
     }
 
     @Override

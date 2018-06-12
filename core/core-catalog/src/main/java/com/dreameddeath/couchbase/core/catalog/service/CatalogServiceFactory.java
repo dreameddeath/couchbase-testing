@@ -77,4 +77,11 @@ public class CatalogServiceFactory {
             return service;
         });
     }
+
+    public void cleanup() {
+        for(CatalogService catalogService : this.catalogServiceMap.values()){
+            catalogService.cleanup();
+        }
+        this.catalogServiceMap.clear();
+    }
 }
