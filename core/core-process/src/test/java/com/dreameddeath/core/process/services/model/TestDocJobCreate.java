@@ -20,11 +20,10 @@ package com.dreameddeath.core.process.services.model;
 
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.process.model.TestChildDoc;
 import com.dreameddeath.core.process.model.TestDoc;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
-import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateOrUpdateTask;
-import com.dreameddeath.core.process.model.v1.tasks.DocumentCreateTask;
-import com.dreameddeath.core.process.model.v1.tasks.DocumentUpdateTask;
+import com.dreameddeath.core.process.model.v1.tasks.*;
 import com.dreameddeath.core.validation.annotation.NotNull;
 import com.dreameddeath.core.validation.annotation.Unique;
 
@@ -55,6 +54,11 @@ public class TestDocJobCreate extends AbstractJob {
     }
 
     @DocumentEntity(domain = "test",version = "1.0")
+    public static class ChildTestJobCreate extends ChildDocumentCreateTask<TestChildDoc,TestDoc> {
+    }
+
+
+    @DocumentEntity(domain = "test",version = "1.0")
     public static class TestJobCreateUpdateTaskForExisting extends DocumentCreateOrUpdateTask<TestDoc> {
         @DocumentProperty
         public boolean fromRead;
@@ -65,4 +69,24 @@ public class TestDocJobCreate extends AbstractJob {
             this.fromRead = fromRead;
         }
     }
+
+
+    @DocumentEntity(domain = "test",version = "1.0")
+    public static class ChildTestJobCreateUpdateTaskForNew extends ChildDocumentCreateOrUpdateTask<TestChildDoc,TestDoc> {
+
+    }
+
+
+    @DocumentEntity(domain = "test",version = "1.0")
+    public static class ChildTestJobCreateUpdateTaskForExisting extends ChildDocumentCreateOrUpdateTask<TestChildDoc,TestDoc> {
+        @DocumentProperty
+        public boolean fromRead;
+
+        public ChildTestJobCreateUpdateTaskForExisting() {}
+
+        public ChildTestJobCreateUpdateTaskForExisting(boolean fromRead){
+            this.fromRead = fromRead;
+        }
+    }
+
 }

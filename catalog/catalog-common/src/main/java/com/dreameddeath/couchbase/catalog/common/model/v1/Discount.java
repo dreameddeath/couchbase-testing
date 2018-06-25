@@ -17,11 +17,18 @@
 
 package com.dreameddeath.couchbase.catalog.common.model.v1;
 
+import com.dreameddeath.core.dao.annotation.dao.Counter;
+import com.dreameddeath.core.dao.annotation.dao.DaoEntity;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
 
 /**
  * Created by Christophe Jeunesse on 15/12/2017.
  */
+@DaoEntity(baseDao = CouchbaseDocumentWithKeyPatternDao.class,dbPath = "cat/discount/",idFormat = "%010d",idPattern = "\\d{10}")
+@Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
+@DocumentEntity
 public class Discount extends CatalogElement {
 
 }

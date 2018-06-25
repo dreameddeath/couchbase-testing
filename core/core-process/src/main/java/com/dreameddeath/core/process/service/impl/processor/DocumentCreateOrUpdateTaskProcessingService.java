@@ -41,9 +41,13 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
         try {
             return Single.just(origCtxt)
                     .flatMap(this::manageRetry)//Reuse attached task if any
+                    .doOnError(throwable -> logError(origCtxt,"process.manageRetry",throwable))
                     .flatMap(this::manageFindAndGetExistingDocument) //Lookup for existing obj if previous step empty
+                    .doOnError(throwable -> logError(origCtxt,"process.manageFindAndGetExistingDocument",throwable))
                     .flatMap(this::manageInitEmptyDocument) //init an empty doc if lookup failed
+                    .doOnError(throwable -> logError(origCtxt,"process.manageInitEmptyDocument",throwable))
                     .flatMap(this::manageFromDocInitialize)
+                    .doOnError(throwable -> logError(origCtxt,"process.manageFromDocInitialize",throwable))
                     .map(result->new TaskProcessingResult<>(result.getCtxt(),false))
                     .onErrorResumeNext(throwable->manageError(throwable,origCtxt,false));
         }
@@ -55,11 +59,18 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
     private final Single<ContextAndDocument> manageFromDocInitialize(ContextAndDocument contextAndDocument){
         return  Single.just(contextAndDocument)
                 .flatMap(this::buildAndOrSetDocKey)
+                .doOnError(throwable -> logError(contextAndDocument.getCtxt(),"manageFromDocInitialize.buildAndOrSetDocKey",throwable))
                 .flatMap(this::manageCleanupBeforeRetry)
+                .doOnError(throwable -> logError(contextAndDocument.getCtxt(),"manageFromDocInitialize.manageCleanupBeforeRetry",throwable))
                 .flatMap(this::manageProcessDocument)
+                .doOnError(throwable -> logError(contextAndDocument.getCtxt(),"manageFromDocInitialize.manageProcessDocument",throwable))
                 .flatMap(this::managePostProcessing)
+                .doOnError(throwable -> logError(contextAndDocument.getCtxt(),"manageFromDocInitialize.managePostProcessing",throwable))
                 .flatMap(this::saveContext)
-                .flatMap(this::saveDoc);
+                .doOnError(throwable -> logError(contextAndDocument.getCtxt(),"manageFromDocInitialize.saveContext",throwable))
+                .flatMap(this::saveDoc)
+                .doOnError(throwable -> logError(contextAndDocument.getCtxt(),"manageFromDocInitialize.saveDoc",throwable))
+                ;
     }
 
     protected abstract Single<FindAndGetResult> findAndGetExistingDocument(TaskContext<TJOB, T> taskContext);
@@ -133,7 +144,6 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
                                         checkRes.origDuplicateException));
                     }
                 });
-        //return null;
     }
 
     @Override

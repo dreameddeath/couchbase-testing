@@ -143,6 +143,8 @@ public class ProcessesBaseTest extends Assert {
     public void runTest() throws Exception {
         execFactory.addJobExecutorService(AbstractJob.class, TestingJobExcecutorServiceImpl.class);
         execFactory.addTaskExecutorService(AbstractTask.class, TestingTaskExecutionServiceImpl.class);
+        //execFactory.addJobExecutorService(AbstractJob.class, BasicJobExecutorServiceImpl.class);
+        //execFactory.addTaskExecutorService(AbstractTask.class, BasicTaskExecutorServiceImpl.class);
 
         IJobExecutorClient<TestDocJobCreate> jobClient = executorClientFactory.buildJobClient(TestDocJobCreate.class);
         TestDocJobCreate job = new TestDocJobCreate();
@@ -196,6 +198,7 @@ public class ProcessesBaseTest extends Assert {
             discoverer.stop();
         }
         bus.stop();
+        Thread.sleep(10);
         if(curatorFramework!=null && curatorFramework.getState()== CuratorFrameworkState.STARTED){
             curatorFramework.close();
         }

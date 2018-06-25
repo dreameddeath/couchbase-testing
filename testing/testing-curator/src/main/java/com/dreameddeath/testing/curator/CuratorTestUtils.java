@@ -26,7 +26,6 @@ import org.apache.curator.test.TestingCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -88,13 +87,14 @@ public class CuratorTestUtils {
         return client;
     }
 
-    public CuratorTestUtils stop() throws IOException{
+    public CuratorTestUtils stop() throws Exception{
         if(client!=null && client.getState().equals(CuratorFrameworkState.STARTED)){
             LOG.info("Closing client of test utils {}",client.getZookeeperClient().getCurrentConnectionString());
             client.close();
         }
-        if(!executor.isShutdown()){
+        while(!executor.isShutdown()){
             executor.shutdownNow();
+            executor.awaitTermination(1,TimeUnit.SECONDS);
         }
         if(pendingCluster!=null && !pendingCluster.isDone()){
             pendingCluster.cancel(true);

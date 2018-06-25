@@ -21,6 +21,7 @@ package com.dreameddeath.core.process.model;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractProcessCouchbaseDocument;
+import com.dreameddeath.core.validation.annotation.Unique;
 
 /**
  * Created by Christophe Jeunesse on 01/11/2016.
@@ -29,6 +30,8 @@ import com.dreameddeath.core.process.model.v1.base.AbstractProcessCouchbaseDocum
 public class TestChildDoc extends AbstractProcessCouchbaseDocument {
     @DocumentProperty
     public String parentDocKey;
-    @DocumentProperty
+    @DocumentProperty @Unique(nameSpace = "testChildDoc")
     public String childId;
+    @DocumentProperty
+    public int counter;
 }

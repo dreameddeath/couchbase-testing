@@ -30,21 +30,29 @@ import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.dreameddeath.core.process.service.context.UpdateJobTaskProcessingResult;
 import io.reactivex.Single;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Christophe Jeunesse on 25/11/2014.
  */
 public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB extends AbstractJob,TJOB extends AbstractJob,TTASK extends SubJobProcessTask<TJOB>> implements ITaskProcessingService<TPARENTJOB,TTASK> {
+    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
+
     @Override
     public Single<TaskProcessingResult<TPARENTJOB,TTASK>>  init(TaskContext<TPARENTJOB,TTASK> origCtxt){
         try {
             return Single.just(origCtxt)
                     .flatMap(this::manageRetry)
+                    .doOnError(throwable -> logError(origCtxt,"init.manageRetry",throwable))
                     .map(this::toReadOnlyCtxt)
                     .flatMap(this::buildSubJob)
+                    .doOnError(throwable -> logError(origCtxt,"init.buildSubJob",throwable))
                     .map(this::toReadWriteCtxt)
                     .flatMap(this::setSubJobIdAndSaveCtxt)
+                    .doOnError(throwable -> logError(origCtxt,"init.setSubJobIdAndSaveCtxt",throwable))
                     .flatMap(this::saveSubJob)
+                    .doOnError(throwable -> logError(origCtxt,"init.saveSubJob",throwable))
                     .map(result -> new TaskProcessingResult<>(result.getCtxt(), false))
                     .onErrorResumeNext(throwable -> this.manageError(throwable, origCtxt));
         }
@@ -161,5 +169,9 @@ public abstract class StandardSubJobProcessTaskProcessingService<TPARENTJOB exte
         public TJOB getSubJob() {
             return subJob;
         }
+    }
+
+    protected void logError(TaskContext<TPARENTJOB, TTASK> context, String state, Throwable e){
+        LOG.error("Task error for context <{}> due with message <{}> with exception <{}>",context,state,e.toString());
     }
 }

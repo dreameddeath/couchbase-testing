@@ -276,6 +276,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
         return super.toString()+
                 "{ tid:"+(task.getId()!=null?task.getId():"unknown")+","+
                 "  type:"+task.getClass().getName()+","+
+                "  state:"+task.getStateInfo().getState()+","+
                 "  jid:"+jobContext.getJobId()+","+
                 "  jtype:"+jobContext.getInternalJob().getClass().getName()+"}";
 

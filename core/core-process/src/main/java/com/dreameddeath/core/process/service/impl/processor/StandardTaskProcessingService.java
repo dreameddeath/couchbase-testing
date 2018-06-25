@@ -26,11 +26,15 @@ import com.dreameddeath.core.process.service.context.TaskNotificationBuildResult
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import com.dreameddeath.core.process.service.context.UpdateJobTaskProcessingResult;
 import io.reactivex.Single;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by Christophe Jeunesse on 29/12/2015.
  */
 public abstract class StandardTaskProcessingService<TJOB extends AbstractJob,T extends AbstractTask> implements ITaskProcessingService<TJOB,T> {
+    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
+
     @Override
     public Single<TaskProcessingResult<TJOB,T>> init(TaskContext<TJOB,T> context) {
         return TaskProcessingResult.build(context,false);
@@ -59,5 +63,9 @@ public abstract class StandardTaskProcessingService<TJOB extends AbstractJob,T e
     @Override
     public Single<TaskProcessingResult<TJOB,T>> cleanup(TaskContext<TJOB,T> context) {
         return TaskProcessingResult.build(context,false);
+    }
+
+    protected void logError(TaskContext<TJOB,T> context, String state,Throwable e){
+        LOG.error("Task error for context <{}> due with message <{}> with exception <{}>",context,state,e.toString());
     }
 }

@@ -24,6 +24,7 @@ import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.model.TestChildDoc;
+import com.google.common.base.Preconditions;
 import io.reactivex.Single;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +43,8 @@ public class TestChildDocDao extends CouchbaseDocumentWithKeyPatternDao<TestChil
 
     @Override
     public Single<TestChildDoc> asyncBuildKey(ICouchbaseSession session, final TestChildDoc newObject) throws DaoException {
-        newObject.getBaseMeta().setKey(getKeyFromParams(newObject.parentDocKey.split("/")[1],cnt.incrementAndGet()));
+        Preconditions.checkNotNull(newObject.parentDocKey);
+        newObject.getBaseMeta().setKey(getKeyFromParams(Integer.valueOf(newObject.parentDocKey.split("/")[1]),cnt.incrementAndGet()));
         return Single.just(newObject);
     }
 

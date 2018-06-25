@@ -18,6 +18,10 @@
 package com.dreameddeath.couchbase.catalog.common.model.v1;
 
 
+import com.dreameddeath.core.dao.annotation.dao.Counter;
+import com.dreameddeath.core.dao.annotation.dao.DaoEntity;
+import com.dreameddeath.core.dao.document.CouchbaseDocumentWithKeyPatternDao;
+import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
@@ -26,6 +30,9 @@ import com.dreameddeath.couchbase.core.catalog.model.v1.CatalogElement;
 /**
  * Created by Christophe Jeunesse on 05/09/2014.
  */
+@DocumentEntity
+@DaoEntity(baseDao = CouchbaseDocumentWithKeyPatternDao.class,dbPath = "cat/tariff/",idFormat = "%010d",idPattern = "\\d{10}")
+@Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
 public class Tariff extends CatalogElement {
     /**
      * application : The applicaton context of the tariff

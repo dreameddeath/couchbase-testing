@@ -21,13 +21,11 @@ import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.process.annotation.JobProcessingForClass;
 import com.dreameddeath.core.process.annotation.TaskProcessingForClass;
+import com.dreameddeath.core.process.model.TestChildDoc;
 import com.dreameddeath.core.process.model.TestDoc;
 import com.dreameddeath.core.process.model.TestDocEvent;
 import com.dreameddeath.core.process.service.context.*;
-import com.dreameddeath.core.process.service.impl.processor.DocumentCreateOrUpdateTaskProcessingService;
-import com.dreameddeath.core.process.service.impl.processor.DocumentCreateTaskProcessingService;
-import com.dreameddeath.core.process.service.impl.processor.DocumentUpdateTaskProcessingService;
-import com.dreameddeath.core.process.service.impl.processor.StandardJobProcessingService;
+import com.dreameddeath.core.process.service.impl.processor.*;
 import com.dreameddeath.core.process.services.model.TestDocJobCreate;
 import com.google.common.base.Preconditions;
 import io.reactivex.Single;
@@ -41,9 +39,19 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
     public Single<JobProcessingResult<TestDocJobCreate>> init(JobContext<TestDocJobCreate> context){
         TaskContext<TestDocJobCreate,?> updateTask=context.addTask(new TestDocJobCreate.TestJobCreateTask())
                 .chainWith(new TestDocJobCreate.TestJobUpdateTask());
+        //First chain ==> Pure create
         updateTask.chainWith(new TestDocJobCreate.TestJobCreateUpdateTaskForNew());
+        //Second chain ==> create then update
         updateTask.chainWith(new TestDocJobCreate.TestJobCreateUpdateTaskForExisting(true))
                 .chainWith(new TestDocJobCreate.TestJobCreateUpdateTaskForExisting(false));
+
+        //Third chain child create
+        TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreate> childCreateTask = updateTask.chainWith(new TestDocJobCreate.ChildTestJobCreate());
+        //Fourth chain ==> Child create or update
+        childCreateTask.chainWith(new TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew());
+        childCreateTask.chainWith(new TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting(true))
+                    .chainWith(new TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting(false));
+
         return JobProcessingResult.build(context,false);
     }
 
@@ -167,4 +175,151 @@ public class TestJobCreateService extends StandardJobProcessingService<TestDocJo
                     .map(doc->new DuplicateUniqueKeyCheckResult(ctxt.getCtxt(),doc));
         }
     }
+
+    @TaskProcessingForClass(TestDocJobCreate.ChildTestJobCreate.class)
+    public static class ChildTestJobCreateTask extends ChildDocumentCreateTaskProcessingService<TestDocJobCreate,TestChildDoc,TestDoc,TestDocJobCreate.ChildTestJobCreate> {
+        @Override
+        public Single<TaskProcessingResult<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreate>> preprocess(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreate> context) {
+            return context.getDependentTask(TestDocJobCreate.TestJobCreateTask.class)
+                    .singleOrError()
+                    .map(task->{
+                        context.getInternalTask().setParentDocKey(task.getDocKey());
+                        return context.getInternalTask();
+                    })
+                    .flatMap(task->TaskProcessingResult.build(context,true));
+        }
+
+        @Override
+        protected boolean needParentUpdate(TestDoc parent, TestChildDoc child) {
+            return !parent.childs.contains(child.childId);
+        }
+
+        @Override
+        protected void updateParent(TestDoc parent, TestChildDoc child) {
+            parent.childs.add(child.childId);
+        }
+
+        @Override
+        protected Single<ContextAndDocument> buildDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreate> ctxt) {
+            TestChildDoc childDoc = new TestChildDoc();
+            childDoc.childId = ctxt.getParentInternalJob().name+"Create";
+            childDoc.parentDocKey = ctxt.getInternalTask().getParentDocKey();
+            return buildContextAndDocumentObservable(ctxt,childDoc);
+        }
+    }
+
+
+    @TaskProcessingForClass(TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew.class)
+    public static class ChildTestJobCreateOrUpdateTask extends ChildDocumentCreateOrUpdateTaskProcessingService<TestDocJobCreate,TestChildDoc,TestDoc,TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew> {
+        @Override
+        public Single<TaskProcessingResult<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew>> preprocess(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew> context) {
+            return context.getDependentTask(TestDocJobCreate.TestJobCreateTask.class)
+                    .singleOrError()
+                    .map(task->{
+                        context.getInternalTask().setParentDocKey(task.getDocKey());
+                        return context.getInternalTask();
+                    })
+                    .flatMap(task->TaskProcessingResult.build(context,true));
+        }
+
+        @Override
+        protected boolean needParentUpdate(TestDoc parent, TestChildDoc child) {
+            return !parent.childs.contains(child.childId);
+        }
+
+        @Override
+        protected void updateParent(TestDoc parent, TestChildDoc child) {
+            parent.childs.add(child.childId);
+        }
+
+        @Override
+        protected Single<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew> taskContext) {
+            return new FindAndGetResult(taskContext).toSingle();
+        }
+
+        @Override
+        protected Single<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew> taskContext) {
+            TestChildDoc childDoc = new TestChildDoc();
+            childDoc.childId = taskContext.getParentInternalJob().name+"New";
+            childDoc.parentDocKey = taskContext.getInternalTask().getParentDocKey();
+            return buildContextAndDocumentObservable(taskContext,childDoc);
+        }
+
+        @Override
+        protected Single<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
+            TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew childTestJobCreateTask = ctxt.getCtxt().getDependentTask(TestDocJobCreate.ChildTestJobCreateUpdateTaskForNew.class).blockingFirst();
+            Preconditions.checkArgument(childTestJobCreateTask.getDocKey().equals(e.getOwnerDocumentKey()));
+            return ctxt.getCtxt().getSession().asyncGet(e.getOwnerDocumentKey(), TestChildDoc.class)
+                    .map(doc->new DuplicateUniqueKeyCheckResult(ctxt.getCtxt(),doc));
+        }
+
+        @Override
+        protected Single<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
+            ctxtAndDoc.getDoc().counter += ctxtAndDoc.getCtxt().getParentInternalJob().initIntValue;
+            return new ProcessingDocumentResult(false,ctxtAndDoc).toSingle();
+        }
+    }
+
+
+    @TaskProcessingForClass(TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting.class)
+    public static class ChildTestJobCreateOrUpdateTaskForExisting extends ChildDocumentCreateOrUpdateTaskProcessingService<TestDocJobCreate,TestChildDoc,TestDoc,TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting> {
+        @Override
+        public Single<TaskProcessingResult<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting>> preprocess(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting> context) {
+            return context.getDependentTask(TestDocJobCreate.TestJobCreateTask.class)
+                    .singleOrError()
+                    .map(task->{
+                        context.getInternalTask().setParentDocKey(task.getDocKey());
+                        return context.getInternalTask();
+                    })
+                    .flatMap(task->TaskProcessingResult.build(context,true));
+        }
+
+        @Override
+        protected boolean needParentUpdate(TestDoc parent, TestChildDoc child) {
+            return !parent.childs.contains(child.childId);
+        }
+
+        @Override
+        protected void updateParent(TestDoc parent, TestChildDoc child) {
+            parent.childs.add(child.childId);
+        }
+
+        @Override
+        protected Single<FindAndGetResult> findAndGetExistingDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting> taskContext) {
+            if(taskContext.getInternalTask().fromRead){
+                return taskContext.getDependentTask(TestDocJobCreate.ChildTestJobCreate.class)
+                        .singleOrError()
+                        .flatMap(testJobCreateTask -> testJobCreateTask.getDocument(taskContext.getSession()))
+                        .map(testDoc->new FindAndGetResult(taskContext,testDoc));
+            }
+            else {
+                return new FindAndGetResult(taskContext).toSingle();
+            }
+        }
+
+        @Override
+        protected Single<ContextAndDocument> initEmptyDocument(TaskContext<TestDocJobCreate, TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting> taskContext) {
+            TestChildDoc childDoc = new TestChildDoc();
+            childDoc.childId = taskContext.getParentInternalJob().name;
+            childDoc.parentDocKey = taskContext.getInternalTask().getParentDocKey();
+            return buildContextAndDocumentObservable(taskContext,childDoc);
+        }
+
+        @Override
+        protected Single<DuplicateUniqueKeyCheckResult> onDuplicateUniqueKey(ContextAndDocument ctxt, DuplicateUniqueKeyDaoException e) {
+            TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting childTestJobCreateTask = ctxt.getCtxt().getDependentTask(TestDocJobCreate.ChildTestJobCreateUpdateTaskForExisting.class).blockingFirst();
+            Preconditions.checkArgument(childTestJobCreateTask.getDocKey().equals(e.getOwnerDocumentKey()));
+            return ctxt.getCtxt().getSession()
+                    .asyncGet(e.getOwnerDocumentKey(), TestChildDoc.class)
+                    .map(doc->new DuplicateUniqueKeyCheckResult(ctxt.getCtxt(),doc));
+        }
+
+        @Override
+        protected Single<ProcessingDocumentResult> processDocument(ContextAndDocument ctxtAndDoc) {
+            ctxtAndDoc.getDoc().counter += ctxtAndDoc.getCtxt().getParentInternalJob().initIntValue;
+            return new ProcessingDocumentResult(false,ctxtAndDoc).toSingle();
+        }
+    }
+
+
 }

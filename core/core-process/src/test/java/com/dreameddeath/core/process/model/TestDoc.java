@@ -23,6 +23,9 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractProcessCouchbaseDocument;
 import com.dreameddeath.core.validation.annotation.Unique;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Christophe Jeunesse on 01/11/2016.
  */
@@ -32,4 +35,6 @@ public class TestDoc extends AbstractProcessCouchbaseDocument {
     public String name;
     @DocumentProperty
     public Integer intValue;
+    @DocumentProperty
+    public List<String> childs = new ArrayList<>();
 }

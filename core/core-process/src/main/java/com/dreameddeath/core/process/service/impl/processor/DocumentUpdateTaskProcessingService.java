@@ -43,9 +43,13 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
         try {
             return buildContextAndDocument(origCtxt)
                     .flatMap(this::manageCleanupBeforeRetry)
+                    .doOnError(throwable -> logError(origCtxt,"process.manageCleanupBeforeRetry",throwable))
                     .flatMap(this::manageProcessDocument)
+                    .doOnError(throwable -> logError(origCtxt,"process.manageProcessDocument",throwable))
                     .flatMap(this::managePostProcessing)
+                    .doOnError(throwable -> logError(origCtxt,"process.managePostProcessing",throwable))
                     .flatMap(this::saveDoc)
+                    .doOnError(throwable -> logError(origCtxt,"process.saveDoc",throwable))
                     .map(ctxtAndDoc -> new TaskProcessingResult<>(ctxtAndDoc.getCtxt(), false))
                     .onErrorResumeNext(throwable -> this.manageError(throwable,origCtxt,false));
         }
@@ -161,8 +165,8 @@ public abstract class DocumentUpdateTaskProcessingService<TJOB extends AbstractJ
     }
 
     /**
-     * Implement the document update processing
-     * @param ctxtAndDoc
+     * It should implement the document update processing
+     * @param ctxtAndDoc the context and the document to update
      * @return a value telling to save or not the task
      * @throws DaoException
      * @throws StorageException

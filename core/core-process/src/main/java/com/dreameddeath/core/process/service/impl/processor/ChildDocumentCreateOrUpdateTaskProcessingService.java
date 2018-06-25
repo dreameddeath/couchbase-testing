@@ -1,34 +1,15 @@
-/*
- * Copyright Christophe Jeunesse
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
-
 package com.dreameddeath.core.process.service.impl.processor;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
-import com.dreameddeath.core.process.model.v1.tasks.ChildDocumentCreateTask;
+import com.dreameddeath.core.process.model.v1.base.IDocumentWithLinkedTasks;
+import com.dreameddeath.core.process.model.v1.tasks.ChildDocumentCreateOrUpdateTask;
 import com.dreameddeath.core.process.service.context.TaskContext;
 import com.dreameddeath.core.process.service.context.TaskProcessingResult;
 import io.reactivex.Single;
 
-/**
- * Created by Christophe Jeunesse on 23/02/2016.
- */
-public abstract class ChildDocumentCreateTaskProcessingService<TJOB extends AbstractJob,TDOC extends CouchbaseDocument,TPARENT extends CouchbaseDocument,T extends ChildDocumentCreateTask<TDOC,TPARENT>> extends DocumentCreateTaskProcessingService<TJOB,TDOC,T> {
+public abstract class ChildDocumentCreateOrUpdateTaskProcessingService<TJOB extends AbstractJob,TDOC extends  CouchbaseDocument & IDocumentWithLinkedTasks,TPARENT extends CouchbaseDocument,T extends ChildDocumentCreateOrUpdateTask<TDOC,TPARENT>> extends DocumentCreateOrUpdateTaskProcessingService<TJOB,TDOC,T> {
     @Override
     public Single<TaskProcessingResult<TJOB,T>> preprocess(TaskContext<TJOB,T> context){
         if(context.getInternalTask().getParentDocKey()==null){
@@ -39,18 +20,24 @@ public abstract class ChildDocumentCreateTaskProcessingService<TJOB extends Abst
         }
     }
 
+
     @Override
     final public Single<TaskProcessingResult<TJOB,T>> postprocess(TaskContext<TJOB,T> context) {
         try {
-            return Single.zip(
+            if(context.getInternalTask().getIsCreation()) {
+                return Single.zip(
                             context.getInternalTask().getDocument(context.getSession()),
                             context.getInternalTask().getParentDocument(context.getSession()),
-                            (child,parent)->new ChildParentAndContext(context,parent,child)
-                    )
-                    .flatMap(this::manageParentUpdate)
-                    .doOnError(throwable -> logError(context,"postprocess.manageParentUpdate",throwable))
-                    .map(result->new TaskProcessingResult<>(result.getCtxt(),true))
-                    .onErrorResumeNext(throwable->this.manageError(throwable,context));
+                            (child, parent) -> new ChildParentAndContext(context, parent, child)
+                        )
+                        .flatMap(this::manageParentUpdate)
+                        .doOnError(throwable -> logError(context,"postprocess.manageParentUpdate",throwable))
+                        .map(result -> new TaskProcessingResult<>(result.getCtxt(), true))
+                        .onErrorResumeNext(throwable -> this.manageError(throwable, context));
+            }
+            else{
+                return TaskProcessingResult.build(context,false);
+            }
         }
         catch(Throwable e) {
             return Single.error(new TaskExecutionException(context,"Unexpected error",e));
@@ -104,5 +91,5 @@ public abstract class ChildDocumentCreateTaskProcessingService<TJOB extends Abst
         public TDOC getChild() {
             return child;
         }
-    }
+    }    
 }

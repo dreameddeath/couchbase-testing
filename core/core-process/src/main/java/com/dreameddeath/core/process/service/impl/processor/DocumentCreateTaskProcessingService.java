@@ -39,12 +39,17 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
         try {
             return Single.just(origCtxt)
                     .flatMap(this::manageRetry)
+                    .doOnError(throwable -> logError(origCtxt,"process.manageRetry",throwable))
                     .map(this::toTemporarySession)
                     .flatMap(this::buildDocument)
+                    .doOnError(throwable -> logError(origCtxt,"process.buildDocument",throwable))
                     .map(this::toStandardSession)
                     .flatMap(this::buildAndSetDocKey)
+                    .doOnError(throwable -> logError(origCtxt,"process.buildAndSetDocKey",throwable))
                     .flatMap(this::saveContext)
+                    .doOnError(throwable -> logError(origCtxt,"process.saveContext",throwable))
                     .flatMap(this::saveDoc)
+                    .doOnError(throwable -> logError(origCtxt,"process.saveDoc",throwable))
                     .map(result -> new TaskProcessingResult<>(result.ctxt, false))
                     .onErrorResumeNext(throwable -> manageError(throwable, origCtxt,false));
         }
@@ -109,7 +114,9 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
     }
 
     private Single<ContextAndDocument> saveContext(final ContextAndDocument contextAndDocument) {
-        return contextAndDocument.ctxt.asyncSave().map(savedContext->new ContextAndDocument(savedContext,contextAndDocument.doc));
+        return contextAndDocument.ctxt
+                .asyncSave()
+                .map(savedContext->new ContextAndDocument(savedContext,contextAndDocument.doc));
     }
 
     private Single<ContextAndDocument> saveDoc(final ContextAndDocument contextAndDocument) {
@@ -119,7 +126,9 @@ public abstract class DocumentCreateTaskProcessingService<TJOB extends AbstractJ
     }
 
     private Single<ContextAndDocument> buildAndSetDocKey(ContextAndDocument contextAndDocument) {
-        return contextAndDocument.ctxt.getSession().asyncBuildKey(contextAndDocument.doc)
+        return contextAndDocument.ctxt
+                .getSession()
+                .asyncBuildKey(contextAndDocument.doc)
                 .map(docWithKey->{
                     contextAndDocument.ctxt.getInternalTask().setDocKey(docWithKey.getBaseMeta().getKey());
                     return new ContextAndDocument(contextAndDocument.ctxt,docWithKey);

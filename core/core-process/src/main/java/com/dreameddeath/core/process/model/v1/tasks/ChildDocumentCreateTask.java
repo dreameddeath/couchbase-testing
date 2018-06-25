@@ -23,7 +23,6 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
-import com.dreameddeath.core.validation.annotation.NotNull;
 import io.reactivex.Single;
 
 /**
@@ -32,25 +31,29 @@ import io.reactivex.Single;
 @DocumentEntity
 public abstract class ChildDocumentCreateTask<TCHILD extends CouchbaseDocument,TPARENT extends CouchbaseDocument> extends DocumentCreateTask<TCHILD> {
     public ChildDocumentCreateTask(String parentKey){
-        setParent(parentKey);
+        setParentDocKey(parentKey);
     }
 
-    /**
-     *  parent : Parent document key
-     */
-    @DocumentProperty("parent") @NotNull
-    private Property<String> parent = new ImmutableProperty<>(ChildDocumentCreateTask.this);
+    public ChildDocumentCreateTask(){
+    }
+
 
     /**
-     * Getter of parent
+     *  parentDocKey : Parent document key
+     */
+    @DocumentProperty("parent")
+    private Property<String> parentDocKey = new ImmutableProperty<>(ChildDocumentCreateTask.this);
+
+    /**
+     * Getter of parentDocKey
      * @return the content
      */
-    public String getParent() { return parent.get(); }
+    public String getParentDocKey() { return parentDocKey.get(); }
     /**
-     * Setter of parent
+     * Setter of parentDocKey
      * @param parentKey the key of the parement
      */
-    public void setParent(String parentKey) { parent.set(parentKey); }
+    public void setParentDocKey(String parentKey) { parentDocKey.set(parentKey); }
 
-    public Single<TPARENT> getParentDocument(ICouchbaseSession session){return session.asyncGet(getParent());}
+    public Single<TPARENT> getParentDocument(ICouchbaseSession session){return session.asyncGet(getParentDocKey());}
 }

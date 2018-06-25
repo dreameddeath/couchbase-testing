@@ -34,9 +34,6 @@ public class CreateUpdateBillingInstalledBaseProcessingService extends StandardJ
     public Single<JobProcessingResult<CreateUpdateBillingInstalledBaseJob>> init(JobContext<CreateUpdateBillingInstalledBaseJob> context) {
         Preconditions.checkNotNull(context.getInternalJob().getInstalledBaseKey(),"The installed base Key must be provided");
 
-        //TODO manage cross domain lookup
-        //a billing account shouldn't be able to read directly the database of a given version
-
         //Step one : Create "BillingInstalledBase" or update child document
         //Step two : If created, add it to parent
 
