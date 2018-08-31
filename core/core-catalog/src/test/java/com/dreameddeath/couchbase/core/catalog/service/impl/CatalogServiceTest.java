@@ -173,12 +173,11 @@ public class CatalogServiceTest {
             }
         }
         assertEquals(Arrays.asList("item1","item2"),iCatalogItemRefs.stream().map(ICatalogRef.ICatalogItemRef::id).sorted().collect(Collectors.toList()));
-        //assertEquals(Arrays.asList("item1","item2"),iCatalogItemRefs.stream().map(ICatalogRef.ICatalogItemRef::id).sorted().collect(Collectors.toList()));
         assertEquals("domain1_item1",catalogService.getCatalog().getCatalogElement("item1",TestCatItemDomain1.class).blockingGet().value1);
         assertEquals("domain1_item2_v2",catalogService.getCatalog().getCatalogElement("item2",TestCatItemDomain1.class).blockingGet().value1);
         assertEquals("domain1_item2_v1",catalogService.getCatalog(Version.version("1.0.0")).getCatalogElement("item2",TestCatItemDomain1.class).blockingGet().value1);
         assertEquals("domain1_item1",catalogService.getCatalog(Version.version("1.0.0")).getCatalogElement("item1",TestCatItemDomain1.class).blockingGet().value1);
-
+        Thread.sleep(10);//To update counters
         assertEquals(3,metricRegistry.getCounters(MetricFilter.ALL).get("catalog.cache.domain1.loads-success").getCount());
     }
 

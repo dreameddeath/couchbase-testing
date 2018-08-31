@@ -21,7 +21,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -32,7 +32,13 @@ public class QuerySearch {
     private final Multimap<String,String> params= ArrayListMultimap.create();
 
 
-    public QuerySearch(SearchType type,Map<String,List<String>> params) {
+    public QuerySearch(Builder builder) {
+        setType(builder.type);
+        setParams(params);
+    }
+
+
+    public QuerySearch(SearchType type,Map<String, ? extends Collection<String>> params) {
         setType(type);
         setParamsFromMap(params);
     }
@@ -58,9 +64,9 @@ public class QuerySearch {
     }
 
 
-    public void setParamsFromMap(Map<String, List<String>> params) {
+    public void setParamsFromMap(Map<String, ? extends Collection<String>> params) {
         this.params.clear();
-        for(Map.Entry<String,List<String>> entry:params.entrySet()){
+        for(Map.Entry<String,? extends Collection<String>> entry:params.entrySet()){
             this.params.putAll(entry.getKey(),entry.getValue());
         }
     }
@@ -75,5 +81,27 @@ public class QuerySearch {
         VIEW,
         N1QL,
         ELASTICSEARCH
+    }
+
+    public static Builder build(SearchType type){
+        return new Builder(type);
+    }
+
+    public static class Builder{
+        private final SearchType type;
+        private final Multimap<String,String> params = ArrayListMultimap.create();
+
+        public Builder(SearchType type){
+            this.type = type;
+        }
+
+        public Builder withParam(String key, String value){
+            this.params.put(key,value);
+            return this;
+        }
+
+        public QuerySearch create(){
+            return new QuerySearch(this);
+        }
     }
 }

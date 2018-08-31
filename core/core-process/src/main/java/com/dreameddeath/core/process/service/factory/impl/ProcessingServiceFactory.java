@@ -29,6 +29,8 @@ import com.dreameddeath.core.process.service.ITaskProcessingService;
 import com.dreameddeath.core.process.service.factory.IProcessingServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -78,6 +80,17 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
         return jobProcessingService;
     }
 
+
+    public <TJOB extends AbstractJob,T extends IJobProcessingService<TJOB>> List<T> addJobProcessingServices(List<Class<T>> serviceClasses){
+        List<T> results=new ArrayList<>(serviceClasses.size());
+        for(Class<T> serviceClass:serviceClasses) {
+            results.add(addJobProcessingService(serviceClass));
+        }
+        return results;
+    }
+
+
+
     public <TJOB extends AbstractJob,T extends AbstractTask> ITaskProcessingService<TJOB, T> addTaskProcessingServiceFor(Class<T> entityClass, ITaskProcessingService<TJOB,T> service){
         return (ITaskProcessingService<TJOB, T>)taskProcessingServicesMap.putIfAbsent(entityClass, service);
     }
@@ -104,7 +117,13 @@ public class ProcessingServiceFactory implements IProcessingServiceFactory {
     }
 
 
-
+    public <TJOB extends AbstractJob,TTASK extends AbstractTask,T extends ITaskProcessingService<TJOB,TTASK>> List<T> addTaskProcessingServices(List<T> services){
+        List<T> result = new ArrayList<>(services.size());
+        for(T service:services) {
+            result.add(addTaskProcessingService(service));
+        }
+        return result;
+    }
 
     public <TJOB extends AbstractJob,T extends AbstractTask> ITaskProcessingService<TJOB,T> getTaskProcessingServiceForClass(Class<T> entityClass) throws ProcessingServiceNotFoundException {
         ITaskProcessingService<TJOB,T> result = (ITaskProcessingService<TJOB,T>) taskProcessingServicesMap.get(entityClass);

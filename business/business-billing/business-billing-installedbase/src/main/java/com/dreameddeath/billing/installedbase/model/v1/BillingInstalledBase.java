@@ -21,9 +21,9 @@ import com.dreameddeath.billing.model.v1.account.BillingAccount;
 import com.dreameddeath.billing.model.v1.account.BillingAccountContributor;
 import com.dreameddeath.billing.model.v1.account.BillingAccountLink;
 import com.dreameddeath.core.business.dao.BusinessCouchbaseDocumentWithKeyPatternDao;
-import com.dreameddeath.core.dao.annotation.dao.Counter;
-import com.dreameddeath.core.dao.annotation.dao.DaoEntity;
-import com.dreameddeath.core.dao.annotation.dao.ParentEntity;
+import com.dreameddeath.core.dao.annotation.dao.*;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringKeyTranscoder;
+import com.dreameddeath.core.dao.model.view.impl.ViewStringTranscoder;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -46,11 +46,18 @@ import java.util.List;
 @DaoEntity(baseDao= BusinessCouchbaseDocumentWithKeyPatternDao.class,dbPath = "base/",idPattern = "\\d{5}",idFormat = "%05d")
 @ParentEntity(c= BillingAccount.class,keyPath = "ba.key")
 @Counter(name = "cnt",dbName = "cnt",isKeyGen = true)
+@View(name="billingInstalledBaseSearch",
+        content = "emit([doc.ba.key,doc.installedBaseKey],null)",
+        keyDef = @ViewKeyDef(transcoder = ViewStringKeyTranscoder.class,type = String.class),
+        valueDef = @ViewValueDef(transcoder = ViewStringTranscoder.class,type = String.class)
+)
 public class BillingInstalledBase extends BillingAccountContributor {
     /**
      *  installedBaseKey : The installed base parent key
      */
-    @DocumentProperty("installedBaseKey") @Unique(nameSpace = "billingInstalledBaseOrigKey")
+    @DocumentProperty("installedBaseKey")
+    @Unique(nameSpace = "billingInstalledBaseOrigKey",additionnalFields = "ba")
+    @NotNull
     private Property<String> installedBaseKey = new ImmutableProperty<>(BillingInstalledBase.this);
     /**
      *  installedBaseRevision : The last processed installed base revision
@@ -59,7 +66,8 @@ public class BillingInstalledBase extends BillingAccountContributor {
     /**
      *  ba : Link toward the parent billing account
      */
-    @DocumentProperty(value = "ba",getter = "getBaLink",setter = "setBaLink") @NotNull
+    @DocumentProperty(value = "ba",getter = "getBaLink",setter = "setBaLink")
+    @NotNull
     private Property<BillingAccountLink> ba = new StandardProperty<>(BillingInstalledBase.this);
     /**
      *  billingItems : List the corresponding billing Items
@@ -70,7 +78,7 @@ public class BillingInstalledBase extends BillingAccountContributor {
      *  itemIdNextKey : Next key for item ids
      */
     @DocumentProperty("itemIdNextKey")
-    private NumericProperty<Long> itemIdNextKey = new StandardLongProperty(BillingInstalledBase.this);
+    private NumericProperty<Long> itemIdNextKey = new StandardLongProperty(BillingInstalledBase.this,0L);
 
     // BillingItems Accessors
     public List<BillingInstalledBaseItem> getBillingItems() { return billingInstalledBaseItems.get(); }

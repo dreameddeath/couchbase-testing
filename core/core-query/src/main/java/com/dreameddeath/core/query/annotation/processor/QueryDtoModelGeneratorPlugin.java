@@ -130,6 +130,11 @@ public class QueryDtoModelGeneratorPlugin extends AbstractStandardPureOutputGene
     }
 
     @Override
+    protected boolean forceGenerateAbstractClass(ClassInfo entityClassInfo, QueryExpose annot) {
+        return annot!=null && annot.forceGenerateMode();
+    }
+
+    @Override
     public void addTypeInfo(TypeSpec.Builder dtoModelBuilder, ClassInfo clazz, Key key,ClassName dtoSuperClassName) {
         QueryExpose annot = getRootAnnotForKey(clazz, key, Collections.emptyList(),false);
         String name;

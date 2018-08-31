@@ -23,16 +23,13 @@ import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBaseItemD
 import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBaseItemFee;
 import com.dreameddeath.billing.installedbase.service.ICreateUpdateBillingInstalledBaseItemStatusService;
 import com.dreameddeath.billing.installedbase.service.ICreateUpdateBillingInstalledBaseService;
-import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseAction;
-import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseDiscountItemResult;
-import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseItemResult;
-import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseResult;
-import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseTariffItemResult;
+import com.dreameddeath.billing.installedbase.service.model.v1.*;
 import com.dreameddeath.installedbase.model.v1.offer.published.query.InstalledOfferResponse;
-import com.dreameddeath.installedbase.model.v1.productservice.published.query.InstalledProductServiceResponse;
 import com.dreameddeath.installedbase.model.v1.published.query.InstalledBaseResponse;
 import com.dreameddeath.installedbase.model.v1.tariff.published.query.InstalledDiscountResponse;
 import com.dreameddeath.installedbase.model.v1.tariff.published.query.InstalledTariffResponse;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 
 import javax.inject.Inject;
 
@@ -41,70 +38,112 @@ import javax.inject.Inject;
  */
 public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdateBillingInstalledBaseService {
 
-    @Inject
     private ICreateUpdateBillingInstalledBaseItemStatusService updateStatusService;
 
+    @Inject
+    public void setCreateUpdateStatusService(ICreateUpdateBillingInstalledBaseItemStatusService statusService){
+        this.updateStatusService = statusService;
+    }
+
+    @Override
     public CreateUpdateBillingInstalledBaseResult createUpdateBillingInstalledBase(InstalledBaseResponse installedBase, BillingInstalledBase origBillingInstalledBase){
         CreateUpdateBillingInstalledBaseResult result = new CreateUpdateBillingInstalledBaseResult();
-        if(origBillingInstalledBase.getInstalledBaseRevision()!=null && installedBase.getRevision()>= origBillingInstalledBase.getInstalledBaseRevision()){
+        if(origBillingInstalledBase.getInstalledBaseRevision()!=null && installedBase.getRevision()<= origBillingInstalledBase.getInstalledBaseRevision()){
             //Already up to date
             result.setAction(CreateUpdateBillingInstalledBaseAction.IGNORED);
             return result;
         }
 
+        //Update Revision
+        if(origBillingInstalledBase.getInstalledBaseRevision()==null){
+            result.setAction(CreateUpdateBillingInstalledBaseAction.CREATED);
+        }
+        origBillingInstalledBase.setInstalledBaseRevision(installedBase.getRevision());
+
         for(InstalledOfferResponse offer :installedBase.getOffers()){
             for(InstalledTariffResponse tariff :offer.getTariffs()){
-                CreateUpdateBillingInstalledBaseTariffItemResult tariffUpdateResult = new CreateUpdateBillingInstalledBaseTariffItemResult();
-                result.addItem(tariffUpdateResult);
-                BillingInstalledBaseItemFee billingInstalledBaseFee =
-                        getOrCreateBillingItem(
-                                origBillingInstalledBase,
-                                tariffUpdateResult,
-                                BillingInstalledBaseItemFee.class,
-                                itemFee->itemFee.getTariffId().equals(tariff.getId()),
-                                newKey-> buildNewFee(newKey,tariff)
-                        );
-                if(!tariffUpdateResult.getAction().equals(CreateUpdateBillingInstalledBaseAction.CREATED)){
-                    //TODO check unmodifiable values
-                }
-
-                CreateUpdateBillingInstalledBaseAction statusUpdateAction = updateStatusService.manageUpdateOfStatuses(billingInstalledBaseFee,tariff.getStatuses(),tariffUpdateResult);
-                if(!tariffUpdateResult.getAction().equals(CreateUpdateBillingInstalledBaseAction.CREATED)){
-                    result.setAction(statusUpdateAction);
-                }
-
-
-                for(InstalledDiscountResponse discount:tariff.getDiscounts()){
-                    CreateUpdateBillingInstalledBaseDiscountItemResult discountUpdateResult = new CreateUpdateBillingInstalledBaseDiscountItemResult();
-                    result.addItem(discountUpdateResult);
-                    BillingInstalledBaseItemDiscount billingInstalledBaseDiscount =
-                            getOrCreateBillingItem(
-                                    origBillingInstalledBase,
-                                    discountUpdateResult,
-                                    BillingInstalledBaseItemDiscount.class,
-                                    item->item.getDiscountId().equals(discount.getId()),
-                                    key->buildNewDiscount(key,billingInstalledBaseFee,discount)
-
-                            );
-
-
-                    if(!discountUpdateResult.getAction().equals(CreateUpdateBillingInstalledBaseAction.CREATED)){
-                        //TODO check unmodifiable values
-                    }
-
-                    CreateUpdateBillingInstalledBaseAction discountStatusUpdateAction = updateStatusService.manageUpdateOfStatuses(billingInstalledBaseDiscount,discount.getStatuses(),discountUpdateResult);
-                    if(!discountUpdateResult.getAction().equals(CreateUpdateBillingInstalledBaseAction.CREATED)){
-                        result.setAction(discountStatusUpdateAction);
-                    }
-                }
+                CreateUpdateBillingInstalledBaseTariffItemResult tariffUpdateResult = manageTariffUpdate(origBillingInstalledBase, result, tariff);
+                manageGlobalUpdateResult(result,tariffUpdateResult);
             }
         }
-
-        for(InstalledProductServiceResponse installedProductService:installedBase.getPsList()){
-
+        if(result.getAction()==null){
+            result.setAction(CreateUpdateBillingInstalledBaseAction.UNCHANGED);
         }
 
         return result;
+    }
+
+    private CreateUpdateBillingInstalledBaseTariffItemResult manageTariffUpdate(BillingInstalledBase origBillingInstalledBase, CreateUpdateBillingInstalledBaseResult result, InstalledTariffResponse tariff) {
+        CreateUpdateBillingInstalledBaseTariffItemResult tariffUpdateResult= new CreateUpdateBillingInstalledBaseTariffItemResult();
+        BillingInstalledBaseItemFee billingInstalledBaseFee =
+                getOrCreateBillingItem(
+                        origBillingInstalledBase,
+                        tariffUpdateResult,
+                        BillingInstalledBaseItemFee.class,
+                        itemFee->itemFee.getTariffId().equals(tariff.getId()),
+                        newKey-> buildNewFee(newKey,tariff)
+                );
+        if(CreateUpdateBillingInstalledBaseAction.CREATED != tariffUpdateResult.getAction()){
+            //TODO check unmodifiable values
+        }
+        CreateUpdateBillingInstalledBaseAction statusUpdateAction = updateStatusService.manageUpdateOfStatuses(billingInstalledBaseFee,tariff.getStatuses(),tariffUpdateResult);
+        manageInstalledBaseItemResult(tariffUpdateResult,statusUpdateAction);
+
+        for(InstalledDiscountResponse discount:tariff.getDiscounts()){
+            CreateUpdateBillingInstalledBaseDiscountItemResult discountUpdateResult = manageDiscountCreateOrUpdate(origBillingInstalledBase, tariffUpdateResult, billingInstalledBaseFee, discount);
+            manageGlobalUpdateResult(result,discountUpdateResult);
+        }
+        return tariffUpdateResult;
+    }
+
+    private CreateUpdateBillingInstalledBaseDiscountItemResult manageDiscountCreateOrUpdate(BillingInstalledBase origBillingInstalledBase, CreateUpdateBillingInstalledBaseTariffItemResult tariffUpdateResult, BillingInstalledBaseItemFee billingInstalledBaseFee, InstalledDiscountResponse discount) {
+        CreateUpdateBillingInstalledBaseDiscountItemResult discountUpdateResult = new CreateUpdateBillingInstalledBaseDiscountItemResult();
+        BillingInstalledBaseItemDiscount billingInstalledBaseDiscount =
+                getOrCreateBillingItem(
+                        origBillingInstalledBase,
+                        discountUpdateResult,
+                        BillingInstalledBaseItemDiscount.class,
+                        item->item.getDiscountId().equals(discount.getId()),
+                        key->buildNewDiscount(key,billingInstalledBaseFee,discount)
+                );
+
+        if(CreateUpdateBillingInstalledBaseAction.CREATED ==discountUpdateResult.getAction()){
+            if(tariffUpdateResult.getAction()==null){
+                tariffUpdateResult.setAction(CreateUpdateBillingInstalledBaseAction.UPDATED);
+            }
+        }
+        else{
+            //TODO check unmodifiable values
+        }
+
+
+        CreateUpdateBillingInstalledBaseAction discountStatusUpdateAction = updateStatusService.manageUpdateOfStatuses(billingInstalledBaseDiscount,discount.getStatuses(),discountUpdateResult);
+        manageInstalledBaseItemResult(discountUpdateResult,discountStatusUpdateAction);
+        return discountUpdateResult;
+    }
+
+    private void manageInstalledBaseItemResult(CreateUpdateBillingInstalledBaseItemResult itemUpdateResult, CreateUpdateBillingInstalledBaseAction statusUpdateAction) {
+        CreateUpdateBillingInstalledBaseAction action = itemUpdateResult.getAction();
+        if(action!=null || statusUpdateAction==null){
+            return;
+        }
+        if(CreateUpdateBillingInstalledBaseAction.UNCHANGED !=statusUpdateAction){
+            itemUpdateResult.setAction(CreateUpdateBillingInstalledBaseAction.UPDATED);
+        }
+    }
+
+    private void manageGlobalUpdateResult(CreateUpdateBillingInstalledBaseResult result, CreateUpdateBillingInstalledBaseItemResult itemResult) {
+        if(itemResult.getAction()==null || itemResult.getAction()==CreateUpdateBillingInstalledBaseAction.UNCHANGED){
+            return;
+        }
+        result.addItem(itemResult);
+        CreateUpdateBillingInstalledBaseAction action = result.getAction();
+        if(action != null){
+            return;
+        }
+        if(CreateUpdateBillingInstalledBaseAction.UNCHANGED != itemResult.getAction()){
+            result.setAction(CreateUpdateBillingInstalledBaseAction.UPDATED);
+        }
     }
 
     private BillingInstalledBaseItemDiscount buildNewDiscount(Long newDiscountId, BillingInstalledBaseItemFee parentTariff, InstalledDiscountResponse discount) {
@@ -124,7 +163,8 @@ public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdat
         return newFee;
     }
 
-    private <T extends BillingInstalledBaseItem> T getOrCreateBillingItem(BillingInstalledBase billingInstalledBase, CreateUpdateBillingInstalledBaseItemResult result, Class<T> clazz, Matcher<T> matcher, Initializer<T> initializer) {
+    @VisibleForTesting
+    protected  <T extends BillingInstalledBaseItem> T getOrCreateBillingItem(BillingInstalledBase billingInstalledBase, CreateUpdateBillingInstalledBaseItemResult result, Class<T> clazz, Matcher<T> matcher, Initializer<T> initializer) {
         return billingInstalledBase.getBillingItems()
                 .stream()
                 .filter(item->clazz.isAssignableFrom(item.getClass()))
@@ -142,6 +182,17 @@ public class CreateUpdateBillingInstalledBaseServiceImpl implements ICreateUpdat
     }
 
     private <T extends BillingInstalledBaseItem> T updateBillingItemResult(T item, CreateUpdateBillingInstalledBaseItemResult result) {
+        result.setId(item.getId());
+        if(result instanceof CreateUpdateBillingInstalledBaseTariffItemResult){
+            Preconditions.checkArgument(item instanceof BillingInstalledBaseItemFee);
+            String tariffId = ((BillingInstalledBaseItemFee) item).getTariffId();
+            ((CreateUpdateBillingInstalledBaseTariffItemResult) result).setTariffId(tariffId);
+        }
+        else if(result instanceof CreateUpdateBillingInstalledBaseDiscountItemResult){
+            Preconditions.checkArgument(item instanceof BillingInstalledBaseItemDiscount);
+            String discountId = ((BillingInstalledBaseItemDiscount) item).getDiscountId();
+            ((CreateUpdateBillingInstalledBaseDiscountItemResult)result).setDiscountId(discountId);
+        }
         return item;
     }
 

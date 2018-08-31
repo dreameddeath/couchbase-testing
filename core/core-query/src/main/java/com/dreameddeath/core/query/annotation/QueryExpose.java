@@ -44,6 +44,7 @@ public @interface QueryExpose {
     FieldGenMode defaultOutputFieldMode() default FieldGenMode.SIMPLE;
     SuperClassGenMode superClassGenMode() default SuperClassGenMode.AUTO;
     boolean notDirecltyExposed() default false;
+    boolean forceGenerateMode() default false;
     String jsonTypeId() default "";
 
     boolean isClassRootHierarchy() default false;

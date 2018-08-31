@@ -17,12 +17,15 @@
 package com.dreameddeath.installedbase.model.v1.offer;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
+import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.StandardProperty;
+import com.dreameddeath.core.query.annotation.QueryExpose;
 import com.dreameddeath.core.transcoder.json.CouchbaseDocumentTypeIdResolver;
 import com.dreameddeath.installedbase.model.v1.common.IHasInstalledItemLink;
 import com.dreameddeath.installedbase.model.v1.common.InstalledItem;
@@ -39,6 +42,7 @@ import java.util.List;
  */
 @JsonTypeInfo(use= JsonTypeInfo.Id.CUSTOM, include= JsonTypeInfo.As.PROPERTY, property="@t",visible = true)
 @JsonTypeIdResolver(CouchbaseDocumentTypeIdResolver.class)
+@QueryExpose(rootPath = "dummy",isClassRootHierarchy = true,notDirecltyExposed = true, defaultOutputFieldMode = FieldGenMode.SIMPLE,superClassGenMode = SuperClassGenMode.UNWRAP, forceGenerateMode = true)
 public abstract class InstalledOffer extends InstalledItem<InstalledOfferRevision> implements IHasInstalledItemLink<InstalledOfferLink>, IVersionedEntity {
     private EntityModelId fullEntityId;
     @JsonSetter("@t") @Override

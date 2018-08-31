@@ -17,11 +17,15 @@
 
 package com.dreameddeath.billing.installedbase.process.model.v1;
 
+import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBase;
+import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseResult;
+import com.dreameddeath.billing.model.v1.account.BillingAccount;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.property.Property;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
+import com.dreameddeath.core.process.model.v1.tasks.ChildDocumentCreateOrUpdateTask;
 
 /**
  * Created by Christophe Jeunesse on 16/11/2016.
@@ -45,5 +49,20 @@ public class CreateUpdateBillingInstalledBaseJob extends AbstractJob{
      */
     public void setInstalledBaseKey(String val) { installedBaseKey.set(val); }
 
+    public static class CreateUpdateBillingInstalledBaseTask extends ChildDocumentCreateOrUpdateTask<BillingInstalledBase,BillingAccount>{
+        /**
+         *  result : the create or update result
+         */
+        @DocumentProperty("result")
+        private Property<CreateUpdateBillingInstalledBaseResult> result = new ImmutableProperty<>(CreateUpdateBillingInstalledBaseTask.this);
 
+        public void setResult(CreateUpdateBillingInstalledBaseResult result){
+            this.result.set(result);
+        }
+
+        public CreateUpdateBillingInstalledBaseResult getResult(){
+            return this.result.get();
+        }
+
+    }
 }

@@ -18,8 +18,12 @@
 package com.dreameddeath.billing.installedbase.service.model.v1;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.property.ListProperty;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.property.impl.ArrayListProperty;
 import com.dreameddeath.core.model.property.impl.ImmutableProperty;
+
+import java.util.List;
 
 /**
  * Created by Christophe Jeunesse on 26/09/2017.
@@ -30,6 +34,12 @@ public class CreateUpdateBillingInstalledBaseTariffItemResult extends CreateUpda
      */
     @DocumentProperty("tariffId")
     private Property<String> tariffId = new ImmutableProperty<>(CreateUpdateBillingInstalledBaseTariffItemResult.this);
+
+    /**
+     * addedDiscounts : List of discounts being added
+     */
+    @DocumentProperty("addedDiscounts")
+    private ListProperty<String> addedDiscounts= new ArrayListProperty<>(CreateUpdateBillingInstalledBaseTariffItemResult.this);
 
     /**
      * Getter of the attribute {@link #tariffId}
@@ -47,5 +57,16 @@ public class CreateUpdateBillingInstalledBaseTariffItemResult extends CreateUpda
         this.tariffId.set(newValue);
     }
 
+    public void setAddedDiscounts(List<String> discounts){
+        this.addedDiscounts.set(discounts);
+    }
+
+    public List<String> getAddedDiscount(){
+        return this.addedDiscounts.get();
+    }
+
+    public void addDiscount(String discountId){
+        this.addedDiscounts.add(discountId);
+    }
 
 }

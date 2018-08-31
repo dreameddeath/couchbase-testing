@@ -17,9 +17,13 @@
 
 package com.dreameddeath.billing.installedbase.service;
 
+import com.dreameddeath.billing.installedbase.model.v1.BillingInstalledBase;
+import com.dreameddeath.billing.installedbase.service.model.v1.CreateUpdateBillingInstalledBaseResult;
+import com.dreameddeath.installedbase.model.v1.published.query.InstalledBaseResponse;
+
 /**
  * Created by Christophe Jeunesse on 16/11/2016.
  */
 public interface ICreateUpdateBillingInstalledBaseService {
-
+    CreateUpdateBillingInstalledBaseResult createUpdateBillingInstalledBase(InstalledBaseResponse installedBase, BillingInstalledBase origBillingInstalledBase);
 }
