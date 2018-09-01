@@ -155,7 +155,7 @@
           <artifactId>testing-daemon</artifactId>
           <version>${project.version}</version>
       </dependency>
-      <dependency>
+      <!--<dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>business-party</artifactId>
           <version>${project.version}</version>
@@ -166,7 +166,7 @@
           <artifactId>business-billing-account</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
-      </dependency>
+      </dependency>-->
       <dependency>
           <groupId>com.dreameddeath.couchbase</groupId>
           <artifactId>business-installedbase</artifactId>

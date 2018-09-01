@@ -25,6 +25,7 @@
 
     <import resource="classpath:META-INF/spring/webserver.base.applicationContext.xml"/>
     <import resource="classpath:META-INF/spring/webserver.installedbase.couchbase.applicationContext.xml" />
+    <import resource="classpath:META-INF/spring/webserver.processes.applicationContext.xml" />
 
 
     <bean id="installedBaseRevisionService" class="com.dreameddeath.installedbase.service.impl.InstalledBaseRevisionManagementServiceImpl">
@@ -37,6 +38,12 @@
         <property name="dateTimeService">
             <bean factory-bean="dateTimeFactory" factory-method="getService" />
         </property>
+    </bean>
+
+    <bean id="installedBaseDao" class="com.dreameddeath.core.dao.document.CouchbaseDocumentDao"
+          factory-bean="couchbaseDaoFactory" factory-method="addDaoForEntity">
+        <constructor-arg value="installedbase" />
+        <constructor-arg value="installedbase" />
     </bean>
 
     <bean id="taskUpdateOfferProcess" class="com.dreameddeath.core.process.service.ITaskProcessingService"
