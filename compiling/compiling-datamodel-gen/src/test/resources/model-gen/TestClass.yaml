@@ -1,0 +1,32 @@
+package: com.dreameddeath.test
+version: 1.1.0
+name: TestClass
+dbName: test
+parent: ParentTestClass
+flags:
+  - abstract
+fields:
+  - name: firstField
+    dbName: secondField
+    since: 1.1.0
+    type: String
+    flags:
+      - immutable
+      - notNull
+    default: "TOTO"
+    description: a simple first field
+  - name : ref
+    type: *ParentTestClass
+    description: a simple ref
+  - name: simpleMap
+    type: Map<String,Integer>
+    description: a simple map
+  - name: refMap
+    type: Map<String,*ParentTestClass>
+    description: a ref Map
+  - name: simpleList
+    type: List<Integer>
+    description: a simple list
+  - name: refList
+    type: List<*ParentTestClass>
+    description: a list of Ref classes

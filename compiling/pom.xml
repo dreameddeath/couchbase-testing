@@ -31,6 +31,7 @@
     <modules>
         <module>compiling-annotation-processor-tools</module>
         <module>compiling-doclet</module>
+        <module>compiling-datamodel-gen</module>
     </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

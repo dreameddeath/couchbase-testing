@@ -1,0 +1,20 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>dummy-model-gen</artifactId>
+    <name>dummy-model-gen</name>
+    <packaging>jar</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.dreameddeath.couchbase</groupId>
+                <artifactId>compiling-datamodel-gen</artifactId>
+                <configuration>
+                    <modelPath>${basedir}/src/test/resources/model-gen</modelPath>
+                    <outputPath>${basedir}/target/generated-test-sources/datamodel-gen</outputPath>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
