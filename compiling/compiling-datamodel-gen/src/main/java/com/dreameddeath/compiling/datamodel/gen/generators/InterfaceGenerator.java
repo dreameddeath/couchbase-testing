@@ -27,6 +27,14 @@ public class InterfaceGenerator {
                 .addModifiers(Modifier.PUBLIC,Modifier.ABSTRACT)
                 .returns(effectiveClassName);
 
+        if(!model.flags.contains(ModelDef.Flag.ABSTRACT)){
+            builderTypeSpec.addMethod(MethodSpec.methodBuilder("newInstance")
+                    .addModifiers(Modifier.PUBLIC,Modifier.STATIC)
+                    .returns(ParameterizedTypeName.get(effectiveBuilderClassName, WildcardTypeName.subtypeOf(effectiveBuilderClassName)))
+                    .addStatement("return new $T()",typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.IMPL_BUILDER))
+                    .build()
+            );
+        }
         if(StringUtils.isNotEmptyAfterTrim(model.parent)){
             typeSpec.addSuperinterface(typeHelper.getTypeName(model,model.parent, TypeHelper.SubType.INTERFACE));
             ClassName typeName = (ClassName)typeHelper.getTypeName(model, model.parent, TypeHelper.SubType.BUILDER);

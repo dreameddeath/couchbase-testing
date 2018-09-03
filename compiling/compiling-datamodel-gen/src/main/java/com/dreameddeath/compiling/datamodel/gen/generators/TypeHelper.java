@@ -107,11 +107,11 @@ public class TypeHelper {
     public ClassName getEffectiveClassName(ClassName origClassName, SubType subType) {
         switch (subType){
             case INTERFACE:
-                return ClassName.get(origClassName.packageName(),"I"+origClassName.simpleName());
+                return ClassName.get(origClassName.packageName(),origClassName.simpleName());
             case BUILDER:
                 return getEffectiveClassName(origClassName,SubType.INTERFACE).nestedClass("Builder");
             case IMPL:
-                return ClassName.get(origClassName.packageName()+".impl",origClassName.simpleName());
+                return ClassName.get(origClassName.packageName()+".impl",origClassName.simpleName()+"Impl");
             case IMPL_BUILDER:
                 return getEffectiveClassName(origClassName,SubType.IMPL).nestedClass("Builder");
             case BASE:

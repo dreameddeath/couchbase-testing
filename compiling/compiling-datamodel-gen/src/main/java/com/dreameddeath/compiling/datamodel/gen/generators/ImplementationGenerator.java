@@ -34,14 +34,6 @@ public class ImplementationGenerator {
                         .builder(ClassName.get(JsonDeserialize.class))
                         .addMember("builder","$T.class",effectiveBuilderClassName)
                         .build()
-                )
-                .addMethod(MethodSpec
-                        .methodBuilder("toMutable")
-                        .addModifiers(Modifier.PUBLIC)
-                        .addAnnotation(Override.class)
-                        .returns(ParameterizedTypeName.get(effectiveBuilderClassName, WildcardTypeName.subtypeOf(effectiveBuilderClassName)))
-                        .addStatement("return new $T<$T>(this)",effectiveBuilderClassName,effectiveBuilderClassName)
-                        .build()
                 );
 
         TypeSpec.Builder builderTypeSpec = TypeSpec.classBuilder(effectiveBuilderClassName)
@@ -59,14 +51,10 @@ public class ImplementationGenerator {
                         .addModifiers(Modifier.PRIVATE)
                         .build()
                 )
-                .addMethod(MethodSpec
-                        .methodBuilder("create")
+                .addMethod(MethodSpec.constructorBuilder()
                         .addModifiers(Modifier.PUBLIC)
-                        .addAnnotation(Override.class)
-                        .returns(effectiveClassName)
-                        .addStatement("return new $T(this)",effectiveClassName)
-                        .build()
-                );
+                        .addStatement("this(null)")
+                        .build());
 
         MethodSpec.Builder typeSpecConstructor = MethodSpec.constructorBuilder()
                 .addParameter(ParameterSpec.builder(effectiveBuilderClassName, BUILDER_PARAM_NAME).build())
@@ -81,6 +69,31 @@ public class ImplementationGenerator {
 
         Context context = new Context(typeSpec, typeSpecConstructor, builderTypeSpec, builderConstructor);
 
+
+        MethodSpec.Builder createSpec = MethodSpec
+                .methodBuilder("create")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(effectiveClassName);
+        MethodSpec.Builder toMutableSpec = MethodSpec
+                .methodBuilder("toMutable")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(ParameterizedTypeName.get(effectiveBuilderClassName, WildcardTypeName.subtypeOf(effectiveBuilderClassName)))
+                ;
+
+        if(model.flags.contains(ModelDef.Flag.ABSTRACT)){
+            typeSpec.addModifiers(Modifier.ABSTRACT);
+            builderTypeSpec.addModifiers(Modifier.ABSTRACT);
+            createSpec.addModifiers(Modifier.ABSTRACT);
+            toMutableSpec.addModifiers(Modifier.ABSTRACT);
+        }
+        else{
+            createSpec.addStatement("return new $T(this)", effectiveClassName);
+            toMutableSpec.addStatement("return new $T<$T>(this)", effectiveBuilderClassName, effectiveBuilderClassName);
+        }
+        typeSpec.addMethod(toMutableSpec.build());
+        builderTypeSpec.addMethod(createSpec.build());
 
         manageParent(model, context);
         context.builderConstructor.addStatement("this.$L = $L",ORIG_DATA_FIELD_NAME, ORIG_ITEM_PARAM_NAME);
