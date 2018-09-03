@@ -35,6 +35,21 @@
         <maven.plugin.testing.version>3.3.0</maven.plugin.testing.version>
     </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${maven.plugin.version}</version>
+                <configuration>
+                    <mojoDependencies>
+                        <param>com.dreameddeath.couchbase:compiling-datamodel-gen</param>
+                    </mojoDependencies>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
