@@ -21,6 +21,7 @@ import com.couchbase.client.core.message.kv.MutationToken;
 import com.dreameddeath.core.dao.document.CouchbaseDocumentDao;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentBaseMetaInfo;
 import com.dreameddeath.core.model.exception.mapper.MappingNotFoundException;
 import com.dreameddeath.core.model.mapper.IDocumentClassMappingInfo;
 import com.dreameddeath.core.model.transcoder.ITranscoder;
@@ -112,7 +113,7 @@ public class BucketDocumentCache {
 
         CacheValue(CouchbaseDocument doc){
             clazz=doc.getClass();
-            CouchbaseDocument.BaseMetaInfo metaInfo=doc.getBaseMeta();
+            CouchbaseDocumentBaseMetaInfo metaInfo=doc.getBaseMeta();
             key=metaInfo.getKey();
             cas=metaInfo.getCas();
             content=metaInfo.getDbData();

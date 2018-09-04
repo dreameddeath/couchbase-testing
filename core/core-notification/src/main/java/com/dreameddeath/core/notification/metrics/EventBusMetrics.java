@@ -22,6 +22,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.HasBaseMeta;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.model.v1.INotificationsHolder;
@@ -106,7 +107,7 @@ public class EventBusMetrics implements Closeable {
         }
 
         public <T extends HasBaseMeta> T beforeInitialSave(T notificationHolder){
-            if(notificationHolder.getBaseMeta().getState()!= CouchbaseDocument.DocumentState.SYNC){
+            if(notificationHolder.getBaseMeta().getState()!= DocumentState.SYNC){
                 saveInitial =initialSaves!=null?initialSaves.time():null;
             }
             return notificationHolder;

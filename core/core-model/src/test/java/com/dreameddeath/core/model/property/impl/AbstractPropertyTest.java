@@ -20,6 +20,7 @@ import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.document.CouchbaseDocumentElement;
 import com.dreameddeath.core.model.property.Property;
+import com.dreameddeath.core.model.v2.DocumentState;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -48,7 +49,7 @@ public class AbstractPropertyTest {
         assertNull(test.getRawValue());
         assertNull(test_with_default.getRawValue());
         assertNull(test_with_defaultClass.getRawValue());
-        assertEquals(CouchbaseDocument.DocumentState.SYNC,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.SYNC,doc.getBaseMeta().getState());
     }
 
     @Test
@@ -61,17 +62,17 @@ public class AbstractPropertyTest {
 
         //Test get with default value
         assertNull(test.get());
-        assertEquals(CouchbaseDocument.DocumentState.SYNC, doc.getBaseMeta().getState());
+        assertEquals(DocumentState.SYNC, doc.getBaseMeta().getState());
         assertEquals("test", test_with_default.get());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
         doc.getBaseMeta().setStateSync();
         assertNotNull(test_with_defaultClass.get());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
         doc.getBaseMeta().setStateSync();
         assertNotNull(test_with_defaultClass.get());
-        assertEquals(CouchbaseDocument.DocumentState.SYNC, doc.getBaseMeta().getState());
+        assertEquals(DocumentState.SYNC, doc.getBaseMeta().getState());
         test_with_defaultClass.get().setTest("toto");
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY, doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY, doc.getBaseMeta().getState());
     }
 
     @Test
@@ -82,7 +83,7 @@ public class AbstractPropertyTest {
 
         test.set("test");
         assertEquals("test",test.get());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
     }
 
     @Test

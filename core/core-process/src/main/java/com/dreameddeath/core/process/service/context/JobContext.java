@@ -20,7 +20,7 @@ package com.dreameddeath.core.process.service.context;
 import com.codahale.metrics.MetricRegistry;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.dao.TaskDao;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -101,7 +101,7 @@ public class JobContext<TJOB extends AbstractJob> {
     }
 
     public boolean isJobSaved() {
-        return job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC);
+        return job.getBaseMeta().getState().equals(DocumentState.SYNC);
     }
 
     public Single<JobContext<TJOB>> execute(){
@@ -283,7 +283,7 @@ public class JobContext<TJOB extends AbstractJob> {
     }
 
     public boolean isNew() {
-        return job.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW);
+        return job.getBaseMeta().getState().equals(DocumentState.NEW);
     }
 
     public IEventBus getEventBus() {

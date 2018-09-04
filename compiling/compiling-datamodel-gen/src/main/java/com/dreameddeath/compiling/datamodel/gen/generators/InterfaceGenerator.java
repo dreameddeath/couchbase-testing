@@ -8,12 +8,12 @@ import com.squareup.javapoet.*;
 import javax.lang.model.element.Modifier;
 
 public class InterfaceGenerator {
-    TypeHelper typeHelper = new TypeHelper();
+    private final TypeHelper typeHelper = new TypeHelper();
 
     public TypeSpec generate(ModelDef model){
         ClassName coreClassName = typeHelper.getCoreClassName(model);
-        ClassName effectiveClassName = typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.INTERFACE);
-        ClassName effectiveBuilderClassName = typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.INTERFACE).nestedClass("Builder");
+        ClassName effectiveClassName = typeHelper.getEffectiveClassName(coreClassName, SubType.INTERFACE);
+        ClassName effectiveBuilderClassName = typeHelper.getEffectiveClassName(coreClassName, SubType.INTERFACE).nestedClass("Builder");
         TypeSpec.Builder typeSpec = TypeSpec.interfaceBuilder(effectiveClassName)
                 .addModifiers(Modifier.PUBLIC);
         TypeSpec.Builder builderTypeSpec = TypeSpec.interfaceBuilder(effectiveBuilderClassName)
@@ -31,13 +31,13 @@ public class InterfaceGenerator {
             builderTypeSpec.addMethod(MethodSpec.methodBuilder("newInstance")
                     .addModifiers(Modifier.PUBLIC,Modifier.STATIC)
                     .returns(ParameterizedTypeName.get(effectiveBuilderClassName, WildcardTypeName.subtypeOf(effectiveBuilderClassName)))
-                    .addStatement("return new $T()",typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.IMPL_BUILDER))
+                    .addStatement("return new $T()",typeHelper.getEffectiveClassName(coreClassName, SubType.IMPL_BUILDER))
                     .build()
             );
         }
         if(StringUtils.isNotEmptyAfterTrim(model.parent)){
-            typeSpec.addSuperinterface(typeHelper.getTypeName(model,model.parent, TypeHelper.SubType.INTERFACE));
-            ClassName typeName = (ClassName)typeHelper.getTypeName(model, model.parent, TypeHelper.SubType.BUILDER);
+            typeSpec.addSuperinterface(typeHelper.getTypeName(model,model.parent, SubType.INTERFACE));
+            ClassName typeName = (ClassName)typeHelper.getTypeName(model, model.parent, SubType.BUILDER);
             builderTypeSpec.addSuperinterface(
                     ParameterizedTypeName.get(typeName,TypeVariableName.get("T")));
             toMutable.addAnnotation(Override.class);
@@ -57,7 +57,7 @@ public class InterfaceGenerator {
 
     private void generateField(ModelDef model, ClassName coreClassName, TypeSpec.Builder typeSpec, TypeSpec.Builder builderTypeSpec, FieldModelDef fieldDef) {
         try {
-            TypeName typeName = typeHelper.getTypeName(model, fieldDef.type, TypeHelper.SubType.INTERFACE);
+            TypeName typeName = typeHelper.getTypeName(model, fieldDef.type, SubType.INTERFACE);
             typeSpec.addMethod(
                     MethodSpec
                             .methodBuilder(StringUtils.lowerCaseFirst(fieldDef.name))
@@ -69,7 +69,7 @@ public class InterfaceGenerator {
             builderTypeSpec.addMethod(
                     MethodSpec.methodBuilder("with"+StringUtils.capitalizeFirst(fieldDef.name))
                             .addModifiers(Modifier.PUBLIC,Modifier.ABSTRACT)
-                            .returns(ParameterizedTypeName.get(typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.BUILDER),TypeVariableName.get("T")))
+                            .returns(typeHelper.buildBuilderReturnType(model,SubType.BUILDER))
                             .addParameter(ParameterSpec.builder(typeName,"value").build())
                     .build()
             );

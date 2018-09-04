@@ -3,7 +3,9 @@ package com.dreameddeath.compiling.datamodel.gen.generators;
 import com.dreameddeath.compiling.datamodel.gen.model.FieldModelDef;
 import com.dreameddeath.compiling.datamodel.gen.model.ModelDef;
 import com.dreameddeath.core.java.utils.StringUtils;
+import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -20,16 +22,17 @@ public class ImplementationGenerator {
     public static final String BUILDER_PARAM_NAME = "__builder";
     public static final String ORIG_ITEM_PARAM_NAME = "__origItem";
 
-    TypeHelper typeHelper = new TypeHelper();
+    private final TypeHelper typeHelper = new TypeHelper();
+    private final AnnotationHelper annotationHelper = new AnnotationHelper();
 
     public TypeSpec generate(ModelDef model) {
         ClassName coreClassName = typeHelper.getCoreClassName(model);
-        ClassName effectiveClassName = typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.IMPL);
-        ClassName effectiveBuilderClassName = typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.IMPL_BUILDER);
+        ClassName effectiveClassName = typeHelper.getEffectiveClassName(coreClassName, SubType.IMPL);
+        ClassName effectiveBuilderClassName = typeHelper.getEffectiveClassName(coreClassName, SubType.IMPL_BUILDER);
 
         TypeSpec.Builder typeSpec = TypeSpec.classBuilder(effectiveClassName)
                 .addModifiers(Modifier.PUBLIC)
-                .addSuperinterface(typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.INTERFACE))
+                .addSuperinterface(typeHelper.getEffectiveClassName(coreClassName, SubType.INTERFACE))
                 .addAnnotation(AnnotationSpec
                         .builder(ClassName.get(JsonDeserialize.class))
                         .addMember("builder","$T.class",effectiveBuilderClassName)
@@ -38,7 +41,7 @@ public class ImplementationGenerator {
 
         TypeSpec.Builder builderTypeSpec = TypeSpec.classBuilder(effectiveBuilderClassName)
                 .addTypeVariable(TypeVariableName.get("T",effectiveBuilderClassName))
-                .addSuperinterface(ParameterizedTypeName.get(typeHelper.getEffectiveClassName(coreClassName, TypeHelper.SubType.BUILDER),TypeVariableName.get("T")))
+                .addSuperinterface(ParameterizedTypeName.get(typeHelper.getEffectiveClassName(coreClassName, SubType.BUILDER),TypeVariableName.get("T")))
                 .addModifiers(Modifier.PUBLIC,Modifier.STATIC)
                 .addAnnotation(AnnotationSpec
                         .builder(ClassName.get(JsonPOJOBuilder.class))
@@ -98,6 +101,8 @@ public class ImplementationGenerator {
         manageParent(model, context);
         context.builderConstructor.addStatement("this.$L = $L",ORIG_DATA_FIELD_NAME, ORIG_ITEM_PARAM_NAME);
 
+        annotationHelper.addAnnotationsForClass(context,model);
+
         for(FieldModelDef field:model.fields){
             generateField(context,model,field);
         }
@@ -110,7 +115,7 @@ public class ImplementationGenerator {
 
     private void generateField(Context context, ModelDef model, FieldModelDef field) {
         try {
-            TypeName typeName = typeHelper.getTypeName(model, field.type, TypeHelper.SubType.INTERFACE);
+            TypeName typeName = typeHelper.getTypeName(model, field.type, SubType.INTERFACE);
             String jsonFieldName = StringUtils.isEmpty(field.dbName)?field.name:field.dbName;
             String classFieldName = StringUtils.lowerCaseFirst(field.name);
             FieldSpec.Builder fieldSpec = FieldSpec.builder(typeName,classFieldName)
@@ -119,6 +124,14 @@ public class ImplementationGenerator {
             context.builderType.addField(fieldSpec.build());
 
             context.type.addField(fieldSpec.build().toBuilder()
+                    .addAnnotation(AnnotationSpec.builder(DocumentProperty.class)
+                            .addMember("value","$S",jsonFieldName)
+                            .build()
+                    )
+                    .addAnnotation(AnnotationSpec.builder(JsonProperty.class)
+                            .addMember("value","$S",jsonFieldName)
+                            .build()
+                    )
                     .addModifiers(Modifier.FINAL)
                     .build());
 
@@ -130,7 +143,7 @@ public class ImplementationGenerator {
                             .build()
                     )
                     .addParameter(ParameterSpec.builder(typeName,"newValue").build())
-                    .returns(ParameterizedTypeName.get(typeHelper.getEffectiveClassName(typeHelper.getCoreClassName(model), TypeHelper.SubType.IMPL_BUILDER),TypeVariableName.get("T")))
+                    .returns(typeHelper.buildBuilderReturnType(model,SubType.IMPL_BUILDER))
                     .addModifiers(Modifier.PUBLIC)
                     .addStatement("$L = newValue",classFieldName)
                     .addStatement("return this")
@@ -231,9 +244,9 @@ public class ImplementationGenerator {
 
     private void manageParent(ModelDef model, Context context) {
         if(StringUtils.isNotEmptyAfterTrim(model.parent)){
-            context.type.superclass(typeHelper.getTypeName(model,model.parent, TypeHelper.SubType.IMPL));
+            context.type.superclass(typeHelper.getTypeName(model,model.parent, SubType.IMPL));
             context.constructor.addStatement("super($L)",BUILDER_PARAM_NAME);
-            context.builderType.superclass(ParameterizedTypeName.get((ClassName)typeHelper.getTypeName(model, model.parent, TypeHelper.SubType.IMPL_BUILDER), TypeVariableName.get("T")));
+            context.builderType.superclass(ParameterizedTypeName.get((ClassName)typeHelper.getTypeName(model, model.parent, SubType.IMPL_BUILDER), TypeVariableName.get("T")));
             context.builderConstructor.addStatement("super($L)", ORIG_ITEM_PARAM_NAME);
         }
     }

@@ -18,6 +18,7 @@ package com.dreameddeath.core.transcoder.json;
 
 import com.dreameddeath.core.json.IProviderInterceptor;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentBaseMetaInfo;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class CouchbaseDocumentProviderInterceptor implements IProviderIntercepto
 
     @Override
     public void preWriteTo(CouchbaseDocument value, Annotation[] annotations, MultivaluedMap<String, Object> httpHeaders) throws IOException {
-        CouchbaseDocument.BaseMetaInfo info = value.getBaseMeta();
+        CouchbaseDocumentBaseMetaInfo info = value.getBaseMeta();
         if(info.getKey()!=null) {
             httpHeaders.add(HTTP_HEADER_DOC_KEY, info.getKey());
         }
@@ -53,7 +54,7 @@ public class CouchbaseDocumentProviderInterceptor implements IProviderIntercepto
 
     @Override
     public void postReadFrom(CouchbaseDocument value, Annotation[] annotations, MultivaluedMap<String, String> httpHeaders) {
-        CouchbaseDocument.BaseMetaInfo info = value.getBaseMeta();
+        CouchbaseDocumentBaseMetaInfo info = value.getBaseMeta();
         String flagsStr = httpHeaders.getFirst(HTTP_HEADER_DOC_FLAGS);
         if(flagsStr!=null) {
             info.setEncodedFlags(Integer.parseInt(flagsStr));

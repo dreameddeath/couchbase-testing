@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeVariableName;
 import org.joda.time.DateTime;
 
 import java.io.File;
@@ -150,11 +151,7 @@ public class TypeHelper {
         }
     }
 
-    public enum SubType{
-        INTERFACE,
-        BUILDER,
-        IMPL,
-        IMPL_BUILDER,
-        BASE
+    public TypeName buildBuilderReturnType(ModelDef model,SubType subType){
+        return ParameterizedTypeName.get(this.getEffectiveClassName(this.getCoreClassName(model), subType), TypeVariableName.get("T"));
     }
 }

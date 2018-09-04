@@ -17,6 +17,7 @@
 package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.v2.DocumentState;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -37,7 +38,7 @@ public class ArrayListPropertyTest {
         doc.getBaseMeta().setStateSync();
 
         assertEquals(10L,(long)prop.get());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
 
 
 
@@ -53,14 +54,14 @@ public class ArrayListPropertyTest {
         test.add("test");
         assertEquals(1, test.size());
         assertEquals("test",test.get(0));
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
 
         //Assert
         doc.getBaseMeta().setStateSync();
         test.add("test2");
         assertEquals(2,test.size());
         assertEquals("test2",test.get(1));
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
 
 
         //TODO tests with "HasElement" object;
@@ -79,12 +80,12 @@ public class ArrayListPropertyTest {
         doc.getBaseMeta().setStateSync();
         assertTrue(test.remove("test3"));
         assertArrayEquals(new String[]{"test","test2","test4"},test.toArray());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
         //Assert
         doc.getBaseMeta().setStateSync();
         assertEquals("test2", test.remove(1));
         assertArrayEquals(new String[]{"test","test4"},test.toArray());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
 
         //TODO tests with "HasElement" object;
     }
@@ -104,13 +105,13 @@ public class ArrayListPropertyTest {
         doc.getBaseMeta().setStateSync();
         assertEquals("test3", test.set(2, "test3bis"));
         assertArrayEquals(new String[]{"test", "test2", "test3bis", "test4"}, test.toArray());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
 
         //Replace whole list
         doc.getBaseMeta().setStateSync();
         test.set((Collection<String>)Arrays.asList("test1bis","test2bis","test3bis"));
         assertArrayEquals(new String[]{"test1bis","test2bis","test3bis"}, test.toArray());
-        assertEquals(CouchbaseDocument.DocumentState.DIRTY,doc.getBaseMeta().getState());
+        assertEquals(DocumentState.DIRTY,doc.getBaseMeta().getState());
 
         //TODO tests with "HasElement" object;
 

@@ -2,6 +2,7 @@ package com.dreameddeath.compiling.datamodel.gen;
 
 import com.dreameddeath.compiling.datamodel.gen.generators.ImplementationGenerator;
 import com.dreameddeath.compiling.datamodel.gen.generators.InterfaceGenerator;
+import com.dreameddeath.compiling.datamodel.gen.generators.SubType;
 import com.dreameddeath.compiling.datamodel.gen.generators.TypeHelper;
 import com.dreameddeath.compiling.datamodel.gen.model.ModelDef;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,7 +61,7 @@ public class DataModelGeneratorMojo extends AbstractMojo {
         for(ModelDef model:models){
             {
                 TypeSpec generatedInterface = interfaceGenerator.generate(model);
-                JavaFile javaFile = JavaFile.builder(typeHelper.getPackage(model, TypeHelper.SubType.INTERFACE), generatedInterface)
+                JavaFile javaFile = JavaFile.builder(typeHelper.getPackage(model, SubType.INTERFACE), generatedInterface)
                         .indent("    ")
                         .build();
                 try {
@@ -72,7 +73,7 @@ public class DataModelGeneratorMojo extends AbstractMojo {
             }
             {
                 TypeSpec generatedImpl = implementationGenerator.generate(model);
-                JavaFile javaFile = JavaFile.builder(typeHelper.getPackage(model, TypeHelper.SubType.IMPL), generatedImpl)
+                JavaFile javaFile = JavaFile.builder(typeHelper.getPackage(model, SubType.IMPL), generatedImpl)
                         .indent("    ")
                         .build();
                 try {

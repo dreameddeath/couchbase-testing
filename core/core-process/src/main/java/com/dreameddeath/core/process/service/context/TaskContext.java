@@ -18,7 +18,7 @@
 package com.dreameddeath.core.process.service.context;
 
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.process.exception.TaskExecutionException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -85,7 +85,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
     }
     public Single<TJOB> getParentJob(){ return jobContext.getJob();}
     public TJOB getParentInternalJob(){ return jobContext.getInternalJob();}
-    public boolean isNew(){ return task.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW);}
+    public boolean isNew(){ return task.getBaseMeta().getState().equals(DocumentState.NEW);}
     public String getId(){ return task.getId();}
     public String getParentTaskId(){ return task.getParentTaskId();}
     public void setId(String id){
@@ -112,7 +112,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
     }
 
     public boolean isTaskSaved() {
-        return task.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC);
+        return task.getBaseMeta().getState().equals(DocumentState.SYNC);
     }
 
     public ITaskExecutorService<TJOB, T> getExecutorService() {
@@ -248,7 +248,7 @@ public class TaskContext<TJOB extends AbstractJob,T extends AbstractTask> implem
             this.jobContext = jobCtxt;
             this.session = jobCtxt.getSession();
             this.task=task;
-            if(task.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
+            if(task.getBaseMeta().getState().equals(DocumentState.NEW)){
                 tempId= UUID.randomUUID().toString();
             }
             else{

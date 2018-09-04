@@ -19,6 +19,7 @@ package com.dreameddeath.core.process.model.v1.base;
 
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentBaseMetaInfo;
 import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -41,7 +42,7 @@ public abstract class AbstractProcessCouchbaseDocument extends CouchbaseDocument
         super();
     }
 
-    public AbstractProcessCouchbaseDocument(BaseMetaInfo meta) {
+    public AbstractProcessCouchbaseDocument(CouchbaseDocumentBaseMetaInfo meta) {
         super(meta);
     }
 

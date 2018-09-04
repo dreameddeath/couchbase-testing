@@ -22,6 +22,7 @@ import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.model.annotation.DocumentEntity;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentBaseMetaInfo;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.property.ListProperty;
@@ -171,7 +172,7 @@ public abstract class AbstractTask extends CouchbaseDocument implements IVersion
         return (MetaInfo) getBaseMeta();
     }
 
-    public class MetaInfo extends BaseMetaInfo implements IHasUniqueKeysRef {
+    public class MetaInfo extends CouchbaseDocumentBaseMetaInfo implements IHasUniqueKeysRef {
         private Set<String> inDbUniqKeys = new HashSet<>();
 
         @Override

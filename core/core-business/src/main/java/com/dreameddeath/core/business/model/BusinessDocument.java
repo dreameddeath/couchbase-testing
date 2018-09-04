@@ -20,6 +20,7 @@ package com.dreameddeath.core.business.model;
 import com.dreameddeath.core.dao.model.IHasUniqueKeysRef;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
 import com.dreameddeath.core.model.annotation.DocumentProperty;
+import com.dreameddeath.core.model.document.CouchbaseDocumentBaseMetaInfo;
 import com.dreameddeath.core.model.dto.annotation.processor.model.FieldGenMode;
 import com.dreameddeath.core.model.dto.annotation.processor.model.SuperClassGenMode;
 import com.dreameddeath.core.model.entity.model.EntityModelId;
@@ -87,7 +88,7 @@ public abstract class BusinessDocument extends AbstractProcessCouchbaseDocument 
         return (MetaInfo) getBaseMeta();
     }
 
-    public class MetaInfo extends BaseMetaInfo implements IHasUniqueKeysRef {
+    public class MetaInfo extends CouchbaseDocumentBaseMetaInfo implements IHasUniqueKeysRef {
         private final Set<String> inDbUniqKeys = new HashSet<>();
 
         private void syncKeyWithDb(){

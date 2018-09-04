@@ -33,11 +33,12 @@ import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.java.utils.ClassUtils;
 import com.dreameddeath.core.model.annotation.HasEffectiveDomain;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
-import com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
 import com.dreameddeath.core.model.entity.EntityDefinitionManager;
 import com.dreameddeath.core.model.entity.model.EntityDef;
 import com.dreameddeath.core.model.entity.model.IVersionedEntity;
 import com.dreameddeath.core.model.util.CouchbaseDocumentStructureReflection;
+import com.dreameddeath.core.model.v2.DocumentFlag;
+import com.dreameddeath.core.model.v2.DocumentState;
 import io.reactivex.Single;
 import io.reactivex.functions.Function;
 
@@ -176,14 +177,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
 
     public T checkUpdatableState(T obj) throws InconsistentStateException {
-        if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
+        if(obj.getBaseMeta().getState().equals(DocumentState.NEW)){
             throw new InconsistentStateException(obj,"The document is new and then cannot be updated");
         }
         if(obj.getBaseMeta().getKey()==null){
             throw new InconsistentStateException(obj,"The document is doesn't have a key and then cannot be deleted");
         }
         if(obj.getBaseMeta().hasFlag(DocumentFlag.Deleted) ||
-                obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
+                obj.getBaseMeta().getState().equals(DocumentState.DELETED)){
             throw new InconsistentStateException(obj,"The document is in deletion and then cannot be modified");
         }
         if(isReadOnly){
@@ -211,7 +212,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
 
     public T checkCreatableState(T obj) throws InconsistentStateException{
-        if(!obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
+        if(!obj.getBaseMeta().getState().equals(DocumentState.NEW)){
             throw new InconsistentStateException(obj,"The document is not new and then cannot be create");
         }
         if(isReadOnly){
@@ -221,14 +222,14 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
     }
 
     public T checkDeletableState(T obj) throws InconsistentStateException{
-        if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
+        if(obj.getBaseMeta().getState().equals(DocumentState.NEW)){
             throw new InconsistentStateException(obj,"The document is new and then cannot be deleted");
         }
         if(obj.getBaseMeta().getKey()==null){
             throw new InconsistentStateException(obj,"The document is doesn't have a key and then cannot be deleted");
         }
         if(obj.getBaseMeta().hasFlag(DocumentFlag.Deleted) ||
-                obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
+                obj.getBaseMeta().getState().equals(DocumentState.DELETED)){
             throw new InconsistentStateException(obj,"The document is already in deletion and then cannot be deleted");
         }
         if(isReadOnly){
@@ -374,7 +375,7 @@ public abstract class CouchbaseDocumentDao<T extends CouchbaseDocument>{
 
     //To be reused by cache Read
     public final T managePostReading(T obj){
-        obj =manageDaoLevelTransientFields(obj);
+        obj = manageDaoLevelTransientFields(obj);
         if (obj.getBaseMeta().hasFlag(DocumentFlag.Deleted)) {
             obj.getBaseMeta().setStateDeleted();
         }

@@ -21,6 +21,7 @@ import com.dreameddeath.core.couchbase.exception.DocumentNotFoundException;
 import com.dreameddeath.core.dao.exception.DuplicateUniqueKeyDaoException;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.exception.DuplicateUniqueKeyException;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.process.exception.DuplicateUniqueKeyCreateOrUpdateTaskException;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
 import com.dreameddeath.core.process.model.v1.base.IDocumentWithLinkedTasks;
@@ -159,7 +160,7 @@ public abstract class DocumentCreateOrUpdateTaskProcessingService <TJOB extends 
     }
 
     private Single<ContextAndDocument> buildAndOrSetDocKey(ContextAndDocument contextAndDocument) {
-        if(contextAndDocument.getDoc().getBaseMeta().getState() == CouchbaseDocument.DocumentState.NEW){
+        if(contextAndDocument.getDoc().getBaseMeta().getState() == DocumentState.NEW){
             return contextAndDocument.getCtxt().getSession().asyncBuildKey(contextAndDocument.getDoc())
                     .map(docWithKey->{
                         contextAndDocument.getCtxt().getInternalTask().setDocKey(docWithKey.getBaseMeta().getKey());

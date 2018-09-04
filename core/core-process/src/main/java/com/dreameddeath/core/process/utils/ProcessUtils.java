@@ -20,7 +20,7 @@ package com.dreameddeath.core.process.utils;
 import com.dreameddeath.core.couchbase.exception.StorageException;
 import com.dreameddeath.core.dao.exception.DaoException;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.notification.common.IEvent;
 import com.dreameddeath.core.notification.listener.impl.AbstractNotificationProcessor;
 import com.dreameddeath.core.process.model.v1.base.AbstractJob;
@@ -52,7 +52,7 @@ public class ProcessUtils {
 
     public static <TJOB extends AbstractJob> Single<AbstractNotificationProcessor.ProcessingResult> mapJobResultToNotificationProcessingResult(JobContext<TJOB> context){
         ProcessState.State state = context.getJobState().getState();
-        if(state==null || state== ProcessState.State.UNKNOWN || context.getInternalJob().getMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
+        if(state==null || state== ProcessState.State.UNKNOWN || context.getInternalJob().getMeta().getState().equals(DocumentState.NEW)){
             Single.error(new IllegalStateException("The id "+context.getJobId()+" of type "+context.getInternalJob().getClass()+" in an inconsistent state"));
         }
         switch (context.getJobState().getState()){

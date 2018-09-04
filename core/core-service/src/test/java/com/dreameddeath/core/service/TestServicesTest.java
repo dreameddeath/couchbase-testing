@@ -23,6 +23,7 @@ import com.dreameddeath.core.context.impl.GlobalContextFactoryImpl;
 import com.dreameddeath.core.java.utils.StringUtils;
 import com.dreameddeath.core.json.ObjectMapperFactory;
 import com.dreameddeath.core.log.MdcSchedulerHook;
+import com.dreameddeath.core.model.v2.DocumentFlag;
 import com.dreameddeath.core.service.annotation.processor.ServiceExposeAnnotationProcessor;
 import com.dreameddeath.core.service.client.AbstractServiceClientFactory;
 import com.dreameddeath.core.service.client.IServiceClient;
@@ -67,8 +68,6 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.dreameddeath.core.model.document.CouchbaseDocument.DocumentFlag;
 
 
 /**

@@ -21,5 +21,5 @@ package com.dreameddeath.core.model.document;
  * Created by Christophe Jeunesse on 30/08/2017.
  */
 public interface HasBaseMeta {
-     CouchbaseDocument.BaseMetaInfo getBaseMeta();
+     CouchbaseDocumentBaseMetaInfo getBaseMeta();
 }

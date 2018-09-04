@@ -11,10 +11,12 @@ import java.util.Set;
 public class ModelDef {
     public String fullFilename;
     public String relativeFilename;
+    public Type type=Type.DEFAULT;
     @JsonProperty("package")
     public String packageName;
     public String name;
     public String version;
+    public String domain;
     public String dbName;
     public String parent;
     public Set<Flag> flags=new HashSet<>();
@@ -23,7 +25,7 @@ public class ModelDef {
 
     public enum Flag{
         ABSTRACT,
-        ELEMENT;
+        ENTITY;
 
         @JsonCreator
         public static Flag fromString(String key) {
@@ -32,4 +34,17 @@ public class ModelDef {
                     : Flag.valueOf(key.toUpperCase());
         }
     }
+
+    public enum Type{
+        DEFAULT,
+        ELEMENT;
+
+        @JsonCreator
+        public static Type fromString(String key) {
+            return key == null
+                    ? null
+                    : Type.valueOf(key.toUpperCase());
+        }
+    }
+
 }

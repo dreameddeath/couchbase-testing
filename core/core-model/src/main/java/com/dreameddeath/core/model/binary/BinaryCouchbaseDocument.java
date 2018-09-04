@@ -17,6 +17,7 @@
 package com.dreameddeath.core.model.binary;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.document.CouchbaseDocumentBaseMetaInfo;
 
 /**
  * Created by Christophe Jeunesse on 12/10/2014.
@@ -62,7 +63,7 @@ public abstract class BinaryCouchbaseDocument<TFULL,TPARTIAL> extends CouchbaseD
 
 
 
-    public class BinaryMetaInfo extends BaseMetaInfo {
+    public class BinaryMetaInfo extends CouchbaseDocumentBaseMetaInfo {
         /// The document type is used during the Transcoder
         private BinaryDocumentType binaryDocumentType;
         /// The check-sum of the last cdrs read to detect the error

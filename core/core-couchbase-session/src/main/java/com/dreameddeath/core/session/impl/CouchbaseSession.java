@@ -38,6 +38,7 @@ import com.dreameddeath.core.dao.view.CouchbaseViewDao;
 import com.dreameddeath.core.date.IDateTimeService;
 import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.unique.CouchbaseUniqueKey;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.user.IUser;
 import com.dreameddeath.core.validation.ValidatorContext;
 import io.reactivex.Maybe;
@@ -244,7 +245,7 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> Single<T> asyncBuildKey(T obj) {
-        if(obj.getBaseMeta().getState()== CouchbaseDocument.DocumentState.NEW){
+        if(obj.getBaseMeta().getState()== DocumentState.NEW){
             try {
                 return sessionFactory.getDocumentDaoFactory().getDaoForClass(domain,(Class<T>) obj.getClass()).asyncBuildKey(this, obj);
             }
@@ -406,13 +407,13 @@ public class CouchbaseSession implements ICouchbaseSession {
 
     @Override
     public <T extends CouchbaseDocument> Single<T> asyncSave(T obj){
-        if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW)){
+        if(obj.getBaseMeta().getState().equals(DocumentState.NEW)){
             return asyncCreate(obj);
         }
-        else if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.DELETED)){
+        else if(obj.getBaseMeta().getState().equals(DocumentState.DELETED)){
             return asyncDelete(obj);
         }
-        else if(obj.getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.SYNC)){
+        else if(obj.getBaseMeta().getState().equals(DocumentState.SYNC)){
             return Single.just(obj);
         }
         else{

@@ -1,7 +1,9 @@
 version: 1.1.0
+domain: test
 name: ParentTestClass
 flags:
 - abstract
+- entity
 fields:
 - name: simpleField
   type: String

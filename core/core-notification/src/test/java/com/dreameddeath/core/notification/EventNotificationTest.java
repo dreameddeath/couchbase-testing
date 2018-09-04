@@ -19,8 +19,8 @@ package com.dreameddeath.core.notification;
 
 import com.dreameddeath.core.dao.factory.DaoUtils;
 import com.dreameddeath.core.dao.session.ICouchbaseSession;
-import com.dreameddeath.core.model.document.CouchbaseDocument;
 import com.dreameddeath.core.model.dto.converter.DtoConverterFactory;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.notification.bus.EventFireResult;
 import com.dreameddeath.core.notification.bus.IEventBus;
 import com.dreameddeath.core.notification.bus.impl.EventBusImpl;
@@ -104,7 +104,7 @@ public class EventNotificationTest extends Assert{
             EventFireResult<NoListenerTestEvent,?> result = bus.blockingFireEvent(new NoListenerTestEvent(), session);
             assertTrue(result.isSuccess());
             assertTrue(result.getResults().size()==0);
-            assertTrue(result.getEvent().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW));
+            assertTrue(result.getEvent().getBaseMeta().getState().equals(DocumentState.NEW));
         }
 
         List<TestEvent> submittedEvents = new ArrayList<>();
@@ -222,7 +222,7 @@ public class EventNotificationTest extends Assert{
             EventFireResult<NoListenerTestEvent,?> result = bus.blockingFireEvent(new NoListenerTestEvent(), session);
             assertTrue(result.isSuccess());
             assertTrue(result.getResults().size()==0);
-            assertTrue(result.getEvent().getBaseMeta().getState().equals(CouchbaseDocument.DocumentState.NEW));
+            assertTrue(result.getEvent().getBaseMeta().getState().equals(DocumentState.NEW));
         }
 
         List<AbstractTestEvent> submittedEvents = new ArrayList<>();

@@ -17,7 +17,7 @@
 
 package com.dreameddeath.core.notification.bus;
 
-import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.v2.DocumentState;
 import com.dreameddeath.core.notification.model.v1.Notification;
 
 /**
@@ -61,6 +61,6 @@ public class PublishedResult {
     }
 
     public boolean isNotificationInDb(){
-        return notification!=null && notification.getBaseMeta().getState()!= CouchbaseDocument.DocumentState.NEW;
+        return notification!=null && notification.getBaseMeta().getState()!= DocumentState.NEW;
     }
 }

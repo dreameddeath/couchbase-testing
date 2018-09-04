@@ -17,6 +17,7 @@
 package com.dreameddeath.core.model.property.impl;
 
 import com.dreameddeath.core.model.document.CouchbaseDocument;
+import com.dreameddeath.core.model.v2.DocumentState;
 import junit.framework.TestCase;
 
 public class ImmutablePropertyTest extends TestCase {
@@ -32,7 +33,7 @@ public class ImmutablePropertyTest extends TestCase {
         //Check Set
         testStr.set("str");
         assertEquals(testStr.get(),"str");
-        assertEquals(dummyDoc.getBaseMeta().getState(), CouchbaseDocument.DocumentState.DIRTY);
+        assertEquals(dummyDoc.getBaseMeta().getState(), DocumentState.DIRTY);
 
         //Check reset with same value
         testStr.set("str");
